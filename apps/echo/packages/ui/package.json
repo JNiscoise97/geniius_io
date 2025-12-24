@@ -1,0 +1,33 @@
+{
+  "name": "@echo/ui",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@echo/data": "workspace:*",
+    "@echo/domain": "workspace:*",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.1",
+    "uuid": "^13.0.0"
+  }
+}

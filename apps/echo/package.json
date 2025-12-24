@@ -1,0 +1,28 @@
+{
+  "name": "echo",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @echo/web dev",
+    "build:web": "pnpm --filter @echo/web build",
+    "preview:web": "pnpm --filter @echo/web preview",
+    "dev:desktop": "pnpm --filter @echo/desktop dev",
+    "dev:mobile": "pnpm --filter @echo/mobile start",
+    "typecheck": "tsc -b",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/node": "^24.5.2",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.9.0",
+    "typescript": "^5.9.2",
+    "vite": "^5.4.0",
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "react-router-dom": "^7.9.1",
+    "sonner": "^2.0.7"
+  }
+}

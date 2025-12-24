@@ -127,7 +127,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/mock/activity" element={<ActivityTimeline />} />
           <Route path="/mock/acteur-dialog" element={<MockDialogActeur />} />
 
-          <Route path="admin/fonctions-sql" element={<SqlFunctionsExecutorPage />} />
+          <Route path="y" element={<SqlFunctionsExecutorPage />} />
           <Route path="admin/schema-sql" element={<SchemaExplorer />} />
           <Route path="admin/lieu-parsing" element={<LieuBrutCreator />} />
           <Route path="admin/logs" element={<LogsConsole />} />

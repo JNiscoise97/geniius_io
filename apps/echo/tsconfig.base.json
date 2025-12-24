@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": false,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@echo/ui": ["packages/ui/src/index.ts"],
+      "@echo/ui/*": ["packages/ui/src/*"],
+      "@echo/data": ["packages/data/src/index.ts"],
+      "@echo/data/*": ["packages/data/src/*"],
+      "@echo/domain": ["packages/domain/src/index.ts"],
+      "@echo/domain/*": ["packages/domain/src/*"]
+    }
+  }
+}
