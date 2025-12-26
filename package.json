@@ -5,7 +5,15 @@
   "scripts": {
     "dev:rebond": "pnpm --dir apps/rebond dev",
     "dev:echo": "pnpm --dir apps/echo dev:web",
-    "dev": "concurrently -n REBOND,ECHO -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\""
+    "dev": "concurrently -n REBOND,ECHO -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\"",
+
+    "build:schema": "pnpm --filter @geniius/schema build",
+    "build:gedcom": "pnpm --filter @geniius/gedcom-core build",
+    "build:rebond": "pnpm --dir apps/rebond build",
+    "build:echo": "pnpm --dir apps/echo build:web",
+
+    "build:libs": "pnpm --filter @geniius/schema --filter @geniius/gedcom-core build",
+    "build": "pnpm run build:libs && pnpm run build:rebond && pnpm run build:echo"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
