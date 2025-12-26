@@ -1,0 +1,13 @@
+{
+  "name": "geniius_io",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "scripts": {
+    "dev:rebond": "pnpm --dir apps/rebond dev",
+    "dev:echo": "pnpm --dir apps/echo dev:web",
+    "dev": "concurrently -n REBOND,ECHO -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

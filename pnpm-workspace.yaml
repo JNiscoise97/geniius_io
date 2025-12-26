@@ -1,0 +1,3 @@
+packages:
+  - "apps/echo/**"
+  - "apps/rebond/**"

@@ -3,13 +3,16 @@
   "private": true,
   "packageManager": "pnpm@9.6.0",
   "scripts": {
-    "dev:web": "pnpm --filter @echo/web dev",
+    "dev": "pnpm --filter @echo/web dev -- --port 5174 --strictPort",
+    "dev:web": "pnpm --filter @echo/web dev -- --port 5174 --strictPort",
     "build:web": "pnpm --filter @echo/web build",
-    "preview:web": "pnpm --filter @echo/web preview",
-    "dev:desktop": "pnpm --filter @echo/desktop dev",
-    "dev:mobile": "pnpm --filter @echo/mobile start",
+    "preview:web": "pnpm --filter @echo/web preview -- --port 5174 --strictPort",
+    "dev:desktop": "pnpm --filter @echo/desktop dev -- --port 5175 --strictPort",
+    "dev:mobile": "pnpm --filter @echo/mobile start -- --port 5176 --strictPort",
     "typecheck": "tsc -b",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dev:web-only": "pnpm --filter @echo/web dev -- --port 5174 --strictPort",
+    "dev:local": "pnpm --parallel --filter ./apps/web --filter ./apps/desktop dev"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.13",
