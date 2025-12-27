@@ -1,7 +1,7 @@
 // ActeEdit.tsx
-import { AlertTriangle, ArrowLeft, FileText, Save, Users } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, StickyNote, Users, Workflow } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEtatCivilActesStore } from '@/store/useEtatCivilActesStore';
 import { toast } from 'sonner';
 import {
@@ -28,8 +28,19 @@ import {
   apiFetchRelationsForActeId,
   apiUpdateActeLabel,
 } from '@/services/acte.api';
+import ReferenceArchiveTab from '@/features/actes/tabs/ReferenceArchiveTab';
+import TranscriptionTab from '@/features/actes/tabs/TranscriptionTab';
 
-const tabs = [{ label: 'Acte', icon: FileText }];
+const tabs = [
+  { label: 'Acte', icon: FileText },
+  { label: 'Référence archive', icon: Archive },
+  { label: 'Transcription', icon: FileText },
+  { label: 'Acteurs & rôles', icon: Users },
+  { label: 'Mentions complémentaires', icon: NotepadText },
+  { label: 'Faits familiaux', icon: Network },
+  { label: 'Documents liés', icon: LinkIcon },
+  { label: 'Analyse & contexte', icon: Lightbulb },
+];
 
 export default function ActeEdit() {
   const { acteId } = useParams();
@@ -52,6 +63,7 @@ export default function ActeEdit() {
   const [erreurs, setErreurs] = useState<Incoherence[]>([]);
   const [relations, setRelations] = useState<RelationPreview[]>([]);
   const acteFormRef = useRef<ActeFormHandle & { isDirty?: () => boolean }>(null);
+  const [lieuSituation, setLieuSituation] = useState<any>();
 
   const [saving, setSaving] = useState(false);
   const [blockNav, setBlockNav] = useState(false); // garde de sortie
@@ -286,11 +298,10 @@ export default function ActeEdit() {
               <button
                 key={label}
                 onClick={() => setActiveSection(label)}
-                className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${
-                  isActive
-                    ? 'border-blue-600 text-blue-600 font-medium'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-                }`}
+                className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${isActive
+                  ? 'border-blue-600 text-blue-600 font-medium'
+                  : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
+                  }`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-controls={`section-${label}`}
               >
@@ -398,6 +409,96 @@ export default function ActeEdit() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+        )}
+        {activeSection === 'Référence archive' && (
+          <div className="p-1">
+            <ReferenceArchiveTab
+              acte={acte}
+              bureauLabel={bureau?.nom ?? ""}
+              onUpdated={async () => {
+                await fetchActeDetail(acte.id)
+              }}
+            />
+          </div>
+        )}
+        {activeSection === 'Transcription' && (
+          <div className="p-1">
+            <div className="p-4">
+              <p className="text-sm leading-relaxed text-slate-700">
+                Cet onglet vous permet de lire et conserver fidèlement le texte original de l’acte, dans son orthographe d’époque,
+                tout en signalant les passages illisibles, barrés ou lacunaires.
+              </p>
+              <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à préserver le contenu brut et à suivre les versions de transcription et leur validation.</span></p>
+            </div>
+
+            <div className="p-4">
+              <p className="text-sm leading-relaxed bg-orange-300">
+                Contenu textuel fidèle au document
+                <ul>
+                  <li>Transcription intégrale (ou fragments si partiel)</li>
+                  <li>Texte original des mentions marginales (si transcrit)</li>
+                  <li>Signalement des parties illisibles/lacunes/barrés</li>
+                  <li>Conventions de transcription utilisées (ex : diplomatique)</li>
+                  <li>Langue et système d’écriture observé</li>
+                  <li>Nom du transcripteur principal (si toi ou un tiers)</li>
+                  <li>Date(s) de transcription</li>
+                </ul>
+              </p>
+            </div>
+            
+            <div className='p-4'>
+                <TranscriptionTab acteId={acteId!} />
+            </div>
+          </div>
+        )}
+        {activeSection === 'Acteurs & rôles' && (
+          <div className="p-4">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Cet onglet vous permet d’identifier toutes les personnes citées dans l’acte et leurs rôles exacts
+              (déclarant, époux, témoins, parents, officier…), en conservant les variantes de noms, âges, professions,
+              domiciles et statuts lorsqu’ils sont mentionnés.
+            </p>
+            <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à comprendre qui intervient dans le document.</span></p>
+          </div>
+        )}
+        {activeSection === 'Faits familiaux' && (
+          <div className="p-4">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Cet onglet vous permet d’extraire les informations généalogiques révélées par l’acte : unions, filiations explicites,
+              reconnaissances, légitimations (y compris quantitatives sans noms), régime matrimonial et liens familiaux écrits.
+            </p>
+            <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à structurer ce que l’acte vous apprend sur la famille.</span></p>
+          </div>
+        )}
+        {activeSection === 'Mentions complémentaires' && (
+          <div className="p-4">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Cet onglet vous permet de centraliser tout ce qui complète ou modifie officiellement l’acte : mentions marginales,
+              rectifications, renvois, actes annexes référencés, dates des mentions et éléments ajoutés ou corrigés.
+            </p>
+            <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à suivre la vie administrative de l’acte.</span></p>
+          </div>
+        )}
+
+        {activeSection === 'Analyse & contexte' && (
+          <div className="p-4">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Cet onglet vous permet de conserver votre raisonnement : contexte juridique et sociétal, hypothèses, conclusions,
+              sources manquantes et prochaines actions de recherche.
+            </p>
+            <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert de mémoire méthodologique et de tableau de bord de vos pistes.</span></p>
+          </div>
+        )}
+
+        {activeSection === 'Documents liés' && (
+          <div className="p-4">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Cet onglet vous permet de consulter et organiser toutes les pièces connexes à l’acte principal :
+              contrat de mariage, acte notarié, hypothèque, recensement, acte religieux, jugement, encan, quittance ou obligation,
+              lorsqu’ils sont liés à la même personne ou à la même union.
+            </p>
+            <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à naviguer dans votre corpus documentaire et à garder la traçabilité des actes associés.</span></p>
+          </div>
         )}
       </section>
 

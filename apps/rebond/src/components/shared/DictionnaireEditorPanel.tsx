@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Filter, X } from "lucide-react";
 import { toast } from "sonner";
-import { fetchFiliation, fetchSignature, fetchQualite, fetchProfession, fetchStatuts, fetchSituationMatrimoniale, type DictionnaireItem, fetchStatutProprietaire, fetchCategorieCouleur, fetchStatutJuridique, fetchSituationFiscale } from "@/services/dictionnaires.rpc";
+import { fetchFiliation, fetchSignature, fetchTypeActe, fetchQualite, fetchProfession, fetchStatuts, fetchSituationMatrimoniale, type DictionnaireItem, fetchStatutProprietaire, fetchCategorieCouleur, fetchStatutJuridique, fetchSituationFiscale } from "@/services/dictionnaires.rpc";
 
 export type DictionnaireKind = "statut" 
 | "filiation" 
+| "type_acte_ref" 
 | "qualite_ref"
 | "situation_matrimoniale_ref"
 | "profession_ref"
@@ -50,6 +51,8 @@ export function DictionnaireEditorPanel({
       let loader ;
       if(kind === "filiation"){
         loader = fetchFiliation;
+      } else if(kind === "type_acte_ref"){
+        loader = fetchTypeActe;
       } else if(kind === "qualite_ref"){
         loader = fetchQualite;
       } else if(kind === "situation_matrimoniale_ref"){

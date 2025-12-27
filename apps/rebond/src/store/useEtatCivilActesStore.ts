@@ -57,7 +57,7 @@ export const useEtatCivilActesStore = create<EtatCivilActesStore>((set) => ({
   fetchActeById: async (acteId: string) => {
     const { data, error } = await supabase
       .from("etat_civil_actes")
-      .select("id, bureau_id, date, heure, annee, type_acte, source, numero_acte, label, statut, comparution_mairie, comparution_observations, contrat_mariage, enfants_legitimes, enfants_nombre, transcription, mentions_marginales")
+      .select("id, bureau_id, date, heure, annee, type_acte_ref, type_acte, source, numero_acte, label, statut, comparution_mairie, comparution_observations, contrat_mariage, enfants_legitimes, enfants_nombre, transcription, mentions_marginales")
       .eq("id", acteId)
       .single()
     console.log("data", data)
@@ -74,7 +74,9 @@ export const useEtatCivilActesStore = create<EtatCivilActesStore>((set) => ({
 
     const { data: acte, error: errActe } = await supabase
       .from('etat_civil_actes')
-      .select('*')
+      .select(`
+    *,
+    type_acte_ref:ref_ec_type_acte ( id, code, label )`)
       .eq('id', acteId)
       .single()
 

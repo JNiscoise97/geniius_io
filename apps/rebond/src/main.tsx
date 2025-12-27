@@ -57,6 +57,7 @@ import RefConfigPage from "./features/parameters/RefConfigPage"
 import MockDialogActeur from "./components/actes/MockDialogActeur"
 import ProfessionsTable from "./features/parameters/ProfessionsTable"
 import { SchemaExplorer } from "./features/configuration/SchemaExplorer"
+import NotaireEdit from "./features/notaires/NotaireEdit"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -88,7 +89,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="ac-actes/:id/annotations" element={<Annotations />} />
           <Route path="ac-actes/:id/fichier" element={<Fichier />} />
           <Route path="/notaires/liste" element={<NotaireList />} />
-          <Route path="/notaires/nouveau" element={<NotaireForm />} />
+          <Route path="/notaire/nouveau" element={<NotaireForm />} />
+          <Route path="/notaire/edit/:id" element={<NotaireEdit />} />
           <Route path="/notaires-2/:id" element={<NotaireDetail />} />
           <Route path="/notaires/:id" element={<NotaireLayout />} />
           <Route path="/ac-registre/:notaireId/:id" element={<NotaireRegistreLayout />} />

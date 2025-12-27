@@ -47,7 +47,7 @@ export function ListeChipsViewSmart({
                 key={`${v}-${i}`}
                 role="listitem"
                 title={v}
-                className="px-2 py-0.5 rounded border text-xs bg-indigo-50 text-indigo-800 border-indigo-100 max-w-[22ch] truncate"
+                className="px-2 py-0.5 mt-2 rounded border text-sm bg-indigo-50 text-indigo-800 border-indigo-100 max-w-[22ch] truncate"
               >
                 {v}
               </span>

@@ -182,7 +182,7 @@ export default function NotaireLayout() {
                 <Link to={`/notaire/edit/${notaire.id}`}>
                   <Button
                     variant='ghost'
-                    className='flex items-center gap-2 text-sm text-gray-600 bg-orange-200 hover:text-black'
+                    className='flex items-center gap-2 text-sm text-gray-600 hover:text-black'
                   >
                     <Pencil className='w-4 h-4' />
                     Modifier

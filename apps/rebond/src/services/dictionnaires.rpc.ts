@@ -22,6 +22,14 @@ export async function fetchFiliation(): Promise<{ data: DictionnaireItem[]; erro
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }
 
+export async function fetchTypeActe(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_ec_type_acte")
+    .select("id, code, label")
+    .order("label", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+  
 export async function fetchQualite(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
     .from("ref_qualite")

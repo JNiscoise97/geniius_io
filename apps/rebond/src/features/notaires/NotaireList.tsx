@@ -60,7 +60,7 @@ export default function NotaireList() {
           <div className="text-center py-10 text-muted-foreground">Chargement des notaires...</div>
         ) : (
           <><div className='flex items-center justify-end gap-4'>
-            <Link to="/notaires/nouveau">
+            <Link to="/notaire/nouveau">
               <Button
                 variant='ghost'
                 size='sm'

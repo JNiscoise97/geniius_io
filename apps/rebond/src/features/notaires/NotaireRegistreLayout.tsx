@@ -7,6 +7,7 @@ import {
   BarChart2,
   Pen,
   Plus,
+  Pencil,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -100,6 +101,15 @@ export default function NotaireRegistreLayout() {
                 </span>
               </div>
               <div className='flex items-center gap-4'>
+                <Link to={`/notaire-registre/edit/${notaire.id}`}>
+                  <Button
+                    variant='ghost'
+                    className='flex items-center gap-2 text-sm text-gray-600 bg-orange-300 hover:text-black'
+                  >
+                    <Pencil className='w-4 h-4' />
+                    Modifier
+                  </Button>
+                </Link>
                 <Settings className='w-5 h-5 text-gray-700 cursor-pointer' />
               </div>
             </div>

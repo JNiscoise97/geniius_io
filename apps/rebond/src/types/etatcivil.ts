@@ -37,6 +37,7 @@ export interface EtatCivilBureau {
     annee: number
     source: string
     type_acte: string
+    type_acte_ref: any
     numero_acte: string | null
     comparution_mairie: boolean | null
     comparution_observations?: string | null
