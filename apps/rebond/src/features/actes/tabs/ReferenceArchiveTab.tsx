@@ -335,8 +335,6 @@ export default function ReferenceArchiveTab({
       redaction_bureau_id: form.lieu_situation === 'autre_bureau' ? form.redaction_bureau_id : null,
 
       lieu_situation: form.lieu_situation,
-      lieu_autre_bureau:
-        form.lieu_situation === 'autre_bureau' ? form.lieu_autre_bureau || null : null,
       lieu_transport_raison:
         form.lieu_situation === 'transporte' ? form.lieu_transport_raison || null : null,
 
