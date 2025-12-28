@@ -178,6 +178,68 @@ export type TranscriptionTagRow = {
   created_at: string;
 };
 
+export type ActeCitationRow = {
+  id: string;
+  acte_id: string;
+  manifestation_id: string | null;
+  vues_start: number | null;
+  vues_end: number | null;
+  vues_raw: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  page_raw: string | null;
+  acte_manquant: boolean | null;
+  note: string | null;
+  sort_order: number | null;
+};
+
+export type ManifestationPick = {
+  manifestation_id: string;
+  type_manifestation: string | null;
+  unite_id: string | null;
+  unite_titre: string | null;
+  unite_cote: string | null;
+  pagination_type: string | null;
+  depot_nom: string | null;
+  depot_type: string | null;
+  institution_nom: string | null;
+  institution_sigle: string | null;
+  url_base: string | null;
+  plateforme_code: string | null;
+};
+
+export type CitationDraft = {
+  id: string;
+  acte_id: string;
+  manifestation_id: string | null;
+
+  // pagination / vues/pages
+  vues_start: number | null;
+  vues_end: number | null;
+  vues_raw: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  page_raw: string | null;
+
+  acte_manquant: boolean;
+  note: string | null;
+  sort_order: number | null;
+
+  // enrich
+  manifestation?: {
+    type_manifestation: string | null;
+    unite_titre: string | null;
+    unite_cote: string | null;
+    pagination_type: string | null;
+    depot_nom: string | null;
+    depot_type: string | null;
+    institution_nom: string | null;
+    institution_sigle: string | null;
+    url_base: string | null;
+    plateforme_code: string | null;
+  } | null;
+};
+
 export const PAGE_BREAK_TOKEN = "[SAUT_DE_PAGE]";
 
 // -------------------- Anchors / helpers --------------------

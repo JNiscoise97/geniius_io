@@ -28,6 +28,7 @@ import {
     Trash2,
     GripVertical,
     Star,
+    Circle,
 } from "lucide-react";
 
 import { anchorBadge, statusBadge, tagBadge, typeLabel } from "./transcriptionTab.ui";
@@ -132,18 +133,64 @@ export default function TranscriptionTab({ acteId }: Props) {
         return { transcribed, preferred };
     }, [dashboard]);
 
-    // Default active source
-    useEffect(() => {
-        if (t.activeSourceId) return;
-        if (!dashboard.length) return;
+    const step = useMemo<1 | 2 | 3>(() => {
+        // Étape 1 tant qu'aucune source active
+        if (!t.activeSourceId) return 1;
 
-        const preferred = dashboard.find((d) => d.isPreferred);
-        const transcribed = dashboard.find((d) => d.isTranscribed);
-        const first = dashboard[0];
+        // Étape 2 si source active mais pas de transcription liée à cette source
+        const row = dashboard.find((d) => d.id === t.activeSourceId) ?? null;
+        if (!row?.latestVersionId) return 2;
 
-        t.setActiveSource(preferred?.id ?? transcribed?.id ?? first.id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dashboard.length]);
+        // Étape 3 si source active + transcription existe
+        return 3;
+    }, [t.activeSourceId, dashboard]);
+
+    const textareaDisabled = step === 1;
+
+    const StepItem = ({
+        idx,
+        title,
+        subtitle,
+        active,
+        done,
+        icon,
+    }: {
+        idx: 1 | 2 | 3;
+        title: string;
+        subtitle: string;
+        active: boolean;
+        done: boolean;
+        icon: React.ReactNode;
+    }) => {
+        return (
+            <div className="flex items-start gap-3">
+                <div
+                    className={[
+                        "mt-0.5 flex h-8 w-8 items-center justify-center rounded-full border",
+                        done
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                            : active
+                                ? "border-slate-300 bg-white text-slate-900"
+                                : "border-slate-200 bg-slate-50 text-slate-500",
+                    ].join(" ")}
+                >
+                    {done ? <CheckCircle2 className="h-4 w-4" /> : icon}
+                </div>
+
+                <div className="min-w-0">
+                    <div
+                        className={[
+                            "text-sm font-semibold",
+                            active ? "text-slate-900" : "text-slate-700",
+                        ].join(" ")}
+                    >
+                        {idx}. {title}
+                    </div>
+                    <div className="text-xs text-slate-600">{subtitle}</div>
+                </div>
+            </div>
+        );
+    };
 
     const activeSourceRow = useMemo(() => {
         if (!t.activeSourceId) return null;
@@ -173,89 +220,78 @@ export default function TranscriptionTab({ acteId }: Props) {
 
     return (
         <div className="p-4 space-y-4">
-            {/* ✅ Sources-first header */}
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1 min-w-0">
+                    {/* Stepper */}
+                    <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-slate-500" />
-                            <h2 className="text-base font-semibold text-slate-900">Transcription — pilotage par sources</h2>
-                            {workingVersion ? statusBadge(workingVersion.status) : null}
-                            {hasAnchorIssues && <AlertTriangle className="w-4 h-4 text-yellow-600" />}
+                            <FileText className="h-4 w-4 text-slate-500" />
+                            <h2 className="text-base font-semibold text-slate-900">Transcription</h2>
                         </div>
 
-                        <p className="text-sm text-slate-600">
-                            Tu pilotes par <span className="font-medium">sources</span>. Une source = une transcription active (la dernière version liée). Le save crée une nouvelle version
-                            (historique conservé).
-                        </p>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                                <Tags className="h-3.5 w-3.5" />
-                                Sources : <span className="font-medium">{dashboard.length}</span> (transcrites {counts.transcribed})
-                            </span>
-
-                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                                <Workflow className="h-3.5 w-3.5" />
-                                Complétude :{" "}
-                                <span className="font-medium">
-                                    {meta.completeness ? (meta.completeness === "complete" ? "complète" : "partielle") : "non précisée"}
-                                </span>
-                            </span>
-
-                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                Référence : <span className="font-medium">{counts.preferred ? "définie" : "non définie"}</span>
-                            </span>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                            <StepItem
+                                idx={1}
+                                title="Choisir la source"
+                                subtitle="Obligatoire (référence / original / numérisation)"
+                                active={step === 1}
+                                done={step > 1}
+                                icon={<Circle className="h-4 w-4" />}
+                            />
+                            <StepItem
+                                idx={2}
+                                title="Créer un brouillon"
+                                subtitle="Seulement si aucune transcription"
+                                active={step === 2}
+                                done={step > 2}
+                                icon={<Plus className="h-4 w-4" />}
+                            />
+                            <StepItem
+                                idx={3}
+                                title="Transcrire + Save"
+                                subtitle="Le save crée une nouvelle version"
+                                active={step === 3}
+                                done={false}
+                                icon={<Save className="h-4 w-4" />}
+                            />
                         </div>
+
+                        {step === 1 ? (
+                            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                Choisis une source à droite pour commencer. Le champ de transcription est désactivé tant que la source n’est pas sélectionnée.
+                            </div>
+                        ) : null}
+
+                        {step === 2 ? (
+                            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                                Cette source n’a pas encore de transcription. Clique sur <span className="font-medium">Brouillon</span> pour démarrer.
+                            </div>
+                        ) : null}
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                        {/* Active source selector */}
+                    {/* Actions à droite (compact) */}
+                    <div className="shrink-0 flex items-center gap-2">
                         <select
                             value={t.activeSourceId ?? ""}
                             onChange={(e) => t.setActiveSource(e.target.value)}
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none"
+                            className="h-9 max-w-[360px] rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none"
                             disabled={!dashboard.length}
                         >
+                            <option value="" disabled>
+                                — Choisir une source —
+                            </option>
                             {dashboard.map((s) => (
                                 <option key={s.id} value={s.id}>
-                                    {s.isPreferred ? "⭐ " : ""}
-                                    {s.isTranscribed ? "✅ " : "⬜ "}
+                                    {s.isPreferred ? "★ " : ""}
                                     {s.label.slice(0, 90)}
                                 </option>
                             ))}
                         </select>
 
                         <Button
-                            variant="outline"
-                            onClick={() => {
-                                t.openMetadata();
-                                // best effort: quand on ouvre metadata, on coche la source active
-                                t.ensureActiveSourceSelectedInMetadata();
-                            }}
-                            className="gap-2"
-                            disabled={!t.activeSourceId}
-                        >
-                            <Settings2 className="w-4 h-4" />
-                            Métadonnées
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            className="gap-2"
-                            onClick={() => t.openSourceDiffPicker()}
-                            disabled={dashboard.filter((d) => d.isTranscribed).length < 2}
-                            title="Comparer deux sources (leurs transcriptions actives)"
-                        >
-                            <GitCompare className="w-4 h-4" />
-                            Diff sources
-                        </Button>
-
-                        <Button
                             variant="secondary"
                             onClick={() => t.createDraftForActiveSourceFromTemplateIfAny()}
-                            disabled={t.loading || !t.activeSourceId}
+                            disabled={t.loading || !t.activeSourceId || step !== 2}
                             className="gap-2"
                             title="Créer un brouillon pour la source active (si pas encore de transcription)"
                         >
@@ -265,9 +301,9 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                         <Button
                             onClick={() => t.saveNewVersionForActiveSource()}
-                            disabled={t.loading || !t.activeSourceId}
+                            disabled={t.loading || !t.activeSourceId || step !== 3}
                             className="gap-2"
-                            title="Save = nouvelle version liée à la source active + report best effort (annotations/notes/tags)"
+                            title="Save = nouvelle version"
                         >
                             <Save className="w-4 h-4" />
                             Enregistrer
@@ -315,11 +351,7 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                                 {activeSourceRow ? (
                                     <div className="ml-2 flex items-center gap-2 min-w-0">
-                                        <Badge variant="secondary">Source active</Badge>
-                                        <div className="text-xs text-slate-600 truncate max-w-[520px]" title={activeSourceRow.label}>
-                                            {activeSourceRow.label}
-                                        </div>
-                                        {activeSourceRow.isPreferred ? <Badge className="bg-amber-600 text-white">Référence</Badge> : null}
+                                        {activeSourceRow.isPreferred ? <Badge className="bg-amber-600 text-white">Source de référence</Badge> : null}
                                     </div>
                                 ) : null}
                             </div>
@@ -346,14 +378,25 @@ export default function TranscriptionTab({ acteId }: Props) {
                             {t.textMode === "edit" ? (
                                 <>
                                     <textarea
+                                        disabled={textareaDisabled}
                                         ref={t.textareaRef}
                                         value={t.editorValue}
                                         onChange={(e) => t.onChangeEditor(e.target.value)}
                                         onMouseUp={t.captureSelection}
                                         onKeyUp={t.captureSelection}
                                         placeholder={`Transcrivez ici le texte… (ex : [illisible], [barré], [lacune], [ajout en marge], ${PAGE_BREAK_TOKEN} = saut de page)`}
-                                        className="min-h-[520px] w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm leading-relaxed text-slate-900 shadow-sm outline-none focus:border-slate-400"
+                                        className={[
+                                            "min-h-[520px] w-full resize-y rounded-xl border px-3 py-3 text-sm leading-relaxed shadow-sm outline-none",
+                                            textareaDisabled
+                                                ? "border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
+                                                : "border-slate-200 bg-white text-slate-900 focus:border-slate-400",
+                                        ].join(" ")}
                                     />
+                                    {textareaDisabled ? (
+                                        <div className="mt-2 text-xs text-slate-500">
+                                            Sélectionne une source pour commencer.
+                                        </div>
+                                    ) : null}
                                     <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
                                         <div>
                                             {t.selection ? (
@@ -434,56 +477,52 @@ export default function TranscriptionTab({ acteId }: Props) {
                                 </p>
 
                                 <div className="mt-3 space-y-2">
-                                    {dashboard.length === 0 ? (
+                                    {t.sources.length === 0 ? (
                                         <div className="text-sm text-slate-600">Aucune source enregistrée pour cet acte.</div>
                                     ) : (
-                                        dashboard.map((s) => {
-                                            const isActive = s.id === t.activeSourceId;
+                                        t.sources.map((g) => {
+                                            const isActive = g.id === t.activeSourceId;
 
-                                            // Version active liée (si tu veux encore l’info, sinon tu peux supprimer)
-                                            const linkedVersion = s.latestVersionId
-                                                ? versions.find((v) => v.id === s.latestVersionId) ?? null
-                                                : null;
+                                            const m = g.manifestation ?? null;
 
-                                            // “online” (adapte selon tes champs réels)
-                                            // si tu n’as pas ce champ, laisse une logique simple :
-                                            const online = (s as any).acces_mode === "en_ligne" || !!(s as any).url_site;
+                                            const online = Boolean((m?.url_base ?? "").trim()); // simple, fiable
+                                            const uniteTitre = m?.unite_titre ?? "Source";
+                                            const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
 
-                                            // champs "à la gabarit" (fallback sur label)
-                                            const uniteTitre =
-                                                (s as any).registre_titre ||
-                                                (s as any).unite_titre ||
-                                                s.label ||
-                                                "Source";
+                                            const institutionNom = m?.institution_nom ?? null;
+                                            const depotNom = m?.depot_nom ?? null;
+                                            const uniteCote = m?.unite_cote ?? null;
 
-                                            const institutionSigle = (s as any).depot_type || (s as any).institution_sigle || null;
-                                            const institutionNom = (s as any).depot_nom || (s as any).institution_nom || null;
-                                            const depotNom = (s as any).depot_nom || (s as any).depot_nom || null;
-                                            const uniteCote = (s as any).cote || (s as any).unite_cote || null;
+                                            // ta ligne “commune, année, type, vues/pages”
+                                            // => ici on fait une string “safe” à partir des champs de citation
+                                            const vuesPages =
+                                                g.vues_raw ||
+                                                (g.vues_start || g.vues_end
+                                                    ? `Vues ${g.vues_start ?? "?"}–${g.vues_end ?? "?"}`
+                                                    : g.page_raw ||
+                                                    (g.page_start || g.page_end
+                                                        ? `Pages ${g.page_start ?? "?"}–${g.page_end ?? "?"}`
+                                                        : ""));
 
-                                            // ligne (commune, année, type, vues/pages) : adapte si tu as déjà un champ
-                                            const line =
-                                                (s as any).metaLine ||
-                                                (s as any).pagesLabel ||
-                                                (s as any).vues_label ||
-                                                ""; // sinon vide
+                                            const lineParts = [
+                                                // si tu as commune/année/type dans un autre endroit, mets-les ici
+                                                uniteCote ? uniteCote : null,
+                                                vuesPages ? vuesPages : null,
+                                                g.acte_manquant ? "Acte manquant" : null,
+                                            ].filter(Boolean);
 
-                                            // options “Original / Numérisation” : adapte si tu as une struct similaire
-                                            // Si tu n’as pas ces deux objets, tu peux mapper vers tes champs existants.
-                                            const original = (s as any).original ?? null;
-                                            const numerisation = (s as any).numerisation ?? null;
+                                            const line = lineParts.join(" · ");
 
-                                            // Pick : ici on “active la source” (tu peux remplacer par open url, etc.)
-                                            const pick = (payload: any) => {
-                                                // comportement minimal : on passe source active
-                                                t.setActiveSource(s.id);
-                                                // si tu veux aussi stocker un choix original/numerisation, fais-le ici
-                                                // ex: t.setActiveView(payload)...
+                                            const isPreferred = g.id === t.preferredSourceId;
+
+                                            const pick = () => {
+                                                // MVP: activer la source
+                                                t.setActiveSource(g.id);
                                             };
 
                                             return (
                                                 <div
-                                                    key={s.id}
+                                                    key={g.id}
                                                     className={[
                                                         "w-full rounded-xl border p-3 text-left transition",
                                                         isActive
@@ -492,123 +531,68 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                     ].join(" ")}
                                                 >
                                                     <div className="flex items-start justify-between gap-3">
-                                                        {/* zone clickable */}
                                                         <button
                                                             type="button"
-                                                            onClick={() => t.setActiveSource(s.id)}
+                                                            onClick={pick}
                                                             className="min-w-0 flex-1 text-left"
-                                                            title={s.label}
+                                                            title={uniteTitre}
                                                         >
                                                             {/* Ligne "registre" */}
-                                                            <div className="flex flex-wrap items-center gap-2">
-                                                                <span className="text-sm font-semibold text-slate-900">
-                                                                    {uniteTitre}
-                                                                </span>
-
-                                                                {institutionSigle ? (
-                                                                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
-                                                                        {institutionSigle}
+                                                            <div className="grid grid-cols-12 gap-x-2 gap-y-1">
+                                                                <div className="col-span-12 min-w-0">
+                                                                    <span className="block truncate text-sm font-semibold text-slate-900">
+                                                                        {uniteTitre}
                                                                     </span>
-                                                                ) : null}
-
-                                                                {online ? (
-                                                                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                                                                        En ligne
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                                                        Sur place
-                                                                    </span>
-                                                                )}
-
-                                                                {(s as any).pagination_type ? (
-                                                                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
-                                                                        pagination: {(s as any).pagination_type}
-                                                                    </span>
-                                                                ) : null}
-                                                            </div>
-
-                                                            <div className="mt-1 text-xs text-slate-600">
-                                                                {institutionNom ? institutionNom : "—"}
-                                                                {depotNom ? ` · ${depotNom}` : ""}
-                                                                {uniteCote ? ` · ${uniteCote}` : ""}
-                                                            </div>
-
-                                                            {line ? (
-                                                                <div className="mt-1 text-xs text-slate-600">{line}</div>
-                                                            ) : null}
-
-                                                            {/* 2 options sous le registre (optionnel) */}
-                                                            <div className="mt-3 flex flex-wrap gap-2">
-                                                                <button
-                                                                    type="button"
-                                                                    disabled={!original}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (original) pick(original);
-                                                                    }}
-                                                                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                                                >
-                                                                    Original
-                                                                </button>
-
-                                                                <button
-                                                                    type="button"
-                                                                    disabled={!numerisation}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (numerisation) pick(numerisation);
-                                                                    }}
-                                                                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                                                >
-                                                                    Numérisation
-                                                                </button>
-
-                                                                {numerisation?.url_base ? (
-                                                                    <span className="self-center text-[11px] text-slate-500">
-                                                                        URL: <span className="font-mono">{numerisation.url_base}</span>
-                                                                    </span>
-                                                                ) : null}
-                                                            </div>
-
-                                                            {/* (optionnel) Info version active */}
-                                                            {linkedVersion ? (
-                                                                <div className="mt-2 text-xs text-slate-600">
-                                                                    Active : <span className="font-medium">v{linkedVersion.version}</span> · {linkedVersion.status} ·{" "}
-                                                                    {new Date(linkedVersion.created_at).toLocaleDateString()}
                                                                 </div>
-                                                            ) : null}
+
+                                                                <div className="col-span-12 flex flex-wrap items-center gap-2">
+                                                                    {institutionSigle ? (
+                                                                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
+                                                                            {institutionSigle}
+                                                                        </span>
+                                                                    ) : null}
+
+                                                                    {online ? (
+                                                                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                                                                            En ligne
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                                                            Sur place
+                                                                        </span>
+                                                                    )}
+
+                                                                    {m?.pagination_type ? (
+                                                                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
+                                                                            pagination: {m.pagination_type}
+                                                                        </span>
+                                                                    ) : null}
+                                                                </div>
+                                                            </div>
+
+                                                            {line ? <div className="mt-1 text-xs text-slate-600">{line}</div> : null}
+
                                                         </button>
 
                                                         {/* Actions à droite */}
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
-                                                            <div className="flex gap-2">
-                                                                {/* STAR (lucide) : jaune si preferred, gris sinon, disabled si une autre est preferred */}
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        t.setPreferredSource(s.id);
-                                                                    }}
-                                                                    title={
-                                                                        s.isPreferred
-                                                                            ? "Source de référence"
-                                                                            : "Définir cette source comme référence"
-                                                                    }
-                                                                    className="px-2"
-                                                                >
-                                                                    <Star
-                                                                        className={[
-                                                                            "h-4 w-4 transition-colors",
-                                                                            s.isPreferred
-                                                                                ? "text-amber-500 fill-amber-500"
-                                                                                : "text-slate-400 hover:text-amber-500",
-                                                                        ].join(" ")}
-                                                                    />
-                                                                </Button>
-
-                                                            </div>
+                                                            {/* ⭐ jamais disabled, seulement style */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    t.setPreferredSource(g.id);
+                                                                }}
+                                                                title={isPreferred ? "Source de référence" : "Définir comme référence"}
+                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+                                                            >
+                                                                <Star
+                                                                    className={[
+                                                                        "h-4 w-4 transition-colors",
+                                                                        isPreferred ? "text-amber-500 fill-amber-500" : "text-slate-400 hover:text-amber-500",
+                                                                    ].join(" ")}
+                                                                />
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>

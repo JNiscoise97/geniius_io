@@ -51,7 +51,11 @@ import {
     parseMetaFromNotes,
     composeMetaNote,
     compareKey,
+    type CitationDraft,
+    type ActeCitationRow,
+    type ManifestationPick,
 } from "./transcriptionTab.service";
+import { supabase } from "@/lib/supabase";
 
 type SheetMode = "annotation" | "note" | "metadata" | "compare" | "tag";
 type Props = { acteId: string };
@@ -61,6 +65,181 @@ const SPLIT_LS_KEY = "rebond.transcription.split";
 
 function clamp(n: number, min: number, max: number) {
     return Math.min(max, Math.max(min, n));
+}
+
+function emptyCitation(acteId: string): CitationDraft {
+  return {
+    id: "tmp-" + crypto.randomUUID(),
+    acte_id: acteId,
+    manifestation_id: null,
+    vues_start: null,
+    vues_end: null,
+    vues_raw: null,
+    page_start: null,
+    page_end: null,
+    page_raw: null,
+    acte_manquant: false,
+    note: null,
+    sort_order: 0,
+    manifestation: null,
+  };
+}
+
+function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
+  return {
+    id: r.id,
+    acte_id: r.acte_id,
+    manifestation_id: r.manifestation_id,
+    vues_start: r.vues_start,
+    vues_end: r.vues_end,
+    vues_raw: r.vues_raw,
+    page_start: r.page_start,
+    page_end: r.page_end,
+    page_raw: r.page_raw,
+    acte_manquant: Boolean(r.acte_manquant),
+    note: r.note,
+    sort_order: r.sort_order,
+    manifestation: null,
+  };
+}
+
+function bestPickPerManifestation(picks: any[]): Map<string, ManifestationPick> {
+  const bestByManId = new Map<string, ManifestationPick>();
+
+  for (const r of picks) {
+    const candidate: ManifestationPick = {
+      manifestation_id: r.manifestation_id,
+      type_manifestation: r.type_manifestation ?? null,
+      unite_id: r.unite_id ?? null,
+      unite_titre: r.unite_titre ?? null,
+      unite_cote: r.unite_cote ?? null,
+      pagination_type: r.pagination_type ?? null,
+      depot_nom: r.depot_nom ?? null,
+      depot_type: r.depot_type ?? null,
+      institution_nom: r.institution_nom ?? null,
+      institution_sigle: r.institution_sigle ?? null,
+      url_base: r.url_base ?? null,
+      plateforme_code: r.plateforme_code ?? null,
+    };
+
+    const current = bestByManId.get(candidate.manifestation_id);
+    if (!current) {
+      bestByManId.set(candidate.manifestation_id, candidate);
+      continue;
+    }
+
+    // règle: préférer une ligne avec url_base si possible
+    const curHasUrl = Boolean((current.url_base ?? "").trim());
+    const candHasUrl = Boolean((candidate.url_base ?? "").trim());
+
+    if (!curHasUrl && candHasUrl) {
+      bestByManId.set(candidate.manifestation_id, candidate);
+    }
+  }
+
+  return bestByManId;
+}
+
+export function useActeCitationsSources(acteId: string) {
+  const [sources, setSources] = useState<CitationDraft[]>([]);
+  const [loadingSources, setLoadingSources] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setLoadingSources(true);
+      setErrorMsg(null);
+
+      // 1) load raw citations
+      const { data, error } = await supabase
+        .from("etat_civil_acte_citations")
+        .select(
+          "id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order"
+        )
+        .eq("acte_id", acteId)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (cancelled) return;
+
+      if (error) {
+        setErrorMsg(error.message);
+        setSources([emptyCitation(acteId)]);
+        setLoadingSources(false);
+        return;
+      }
+
+      const rows = (data ?? []) as ActeCitationRow[];
+      const drafts = rows.map((r) => normalizeCitationRow(r));
+
+      if (!drafts.length) {
+        setSources([emptyCitation(acteId)]);
+        setLoadingSources(false);
+        return;
+      }
+
+      // 2) enrich from view
+      const manIds = Array.from(
+        new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[])
+      );
+
+      if (!manIds.length) {
+        setSources(drafts);
+        setLoadingSources(false);
+        return;
+      }
+
+      const { data: pickData, error: pickErr } = await supabase
+        .from("v_manifestations_pick")
+        .select(
+          "manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code"
+        )
+        .in("manifestation_id", manIds);
+
+      if (cancelled) return;
+
+      if (pickErr) {
+        setSources(drafts);
+        setLoadingSources(false);
+        return;
+      }
+
+      const bestByManId = bestPickPerManifestation(pickData ?? []);
+
+      const enriched = drafts.map((d) => {
+        const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
+        if (!m) return d;
+
+        return {
+          ...d,
+          manifestation: {
+            type_manifestation: m.type_manifestation,
+            unite_titre: m.unite_titre,
+            unite_cote: m.unite_cote,
+            pagination_type: m.pagination_type,
+            depot_nom: m.depot_nom,
+            depot_type: m.depot_type,
+            institution_nom: m.institution_nom,
+            institution_sigle: m.institution_sigle,
+            url_base: m.url_base,
+            plateforme_code: m.plateforme_code,
+          },
+        } satisfies CitationDraft;
+      });
+
+      setSources(enriched);
+      setLoadingSources(false);
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [acteId]);
+
+  return { sources, setSources, loadingSources, errorMsg };
 }
 
 export function useTranscriptionTab({ acteId }: Props) {
@@ -260,6 +439,8 @@ export function useTranscriptionTab({ acteId }: Props) {
         return { left: pairs[0].versionId, right: pairs[1].versionId };
     }
 
+    const { sources, loadingSources, errorMsg } = useActeCitationsSources(acteId);
+
     // -----------------------------
     // Load bundle (and create v1 if needed)
     // -----------------------------
@@ -301,49 +482,9 @@ export function useTranscriptionTab({ acteId }: Props) {
                 setActeurs(bundle.acteurs);
                 setGabarits(bundle.gabarits);
 
-                // no version -> auto create v1 (legacy behaviour)
-                if (bundle.versions.length === 0) {
-                    const best = chooseBestGabaritForInitialDraft(bundle.acte, bundle.gabarits);
-                    const content = best?.template_content ?? "";
-                    const gabarit_id = best?.id ?? null;
-
-                    const created = await createVersion(acteId, {
-                        version: 1,
-                        status: "draft",
-                        content,
-                        gabarit_id,
-                        transcription_kind: "travail",
-                        source_lecture_kind: "image_originale",
-                        conventions_text:
-                            "Conventions conseillées : [illisible], [barré], [lacune], [ajout en marge], " +
-                            PAGE_BREAK_TOKEN +
-                            " (saut de page).",
-                        confidence: "low",
-                        sourceIds: [],
-                    });
-
-                    toast("Brouillon v1 créé automatiquement", { icon: "📝" });
-
-                    const refreshed = await refreshVersions(acteId);
-                    if (cancelled) return;
-
-                    setVersions(refreshed.versions);
-                    setVersionSources(refreshed.versionSources);
-
-                    setCurrentId(created.id);
-                    setWorkingVersionId(created.id);
-
-                    return;
-                }
-
                 // Default: pick a “current”
                 if (!currentId && bundle.versions.length) {
                     setCurrentId(bundle.versions[0].id);
-                }
-
-                // Default: pick active source if any
-                if (!activeSourceId && bundle.acteSources.length) {
-                    setActiveSourceId(bundle.acteSources[0].id);
                 }
             } catch (err: any) {
                 console.error(err);
@@ -1228,5 +1369,9 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         // split
         split: splitApi,
+
+        sources,
+        loadingSources,
+        errorMsg,
     };
 }
