@@ -1,6 +1,6 @@
-//ReferenceArchiveTab.tsx
-
-import { useEffect, useMemo, useState } from 'react';
+// ReferenceArchiveTab.tsx
+import { useEffect, useMemo, useState, useRef } from 'react';
+import type { FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilActe } from '@/types/etatcivil';
 import {
@@ -21,6 +21,7 @@ import {
   formatBureauLabel,
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
+import { Lock, Unlock } from 'lucide-react';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
@@ -30,45 +31,96 @@ type ReferenceArchiveTabProps = {
   onUpdated?: () => Promise<void> | void;
 };
 
-type ActeSource = {
-  id: string;
-  acte_id: string;
-  depot_type: string | null;
-  nom_depot: string | null;
-  serie: string | null;
-  cote: string | null;
-  registre: string | null;
-  folio_page: string | null;
-  vue_image: string | null;
-  support: string | null;
-  langue: string | null;
-  ecriture: string | null;
-  etat_conservation: string | null;
-  note: string | null;
+/**
+ * =========================================================================
+ * NOUVEAU MODELE - TYPES
+ * =========================================================================
+ * - sources = citations (etat_civil_acte_citations)
+ * - chaque citation pointe vers une manifestation (ref_manifestations)
+ * - l’UI dénormalise un peu via v_manifestations_pick
+ */
+
+type ManifestationPick = {
+  manifestation_id: string;
+  type_manifestation: 'original' | 'microfilm' | 'numerisation';
+
+  unite_id: string;
+  unite_titre: string;
+  unite_cote: string | null;
+  pagination_type: 'vues' | 'pages' | 'folios' | 'images' | null;
+
+  depot_nom: string;
+  depot_type: 'physique' | 'en_ligne';
+
+  institution_nom: string;
+  institution_sigle: string | null;
+
+  url_base: string | null;
+  plateforme_code: string | null;
 };
 
-type SourceDraft = {
+type CitationDraft = {
   id?: string;
-  depot_type: string;
-  nom_depot: string;
-  serie: string;
-  cote: string;
-  registre: string;
-  folio_page: string;
-  vue_image: string;
-  support: string;
-  langue: string;
-  ecriture: string;
-  etat_conservation: string;
-  note: string;
+
+  // FK
+  manifestation_id?: string;
+
+  // Dénormalisation UI (depuis v_manifestations_pick)
+  manifestation?: {
+    type_manifestation?: string;
+    unite_titre?: string;
+    unite_cote?: string | null;
+    pagination_type?: string | null;
+
+    depot_nom?: string;
+    depot_type?: 'physique' | 'en_ligne';
+
+    institution_nom?: string;
+    institution_sigle?: string | null;
+
+    url_base?: string | null;
+    plateforme_code?: string | null;
+  };
+
+  // Vues
+  vues_start?: number | null;
+  vues_end?: number | null;
+  vues_raw?: string;
+
+  // Pages
+  page_start?: number | null;
+  page_end?: number | null;
+  page_raw?: string;
+
+  acte_manquant?: boolean;
+  note?: string;
+
+  sort_order?: number;
+};
+
+type ActeCitationRow = {
+  id: string;
+  acte_id: string;
+  manifestation_id: string;
+  vues_start: number | null;
+  vues_end: number | null;
+  vues_raw: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  page_raw: string | null;
+  acte_manquant: boolean;
+  note: string | null;
+  sort_order: number;
 };
 
 type FormState = {
   type_acte: string;
   type_acte_ref: { ids: string[]; labels: string[] } | null;
+
   numero_acte: string;
   date: string;
   heure: string;
+
   bureau_id: string | null;
   bureau_enregistrement_label: string;
 
@@ -81,7 +133,9 @@ type FormState = {
   comparution_observations: string;
 
   mentions_marginales_presentes: boolean;
+
   auteur_fonction: string;
+  auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 };
 
 function isoToFr(iso?: string) {
@@ -103,11 +157,9 @@ function frToIso(fr?: string) {
 function autoFormatFrDate(v: string) {
   const digits = v.replace(/\D/g, '').slice(0, 8);
   const parts: string[] = [];
-
   if (digits.length >= 2) parts.push(digits.slice(0, 2));
   if (digits.length >= 4) parts.push(digits.slice(2, 4));
   if (digits.length > 4) parts.push(digits.slice(4));
-
   return parts.join(' / ');
 }
 
@@ -121,21 +173,41 @@ function toDateInput(v: any) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function normalizeSourceRow(s: Partial<ActeSource> | null | undefined): SourceDraft {
+function emptyCitation(): CitationDraft {
   return {
-    id: s?.id,
-    depot_type: s?.depot_type ?? '',
-    nom_depot: s?.nom_depot ?? '',
-    serie: s?.serie ?? '',
-    cote: s?.cote ?? '',
-    registre: s?.registre ?? '',
-    folio_page: s?.folio_page ?? '',
-    vue_image: s?.vue_image ?? '',
-    support: s?.support ?? '',
-    langue: s?.langue ?? '',
-    ecriture: s?.ecriture ?? '',
-    etat_conservation: s?.etat_conservation ?? '',
-    note: s?.note ?? '',
+    manifestation_id: undefined,
+    manifestation: undefined,
+
+    vues_start: null,
+    vues_end: null,
+    vues_raw: '',
+
+    page_start: null,
+    page_end: null,
+    page_raw: '',
+
+    acte_manquant: false,
+    note: '',
+    sort_order: 0,
+  };
+}
+
+function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): CitationDraft {
+  return {
+    id: r?.id,
+    manifestation_id: r?.manifestation_id,
+
+    vues_start: r?.vues_start ?? null,
+    vues_end: r?.vues_end ?? null,
+    vues_raw: r?.vues_raw ?? '',
+
+    page_start: r?.page_start ?? null,
+    page_end: r?.page_end ?? null,
+    page_raw: r?.page_raw ?? '',
+
+    acte_manquant: Boolean(r?.acte_manquant),
+    note: r?.note ?? '',
+    sort_order: typeof r?.sort_order === 'number' ? r!.sort_order : 0,
   };
 }
 
@@ -152,12 +224,12 @@ export default function ReferenceArchiveTab({
   const initialState: FormState = useMemo(
     () => ({
       type_acte: (acte as any).type_acte ?? '',
-
       type_acte_ref: tar?.id ? { ids: [tar.id], labels: [tar.label ?? ''] } : null,
-      
+
       numero_acte: String((acte as any).numero_acte ?? ''),
       date: toDateInput((acte as any).date),
       heure: (acte as any).heure ?? '',
+
       bureau_id: (acte as any).bureau_id ?? null,
       bureau_enregistrement_label: bureauLabel ?? '',
 
@@ -166,10 +238,11 @@ export default function ReferenceArchiveTab({
       redaction_bureau_label: (acte as any).redaction_bureau_label ?? '',
       lieu_transport_raison: (acte as any).lieu_transport_raison ?? '',
 
-      // legacy (à supprimer plus tard)
+      // legacy
       comparution_observations: (acte as any).comparution_observations ?? '',
 
       mentions_marginales_presentes: Boolean((acte as any).mentions_marginales_presentes),
+
       auteur_fonction: (acte as any).auteur_fonction ?? '',
       auteur_institutionnel_ref: tai?.id ? { ids: [tai.id], labels: [tai.label ?? ''] } : null,
     }),
@@ -181,7 +254,7 @@ export default function ReferenceArchiveTab({
   const [loadingSources, setLoadingSources] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [sources, setSources] = useState<SourceDraft[]>([]);
+  const [sources, setSources] = useState<CitationDraft[]>([emptyCitation()]);
 
   const [dictOpen, setDictOpen] = useState(false);
   const [dictArgs, setDictArgs] = useState<{
@@ -199,130 +272,241 @@ export default function ReferenceArchiveTab({
     onValidate: (bureau: EtatCivilBureau) => Promise<void> | void;
   } | null>(null);
 
+  const [labelLocked, setLabelLocked] = useState(true);
+  const [labelDraft, setLabelDraft] = useState(label);
+
+  const labelRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     setForm(initialState);
   }, [initialState]);
 
+  /**
+   * =========================================================================
+   * LOAD citations (etat_civil_acte_citations) + enrich from v_manifestations_pick
+   * =========================================================================
+   */
   useEffect(() => {
     let cancelled = false;
+
     const run = async () => {
       setLoadingSources(true);
       setErrorMsg(null);
 
+      // 1) load raw citations
       const { data, error } = await supabase
-        .from('etat_civil_actes_sources')
+        .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, depot_type, nom_depot, serie, cote, registre, folio_page, vue_image, support, langue, ecriture, etat_conservation, note',
+          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order',
         )
         .eq('acte_id', acteId)
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (cancelled) return;
 
       if (error) {
         setErrorMsg(error.message);
-        setSources([]);
+        setSources([emptyCitation()]);
         setLoadingSources(false);
         return;
       }
 
-      const rows = (data ?? []).map((r: ActeSource) => normalizeSourceRow(r));
-      setSources(rows.length ? rows : [normalizeSourceRow(null)]);
+      const rows = (data ?? []) as ActeCitationRow[];
+      const drafts = rows.map((r) => normalizeCitationRow(r));
+
+      // si aucune citation -> 1 ligne vide
+      if (!drafts.length) {
+        setSources([emptyCitation()]);
+        setLoadingSources(false);
+        return;
+      }
+
+      // 2) enrich from view (optional but nice)
+      const manIds = Array.from(
+        new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[]),
+      );
+
+      if (!manIds.length) {
+        setSources(drafts);
+        setLoadingSources(false);
+        return;
+      }
+
+      const { data: pickData, error: pickErr } = await supabase
+        .from('v_manifestations_pick')
+        .select(
+          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+        )
+        .in('manifestation_id', manIds);
+
+      if (cancelled) return;
+
+      if (pickErr) {
+        // on affiche quand même les citations sans enrichissement
+        setSources(drafts);
+        setLoadingSources(false);
+        return;
+      }
+
+      const pickRows = (pickData ?? []) as any[];
+
+      // ⚠️ La view peut dupliquer une manifestation si plusieurs url (acces_numeriques).
+      // On choisit la "meilleure" ligne par manifestation : celle qui a url_base non null si possible.
+      const bestByManId = new Map<string, ManifestationPick>();
+      for (const r of pickRows) {
+        const current = bestByManId.get(r.manifestation_id);
+        const candidate: ManifestationPick = {
+          manifestation_id: r.manifestation_id,
+          type_manifestation: r.type_manifestation,
+          unite_id: r.unite_id,
+          unite_titre: r.unite_titre,
+          unite_cote: r.unite_cote,
+          pagination_type: r.pagination_type,
+          depot_nom: r.depot_nom,
+          depot_type: r.depot_type,
+          institution_nom: r.institution_nom,
+          institution_sigle: r.institution_sigle,
+          url_base: r.url_base,
+          plateforme_code: r.plateforme_code,
+        };
+
+        if (!current) {
+          bestByManId.set(r.manifestation_id, candidate);
+          continue;
+        }
+
+        const curHasUrl = Boolean((current.url_base ?? '').trim());
+        const candHasUrl = Boolean((candidate.url_base ?? '').trim());
+
+        if (!curHasUrl && candHasUrl) {
+          bestByManId.set(r.manifestation_id, candidate);
+        }
+      }
+
+      const enriched = drafts.map((d) => {
+        const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
+        if (!m) return d;
+
+        return {
+          ...d,
+          manifestation: {
+            type_manifestation: m.type_manifestation,
+            unite_titre: m.unite_titre,
+            unite_cote: m.unite_cote,
+            pagination_type: m.pagination_type,
+            depot_nom: m.depot_nom,
+            depot_type: m.depot_type,
+            institution_nom: m.institution_nom,
+            institution_sigle: m.institution_sigle,
+            url_base: m.url_base,
+            plateforme_code: m.plateforme_code,
+          },
+        } satisfies CitationDraft;
+      });
+
+      setSources(enriched);
       setLoadingSources(false);
     };
+
     run();
     return () => {
       cancelled = true;
     };
   }, [acteId]);
 
+  useEffect(() => {
+    setLabelDraft(label);
+    setLabelLocked(true);
+  }, [label]);
+
+  useEffect(() => {
+    if (!labelLocked) labelRef.current?.focus();
+  }, [labelLocked]);
+
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateSource = (idx: number, patch: Partial<SourceDraft>) => {
+  const updateSource = (idx: number, patch: Partial<CitationDraft>) => {
     setSources((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
   };
 
   const addSource = () => {
-    setSources((prev) => [...prev, normalizeSourceRow(null)]);
-  };
-
-  const duplicateSource = (idx: number) => {
-    setSources((prev) => {
-      const copy = { ...prev[idx] };
-      delete copy.id;
-      return [...prev.slice(0, idx + 1), copy, ...prev.slice(idx + 1)];
-    });
+    setSources((prev) => [...prev, emptyCitation()]);
   };
 
   const removeSource = (idx: number) => {
     setSources((prev) => {
-      if (prev.length === 1) return prev;
+      // ✅ on garde 1 ligne minimum
+      if (prev.length === 1) return [emptyCitation()];
       return prev.filter((_, i) => i !== idx);
     });
   };
 
-  const upsertSources = async () => {
+  /**
+   * =========================================================================
+   * SAVE citations
+   * =========================================================================
+   * Stratégie "safe":
+   * 1) delete d’abord les citations DB supprimées côté UI (par id connu)
+   * 2) upsert ensuite (insert/update)
+   */
+  const upsertCitations = async () => {
+    // on ne persiste que les lignes qui ont une manifestation
     const payload = sources
-      .map((s) => ({
-        id: s.id,
+      .map((c, idx) => ({
         acte_id: acteId,
-        depot_type: s.depot_type || null,
-        nom_depot: s.nom_depot || null,
-        serie: s.serie || null,
-        cote: s.cote || null,
-        registre: s.registre || null,
-        folio_page: s.folio_page || null,
-        vue_image: s.vue_image || null,
-        support: s.support || null,
-        langue: s.langue || null,
-        ecriture: s.ecriture || null,
-        etat_conservation: s.etat_conservation || null,
-        note: s.note || null,
+        manifestation_id: c.manifestation_id ?? null,
+
+        vues_start: c.vues_start ?? null,
+        vues_end: c.vues_end ?? null,
+        vues_raw: (c.vues_raw ?? '').trim() || null,
+
+        page_start: c.page_start ?? null,
+        page_end: c.page_end ?? null,
+        page_raw: (c.page_raw ?? '').trim() || null,
+
+        acte_manquant: Boolean(c.acte_manquant),
+        note: (c.note ?? '').trim() || null,
+
+        sort_order: typeof c.sort_order === 'number' ? c.sort_order : idx,
       }))
-      .filter((row) => {
-        const hasAny =
-          row.depot_type ||
-          row.nom_depot ||
-          row.serie ||
-          row.cote ||
-          row.registre ||
-          row.folio_page ||
-          row.vue_image ||
-          row.support ||
-          row.langue ||
-          row.ecriture ||
-          row.etat_conservation ||
-          row.note;
-        return Boolean(hasAny);
-      });
+      .filter((row) => Boolean(row.manifestation_id));
 
-    const keepIds = payload.map((p) => p.id).filter(Boolean) as string[];
+    // ids présents dans l’UI (ceux déjà persistés)
+    const uiExistingIds = sources.map((s) => s.id).filter(Boolean) as string[];
 
-    if (payload.length) {
-      const { error } = await supabase
-        .from('etat_civil_actes_sources')
-        .upsert(payload, { onConflict: 'id' });
-      if (error) throw error;
-    }
-
+    // 1) delete rows removed in UI (only among existing ids)
     const { data: existing, error: errExisting } = await supabase
-      .from('etat_civil_actes_sources')
+      .from('etat_civil_acte_citations')
       .select('id')
       .eq('acte_id', acteId);
+
     if (errExisting) throw errExisting;
 
     const existingIds = (existing ?? []).map((r: any) => r.id as string);
-    const toDelete = existingIds.filter((id) => !keepIds.includes(id));
+    const toDelete = existingIds.filter((id) => !uiExistingIds.includes(id));
 
     if (toDelete.length) {
-      const { error } = await supabase.from('etat_civil_actes_sources').delete().in('id', toDelete);
+      const { error } = await supabase
+        .from('etat_civil_acte_citations')
+        .delete()
+        .in('id', toDelete);
+      if (error) throw error;
+    }
+
+    // 2) upsert new + updated
+    if (payload.length) {
+      const { error } = await supabase
+        .from('etat_civil_acte_citations')
+        .upsert(payload, { onConflict: 'id' });
+
       if (error) throw error;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setErrorMsg(null);
@@ -334,6 +518,8 @@ export default function ReferenceArchiveTab({
       date: form.date || null,
       heure: form.heure || null,
 
+      label: (labelDraft ?? '').trim() || null,
+
       bureau_id: form.bureau_id ?? null,
       redaction_bureau_id: form.lieu_situation === 'autre_bureau' ? form.redaction_bureau_id : null,
 
@@ -341,11 +527,12 @@ export default function ReferenceArchiveTab({
       lieu_transport_raison:
         form.lieu_situation === 'transporte' ? form.lieu_transport_raison || null : null,
 
-      // legacy (à supprimer plus tard)
+      // legacy
       comparution_observations:
         form.lieu_situation === 'transporte' ? form.comparution_observations || null : null,
 
       mentions_marginales_presentes: Boolean(form.mentions_marginales_presentes),
+
       auteur_fonction: form.auteur_fonction || null,
       auteur_institutionnel_ref: form.auteur_institutionnel_ref?.ids?.[0] ?? null,
     };
@@ -359,9 +546,9 @@ export default function ReferenceArchiveTab({
     }
 
     try {
-      await upsertSources();
+      await upsertCitations();
     } catch (err: any) {
-      setErrorMsg(err?.message ?? 'Erreur lors de l’enregistrement des sources.');
+      setErrorMsg(err?.message ?? 'Erreur lors de l’enregistrement des citations.');
       setSaving(false);
       return;
     }
@@ -370,11 +557,11 @@ export default function ReferenceArchiveTab({
     await onUpdated?.();
   };
 
-  const currentTypeActeLabels = toLabels((form as any).type_acte_ref); // ou form.type_acte_ref
-  const currentTypeActeIds = toIds((form as any).type_acte_ref);
+  const currentTypeActeLabels = toLabels(form.type_acte_ref);
+  const currentTypeActeIds = toIds(form.type_acte_ref);
 
-  const currentAuteurInstitutionnelLabels = toLabels((form as any).auteur_institutionnel_ref); // ou form.auteur_institutionnel_ref
-  const currentAuteurInstitutionnelIds = toIds((form as any).auteur_institutionnel_ref);
+  const currentAuteurInstitutionnelLabels = toLabels(form.auteur_institutionnel_ref);
+  const currentAuteurInstitutionnelIds = toIds(form.auteur_institutionnel_ref);
 
   const openDictionnaireTypeActe = (
     kind: DictionnaireKind,
@@ -391,15 +578,14 @@ export default function ReferenceArchiveTab({
         const ids = items.map((i) => i.id);
         const labels = items.map((i) => i.label);
         setField('type_acte_ref', { ids, labels });
-
         setDictOpen(false);
       },
     });
     setDictOpen(true);
   };
 
-  const clearDictValueTypeActe = (field: 'type_acte_ref') => {
-    setField(field, null);
+  const clearDictValueTypeActe = () => {
+    setField('type_acte_ref', null);
   };
 
   const openDictionnaireAuteurInstitutionnel = (
@@ -417,16 +603,16 @@ export default function ReferenceArchiveTab({
         const ids = items.map((i) => i.id);
         const labels = items.map((i) => i.label);
         setField('auteur_institutionnel_ref', { ids, labels });
-
         setDictOpen(false);
       },
     });
     setDictOpen(true);
   };
 
-  const clearDictValueAuteurInstitutionnel = (field: 'auteur_institutionnel_ref') => {
-    setField(field, null);
+  const clearDictValueAuteurInstitutionnel = () => {
+    setField('auteur_institutionnel_ref', null);
   };
+
   return (
     <div className='p-4'>
       <form className='space-y-6' onSubmit={handleSubmit}>
@@ -446,14 +632,58 @@ export default function ReferenceArchiveTab({
             </div>
           </div>
 
-          <div className='w-fit'>
-            <label className='block text-xs font-medium text-slate-700'>Label</label>
-            <div className='mt-1 inline-flex w-fit items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
-              {label}
+          <div className='w-full'>
+            <div className='w-full md:max-w-xl'>
+              <label className='block text-xs font-medium text-slate-700'>Label</label>
+
+              <div className='mt-1 flex items-center gap-2 w-full'>
+                <input
+                  value={labelDraft}
+                  onChange={(e) => setLabelDraft(e.target.value)}
+                  readOnly={labelLocked}
+                  className={[
+                    'w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none',
+                    labelLocked
+                      ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
+                      : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
+                  ].join(' ')}
+                  placeholder='Label…'
+                />
+
+                <button
+                  type='button'
+                  onClick={() => setLabelLocked((v) => !v)}
+                  className={[
+                    'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
+                    labelLocked
+                      ? 'border-slate-200 bg-white hover:bg-slate-50'
+                      : 'border-amber-200 bg-amber-50 hover:bg-amber-100',
+                  ].join(' ')}
+                  title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                  aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                >
+                  {labelLocked ? (
+                    <Lock className='h-4 w-4 text-slate-700' />
+                  ) : (
+                    <Unlock className='h-4 w-4 text-amber-800' />
+                  )}
+                </button>
+              </div>
+
+              {labelLocked ? (
+                <p className='mt-1 text-xs text-slate-500'>
+                  Le label est verrouillé. Déverrouille-le pour le modifier.
+                </p>
+              ) : (
+                <p className='mt-1 text-xs text-amber-700'>
+                  Label déverrouillé : toute modification sera enregistrée.
+                </p>
+              )}
             </div>
           </div>
         </div>
 
+        {/* IDENTIFICATION */}
         <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
           <h3 className='text-sm font-semibold text-slate-900'>Identification</h3>
 
@@ -494,7 +724,6 @@ export default function ReferenceArchiveTab({
 
             <div className='md:col-span-4'>
               <label className='block text-xs font-medium text-slate-700'>Type d’acte</label>
-
               <ListeChipsViewSmart
                 titre="Type d'acte"
                 values={currentTypeActeLabels}
@@ -507,7 +736,7 @@ export default function ReferenceArchiveTab({
                     currentTypeActeIds,
                   )
                 }
-                onDelete={() => clearDictValueTypeActe('type_acte_ref')}
+                onDelete={() => clearDictValueTypeActe()}
               />
             </div>
 
@@ -539,10 +768,7 @@ export default function ReferenceArchiveTab({
                 onBlur={(e) => {
                   const v = e.target.value;
                   const iso = frToIso(v);
-                  if (!iso && v) {
-                    // reset si invalide
-                    setField('date', '');
-                  }
+                  if (!iso && v) setField('date', '');
                 }}
                 className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
               />
@@ -563,6 +789,7 @@ export default function ReferenceArchiveTab({
           </div>
         </section>
 
+        {/* LIEU DE REDACTION */}
         <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
           <h3 className='text-sm font-semibold text-slate-900'>Lieu de rédaction</h3>
 
@@ -578,12 +805,11 @@ export default function ReferenceArchiveTab({
                     value='bureau_courant'
                     checked={form.lieu_situation === 'bureau_courant'}
                     onChange={() => {
-                        setField('lieu_situation', 'bureau_courant')
-                        setField('redaction_bureau_id', null);
-                        setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
-                      }
-                    }
+                      setField('lieu_situation', 'bureau_courant');
+                      setField('redaction_bureau_id', null);
+                      setField('redaction_bureau_label', '');
+                      setField('lieu_transport_raison', '');
+                    }}
                     className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                   />
                   <div>
@@ -601,12 +827,11 @@ export default function ReferenceArchiveTab({
                     value='autre_bureau'
                     checked={form.lieu_situation === 'autre_bureau'}
                     onChange={() => {
-                        setField('lieu_situation', 'autre_bureau');
-                        setField('redaction_bureau_id', null);
-                        setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
-                      }
-                    }
+                      setField('lieu_situation', 'autre_bureau');
+                      setField('redaction_bureau_id', null);
+                      setField('redaction_bureau_label', '');
+                      setField('lieu_transport_raison', '');
+                    }}
                     className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                   />
                   <div>
@@ -622,12 +847,11 @@ export default function ReferenceArchiveTab({
                     value='transporte'
                     checked={form.lieu_situation === 'transporte'}
                     onChange={() => {
-                        setField('lieu_situation', 'transporte')
-                        setField('redaction_bureau_id', null);
-                        setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
-                      }
-                    }
+                      setField('lieu_situation', 'transporte');
+                      setField('redaction_bureau_id', null);
+                      setField('redaction_bureau_label', '');
+                      setField('lieu_transport_raison', '');
+                    }}
                     className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                   />
                   <div>
@@ -650,7 +874,7 @@ export default function ReferenceArchiveTab({
                   onEdit={() => {
                     setBureauArgs({
                       title: 'Sélectionner le bureau de rédaction',
-                      defaultSelectedId: form.redaction_bureau_id, // ✅ pas form.bureau_id
+                      defaultSelectedId: form.redaction_bureau_id,
                       onValidate: async (bureau) => {
                         setField('redaction_bureau_id', bureau.id);
                         setField('redaction_bureau_label', formatBureauLabel(bureau));
@@ -678,7 +902,7 @@ export default function ReferenceArchiveTab({
                       value={form.lieu_transport_raison}
                       onChange={(e) => setField('lieu_transport_raison', e.target.value)}
                       className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                    ></textarea>
+                    />
                   </div>
 
                   <div className='md:col-span-12'>
@@ -694,7 +918,7 @@ export default function ReferenceArchiveTab({
                       value={form.comparution_observations}
                       onChange={(e) => setField('comparution_observations', e.target.value)}
                       className='mt-1 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 shadow-sm outline-none placeholder:text-red-400 focus:border-red-300'
-                    ></textarea>
+                    />
                     <p className='mt-1 text-xs text-red-700'>
                       Champ hérité (legacy). À remplacer par des champs structurés +{' '}
                       <span className='font-medium'>mentions_toponymes</span>.
@@ -706,15 +930,16 @@ export default function ReferenceArchiveTab({
           </div>
         </section>
 
+        {/* SOURCES (NOUVEAU MODELE) */}
         <SectionSources
           sources={sources}
           loading={loadingSources}
           onAdd={addSource}
-          onDuplicate={duplicateSource}
           onRemove={removeSource}
           onChange={updateSource}
         />
 
+        {/* AUTEUR INSTITUTIONNEL */}
         <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
           <h3 className='text-sm font-semibold text-slate-900'>Auteur institutionnel</h3>
 
@@ -722,7 +947,7 @@ export default function ReferenceArchiveTab({
             <div className='md:col-span-4'>
               <label className='block text-xs font-medium text-slate-700'>Fonction</label>
               <ListeChipsViewSmart
-                titre="Fonction"
+                titre='Fonction'
                 values={currentAuteurInstitutionnelLabels}
                 dense
                 onEdit={() =>
@@ -733,7 +958,7 @@ export default function ReferenceArchiveTab({
                     currentAuteurInstitutionnelIds,
                   )
                 }
-                onDelete={() => clearDictValueAuteurInstitutionnel('auteur_institutionnel_ref')}
+                onDelete={() => clearDictValueAuteurInstitutionnel()}
               />
             </div>
           </div>
@@ -743,6 +968,7 @@ export default function ReferenceArchiveTab({
           </p>
         </section>
 
+        {/* MENTIONS */}
         <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
           <h3 className='text-sm font-semibold text-slate-900'>Mentions marginales</h3>
 
@@ -781,6 +1007,8 @@ export default function ReferenceArchiveTab({
           </button>
         </div>
       </form>
+
+      {/* DRAWERS */}
       <Sheet open={dictOpen} onOpenChange={setDictOpen}>
         <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
           <SheetHeader className='sr-only'>
@@ -800,6 +1028,7 @@ export default function ReferenceArchiveTab({
           )}
         </SheetContent>
       </Sheet>
+
       <Sheet open={bureauOpen} onOpenChange={setBureauOpen}>
         <SheetContent side='right' className='!w-[40vw] !max-w-none p-0'>
           <SheetHeader className='sr-only'>
@@ -821,41 +1050,33 @@ export default function ReferenceArchiveTab({
   );
 }
 
+/**
+ * =========================================================================
+ * SectionSources (nouveau modèle) - INLINE (comme tu l’as collé)
+ * =========================================================================
+ * ⚠️ Important:
+ * - nécessite que la vue SQL v_manifestations_pick existe
+ * - sources = CitationDraft[]
+ */
 function SectionSources({
   sources,
   loading,
   onAdd,
-  onDuplicate,
   onRemove,
   onChange,
 
-  // ✅ NOUVEAU : clé de preset et libellé (sinon pas de preset UI)
   presetKey,
   presetLabel,
 }: {
-  sources: SourceDraft[];
+  sources: CitationDraft[];
   loading: boolean;
   onAdd: () => void;
-  onDuplicate: (idx: number) => void;
   onRemove: (idx: number) => void;
-  onChange: (idx: number, patch: Partial<SourceDraft>) => void;
+  onChange: (idx: number, patch: Partial<CitationDraft>) => void;
 
   presetKey?: string;
   presetLabel?: string;
 }) {
-  // ----------------------------
-  // Helpers UI
-  // ----------------------------
-  const isOnline = (support?: string, urlVisionneuse?: string) => {
-    const s = (support ?? '').toLowerCase();
-    return (
-      Boolean((urlVisionneuse ?? '').trim()) ||
-      s.includes('num') ||
-      s.includes('en ligne') ||
-      s.includes('online')
-    );
-  };
-
   const normalizeUrl = (url: string) => {
     const u = (url ?? '').trim();
     if (!u) return '';
@@ -863,80 +1084,52 @@ function SectionSources({
     return `https://${u}`;
   };
 
-  const parseVueRange = (value: string) => {
-    const v = (value ?? '')
-      .toLowerCase()
-      .replaceAll('vues', '')
-      .replaceAll('vue', '')
-      .replaceAll('images', '')
-      .replaceAll('image', '')
-      .replaceAll('et', '-')
-      .replaceAll('à', '-')
-      .replaceAll('–', '-')
-      .replaceAll(' ', '')
-      .trim();
-
-    if (!v) return { start: '', end: '' };
-    if (/^\d+$/.test(v)) return { start: v, end: v };
-    const m = v.match(/^(\d+)-(\d+)$/);
-    if (m) return { start: m[1], end: m[2] };
-    const nums = Array.from(v.matchAll(/\d+/g)).map((x) => x[0]);
-    if (nums.length === 1) return { start: nums[0], end: nums[0] };
-    if (nums.length >= 2) return { start: nums[0], end: nums[1] };
-    return { start: '', end: '' };
+  const isOnline = (c: CitationDraft) => {
+    const depotType = c.manifestation?.depot_type;
+    const hasUrl = Boolean((c.manifestation?.url_base ?? '').trim());
+    return depotType === 'en_ligne' || hasUrl;
   };
 
-  const formatVueRangeLabel = (vues: string) => {
-    const { start, end } = parseVueRange(vues);
-    if (!start) return '';
-    if (start === end) return `vue ${start}`;
-    return `vues ${start}–${end}`;
+  const titleFor = (c: CitationDraft) => {
+    const sigle = c.manifestation?.institution_sigle?.trim();
+    const inst = c.manifestation?.institution_nom?.trim();
+    const depot = c.manifestation?.depot_nom?.trim();
+    const unite = c.manifestation?.unite_titre?.trim();
+    const cote = (c.manifestation?.unite_cote ?? '').trim();
+    const man = c.manifestation?.type_manifestation
+      ? ` · ${c.manifestation.type_manifestation}`
+      : '';
+
+    const left = sigle && inst ? `${inst} (${sigle})` : inst ? inst : sigle ? sigle : 'Source';
+    const mid = depot ? ` · ${depot}` : '';
+    const right = unite ? ` · ${unite}` : '';
+    const cLabel = cote ? ` · ${cote}` : '';
+    return `${left}${mid}${man}${right}${cLabel}`;
   };
 
-  const isMissingActe = (note?: string) => {
-    const n = (note ?? '').toLowerCase();
-    return (
-      (note ?? '').includes('[ACTE_MANQUANT]') ||
-      n.includes('manquant') ||
-      n.includes('introuvable') ||
-      n.includes('lacune') ||
-      n.includes('absent') ||
-      n.includes('page manquante')
-    );
+  const formatRangeLabel = (a?: number | null, b?: number | null, kind = 'vue') => {
+    if (a == null && b == null) return '';
+    if (a != null && b == null) return `${kind} ${a}`;
+    if (a == null && b != null) return `${kind} ${b}`;
+    if (a === b) return `${kind} ${a}`;
+    return `${kind}s ${a}–${b}`;
   };
 
-  const toggleMissingActe = (idx: number, checked: boolean) => {
-    const tag = '[ACTE_MANQUANT]';
-    const current = sources[idx]?.note ?? '';
-    const hasTag = current.includes(tag);
-
-    if (checked && !hasTag) {
-      const next = (
-        current ? `${tag} ${current}` : `${tag} Acte manquant à l’endroit attendu.`
-      ).trim();
-      onChange(idx, { note: next });
-      return;
-    }
-
-    if (!checked && hasTag) {
-      const next = current
-        .replace(tag, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-      onChange(idx, { note: next });
-    }
+  const toIntOrNull = (v: string) => {
+    const t = (v ?? '').trim();
+    if (!t) return null;
+    const n = Number(t);
+    if (!Number.isFinite(n)) return null;
+    return Math.trunc(n);
   };
 
-  // ----------------------------
-  // Presets (localStorage)
-  // ----------------------------
-  type PresetPayload = {
-    version: 1;
-    savedAt: string;
-    sources: SourceDraft[];
-  };
-
-  const presetStorageKey = presetKey ? `rebond:acte_sources_preset:${presetKey}` : null;
+  /**
+   * =========================================================================
+   * Presets (localStorage) — optionnel
+   * =========================================================================
+   */
+  type PresetPayload = { version: 1; savedAt: string; citations: CitationDraft[] };
+  const presetStorageKey = presetKey ? `rebond:acte_citations_preset:${presetKey}` : null;
 
   const loadPreset = (): PresetPayload | null => {
     if (!presetStorageKey) return null;
@@ -944,19 +1137,19 @@ function SectionSources({
       const raw = localStorage.getItem(presetStorageKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed?.sources || !Array.isArray(parsed.sources)) return null;
+      if (!parsed?.citations || !Array.isArray(parsed.citations)) return null;
       return parsed as PresetPayload;
     } catch {
       return null;
     }
   };
 
-  const savePreset = (payloadSources: SourceDraft[]) => {
+  const savePreset = (payloadCitations: CitationDraft[]) => {
     if (!presetStorageKey) return;
     const payload: PresetPayload = {
       version: 1,
       savedAt: new Date().toISOString(),
-      sources: payloadSources,
+      citations: payloadCitations,
     };
     localStorage.setItem(presetStorageKey, JSON.stringify(payload));
   };
@@ -966,24 +1159,12 @@ function SectionSources({
     localStorage.removeItem(presetStorageKey);
   };
 
-  const applyPreset = (opts: { keepVues: boolean; keepNotes: boolean }) => {
+  const applyPreset = (opts: { keepRanges: boolean; keepNotes: boolean }) => {
     const preset = loadPreset();
     if (!preset) return;
 
-    // Stratégie:
-    // - on remplace la liste courante par celle du preset
-    // - on conserve (optionnel) les vues/notes déjà saisies sur l’acte courant
-    // - on garde l’id? -> NON: on laisse tel quel (tes rows n’ont pas d’id tant que non persistées)
-    //   Ici on ne peut pas recréer la liste via setSources car SectionSources ne possède pas setSources.
-    //   Donc on "projette" le preset sur les lignes existantes via onChange, et on ajuste le nombre via onAdd/onRemove.
-    //
-    // => Important: sans callback "setSources", on fait un apply en 2 étapes:
-    //    1) ajuster le nombre de lignes (add/remove)
-    //    2) patcher chaque ligne
+    const next = preset.citations;
 
-    const next = preset.sources;
-
-    // Ajuster le nombre de lignes
     if (sources.length < next.length) {
       const toAdd = next.length - sources.length;
       for (let i = 0; i < toAdd; i++) onAdd();
@@ -992,29 +1173,24 @@ function SectionSources({
       for (let i = 0; i < toRemove; i++) onRemove(sources.length - 1 - i);
     }
 
-    // Appliquer les champs
     next.forEach((p, idx) => {
-      const current = sources[idx] ?? ({} as SourceDraft);
+      const cur = sources[idx] ?? ({} as CitationDraft);
 
-      const merged: Partial<SourceDraft> = {
-        depot_type: p.depot_type,
-        nom_depot: p.nom_depot,
-        cote: p.cote,
-        registre: p.registre,
-        serie: p.serie,
-        support: p.support,
-        langue: p.langue,
-        ecriture: p.ecriture,
-        etat_conservation: p.etat_conservation,
+      const merged: Partial<CitationDraft> = {
+        manifestation_id: p.manifestation_id,
+        manifestation: p.manifestation,
 
-        // url visionneuse
-        vue_image: p.vue_image,
+        // ranges
+        vues_start: opts.keepRanges ? cur.vues_start : null,
+        vues_end: opts.keepRanges ? cur.vues_end : null,
+        vues_raw: opts.keepRanges ? cur.vues_raw : '',
+        page_start: opts.keepRanges ? cur.page_start : null,
+        page_end: opts.keepRanges ? cur.page_end : null,
+        page_raw: opts.keepRanges ? cur.page_raw : '',
 
-        // vues/pages
-        folio_page: opts.keepVues ? current.folio_page : '',
+        acte_manquant: opts.keepRanges ? cur.acte_manquant : false,
 
-        // notes
-        note: opts.keepNotes ? current.note : p.note,
+        note: opts.keepNotes ? cur.note : p.note,
       };
 
       onChange(idx, merged);
@@ -1024,48 +1200,218 @@ function SectionSources({
   const presetExists = Boolean(loadPreset());
   const presetInfo = loadPreset();
 
-  const buildCompactTitle = (s: SourceDraft) => {
-    const depot = (s.depot_type || '').trim() || 'Dépôt';
-    const nomDepot = (s.nom_depot || '').trim();
-    const cote = (s.cote || '').trim();
-    const registre = (s.registre || '').trim();
-    const vues = (s.folio_page || '').trim();
-    const vueLabel = formatVueRangeLabel(vues) || vues;
-
-    const left = nomDepot ? `${depot} · ${nomDepot}` : depot;
-    const mid = cote ? ` · ${cote}` : '';
-    const right = registre ? ` · ${registre}` : '';
-    const v = vueLabel ? ` · ${vueLabel}` : '';
-
-    return `${left}${mid}${right}${v}`;
+  const toPresetCitations = (mode: 'empty_ranges' | 'keep_ranges') => {
+    return sources.map((c) => {
+      const cleanNote = (c.note ?? '').replace(/\s{2,}/g, ' ').trim();
+      return {
+        ...c,
+        id: undefined,
+        vues_start: mode === 'empty_ranges' ? null : (c.vues_start ?? null),
+        vues_end: mode === 'empty_ranges' ? null : (c.vues_end ?? null),
+        vues_raw: mode === 'empty_ranges' ? '' : (c.vues_raw ?? ''),
+        page_start: mode === 'empty_ranges' ? null : (c.page_start ?? null),
+        page_end: mode === 'empty_ranges' ? null : (c.page_end ?? null),
+        page_raw: mode === 'empty_ranges' ? '' : (c.page_raw ?? ''),
+        acte_manquant: mode === 'empty_ranges' ? false : Boolean(c.acte_manquant),
+        note: cleanNote,
+      } satisfies CitationDraft;
+    });
   };
 
-  // Pour enregistrer le preset, on veut **retirer les choses “acte-spécifiques”** :
-  // - vues/pages => on peut les vider (sinon tu risques de réappliquer de mauvaises vues)
-  // - note => garder note “structurelle” (ex: “numérisé en ligne”), mais enlever le tag [ACTE_MANQUANT]
-  const toPresetSources = (mode: 'empty_vues' | 'keep_vues') => {
-    return sources.map((s) => {
-      const note = (s.note ?? '')
-        .replace('[ACTE_MANQUANT]', '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-      return {
-        ...s,
-        id: undefined,
-        folio_page: mode === 'empty_vues' ? '' : s.folio_page,
-        note,
-      };
-    });
+  /**
+   * =========================================================================
+   * Picker (v_manifestations_pick)
+   * =========================================================================
+   */
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerTargetIdx, setPickerTargetIdx] = useState<number | null>(null);
+  const [q, setQ] = useState('');
+  const [onlyOnline, setOnlyOnline] = useState(false);
+  const [pickLoading, setPickLoading] = useState(false);
+  const [pickError, setPickError] = useState<string | null>(null);
+  const [pickRows, setPickRows] = useState<ManifestationPick[]>([]);
+
+  const openPicker = (idx: number) => {
+    setPickerTargetIdx(idx);
+    setPickerOpen(true);
+  };
+
+  const closePicker = () => {
+    setPickerOpen(false);
+    setPickerTargetIdx(null);
+    setPickError(null);
+  };
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    let cancelled = false;
+
+    const run = async () => {
+      setPickLoading(true);
+      setPickError(null);
+
+      let query = supabase
+        .from('v_manifestations_pick')
+        .select(
+          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+        )
+        .order('institution_sigle', { ascending: true })
+        .order('unite_titre', { ascending: true })
+        .limit(50);
+
+      const needle = q.trim();
+      if (needle) {
+        query = query.or(
+          [
+            `unite_titre.ilike.%${needle}%`,
+            `unite_cote.ilike.%${needle}%`,
+            `institution_nom.ilike.%${needle}%`,
+            `institution_sigle.ilike.%${needle}%`,
+            `depot_nom.ilike.%${needle}%`,
+          ].join(','),
+        );
+      }
+
+      if (onlyOnline) {
+        query = query.or('depot_type.eq.en_ligne,url_base.not.is.null');
+      }
+
+      const { data, error } = await query;
+
+      if (cancelled) return;
+
+      if (error) {
+        setPickError(error.message);
+        setPickRows([]);
+        setPickLoading(false);
+        return;
+      }
+
+      const rows = (data ?? []) as any[];
+      const mapped: ManifestationPick[] = rows.map((r) => ({
+        manifestation_id: r.manifestation_id,
+        type_manifestation: r.type_manifestation,
+
+        unite_id: r.unite_id,
+        unite_titre: r.unite_titre,
+        unite_cote: r.unite_cote,
+        pagination_type: r.pagination_type,
+
+        depot_nom: r.depot_nom,
+        depot_type: r.depot_type,
+
+        institution_nom: r.institution_nom,
+        institution_sigle: r.institution_sigle,
+
+        url_base: r.url_base,
+        plateforme_code: r.plateforme_code,
+      }));
+
+      setPickRows(mapped);
+      setPickLoading(false);
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [pickerOpen, q, onlyOnline]);
+
+  const groupedByUnite = useMemo(() => {
+    type UniteGroup = {
+      unite_id: string;
+      unite_titre: string;
+      unite_cote: string | null;
+      pagination_type: ManifestationPick['pagination_type'];
+
+      depot_nom: string;
+      depot_type: ManifestationPick['depot_type'];
+
+      institution_nom: string;
+      institution_sigle: string | null;
+
+      original?: ManifestationPick;
+      numerisation?: ManifestationPick;
+    };
+
+    const best = (cur: ManifestationPick | undefined, cand: ManifestationPick) => {
+      if (!cur) return cand;
+      const curHasUrl = Boolean((cur.url_base ?? '').trim());
+      const candHasUrl = Boolean((cand.url_base ?? '').trim());
+      if (!curHasUrl && candHasUrl) return cand; // préfère une ligne avec url
+      return cur;
+    };
+
+    const map = new Map<string, UniteGroup>();
+
+    for (const r of pickRows) {
+      // on ne veut afficher que ces 2 options dans le picker
+      if (r.type_manifestation !== 'original' && r.type_manifestation !== 'numerisation') continue;
+
+      const g =
+        map.get(r.unite_id) ??
+        ({
+          unite_id: r.unite_id,
+          unite_titre: r.unite_titre,
+          unite_cote: r.unite_cote ?? null,
+          pagination_type: r.pagination_type ?? null,
+          depot_nom: r.depot_nom,
+          depot_type: r.depot_type,
+          institution_nom: r.institution_nom,
+          institution_sigle: r.institution_sigle ?? null,
+        } satisfies UniteGroup);
+
+      if (r.type_manifestation === 'original') g.original = best(g.original, r);
+      if (r.type_manifestation === 'numerisation') g.numerisation = best(g.numerisation, r);
+
+      map.set(r.unite_id, g);
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.unite_titre.localeCompare(b.unite_titre));
+  }, [pickRows]);
+
+  const pick = (row: ManifestationPick) => {
+    if (pickerTargetIdx == null) return;
+
+    const patch: Partial<CitationDraft> = {
+      manifestation_id: row.manifestation_id,
+      manifestation: {
+        type_manifestation: row.type_manifestation,
+        unite_titre: row.unite_titre,
+        unite_cote: row.unite_cote,
+        depot_type: row.depot_type,
+        depot_nom: row.depot_nom,
+        institution_sigle: row.institution_sigle,
+        institution_nom: row.institution_nom,
+        url_base: row.url_base,
+        plateforme_code: row.plateforme_code,
+        pagination_type: row.pagination_type,
+      },
+    };
+
+    // si on change de registre, on reset les ranges pour éviter incohérences
+    patch.vues_start = null;
+    patch.vues_end = null;
+    patch.vues_raw = '';
+    patch.page_start = null;
+    patch.page_end = null;
+    patch.page_raw = '';
+    patch.acte_manquant = false;
+
+    onChange(pickerTargetIdx, patch);
+    closePicker();
   };
 
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
       <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
         <div>
-          <h3 className='text-sm font-semibold text-slate-900'>Sources & références par dépôts</h3>
+          <h3 className='text-sm font-semibold text-slate-900'>Sources & références</h3>
           <p className='mt-1 text-sm text-slate-600'>
-            Dépôt + cote/registre + accès + vues/pages. (Les mêmes sources reviennent souvent sur
-            une commune/année/type.)
+            Tu choisis un <span className='font-medium'>registre / unité documentaire</span> (via
+            une manifestation : original, microfilm, numérisation) puis tu saisis ce qui est
+            spécifique à l’acte : <span className='font-medium'>vues/pages</span>,{' '}
+            <span className='font-medium'>lacune</span>, note.
           </p>
 
           {presetKey && (
@@ -1092,54 +1438,49 @@ function SectionSources({
             onClick={onAdd}
             className='rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50'
           >
-            + Ajouter une source
+            + Ajouter une référence
           </button>
         </div>
       </div>
 
-      {/* Presets bar */}
       {presetKey && (
         <div className='mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3'>
           <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
-            <div className='text-sm font-medium text-slate-900'>Pré-remplissage automatique</div>
+            <div className='text-sm font-medium text-slate-900'>Pré-remplissage</div>
 
             <div className='flex flex-wrap items-center gap-2'>
               <button
                 type='button'
                 disabled={!presetExists}
-                onClick={() => applyPreset({ keepVues: false, keepNotes: false })}
+                onClick={() => applyPreset({ keepRanges: false, keepNotes: false })}
                 className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60'
-                title='Applique les sources du preset et vide les vues/pages pour cet acte'
               >
-                Appliquer preset (vues vides)
+                Appliquer preset (ranges vides)
               </button>
 
               <button
                 type='button'
                 disabled={!presetExists}
-                onClick={() => applyPreset({ keepVues: true, keepNotes: true })}
+                onClick={() => applyPreset({ keepRanges: true, keepNotes: true })}
                 className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60'
-                title='Applique les sources du preset mais conserve ce que tu as déjà saisi (vues + notes) sur l’acte courant'
               >
                 Appliquer preset (garder saisie)
               </button>
 
               <button
                 type='button'
-                onClick={() => savePreset(toPresetSources('empty_vues'))}
+                onClick={() => savePreset(toPresetCitations('empty_ranges'))}
                 className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50'
-                title='Enregistre les sources actuelles comme preset, mais vide les vues/pages (recommandé)'
               >
-                Enregistrer preset (sans vues)
+                Enregistrer preset (sans ranges)
               </button>
 
               <button
                 type='button'
-                onClick={() => savePreset(toPresetSources('keep_vues'))}
+                onClick={() => savePreset(toPresetCitations('keep_ranges'))}
                 className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50'
-                title='Enregistre les sources actuelles avec les vues/pages (moins recommandé)'
               >
-                Enregistrer preset (avec vues)
+                Enregistrer preset (avec ranges)
               </button>
 
               <button
@@ -1147,7 +1488,6 @@ function SectionSources({
                 disabled={!presetExists}
                 onClick={() => clearPreset()}
                 className='rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 shadow-sm hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60'
-                title='Supprime le preset pour ce contexte'
               >
                 Effacer preset
               </button>
@@ -1155,10 +1495,7 @@ function SectionSources({
           </div>
 
           <p className='mt-2 text-xs text-slate-600'>
-            Objectif : quand tu passes de l’acte 3 à l’acte 4, tu cliques{' '}
-            <span className='font-medium'>Appliquer preset</span> et tu n’as plus qu’à renseigner
-            les <span className='font-medium'>vues/pages</span> (et éventuellement cocher “acte
-            manquant”).
+            Idéal : même commune/année/type → mêmes registres, seules les vues/pages changent.
           </p>
         </div>
       )}
@@ -1167,25 +1504,33 @@ function SectionSources({
         {loading && <div className='text-sm text-slate-600'>Chargement…</div>}
 
         {!loading &&
-          sources.map((s, idx) => {
-            const urlVisionneuse = (s.vue_image ?? '').trim();
-            const vuesRaw = (s.folio_page ?? '').trim();
-            const online = isOnline(s.support, urlVisionneuse);
-            const missing = isMissingActe(s.note);
+          sources.map((c, idx) => {
+            const online = isOnline(c);
+            const url = (c.manifestation?.url_base ?? '').trim();
+            const missing = Boolean(c.acte_manquant);
+
+            const vuesLabel =
+              (c.vues_raw ?? '').trim() ||
+              formatRangeLabel(c.vues_start ?? null, c.vues_end ?? null, 'vue');
+            const pagesLabel =
+              (c.page_raw ?? '').trim() ||
+              formatRangeLabel(c.page_start ?? null, c.page_end ?? null, 'page');
 
             return (
               <div
-                key={s.id ?? idx}
+                key={c.id ?? idx}
                 className='overflow-hidden rounded-xl border border-slate-200 bg-white'
               >
                 <div className='flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center md:justify-between'>
                   <div className='min-w-0'>
                     <div className='flex flex-wrap items-center gap-2'>
-                      <div className='text-sm font-semibold text-slate-900'>Source #{idx + 1}</div>
+                      <div className='text-sm font-semibold text-slate-900'>
+                        Référence #{idx + 1}
+                      </div>
 
-                      {s.depot_type && (
+                      {c.manifestation?.institution_sigle && (
                         <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                          {s.depot_type}
+                          {c.manifestation.institution_sigle}
                         </span>
                       )}
 
@@ -1205,26 +1550,31 @@ function SectionSources({
                         </span>
                       )}
 
-                      {vuesRaw && (
+                      {vuesLabel && (
                         <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                          {formatVueRangeLabel(vuesRaw) || vuesRaw}
+                          {vuesLabel}
+                        </span>
+                      )}
+
+                      {pagesLabel && (
+                        <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
+                          {pagesLabel}
                         </span>
                       )}
                     </div>
 
                     <div className='mt-1 truncate text-xs text-slate-600'>
-                      {buildCompactTitle(s)}
+                      {c.manifestation_id ? titleFor(c) : 'Aucune source sélectionnée'}
                     </div>
                   </div>
 
                   <div className='flex flex-wrap items-center gap-2'>
                     <button
                       type='button'
-                      onClick={() => onDuplicate(idx)}
+                      onClick={() => openPicker(idx)}
                       className='rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
-                      title='Dupliquer uniquement dans cet acte'
                     >
-                      Dupliquer
+                      Sélectionner le registre
                     </button>
 
                     <button
@@ -1238,220 +1588,229 @@ function SectionSources({
                 </div>
 
                 <div className='p-4'>
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-4'>
-                      <label className='block text-xs font-medium text-slate-700'>Dépôt</label>
-                      <select
-                        value={s.depot_type}
-                        onChange={(e) => onChange(idx, { depot_type: e.target.value })}
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      >
-                        <option value=''></option>
-                        <option>Mairie</option>
-                        <option>Archives départementales</option>
-                        <option>Archives du tribunal</option>
-                        <option>ANOM</option>
-                        <option>Autre</option>
-                      </select>
-                    </div>
+                  <div className='rounded-xl border border-slate-200 bg-white p-3'>
+                    <div className='flex flex-col gap-2 md:flex-row md:items-start md:justify-between'>
+                      <div className='min-w-0'>
+                        <div className='text-xs font-medium text-slate-700'>Registre</div>
 
-                    <div className='md:col-span-8'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Nom du dépôt
-                      </label>
-                      <input
-                        type='text'
-                        value={s.nom_depot}
-                        onChange={(e) => onChange(idx, { nom_depot: e.target.value })}
-                        placeholder='ex : Archives départementales de la Guadeloupe'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                    </div>
+                        {/* Ligne principale lisible */}
+                        <div className='mt-1 flex flex-wrap items-center gap-2'>
+                          <div className='text-sm font-semibold text-slate-900'>
+                            {c.manifestation?.unite_titre || '—'}
+                          </div>
 
-                    <div className='md:col-span-4'>
-                      <label className='block text-xs font-medium text-slate-700'>Cote</label>
-                      <input
-                        type='text'
-                        value={s.cote}
-                        onChange={(e) => onChange(idx, { cote: e.target.value })}
-                        placeholder='ex : 1E9_001'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                    </div>
+                          {c.manifestation?.institution_sigle && (
+                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
+                              {c.manifestation.institution_sigle}
+                            </span>
+                          )}
 
-                    <div className='md:col-span-8'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Titre du registre
-                      </label>
-                      <input
-                        type='text'
-                        value={s.registre}
-                        onChange={(e) => onChange(idx, { registre: e.target.value })}
-                        placeholder='ex : 1841, 1848-1861, 1863-1867'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                    </div>
+                          {c.manifestation?.depot_nom && (
+                            <span className='rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700'>
+                              {c.manifestation.depot_nom}
+                            </span>
+                          )}
 
-                    <div className='md:col-span-12'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Chemin fonds / collection
-                      </label>
-                      <textarea
-                        value={s.serie}
-                        onChange={(e) => onChange(idx, { serie: e.target.value })}
-                        placeholder='ex : État civil : collection des greffes des tribunaux > Deshaies > État civil de la population > Mariages'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                      <p className='mt-1 text-[11px] text-slate-500'>
-                        (On utilise “Série” comme champ “chemin de classement”, car c’est ce qui
-                        t’aide vraiment à retrouver.)
-                      </p>
-                    </div>
+                          {c.manifestation?.type_manifestation && (
+                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
+                              {c.manifestation.type_manifestation}
+                            </span>
+                          )}
+                        </div>
 
-                    <div className='md:col-span-8'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        URL visionneuse
-                      </label>
-                      <input
-                        type='url'
-                        value={urlVisionneuse}
-                        onChange={(e) => onChange(idx, { vue_image: normalizeUrl(e.target.value) })}
-                        placeholder='ex : https://earchives... / http://anom...'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                      {urlVisionneuse ? (
-                        <div className='mt-1'>
+                        {/* Sous-ligne ultra légère */}
+                        <div className='mt-1 text-xs text-slate-600'>
+                          {c.manifestation?.unite_cote ? (
+                            <span>
+                              Cote :{' '}
+                              <span className='font-medium'>{c.manifestation.unite_cote}</span>
+                            </span>
+                          ) : (
+                            <span className='text-slate-500'>—</span>
+                          )}
+                          {c.manifestation?.pagination_type ? (
+                            <span className='text-slate-500'>
+                              {' '}
+                              · Pagination : {c.manifestation.pagination_type}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Détails repliables */}
+                        <details className='mt-2'>
+                          <summary className='cursor-pointer select-none text-xs font-medium text-slate-700 hover:text-slate-900'>
+                            Détails
+                          </summary>
+                          <div className='mt-2 space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700'>
+                            <div>
+                              <span className='text-slate-500'>Institution :</span>{' '}
+                              <span className='font-medium'>
+                                {c.manifestation?.institution_nom ?? '—'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className='text-slate-500'>Dépôt :</span>{' '}
+                              <span className='font-medium'>
+                                {c.manifestation?.depot_nom ?? '—'}
+                              </span>
+                              {c.manifestation?.depot_type ? (
+                                <span className='text-slate-500'>
+                                  {' '}
+                                  · {c.manifestation.depot_type}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div>
+                              <span className='text-slate-500'>Manifestation :</span>{' '}
+                              <span className='font-medium'>
+                                {c.manifestation?.type_manifestation ?? '—'}
+                              </span>
+                              {c.manifestation?.pagination_type ? (
+                                <span className='text-slate-500'>
+                                  {' '}
+                                  · pagination {c.manifestation.pagination_type}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            {url ? (
+                              <div className='break-all'>
+                                <span className='text-slate-500'>URL :</span>{' '}
+                                <span className='font-mono'>{url}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </details>
+                      </div>
+
+                      <div className='flex flex-wrap items-center gap-2'>
+                        {url ? (
                           <a
-                            href={normalizeUrl(urlVisionneuse)}
+                            href={normalizeUrl(url)}
                             target='_blank'
                             rel='noreferrer'
-                            className='text-xs font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-500'
+                            className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50'
                           >
-                            Ouvrir la visionneuse ↗
+                            Ouvrir visionneuse ↗
                           </a>
-                        </div>
-                      ) : (
-                        <p className='mt-1 text-[11px] text-slate-500'>
-                          Laisse vide si non numérisé / pas en ligne.
-                        </p>
-                      )}
+                        ) : (
+                          <span className='rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700'>
+                            Pas d’URL
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </div>
 
-                    <div className='md:col-span-4'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Vues / pages
-                      </label>
-                      <input
-                        type='text'
-                        value={vuesRaw}
-                        onChange={(e) => onChange(idx, { folio_page: e.target.value })}
-                        placeholder='ex : 101-102'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                      <p className='mt-1 text-[11px] text-slate-500'>
-                        Format conseillé : <span className='font-medium'>101-102</span> (affiché :{' '}
-                        {formatVueRangeLabel(vuesRaw) || '—'}).
-                      </p>
-                    </div>
-
+                  <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
                     <div className='md:col-span-12'>
                       <div className='flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between'>
                         <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
                           <input
                             type='checkbox'
-                            checked={missing}
-                            onChange={(e) => toggleMissingActe(idx, e.target.checked)}
+                            checked={Boolean(c.acte_manquant)}
+                            onChange={(e) => onChange(idx, { acte_manquant: e.target.checked })}
                             className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
                           />
-                          Acte attendu mais manquant (lacune dans le registre)
+                          Acte attendu mais manquant (lacune)
                         </label>
                         <div className='text-xs text-slate-600'>
-                          À cocher quand tu es <span className='font-medium'>au bon endroit</span>{' '}
-                          mais l’acte n’est pas là.
+                          À cocher si tu es au bon endroit mais l’acte n’est pas présent.
                         </div>
                       </div>
                     </div>
 
-                    <div className='md:col-span-12'>
-                      <details className='group rounded-xl border border-slate-200 bg-white p-3'>
-                        <summary className='cursor-pointer list-none text-sm font-medium text-slate-900'>
-                          Détails avancés{' '}
-                          <span className='text-slate-500'>
-                            (support, langue, écriture, conservation)
-                          </span>
-                        </summary>
+                    <div className='md:col-span-6'>
+                      <label className='block text-xs font-medium text-slate-700'>
+                        Vues (structuré)
+                      </label>
+                      <div className='mt-1 flex items-center gap-2'>
+                        <input
+                          inputMode='numeric'
+                          value={c.vues_start ?? ''}
+                          onChange={(e) =>
+                            onChange(idx, { vues_start: toIntOrNull(e.target.value) })
+                          }
+                          placeholder='début'
+                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                        />
+                        <span className='text-sm text-slate-500'>→</span>
+                        <input
+                          inputMode='numeric'
+                          value={c.vues_end ?? ''}
+                          onChange={(e) => onChange(idx, { vues_end: toIntOrNull(e.target.value) })}
+                          placeholder='fin'
+                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                        />
+                        <span className='text-xs text-slate-600'>
+                          {formatRangeLabel(c.vues_start ?? null, c.vues_end ?? null, 'vue') || '—'}
+                        </span>
+                      </div>
+                    </div>
 
-                        <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
-                          <div className='md:col-span-4'>
-                            <label className='block text-xs font-medium text-slate-700'>
-                              Support
-                            </label>
-                            <select
-                              value={s.support}
-                              onChange={(e) => onChange(idx, { support: e.target.value })}
-                              className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                            >
-                              <option value=''></option>
-                              <option>Numérisé</option>
-                              <option>Microfilm</option>
-                              <option>Original papier</option>
-                              <option>Copie</option>
-                            </select>
-                          </div>
+                    <div className='md:col-span-6'>
+                      <label className='block text-xs font-medium text-slate-700'>
+                        Vues (brut)
+                      </label>
+                      <input
+                        type='text'
+                        value={c.vues_raw ?? ''}
+                        onChange={(e) => onChange(idx, { vues_raw: e.target.value })}
+                        placeholder='ex : 101-102 / vue 101 / images 3 à 4'
+                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                      />
+                    </div>
 
-                          <div className='md:col-span-4'>
-                            <label className='block text-xs font-medium text-slate-700'>
-                              Langue
-                            </label>
-                            <input
-                              type='text'
-                              value={s.langue}
-                              onChange={(e) => onChange(idx, { langue: e.target.value })}
-                              placeholder='ex : français'
-                              className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                            />
-                          </div>
+                    <div className='md:col-span-6'>
+                      <label className='block text-xs font-medium text-slate-700'>
+                        Pages (structuré)
+                      </label>
+                      <div className='mt-1 flex items-center gap-2'>
+                        <input
+                          inputMode='numeric'
+                          value={c.page_start ?? ''}
+                          onChange={(e) =>
+                            onChange(idx, { page_start: toIntOrNull(e.target.value) })
+                          }
+                          placeholder='début'
+                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                        />
+                        <span className='text-sm text-slate-500'>→</span>
+                        <input
+                          inputMode='numeric'
+                          value={c.page_end ?? ''}
+                          onChange={(e) => onChange(idx, { page_end: toIntOrNull(e.target.value) })}
+                          placeholder='fin'
+                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                        />
+                        <span className='text-xs text-slate-600'>
+                          {formatRangeLabel(c.page_start ?? null, c.page_end ?? null, 'page') ||
+                            '—'}
+                        </span>
+                      </div>
+                    </div>
 
-                          <div className='md:col-span-4'>
-                            <label className='block text-xs font-medium text-slate-700'>
-                              Écriture
-                            </label>
-                            <select
-                              value={s.ecriture}
-                              onChange={(e) => onChange(idx, { ecriture: e.target.value })}
-                              className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                            >
-                              <option value=''></option>
-                              <option>Manuscrite</option>
-                              <option>Dactylographiée</option>
-                              <option>Imprimée</option>
-                              <option>Mixte</option>
-                            </select>
-                          </div>
-
-                          <div className='md:col-span-12'>
-                            <label className='block text-xs font-medium text-slate-700'>
-                              État de conservation
-                            </label>
-                            <textarea
-                              value={s.etat_conservation}
-                              onChange={(e) => onChange(idx, { etat_conservation: e.target.value })}
-                              placeholder='ex : encre pâle / page déchirée / marge illisible...'
-                              className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                            ></textarea>
-                          </div>
-                        </div>
-                      </details>
+                    <div className='md:col-span-6'>
+                      <label className='block text-xs font-medium text-slate-700'>
+                        Pages (brut)
+                      </label>
+                      <input
+                        type='text'
+                        value={c.page_raw ?? ''}
+                        onChange={(e) => onChange(idx, { page_raw: e.target.value })}
+                        placeholder='ex : p. 12-13 / folio 8r-8v'
+                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                      />
                     </div>
 
                     <div className='md:col-span-12'>
                       <label className='block text-xs font-medium text-slate-700'>Note</label>
                       <textarea
-                        value={s.note}
+                        value={c.note ?? ''}
                         onChange={(e) => onChange(idx, { note: e.target.value })}
-                        placeholder='ex : registre consulté le … ; lacune confirmée ; particularités ; etc.'
+                        placeholder='ex : consulté le … ; registre lacunaire ; qualité faible ; etc.'
                         className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      ></textarea>
+                      />
                     </div>
                   </div>
                 </div>
@@ -1459,6 +1818,152 @@ function SectionSources({
             );
           })}
       </div>
+
+      {/* Picker modal */}
+      {pickerOpen && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4'>
+          <div className='w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl'>
+            <div className='border-b border-slate-200 bg-slate-50 p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>
+                    Choisir un registre / une manifestation
+                  </div>
+                  <div className='mt-1 text-xs text-slate-600'>
+                    Recherche par titre, cote, institution (ANOM / AD971…), dépôt…
+                  </div>
+                </div>
+                <button
+                  type='button'
+                  onClick={closePicker}
+                  className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
+                >
+                  Fermer
+                </button>
+              </div>
+
+              <div className='mt-3 space-y-2'>
+                <div className='grid grid-cols-12 gap-2'>
+                  <div className='col-span-12'>
+                    <input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      placeholder='ex: Deshaies 1859 mariages / CAOM EC / ANOM…'
+                      className='w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                    />
+                  </div>
+                </div>
+
+                <div className='flex justify-end'>
+                  <label className='inline-flex w-fit items-center gap-2 text-sm text-slate-700'>
+                    <input
+                      type='checkbox'
+                      checked={onlyOnline}
+                      onChange={(e) => setOnlyOnline(e.target.checked)}
+                      className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
+                    />
+                    En ligne uniquement
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className='max-h-[70vh] overflow-auto p-4'>
+              {pickLoading && <div className='text-sm text-slate-600'>Recherche…</div>}
+              {pickError && (
+                <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
+                  {pickError}
+                  <div className='mt-1 text-xs text-red-700'>
+                    Astuce : crée la vue <span className='font-mono'>v_manifestations_pick</span>.
+                  </div>
+                </div>
+              )}
+
+              {!pickLoading && !pickError && pickRows.length === 0 && (
+                <div className='text-sm text-slate-600'>Aucun résultat.</div>
+              )}
+
+              {!pickLoading && !pickError && pickRows.length > 0 && (
+                <div className='space-y-2'>
+                  {groupedByUnite.map((g) => {
+                    const online =
+                      g.depot_type === 'en_ligne' ||
+                      Boolean((g.numerisation?.url_base ?? '').trim());
+
+                    return (
+                      <div
+                        key={g.unite_id}
+                        className='w-full rounded-xl border border-slate-200 bg-white p-3 text-left'
+                      >
+                        {/* Ligne "registre" */}
+                        <div className='flex flex-wrap items-center gap-2'>
+                          <span className='text-sm font-semibold text-slate-900'>
+                            {g.unite_titre}
+                          </span>
+
+                          {g.institution_sigle && (
+                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
+                              {g.institution_sigle}
+                            </span>
+                          )}
+
+                          {online ? (
+                            <span className='rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800'>
+                              En ligne
+                            </span>
+                          ) : (
+                            <span className='rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800'>
+                              Sur place
+                            </span>
+                          )}
+
+                          {g.pagination_type && (
+                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
+                              pagination: {g.pagination_type}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className='mt-1 text-xs text-slate-600'>
+                          {g.institution_nom} · {g.depot_nom}
+                          {g.unite_cote ? ` · ${g.unite_cote}` : ''}
+                        </div>
+
+                        {/* 2 options sous le registre */}
+                        <div className='mt-3 flex flex-wrap gap-2'>
+                          <button
+                            type='button'
+                            disabled={!g.original}
+                            onClick={() => g.original && pick(g.original)}
+                            className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+                          >
+                            Original
+                          </button>
+
+                          <button
+                            type='button'
+                            disabled={!g.numerisation}
+                            onClick={() => g.numerisation && pick(g.numerisation)}
+                            className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+                          >
+                            Numérisation
+                          </button>
+
+                          {g.numerisation?.url_base ? (
+                            <span className='text-[11px] text-slate-500 self-center'>
+                              URL: <span className='font-mono'>{g.numerisation.url_base}</span>
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
