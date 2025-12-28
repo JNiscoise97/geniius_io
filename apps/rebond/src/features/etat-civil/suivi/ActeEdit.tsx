@@ -435,10 +435,8 @@ export default function ActeEdit() {
               <p className="text-sm leading-relaxed bg-orange-300">
                 Contenu textuel fidèle au document
                 <ul>
-                  <li>Transcription intégrale (ou fragments si partiel)</li>
                   <li>Texte original des mentions marginales (si transcrit)</li>
                   <li>Signalement des parties illisibles/lacunes/barrés</li>
-                  <li>Conventions de transcription utilisées (ex : diplomatique)</li>
                   <li>Langue et système d’écriture observé</li>
                   <li>Nom du transcripteur principal (si toi ou un tiers)</li>
                   <li>Date(s) de transcription</li>
