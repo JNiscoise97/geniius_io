@@ -453,31 +453,10 @@ export default function ReferenceArchiveTab({
    * 2) upsert ensuite (insert/update)
    */
   const upsertCitations = async () => {
-    // on ne persiste que les lignes qui ont une manifestation
-    const payload = sources
-      .map((c, idx) => ({
-        acte_id: acteId,
-        manifestation_id: c.manifestation_id ?? null,
-
-        vues_start: c.vues_start ?? null,
-        vues_end: c.vues_end ?? null,
-        vues_raw: (c.vues_raw ?? '').trim() || null,
-
-        page_start: c.page_start ?? null,
-        page_end: c.page_end ?? null,
-        page_raw: (c.page_raw ?? '').trim() || null,
-
-        acte_manquant: Boolean(c.acte_manquant),
-        note: (c.note ?? '').trim() || null,
-
-        sort_order: typeof c.sort_order === 'number' ? c.sort_order : idx,
-      }))
-      .filter((row) => Boolean(row.manifestation_id));
-
-    // ids présents dans l’UI (ceux déjà persistés)
+    // 0) ids UI existants
     const uiExistingIds = sources.map((s) => s.id).filter(Boolean) as string[];
 
-    // 1) delete rows removed in UI (only among existing ids)
+    // 1) delete rows removed in UI
     const { data: existing, error: errExisting } = await supabase
       .from('etat_civil_acte_citations')
       .select('id')
@@ -496,13 +475,52 @@ export default function ReferenceArchiveTab({
       if (error) throw error;
     }
 
-    // 2) upsert new + updated
-    if (payload.length) {
-      const { error } = await supabase
-        .from('etat_civil_acte_citations')
-        .upsert(payload, { onConflict: 'id' });
+    // 2) upsert (IMPORTANT: include id when present)
+    const payload = sources
+      .map((c, idx) => ({
+        id: c.id ?? undefined, // ✅ clé !
+        acte_id: acteId,
+        manifestation_id: c.manifestation_id, // obligatoire
 
-      if (error) throw error;
+        vues_start: c.vues_start ?? null,
+        vues_end: c.vues_end ?? null,
+        vues_raw: (c.vues_raw ?? '').trim() || null,
+
+        page_start: c.page_start ?? null,
+        page_end: c.page_end ?? null,
+        page_raw: (c.page_raw ?? '').trim() || null,
+
+        acte_manquant: Boolean(c.acte_manquant),
+        note: (c.note ?? '').trim() || null,
+
+        sort_order: idx,
+      }))
+      .filter((row) => Boolean(row.manifestation_id));
+
+    if (!payload.length) return;
+
+    const { data: upserted, error } = await supabase
+      .from('etat_civil_acte_citations')
+      .upsert(payload, { onConflict: 'id' })
+      .select('id, manifestation_id, sort_order');
+
+    if (error) throw error;
+
+    // 3) (optionnel mais conseillé) recoller les ids générés côté DB dans le state
+    // pour éviter que la prochaine sauvegarde réinsère à nouveau
+    if (upserted?.length) {
+      const byKey = new Map(
+        upserted.map((r: any) => [`${r.manifestation_id}__${r.sort_order}`, r.id as string]),
+      );
+
+      setSources((prev) =>
+        prev.map((c, idx) => {
+          if (c.id) return c;
+          const key = `${c.manifestation_id}__${idx}`;
+          const newId = byKey.get(key);
+          return newId ? { ...c, id: newId } : c;
+        }),
+      );
     }
   };
 
@@ -1077,6 +1095,20 @@ function SectionSources({
   presetKey?: string;
   presetLabel?: string;
 }) {
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+
+  const scrollToIdx = (idx: number) => {
+    const el = itemRefs.current[idx];
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // petit flash / ring
+    setHighlightIdx(idx);
+    window.setTimeout(() => setHighlightIdx((cur) => (cur === idx ? null : cur)), 900);
+  };
+
   const normalizeUrl = (url: string) => {
     const u = (url ?? '').trim();
     if (!u) return '';
@@ -1435,7 +1467,12 @@ function SectionSources({
         <div className='flex flex-wrap items-center gap-2'>
           <button
             type='button'
-            onClick={onAdd}
+            onClick={() => {
+              const nextIdx = sources.length; // la nouvelle sera à la fin
+              onAdd();
+              // attendre que le DOM rende la nouvelle card
+              requestAnimationFrame(() => requestAnimationFrame(() => scrollToIdx(nextIdx)));
+            }}
             className='rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50'
           >
             + Ajouter une référence
@@ -1518,8 +1555,15 @@ function SectionSources({
 
             return (
               <div
+                ref={(el) => (itemRefs.current[idx] = el)}
                 key={c.id ?? idx}
-                className='overflow-hidden rounded-xl border border-slate-200 bg-white'
+                className={[
+                  'overflow-hidden rounded-xl border border-slate-200 bg-white transition',
+                  'scroll-mt-30',
+                  highlightIdx === idx
+                    ? 'ring-2 ring-slate-900/30 shadow-md animate-[pulse_0.8s_ease-out]'
+                    : '',
+                ].join(' ')}
               >
                 <div className='flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center md:justify-between'>
                   <div className='min-w-0'>
