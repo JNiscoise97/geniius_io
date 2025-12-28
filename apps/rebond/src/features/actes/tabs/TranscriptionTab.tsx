@@ -48,6 +48,7 @@ type EcActeRow = {
   bureau_id: string | null;
   type_acte: string | null; // ex: "naissance"
   type_acte_ref: string | null;
+  auteur_institutionnel_ref: string | null;
   label: string | null;
 };
 
