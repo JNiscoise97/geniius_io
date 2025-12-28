@@ -1,3 +1,5 @@
+//dictionnaireValue.ts
+
 
 
 type DictObj = {
