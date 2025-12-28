@@ -48,6 +48,7 @@ type EcActeRow = {
   bureau_id: string | null;
   type_acte: string | null; // ex: "naissance"
   type_acte_ref: string | null;
+  auteur_institutionnel_ref: string | null;
   label: string | null;
 };
 
@@ -317,7 +318,7 @@ export default function TranscriptionTab({ acteId, onGoToTab }: Props) {
         // 1) acte
         const acteRes = await supabase
           .from("etat_civil_actes")
-          .select("id, date, numero_acte, registre_id, bureau_id, type_acte, type_acte_ref, label")
+          .select("id, date, numero_acte, registre_id, bureau_id, type_acte, type_acte_ref, auteur_institutionnel_ref, label")
           .eq("id", acteId)
           .single();
 

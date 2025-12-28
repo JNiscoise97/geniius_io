@@ -147,12 +147,14 @@ export default function ReferenceArchiveTab({
   const acteId = acte.id;
   const label = acte.label ?? '';
   const tar = (acte as any).type_acte_ref;
+  const tai = (acte as any).auteur_institutionnel_ref;
 
   const initialState: FormState = useMemo(
     () => ({
       type_acte: (acte as any).type_acte ?? '',
 
       type_acte_ref: tar?.id ? { ids: [tar.id], labels: [tar.label ?? ''] } : null,
+      
       numero_acte: String((acte as any).numero_acte ?? ''),
       date: toDateInput((acte as any).date),
       heure: (acte as any).heure ?? '',
@@ -169,6 +171,7 @@ export default function ReferenceArchiveTab({
 
       mentions_marginales_presentes: Boolean((acte as any).mentions_marginales_presentes),
       auteur_fonction: (acte as any).auteur_fonction ?? '',
+      auteur_institutionnel_ref: tai?.id ? { ids: [tai.id], labels: [tai.label ?? ''] } : null,
     }),
     [acte, bureauLabel],
   );
@@ -344,6 +347,7 @@ export default function ReferenceArchiveTab({
 
       mentions_marginales_presentes: Boolean(form.mentions_marginales_presentes),
       auteur_fonction: form.auteur_fonction || null,
+      auteur_institutionnel_ref: form.auteur_institutionnel_ref?.ids?.[0] ?? null,
     };
 
     const { error } = await supabase.from('etat_civil_actes').update(patch).eq('id', acteId);
@@ -369,7 +373,10 @@ export default function ReferenceArchiveTab({
   const currentTypeActeLabels = toLabels((form as any).type_acte_ref); // ou form.type_acte_ref
   const currentTypeActeIds = toIds((form as any).type_acte_ref);
 
-  const openDictionnaire = (
+  const currentAuteurInstitutionnelLabels = toLabels((form as any).auteur_institutionnel_ref); // ou form.auteur_institutionnel_ref
+  const currentAuteurInstitutionnelIds = toIds((form as any).auteur_institutionnel_ref);
+
+  const openDictionnaireTypeActe = (
     kind: DictionnaireKind,
     title: string,
     multi = true,
@@ -391,7 +398,33 @@ export default function ReferenceArchiveTab({
     setDictOpen(true);
   };
 
-  const clearDictValue = (field: 'type_acte_ref') => {
+  const clearDictValueTypeActe = (field: 'type_acte_ref') => {
+    setField(field, null);
+  };
+
+  const openDictionnaireAuteurInstitutionnel = (
+    kind: DictionnaireKind,
+    title: string,
+    multi = true,
+    defaultSelectedIds: string[] = [],
+  ) => {
+    setDictArgs({
+      kind,
+      title,
+      multi,
+      defaultSelectedIds,
+      onValidate: async (items) => {
+        const ids = items.map((i) => i.id);
+        const labels = items.map((i) => i.label);
+        setField('auteur_institutionnel_ref', { ids, labels });
+
+        setDictOpen(false);
+      },
+    });
+    setDictOpen(true);
+  };
+
+  const clearDictValueAuteurInstitutionnel = (field: 'auteur_institutionnel_ref') => {
     setField(field, null);
   };
   return (
@@ -467,14 +500,14 @@ export default function ReferenceArchiveTab({
                 values={currentTypeActeLabels}
                 dense
                 onEdit={() =>
-                  openDictionnaire(
+                  openDictionnaireTypeActe(
                     'type_acte_ref',
                     "Modifier le type d'acte",
                     false,
                     currentTypeActeIds,
                   )
                 }
-                onDelete={() => clearDictValue('type_acte_ref')}
+                onDelete={() => clearDictValueTypeActe('type_acte_ref')}
               />
             </div>
 
@@ -688,17 +721,20 @@ export default function ReferenceArchiveTab({
           <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
             <div className='md:col-span-4'>
               <label className='block text-xs font-medium text-slate-700'>Fonction</label>
-              <select
-                value={form.auteur_fonction}
-                onChange={(e) => setField('auteur_fonction', e.target.value)}
-                className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-slate-400'
-              >
-                <option value=''></option>
-                <option>Officier d’état civil</option>
-                <option>Prêtre</option>
-                <option>Greffier</option>
-                <option>Autre</option>
-              </select>
+              <ListeChipsViewSmart
+                titre="Fonction"
+                values={currentAuteurInstitutionnelLabels}
+                dense
+                onEdit={() =>
+                  openDictionnaireAuteurInstitutionnel(
+                    'auteur_institutionnel_ref',
+                    "Modifier la fonction de l'auteur institutionnel",
+                    false,
+                    currentAuteurInstitutionnelIds,
+                  )
+                }
+                onDelete={() => clearDictValueAuteurInstitutionnel('auteur_institutionnel_ref')}
+              />
             </div>
           </div>
 
