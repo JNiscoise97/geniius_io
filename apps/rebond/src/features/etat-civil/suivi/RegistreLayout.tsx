@@ -110,10 +110,11 @@ export default function RegistreLayout() {
                 <button
                   key={label}
                   onClick={() => setActiveSection(label)}
-                  className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
+                  className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${
+                    activeSection === label
                       ? 'border-blue-600 text-blue-600 font-medium'
                       : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-                    }`}
+                  }`}
                 >
                   <Icon className='w-4 h-4' />
                   {label}
@@ -236,7 +237,6 @@ function DataTableActes({
         numero_acte: numeroStr,
         date: '',
         type_acte: '',
-        source: '',
         label: '',
         __vide: true,
       },
@@ -289,13 +289,25 @@ function DataTableActes({
     {
       key: 'type_acte',
       label: 'Type',
-      render: (row) =>
-        row.__vide ? <span className='text-gray-400 italic'>—</span> : row.type_acte,
-    },
-    {
-      key: 'source',
-      label: 'Source',
-      render: (row) => (row.__vide ? <span className='text-gray-400 italic'>—</span> : row.source),
+      render: (row) => {
+        if (row.__vide || !row.type_acte_ref_obj) {
+          return <span className='text-gray-400 italic'>—</span>;
+        }
+
+        const color = row.type_acte_ref_obj.color;
+        return (
+          <span
+            className={`
+            px-2.5 py-0.5 rounded-lg border text-xs font-medium shadow-sm
+            bg-${color}-50
+            text-${color}-800
+            border-${color}-100
+          `}
+          >
+            {row.type_acte_ref_obj.label ?? '(type inconnu)'}
+          </span>
+        );
+      },
     },
     {
       key: 'label',
@@ -339,7 +351,8 @@ function DataTableActes({
       {numerosDoublonnes.length > 0 && (
         <div className='bg-red-50 text-red-900 text-sm p-3 rounded'>
           ❗ Des doublons ont été détectés pour les numéros :
-          <span className='font-semibold'> {numerosDoublonnes.join(', ')}</span>. Les actes avec un numéro en doublon sont affichés à la fin.
+          <span className='font-semibold'> {numerosDoublonnes.join(', ')}</span>. Les actes avec un
+          numéro en doublon sont affichés à la fin.
         </div>
       )}
       <DataTable
@@ -353,6 +366,17 @@ function DataTableActes({
         title='Liste des actes'
         pageSize={-1}
       />
+      <div className="bg-sky-50 text-sky-800 border-sky-100 border hidden">test</div>
+      <div className="bg-slate-50 text-slate-800 border-slate-100 border hidden">test</div>
+      <div className="bg-rose-50 text-rose-800 border-rose-100 border hidden">test</div>
+      <div className="bg-purple-50 text-purple-800 border-purple-100 border hidden">test</div>
+      <div className="bg-cyan-50 text-cyan-800 border-cyan-100 border hidden">test</div>
+      <div className="bg-amber-50 text-amber-800 border-amber-100 border hidden">test</div>
+      <div className="bg-emerald-50 text-emerald-800 border-emerald-100 border hidden">test</div>
+      <div className="bg-teal-50 text-teal-800 border-teal-100 border hidden">test</div>
+      <div className="bg-stone-50 text-stone-800 border-stone-100 border hidden">test</div>
+      <div className="bg-fuchsia-50 text-fuchsia-800 border-fuchsia-100 border hidden">test</div>
+      <div className="bg-zinc-50 text-zinc-800 border-zinc-100 border hidden">test</div>
     </div>
   );
 }

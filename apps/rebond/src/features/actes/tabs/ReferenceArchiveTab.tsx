@@ -477,25 +477,30 @@ export default function ReferenceArchiveTab({
 
     // 2) upsert (IMPORTANT: include id when present)
     const payload = sources
-      .map((c, idx) => ({
-        id: c.id ?? undefined, // ✅ clé !
-        acte_id: acteId,
-        manifestation_id: c.manifestation_id, // obligatoire
+      .map((c, idx) => {
+        if (!c.manifestation_id) return null;
 
-        vues_start: c.vues_start ?? null,
-        vues_end: c.vues_end ?? null,
-        vues_raw: (c.vues_raw ?? '').trim() || null,
+        const base = {
+          acte_id: acteId,
+          manifestation_id: c.manifestation_id,
 
-        page_start: c.page_start ?? null,
-        page_end: c.page_end ?? null,
-        page_raw: (c.page_raw ?? '').trim() || null,
+          vues_start: c.vues_start ?? null,
+          vues_end: c.vues_end ?? null,
+          vues_raw: (c.vues_raw ?? '').trim() || null,
 
-        acte_manquant: Boolean(c.acte_manquant),
-        note: (c.note ?? '').trim() || null,
+          page_start: c.page_start ?? null,
+          page_end: c.page_end ?? null,
+          page_raw: (c.page_raw ?? '').trim() || null,
 
-        sort_order: idx,
-      }))
-      .filter((row) => Boolean(row.manifestation_id));
+          acte_manquant: Boolean(c.acte_manquant),
+          note: (c.note ?? '').trim() || null,
+
+          sort_order: idx,
+        };
+
+        return c.id ? { id: c.id, ...base } : base;
+      })
+      .filter(Boolean) as any[];
 
     if (!payload.length) return;
 

@@ -185,7 +185,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
         nombre_actes_estime,
         complet,
         actes:etat_civil_actes (
-          id, bureau_id, registre_id, date, heure, annee, source, type_acte, numero_acte, comparution_mairie, label, statut, transcription
+          id, bureau_id, registre_id, date, heure, annee, source, type_acte, numero_acte, comparution_mairie, label, statut, transcription,type_acte_ref, type_acte_ref_obj:ref_ec_type_acte ( id, code, label, color )
         )
       `
       )
