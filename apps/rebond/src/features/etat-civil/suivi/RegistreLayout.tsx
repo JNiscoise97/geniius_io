@@ -36,6 +36,11 @@ export default function RegistreLayout() {
   const fetchRegistre = useEtatCivilStore((s) => s.fetchRegistre);
   const fetchBureau = useEtatCivilStore((s) => s.fetchBureau);
 
+  const handleAddActe = () => {
+    setNumeroActeACreer(null); // <- champ vide
+    setCreateActeModalOpen(true);
+  };
+
   useEffect(() => {
     if (!id || !bureauId) return;
 
@@ -135,6 +140,13 @@ export default function RegistreLayout() {
                     <StatCard label='Actes estimés' value={registre.actes_estimes} />
                   </div>
 
+                  <div className='flex items-center justify-end mt-4'>
+                    <Button onClick={handleAddActe} className='text-xs flex items-center gap-2'>
+                      <Plus className='w-4 h-4' />
+                      Ajouter un acte
+                    </Button>
+                  </div>
+
                   <DataTableActes
                     actes={actesLocal}
                     actesEstimes={registre.actes_estimes}
@@ -164,7 +176,7 @@ export default function RegistreLayout() {
               setNumeroActeACreer(null);
             }}
             actesExistants={registre.actes}
-            numeroParDefaut={numeroActeACreer ?? ''}
+            numeroParDefaut={numeroActeACreer}
             onActeCreated={handleNewActe}
           />
         </div>
@@ -194,6 +206,10 @@ function DataTableActes({
   // Construction des actes "visibles" (actes existants + lignes vides)
   const actesParNumero: Record<string, any> = {};
   const doublons: Record<string, any[]> = {};
+
+  const actesSansNumero = actes.filter(
+    (a) => !a.numero_acte || String(a.numero_acte).trim() === '',
+  );
 
   actes.forEach((a) => {
     if (!a.numero_acte) return;
@@ -256,6 +272,22 @@ function DataTableActes({
       }),
     );
   }
+  doublonsSupp.sort((a, b) => safeTime(a.date) - safeTime(b.date));
+
+  const safeTime = (d?: string | null) => {
+    if (!d) return Number.POSITIVE_INFINITY; // dates vides en dernier
+    const t = new Date(d).getTime();
+    return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
+  };
+
+  const actesSansNumeroLignes = actesSansNumero
+    .slice()
+    .sort((a, b) => safeTime(a.date) - safeTime(b.date))
+    .map((a) => ({
+      ...a,
+      __sans_numero: true,
+      __ordre: 2, // <-- après doublons
+    }));
 
   // Marquer les doublons à trier en fin
   doublonsSupp.forEach((a) => {
@@ -266,7 +298,7 @@ function DataTableActes({
     a.__ordre = 0;
   });
 
-  const toutesLignes = [...lignesAffichees, ...doublonsSupp];
+  const toutesLignes = [...lignesAffichees, ...doublonsSupp, ...actesSansNumeroLignes];
 
   // Détection des trous dans les actes effectivement présents
   const numerosPresents = actes.map((a) => parseInt(a.numero_acte)).filter((n) => !isNaN(n));
@@ -279,7 +311,7 @@ function DataTableActes({
     {
       key: 'numero_acte',
       label: 'N°',
-      render: (row) => row.numero_acte,
+      render: (row) => row.__sans_numero ? <span className="text-gray-400 italic">—</span> : row.numero_acte,
     },
     {
       key: 'date',
@@ -332,7 +364,7 @@ function DataTableActes({
             className='text-xs flex items-center gap-1'
           >
             <Plus className='w-4 h-4' />
-            Créer l'acte
+            Créer l'acte n°{row.numero_acte}
           </Button>
         ) : (
           <StatusPill statut={row?.statut || 'à transcrire'} />
@@ -357,26 +389,39 @@ function DataTableActes({
       )}
       <DataTable
         data={[...toutesLignes].sort((a, b) => {
-          // 1. Ordre d’affichage : doublons à la fin
-          if (a.__ordre !== b.__ordre) return a.__ordre - b.__ordre;
-          // 2. Puis tri par numéro
-          return (a.numero_acte ?? '').localeCompare(b.numero_acte ?? '', 'fr', { numeric: true });
+          // 1) Groupes : normal (0) / doublons (1) / sans numéro (2)
+          if ((a.__ordre ?? 0) !== (b.__ordre ?? 0)) return (a.__ordre ?? 0) - (b.__ordre ?? 0);
+
+          // 2) Dans les doublons numérotés (1) et sans numéro (2) => tri par date
+          if ((a.__ordre ?? 0) >= 1) {
+            const ta = safeTime(a.date);
+            const tb = safeTime(b.date);
+            if (ta !== tb) return ta - tb;
+
+            // fallback stable
+            return String(a.id ?? '').localeCompare(String(b.id ?? ''));
+          }
+
+          // 3) Dans les lignes normales (0) => tri par numéro
+          return String(a.numero_acte ?? '').localeCompare(String(b.numero_acte ?? ''), 'fr', {
+            numeric: true,
+          });
         })}
         columns={columns}
         title='Liste des actes'
         pageSize={-1}
       />
-      <div className="bg-sky-50 text-sky-800 border-sky-100 border hidden">test</div>
-      <div className="bg-slate-50 text-slate-800 border-slate-100 border hidden">test</div>
-      <div className="bg-rose-50 text-rose-800 border-rose-100 border hidden">test</div>
-      <div className="bg-purple-50 text-purple-800 border-purple-100 border hidden">test</div>
-      <div className="bg-cyan-50 text-cyan-800 border-cyan-100 border hidden">test</div>
-      <div className="bg-amber-50 text-amber-800 border-amber-100 border hidden">test</div>
-      <div className="bg-emerald-50 text-emerald-800 border-emerald-100 border hidden">test</div>
-      <div className="bg-teal-50 text-teal-800 border-teal-100 border hidden">test</div>
-      <div className="bg-stone-50 text-stone-800 border-stone-100 border hidden">test</div>
-      <div className="bg-fuchsia-50 text-fuchsia-800 border-fuchsia-100 border hidden">test</div>
-      <div className="bg-zinc-50 text-zinc-800 border-zinc-100 border hidden">test</div>
+      <div className='bg-sky-50 text-sky-800 border-sky-100 border hidden'>test</div>
+      <div className='bg-slate-50 text-slate-800 border-slate-100 border hidden'>test</div>
+      <div className='bg-rose-50 text-rose-800 border-rose-100 border hidden'>test</div>
+      <div className='bg-purple-50 text-purple-800 border-purple-100 border hidden'>test</div>
+      <div className='bg-cyan-50 text-cyan-800 border-cyan-100 border hidden'>test</div>
+      <div className='bg-amber-50 text-amber-800 border-amber-100 border hidden'>test</div>
+      <div className='bg-emerald-50 text-emerald-800 border-emerald-100 border hidden'>test</div>
+      <div className='bg-teal-50 text-teal-800 border-teal-100 border hidden'>test</div>
+      <div className='bg-stone-50 text-stone-800 border-stone-100 border hidden'>test</div>
+      <div className='bg-fuchsia-50 text-fuchsia-800 border-fuchsia-100 border hidden'>test</div>
+      <div className='bg-zinc-50 text-zinc-800 border-zinc-100 border hidden'>test</div>
     </div>
   );
 }

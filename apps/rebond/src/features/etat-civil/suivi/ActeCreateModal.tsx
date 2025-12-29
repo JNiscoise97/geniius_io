@@ -6,24 +6,27 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { DictionnaireEditorPanel, type DictionnaireKind } from "@/components/shared/DictionnaireEditorPanel";
-import { toIds, toLabels } from "@/utils/dictionnaireValue";
-import { ListeChipsViewSmart } from "@/components/shared/ListeChipsViewSmart";
+import {
+  DictionnaireEditorPanel,
+  type DictionnaireKind,
+} from '@/components/shared/DictionnaireEditorPanel';
+import { toIds, toLabels } from '@/utils/dictionnaireValue';
+import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
 
-import { formatDateToFrench, normalizeDateString, isValidDateString } from "@/utils/date";
-import type { EtatCivilActe, EtatCivilBureau, EtatCivilRegistre } from "@/types/etatcivil";
+import { formatDateToFrench, normalizeDateString, isValidDateString } from '@/utils/date';
+import type { EtatCivilActe, EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 
 type ActeCreateModalProps = {
   open: boolean;
@@ -33,8 +36,8 @@ type ActeCreateModalProps = {
   registreId: string;
 
   // Optionnel : si tu as déjà les objets chargés, on peut préremplir une source plus riche
-  bureau?: Pick<EtatCivilBureau, "id" | "nom" | "departement" | "region" | "commune"> | null;
-  registre?: Pick<EtatCivilRegistre, "id" | "annee" | "type_acte"> | null;
+  bureau?: Pick<EtatCivilBureau, 'id' | 'nom' | 'departement' | 'region' | 'commune'> | null;
+  registre?: Pick<EtatCivilRegistre, 'id' | 'annee' | 'type_acte'> | null;
 
   numeroParDefaut?: string | null;
 
@@ -52,32 +55,32 @@ type DictState = {
   onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
 } | null;
 
-function guessDepotType(bureau?: ActeCreateModalProps["bureau"]) {
-  const region = (bureau?.region ?? "").toLowerCase();
-  const departement = (bureau?.departement ?? "").toLowerCase();
+function guessDepotType(bureau?: ActeCreateModalProps['bureau']) {
+  const region = (bureau?.region ?? '').toLowerCase();
+  const departement = (bureau?.departement ?? '').toLowerCase();
 
   const isDom =
-    region.includes("guadeloupe") ||
-    region.includes("réunion") ||
-    region.includes("martinique") ||
-    region.includes("guyane") ||
-    departement.includes("guadeloupe") ||
-    departement.includes("réunion") ||
-    departement.includes("martinique") ||
-    departement.includes("guyane");
+    region.includes('guadeloupe') ||
+    region.includes('réunion') ||
+    region.includes('martinique') ||
+    region.includes('guyane') ||
+    departement.includes('guadeloupe') ||
+    departement.includes('réunion') ||
+    departement.includes('martinique') ||
+    departement.includes('guyane');
 
-  return isDom ? "Archives départementales" : "ANOM";
+  return isDom ? 'Archives départementales' : 'ANOM';
 }
 
-function guessDepotName(bureau?: ActeCreateModalProps["bureau"], depotType?: string) {
-  if (!depotType) return "";
-  if (depotType === "ANOM") return "Archives nationales d’outre-mer";
-  if (depotType === "Mairie") return bureau?.nom ?? "";
-  if (depotType === "Archives départementales") {
-    const dep = bureau?.departement ? ` (${bureau.departement})` : "";
+function guessDepotName(bureau?: ActeCreateModalProps['bureau'], depotType?: string) {
+  if (!depotType) return '';
+  if (depotType === 'ANOM') return 'Archives nationales d’outre-mer';
+  if (depotType === 'Mairie') return bureau?.nom ?? '';
+  if (depotType === 'Archives départementales') {
+    const dep = bureau?.departement ? ` (${bureau.departement})` : '';
     return `Archives départementales${dep}`;
   }
-  return "";
+  return '';
 }
 
 export function ActeCreateModal({
@@ -94,13 +97,13 @@ export function ActeCreateModal({
   const navigate = useNavigate();
 
   // Form (minimal)
-  const [numeroActe, setNumeroActe] = useState("");
-  const [label, setLabel] = useState("");
+  const [numeroActe, setNumeroActe] = useState('');
+  const [label, setLabel] = useState('');
 
   // Date: on conserve le comportement "champ texte intelligent"
   // date = string ISO (YYYY-MM-DD) stockée
-  const [date, setDate] = useState<string>("");
-  const [inputDate, setInputDate] = useState<string>("");
+  const [date, setDate] = useState<string>('');
+  const [inputDate, setInputDate] = useState<string>('');
   const [dateError, setDateError] = useState(false);
 
   // Dictionnaire type acte ref
@@ -112,12 +115,12 @@ export function ActeCreateModal({
   const [dictArgs, setDictArgs] = useState<DictState>(null);
 
   useEffect(() => {
-    if (numeroParDefaut) setNumeroActe(String(numeroParDefaut));
-  }, [numeroParDefaut]);
+    setNumeroActe(numeroParDefaut ? String(numeroParDefaut) : '');
+  }, [numeroParDefaut, open]);
 
   // init inputDate quand date change
   useEffect(() => {
-    if (typeof date === "string" && isValidDateString(date)) {
+    if (typeof date === 'string' && isValidDateString(date)) {
       setInputDate(formatDateToFrench(date));
       setDateError(false);
     }
@@ -125,12 +128,12 @@ export function ActeCreateModal({
 
   // Reset quand on ferme
   function reset() {
-    setNumeroActe(numeroParDefaut ? String(numeroParDefaut) : "");
-    setLabel("");
+    setNumeroActe(numeroParDefaut ? String(numeroParDefaut) : '');
+    setLabel('');
     setTypeActeRef(null);
 
-    setDate("");
-    setInputDate("");
+    setDate('');
+    setInputDate('');
     setDateError(false);
 
     setCreating(false);
@@ -148,8 +151,8 @@ export function ActeCreateModal({
 
   function openTypeActeDictionnaire() {
     setDictArgs({
-      kind: "type_acte_ref",
-      title: "Sélectionner le type d’acte",
+      kind: 'type_acte_ref',
+      title: 'Sélectionner le type d’acte',
       multi: false,
       defaultSelectedIds: currentTypeIds,
       onValidate: async (items) => {
@@ -172,10 +175,10 @@ export function ActeCreateModal({
 
     const registreTitre =
       registre?.annee || registre?.type_acte
-        ? [registre?.type_acte, registre?.annee].filter(Boolean).join(" - ")
-        : "";
+        ? [registre?.type_acte, registre?.annee].filter(Boolean).join(' - ')
+        : '';
 
-    const { error } = await supabase.from("etat_civil_actes_sources").insert([
+    const { error } = await supabase.from('etat_civil_actes_sources').insert([
       {
         acte_id: acteId,
         depot_type: depot_type || null,
@@ -186,14 +189,14 @@ export function ActeCreateModal({
 
     if (error) {
       // non bloquant
-      console.warn("[ActeCreateModal] createDefaultSourceRow error:", error.message);
+      console.warn('[ActeCreateModal] createDefaultSourceRow error:', error.message);
     }
   }
 
   function validateAndCommitDate() {
     const raw = inputDate.trim();
     if (!raw) {
-      setDate("");
+      setDate('');
       setDateError(true);
       return false;
     }
@@ -214,19 +217,19 @@ export function ActeCreateModal({
     const typeActeRefId = typeActeRef?.ids?.[0] ?? null;
 
     if (!typeActeRefId) {
-      toast.error("Veuillez sélectionner un type d’acte.");
+      toast.error('Veuillez sélectionner un type d’acte.');
       return;
     }
 
     if (!label.trim()) {
-      toast.error("Le label est requis.");
+      toast.error('Le label est requis.');
       return;
     }
 
     // commit date depuis input texte
     const okDate = validateAndCommitDate();
     if (!okDate) {
-      toast.error("La date est requise (format valide).");
+      toast.error('La date est requise (format valide).');
       return;
     }
 
@@ -245,23 +248,24 @@ export function ActeCreateModal({
       label: label.trim(),
 
       // Par défaut
-      statut: "brouillon",
+      statut: 'brouillon',
     };
 
     const { data: newActe, error } = await supabase
-      .from("etat_civil_actes")
+      .from('etat_civil_actes')
       .insert([payload])
-      .select("*")
+      .select('*')
       .single();
 
     if (error) {
-      const msg = error.message?.toLowerCase() ?? "";
-      const isUnique = msg.includes("duplicate key") || msg.includes("unique") || msg.includes("23505");
+      const msg = error.message?.toLowerCase() ?? '';
+      const isUnique =
+        msg.includes('duplicate key') || msg.includes('unique') || msg.includes('23505');
 
-      if (isUnique) toast.error("Un acte avec ce numéro existe déjà dans ce registre.");
-      else toast.error("Erreur lors de la création de l’acte.");
+      if (isUnique) toast.error('Un acte avec ce numéro existe déjà dans ce registre.');
+      else toast.error('Erreur lors de la création de l’acte.');
 
-      console.error("[ActeCreateModal] insert error:", error.message);
+      console.error('[ActeCreateModal] insert error:', error.message);
       setCreating(false);
       return;
     }
@@ -270,7 +274,7 @@ export function ActeCreateModal({
       await createDefaultSourceRow(newActe.id);
     }
 
-    toast.success("Acte créé");
+    toast.success('Acte créé');
     try {
       await onActeCreated?.(newActe as EtatCivilActe);
     } catch {
@@ -287,30 +291,28 @@ export function ActeCreateModal({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="w-full max-w-xl">
+        <DialogContent className='w-full max-w-xl'>
           <DialogHeader>
             <DialogTitle>Créer un acte</DialogTitle>
             <DialogDescription>
-              Minimaliste : numéro (optionnel), type (obligatoire), date (obligatoire), label (obligatoire).
+              Minimaliste : numéro (optionnel), type (obligatoire), date (obligatoire), label
+              (obligatoire).
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Label htmlFor="label">Label</Label>
+          <div className='py-4 grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <div className='sm:col-span-2'>
+              <Label htmlFor='label'>Label</Label>
               <Textarea
-                id="label"
+                id='label'
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder="Ex : Acte de naissance de Prénom NOM"
+                placeholder='Ex : Acte de naissance de Prénom NOM'
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ce champ est requis.
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est requis.</p>
             </div>
-            
 
-            <div className="sm:col-span-2">
+            <div className='sm:col-span-2'>
               <Label>Type d’acte</Label>
               <ListeChipsViewSmart
                 titre="Type d'acte"
@@ -319,51 +321,45 @@ export function ActeCreateModal({
                 onEdit={openTypeActeDictionnaire}
                 onDelete={clearTypeActe}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ce champ est requis.
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est requis.</p>
             </div>
 
             <div>
-              <Label htmlFor="numero_acte">Numéro d’acte</Label>
+              <Label htmlFor='numero_acte'>Numéro d’acte</Label>
               <Input
-                id="numero_acte"
+                id='numero_acte'
                 value={numeroActe}
                 onChange={(e) => setNumeroActe(e.target.value)}
-                placeholder="Ex : 12"
+                placeholder='Ex : 12'
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ce champ est optionnel.
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est optionnel.</p>
             </div>
-            
-            <div className="sm:col-span-2">
-              <Label htmlFor="date">Date</Label>
+
+            <div className='sm:col-span-2'>
+              <Label htmlFor='date'>Date</Label>
               <Input
-                id="date"
+                id='date'
                 value={inputDate}
                 onChange={(e) => setInputDate(e.target.value)}
                 onBlur={validateAndCommitDate}
                 placeholder='Ex: 10 décembre 1818 ou 29/06/1846'
-                className={dateError ? "border-red-500" : ""}
+                className={dateError ? 'border-red-500' : ''}
               />
               {dateError && (
-                <p className="text-red-600 text-sm mt-1">
+                <p className='text-red-600 text-sm mt-1'>
                   Format incorrect. Essayez "29/06/1846" ou "10 décembre 1818".
                 </p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ce champ est requis.
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est requis.</p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={handleClose} disabled={creating}>
+            <Button variant='ghost' onClick={handleClose} disabled={creating}>
               Annuler
             </Button>
             <Button onClick={handleCreate} disabled={creating}>
-              {creating ? "Création..." : "Créer"}
+              {creating ? 'Création...' : 'Créer'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -371,7 +367,7 @@ export function ActeCreateModal({
 
       {/* Dictionnaire */}
       <Sheet open={dictOpen} onOpenChange={setDictOpen}>
-        <SheetContent side="right" className="w-[520px] sm:w-[640px] p-0">
+        <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
           {dictArgs && (
             <DictionnaireEditorPanel
               kind={dictArgs.kind}
