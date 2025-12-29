@@ -1,16 +1,5 @@
 // transcriptionTab.service.ts
-// Business logic + Supabase access + parsing helpers to mitigate “angles morts”
-//
-// IMPORTANT: No DB schema changes required.
-// - META is stored in a NoteRow with content starting `[META]`
-// - Diff causes are stored inside META diff map (keyed by version ids)
-//
-// ✅ Source-first additions:
-// - latest version per source
-// - createNewVersionForSource (save = new version + link to active source)
-// - carryOverChildrenBestEffort (annotations/notes/tags) with anchor revalidation
-//
-// ⚠️ This file returns NO React nodes (only plain data). UI stays in transcriptionTab.ui.tsx.
+
 
 import { supabase } from "@/lib/supabase";
 
@@ -34,10 +23,9 @@ function toMsg(e: any, fallback: string) {
 
 const T = {
   actes: "etat_civil_actes",
-  acteSources: "etat_civil_acte_citations",
 
+  transcriptions: "ec_transcriptions",
   versions: "ec_transcription_versions",
-  versionSources: "ec_transcription_version_sources",
 
   annotations: "ec_transcription_annotations",
   notes: "ec_transcription_notes",
@@ -68,49 +56,27 @@ export type EcActeRow = {
   label: string | null;
 };
 
-export type EcActeSourceRow = {
-  id: string;
-  acte_id: string;
-  depot_type: string | null;
-  nom_depot: string | null;
-  serie: string | null;
-  cote: string | null;
-  registre: string | null;
-  folio_page: string | null;
-  vue_image: string | null;
-  support: string | null;
-  langue: string | null;
-  ecriture: string | null;
-  etat_conservation: string | null;
-  note: string | null;
-  created_at?: string;
-};
-
 export type TranscriptionVersionRow = {
   id: string;
-  acte_id: string;
+  transcription_id: string;
   version: number;
   status: TranscriptionStatus;
   content: string;
 
   transcription_kind: TranscriptionKind | null;
-  source_lecture_kind: SourceLectureKind | null;
-  conventions_text: string | null;
-  langue_vue: string | null;
-  ecriture_vue: string | null;
   confidence: ConfidenceLevel | null;
+
+  change_summary: string | null;
 
   created_at: string;
   created_by: string | null;
 
-  validated_at: string | null;
-  validated_by: string | null;
+  updated_at?: string;
+  updated_by?: string | null;
 
   contested_at: string | null;
   contested_by: string | null;
   contested_reason: string | null;
-
-  gabarit_id: string | null;
 };
 
 export type TranscriptionVersionSourceRow = {
@@ -240,6 +206,31 @@ export type CitationDraft = {
   } | null;
 };
 
+export type TranscriptionRow = {
+  id: string;
+  acte_id: string;
+
+  // lien à la citation/source (ta logique “1 transcription par source”)
+  acte_source_id: string | null;
+
+  // champs transcription-level (d’après ton SQL ec_transcriptions)
+  source_lecture_kind: SourceLectureKind;
+  langue_vue: string | null;
+  language_confidence: ConfidenceLevel | null;
+
+  handwriting_style: string | null;       // (enum côté DB, on garde string côté TS)
+  handwriting_legibility: string | null;  // (enum côté DB, on garde string côté TS)
+
+  conventions_override_text: string | null;
+  gabarit_id: string | null;
+
+  created_at: string;
+  created_by: string | null;
+  updated_at?: string;
+  updated_by?: string | null;
+};
+
+
 export const PAGE_BREAK_TOKEN = "[SAUT_DE_PAGE]";
 
 // -------------------- Anchors / helpers --------------------
@@ -258,15 +249,6 @@ export function safeYearFromDate(iso: string | null | undefined): number | null 
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
   return d.getFullYear();
-}
-
-export function formatSourceLabel(s: EcActeSourceRow) {
-  const depot = [s.depot_type, s.nom_depot].filter(Boolean).join(" · ");
-  const cote = [s.serie, s.cote].filter(Boolean).join(" ");
-  const folio = s.folio_page ? `p./folio ${s.folio_page}` : "";
-  const vue = s.vue_image ? `vue ${s.vue_image}` : "";
-  const rest = [cote, folio, vue].filter(Boolean).join(" · ");
-  return [depot, rest].filter(Boolean).join(" — ");
 }
 
 export function buildLineDiff(left: string, right: string) {
@@ -530,65 +512,145 @@ export function composeDiffNote(a: string, b: string, reason: string) {
 
 type ActeBundle = {
   acte: EcActeRow;
-  acteSources: EcActeSourceRow[];
+  transcriptions: TranscriptionRow[];
   versions: TranscriptionVersionRow[];
-  versionSources: Record<string, string[]>;
+  // maps pratiques
+  transcriptionBySourceId: Record<string, TranscriptionRow>;
+  latestVersionIdBySourceId: Record<string, string>; // sourceId -> latest version id
   acteurs: ActeurLightRow[];
   gabarits: GabaritRow[];
 };
 
 export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
   try {
-    const [acteRes, sourcesRes, versionsRes, acteursRes, gabaritsRes] = await Promise.all([
+    const [acteRes, transRes, acteursRes, gabaritsRes] = await Promise.all([
       supabase.from(T.actes).select("*").eq("id", acteId).single(),
-      supabase.from(T.acteSources).select("*").eq("acte_id", acteId).order("created_at", { ascending: true }),
-      supabase.from(T.versions).select("*").eq("acte_id", acteId).order("version", { ascending: false }),
+      supabase.from(T.transcriptions).select("*").eq("acte_id", acteId).order("created_at", { ascending: true }),
       supabase.from(T.acteurs).select("id, role, prenom, nom").eq("acte_id", acteId).order("created_at", { ascending: true }),
       supabase.from(T.gabarits).select("*").order("created_at", { ascending: false }),
     ]);
 
     assertNoSbError(acteRes as any, "load acte");
-    assertNoSbError(sourcesRes as any, "load acte sources");
-    assertNoSbError(versionsRes as any, "load versions");
+    assertNoSbError(transRes as any, "load transcriptions");
+
+    const acte = acteRes.data as any as EcActeRow;
+    const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
 
     const acteurs: ActeurLightRow[] = acteursRes.error ? [] : ((acteursRes.data as any) ?? []);
     const gabarits: GabaritRow[] = gabaritsRes.error ? [] : ((gabaritsRes.data as any) ?? []);
 
-    const acte = acteRes.data as any as EcActeRow;
-    const acteSources = (sourcesRes.data ?? []) as any as EcActeSourceRow[];
-    const versions = (versionsRes.data ?? []) as any as TranscriptionVersionRow[];
+    // charger les versions pour toutes les transcriptions de l’acte
+    const transcriptionIds = transcriptions.map((t) => t.id);
+    let versions: TranscriptionVersionRow[] = [];
 
-    const versionSources = await loadVersionSourcesMap(versions.map((v) => v.id));
-    return { acte, acteSources, versions, versionSources, acteurs, gabarits };
+    if (transcriptionIds.length) {
+      const vRes = await supabase
+        .from(T.versions)
+        .select("*")
+        .in("transcription_id", transcriptionIds)
+        .order("version", { ascending: false });
+
+      assertNoSbError(vRes as any, "load versions");
+      versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
+    }
+
+    // map transcription par source
+    const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
+    for (const t of transcriptions) {
+      if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
+    }
+
+    // latest version id par source (via transcription)
+    const latestVersionIdBySourceId: Record<string, string> = {};
+    for (const t of transcriptions) {
+      const v = versions
+        .filter((vv) => vv.transcription_id === t.id)
+        .sort((a, b) => {
+          const av = Number(a.version ?? 0);
+          const bv = Number(b.version ?? 0);
+          if (bv !== av) return bv - av;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        })[0];
+
+      if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
+    }
+
+    return { acte, transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId, acteurs, gabarits };
   } catch (e) {
     console.error(e);
     throw new Error(toMsg(e, "Erreur lors du chargement des données (bundle)"));
   }
 }
 
-async function loadVersionSourcesMap(versionIds: string[]): Promise<Record<string, string[]>> {
-  if (!versionIds.length) return {};
-  const res = await supabase.from(T.versionSources).select("*").in("transcription_version_id", versionIds);
-  assertNoSbError(res as any, "load version sources map");
+export async function refreshTranscriptionsAndVersions(acteId: string): Promise<{
+  transcriptions: TranscriptionRow[];
+  versions: TranscriptionVersionRow[];
+  transcriptionBySourceId: Record<string, TranscriptionRow>;
+  latestVersionIdBySourceId: Record<string, string>;
+}> {
+  const transRes = await supabase.from(T.transcriptions).select("*").eq("acte_id", acteId).order("created_at", { ascending: true });
+  assertNoSbError(transRes as any, "refresh transcriptions");
+  const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
 
-  const rows = (res.data ?? []) as any as TranscriptionVersionSourceRow[];
-  const map: Record<string, string[]> = {};
-  for (const r of rows) {
-    const vid = r.transcription_version_id;
-    if (!map[vid]) map[vid] = [];
-    map[vid].push(r.acte_source_id);
+  const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
+  for (const t of transcriptions) {
+  if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
+}
+
+  const transcriptionIds = transcriptions.map((t) => t.id);
+  let versions: TranscriptionVersionRow[] = [];
+
+  if (transcriptionIds.length) {
+    const vRes = await supabase
+      .from(T.versions)
+      .select("*")
+      .in("transcription_id", transcriptionIds)
+      .order("version", { ascending: false });
+    assertNoSbError(vRes as any, "refresh versions");
+    versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
   }
-  for (const k of Object.keys(map)) map[k] = Array.from(new Set(map[k]));
-  return map;
+
+  const latestVersionIdBySourceId: Record<string, string> = {};
+  for (const t of transcriptions) {
+    const v = versions
+      .filter((vv) => vv.transcription_id === t.id)
+      .sort((a, b) => {
+        const av = Number(a.version ?? 0);
+        const bv = Number(b.version ?? 0);
+        if (bv !== av) return bv - av;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })[0];
+    if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
+  }
+
+  return { transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId };
 }
 
-export async function refreshVersions(acteId: string): Promise<{ versions: TranscriptionVersionRow[]; versionSources: Record<string, string[]> }> {
-  const versionsRes = await supabase.from(T.versions).select("*").eq("acte_id", acteId).order("version", { ascending: false });
-  assertNoSbError(versionsRes as any, "refresh versions");
-  const versions = (versionsRes.data ?? []) as any as TranscriptionVersionRow[];
-  const versionSources = await loadVersionSourcesMap(versions.map((v) => v.id));
-  return { versions, versionSources };
+export async function ensureTranscription(acteId: string, acteSourceId: string): Promise<TranscriptionRow> {
+  // try get
+  const getRes = await supabase
+    .from(T.transcriptions)
+    .select("*")
+    .eq("acte_id", acteId)
+    .eq("acte_source_id", acteSourceId)
+    .maybeSingle();
+
+  if (getRes.error) throw new Error(toMsg(getRes.error, "Impossible de charger la transcription"));
+  if (getRes.data) return getRes.data as any as TranscriptionRow;
+
+  // create
+  const insRes = await supabase
+    .from(T.transcriptions)
+    .insert({ acte_id: acteId, acte_source_id: acteSourceId } as any)
+    .select("*")
+    .single();
+
+  assertNoSbError(insRes as any, "create transcription");
+  return insRes.data as any as TranscriptionRow;
 }
+
+
+
 
 export async function loadVersionChildren(versionId: string): Promise<{ annotations: AnnotationRow[]; notes: NoteRow[] }> {
   const [annRes, noteRes] = await Promise.all([
@@ -607,44 +669,35 @@ export async function loadVersionTags(versionId: string): Promise<TranscriptionT
 }
 
 export async function createVersion(
-  acteId: string,
+  transcriptionId: string,
   payload: {
     version: number;
     status: TranscriptionStatus;
     content: string;
-    gabarit_id?: string | null;
+
     transcription_kind?: TranscriptionKind | null;
-    source_lecture_kind?: SourceLectureKind | null;
-    conventions_text?: string | null;
-    langue_vue?: string | null;
-    ecriture_vue?: string | null;
     confidence?: ConfidenceLevel | null;
-    sourceIds?: string[];
+
+    change_summary?: string | null;
   }
 ): Promise<TranscriptionVersionRow> {
   const insertPayload: any = {
-    acte_id: acteId,
+    transcription_id: transcriptionId,
     version: payload.version,
     status: payload.status,
     content: payload.content ?? "",
-    gabarit_id: payload.gabarit_id ?? null,
+
     transcription_kind: payload.transcription_kind ?? null,
-    source_lecture_kind: payload.source_lecture_kind ?? null,
-    conventions_text: payload.conventions_text ?? null,
-    langue_vue: payload.langue_vue ?? null,
-    ecriture_vue: payload.ecriture_vue ?? null,
     confidence: payload.confidence ?? null,
+    change_summary: payload.change_summary ?? null,
   };
 
   const res = await supabase.from(T.versions).insert(insertPayload).select("*").single();
   assertNoSbError(res as any, "create version");
-  const row = res.data as any as TranscriptionVersionRow;
-
-  const sourceIds = payload.sourceIds ?? [];
-  if (sourceIds.length) await syncVersionSources(row.id, [], sourceIds);
-
-  return row;
+  return res.data as any as TranscriptionVersionRow;
 }
+
+
 
 export async function setVersionStatus(versionId: string, patch: Partial<TranscriptionVersionRow>) {
   const res = await supabase.from(T.versions).update(patch as any).eq("id", versionId).select("*").single();
@@ -652,68 +705,19 @@ export async function setVersionStatus(versionId: string, patch: Partial<Transcr
   return res.data as any as TranscriptionVersionRow;
 }
 
-// -------------------- Version sources sync --------------------
+export async function updateTranscription(transcriptionId: string, patch: Partial<TranscriptionRow>) {
+  const res = await supabase
+    .from(T.transcriptions)
+    .update(patch as any)
+    .eq("id", transcriptionId)
+    .select("*")
+    .single();
 
-export async function syncVersionSources(versionId: string, currentSourceIds: string[], nextSourceIds: string[]) {
-  const cur = new Set(currentSourceIds ?? []);
-  const next = new Set(nextSourceIds ?? []);
-
-  const toAdd: string[] = [];
-  const toRemove: string[] = [];
-
-  for (const id of next) if (!cur.has(id)) toAdd.push(id);
-  for (const id of cur) if (!next.has(id)) toRemove.push(id);
-
-  if (toAdd.length) {
-    const rows = toAdd.map((acte_source_id) => ({
-      transcription_version_id: versionId,
-      acte_source_id,
-    }));
-    const ins = await supabase.from(T.versionSources).insert(rows as any);
-    if (ins.error) {
-      console.error("syncVersionSources insert", ins.error);
-      throw new Error(toMsg(ins.error, "Impossible d’ajouter des sources à la version"));
-    }
-  }
-
-  if (toRemove.length) {
-    const del = await supabase.from(T.versionSources).delete().eq("transcription_version_id", versionId).in("acte_source_id", toRemove);
-    if (del.error) {
-      console.error("syncVersionSources delete", del.error);
-      throw new Error(toMsg(del.error, "Impossible de retirer des sources de la version"));
-    }
-  }
+  assertNoSbError(res as any, "update transcription");
+  return res.data as any as TranscriptionRow;
 }
 
-// -------------------- ✅ Source-first helpers --------------------
 
-export function buildLatestVersionBySourceMap(
-  versions: TranscriptionVersionRow[],
-  versionSources: Record<string, string[]>
-): Map<string, string> {
-  const sorted = [...versions].sort((a, b) => {
-    const av = Number(a.version ?? 0);
-    const bv = Number(b.version ?? 0);
-    if (bv !== av) return bv - av;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
-
-  const map = new Map<string, string>(); // sourceId -> latestVersionId
-  for (const v of sorted) {
-    const sids = versionSources[v.id] ?? [];
-    for (const sid of sids) if (!map.has(sid)) map.set(sid, v.id);
-  }
-  return map;
-}
-
-export function getLatestVersionIdForSource(
-  sourceId: string,
-  versions: TranscriptionVersionRow[],
-  versionSources: Record<string, string[]>
-): string | null {
-  const map = buildLatestVersionBySourceMap(versions, versionSources);
-  return map.get(sourceId) ?? null;
-}
 
 // -------------------- ✅ Carry over (best effort) --------------------
 // Clone annotations/notes/tags from prevVersionId to newVersionId.
@@ -779,7 +783,7 @@ export async function carryOverChildrenBestEffort(args: {
   }
 
   // ---- notes (skip [META] and [DIFF ...] notes: they are version-specific)
-  const userNotes = notes.filter((n) => !(n.content ?? "").startsWith("[META]") && !(n.content ?? "").startsWith("[DIFF "));
+  const userNotes = notes.filter((n) => !(n.content ?? "").startsWith("[DIFF "));
   if (userNotes.length) {
     const insRows = userNotes.map((n) => {
       if (n.start_offset == null || n.end_offset == null || !n.quote) {
@@ -845,42 +849,34 @@ export async function carryOverChildrenBestEffort(args: {
 
 export async function createNewVersionForSource(args: {
   acteId: string;
-  activeSourceId: string;
+  activeSourceId: string; // = acte_source_id
   editorContent: string;
   status?: TranscriptionStatus; // default draft
-  // from previous “working version”:
+
   prevVersionId: string | null;
   prevContent: string | null;
 
-  // meta fields (optional)
-  gabarit_id?: string | null;
   transcription_kind?: TranscriptionKind | null;
-  source_lecture_kind?: SourceLectureKind | null;
-  conventions_text?: string | null;
-  langue_vue?: string | null;
-  ecriture_vue?: string | null;
   confidence?: ConfidenceLevel | null;
+  change_summary?: string | null;
 
-  // next version number computed in logic
   nextVersionNumber: number;
-}): Promise<{ newVersion: TranscriptionVersionRow }> {
+}): Promise<{ transcription: TranscriptionRow; newVersion: TranscriptionVersionRow }> {
   const status = args.status ?? "draft";
 
-  const newVersion = await createVersion(args.acteId, {
+  // ✅ 1 transcription par source
+  const transcription = await ensureTranscription(args.acteId, args.activeSourceId);
+
+    const newVersion = await createVersion(transcription.id, {
     version: args.nextVersionNumber,
     status,
     content: args.editorContent ?? "",
-    gabarit_id: args.gabarit_id ?? null,
     transcription_kind: args.transcription_kind ?? null,
-    source_lecture_kind: args.source_lecture_kind ?? null,
-    conventions_text: args.conventions_text ?? null,
-    langue_vue: args.langue_vue ?? null,
-    ecriture_vue: args.ecriture_vue ?? null,
     confidence: args.confidence ?? null,
-    sourceIds: [args.activeSourceId], // ✅ exactly one “active source”
+    change_summary: args.change_summary ?? null,
   });
 
-  // carry over children from prev (best effort)
+
   if (args.prevVersionId && args.prevContent != null) {
     await carryOverChildrenBestEffort({
       prevVersionId: args.prevVersionId,
@@ -890,8 +886,9 @@ export async function createNewVersionForSource(args: {
     });
   }
 
-  return { newVersion };
+  return { transcription, newVersion };
 }
+
 
 // -------------------- Annotation CRUD --------------------
 
@@ -961,12 +958,4 @@ export async function deleteTag(id: string) {
     throw new Error(toMsg(res.error, "Suppression impossible"));
   }
   return true;
-}
-
-// -------------------- Acte source update (decision stamp) --------------------
-
-export async function updateActeSourceNote(acteSourceId: string, nextNote: string) {
-  const res = await supabase.from(T.acteSources).update({ note: nextNote } as any).eq("id", acteSourceId).select("*").single();
-  assertNoSbError(res as any, "update acte source note");
-  return res.data as any as EcActeSourceRow;
 }

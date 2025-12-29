@@ -7,21 +7,20 @@
 // - Save = nouvelle version (historique conservé, non exposé)
 // - Report annotations/notes/tags sur nouvelle version (best effort) -> géré dans logic/service
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
 
 import {
-    AlertTriangle,
     CheckCircle2,
     FileText,
-    GitCompare,
     Plus,
     Save,
-    Settings2,
     Tags,
-    Workflow,
     SeparatorHorizontal,
     Eye,
     Pencil,
@@ -31,15 +30,13 @@ import {
     Circle,
 } from "lucide-react";
 
-import { anchorBadge, statusBadge, tagBadge, typeLabel } from "./transcriptionTab.ui";
+import { anchorBadge, tagBadge, typeLabel } from "./transcriptionTab.ui";
 
 import {
     PAGE_BREAK_TOKEN,
     normalizeSpaces,
-    formatSourceLabel,
     splitIntoReadableBlocks,
     detectActeReperages,
-    parseMetaFromNotes,
 } from "./transcriptionTab.service";
 
 import { useTranscriptionTab } from "./transcriptionTab.logic";
@@ -64,7 +61,7 @@ export default function TranscriptionTab({ acteId }: Props) {
     const t = useTranscriptionTab({ acteId });
 
     // Shortcuts
-    const sources = t.acteSources;
+    const sources = t.sources;
     const versions = t.versions;
     const annotations = t.annotations;
     const notes = t.notes;
@@ -76,74 +73,55 @@ export default function TranscriptionTab({ acteId }: Props) {
     const readableBlocks = useMemo(() => splitIntoReadableBlocks(t.editorValue), [t.editorValue]);
     const rep = useMemo(() => detectActeReperages(t.editorValue), [t.editorValue]);
 
-    // META
-    const meta = useMemo(() => parseMetaFromNotes(notes), [notes]);
-
-    // Anchor issues
-    const hasAnchorIssues = useMemo(
-        () => annotations.some((a) => (t.anchorStatusOverrides[a.id] ?? a.status) !== "ok"),
-        [annotations, t.anchorStatusOverrides]
-    );
-
     // Build “latest version per source” map (source-first)
     const latestBySourceId = useMemo(() => {
-        const sorted = [...versions].sort((a, b) => {
-            const av = Number(a.version ?? 0);
-            const bv = Number(b.version ?? 0);
-            if (bv !== av) return bv - av;
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-
-        const map = new Map<string, string>(); // sourceId -> latestVersionId
-        for (const v of sorted) {
-            const sids = (t.versionSources[v.id] ?? []) as string[];
-            for (const sid of sids) {
-                if (!map.has(sid)) map.set(sid, v.id);
-            }
+        const map = new Map<string, string>();
+        for (const [sid, vid] of Object.entries(t.latestVersionIdBySourceId ?? {})) {
+            map.set(sid, vid);
         }
         return map;
-    }, [versions, t.versionSources]);
+    }, [t.latestVersionIdBySourceId]);
+
 
     // Dashboard rows
     const dashboard = useMemo<SourceDashboardRow[]>(() => {
-        // MVP: la notion “préférée” est stockée dans META côté logic (on implémente après)
         const preferredSourceId = (t.preferredSourceId as string | null) ?? null;
 
-        const workingVersionSourceIds = t.workingVersion?.id ? (t.versionSources[t.workingVersion.id] ?? []) : [];
-
         return (sources ?? []).map((s: any) => {
-            const label = formatSourceLabel(s);
             const latestVersionId = latestBySourceId.get(s.id) ?? null;
-            const isTranscribed = !!latestVersionId;
+
+            // label simple (tu peux l’affiner, mais on n’en dépend plus côté logic)
+            const uniteTitre = s.manifestation?.unite_titre ?? "Source";
+            const inst = s.manifestation?.institution_sigle ?? s.manifestation?.depot_type ?? null;
+            const vuesPages =
+                s.vues_raw ||
+                (s.vues_start || s.vues_end
+                    ? `Vues ${s.vues_start ?? "?"}–${s.vues_end ?? "?"}`
+                    : s.page_raw ||
+                    (s.page_start || s.page_end
+                        ? `Pages ${s.page_start ?? "?"}–${s.page_end ?? "?"}`
+                        : ""));
+            const label = [uniteTitre, inst, vuesPages].filter(Boolean).join(" · ");
+            const usedInWorkingVersion = t.activeSourceId === s.id;
 
             return {
                 id: s.id,
                 label,
                 isPreferred: !!preferredSourceId && preferredSourceId === s.id,
-                isTranscribed,
+                isTranscribed: !!latestVersionId,
                 latestVersionId,
-                usedInWorkingVersion: workingVersionSourceIds.includes(s.id),
+                usedInWorkingVersion,
             };
         });
-    }, [sources, latestBySourceId, t.preferredSourceId, t.versionSources, t.workingVersion?.id]);
+    }, [sources, latestBySourceId, t.preferredSourceId, t.workingVersion?.id]);
 
-    const counts = useMemo(() => {
-        const transcribed = dashboard.filter((d) => d.isTranscribed).length;
-        const preferred = dashboard.find((d) => d.isPreferred)?.id ?? null;
-        return { transcribed, preferred };
-    }, [dashboard]);
 
-    const step = useMemo<1 | 2 | 3>(() => {
-        // Étape 1 tant qu'aucune source active
-        if (!t.activeSourceId) return 1;
+    const activeLatestVersionId = t.activeSourceId
+        ? t.getLatestVersionIdForSource(t.activeSourceId)
+        : null;
 
-        // Étape 2 si source active mais pas de transcription liée à cette source
-        const row = dashboard.find((d) => d.id === t.activeSourceId) ?? null;
-        if (!row?.latestVersionId) return 2;
-
-        // Étape 3 si source active + transcription existe
-        return 3;
-    }, [t.activeSourceId, dashboard]);
+    const step: 1 | 2 | 3 | 4 =
+        !t.activeSourceId ? 1 : !activeLatestVersionId ? 2 : 3;
 
     const textareaDisabled = step === 1;
 
@@ -155,7 +133,7 @@ export default function TranscriptionTab({ acteId }: Props) {
         done,
         icon,
     }: {
-        idx: 1 | 2 | 3;
+        idx: 1 | 2 | 3 | 4;
         title: string;
         subtitle: string;
         active: boolean;
@@ -206,13 +184,6 @@ export default function TranscriptionTab({ acteId }: Props) {
         return t.currentVersion ?? null;
     }, [activeSourceRow?.latestVersionId, versions, t.currentVersion]);
 
-    // When active source changes, switch working version + load children (logic will do it)
-    useEffect(() => {
-        if (!activeSourceRow) return;
-        t.onActiveSourceChanged(activeSourceRow.id, activeSourceRow.latestVersionId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeSourceRow?.id]);
-
     // Loading
     if (t.loading && !workingVersion && versions.length === 0) {
         return <div className="p-4 text-sm text-slate-600">Chargement…</div>;
@@ -229,7 +200,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                             <h2 className="text-base font-semibold text-slate-900">Transcription</h2>
                         </div>
 
-                        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                        <div className="mt-3 grid gap-3 sm:grid-cols-4">
                             <StepItem
                                 idx={1}
                                 title="Choisir la source"
@@ -240,21 +211,30 @@ export default function TranscriptionTab({ acteId }: Props) {
                             />
                             <StepItem
                                 idx={2}
-                                title="Créer un brouillon"
-                                subtitle="Seulement si aucune transcription"
+                                title="Définir les métadonnées"
+                                subtitle="Type de transcription, lecture, confiance…"
                                 active={step === 2}
                                 done={step > 2}
-                                icon={<Plus className="h-4 w-4" />}
+                                icon={<Pencil className="h-4 w-4" />}
                             />
                             <StepItem
                                 idx={3}
-                                title="Transcrire + Save"
-                                subtitle="Le save crée une nouvelle version"
+                                title="Transcrire l’acte"
+                                subtitle="Saisie du texte + repérages"
                                 active={step === 3}
                                 done={false}
-                                icon={<Save className="h-4 w-4" />}
+                                icon={<FileText className="h-4 w-4" />}
+                            />
+                            <StepItem
+                                idx={4}
+                                title="Interpréter"
+                                subtitle="Notes d’analyse / conclusions"
+                                active={false}
+                                done={false}
+                                icon={<Tags className="h-4 w-4" />}
                             />
                         </div>
+
 
                         {step === 1 ? (
                             <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
@@ -271,44 +251,31 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                     {/* Actions à droite (compact) */}
                     <div className="shrink-0 flex items-center gap-2">
-                        <select
-                            value={t.activeSourceId ?? ""}
-                            onChange={(e) => t.setActiveSource(e.target.value)}
-                            className="h-9 max-w-[360px] rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none"
-                            disabled={!dashboard.length}
-                        >
-                            <option value="" disabled>
-                                — Choisir une source —
-                            </option>
-                            {dashboard.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.isPreferred ? "★ " : ""}
-                                    {s.label.slice(0, 90)}
-                                </option>
-                            ))}
-                        </select>
+                        {step === 2 ? (
+                            <Button
+                                variant="default"
+                                onClick={() => t.startTranscriptionForActiveSource()}
+                                disabled={t.loading || !t.activeSourceId}
+                                className="gap-2"
+                                title="Créer la première version (brouillon) pour cette source"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Brouillon
+                            </Button>
+                        ) : null}
 
                         <Button
                             variant="secondary"
-                            onClick={() => t.createDraftForActiveSourceFromTemplateIfAny()}
-                            disabled={t.loading || !t.activeSourceId || step !== 2}
+                            onClick={() => t.openMetadata()}
+                            disabled={t.loading || !t.activeSourceId}
                             className="gap-2"
-                            title="Créer un brouillon pour la source active (si pas encore de transcription)"
+                            title="Voir / modifier les métadonnées de la transcription"
                         >
-                            <Plus className="w-4 h-4" />
-                            Brouillon
-                        </Button>
-
-                        <Button
-                            onClick={() => t.saveNewVersionForActiveSource()}
-                            disabled={t.loading || !t.activeSourceId || step !== 3}
-                            className="gap-2"
-                            title="Save = nouvelle version"
-                        >
-                            <Save className="w-4 h-4" />
-                            Enregistrer
+                            <Pencil className="w-4 h-4" />
+                            Métadonnées
                         </Button>
                     </div>
+
                 </div>
             </div>
 
@@ -397,6 +364,18 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             Sélectionne une source pour commencer.
                                         </div>
                                     ) : null}
+                                    <div className="mt-3">
+                                        <Button
+                                            onClick={t.saveNewVersionForActiveSource}
+                                            disabled={t.loading || step !== 3 || !t.isDirty}
+                                            className="w-full gap-2"
+                                            title="Enregistrer : crée une nouvelle version"
+                                        >
+                                            <Save className="h-4 w-4" />
+                                            Enregistrer
+                                        </Button>
+                                    </div>
+
                                     <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
                                         <div>
                                             {t.selection ? (
@@ -477,52 +456,43 @@ export default function TranscriptionTab({ acteId }: Props) {
                                 </p>
 
                                 <div className="mt-3 space-y-2">
-                                    {t.sources.length === 0 ? (
+                                    {dashboard.length === 0 ? (
                                         <div className="text-sm text-slate-600">Aucune source enregistrée pour cet acte.</div>
                                     ) : (
-                                        t.sources.map((g) => {
-                                            const isActive = g.id === t.activeSourceId;
+                                        dashboard.map((d) => {
+                                            const g = sources.find((x: any) => x.id === d.id) as any; // récupère l’objet enrichi
+                                            const isActive = d.id === t.activeSourceId;
 
-                                            const m = g.manifestation ?? null;
-
-                                            const online = Boolean((m?.url_base ?? "").trim()); // simple, fiable
+                                            const m = g?.manifestation ?? null;
+                                            const online = Boolean((m?.url_base ?? "").trim());
                                             const uniteTitre = m?.unite_titre ?? "Source";
                                             const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
-
-                                            const institutionNom = m?.institution_nom ?? null;
-                                            const depotNom = m?.depot_nom ?? null;
                                             const uniteCote = m?.unite_cote ?? null;
 
-                                            // ta ligne “commune, année, type, vues/pages”
-                                            // => ici on fait une string “safe” à partir des champs de citation
                                             const vuesPages =
-                                                g.vues_raw ||
-                                                (g.vues_start || g.vues_end
-                                                    ? `Vues ${g.vues_start ?? "?"}–${g.vues_end ?? "?"}`
-                                                    : g.page_raw ||
-                                                    (g.page_start || g.page_end
-                                                        ? `Pages ${g.page_start ?? "?"}–${g.page_end ?? "?"}`
+                                                g?.vues_raw ||
+                                                (g?.vues_start || g?.vues_end
+                                                    ? `Vues ${g?.vues_start ?? "?"}–${g?.vues_end ?? "?"}`
+                                                    : g?.page_raw ||
+                                                    (g?.page_start || g?.page_end
+                                                        ? `Pages ${g?.page_start ?? "?"}–${g?.page_end ?? "?"}`
                                                         : ""));
 
                                             const lineParts = [
-                                                // si tu as commune/année/type dans un autre endroit, mets-les ici
                                                 uniteCote ? uniteCote : null,
                                                 vuesPages ? vuesPages : null,
-                                                g.acte_manquant ? "Acte manquant" : null,
+                                                g?.acte_manquant ? "Acte manquant" : null,
+                                                d.isTranscribed ? null : "Aucune transcription",
                                             ].filter(Boolean);
 
                                             const line = lineParts.join(" · ");
+                                            const isPreferred = d.id === t.preferredSourceId;
 
-                                            const isPreferred = g.id === t.preferredSourceId;
-
-                                            const pick = () => {
-                                                // MVP: activer la source
-                                                t.setActiveSource(g.id);
-                                            };
+                                            const pick = () => t.selectSource(d.id);
 
                                             return (
                                                 <div
-                                                    key={g.id}
+                                                    key={d.id}
                                                     className={[
                                                         "w-full rounded-xl border p-3 text-left transition",
                                                         isActive
@@ -535,9 +505,8 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                             type="button"
                                                             onClick={pick}
                                                             className="min-w-0 flex-1 text-left"
-                                                            title={uniteTitre}
+                                                            title={d.label}
                                                         >
-                                                            {/* Ligne "registre" */}
                                                             <div className="grid grid-cols-12 gap-x-2 gap-y-1">
                                                                 <div className="col-span-12 min-w-0">
                                                                     <span className="block truncate text-sm font-semibold text-slate-900">
@@ -567,21 +536,24 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                                             pagination: {m.pagination_type}
                                                                         </span>
                                                                     ) : null}
+
+                                                                    {d.isTranscribed ? (
+                                                                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
+                                                                            transcrite
+                                                                        </span>
+                                                                    ) : null}
                                                                 </div>
                                                             </div>
 
                                                             {line ? <div className="mt-1 text-xs text-slate-600">{line}</div> : null}
-
                                                         </button>
 
-                                                        {/* Actions à droite */}
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
-                                                            {/* ⭐ jamais disabled, seulement style */}
                                                             <button
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    t.setPreferredSource(g.id);
+                                                                    t.setPreferredSource(d.id);
                                                                 }}
                                                                 title={isPreferred ? "Source de référence" : "Définir comme référence"}
                                                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
@@ -599,6 +571,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             );
                                         })
                                     )}
+
                                 </div>
 
                             </div>
@@ -784,7 +757,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                                         size="sm"
                                         onClick={() => {
                                             t.openMetadata();
-                                            t.ensureActiveSourceSelectedInMetadata();
                                         }}
                                         disabled={!t.activeSourceId}
                                     >
@@ -831,9 +803,161 @@ export default function TranscriptionTab({ acteId }: Props) {
                     </SheetHeader>
 
                     {/* Le contenu Sheet reste géré par logic (on le refactor après) */}
-                    <div className="p-4 text-sm text-slate-600">
-                        (Contenu du panneau géré par <code>transcriptionTab.logic.ts</code> — on le modifie juste après.)
+                    <div className="p-4">
+                        {t.sheetMode === "metadata" ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Type de transcription</div>
+                                        <select
+                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                            value={(t.metaDraft.transcription_kind ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({
+                                                    ...prev,
+                                                    transcription_kind: (e.target.value || null) as any,
+                                                }))
+                                            }
+                                        >
+                                            <option value="">—</option>
+                                            <option value="travail">Travail</option>
+                                            <option value="diplomatique">Diplomatique</option>
+                                            <option value="semi_normalisee">Semi-normalisée</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Lecture</div>
+                                        <select
+                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                            value={(t.metaDraft.source_lecture_kind ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({
+                                                    ...prev,
+                                                    source_lecture_kind: (e.target.value || null) as any,
+                                                }))
+                                            }
+                                        >
+                                            <option value="">—</option>
+                                            <option value="image_originale">Image originale</option>
+                                            <option value="microfilm">Microfilm</option>
+                                            <option value="transcription_secondaire">Transcription secondaire</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Confiance</div>
+                                        <select
+                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                            value={(t.metaDraft.confidence ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({
+                                                    ...prev,
+                                                    confidence: (e.target.value || null) as any,
+                                                }))
+                                            }
+                                        >
+                                            <option value="">—</option>
+                                            <option value="high">Haute</option>
+                                            <option value="medium">Moyenne</option>
+                                            <option value="low">Basse</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Langue (vue)</div>
+                                        <Input
+                                            className="mt-1"
+                                            value={(t.metaDraft.langue_vue ?? "") as any}
+                                            onChange={(e) => t.setMetaDraft((prev) => ({ ...prev, langue_vue: e.target.value || null }))}
+                                            placeholder="fr, la, ..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Style d’écriture</div>
+                                        <Input
+                                            className="mt-1"
+                                            value={(t.metaDraft.handwriting_style ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({ ...prev, handwriting_style: e.target.value || null }))
+                                            }
+                                            placeholder="ex: cursive, ronde, mixte…"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs font-medium text-slate-700">Lisibilité</div>
+                                        <Input
+                                            className="mt-1"
+                                            value={(t.metaDraft.handwriting_legibility ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({ ...prev, handwriting_legibility: e.target.value || null }))
+                                            }
+                                            placeholder="ex: bonne, moyenne, faible…"
+                                        />
+                                    </div>
+
+
+                                    <div className="col-span-2">
+                                        <div className="text-xs font-medium text-slate-700">Conventions</div>
+                                        <Textarea
+                                            className="mt-1 min-h-[120px]"
+                                            value={(t.metaDraft.conventions_override_text ?? "") as any}
+                                            onChange={(e) =>
+                                                t.setMetaDraft((prev) => ({ ...prev, conventions_override_text: e.target.value || null }))
+                                            }
+                                            placeholder="Règles, tokens, usages…"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                    <div className="text-sm font-semibold text-slate-900">Angles morts</div>
+
+                                    <div className="mt-3 grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div className="text-xs font-medium text-slate-700">Complétude</div>
+                                            <select
+                                                className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                                value={t.metaDraftCompleteness}
+                                                onChange={(e) => t.setMetaDraftCompleteness(e.target.value as any)}
+                                            >
+                                                <option value="">—</option>
+                                                <option value="complete">Complète</option>
+                                                <option value="partial">Partielle</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-span-2">
+                                            <div className="text-xs font-medium text-slate-700">Raison / réserve</div>
+                                            <Textarea
+                                                className="mt-1 min-h-[90px]"
+                                                value={t.metaDraftReferenceReason}
+                                                onChange={(e) => t.setMetaDraftReferenceReason(e.target.value)}
+                                                placeholder="Ex: partie illisible, page manquante, mauvaise qualité…"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-end gap-2 pt-2">
+                                    <Button variant="outline" onClick={() => t.setSheetOpen(false)}>
+                                        Fermer
+                                    </Button>
+                                    <Button onClick={t.saveMetadata} disabled={t.loading}>
+                                        Enregistrer les métadonnées
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-sm text-slate-600">
+                                (Contenu du panneau à implémenter pour ce mode.)
+                            </div>
+                        )}
                     </div>
+
                 </SheetContent>
             </Sheet>
         </div>

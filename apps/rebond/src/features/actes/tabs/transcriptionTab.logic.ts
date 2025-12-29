@@ -19,7 +19,6 @@ import {
     type AnnotationRow,
     type ConfidenceLevel,
     type EcActeRow,
-    type EcActeSourceRow,
     type GabaritRow,
     type NoteRow,
     type SourceLectureKind,
@@ -33,8 +32,7 @@ import {
     loadActeBundle,
     loadVersionChildren,
     loadVersionTags,
-    refreshVersions,
-    createVersion,
+    refreshTranscriptionsAndVersions,
     setVersionStatus,
     updateAnnotation,
     deleteAnnotation,
@@ -42,18 +40,19 @@ import {
     deleteNote,
     createTag,
     deleteTag,
-    syncVersionSources,
     persistAnnotationStatuses,
     revalidateAnchor,
     insertAnnotation,
     insertNote,
-    updateActeSourceNote,
     parseMetaFromNotes,
     composeMetaNote,
     compareKey,
     type CitationDraft,
     type ActeCitationRow,
     type ManifestationPick,
+    type TranscriptionRow,
+    createNewVersionForSource,
+    updateTranscription,
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
@@ -68,178 +67,178 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function emptyCitation(acteId: string): CitationDraft {
-  return {
-    id: "tmp-" + crypto.randomUUID(),
-    acte_id: acteId,
-    manifestation_id: null,
-    vues_start: null,
-    vues_end: null,
-    vues_raw: null,
-    page_start: null,
-    page_end: null,
-    page_raw: null,
-    acte_manquant: false,
-    note: null,
-    sort_order: 0,
-    manifestation: null,
-  };
+    return {
+        id: "tmp-" + crypto.randomUUID(),
+        acte_id: acteId,
+        manifestation_id: null,
+        vues_start: null,
+        vues_end: null,
+        vues_raw: null,
+        page_start: null,
+        page_end: null,
+        page_raw: null,
+        acte_manquant: false,
+        note: null,
+        sort_order: 0,
+        manifestation: null,
+    };
 }
 
 function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
-  return {
-    id: r.id,
-    acte_id: r.acte_id,
-    manifestation_id: r.manifestation_id,
-    vues_start: r.vues_start,
-    vues_end: r.vues_end,
-    vues_raw: r.vues_raw,
-    page_start: r.page_start,
-    page_end: r.page_end,
-    page_raw: r.page_raw,
-    acte_manquant: Boolean(r.acte_manquant),
-    note: r.note,
-    sort_order: r.sort_order,
-    manifestation: null,
-  };
+    return {
+        id: r.id,
+        acte_id: r.acte_id,
+        manifestation_id: r.manifestation_id,
+        vues_start: r.vues_start,
+        vues_end: r.vues_end,
+        vues_raw: r.vues_raw,
+        page_start: r.page_start,
+        page_end: r.page_end,
+        page_raw: r.page_raw,
+        acte_manquant: Boolean(r.acte_manquant),
+        note: r.note,
+        sort_order: r.sort_order,
+        manifestation: null,
+    };
 }
 
 function bestPickPerManifestation(picks: any[]): Map<string, ManifestationPick> {
-  const bestByManId = new Map<string, ManifestationPick>();
+    const bestByManId = new Map<string, ManifestationPick>();
 
-  for (const r of picks) {
-    const candidate: ManifestationPick = {
-      manifestation_id: r.manifestation_id,
-      type_manifestation: r.type_manifestation ?? null,
-      unite_id: r.unite_id ?? null,
-      unite_titre: r.unite_titre ?? null,
-      unite_cote: r.unite_cote ?? null,
-      pagination_type: r.pagination_type ?? null,
-      depot_nom: r.depot_nom ?? null,
-      depot_type: r.depot_type ?? null,
-      institution_nom: r.institution_nom ?? null,
-      institution_sigle: r.institution_sigle ?? null,
-      url_base: r.url_base ?? null,
-      plateforme_code: r.plateforme_code ?? null,
-    };
+    for (const r of picks) {
+        const candidate: ManifestationPick = {
+            manifestation_id: r.manifestation_id,
+            type_manifestation: r.type_manifestation ?? null,
+            unite_id: r.unite_id ?? null,
+            unite_titre: r.unite_titre ?? null,
+            unite_cote: r.unite_cote ?? null,
+            pagination_type: r.pagination_type ?? null,
+            depot_nom: r.depot_nom ?? null,
+            depot_type: r.depot_type ?? null,
+            institution_nom: r.institution_nom ?? null,
+            institution_sigle: r.institution_sigle ?? null,
+            url_base: r.url_base ?? null,
+            plateforme_code: r.plateforme_code ?? null,
+        };
 
-    const current = bestByManId.get(candidate.manifestation_id);
-    if (!current) {
-      bestByManId.set(candidate.manifestation_id, candidate);
-      continue;
+        const current = bestByManId.get(candidate.manifestation_id);
+        if (!current) {
+            bestByManId.set(candidate.manifestation_id, candidate);
+            continue;
+        }
+
+        // règle: préférer une ligne avec url_base si possible
+        const curHasUrl = Boolean((current.url_base ?? "").trim());
+        const candHasUrl = Boolean((candidate.url_base ?? "").trim());
+
+        if (!curHasUrl && candHasUrl) {
+            bestByManId.set(candidate.manifestation_id, candidate);
+        }
     }
 
-    // règle: préférer une ligne avec url_base si possible
-    const curHasUrl = Boolean((current.url_base ?? "").trim());
-    const candHasUrl = Boolean((candidate.url_base ?? "").trim());
-
-    if (!curHasUrl && candHasUrl) {
-      bestByManId.set(candidate.manifestation_id, candidate);
-    }
-  }
-
-  return bestByManId;
+    return bestByManId;
 }
 
 export function useActeCitationsSources(acteId: string) {
-  const [sources, setSources] = useState<CitationDraft[]>([]);
-  const [loadingSources, setLoadingSources] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [sources, setSources] = useState<CitationDraft[]>([]);
+    const [loadingSources, setLoadingSources] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+    useEffect(() => {
+        let cancelled = false;
 
-    const run = async () => {
-      setLoadingSources(true);
-      setErrorMsg(null);
+        const run = async () => {
+            setLoadingSources(true);
+            setErrorMsg(null);
 
-      // 1) load raw citations
-      const { data, error } = await supabase
-        .from("etat_civil_acte_citations")
-        .select(
-          "id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order"
-        )
-        .eq("acte_id", acteId)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
+            // 1) load raw citations
+            const { data, error } = await supabase
+                .from("etat_civil_acte_citations")
+                .select(
+                    "id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order"
+                )
+                .eq("acte_id", acteId)
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: true });
 
-      if (cancelled) return;
+            if (cancelled) return;
 
-      if (error) {
-        setErrorMsg(error.message);
-        setSources([emptyCitation(acteId)]);
-        setLoadingSources(false);
-        return;
-      }
+            if (error) {
+                setErrorMsg(error.message);
+                setSources([emptyCitation(acteId)]);
+                setLoadingSources(false);
+                return;
+            }
 
-      const rows = (data ?? []) as ActeCitationRow[];
-      const drafts = rows.map((r) => normalizeCitationRow(r));
+            const rows = (data ?? []) as ActeCitationRow[];
+            const drafts = rows.map((r) => normalizeCitationRow(r));
 
-      if (!drafts.length) {
-        setSources([emptyCitation(acteId)]);
-        setLoadingSources(false);
-        return;
-      }
+            if (!drafts.length) {
+                setSources([emptyCitation(acteId)]);
+                setLoadingSources(false);
+                return;
+            }
 
-      // 2) enrich from view
-      const manIds = Array.from(
-        new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[])
-      );
+            // 2) enrich from view
+            const manIds = Array.from(
+                new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[])
+            );
 
-      if (!manIds.length) {
-        setSources(drafts);
-        setLoadingSources(false);
-        return;
-      }
+            if (!manIds.length) {
+                setSources(drafts);
+                setLoadingSources(false);
+                return;
+            }
 
-      const { data: pickData, error: pickErr } = await supabase
-        .from("v_manifestations_pick")
-        .select(
-          "manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code"
-        )
-        .in("manifestation_id", manIds);
+            const { data: pickData, error: pickErr } = await supabase
+                .from("v_manifestations_pick")
+                .select(
+                    "manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code"
+                )
+                .in("manifestation_id", manIds);
 
-      if (cancelled) return;
+            if (cancelled) return;
 
-      if (pickErr) {
-        setSources(drafts);
-        setLoadingSources(false);
-        return;
-      }
+            if (pickErr) {
+                setSources(drafts);
+                setLoadingSources(false);
+                return;
+            }
 
-      const bestByManId = bestPickPerManifestation(pickData ?? []);
+            const bestByManId = bestPickPerManifestation(pickData ?? []);
 
-      const enriched = drafts.map((d) => {
-        const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
-        if (!m) return d;
+            const enriched = drafts.map((d) => {
+                const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
+                if (!m) return d;
 
-        return {
-          ...d,
-          manifestation: {
-            type_manifestation: m.type_manifestation,
-            unite_titre: m.unite_titre,
-            unite_cote: m.unite_cote,
-            pagination_type: m.pagination_type,
-            depot_nom: m.depot_nom,
-            depot_type: m.depot_type,
-            institution_nom: m.institution_nom,
-            institution_sigle: m.institution_sigle,
-            url_base: m.url_base,
-            plateforme_code: m.plateforme_code,
-          },
-        } satisfies CitationDraft;
-      });
+                return {
+                    ...d,
+                    manifestation: {
+                        type_manifestation: m.type_manifestation,
+                        unite_titre: m.unite_titre,
+                        unite_cote: m.unite_cote,
+                        pagination_type: m.pagination_type,
+                        depot_nom: m.depot_nom,
+                        depot_type: m.depot_type,
+                        institution_nom: m.institution_nom,
+                        institution_sigle: m.institution_sigle,
+                        url_base: m.url_base,
+                        plateforme_code: m.plateforme_code,
+                    },
+                } satisfies CitationDraft;
+            });
 
-      setSources(enriched);
-      setLoadingSources(false);
-    };
+            setSources(enriched);
+            setLoadingSources(false);
+        };
 
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [acteId]);
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [acteId]);
 
-  return { sources, setSources, loadingSources, errorMsg };
+    return { sources, setSources, loadingSources, errorMsg };
 }
 
 export function useTranscriptionTab({ acteId }: Props) {
@@ -249,16 +248,18 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [loading, setLoading] = useState(false);
 
     const [acte, setActe] = useState<EcActeRow | null>(null);
-    const [acteSources, setActeSources] = useState<EcActeSourceRow[]>([]);
 
+    const [transcriptions, setTranscriptions] = useState<TranscriptionRow[]>([]);
     const [versions, setVersions] = useState<TranscriptionVersionRow[]>([]);
+    const [transcriptionBySourceId, setTranscriptionBySourceId] = useState<Record<string, TranscriptionRow>>({});
+    const [latestVersionIdBySourceId, setLatestVersionIdBySourceId] = useState<Record<string, string>>({});
+
+
     const [currentId, setCurrentId] = useState<string | null>(null);
     const currentVersion = useMemo(
         () => versions.find((v) => v.id === currentId) ?? null,
         [versions, currentId]
     );
-
-    const [versionSources, setVersionSources] = useState<Record<string, string[]>>({});
 
     // -----------------------------
     // ✅ Sources-first state
@@ -313,8 +314,29 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [tagActeurId, setTagActeurId] = useState("");
 
     // Metadata drafts (DB fields)
-    const [metaDraft, setMetaDraft] = useState<Partial<TranscriptionVersionRow>>({});
-    const [selectedSourceIdsDraft, setSelectedSourceIdsDraft] = useState<string[]>([]);
+    type MetaDraft = {
+        // version-level
+        transcription_kind: TranscriptionKind | null;
+        confidence: ConfidenceLevel | null;
+
+        // transcription-level
+        source_lecture_kind: SourceLectureKind | null;
+        langue_vue: string | null;
+        handwriting_style: string | null;
+        handwriting_legibility: string | null;
+        conventions_override_text: string | null;
+    };
+
+    const [metaDraft, setMetaDraft] = useState<MetaDraft>({
+        transcription_kind: null,
+        confidence: null,
+        source_lecture_kind: null,
+        langue_vue: null,
+        handwriting_style: null,
+        handwriting_legibility: null,
+        conventions_override_text: null,
+    });
+
 
     // Metadata drafts (angles morts) stored in [META] note
     const [metaDraftCompleteness, setMetaDraftCompleteness] = useState<"" | "complete" | "partial">(
@@ -393,10 +415,27 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // Derived
     // -----------------------------
+    function getNextVersionNumberForSource(sourceId: string | null): number {
+        if (!sourceId) {
+            const maxAll = versions.reduce((acc, v) => Math.max(acc, v.version ?? 0), 0);
+            return maxAll + 1;
+        }
+
+        const tr = transcriptionBySourceId[sourceId];
+        if (!tr) return 1;
+
+        const maxForTranscription = versions
+            .filter((v) => v.transcription_id === tr.id)
+            .reduce((acc, v) => Math.max(acc, v.version ?? 0), 0);
+
+        return maxForTranscription + 1;
+    }
+
     const nextVersionNumber = useMemo(() => {
-        const max = versions.reduce((acc, v) => Math.max(acc, v.version ?? 0), 0);
-        return max + 1;
-    }, [versions]);
+        return getNextVersionNumberForSource(activeSourceId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [versions, activeSourceId, transcriptionBySourceId]);
+
 
     const groupedAnnotations = useMemo(() => {
         const groups: Record<AnnotationRow["type"], AnnotationRow[]> = {
@@ -414,24 +453,14 @@ export function useTranscriptionTab({ acteId }: Props) {
     // Helpers: latest version per source
     // -----------------------------
     function getLatestVersionIdForSource(sourceId: string): string | null {
-        const sorted = [...versions].sort((a, b) => {
-            const av = Number(a.version ?? 0);
-            const bv = Number(b.version ?? 0);
-            if (bv !== av) return bv - av;
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-
-        for (const v of sorted) {
-            const sids = versionSources[v.id] ?? [];
-            if (sids.includes(sourceId)) return v.id;
-        }
-        return null;
+        return latestVersionIdBySourceId[sourceId] ?? null;
     }
+
 
     function getTwoTranscribedSourcesVersionIds(): { left: string; right: string } | null {
         // On veut 2 sources transcrites : on prend la “latest version” de 2 sources distinctes
         const pairs: Array<{ sourceId: string; versionId: string }> = [];
-        for (const s of acteSources) {
+        for (const s of sources) {
             const vid = getLatestVersionIdForSource(s.id);
             if (vid) pairs.push({ sourceId: s.id, versionId: vid });
         }
@@ -449,9 +478,10 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         const hardReset = () => {
             setActe(null);
-            setActeSources([]);
+            setTranscriptions([]);
             setVersions([]);
-            setVersionSources({});
+            setTranscriptionBySourceId({});
+            setLatestVersionIdBySourceId({});
             setCurrentId(null);
 
             setActiveSourceId(null);
@@ -476,9 +506,10 @@ export function useTranscriptionTab({ acteId }: Props) {
                 if (cancelled) return;
 
                 setActe(bundle.acte);
-                setActeSources(bundle.acteSources);
+                setTranscriptions(bundle.transcriptions);
                 setVersions(bundle.versions);
-                setVersionSources(bundle.versionSources);
+                setTranscriptionBySourceId(bundle.transcriptionBySourceId);
+                setLatestVersionIdBySourceId(bundle.latestVersionIdBySourceId);
                 setActeurs(bundle.acteurs);
                 setGabarits(bundle.gabarits);
 
@@ -563,9 +594,11 @@ export function useTranscriptionTab({ acteId }: Props) {
     // Refresh versions helper
     // -----------------------------
     async function refreshVersionsAndSelect(idToSelect?: string) {
-        const res = await refreshVersions(acteId);
+        const res = await refreshTranscriptionsAndVersions(acteId);
+        setTranscriptions(res.transcriptions);
         setVersions(res.versions);
-        setVersionSources(res.versionSources);
+        setTranscriptionBySourceId(res.transcriptionBySourceId);
+        setLatestVersionIdBySourceId(res.latestVersionIdBySourceId);
         if (idToSelect) setCurrentId(idToSelect);
     }
 
@@ -577,59 +610,46 @@ export function useTranscriptionTab({ acteId }: Props) {
         content: string;
         gabarit_id?: string | null;
         transcription_kind?: TranscriptionKind | null;
-        source_lecture_kind?: SourceLectureKind | null;
-        conventions_text?: string | null;
-        langue_vue?: string | null;
-        ecriture_vue?: string | null;
         confidence?: ConfidenceLevel | null;
         sourceIds?: string[];
-    }) => {
+    }): Promise<TranscriptionVersionRow> => {
+        if (!activeSourceId) throw new Error("Aucune source active");
+
         setLoading(true);
         try {
-            const row = await createVersion(acteId, { version: nextVersionNumber, ...payload });
-            toast.success("Version créée");
-            await refreshVersionsAndSelect(row.id);
+            const row = await createNewVersionForSource({
+                acteId,
+                activeSourceId,
+                editorContent: payload.content,
+                status: payload.status,
+                prevVersionId: (workingVersion ?? currentVersion)?.id ?? null,
+                prevContent: (workingVersion ?? currentVersion)?.content ?? null,
 
-            // Keep workingVersion aligned (sources-first)
-            if (payload.sourceIds?.length === 1 && payload.sourceIds[0] === activeSourceId) {
-                setWorkingVersionId(row.id);
-            }
+                transcription_kind: payload.transcription_kind ?? null,
+                confidence: payload.confidence ?? null,
+
+                nextVersionNumber: getNextVersionNumberForSource(activeSourceId),
+            });
+
+            toast.success("Version créée");
+
+            // IMPORTANT: on sélectionne tout de suite l'id connu
+            setCurrentId(row.newVersion.id);
+            setWorkingVersionId(row.newVersion.id);
+
+            // puis refresh (async)
+            await refreshVersionsAndSelect(row.newVersion.id);
+
+            return row.newVersion;
         } catch (e: any) {
             console.error(e);
             toast.error(e?.message ?? "Erreur lors de la création de version");
+            throw e;
         } finally {
             setLoading(false);
         }
     };
 
-    const createEmptyDraft = async () => {
-        await createNewVersion({
-            status: "draft",
-            content: "",
-            transcription_kind: "travail",
-            source_lecture_kind: "image_originale",
-            conventions_text:
-                "Conventions conseillées : [illisible], [barré], [lacune], [ajout en marge], " +
-                PAGE_BREAK_TOKEN +
-                " (saut de page).",
-            confidence: "low",
-            sourceIds: [],
-        });
-    };
-
-    const saveAsNewDraftVersion = async () => {
-        await createNewVersion({
-            status: "draft",
-            content: editorValue ?? "",
-            transcription_kind: currentVersion?.transcription_kind ?? null,
-            source_lecture_kind: currentVersion?.source_lecture_kind ?? null,
-            conventions_text: currentVersion?.conventions_text ?? null,
-            langue_vue: currentVersion?.langue_vue ?? null,
-            ecriture_vue: currentVersion?.ecriture_vue ?? null,
-            confidence: currentVersion?.confidence ?? null,
-            sourceIds: currentVersion?.id ? versionSources[currentVersion.id] ?? [] : [],
-        });
-    };
 
     const setInReview = async () => {
         const target = workingVersion ?? currentVersion;
@@ -731,9 +751,12 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // ✅ Sources-first actions
     // -----------------------------
-    const setActiveSource = (sourceId: string) => {
+    const selectSource = (sourceId: string) => {
         setActiveSourceId(sourceId);
+        const latest = getLatestVersionIdForSource(sourceId);
+        void onActiveSourceChanged(sourceId, latest);
     };
+
 
     const onActiveSourceChanged = async (sourceId: string, latestVersionId: string | null) => {
         const nextWorking = latestVersionId ?? getLatestVersionIdForSource(sourceId);
@@ -760,61 +783,60 @@ export function useTranscriptionTab({ acteId }: Props) {
         toast("Source marquée comme préférée", { icon: "⭐" });
     };
 
-    const ensureActiveSourceSelectedInMetadata = () => {
-        if (!activeSourceId) return;
-        setSelectedSourceIdsDraft((prev) => (prev.includes(activeSourceId) ? prev : [...prev, activeSourceId]));
-    };
-
-    const createDraftForActiveSourceFromTemplateIfAny = async () => {
-        if (!activeSourceId) return;
+    const startTranscriptionForActiveSource = async (): Promise<TranscriptionVersionRow | null> => {
+        if (!activeSourceId) return null;
 
         const existing = getLatestVersionIdForSource(activeSourceId);
         if (existing) {
             toast("Cette source a déjà une transcription active.", { icon: "✅" });
             setWorkingVersionId(existing);
             setCurrentId(existing);
-            return;
+            return versions.find((v) => v.id === existing) ?? null;
         }
 
-        const best = chooseBestGabaritForInitialDraft(
-            acte ?? ({} as EcActeRow),
-            gabarits
-        );
-
-
+        const best = chooseBestGabaritForInitialDraft(acte ?? ({} as EcActeRow), gabarits);
         const content = best?.template_content ?? "";
         const gabarit_id = best?.id ?? null;
 
-        await createNewVersion({
+        const newV = await createNewVersion({
             status: "draft",
             content,
             gabarit_id,
             transcription_kind: "travail",
-            source_lecture_kind: "image_originale",
-            conventions_text:
-                "Conventions conseillées : [illisible], [barré], [lacune], [ajout en marge], " +
-                PAGE_BREAK_TOKEN +
-                " (saut de page).",
             confidence: "low",
             sourceIds: [activeSourceId],
         });
 
         toast("Brouillon créé pour la source active", { icon: "📝" });
+        return newV;
     };
+
+
+
+    const normalizeContentForCompare = (s: string) =>
+        (s ?? "").replace(/\r\n/g, "\n").trim();
 
     const saveNewVersionForActiveSource = async () => {
         if (!activeSourceId) return;
 
         const base = workingVersion ?? currentVersion;
+        const next = normalizeContentForCompare(editorValue ?? "");
+        const prev = normalizeContentForCompare(base?.content ?? "");
+
+        if (!next) {
+            toast("Texte vide : rien à enregistrer.", { icon: "⛔" });
+            return;
+        }
+
+        if (base && next === prev) {
+            toast("Aucun changement : nouvelle version non créée.", { icon: "🟰" });
+            return;
+        }
 
         await createNewVersion({
             status: "draft",
             content: editorValue ?? "",
             transcription_kind: base?.transcription_kind ?? null,
-            source_lecture_kind: base?.source_lecture_kind ?? null,
-            conventions_text: base?.conventions_text ?? null,
-            langue_vue: base?.langue_vue ?? null,
-            ecriture_vue: base?.ecriture_vue ?? null,
             confidence: base?.confidence ?? null,
             sourceIds: [activeSourceId],
         });
@@ -923,24 +945,47 @@ export function useTranscriptionTab({ acteId }: Props) {
         setTagActeurId("");
     };
 
-    const openMetadata = () => {
-        const target = workingVersion ?? currentVersion;
-        if (!target) return;
+    const openMetadata = async () => {
+        // On veut permettre d’ouvrir les métadonnées même si aucune version n’existe encore.
+        // Donc : si pas de working/current version, on crée un brouillon pour la source active, puis on ouvre.
+
+        if (!activeSourceId) {
+            toast("Sélectionne une source d’abord.", { icon: "🧩" });
+            return;
+        }
+
+        // cible idéale : workingVersion (source-first) sinon currentVersion
+        let target = workingVersion ?? currentVersion;
+
+        // Si aucune transcription n’existe pour cette source, on crée un brouillon puis on récupère la version créée.
+        if (!target) {
+            const created = await startTranscriptionForActiveSource();
+            if (!created) {
+                toast("Impossible d’ouvrir les métadonnées : aucune version n’a pu être créée.", { icon: "⛔" });
+                return;
+            }
+            target = created; // ✅ on utilise la version connue, pas l’état
+        }
+
 
         setSheetMode("metadata");
 
+        // transcription liée à la source active
+        const tr = activeSourceId ? transcriptionBySourceId[activeSourceId] : undefined;
+
         setMetaDraft({
+            // version-level
             transcription_kind: target.transcription_kind ?? null,
-            source_lecture_kind: target.source_lecture_kind ?? null,
-            conventions_text: target.conventions_text ?? null,
-            langue_vue: target.langue_vue ?? null,
-            ecriture_vue: target.ecriture_vue ?? null,
             confidence: target.confidence ?? null,
-            status: target.status,
-            contested_reason: target.contested_reason ?? null,
+
+            // transcription-level
+            source_lecture_kind: tr?.source_lecture_kind ?? null,
+            langue_vue: tr?.langue_vue ?? null,
+            handwriting_style: (tr as any)?.handwriting_style ?? null,
+            handwriting_legibility: (tr as any)?.handwriting_legibility ?? null,
+            conventions_override_text: (tr as any)?.conventions_override_text ?? null,
         });
 
-        setSelectedSourceIdsDraft(versionSources[target.id] ?? []);
 
         // seed meta drafts from current META note
         const m = parseMetaFromNotes(notes);
@@ -950,27 +995,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         setSheetOpen(true);
     };
 
-    // Legacy (version compare) still available
-    const openCompare = () => {
-        setSheetMode("compare");
-
-        const sorted = [...versions].sort((a, b) => (b.version ?? 0) - (a.version ?? 0));
-        const cur = (workingVersion ?? currentVersion)?.id ?? (sorted[0]?.id ?? "");
-        const other = sorted.find((v) => v.id !== cur)?.id ?? "";
-
-        setCompareLeftId(cur);
-        setCompareRightId(other);
-
-        const m = parseMetaFromNotes(notes);
-        if (cur && other) {
-            const key = compareKey(cur, other);
-            setCompareReasonDraft(m.diffNotesByKey[key] ?? "");
-        } else {
-            setCompareReasonDraft("");
-        }
-
-        setSheetOpen(true);
-    };
 
     // -----------------------------
     // Persist actions: annotation / note / tag
@@ -1121,11 +1145,7 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // Metadata save (DB fields + [META] note + version_sources sync)
     // -----------------------------
-    const toggleSourceDraft = (sourceId: string) => {
-        setSelectedSourceIdsDraft((prev) =>
-            prev.includes(sourceId) ? prev.filter((x) => x !== sourceId) : [...prev, sourceId]
-        );
-    };
+
 
     const upsertMetaNote = async (versionId: string, nextMetaNoteText: string) => {
         const meta = parseMetaFromNotes(notes);
@@ -1155,18 +1175,26 @@ export function useTranscriptionTab({ acteId }: Props) {
         setLoading(true);
         try {
             // persist DB fields
+            // 1) update version (version-level)
             await setVersionStatus(target.id, {
                 transcription_kind: metaDraft.transcription_kind ?? null,
-                source_lecture_kind: metaDraft.source_lecture_kind ?? null,
-                conventions_text: metaDraft.conventions_text ?? null,
-                langue_vue: metaDraft.langue_vue ?? null,
-                ecriture_vue: metaDraft.ecriture_vue ?? null,
                 confidence: metaDraft.confidence ?? null,
             } as any);
 
-            // persist sources used by this version
-            const curIds = versionSources[target.id] ?? [];
-            await syncVersionSources(target.id, curIds, selectedSourceIdsDraft);
+            // 2) update transcription (transcription-level)
+            if (activeSourceId) {
+                const tr = transcriptionBySourceId[activeSourceId];
+                if (tr?.id) {
+                    await updateTranscription(tr.id, {
+                        source_lecture_kind: (metaDraft.source_lecture_kind ?? tr.source_lecture_kind) as any,
+                        langue_vue: metaDraft.langue_vue ?? null,
+                        handwriting_style: metaDraft.handwriting_style ?? null,
+                        handwriting_legibility: metaDraft.handwriting_legibility ?? null,
+                        conventions_override_text: metaDraft.conventions_override_text ?? null,
+                    } as any);
+                }
+            }
+
 
             // persist META note (angles morts)
             const prevMeta = parseMetaFromNotes(notes);
@@ -1190,40 +1218,6 @@ export function useTranscriptionTab({ acteId }: Props) {
     };
 
     // -----------------------------
-    // Compare note save (stored in META note’s diff map)
-    // -----------------------------
-    const saveCompareReason = async () => {
-        const target = workingVersion ?? currentVersion;
-        if (!target) return;
-        if (!compareLeftId || !compareRightId) return;
-
-        const key = compareKey(compareLeftId, compareRightId);
-        const nextText = compareReasonDraft.trim();
-
-        setLoading(true);
-        try {
-            const meta = parseMetaFromNotes(notes);
-            const nextDiffMap = { ...(meta.diffNotesByKey ?? {}) };
-            if (nextText) nextDiffMap[key] = nextText;
-            else delete nextDiffMap[key];
-
-            const nextMetaNoteText = composeMetaNote({
-                completeness: metaDraftCompleteness || meta.completeness || null,
-                referenceReason: metaDraftReferenceReason.trim() || meta.referenceReason || null,
-                diffNotesByKey: nextDiffMap,
-            });
-
-            await upsertMetaNote(target.id, nextMetaNoteText);
-            toast.success("Note de diff enregistrée");
-        } catch (e) {
-            console.error(e);
-            toast.error("Impossible d’enregistrer la note de diff");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // -----------------------------
     // Gabarit draft create (manual)
     // -----------------------------
     const createDraftFromGabarit = async (g: GabaritRow) => {
@@ -1232,11 +1226,6 @@ export function useTranscriptionTab({ acteId }: Props) {
             content: g.template_content,
             gabarit_id: g.id,
             transcription_kind: "travail",
-            source_lecture_kind: "image_originale",
-            conventions_text:
-                "Conventions conseillées : [illisible], [barré], [lacune], [ajout en marge], " +
-                PAGE_BREAK_TOKEN +
-                " (saut de page).",
             confidence: "low",
             sourceIds: activeSourceId ? [activeSourceId] : [],
         });
@@ -1251,11 +1240,9 @@ export function useTranscriptionTab({ acteId }: Props) {
         // state
         loading,
         acte,
-        acteSources,
         versions,
         currentId,
         currentVersion,
-        versionSources,
 
         // sources-first
         activeSourceId,
@@ -1293,7 +1280,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         // meta drafts
         metaDraft,
         setMetaDraft,
-        selectedSourceIdsDraft,
         metaDraftCompleteness,
         metaDraftReferenceReason,
         setMetaDraftCompleteness,
@@ -1320,28 +1306,20 @@ export function useTranscriptionTab({ acteId }: Props) {
         jumpToRange,
         insertPageBreak,
 
-        createEmptyDraft,
-        saveAsNewDraftVersion,
         setInReview,
 
         // ✅ sources-first actions
-        setActiveSource,
+        selectSource,
         onActiveSourceChanged,
         setPreferredSource,
-        ensureActiveSourceSelectedInMetadata,
-        createDraftForActiveSourceFromTemplateIfAny,
+        startTranscriptionForActiveSource,
         saveNewVersionForActiveSource,
         openSourceDiffPicker,
         openSourceDiff,
 
         // metadata
         openMetadata,
-        toggleSourceDraft,
         saveMetadata,
-
-        // legacy compare (still useful)
-        openCompare,
-        saveCompareReason,
 
         // annotations / notes / tags
         openAddAnnotation,
@@ -1373,5 +1351,9 @@ export function useTranscriptionTab({ acteId }: Props) {
         sources,
         loadingSources,
         errorMsg,
+
+        getLatestVersionIdForSource,
+        latestVersionIdBySourceId,
+        transcriptionBySourceId
     };
 }

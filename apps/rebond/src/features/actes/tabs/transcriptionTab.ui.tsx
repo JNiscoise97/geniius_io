@@ -9,7 +9,6 @@ import {
   MapPin,
   User,
   HelpCircle,
-  FileText,
   CheckCircle2,
   AlertTriangle,
   XCircle,
@@ -17,57 +16,8 @@ import {
 
 import type {
   AnchorStatus,
-  TranscriptionStatus,
   TranscriptionTagRow,
 } from "./transcriptionTab.service";
-
-// ---------------------------
-// Status badges (versions)
-// ---------------------------
-
-export function statusBadge(status: TranscriptionStatus) {
-  switch (status) {
-    case "draft":
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <FileText className="h-3.5 w-3.5" />
-          Brouillon
-        </Badge>
-      );
-
-    case "in_review":
-      return (
-        <Badge className="bg-yellow-600 text-white gap-1">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          En relecture
-        </Badge>
-      );
-
-    case "validated":
-      return (
-        <Badge className="bg-emerald-600 text-white gap-1">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Validée
-        </Badge>
-      );
-
-    case "contested":
-      return (
-        <Badge className="bg-red-600 text-white gap-1">
-          <XCircle className="h-3.5 w-3.5" />
-          Contestée
-        </Badge>
-      );
-
-    default:
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <HelpCircle className="h-3.5 w-3.5" />
-          Inconnu
-        </Badge>
-      );
-  }
-}
 
 // ---------------------------
 // Anchor badge (annotation validity vs text edits)

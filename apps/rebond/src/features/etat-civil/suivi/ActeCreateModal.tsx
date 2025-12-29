@@ -26,7 +26,7 @@ import { toIds, toLabels } from '@/utils/dictionnaireValue';
 import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
 
 import { formatDateToFrench, normalizeDateString, isValidDateString } from '@/utils/date';
-import type { EtatCivilActe, EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
+import type { EtatCivilActe } from '@/types/etatcivil';
 
 type ActeCreateModalProps = {
   open: boolean;
@@ -35,16 +35,9 @@ type ActeCreateModalProps = {
   bureauId: string;
   registreId: string;
 
-  // Optionnel : si tu as déjà les objets chargés, on peut préremplir une source plus riche
-  bureau?: Pick<EtatCivilBureau, 'id' | 'nom' | 'departement' | 'region' | 'commune'> | null;
-  registre?: Pick<EtatCivilRegistre, 'id' | 'annee' | 'type_acte'> | null;
-
   numeroParDefaut?: string | null;
 
   onActeCreated?: (acte: EtatCivilActe) => Promise<void> | void;
-
-  // Option : auto-créer une source au dépôt
-  createDefaultSource?: boolean;
 };
 
 type DictState = {
@@ -55,44 +48,13 @@ type DictState = {
   onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
 } | null;
 
-function guessDepotType(bureau?: ActeCreateModalProps['bureau']) {
-  const region = (bureau?.region ?? '').toLowerCase();
-  const departement = (bureau?.departement ?? '').toLowerCase();
-
-  const isDom =
-    region.includes('guadeloupe') ||
-    region.includes('réunion') ||
-    region.includes('martinique') ||
-    region.includes('guyane') ||
-    departement.includes('guadeloupe') ||
-    departement.includes('réunion') ||
-    departement.includes('martinique') ||
-    departement.includes('guyane');
-
-  return isDom ? 'Archives départementales' : 'ANOM';
-}
-
-function guessDepotName(bureau?: ActeCreateModalProps['bureau'], depotType?: string) {
-  if (!depotType) return '';
-  if (depotType === 'ANOM') return 'Archives nationales d’outre-mer';
-  if (depotType === 'Mairie') return bureau?.nom ?? '';
-  if (depotType === 'Archives départementales') {
-    const dep = bureau?.departement ? ` (${bureau.departement})` : '';
-    return `Archives départementales${dep}`;
-  }
-  return '';
-}
-
 export function ActeCreateModal({
   open,
   onClose,
   bureauId,
   registreId,
-  bureau,
-  registre,
   numeroParDefaut,
-  onActeCreated,
-  createDefaultSource = true,
+  onActeCreated
 }: ActeCreateModalProps) {
   const navigate = useNavigate();
 
@@ -167,30 +129,6 @@ export function ActeCreateModal({
 
   function clearTypeActe() {
     setTypeActeRef(null);
-  }
-
-  async function createDefaultSourceRow(acteId: string) {
-    const depot_type = guessDepotType(bureau);
-    const nom_depot = guessDepotName(bureau, depot_type);
-
-    const registreTitre =
-      registre?.annee || registre?.type_acte
-        ? [registre?.type_acte, registre?.annee].filter(Boolean).join(' - ')
-        : '';
-
-    const { error } = await supabase.from('etat_civil_actes_sources').insert([
-      {
-        acte_id: acteId,
-        depot_type: depot_type || null,
-        nom_depot: nom_depot || null,
-        registre: registreTitre || null,
-      },
-    ]);
-
-    if (error) {
-      // non bloquant
-      console.warn('[ActeCreateModal] createDefaultSourceRow error:', error.message);
-    }
   }
 
   function validateAndCommitDate() {
@@ -268,10 +206,6 @@ export function ActeCreateModal({
       console.error('[ActeCreateModal] insert error:', error.message);
       setCreating(false);
       return;
-    }
-
-    if (createDefaultSource && newActe?.id) {
-      await createDefaultSourceRow(newActe.id);
     }
 
     toast.success('Acte créé');
