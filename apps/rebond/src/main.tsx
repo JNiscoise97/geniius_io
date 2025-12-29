@@ -33,6 +33,7 @@ import IndividuFiche from "./features/rebond/IndividuFiche"
 import EtatCivilList from "./features/etat-civil/suivi/EtatCivilList"
 import BureauLayout from "./features/etat-civil/suivi/BureauLayout"
 import RegistreLayout from "./features/etat-civil/suivi/RegistreLayout"
+import RegistreEdit from "./features/etat-civil/suivi/RegistreEdit"
 import ActePreview from "./features/etat-civil/suivi/ActePreview"
 import NotaireLayout from "./features/notaires/NotaireLayout"
 import NotaireRegistreLayout from "./features/notaires/NotaireRegistreLayout"
@@ -99,6 +100,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/ec-bureaux/liste" element={<EtatCivilList />} />
           <Route path="/ec-bureau/:id" element={<BureauLayout />} />
           <Route path="/ec-registre/:bureauId/:id" element={<RegistreLayout />} />
+          <Route path="/ec-registre/edit/:id" element={<RegistreEdit />} />
           <Route path="/ec-acte/:acteId" element={<ActePreview />} />
 
           <Route path="/individu/:individuId" element={<IndividuFiche />} />

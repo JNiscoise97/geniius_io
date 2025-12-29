@@ -2,12 +2,14 @@
 import {
   ArrowLeft,
   Settings,
+  Archive,
   Loader2,
   User,
   AlertCircle,
   BarChart2,
   Pen,
   Plus,
+  Pencil
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -22,6 +24,7 @@ import { getIconForStatutFromStats } from '@/features/actes/transcription/consta
 
 const tabs: { label: string; icon: React.ElementType }[] = [
   { label: 'Actes', icon: BarChart2 },
+  { label: 'Référence archive', icon: Archive },
   { label: 'Officiers', icon: User },
   { label: 'Qualité des données', icon: AlertCircle },
   { label: 'Notes', icon: Pen },
@@ -106,6 +109,15 @@ export default function RegistreLayout() {
                 </span>
               </div>
               <div className='flex items-center gap-4'>
+                <Link to={`/ec-registre/edit/${registre.id}`}>
+                  <Button
+                    variant='ghost'
+                    className='flex items-center gap-2 text-sm text-gray-600 hover:text-black'
+                  >
+                    <Pencil className='w-4 h-4' />
+                    Modifier
+                  </Button>
+                </Link>
                 <Settings className='w-5 h-5 text-gray-700 cursor-pointer' />
               </div>
             </div>
@@ -175,7 +187,6 @@ export default function RegistreLayout() {
               setCreateActeModalOpen(false);
               setNumeroActeACreer(null);
             }}
-            actesExistants={registre.actes}
             numeroParDefaut={numeroActeACreer}
             onActeCreated={handleNewActe}
           />
@@ -311,7 +322,8 @@ function DataTableActes({
     {
       key: 'numero_acte',
       label: 'N°',
-      render: (row) => row.__sans_numero ? <span className="text-gray-400 italic">—</span> : row.numero_acte,
+      render: (row) =>
+        row.__sans_numero ? <span className='text-gray-400 italic'>—</span> : row.numero_acte,
     },
     {
       key: 'date',

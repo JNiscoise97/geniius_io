@@ -1,5 +1,5 @@
 // ActeEdit.tsx
-import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, StickyNote, Users, Workflow } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEtatCivilActesStore } from '@/store/useEtatCivilActesStore';
