@@ -19,14 +19,12 @@ import {
     type AnnotationRow,
     type ConfidenceLevel,
     type EcActeRow,
-    type GabaritRow,
     type NoteRow,
     type SourceLectureKind,
     type TranscriptionKind,
     type TranscriptionStatus,
     type TranscriptionTagRow,
     type TranscriptionVersionRow,
-    chooseBestGabaritForInitialDraft,
     computeAnchor,
     insertAtSelection,
     loadActeBundle,
@@ -289,7 +287,6 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [acteurs, setActeurs] = useState<
         Array<{ id: string; role: string | null; prenom: string | null; nom: string | null }>
     >([]);
-    const [gabarits, setGabarits] = useState<GabaritRow[]>([]);
 
     // Selection
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -356,6 +353,22 @@ export function useTranscriptionTab({ acteId }: Props) {
 
     // ✅ IMPORTANT: éviter le conflit NodeJS.Timeout vs number (si @types/node est présent)
     const anchorRevalidateTimer = useRef<number | null>(null);
+
+    const autoDraftInFlightRef = useRef(false);
+    const autoDraftDoneRef = useRef(false);
+
+    // ✅ Debounce timer pour création auto de v1 draft quand l'utilisateur s'arrête de taper
+    // number (window.setTimeout) pour éviter NodeJS.Timeout
+    const autoDraftDebounceTimer = useRef<number | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (autoDraftDebounceTimer.current !== null) {
+                window.clearTimeout(autoDraftDebounceTimer.current);
+            }
+        };
+    }, []);
+
 
     // -----------------------------
     // Split pane (UI-only)
@@ -489,7 +502,6 @@ export function useTranscriptionTab({ acteId }: Props) {
             setWorkingVersionId(null);
 
             setActeurs([]);
-            setGabarits([]);
             setAnnotations([]);
             setNotes([]);
             setTags([]);
@@ -511,7 +523,6 @@ export function useTranscriptionTab({ acteId }: Props) {
                 setTranscriptionBySourceId(bundle.transcriptionBySourceId);
                 setLatestVersionIdBySourceId(bundle.latestVersionIdBySourceId);
                 setActeurs(bundle.acteurs);
-                setGabarits(bundle.gabarits);
 
                 // Default: pick a “current”
                 if (!currentId && bundle.versions.length) {
@@ -608,7 +619,6 @@ export function useTranscriptionTab({ acteId }: Props) {
     const createNewVersion = async (payload: {
         status: TranscriptionStatus;
         content: string;
-        gabarit_id?: string | null;
         transcription_kind?: TranscriptionKind | null;
         confidence?: ConfidenceLevel | null;
         sourceIds?: string[];
@@ -668,13 +678,65 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
     };
 
+    const autoStartDraftIfNeeded = async (nextText: string) => {
+        if (!activeSourceId) return;
+        // déjà une version pour cette source (workingVersion suffit, currentVersion peut être "legacy")
+        if (workingVersion) return;
+        if (autoDraftDoneRef.current || autoDraftInFlightRef.current) return;
+
+        const trimmed = (nextText ?? "").trim();
+        if (!trimmed) return; // pas au 1er caractère "utile"
+
+        autoDraftInFlightRef.current = true;
+        try {
+            // crée une v1 brouillon avec le texte courant (1 char, paste, etc.)
+            const v1 = await createNewVersion({
+                status: "draft",
+                content: nextText ?? "",
+                transcription_kind: "travail",
+                confidence: "low",
+                sourceIds: [activeSourceId],
+            });
+
+            // comme on vient de persister ce texte, on n’est pas dirty à cet instant
+            setEditorValue(v1.content ?? "");
+            setIsDirty(false);
+
+            autoDraftDoneRef.current = true;
+        } catch (e) {
+            console.error(e);
+            // si ça échoue, on laisse l’utilisateur taper quand même (isDirty restera true)
+        } finally {
+            autoDraftInFlightRef.current = false;
+        }
+    };
+
+
     // -----------------------------
     // Editor changes
     // -----------------------------
     const onChangeEditor = (next: string) => {
         setEditorValue(next);
         setIsDirty(true);
+
+        // ✅ Auto-brouillon : seulement après une pause de frappe (debounce)
+        // Conditions de base : source active + pas encore de version pour cette source + pas déjà fait
+        if (!activeSourceId) return;
+        if (workingVersion) return;
+        if (autoDraftDoneRef.current || autoDraftInFlightRef.current) return;
+
+        // Reset du timer à chaque frappe/collage
+        if (autoDraftDebounceTimer.current !== null) {
+            window.clearTimeout(autoDraftDebounceTimer.current);
+        }
+
+        // Après une courte pause, si le texte contient quelque chose de "utile", on crée la v1 draft
+        autoDraftDebounceTimer.current = window.setTimeout(() => {
+            void autoStartDraftIfNeeded(next);
+        }, 800);
     };
+
+
 
     const jumpToRange = (start: number, end: number) => {
         const el = textareaRef.current;
@@ -762,6 +824,14 @@ export function useTranscriptionTab({ acteId }: Props) {
         const nextWorking = latestVersionId ?? getLatestVersionIdForSource(sourceId);
         setWorkingVersionId(nextWorking);
 
+        autoDraftDoneRef.current = false;
+        autoDraftInFlightRef.current = false;
+        if (autoDraftDebounceTimer.current !== null) {
+            window.clearTimeout(autoDraftDebounceTimer.current);
+            autoDraftDebounceTimer.current = null;
+        }
+
+
         if (nextWorking) {
             setCurrentId(nextWorking); // déclenche load children + reset editor
             return;
@@ -794,18 +864,14 @@ export function useTranscriptionTab({ acteId }: Props) {
             return versions.find((v) => v.id === existing) ?? null;
         }
 
-        const best = chooseBestGabaritForInitialDraft(acte ?? ({} as EcActeRow), gabarits);
-        const content = best?.template_content ?? "";
-        const gabarit_id = best?.id ?? null;
-
         const newV = await createNewVersion({
             status: "draft",
-            content,
-            gabarit_id,
+            content: "",
             transcription_kind: "travail",
             confidence: "low",
             sourceIds: [activeSourceId],
         });
+
 
         toast("Brouillon créé pour la source active", { icon: "📝" });
         return newV;
@@ -822,6 +888,20 @@ export function useTranscriptionTab({ acteId }: Props) {
         const base = workingVersion ?? currentVersion;
         const next = normalizeContentForCompare(editorValue ?? "");
         const prev = normalizeContentForCompare(base?.content ?? "");
+
+        if (!base) {
+            // cas rare: aucune version (auto-brouillon n’a pas encore eu le temps / a échoué)
+            await createNewVersion({
+                status: "draft",
+                content: editorValue ?? "",
+                transcription_kind: "travail",
+                confidence: "low",
+                sourceIds: [activeSourceId],
+            });
+            toast("Brouillon créé et enregistré", { icon: "📝" });
+            return;
+        }
+
 
         if (!next) {
             toast("Texte vide : rien à enregistrer.", { icon: "⛔" });
@@ -954,18 +1034,12 @@ export function useTranscriptionTab({ acteId }: Props) {
             return;
         }
 
-        // cible idéale : workingVersion (source-first) sinon currentVersion
-        let target = workingVersion ?? currentVersion;
-
-        // Si aucune transcription n’existe pour cette source, on crée un brouillon puis on récupère la version créée.
+        const target = workingVersion ?? currentVersion;
         if (!target) {
-            const created = await startTranscriptionForActiveSource();
-            if (!created) {
-                toast("Impossible d’ouvrir les métadonnées : aucune version n’a pu être créée.", { icon: "⛔" });
-                return;
-            }
-            target = created; // ✅ on utilise la version connue, pas l’état
+            toast("Commence par transcrire : le brouillon sera créé automatiquement au 1er caractère.", { icon: "📝" });
+            return;
         }
+
 
 
         setSheetMode("metadata");
@@ -1218,22 +1292,6 @@ export function useTranscriptionTab({ acteId }: Props) {
     };
 
     // -----------------------------
-    // Gabarit draft create (manual)
-    // -----------------------------
-    const createDraftFromGabarit = async (g: GabaritRow) => {
-        await createNewVersion({
-            status: "draft",
-            content: g.template_content,
-            gabarit_id: g.id,
-            transcription_kind: "travail",
-            confidence: "low",
-            sourceIds: activeSourceId ? [activeSourceId] : [],
-        });
-
-        toast("Brouillon créé depuis un gabarit : relisez mot à mot.", { icon: "🧩", duration: 5000 });
-    };
-
-    // -----------------------------
     // API surface
     // -----------------------------
     return {
@@ -1257,7 +1315,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         notes,
         tags,
         acteurs,
-        gabarits,
         selection,
         textareaRef,
 
@@ -1342,8 +1399,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         removeAnnotation,
         removeNote,
         removeTag,
-
-        createDraftFromGabarit,
 
         // split
         split: splitApi,

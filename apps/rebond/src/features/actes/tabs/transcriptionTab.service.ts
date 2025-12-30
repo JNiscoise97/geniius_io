@@ -32,7 +32,6 @@ const T = {
   tags: "ec_transcription_tags",
 
   acteurs: "etat_civil_actes_acteurs",
-  gabarits: "ec_transcription_gabarits",
 } as const;
 
 // -------------------- Types --------------------
@@ -116,18 +115,6 @@ export type ActeurLightRow = {
   role: string | null;
   prenom: string | null;
   nom: string | null;
-};
-
-export type GabaritRow = {
-  id: string;
-  label: string;
-  scope_type_acte: string | null;
-  bureau_id: string | null;
-  registre_id: string | null;
-  year_from: number | null;
-  year_to: number | null;
-  template_content: string;
-  created_at: string;
 };
 
 export type TranscriptionTagRow = {
@@ -242,13 +229,6 @@ export function computeAnchor(content: string, start: number, end: number) {
   const prefix = content.slice(prefixStart, start);
   const suffix = content.slice(end, suffixEnd);
   return { quote, prefix, suffix };
-}
-
-export function safeYearFromDate(iso: string | null | undefined): number | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.getFullYear();
 }
 
 export function buildLineDiff(left: string, right: string) {
@@ -411,40 +391,6 @@ function relocateByQuote(newContent: string, quote: string, hintStart: number | 
   return null;
 }
 
-// -------------------- Gabarit selection --------------------
-
-export function chooseBestGabaritForInitialDraft(acte: EcActeRow, gabarits: GabaritRow[]): GabaritRow | null {
-  if (!gabarits.length) return null;
-
-  const year = safeYearFromDate(acte.date);
-  const type = acte.type_acte ?? null;
-
-  const scored = gabarits
-    .map((g) => {
-      let score = 0;
-
-      if (type && g.scope_type_acte && g.scope_type_acte === type) score += 40;
-      if (!g.scope_type_acte) score += 5;
-
-      if (year != null) {
-        const from = g.year_from ?? null;
-        const to = g.year_to ?? null;
-        const inRange = (from == null || year >= from) && (to == null || year <= to);
-        if (inRange) score += 20;
-      } else {
-        score += 2;
-      }
-
-      if (acte.registre_id && g.registre_id && g.registre_id === acte.registre_id) score += 15;
-      if (acte.bureau_id && g.bureau_id && g.bureau_id === acte.bureau_id) score += 10;
-
-      return { g, score };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  return scored[0]?.g ?? null;
-}
-
 // -------------------- “Angles morts” encoding --------------------
 
 export function compareKey(a: string, b: string) {
@@ -518,16 +464,14 @@ type ActeBundle = {
   transcriptionBySourceId: Record<string, TranscriptionRow>;
   latestVersionIdBySourceId: Record<string, string>; // sourceId -> latest version id
   acteurs: ActeurLightRow[];
-  gabarits: GabaritRow[];
 };
 
 export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
   try {
-    const [acteRes, transRes, acteursRes, gabaritsRes] = await Promise.all([
+    const [acteRes, transRes, acteursRes] = await Promise.all([
       supabase.from(T.actes).select("*").eq("id", acteId).single(),
       supabase.from(T.transcriptions).select("*").eq("acte_id", acteId).order("created_at", { ascending: true }),
       supabase.from(T.acteurs).select("id, role, prenom, nom").eq("acte_id", acteId).order("created_at", { ascending: true }),
-      supabase.from(T.gabarits).select("*").order("created_at", { ascending: false }),
     ]);
 
     assertNoSbError(acteRes as any, "load acte");
@@ -537,7 +481,6 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
     const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
 
     const acteurs: ActeurLightRow[] = acteursRes.error ? [] : ((acteursRes.data as any) ?? []);
-    const gabarits: GabaritRow[] = gabaritsRes.error ? [] : ((gabaritsRes.data as any) ?? []);
 
     // charger les versions pour toutes les transcriptions de l’acte
     const transcriptionIds = transcriptions.map((t) => t.id);
@@ -575,7 +518,7 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
       if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
     }
 
-    return { acte, transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId, acteurs, gabarits };
+    return { acte, transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId, acteurs };
   } catch (e) {
     console.error(e);
     throw new Error(toMsg(e, "Erreur lors du chargement des données (bundle)"));

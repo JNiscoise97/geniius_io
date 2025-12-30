@@ -120,10 +120,6 @@ export default function TranscriptionTab({ acteId }: Props) {
         ? t.getLatestVersionIdForSource(t.activeSourceId)
         : null;
 
-    const step: 1 | 2 | 3 | 4 =
-        !t.activeSourceId ? 1 : !activeLatestVersionId ? 2 : 3;
-
-    const textareaDisabled = step === 1;
 
     const StepItem = ({
         idx,
@@ -189,17 +185,26 @@ export default function TranscriptionTab({ acteId }: Props) {
         return <div className="p-4 text-sm text-slate-600">Chargement…</div>;
     }
 
+    const isFinalized =
+        (workingVersion?.status === "in_review" || workingVersion?.status === "validated") ?? false;
+
+    const step: 1 | 2 | 3 | 4 =
+        !t.activeSourceId
+            ? 1
+            : !activeLatestVersionId
+                ? 2
+                : isFinalized
+                    ? 4
+                    : 3;
+
+    const textareaDisabled = step === 1;
+
     return (
         <div className="p-4 space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                     {/* Stepper */}
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-slate-500" />
-                            <h2 className="text-base font-semibold text-slate-900">Transcription</h2>
-                        </div>
-
                         <div className="mt-3 grid gap-3 sm:grid-cols-4">
                             <StepItem
                                 idx={1}
@@ -211,28 +216,30 @@ export default function TranscriptionTab({ acteId }: Props) {
                             />
                             <StepItem
                                 idx={2}
-                                title="Définir les métadonnées"
-                                subtitle="Type de transcription, lecture, confiance…"
+                                title="Transcrire l’acte"
+                                subtitle="Le brouillon est créé automatiquement après une courte pause"
                                 active={step === 2}
                                 done={step > 2}
-                                icon={<Pencil className="h-4 w-4" />}
-                            />
-                            <StepItem
-                                idx={3}
-                                title="Transcrire l’acte"
-                                subtitle="Saisie du texte + repérages"
-                                active={step === 3}
-                                done={false}
                                 icon={<FileText className="h-4 w-4" />}
                             />
                             <StepItem
-                                idx={4}
-                                title="Interpréter"
-                                subtitle="Notes d’analyse / conclusions"
-                                active={false}
-                                done={false}
+                                idx={3}
+                                title="Annoter / Tagger / Repérer"
+                                subtitle="Tout le travail sur le texte (ancres, tags, repérages)"
+                                active={step === 3}
+                                done={step > 3}
                                 icon={<Tags className="h-4 w-4" />}
                             />
+
+                            <StepItem
+                                idx={4}
+                                title="Finaliser"
+                                subtitle="Métadonnées + interprétation + décisions (confiance, complétude, référence)"
+                                active={step === 4}
+                                done={false}
+                                icon={<Pencil className="h-4 w-4" />}
+                            />
+
                         </div>
 
 
@@ -244,36 +251,10 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                         {step === 2 ? (
                             <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
-                                Cette source n’a pas encore de transcription. Clique sur <span className="font-medium">Brouillon</span> pour démarrer.
+                                Cette source n’a pas encore de transcription. Commence à saisir le texte : un brouillon sera créé automatiquement après une courte pause.
                             </div>
                         ) : null}
-                    </div>
 
-                    {/* Actions à droite (compact) */}
-                    <div className="shrink-0 flex items-center gap-2">
-                        {step === 2 ? (
-                            <Button
-                                variant="default"
-                                onClick={() => t.startTranscriptionForActiveSource()}
-                                disabled={t.loading || !t.activeSourceId}
-                                className="gap-2"
-                                title="Créer la première version (brouillon) pour cette source"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Brouillon
-                            </Button>
-                        ) : null}
-
-                        <Button
-                            variant="secondary"
-                            onClick={() => t.openMetadata()}
-                            disabled={t.loading || !t.activeSourceId}
-                            className="gap-2"
-                            title="Voir / modifier les métadonnées de la transcription"
-                        >
-                            <Pencil className="w-4 h-4" />
-                            Métadonnées
-                        </Button>
                     </div>
 
                 </div>
@@ -324,17 +305,17 @@ export default function TranscriptionTab({ acteId }: Props) {
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                                <Button variant="outline" onClick={t.openAddAnnotation} className="gap-2">
+                                <Button variant="outline" onClick={t.openAddAnnotation} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
                                     <Plus className="w-4 h-4" /> Annotation
                                 </Button>
-                                <Button variant="outline" onClick={t.openAddNote} className="gap-2">
+                                <Button variant="outline" onClick={t.openAddNote} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
                                     <Plus className="w-4 h-4" /> Note
                                 </Button>
-                                <Button variant="outline" onClick={t.openTagPassage} className="gap-2">
+                                <Button variant="outline" onClick={t.openTagPassage} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
                                     <Tags className="w-4 h-4" />
                                     Tag
                                 </Button>
-                                <Button variant="outline" onClick={t.insertPageBreak} className="gap-2">
+                                <Button variant="outline" onClick={t.insertPageBreak} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
                                     <SeparatorHorizontal className="w-4 h-4" />
                                     Saut de page
                                 </Button>
@@ -753,14 +734,14 @@ export default function TranscriptionTab({ acteId }: Props) {
                                         Comparer deux sources
                                     </Button>
                                     <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            t.openMetadata();
-                                        }}
-                                        disabled={!t.activeSourceId}
+                                        variant="secondary"
+                                        onClick={() => t.openMetadata()}
+                                        disabled={t.loading || !t.activeSourceId}
+                                        className="gap-2"
+                                        title="Voir / modifier les métadonnées de la transcription"
                                     >
-                                        Définir la référence
+                                        <Pencil className="w-4 h-4" />
+                                        Finaliser
                                     </Button>
                                 </div>
                                 <div className="mt-2 text-xs text-slate-500">
