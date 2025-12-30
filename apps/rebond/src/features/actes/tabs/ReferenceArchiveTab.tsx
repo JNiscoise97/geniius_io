@@ -22,7 +22,7 @@ import {
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
 import { Lock, Unlock } from 'lucide-react';
-import type { CitationDraft, ManifestationPick } from '@/features/archives/reference/types';
+import type { ActeCitationDraft, ManifestationPick } from '@/features/archives/reference/types';
 import { SectionIdentification, SectionSources } from '@/features/archives/reference';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
@@ -92,7 +92,7 @@ function toDateInput(v: any) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function emptyCitation(): CitationDraft {
+function emptyCitation(): ActeCitationDraft {
   return {
     manifestation_id: undefined,
     manifestation: undefined,
@@ -111,7 +111,7 @@ function emptyCitation(): CitationDraft {
   };
 }
 
-function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): CitationDraft {
+function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): ActeCitationDraft {
   return {
     id: r?.id,
     manifestation_id: r?.manifestation_id,
@@ -173,7 +173,7 @@ export default function ReferenceArchiveTab({
   const [loadingSources, setLoadingSources] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [sources, setSources] = useState<CitationDraft[]>([emptyCitation()]);
+  const [sources, setSources] = useState<ActeCitationDraft[]>([emptyCitation()]);
 
   const [dictOpen, setDictOpen] = useState(false);
   const [dictArgs, setDictArgs] = useState<{
@@ -321,7 +321,7 @@ export default function ReferenceArchiveTab({
             url_base: m.url_base,
             plateforme_code: m.plateforme_code,
           },
-        } satisfies CitationDraft;
+        } satisfies ActeCitationDraft;
       });
 
       setSources(enriched);
@@ -347,7 +347,7 @@ export default function ReferenceArchiveTab({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateSource = (idx: number, patch: Partial<CitationDraft>) => {
+  const updateSource = (idx: number, patch: Partial<ActeCitationDraft>) => {
     setSources((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
   };
 
@@ -625,8 +625,9 @@ export default function ReferenceArchiveTab({
         {/* IDENTIFICATION */}
 
         <SectionIdentification
-          acteId={acteId}
+          id={acteId}
           form={form}
+          mode="acte"
           setField={setField}
           onEditBureauEnregistrement={() => {
             setBureauArgs({
@@ -793,6 +794,7 @@ export default function ReferenceArchiveTab({
 
         {/* SOURCES */}
         <SectionSources
+          mode="acte"
           sources={sources}
           loading={loadingSources}
           onAdd={addSource}

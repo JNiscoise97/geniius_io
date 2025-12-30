@@ -1,26 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { CitationDraft, ManifestationPick } from '@/features/archives/reference/types';
+import type {
+  ActeCitationDraft,
+  RegistreCitationDraft,
+  ManifestationPick,
+} from '@/features/archives/reference/types';
+import { Plus } from 'lucide-react';
+
+type SectionMode = 'acte' | 'registre';
+type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 
 type SectionSourcesProps = {
-  sources: CitationDraft[];
+  mode: SectionMode;
+
+  sources: AnyDraft[];
   loading: boolean;
   onAdd: () => void;
   onRemove: (idx: number) => void;
-  onChange: (idx: number, patch: Partial<CitationDraft>) => void;
-
-  presetKey?: string;
-  presetLabel?: string;
+  onChange: (idx: number, patch: Partial<AnyDraft>) => void;
 };
 
 export function SectionSources({
+  mode,
   sources,
   loading,
   onAdd,
   onRemove,
   onChange,
-  presetKey,
-  presetLabel,
 }: SectionSourcesProps) {
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
@@ -40,19 +46,21 @@ export function SectionSources({
     return `https://${u}`;
   };
 
-  const isOnline = (c: CitationDraft) => {
+  const isOnline = (c: AnyDraft) => {
     const depotType = c.manifestation?.depot_type;
     const hasUrl = Boolean((c.manifestation?.url_base ?? '').trim());
     return depotType === 'en_ligne' || hasUrl;
   };
 
-  const titleFor = (c: CitationDraft) => {
+  const titleFor = (c: AnyDraft) => {
     const sigle = c.manifestation?.institution_sigle?.trim();
     const inst = c.manifestation?.institution_nom?.trim();
     const depot = c.manifestation?.depot_nom?.trim();
     const unite = c.manifestation?.unite_titre?.trim();
     const cote = (c.manifestation?.unite_cote ?? '').trim();
-    const man = c.manifestation?.type_manifestation ? ` · ${c.manifestation.type_manifestation}` : '';
+    const man = c.manifestation?.type_manifestation
+      ? ` · ${c.manifestation.type_manifestation}`
+      : '';
 
     const left = sigle && inst ? `${inst} (${sigle})` : inst ? inst : sigle ? sigle : 'Source';
     const mid = depot ? ` · ${depot}` : '';
@@ -77,98 +85,10 @@ export function SectionSources({
     return Math.trunc(n);
   };
 
-  /**
-   * =========================================================================
-   * Presets (localStorage) — optionnel
-   * =========================================================================
-   */
-  type PresetPayload = { version: 1; savedAt: string; citations: CitationDraft[] };
-  const presetStorageKey = presetKey ? `rebond:acte_citations_preset:${presetKey}` : null;
+  const patchActe = (idx: number, patch: Partial<ActeCitationDraft>) => onChange(idx, patch);
 
-  const loadPreset = (): PresetPayload | null => {
-    if (!presetStorageKey) return null;
-    try {
-      const raw = localStorage.getItem(presetStorageKey);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!parsed?.citations || !Array.isArray(parsed.citations)) return null;
-      return parsed as PresetPayload;
-    } catch {
-      return null;
-    }
-  };
-
-  const savePreset = (payloadCitations: CitationDraft[]) => {
-    if (!presetStorageKey) return;
-    const payload: PresetPayload = {
-      version: 1,
-      savedAt: new Date().toISOString(),
-      citations: payloadCitations,
-    };
-    localStorage.setItem(presetStorageKey, JSON.stringify(payload));
-  };
-
-  const clearPreset = () => {
-    if (!presetStorageKey) return;
-    localStorage.removeItem(presetStorageKey);
-  };
-
-  const applyPreset = (opts: { keepRanges: boolean; keepNotes: boolean }) => {
-    const preset = loadPreset();
-    if (!preset) return;
-
-    const next = preset.citations;
-
-    if (sources.length < next.length) {
-      const toAdd = next.length - sources.length;
-      for (let i = 0; i < toAdd; i++) onAdd();
-    } else if (sources.length > next.length) {
-      const toRemove = sources.length - next.length;
-      for (let i = 0; i < toRemove; i++) onRemove(sources.length - 1 - i);
-    }
-
-    next.forEach((p, idx) => {
-      const cur = sources[idx] ?? ({} as CitationDraft);
-
-      const merged: Partial<CitationDraft> = {
-        manifestation_id: p.manifestation_id,
-        manifestation: p.manifestation,
-
-        vues_start: opts.keepRanges ? cur.vues_start : null,
-        vues_end: opts.keepRanges ? cur.vues_end : null,
-        vues_raw: opts.keepRanges ? cur.vues_raw : '',
-        page_start: opts.keepRanges ? cur.page_start : null,
-        page_end: opts.keepRanges ? cur.page_end : null,
-        page_raw: opts.keepRanges ? cur.page_raw : '',
-
-        acte_manquant: opts.keepRanges ? cur.acte_manquant : false,
-        note: opts.keepNotes ? cur.note : p.note,
-      };
-
-      onChange(idx, merged);
-    });
-  };
-
-  const presetExists = Boolean(loadPreset());
-  const presetInfo = loadPreset();
-
-  const toPresetCitations = (mode: 'empty_ranges' | 'keep_ranges') => {
-    return sources.map((c) => {
-      const cleanNote = (c.note ?? '').replace(/\s{2,}/g, ' ').trim();
-      return {
-        ...c,
-        id: undefined,
-        vues_start: mode === 'empty_ranges' ? null : (c.vues_start ?? null),
-        vues_end: mode === 'empty_ranges' ? null : (c.vues_end ?? null),
-        vues_raw: mode === 'empty_ranges' ? '' : (c.vues_raw ?? ''),
-        page_start: mode === 'empty_ranges' ? null : (c.page_start ?? null),
-        page_end: mode === 'empty_ranges' ? null : (c.page_end ?? null),
-        page_raw: mode === 'empty_ranges' ? '' : (c.page_raw ?? ''),
-        acte_manquant: mode === 'empty_ranges' ? false : Boolean(c.acte_manquant),
-        note: cleanNote,
-      } satisfies CitationDraft;
-    });
-  };
+  const patchRegistre = (idx: number, patch: Partial<RegistreCitationDraft>) =>
+    onChange(idx, patch);
 
   /**
    * =========================================================================
@@ -320,7 +240,8 @@ export function SectionSources({
   const pick = (row: ManifestationPick) => {
     if (pickerTargetIdx == null) return;
 
-    const patch: Partial<CitationDraft> = {
+    // Champs communs (Acte + Registre)
+    const base = {
       manifestation_id: row.manifestation_id,
       manifestation: {
         type_manifestation: row.type_manifestation,
@@ -336,15 +257,24 @@ export function SectionSources({
       },
     };
 
-    patch.vues_start = null;
-    patch.vues_end = null;
-    patch.vues_raw = '';
-    patch.page_start = null;
-    patch.page_end = null;
-    patch.page_raw = '';
-    patch.acte_manquant = false;
+    if (mode === 'acte') {
+      patchActe(pickerTargetIdx, {
+        ...base,
+        vues_start: null,
+        vues_end: null,
+        vues_raw: '',
+        page_start: null,
+        page_end: null,
+        page_raw: '',
+        acte_manquant: false,
+      });
+    } else {
+      patchRegistre(pickerTargetIdx, {
+        ...base,
+        registre_manquant: false,
+      });
+    }
 
-    onChange(pickerTargetIdx, patch);
     closePicker();
   };
 
@@ -359,23 +289,6 @@ export function SectionSources({
             spécifique à l’acte : <span className='font-medium'>vues/pages</span>,{' '}
             <span className='font-medium'>lacune</span>, note.
           </p>
-
-          {presetKey && (
-            <p className='mt-1 text-xs text-slate-500'>
-              Preset : <span className='font-medium'>{presetLabel ?? presetKey}</span>
-              {presetExists && presetInfo?.savedAt ? (
-                <>
-                  {' '}
-                  · enregistré le{' '}
-                  <span className='font-medium'>
-                    {new Date(presetInfo.savedAt).toLocaleString()}
-                  </span>
-                </>
-              ) : (
-                <> · aucun preset enregistré</>
-              )}
-            </p>
-          )}
         </div>
 
         <div className='flex flex-wrap items-center gap-2'>
@@ -386,69 +299,13 @@ export function SectionSources({
               onAdd();
               requestAnimationFrame(() => requestAnimationFrame(() => scrollToIdx(nextIdx)));
             }}
-            className='rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50'
+            className='flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50'
           >
-            + Ajouter une référence
+            <Plus className='w-4 h-4' />
+            Ajouter une référence
           </button>
         </div>
       </div>
-
-      {presetKey && (
-        <div className='mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3'>
-          <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
-            <div className='text-sm font-medium text-slate-900'>Pré-remplissage</div>
-
-            <div className='flex flex-wrap items-center gap-2'>
-              <button
-                type='button'
-                disabled={!presetExists}
-                onClick={() => applyPreset({ keepRanges: false, keepNotes: false })}
-                className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60'
-              >
-                Appliquer preset (ranges vides)
-              </button>
-
-              <button
-                type='button'
-                disabled={!presetExists}
-                onClick={() => applyPreset({ keepRanges: true, keepNotes: true })}
-                className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60'
-              >
-                Appliquer preset (garder saisie)
-              </button>
-
-              <button
-                type='button'
-                onClick={() => savePreset(toPresetCitations('empty_ranges'))}
-                className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50'
-              >
-                Enregistrer preset (sans ranges)
-              </button>
-
-              <button
-                type='button'
-                onClick={() => savePreset(toPresetCitations('keep_ranges'))}
-                className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-sm hover:bg-slate-50'
-              >
-                Enregistrer preset (avec ranges)
-              </button>
-
-              <button
-                type='button'
-                disabled={!presetExists}
-                onClick={() => clearPreset()}
-                className='rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 shadow-sm hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60'
-              >
-                Effacer preset
-              </button>
-            </div>
-          </div>
-
-          <p className='mt-2 text-xs text-slate-600'>
-            Idéal : même commune/année/type → mêmes registres, seules les vues/pages changent.
-          </p>
-        </div>
-      )}
 
       <div className='mt-4 space-y-3'>
         {loading && <div className='text-sm text-slate-600'>Chargement…</div>}
@@ -457,18 +314,33 @@ export function SectionSources({
           sources.map((c, idx) => {
             const online = isOnline(c);
             const url = (c.manifestation?.url_base ?? '').trim();
-            const missing = Boolean(c.acte_manquant);
+            const missing =
+              mode === 'acte'
+                ? Boolean((c as ActeCitationDraft).acte_manquant)
+                : Boolean((c as RegistreCitationDraft).registre_manquant);
 
             const vuesLabel =
-              (c.vues_raw ?? '').trim() ||
-              formatRangeLabel(c.vues_start ?? null, c.vues_end ?? null, 'vue');
+              mode === 'acte'
+                ? ((c as ActeCitationDraft).vues_raw ?? '').trim() ||
+                  formatRangeLabel(
+                    (c as ActeCitationDraft).vues_start ?? null,
+                    (c as ActeCitationDraft).vues_end ?? null,
+                    'vue',
+                  )
+                : '';
+
             const pagesLabel =
-              (c.page_raw ?? '').trim() ||
-              formatRangeLabel(c.page_start ?? null, c.page_end ?? null, 'page');
+              mode === 'acte'
+                ? ((c as ActeCitationDraft).page_raw ?? '').trim() ||
+                  formatRangeLabel(
+                    (c as ActeCitationDraft).page_start ?? null,
+                    (c as ActeCitationDraft).page_end ?? null,
+                    'page',
+                  )
+                : '';
 
             return (
               <div
-                // ✅ FIX TS2322: callback ref must return void
                 ref={(el) => {
                   itemRefs.current[idx] = el;
                 }}
@@ -580,13 +452,17 @@ export function SectionSources({
                         <div className='mt-1 text-xs text-slate-600'>
                           {c.manifestation?.unite_cote ? (
                             <span>
-                              Cote : <span className='font-medium'>{c.manifestation.unite_cote}</span>
+                              Cote :{' '}
+                              <span className='font-medium'>{c.manifestation.unite_cote}</span>
                             </span>
                           ) : (
                             <span className='text-slate-500'>—</span>
                           )}
                           {c.manifestation?.pagination_type ? (
-                            <span className='text-slate-500'> · Pagination : {c.manifestation.pagination_type}</span>
+                            <span className='text-slate-500'>
+                              {' '}
+                              · Pagination : {c.manifestation.pagination_type}
+                            </span>
                           ) : null}
                         </div>
 
@@ -597,20 +473,32 @@ export function SectionSources({
                           <div className='mt-2 space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700'>
                             <div>
                               <span className='text-slate-500'>Institution :</span>{' '}
-                              <span className='font-medium'>{c.manifestation?.institution_nom ?? '—'}</span>
+                              <span className='font-medium'>
+                                {c.manifestation?.institution_nom ?? '—'}
+                              </span>
                             </div>
                             <div>
                               <span className='text-slate-500'>Dépôt :</span>{' '}
-                              <span className='font-medium'>{c.manifestation?.depot_nom ?? '—'}</span>
+                              <span className='font-medium'>
+                                {c.manifestation?.depot_nom ?? '—'}
+                              </span>
                               {c.manifestation?.depot_type ? (
-                                <span className='text-slate-500'> · {c.manifestation.depot_type}</span>
+                                <span className='text-slate-500'>
+                                  {' '}
+                                  · {c.manifestation.depot_type}
+                                </span>
                               ) : null}
                             </div>
                             <div>
                               <span className='text-slate-500'>Manifestation :</span>{' '}
-                              <span className='font-medium'>{c.manifestation?.type_manifestation ?? '—'}</span>
+                              <span className='font-medium'>
+                                {c.manifestation?.type_manifestation ?? '—'}
+                              </span>
                               {c.manifestation?.pagination_type ? (
-                                <span className='text-slate-500'> · pagination {c.manifestation.pagination_type}</span>
+                                <span className='text-slate-500'>
+                                  {' '}
+                                  · pagination {c.manifestation.pagination_type}
+                                </span>
                               ) : null}
                             </div>
 
@@ -649,87 +537,134 @@ export function SectionSources({
                         <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
                           <input
                             type='checkbox'
-                            checked={Boolean(c.acte_manquant)}
-                            onChange={(e) => onChange(idx, { acte_manquant: e.target.checked })}
+                            checked={
+                              mode === 'acte'
+                                ? Boolean((c as ActeCitationDraft).acte_manquant)
+                                : Boolean((c as RegistreCitationDraft).registre_manquant)
+                            }
+                            onChange={(e) => {
+                              if (mode === 'acte') {
+                                patchActe(idx, { acte_manquant: e.target.checked });
+                              } else {
+                                patchRegistre(idx, { registre_manquant: e.target.checked });
+                              }
+                            }}
                             className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
                           />
-                          Acte attendu mais manquant (lacune)
+                          {mode === 'acte'
+                            ? 'Acte attendu mais manquant (lacune)'
+                            : 'Registre attendu mais manquant (lacune)'}
                         </label>
                         <div className='text-xs text-slate-600'>
-                          À cocher si tu es au bon endroit mais l’acte n’est pas présent.
+                          {mode === 'acte'
+                            ? 'À cocher si tu es au bon endroit mais l’acte n’est pas présent.'
+                            : 'À cocher si la référence est attendue mais introuvable (registre manquant, lacune, etc.).'}
                         </div>
                       </div>
                     </div>
 
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>Vues (structuré)</label>
-                      <div className='mt-1 flex items-center gap-2'>
-                        <input
-                          inputMode='numeric'
-                          value={c.vues_start ?? ''}
-                          onChange={(e) => onChange(idx, { vues_start: toIntOrNull(e.target.value) })}
-                          placeholder='début'
-                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                        />
-                        <span className='text-sm text-slate-500'>→</span>
-                        <input
-                          inputMode='numeric'
-                          value={c.vues_end ?? ''}
-                          onChange={(e) => onChange(idx, { vues_end: toIntOrNull(e.target.value) })}
-                          placeholder='fin'
-                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                        />
-                        <span className='text-xs text-slate-600'>
-                          {formatRangeLabel(c.vues_start ?? null, c.vues_end ?? null, 'vue') || '—'}
-                        </span>
-                      </div>
-                    </div>
+                    {mode === 'acte' &&
+                      (() => {
+                        const a = c as ActeCitationDraft;
 
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>Vues (brut)</label>
-                      <input
-                        type='text'
-                        value={c.vues_raw ?? ''}
-                        onChange={(e) => onChange(idx, { vues_raw: e.target.value })}
-                        placeholder='ex : 101-102 / vue 101 / images 3 à 4'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                    </div>
+                        return (
+                          <>
+                            <div className='md:col-span-6'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Vues (structuré)
+                              </label>
+                              <div className='mt-1 flex items-center gap-2'>
+                                <input
+                                  inputMode='numeric'
+                                  value={a.vues_start ?? ''}
+                                  onChange={(e) =>
+                                    patchActe(idx, { vues_start: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='début'
+                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                />
+                                <span className='text-sm text-slate-500'>→</span>
+                                <input
+                                  inputMode='numeric'
+                                  value={a.vues_end ?? ''}
+                                  onChange={(e) =>
+                                    patchActe(idx, { vues_end: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='fin'
+                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                />
+                                <span className='text-xs text-slate-600'>
+                                  {formatRangeLabel(
+                                    a.vues_start ?? null,
+                                    a.vues_end ?? null,
+                                    'vue',
+                                  ) || '—'}
+                                </span>
+                              </div>
+                            </div>
 
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>Pages (structuré)</label>
-                      <div className='mt-1 flex items-center gap-2'>
-                        <input
-                          inputMode='numeric'
-                          value={c.page_start ?? ''}
-                          onChange={(e) => onChange(idx, { page_start: toIntOrNull(e.target.value) })}
-                          placeholder='début'
-                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                        />
-                        <span className='text-sm text-slate-500'>→</span>
-                        <input
-                          inputMode='numeric'
-                          value={c.page_end ?? ''}
-                          onChange={(e) => onChange(idx, { page_end: toIntOrNull(e.target.value) })}
-                          placeholder='fin'
-                          className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                        />
-                        <span className='text-xs text-slate-600'>
-                          {formatRangeLabel(c.page_start ?? null, c.page_end ?? null, 'page') || '—'}
-                        </span>
-                      </div>
-                    </div>
+                            <div className='md:col-span-6'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Vues (brut)
+                              </label>
+                              <input
+                                type='text'
+                                value={a.vues_raw ?? ''}
+                                onChange={(e) => patchActe(idx, { vues_raw: e.target.value })}
+                                placeholder='ex : 101-102 / vue 101 / images 3 à 4'
+                                className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                              />
+                            </div>
 
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>Pages (brut)</label>
-                      <input
-                        type='text'
-                        value={c.page_raw ?? ''}
-                        onChange={(e) => onChange(idx, { page_raw: e.target.value })}
-                        placeholder='ex : p. 12-13 / folio 8r-8v'
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                      />
-                    </div>
+                            <div className='md:col-span-6'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Pages (structuré)
+                              </label>
+                              <div className='mt-1 flex items-center gap-2'>
+                                <input
+                                  inputMode='numeric'
+                                  value={a.page_start ?? ''}
+                                  onChange={(e) =>
+                                    patchActe(idx, { page_start: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='début'
+                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                />
+                                <span className='text-sm text-slate-500'>→</span>
+                                <input
+                                  inputMode='numeric'
+                                  value={a.page_end ?? ''}
+                                  onChange={(e) =>
+                                    patchActe(idx, { page_end: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='fin'
+                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                />
+                                <span className='text-xs text-slate-600'>
+                                  {formatRangeLabel(
+                                    a.page_start ?? null,
+                                    a.page_end ?? null,
+                                    'page',
+                                  ) || '—'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className='md:col-span-6'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Pages (brut)
+                              </label>
+                              <input
+                                type='text'
+                                value={a.page_raw ?? ''}
+                                onChange={(e) => patchActe(idx, { page_raw: e.target.value })}
+                                placeholder='ex : p. 12-13 / folio 8r-8v'
+                                className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                              />
+                            </div>
+                          </>
+                        );
+                      })()}
 
                     <div className='md:col-span-12'>
                       <label className='block text-xs font-medium text-slate-700'>Note</label>
@@ -753,7 +688,9 @@ export function SectionSources({
             <div className='border-b border-slate-200 bg-slate-50 p-4'>
               <div className='flex items-start justify-between gap-3'>
                 <div>
-                  <div className='text-sm font-semibold text-slate-900'>Choisir un registre / une manifestation</div>
+                  <div className='text-sm font-semibold text-slate-900'>
+                    Choisir un registre / une manifestation
+                  </div>
                   <div className='mt-1 text-xs text-slate-600'>
                     Recherche par titre, cote, institution (ANOM / AD971…), dépôt…
                   </div>
@@ -821,7 +758,9 @@ export function SectionSources({
                         className='w-full rounded-xl border border-slate-200 bg-white p-3 text-left'
                       >
                         <div className='flex flex-wrap items-center gap-2'>
-                          <span className='text-sm font-semibold text-slate-900'>{g.unite_titre}</span>
+                          <span className='text-sm font-semibold text-slate-900'>
+                            {g.unite_titre}
+                          </span>
 
                           {g.institution_sigle && (
                             <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>

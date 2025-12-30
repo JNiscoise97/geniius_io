@@ -1,17 +1,88 @@
 // ListeChipsViewSmart.tsx
 import { Pencil, Trash } from "lucide-react";
 
+type ChipColor =
+  | "slate"
+  | "gray"
+  | "zinc"
+  | "neutral"
+  | "stone"
+  | "red"
+  | "orange"
+  | "amber"
+  | "yellow"
+  | "lime"
+  | "green"
+  | "emerald"
+  | "teal"
+  | "cyan"
+  | "sky"
+  | "blue"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "fuchsia"
+  | "pink"
+  | "rose";
+
 type ListeChipsViewProps = {
   titre?: string;
   values: string[];
+
+  colors?: Array<string | null | undefined>;
+
   dense?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
+// ⚠️ Tailwind: on évite bg-${color}-50 dynamiques (non détectées par JIT)
+// => map explicite
+const CHIP_CLASS_BY_COLOR: Record<ChipColor, string> = {
+  slate: "bg-slate-50 text-slate-800 border-slate-100",
+  gray: "bg-gray-50 text-gray-800 border-gray-100",
+  zinc: "bg-zinc-50 text-zinc-800 border-zinc-100",
+  neutral: "bg-neutral-50 text-neutral-800 border-neutral-100",
+  stone: "bg-stone-50 text-stone-800 border-stone-100",
+
+  red: "bg-red-50 text-red-800 border-red-100",
+  orange: "bg-orange-50 text-orange-800 border-orange-100",
+  amber: "bg-amber-50 text-amber-800 border-amber-100",
+  yellow: "bg-yellow-50 text-yellow-800 border-yellow-100",
+
+  lime: "bg-lime-50 text-lime-800 border-lime-100",
+  green: "bg-green-50 text-green-800 border-green-100",
+  emerald: "bg-emerald-50 text-emerald-800 border-emerald-100",
+  teal: "bg-teal-50 text-teal-800 border-teal-100",
+  cyan: "bg-cyan-50 text-cyan-800 border-cyan-100",
+  sky: "bg-sky-50 text-sky-800 border-sky-100",
+  blue: "bg-blue-50 text-blue-800 border-blue-100",
+  indigo: "bg-indigo-50 text-indigo-800 border-indigo-100",
+  violet: "bg-violet-50 text-violet-800 border-violet-100",
+  purple: "bg-purple-50 text-purple-800 border-purple-100",
+  fuchsia: "bg-fuchsia-50 text-fuchsia-800 border-fuchsia-100",
+  pink: "bg-pink-50 text-pink-800 border-pink-100",
+  rose: "bg-rose-50 text-rose-800 border-rose-100",
+};
+
+const CHIP_COLORS = new Set<ChipColor>(Object.keys(CHIP_CLASS_BY_COLOR) as ChipColor[]);
+
+function normalizeChipColor(raw?: string | null): ChipColor {
+  if (!raw) return "indigo";
+  const c = raw.trim().toLowerCase();
+  return CHIP_COLORS.has(c as ChipColor) ? (c as ChipColor) : "indigo";
+}
+
+function getChipClass(rawColor?: string | null) {
+  const base = "px-2.5 py-0.5 rounded-sm border text-sm w-fit";
+  const color = normalizeChipColor(rawColor);
+  return `${base} ${CHIP_CLASS_BY_COLOR[color]}`;
+}
+
 export function ListeChipsViewSmart({
   titre = "Valeurs",
   values,
+  colors,
   dense = false,
   onEdit,
   onDelete,
@@ -30,11 +101,9 @@ export function ListeChipsViewSmart({
   };
 
   if (compact) {
-    // === Mode COMPACT : tient sur une ligne, sans carte visuelle ===
     return (
       <div
         className="group flex items-center gap-2 text-sm"
-        // rôle & étiquette pour lecteurs d’écran
         role="group"
         aria-label={titre}
       >
@@ -47,7 +116,7 @@ export function ListeChipsViewSmart({
                 key={`${v}-${i}`}
                 role="listitem"
                 title={v}
-                className="px-2 py-0.5 mt-2 rounded border text-sm bg-indigo-50 text-indigo-800 border-indigo-100 max-w-[22ch] truncate"
+                className={`${getChipClass(colors?.[i])} mt-2 px-2 py-0.5`} // (tu gardes ton padding compact)
               >
                 {v}
               </span>
@@ -55,7 +124,6 @@ export function ListeChipsViewSmart({
           </div>
         )}
 
-        {/* Actions : n’apparaissent qu’au survol/focus pour gagner de l’espace */}
         <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <button
             onClick={onEdit}
@@ -78,7 +146,6 @@ export function ListeChipsViewSmart({
     );
   }
 
-  // === Mode CARTE (liste plus longue ou valeurs plus verbeuses) ===
   return (
     <div
       className={[
@@ -113,13 +180,13 @@ export function ListeChipsViewSmart({
           Aucune valeur
         </div>
       ) : (
-        <div className="flex flex-wrap gap-1.5" role="list" aria-label="Liste de valeurs">
+        <div className="flex flex-wrap gap-1.5 w-full" role="list" aria-label="Liste de valeurs">
           {values.map((v, i) => (
             <span
               key={`${v}-${i}`}
               role="listitem"
               title={v}
-              className="px-2.5 py-0.5 rounded-sm border text-sm bg-indigo-50 text-indigo-800 border-indigo-100 max-w-[32ch] truncate"
+              className={getChipClass(colors?.[i])}
             >
               {v}
             </span>

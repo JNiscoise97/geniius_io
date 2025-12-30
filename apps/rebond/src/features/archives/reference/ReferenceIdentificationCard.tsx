@@ -3,11 +3,13 @@ import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
 import { toIds, toLabels } from '@/utils/dictionnaireValue';
 import type { DictionnaireKind } from '@/components/shared/DictionnaireEditorPanel';
 
+
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
-export type ReferenceIdentificationFormState = {
+export type ActeReferenceIdentificationFormState = {
   type_acte: string;
-  type_acte_ref: { ids: string[]; labels: string[] } | null;
+  type_acte_ref: { ids: string[]; labels: string[]; colors?: (string | null)[] } | null;
+
 
   numero_acte: string;
   date: string; // ISO yyyy-mm-dd ou ''
@@ -29,6 +31,56 @@ export type ReferenceIdentificationFormState = {
   auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 };
+
+export type RegistreReferenceIdentificationFormState = {
+  type_acte: string;
+  type_acte_ref: { ids: string[]; labels: string[]; colors?: (string | null)[] } | null;
+
+  bureau_id: string | null;
+  bureau_enregistrement_label: string;
+};
+
+type Props =
+  | {
+      id: string;
+      mode: 'acte';
+      form: ActeReferenceIdentificationFormState;
+      setField: <K extends keyof ActeReferenceIdentificationFormState>(
+        key: K,
+        value: ActeReferenceIdentificationFormState[K],
+      ) => void;
+
+      onEditBureauEnregistrement: () => void;
+      onClearBureauEnregistrement: () => void;
+
+      onEditTypeActe: (args: {
+        kind: DictionnaireKind;
+        title: string;
+        multi: boolean;
+        defaultSelectedIds: string[];
+      }) => void;
+      onClearTypeActe: () => void;
+    }
+  | {
+      id: string;
+      mode: 'registre';
+      form: RegistreReferenceIdentificationFormState;
+      setField: <K extends keyof RegistreReferenceIdentificationFormState>(
+        key: K,
+        value: RegistreReferenceIdentificationFormState[K],
+      ) => void;
+
+      onEditBureauEnregistrement: () => void;
+      onClearBureauEnregistrement: () => void;
+
+      onEditTypeActe: (args: {
+        kind: DictionnaireKind;
+        title: string;
+        multi: boolean;
+        defaultSelectedIds: string[];
+      }) => void;
+      onClearTypeActe: () => void;
+    };
 
 function isoToFr(iso?: string) {
   if (!iso) return '';
@@ -55,39 +107,16 @@ function autoFormatFrDate(v: string) {
   return parts.join(' / ');
 }
 
-export function SectionIdentification({
-  acteId,
-  form,
-  setField,
+export function SectionIdentification(props: Props) {
+  const { id, mode, form, onEditBureauEnregistrement, onClearBureauEnregistrement, onEditTypeActe, onClearTypeActe } =
+    props;
 
-  // Bureau picker
-  onEditBureauEnregistrement,
-  onClearBureauEnregistrement,
-
-  // Type d'acte dictionnaire
-  onEditTypeActe,
-  onClearTypeActe,
-}: {
-  acteId: string;
-  form: ReferenceIdentificationFormState;
-  setField: <K extends keyof ReferenceIdentificationFormState>(
-    key: K,
-    value: ReferenceIdentificationFormState[K],
-  ) => void;
-
-  onEditBureauEnregistrement: () => void;
-  onClearBureauEnregistrement: () => void;
-
-  onEditTypeActe: (args: {
-    kind: DictionnaireKind;
-    title: string;
-    multi: boolean;
-    defaultSelectedIds: string[];
-  }) => void;
-  onClearTypeActe: () => void;
-}) {
   const currentTypeActeLabels = toLabels(form.type_acte_ref);
+  const currentTypeActeColors = form.type_acte_ref?.colors ?? [];
   const currentTypeActeIds = toIds(form.type_acte_ref);
+
+  console.log('currentTypeActeLabels',currentTypeActeLabels)
+  console.log('currentTypeActeIds',currentTypeActeIds)
 
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
@@ -96,8 +125,8 @@ export function SectionIdentification({
       <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
         <div className='md:col-span-12'>
           <label className='block text-xs font-medium text-slate-700'>Identifiant unique</label>
-          <div className='mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 w-fit'>
-            {acteId}
+          <div className='mt-1 w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
+            {id}
           </div>
         </div>
 
@@ -112,17 +141,19 @@ export function SectionIdentification({
           />
         </div>
 
+        {/* Type d'acte: commun, mais multi dépend du mode */}
         <div className='md:col-span-4'>
           <label className='block text-xs font-medium text-slate-700'>Type d’acte</label>
           <ListeChipsViewSmart
             titre="Type d'acte"
             values={currentTypeActeLabels}
+            colors={currentTypeActeColors}
             dense
             onEdit={() =>
               onEditTypeActe({
                 kind: 'type_acte_ref',
                 title: "Modifier le type d'acte",
-                multi: false,
+                multi: mode === 'registre',
                 defaultSelectedIds: currentTypeActeIds,
               })
             }
@@ -130,48 +161,53 @@ export function SectionIdentification({
           />
         </div>
 
-        <div className='md:col-span-4'>
-          <label className='block text-xs font-medium text-slate-700'>Numéro d’acte</label>
-          <input
-            type='text'
-            name='numero_acte'
-            value={form.numero_acte}
-            onChange={(e) => setField('numero_acte', e.target.value)}
-            className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-          />
-        </div>
+        {/* Champs acte-only */}
+        {mode === 'acte' && (
+          <>
+            <div className='md:col-span-4'>
+              <label className='block text-xs font-medium text-slate-700'>Numéro d’acte</label>
+              <input
+                type='text'
+                name='numero_acte'
+                value={props.form.numero_acte}
+                onChange={(e) => props.setField('numero_acte', e.target.value)}
+                className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+              />
+            </div>
 
-        <div className='md:col-span-4'>
-          <label className='block text-xs font-medium text-slate-700'>Date d’enregistrement</label>
-          <input
-            type='text'
-            inputMode='numeric'
-            placeholder='jj / mm / aaaa'
-            value={isoToFr(form.date)}
-            onChange={(e) => {
-              const formatted = autoFormatFrDate(e.target.value);
-              const iso = frToIso(formatted);
-              setField('date', iso);
-            }}
-            onBlur={(e) => {
-              const v = e.target.value;
-              const iso = frToIso(v);
-              if (!iso && v) setField('date', '');
-            }}
-            className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-          />
-        </div>
+            <div className='md:col-span-4'>
+              <label className='block text-xs font-medium text-slate-700'>Date d’enregistrement</label>
+              <input
+                type='text'
+                inputMode='numeric'
+                placeholder='jj / mm / aaaa'
+                value={isoToFr(props.form.date)}
+                onChange={(e) => {
+                  const formatted = autoFormatFrDate(e.target.value);
+                  const iso = frToIso(formatted);
+                  props.setField('date', iso);
+                }}
+                onBlur={(e) => {
+                  const v = e.target.value;
+                  const iso = frToIso(v);
+                  if (!iso && v) props.setField('date', '');
+                }}
+                className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+              />
+            </div>
 
-        <div className='md:col-span-4'>
-          <label className='block text-xs font-medium text-slate-700'>Heure d’enregistrement</label>
-          <input
-            type='time'
-            name='heure'
-            value={form.heure}
-            onChange={(e) => setField('heure', e.target.value)}
-            className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-          />
-        </div>
+            <div className='md:col-span-4'>
+              <label className='block text-xs font-medium text-slate-700'>Heure d’enregistrement</label>
+              <input
+                type='time'
+                name='heure'
+                value={props.form.heure}
+                onChange={(e) => props.setField('heure', e.target.value)}
+                className='mt-1 w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+              />
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
