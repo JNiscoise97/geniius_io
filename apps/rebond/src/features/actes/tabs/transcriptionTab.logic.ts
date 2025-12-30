@@ -42,6 +42,11 @@ import {
     createNewVersionForSource,
     updateTranscription,
     setTranscriptionReference,
+    ensureTranscription,
+    type VersionEventRow,
+    loadVersionEvents,
+    setVersionStatus,
+    logVersionEvent,
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
@@ -278,6 +283,8 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [notes, setNotes] = useState<NoteRow[]>([]);
     const [tags, setTags] = useState<TranscriptionTagRow[]>([]);
 
+    const [versionEvents, setVersionEvents] = useState<VersionEventRow[]>([]);
+
     // Actors + gabarits
     const [acteurs, setActeurs] = useState<
         Array<{ id: string; role: string | null; prenom: string | null; nom: string | null }>
@@ -319,23 +326,70 @@ export function useTranscriptionTab({ acteId }: Props) {
         transcription_kind: TranscriptionKind | null;
         confidence: ConfidenceLevel | null;
 
-        // transcription-level
+        // transcription-level (champs DB ec_transcriptions)
+        visibility: string | null;
+        state: string | null;
+
         source_lecture_kind: SourceLectureKind | null;
+
+        scope: string | null;
+        scope_details: string | null;
+
         langue_vue: string | null;
+        language_confidence: ConfidenceLevel | null;
+
         handwriting_style: string | null;
         handwriting_legibility: string | null;
+
+        goal: string | null;
+        normalisation_policy: string | null;
+
+        conventions_id: string | null;
         conventions_override_text: string | null;
+
+        completeness: string | null;
+        incompleteness_reason: string | null;
+
+        reserve_level: string | null;
+        reserve_reason: string | null;
+
+        note: string | null;
     };
+
 
     const [metaDraft, setMetaDraft] = useState<MetaDraft>({
         transcription_kind: null,
         confidence: null,
+
+        visibility: null,
+        state: null,
+
         source_lecture_kind: null,
+
+        scope: null,
+        scope_details: null,
+
         langue_vue: null,
+        language_confidence: null,
+
         handwriting_style: null,
         handwriting_legibility: null,
+
+        goal: null,
+        normalisation_policy: null,
+
+        conventions_id: null,
         conventions_override_text: null,
+
+        completeness: null,
+        incompleteness_reason: null,
+
+        reserve_level: null,
+        reserve_reason: null,
+
+        note: null,
     });
+
 
 
     // Metadata drafts (angles morts) stored in [META] note
@@ -363,6 +417,25 @@ export function useTranscriptionTab({ acteId }: Props) {
     // ✅ Debounce timer pour création auto de v1 draft quand l'utilisateur s'arrête de taper
     // number (window.setTimeout) pour éviter NodeJS.Timeout
     const autoDraftDebounceTimer = useRef<number | null>(null);
+
+    // -----------------------------
+    // 🔒 Editability rules
+    // -----------------------------
+    const EDITABLE_STATUSES: TranscriptionStatus[] = [
+        "TO_TRANSCRIBE",
+        "DRAFT",
+        "IN_PROGRESS",
+    ];
+
+    const isEditableStatus = useMemo(() => {
+        return EDITABLE_STATUSES.includes(workingVersion?.status as any);
+    }, [workingVersion?.status]);
+
+    const shouldDefaultToReadMode = useMemo(() => {
+        if (!workingVersion) return false;
+        return !EDITABLE_STATUSES.includes(workingVersion.status);
+    }, [workingVersion?.status]);
+
 
     useEffect(() => {
         return () => {
@@ -558,18 +631,22 @@ export function useTranscriptionTab({ acteId }: Props) {
         setEditorValue(currentVersion.content ?? "");
         setIsDirty(false);
         setSelection(null);
-        setTextMode("edit");
+        setTextMode(shouldDefaultToReadMode ? "read" : "edit");
         setAnchorStatusOverrides({});
 
         const run = async () => {
             try {
-                const children = await loadVersionChildren(currentVersion.id);
-                const t = await loadVersionTags(currentVersion.id);
+                const [children, t, evts] = await Promise.all([
+                    loadVersionChildren(currentVersion.id),
+                    loadVersionTags(currentVersion.id),
+                    loadVersionEvents(currentVersion.id),
+                ]);
                 if (cancelled) return;
 
                 setAnnotations(children.annotations);
                 setNotes(children.notes);
                 setTags(t);
+                setVersionEvents(evts);
 
                 const meta = parseMetaFromNotes(children.notes);
                 setMetaDraftCompleteness(meta.completeness ?? "");
@@ -580,6 +657,7 @@ export function useTranscriptionTab({ acteId }: Props) {
                 setAnnotations([]);
                 setNotes([]);
                 setTags([]);
+                setVersionEvents([]);
                 setMetaDraftCompleteness("");
                 setMetaDraftReferenceReason("");
             }
@@ -589,7 +667,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         return () => {
             cancelled = true;
         };
-    }, [currentId]); // intentionally
+    }, [currentId, shouldDefaultToReadMode]); // intentionally
 
     // -----------------------------
     // Selection capture
@@ -618,14 +696,25 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // Version creation helpers
     // -----------------------------
-    const createNewVersion = async (payload: {
-        status: TranscriptionStatus;
-        content: string;
-        transcription_kind?: TranscriptionKind | null;
-        confidence?: ConfidenceLevel | null;
-        sourceIds?: string[];
-    }): Promise<TranscriptionVersionRow> => {
+    const createNewVersion = async (
+        payload: {
+            status: TranscriptionStatus;
+            content: string;
+            transcription_kind?: TranscriptionKind | null;
+            confidence?: ConfidenceLevel | null;
+            sourceIds?: string[];
+        },
+        opts?: {
+            // ✅ Option A : auto-draft -> false (ne touche pas currentId)
+            selectAfterCreate?: boolean;
+            // si true : on refresh les maps versions/transcriptions après insert
+            refreshAfterCreate?: boolean;
+        }
+    ): Promise<TranscriptionVersionRow> => {
         if (!activeSourceId) throw new Error("Aucune source active");
+
+        const selectAfterCreate = opts?.selectAfterCreate ?? true;
+        const refreshAfterCreate = opts?.refreshAfterCreate ?? true;
 
         setLoading(true);
         try {
@@ -645,12 +734,18 @@ export function useTranscriptionTab({ acteId }: Props) {
 
             toast.success("Version créée");
 
-            // IMPORTANT: on sélectionne tout de suite l'id connu
-            setCurrentId(row.newVersion.id);
+            // ✅ On garde TOUJOURS workingVersionId à jour (utile pour Save/Meta/etc)
             setWorkingVersionId(row.newVersion.id);
 
-            // puis refresh (async)
-            await refreshVersionsAndSelect(row.newVersion.id);
+            // ✅ Option A : auto-draft ne touche pas currentId
+            if (selectAfterCreate) {
+                setCurrentId(row.newVersion.id);
+            }
+
+            // refresh des maps pour que le dashboard + status + latestVersionIdBySourceId se mettent à jour
+            if (refreshAfterCreate) {
+                await refreshVersionsAndSelect(selectAfterCreate ? row.newVersion.id : undefined);
+            }
 
             return row.newVersion;
         } catch (e: any) {
@@ -661,6 +756,7 @@ export function useTranscriptionTab({ acteId }: Props) {
             setLoading(false);
         }
     };
+
 
 
     const setInReview = async () => {
@@ -727,14 +823,20 @@ export function useTranscriptionTab({ acteId }: Props) {
         autoDraftInFlightRef.current = true;
         try {
             // crée une v1 brouillon avec le texte courant (1 char, paste, etc.)
-            const v1 = await createNewVersion({
-                status: (nextText ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
-                content: nextText ?? "",
-                transcription_kind: "travail",
-                confidence: "low",
-                sourceIds: [activeSourceId],
-            });
-
+            const v1 = await createNewVersion(
+                {
+                    status: (nextText ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
+                    content: nextText ?? "",
+                    transcription_kind: "travail",
+                    confidence: "low",
+                    sourceIds: [activeSourceId],
+                },
+                {
+                    // ✅ Option A : auto-draft ne touche pas currentId
+                    selectAfterCreate: false,
+                    refreshAfterCreate: true,
+                }
+            );
 
             // comme on vient de persister ce texte, on n’est pas dirty à cet instant
             setEditorValue(v1.content ?? "");
@@ -935,12 +1037,6 @@ export function useTranscriptionTab({ acteId }: Props) {
             return;
         }
 
-
-        if (!next) {
-            toast("Texte vide : rien à enregistrer.", { icon: "⛔" });
-            return;
-        }
-
         if (base && next === prev) {
             toast("Aucun changement : nouvelle version non créée.", { icon: "🟰" });
             return;
@@ -1086,12 +1182,35 @@ export function useTranscriptionTab({ acteId }: Props) {
             confidence: target.confidence ?? null,
 
             // transcription-level
-            source_lecture_kind: tr?.source_lecture_kind ?? null,
+            visibility: (tr as any)?.visibility ?? null,
+            state: (tr as any)?.state ?? null,
+
+            source_lecture_kind: (tr?.source_lecture_kind ?? null) as any,
+
+            scope: (tr as any)?.scope ?? null,
+            scope_details: (tr as any)?.scope_details ?? null,
+
             langue_vue: tr?.langue_vue ?? null,
+            language_confidence: (tr as any)?.language_confidence ?? null,
+
             handwriting_style: (tr as any)?.handwriting_style ?? null,
             handwriting_legibility: (tr as any)?.handwriting_legibility ?? null,
+
+            goal: (tr as any)?.goal ?? null,
+            normalisation_policy: (tr as any)?.normalisation_policy ?? null,
+
+            conventions_id: (tr as any)?.conventions_id ?? null,
             conventions_override_text: (tr as any)?.conventions_override_text ?? null,
+
+            completeness: (tr as any)?.completeness ?? null,
+            incompleteness_reason: (tr as any)?.incompleteness_reason ?? null,
+
+            reserve_level: (tr as any)?.reserve_level ?? null,
+            reserve_reason: (tr as any)?.reserve_reason ?? null,
+
+            note: (tr as any)?.note ?? null,
         });
+
 
 
         // seed meta drafts from current META note
@@ -1101,6 +1220,87 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         setSheetOpen(true);
     };
+
+    const saveMetadata = async () => {
+  if (!activeSourceId) return toast("Sélectionne une source.", { icon: "🧩" });
+
+  const target = workingVersion ?? currentVersion;
+  if (!target) return toast("Aucune version à mettre à jour.", { icon: "⚠️" });
+
+  const tr = transcriptionBySourceId[activeSourceId];
+  if (!tr) {
+    // normalement il existe si target existe, mais on sécurise
+    await ensureTranscription(acteId, activeSourceId);
+  }
+
+  setLoading(true);
+  try {
+    // 1) update version-level fields
+    await setVersionStatus(target.id, {
+      transcription_kind: metaDraft.transcription_kind,
+      confidence: metaDraft.confidence,
+    } as any);
+
+    // 2) update transcription-level fields
+    const tr2 = transcriptionBySourceId[activeSourceId] ?? (await ensureTranscription(acteId, activeSourceId));
+
+    await updateTranscription(tr2.id, {
+      visibility: metaDraft.visibility,
+      state: metaDraft.state,
+
+      source_lecture_kind: metaDraft.source_lecture_kind as any,
+
+      scope: metaDraft.scope,
+      scope_details: metaDraft.scope_details,
+
+      langue_vue: metaDraft.langue_vue,
+      language_confidence: metaDraft.language_confidence,
+
+      handwriting_style: metaDraft.handwriting_style,
+      handwriting_legibility: metaDraft.handwriting_legibility,
+
+      goal: metaDraft.goal,
+      normalisation_policy: metaDraft.normalisation_policy,
+
+      conventions_id: metaDraft.conventions_id,
+      conventions_override_text: metaDraft.conventions_override_text,
+
+      completeness: metaDraft.completeness,
+      incompleteness_reason: metaDraft.incompleteness_reason,
+
+      reserve_level: metaDraft.reserve_level,
+      reserve_reason: metaDraft.reserve_reason,
+
+      note: metaDraft.note,
+    } as any);
+
+    // 3) log event (optional but recommended)
+    await logVersionEvent({
+      transcription_version_id: target.id,
+      event_type: "metadata",
+      payload: {
+        transcription_id: tr2.id,
+        acte_source_id: activeSourceId,
+        meta: metaDraft,
+      },
+    });
+
+    toast.success("Métadonnées enregistrées");
+
+    // 4) refresh + reload events
+    await refreshVersionsAndSelect(target.id);
+
+    const evts = await loadVersionEvents(target.id);
+    setVersionEvents(evts);
+
+    setSheetOpen(false);
+  } catch (e: any) {
+    console.error(e);
+    toast.error(e?.message ?? "Erreur enregistrement métadonnées");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
     // -----------------------------
@@ -1275,66 +1475,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         setNotes((prev) => [...prev, row]);
     };
 
-    const saveMetadata = async () => {
-        const target = workingVersion ?? currentVersion;
-        if (!target) return;
-
-        setLoading(true);
-        try {
-            // persist DB fields
-            // 1) update version (version-level)
-            await setVersionStatusWithEvent(
-                target.id,
-                {
-                    transcription_kind: metaDraft.transcription_kind ?? null,
-                    confidence: metaDraft.confidence ?? null,
-                } as any,
-                {
-                    type: "metadata",
-                    payload: {
-                        transcription_kind: metaDraft.transcription_kind ?? null,
-                        confidence: metaDraft.confidence ?? null,
-                    },
-                }
-            );
-
-
-            // 2) update transcription (transcription-level)
-            if (activeSourceId) {
-                const tr = transcriptionBySourceId[activeSourceId];
-                if (tr?.id) {
-                    await updateTranscription(tr.id, {
-                        source_lecture_kind: (metaDraft.source_lecture_kind ?? tr.source_lecture_kind) as any,
-                        langue_vue: metaDraft.langue_vue ?? null,
-                        handwriting_style: metaDraft.handwriting_style ?? null,
-                        handwriting_legibility: metaDraft.handwriting_legibility ?? null,
-                        conventions_override_text: metaDraft.conventions_override_text ?? null,
-                    } as any);
-                }
-            }
-
-
-            // persist META note (angles morts)
-            const prevMeta = parseMetaFromNotes(notes);
-            const nextMetaNoteText = composeMetaNote({
-                completeness: metaDraftCompleteness || null,
-                referenceReason: metaDraftReferenceReason.trim() || null,
-                diffNotesByKey: prevMeta.diffNotesByKey ?? {},
-            });
-
-            await upsertMetaNote(target.id, nextMetaNoteText);
-
-            toast.success("Métadonnées enregistrées");
-            await refreshVersionsAndSelect(target.id);
-            setSheetOpen(false);
-        } catch (e: any) {
-            console.error(e);
-            toast.error(e?.message ?? "Erreur lors de l’enregistrement des métadonnées");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const openSetReference = (sourceId: string) => {
         setReferenceTargetSourceId(sourceId);
         setRefReason("");
@@ -1386,6 +1526,59 @@ export function useTranscriptionTab({ acteId }: Props) {
             setLoading(false);
         }
     };
+
+
+    function buildPreferenceReason(key: RefReasonKey | "", comment: string) {
+        const c = (comment ?? "").trim();
+        if (!key && !c) return "";
+
+        const label =
+            key === "best_legibility"
+                ? "Meilleure lisibilité"
+                : key === "most_complete"
+                    ? "Plus complète"
+                    : key === "best_match"
+                        ? "Correspond le mieux"
+                        : key === "other"
+                            ? "Autre"
+                            : "";
+
+        if (label && c) return `${label} — ${c}`;
+        return label || c;
+    }
+
+    const confirmSetReference = async () => {
+        if (!referenceTargetSourceId) return;
+
+        setLoading(true);
+        try {
+            // ✅ 1 transcription par source ; on la crée si besoin
+            const tr = await ensureTranscription(acteId, referenceTargetSourceId);
+
+            const reason = buildPreferenceReason(refReason as any, refComment);
+
+            await setTranscriptionReference({
+                transcriptionId: tr.id,
+                preferenceReason: reason,
+            });
+
+            toast.success("Source de référence définie");
+
+            setReferenceDialogOpen(false);
+            setReferenceTargetSourceId(null);
+
+            // refresh transcriptions + versions (pour mettre à jour is_reference + preferredSourceId)
+            await refreshVersionsAndSelect(currentId ?? undefined);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Impossible de définir la source de référence");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
 
 
     // -----------------------------
@@ -1474,6 +1667,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         // metadata
         openMetadata,
         saveMetadata,
+        versionEvents,
 
         // annotations / notes / tags
         openAddAnnotation,
@@ -1509,6 +1703,17 @@ export function useTranscriptionTab({ acteId }: Props) {
         transcriptionBySourceId,
 
         openSetReference,
-        submitSetReference
+        submitSetReference,
+        referenceDialogOpen,
+        setReferenceDialogOpen,
+        confirmSetReference,
+        referenceTargetSourceId,
+        refReason,
+        setRefReason,
+        refComment,
+        setRefComment,
+
+        isEditableStatus,
+        shouldDefaultToReadMode
     };
 }

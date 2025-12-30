@@ -7,12 +7,20 @@
 // - Save = nouvelle version (historique conservé, non exposé)
 // - Report annotations/notes/tags sur nouvelle version (best effort) -> géré dans logic/service
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 import {
@@ -28,6 +36,8 @@ import {
     GripVertical,
     Star,
     Circle,
+    Lock,
+    Unlock,
 } from "lucide-react";
 
 import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from "./transcriptionTab.ui";
@@ -121,6 +131,16 @@ export default function TranscriptionTab({ acteId }: Props) {
     }, [sources, latestBySourceId, t.preferredSourceId, t.workingVersion?.id]);
 
 
+    // 🔒 Lock state (only for finalized statuses)
+    const [textareaLocked, setTextareaLocked] = useState(true);
+
+    // auto-lock when status becomes non-editable
+    React.useEffect(() => {
+        if (!t.isEditableStatus) {
+            setTextareaLocked(true);
+        }
+    }, [t.isEditableStatus]);
+
     const activeLatestVersionId = t.activeSourceId
         ? t.getLatestVersionIdForSource(t.activeSourceId)
         : null;
@@ -202,7 +222,11 @@ export default function TranscriptionTab({ acteId }: Props) {
                     ? 4
                     : 3;
 
-    const textareaDisabled = step === 1;
+
+
+    const textareaDisabled =
+        step === 1 ||
+        (!t.isEditableStatus && textareaLocked);
 
     return (
         <div className="p-4 space-y-4">
@@ -303,11 +327,39 @@ export default function TranscriptionTab({ acteId }: Props) {
                                     </button>
                                 </div>
 
+                                {!t.isEditableStatus && t.textMode === "edit" && step !== 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTextareaLocked((v) => !v)}
+                                        className={[
+                                            'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
+                                            textareaLocked
+                                                ? 'border-slate-200 bg-white hover:bg-slate-50'
+                                                : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
+                                        ].join(' ')}
+                                        title={
+                                            textareaLocked
+                                                ? "Déverrouiller l’édition (attention : version finalisée)"
+                                                : "Verrouiller l’édition"
+                                        }
+                                    >
+                                        {textareaLocked ? (
+                                            <Lock className="h-4 w-4 text-slate-700" />
+                                        ) : (
+                                            <Unlock className="h-4 w-4 text-slate-800" />
+                                        )}
+                                    </button>
+                                )}
+
+
                                 {activeSourceRow ? (
                                     <div className="ml-2 flex items-center gap-2 min-w-0">
-                                        {activeSourceRow.isPreferred ? <Badge className="bg-amber-600 text-white">Source de référence</Badge> : null}
+                                        {activeSourceRow.isPreferred ? <Badge className="bg-amber-500 text-white">Transcription de référence</Badge> : null}
                                     </div>
                                 ) : null}
+
+                                <StatusPill statut={(workingVersion?.status as any) || "TO_TRANSCRIBE"} />
+
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
@@ -321,10 +373,12 @@ export default function TranscriptionTab({ acteId }: Props) {
                                     <Tags className="w-4 h-4" />
                                     Tag
                                 </Button>
-                                <Button variant="outline" onClick={t.insertPageBreak} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
-                                    <SeparatorHorizontal className="w-4 h-4" />
-                                    Saut de page
-                                </Button>
+                                {t.textMode === "edit" && (
+                                    <Button variant="outline" onClick={t.insertPageBreak} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
+                                        <SeparatorHorizontal className="w-4 h-4" />
+                                        Saut de page
+                                    </Button>
+                                )}
                             </div>
                         </div>
 
@@ -774,9 +828,62 @@ export default function TranscriptionTab({ acteId }: Props) {
                 </div>
             </div>
 
+            <Dialog open={t.referenceDialogOpen} onOpenChange={t.setReferenceDialogOpen}>
+                <DialogContent className="sm:max-w-[520px]">
+                    <DialogHeader>
+                        <DialogTitle>Définir la source de référence</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-3">
+                        <div>
+                            <div className="text-xs font-medium text-slate-700">Raison principale</div>
+                            <select
+                                className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                value={t.refReason}
+                                onChange={(e) => t.setRefReason(e.target.value as any)}
+                            >
+                                <option value="">—</option>
+                                <option value="best_legibility">Meilleure lisibilité</option>
+                                <option value="most_complete">Plus complète</option>
+                                <option value="best_match">Correspond le mieux à l’acte</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div className="text-xs font-medium text-slate-700">Détail (optionnel)</div>
+                            <Textarea
+                                className="mt-1 min-h-[90px]"
+                                value={t.refComment}
+                                onChange={(e) => t.setRefComment(e.target.value)}
+                                placeholder="Ex : page plus nette, moins de lacunes, acte complet, meilleure exposition…"
+                            />
+                        </div>
+
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+                            Conseil : garde ça factuel. L’info est stockée dans <code className="font-mono">ec_transcriptions.preference_reason</code>.
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant='ghost' disabled={t.loading}>
+                            Annuler
+                        </Button>
+                        <Button type="button" onClick={(e) => {
+                            e.preventDefault();
+                            t.confirmSetReference();
+                        }}
+                            disabled={t.loading || !t.referenceTargetSourceId}>
+                            Définir comme référence
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+
             {/* Sheet */}
             <Sheet open={t.sheetOpen} onOpenChange={t.setSheetOpen}>
-                <SheetContent side="right" className="!w-[40vw] !max-w-none p-0">
+                <SheetContent side="right" className="!w-[50vw] !max-w-none p-0 flex flex-col max-h-screen">
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle>
                             {t.sheetMode === "annotation"
@@ -805,159 +912,279 @@ export default function TranscriptionTab({ acteId }: Props) {
                     </SheetHeader>
 
                     {/* Le contenu Sheet reste géré par logic (on le refactor après) */}
-                    <div className="p-4">
+                    <div className="flex-1 overflow-y-auto p-4 scroll-smooth">
                         {t.sheetMode === "metadata" ? (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Type de transcription</div>
-                                        <select
-                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
-                                            value={(t.metaDraft.transcription_kind ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({
-                                                    ...prev,
-                                                    transcription_kind: (e.target.value || null) as any,
-                                                }))
-                                            }
-                                        >
-                                            <option value="">—</option>
-                                            <option value="travail">Travail</option>
-                                            <option value="diplomatique">Diplomatique</option>
-                                            <option value="semi_normalisee">Semi-normalisée</option>
-                                        </select>
-                                    </div>
+                            <Tabs defaultValue="meta" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="meta">Métadonnées</TabsTrigger>
+                                    <TabsTrigger value="history">Historique</TabsTrigger>
+                                </TabsList>
 
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Lecture</div>
-                                        <select
-                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
-                                            value={(t.metaDraft.source_lecture_kind ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({
-                                                    ...prev,
-                                                    source_lecture_kind: (e.target.value || null) as any,
-                                                }))
-                                            }
-                                        >
-                                            <option value="">—</option>
-                                            <option value="image_originale">Image originale</option>
-                                            <option value="microfilm">Microfilm</option>
-                                            <option value="transcription_secondaire">Transcription secondaire</option>
-                                            <option value="autre">Autre</option>
-                                        </select>
-                                    </div>
+                                <TabsContent value="meta" className="mt-4">
+                                    <div className="space-y-4">
+                                        {/* Bloc principal */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Visibility</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.visibility ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, visibility: e.target.value || null }))}
+                                                    placeholder="ex: public / private / team…"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Confiance</div>
-                                        <select
-                                            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
-                                            value={(t.metaDraft.confidence ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({
-                                                    ...prev,
-                                                    confidence: (e.target.value || null) as any,
-                                                }))
-                                            }
-                                        >
-                                            <option value="">—</option>
-                                            <option value="high">Haute</option>
-                                            <option value="medium">Moyenne</option>
-                                            <option value="low">Basse</option>
-                                        </select>
-                                    </div>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">State</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.state ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, state: e.target.value || null }))}
+                                                    placeholder="ex: draft / final / archived…"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Langue (vue)</div>
-                                        <Input
-                                            className="mt-1"
-                                            value={(t.metaDraft.langue_vue ?? "") as any}
-                                            onChange={(e) => t.setMetaDraft((prev) => ({ ...prev, langue_vue: e.target.value || null }))}
-                                            placeholder="fr, la, ..."
-                                        />
-                                    </div>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Source lecture</div>
+                                                <select
+                                                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                                    value={(t.metaDraft.source_lecture_kind ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, source_lecture_kind: (e.target.value || null) as any }))}
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="image_originale">Image originale</option>
+                                                    <option value="microfilm">Microfilm</option>
+                                                    <option value="transcription_secondaire">Transcription secondaire</option>
+                                                    <option value="autre">Autre</option>
+                                                </select>
+                                            </div>
 
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Style d’écriture</div>
-                                        <Input
-                                            className="mt-1"
-                                            value={(t.metaDraft.handwriting_style ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({ ...prev, handwriting_style: e.target.value || null }))
-                                            }
-                                            placeholder="ex: cursive, ronde, mixte…"
-                                        />
-                                    </div>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Scope</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.scope ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, scope: e.target.value || null }))}
+                                                    placeholder="ex: acte complet / extrait / marge…"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <div className="text-xs font-medium text-slate-700">Lisibilité</div>
-                                        <Input
-                                            className="mt-1"
-                                            value={(t.metaDraft.handwriting_legibility ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({ ...prev, handwriting_legibility: e.target.value || null }))
-                                            }
-                                            placeholder="ex: bonne, moyenne, faible…"
-                                        />
-                                    </div>
+                                            <div className="col-span-2">
+                                                <div className="text-xs font-medium text-slate-700">Scope details</div>
+                                                <Textarea
+                                                    className="mt-1 min-h-[80px]"
+                                                    value={(t.metaDraft.scope_details ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, scope_details: e.target.value || null }))}
+                                                    placeholder="Détails précis du périmètre…"
+                                                />
+                                            </div>
 
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Langue (vue)</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.langue_vue ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, langue_vue: e.target.value || null }))}
+                                                    placeholder="fr, la, ..."
+                                                />
+                                            </div>
 
-                                    <div className="col-span-2">
-                                        <div className="text-xs font-medium text-slate-700">Conventions</div>
-                                        <Textarea
-                                            className="mt-1 min-h-[120px]"
-                                            value={(t.metaDraft.conventions_override_text ?? "") as any}
-                                            onChange={(e) =>
-                                                t.setMetaDraft((prev) => ({ ...prev, conventions_override_text: e.target.value || null }))
-                                            }
-                                            placeholder="Règles, tokens, usages…"
-                                        />
-                                    </div>
-                                </div>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Language confidence</div>
+                                                <select
+                                                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                                    value={(t.metaDraft.language_confidence ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, language_confidence: (e.target.value || null) as any }))}
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="high">Haute</option>
+                                                    <option value="medium">Moyenne</option>
+                                                    <option value="low">Basse</option>
+                                                </select>
+                                            </div>
 
-                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                    <div className="text-sm font-semibold text-slate-900">Angles morts</div>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Handwriting style</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.handwriting_style ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, handwriting_style: e.target.value || null }))}
+                                                    placeholder="cursive, ronde, mixte…"
+                                                />
+                                            </div>
 
-                                    <div className="mt-3 grid grid-cols-2 gap-3">
-                                        <div>
-                                            <div className="text-xs font-medium text-slate-700">Complétude</div>
-                                            <select
-                                                className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
-                                                value={t.metaDraftCompleteness}
-                                                onChange={(e) => t.setMetaDraftCompleteness(e.target.value as any)}
-                                            >
-                                                <option value="">—</option>
-                                                <option value="complete">Complète</option>
-                                                <option value="partial">Partielle</option>
-                                            </select>
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Handwriting legibility</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.handwriting_legibility ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, handwriting_legibility: e.target.value || null }))}
+                                                    placeholder="bonne, moyenne, faible…"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Goal</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.goal ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, goal: e.target.value || null }))}
+                                                    placeholder="ex: indexation / extraction / édition…"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Normalisation policy</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.normalisation_policy ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, normalisation_policy: e.target.value || null }))}
+                                                    placeholder="ex: none / light / strict…"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Conventions id</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.conventions_id ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, conventions_id: e.target.value || null }))}
+                                                    placeholder="uuid (optionnel)"
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <div className="text-xs font-medium text-slate-700">Conventions override</div>
+                                                <Textarea
+                                                    className="mt-1 min-h-[120px]"
+                                                    value={(t.metaDraft.conventions_override_text ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, conventions_override_text: e.target.value || null }))}
+                                                    placeholder="Règles, tokens, usages…"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Completeness</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.completeness ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, completeness: e.target.value || null }))}
+                                                    placeholder="complete / partial…"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Reserve level</div>
+                                                <Input
+                                                    className="mt-1"
+                                                    value={(t.metaDraft.reserve_level ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, reserve_level: e.target.value || null }))}
+                                                    placeholder="none / low / medium / high…"
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <div className="text-xs font-medium text-slate-700">Incompleteness reason</div>
+                                                <Textarea
+                                                    className="mt-1 min-h-[80px]"
+                                                    value={(t.metaDraft.incompleteness_reason ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, incompleteness_reason: e.target.value || null }))}
+                                                    placeholder="Pourquoi partiel ?"
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <div className="text-xs font-medium text-slate-700">Reserve reason</div>
+                                                <Textarea
+                                                    className="mt-1 min-h-[80px]"
+                                                    value={(t.metaDraft.reserve_reason ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, reserve_reason: e.target.value || null }))}
+                                                    placeholder="Pourquoi réserve ?"
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <div className="text-xs font-medium text-slate-700">Note</div>
+                                                <Textarea
+                                                    className="mt-1 min-h-[90px]"
+                                                    value={(t.metaDraft.note ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, note: e.target.value || null }))}
+                                                    placeholder="Notes internes…"
+                                                />
+                                            </div>
+
+                                            {/* Version-level */}
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Transcription kind (version)</div>
+                                                <select
+                                                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                                    value={(t.metaDraft.transcription_kind ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, transcription_kind: (e.target.value || null) as any }))}
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="travail">Travail</option>
+                                                    <option value="diplomatique">Diplomatique</option>
+                                                    <option value="semi_normalisee">Semi-normalisée</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <div className="text-xs font-medium text-slate-700">Confidence (version)</div>
+                                                <select
+                                                    className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                                    value={(t.metaDraft.confidence ?? "") as any}
+                                                    onChange={(e) => t.setMetaDraft((p) => ({ ...p, confidence: (e.target.value || null) as any }))}
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="high">Haute</option>
+                                                    <option value="medium">Moyenne</option>
+                                                    <option value="low">Basse</option>
+                                                </select>
+                                            </div>
                                         </div>
 
-                                        <div className="col-span-2">
-                                            <div className="text-xs font-medium text-slate-700">Raison / réserve</div>
-                                            <Textarea
-                                                className="mt-1 min-h-[90px]"
-                                                value={t.metaDraftReferenceReason}
-                                                onChange={(e) => t.setMetaDraftReferenceReason(e.target.value)}
-                                                placeholder="Ex: partie illisible, page manquante, mauvaise qualité…"
-                                            />
+                                        <div className="flex items-center justify-end gap-2 pt-2">
+                                            <Button variant="outline" onClick={() => t.setSheetOpen(false)}>
+                                                Fermer
+                                            </Button>
+                                            <Button onClick={t.saveMetadata} disabled={t.loading}>
+                                                Enregistrer
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
+                                </TabsContent>
 
-                                <div className="flex items-center justify-end gap-2 pt-2">
-                                    <Button variant="outline" onClick={() => t.setSheetOpen(false)}>
-                                        Fermer
-                                    </Button>
-                                    <Button onClick={t.saveMetadata} disabled={t.loading}>
-                                        Enregistrer les métadonnées
-                                    </Button>
-                                </div>
-                            </div>
+                                <TabsContent value="history" className="mt-4">
+                                    <div className="space-y-2">
+                                        {t.versionEvents?.length ? (
+                                            t.versionEvents.map((ev) => (
+                                                <div key={ev.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <div className="text-sm font-semibold text-slate-900 truncate">{ev.event_type}</div>
+                                                            <div className="text-xs text-slate-600">
+                                                                {new Date(ev.event_at).toLocaleString()}
+                                                                {ev.event_by ? <> · <span className="font-mono">{ev.event_by}</span></> : null}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <pre className="mt-2 max-h-[240px] overflow-auto rounded-lg bg-slate-50 p-2 text-[11px] text-slate-800">
+                                                        {JSON.stringify(ev.payload ?? {}, null, 2)}
+                                                    </pre>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-sm text-slate-600">Aucun événement.</div>
+                                        )}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         ) : (
                             <div className="text-sm text-slate-600">
                                 (Contenu du panneau à implémenter pour ce mode.)
                             </div>
                         )}
+
                     </div>
 
                 </SheetContent>

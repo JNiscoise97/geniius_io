@@ -399,6 +399,16 @@ export function detectActeReperages(text: string) {
   return hits;
 }
 
+export type VersionEventRow = {
+  id: string;
+  transcription_version_id: string;
+  event_type: RefTranscriptionEventType; // enum côté TS
+  event_at: string; // timestamptz
+  event_by: string | null;
+  payload: any; // jsonb
+};
+
+
 // -------------------- Events (audit) --------------------
 export const REF_TRANSCRIPTION_EVENT_TYPES = [
   "create",
@@ -449,6 +459,18 @@ export async function logVersionEvent(args: {
     });
   }
 }
+
+export async function loadVersionEvents(versionId: string): Promise<VersionEventRow[]> {
+  const res = await supabase
+    .from(T.events)
+    .select("id, transcription_version_id, event_type, event_at, event_by, payload")
+    .eq("transcription_version_id", versionId)
+    .order("event_at", { ascending: false });
+
+  assertNoSbError(res as any, "load version events");
+  return (res.data ?? []) as any as VersionEventRow[];
+}
+
 
 export async function setTranscriptionReference(args: {
   transcriptionId: string;
