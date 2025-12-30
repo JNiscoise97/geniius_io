@@ -105,3 +105,35 @@ export const typeLabel: Record<
   mention: "Mentions",
   other: "Autres",
 };
+
+// --- Stepper (copy orientée utilisateur) ------------------------------------
+// Les steps sont dérivés de la logique actuelle dans TranscriptionTab.tsx :
+// 1 = aucune source sélectionnée
+// 2 = source sélectionnée mais pas encore de version
+// 3 = versions existantes et non finalisées
+// 4 = IN_REVIEW ou VALIDATED
+
+export const STEPPER_COPY: Record<
+  1 | 2 | 3 | 4,
+  { title: string; subtitle: string }
+> = {
+  1: {
+    title: "Choisir la source",
+    subtitle: "Obligatoire (registre, cote, vues/pages, lien ANOM/AD…)",
+  },
+  2: {
+    title: "Saisir la transcription",
+    subtitle:
+      "Commence à écrire : un brouillon est créé automatiquement après une courte pause.",
+  },
+  3: {
+    title: "Enrichir le texte",
+    subtitle:
+      "Ajoute annotations, notes, tags et repérages (dates, âges, numéros…).",
+  },
+  4: {
+    title: "Finaliser (relecture)",
+    subtitle:
+      "Renseigne métadonnées + décisions (confiance, complétude, source de référence).",
+  },
+};

@@ -30,7 +30,7 @@ import {
     Circle,
 } from "lucide-react";
 
-import { anchorBadge, tagBadge, typeLabel } from "./transcriptionTab.ui";
+import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from "./transcriptionTab.ui";
 
 import {
     PAGE_BREAK_TOKEN,
@@ -213,24 +213,26 @@ export default function TranscriptionTab({ acteId }: Props) {
                         <div className="mt-3 grid gap-3 sm:grid-cols-4">
                             <StepItem
                                 idx={1}
-                                title="Choisir la source"
-                                subtitle="Obligatoire (référence / original / numérisation)"
+                                title={STEPPER_COPY[1].title}
+                                subtitle={STEPPER_COPY[1].subtitle}
                                 active={step === 1}
                                 done={step > 1}
                                 icon={<Circle className="h-4 w-4" />}
                             />
+
                             <StepItem
                                 idx={2}
-                                title="Transcrire l’acte"
-                                subtitle="Le brouillon est créé automatiquement après une courte pause"
+                                title={STEPPER_COPY[2].title}
+                                subtitle={STEPPER_COPY[2].subtitle}
                                 active={step === 2}
                                 done={step > 2}
                                 icon={<FileText className="h-4 w-4" />}
                             />
+
                             <StepItem
                                 idx={3}
-                                title="Annoter / Tagger / Repérer"
-                                subtitle="Tout le travail sur le texte (ancres, tags, repérages)"
+                                title={STEPPER_COPY[3].title}
+                                subtitle={STEPPER_COPY[3].subtitle}
                                 active={step === 3}
                                 done={step > 3}
                                 icon={<Tags className="h-4 w-4" />}
@@ -238,13 +240,12 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                             <StepItem
                                 idx={4}
-                                title="Finaliser"
-                                subtitle="Métadonnées + interprétation + décisions (confiance, complétude, référence)"
+                                title={STEPPER_COPY[4].title}
+                                subtitle={STEPPER_COPY[4].subtitle}
                                 active={step === 4}
                                 done={false}
                                 icon={<Pencil className="h-4 w-4" />}
                             />
-
                         </div>
 
 
