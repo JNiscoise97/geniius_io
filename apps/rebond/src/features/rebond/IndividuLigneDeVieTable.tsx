@@ -197,7 +197,7 @@ export default function IndividuLigneDeVieTable({
       render: (row) => {
         return (
           <button>
-            <StatusPill statut={row.acteStatut || 'à transcrire'} />
+            <StatusPill statut={row.acteStatut || 'TO_TRANSCRIBE'} />
           </button>
         );
       },

@@ -63,7 +63,7 @@ const mockDocument: Document = {
           sectionId: "section-1",
           type: "texte",
           contenu: "Maître Jean Dupont, notaire royal, résidant à Basse-Terre.",
-          statut: "transcrit",
+          statut: "TRANSCRIBED",
           ordre: 1,
         },
         {
@@ -71,7 +71,7 @@ const mockDocument: Document = {
           sectionId: "section-1",
           type: "titre",
           contenu: "Témoins",
-          statut: "brouillon",
+          statut: "DRAFT",
           ordre: 2,
         },
         {
@@ -79,7 +79,7 @@ const mockDocument: Document = {
           sectionId: "section-1",
           type: "liste-à-puces",
           contenu: "M. Pierre Lemoine",
-          statut: "brouillon",
+          statut: "DRAFT",
           ordre: 3,
         },
         {
@@ -87,7 +87,7 @@ const mockDocument: Document = {
           sectionId: "section-1",
           type: "liste-numérotée",
           contenu: "1. Cheval noir",
-          statut: "brouillon",
+          statut: "DRAFT",
           ordre: 4,
         },
         {
@@ -95,7 +95,7 @@ const mockDocument: Document = {
           sectionId: "section-1",
           type: "texte",
           contenu: "2. Coq rouge",
-          statut: "brouillon",
+          statut: "DRAFT",
           ordre: 5,
         },
       ],
@@ -122,7 +122,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       type: "texte",
       contenu: "",
       ordre: 1,
-      statut: "brouillon",
+      statut: "DRAFT",
     }
   
     const newSection: Section = {
@@ -130,7 +130,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentId: docId,
       titre: "",
       ordre: 1,
-      statut: "brouillon",
+      statut: "DRAFT",
       blocs: [newBloc],
     }
   
@@ -139,7 +139,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       acte_id: "0",
       titre,
       ordre: 0, // temporaire, sera corrigé par assignOrdre
-      statut: "brouillon",
+      statut: "DRAFT",
       sections: [newSection],
     }
   
@@ -217,9 +217,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   
       const statuts = doc.sections.map((s) => s.statut)
   
-      let nouveauStatut: Statut = "brouillon"
-      if (statuts.includes("transcrit")) {
-        nouveauStatut = "en cours de transcription"
+      let nouveauStatut: Statut = "DRAFT"
+      if (statuts.includes("TRANSCRIBED")) {
+        nouveauStatut = "IN_PROGRESS"
       }
   
       doc.statut = nouveauStatut
@@ -235,7 +235,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentId,
       titre,
       ordre: 0,
-      statut: "brouillon",
+      statut: "DRAFT",
       blocs: withInitialBloc
         ? [{
             id: generateUUID(),
@@ -243,7 +243,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
             type: "texte",
             contenu: "",
             ordre: 1,
-            statut: "brouillon",
+            statut: "DRAFT",
           }]
         : [],
     }
@@ -341,12 +341,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   
     const statuts = section.blocs.map((b) => b.statut)
   
-    let nouveauStatut: Statut = "brouillon"
+    let nouveauStatut: Statut = "DRAFT"
   
-    if (statuts.includes("transcrit")) {
-      nouveauStatut = "en cours de transcription"
-    } else if (statuts.includes("brouillon")) {
-      nouveauStatut = "brouillon"
+    if (statuts.includes("TRANSCRIBED")) {
+      nouveauStatut = "IN_PROGRESS"
+    } else if (statuts.includes("DRAFT")) {
+      nouveauStatut = "DRAFT"
     }
   
     section.statut = nouveauStatut
@@ -369,7 +369,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       type: "texte",
       contenu,
       ordre: 0,
-      statut: "brouillon",
+      statut: "DRAFT",
     }
   
     set((state) => ({
@@ -522,8 +522,8 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
             // Mise à jour automatique du statut
             if (contenu.trim() === "") {
               bloc.statut = undefined
-            } else if (bloc.statut !== "brouillon") {
-              bloc.statut = "brouillon"
+            } else if (bloc.statut !== "DRAFT") {
+              bloc.statut = "DRAFT"
             }
           }
         }

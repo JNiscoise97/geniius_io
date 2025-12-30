@@ -37,7 +37,17 @@ const T = {
 
 // -------------------- Types --------------------
 
-export type TranscriptionStatus = "draft" | "in_review" | "validated" | "contested";
+export const REF_TRANSCRIPTION_STATUS_KEYS = [
+  "TO_TRANSCRIBE",
+  "DRAFT",
+  "IN_PROGRESS",
+  "TRANSCRIBED",
+  "IN_REVIEW",
+  "VALIDATED",
+] as const;
+
+export type TranscriptionStatus = (typeof REF_TRANSCRIPTION_STATUS_KEYS)[number];
+
 export type AnchorStatus = "ok" | "needs_review" | "orphaned";
 
 export type TranscriptionKind = "diplomatique" | "semi_normalisee" | "travail";
@@ -201,6 +211,11 @@ export type TranscriptionRow = {
   // lien à la citation/source (ta logique “1 transcription par source”)
   acte_source_id: string | null;
 
+  status: string | null;
+
+  is_reference: boolean;
+  preference_reason: string | null;
+
   // champs transcription-level (d’après ton SQL ec_transcriptions)
   source_lecture_kind: SourceLectureKind;
   langue_vue: string | null;
@@ -220,6 +235,39 @@ export type TranscriptionRow = {
 
 
 export const PAGE_BREAK_TOKEN = "[SAUT_DE_PAGE]";
+
+export function computeVersionStatusFromContent(args: {
+  content: string;
+  currentStatus?: TranscriptionStatus | null;
+}): TranscriptionStatus {
+  const trimmed = (args.content ?? "").trim();
+
+  // Si déjà marqué TRANSCRIBED / IN_REVIEW / VALIDATED, on ne rétrograde pas automatiquement
+  const sticky = args.currentStatus;
+  if (sticky === "TRANSCRIBED" || sticky === "IN_REVIEW" || sticky === "VALIDATED") return sticky;
+
+  // Règles demandées
+  if (!trimmed) return "DRAFT";
+  return "IN_PROGRESS";
+}
+
+/**
+ * ec_transcriptions.status doit refléter le status de la DERNIÈRE version.
+ * Si pas de version (cas rare si transcription existe mais aucune version), on met TO_TRANSCRIBE.
+ */
+export async function syncTranscriptionStatusFromLatestVersion(args: {
+  transcriptionId: string;
+  latestVersion: Pick<TranscriptionVersionRow, "status" | "content"> | null;
+}) {
+  const nextStatus: TranscriptionStatus =
+    args.latestVersion?.status ??
+    computeVersionStatusFromContent({ content: args.latestVersion?.content ?? "" }) ??
+    "TO_TRANSCRIBE";
+
+  await updateTranscription(args.transcriptionId, { status: nextStatus } as any);
+  return nextStatus;
+}
+
 
 // -------------------- Anchors / helpers --------------------
 
@@ -399,6 +447,23 @@ export async function logVersionEvent(args: {
       versionId: args.transcription_version_id,
       type: args.event_type,
     });
+  }
+}
+
+export async function setTranscriptionReference(args: {
+  transcriptionId: string;
+  preferenceReason: string;
+}) {
+  const { transcriptionId, preferenceReason } = args;
+
+  const res = await supabase.rpc("set_transcription_reference", {
+    p_transcription_id: transcriptionId,
+    p_preference_reason: preferenceReason,
+  });
+
+  if (res.error) {
+    console.error("set_transcription_reference error:", res.error);
+    throw new Error(res.error.message || "Impossible de définir la transcription de référence");
   }
 }
 
@@ -717,8 +782,15 @@ export async function setVersionStatusWithEvent(
     },
   });
 
+  // ✅ sync transcription.status avec le nouveau status de la dernière version (ici: updated)
+  await syncTranscriptionStatusFromLatestVersion({
+    transcriptionId: updated.transcription_id,
+    latestVersion: { status: updated.status, content: updated.content },
+  });
+
   return updated;
 }
+
 
 
 export async function updateTranscription(transcriptionId: string, patch: Partial<TranscriptionRow>) {
@@ -878,7 +950,13 @@ export async function createNewVersionForSource(args: {
 
   nextVersionNumber: number;
 }): Promise<{ transcription: TranscriptionRow; newVersion: TranscriptionVersionRow }> {
-  const status = args.status ?? "draft";
+  // Status auto basé sur le contenu, sauf si on force explicitement TRANSCRIBED/IN_REVIEW/VALIDATED
+  const computed = computeVersionStatusFromContent({
+    content: args.editorContent ?? "",
+    currentStatus: args.status ?? null,
+  });
+
+  const status = (args.status ?? computed) as TranscriptionStatus;
 
   // ✅ 1 transcription par source
   const transcription = await ensureTranscription(args.acteId, args.activeSourceId);
@@ -891,6 +969,13 @@ export async function createNewVersionForSource(args: {
     confidence: args.confidence ?? null,
     change_summary: args.change_summary ?? null,
   });
+
+  // ✅ sync ec_transcriptions.status = status de la dernière version
+  await syncTranscriptionStatusFromLatestVersion({
+    transcriptionId: transcription.id,
+    latestVersion: { status: newVersion.status, content: newVersion.content },
+  });
+
 
   await logVersionEvent({
     transcription_version_id: newVersion.id,

@@ -184,7 +184,7 @@ const [modeComparaison, setModeComparaison] = useState<any | null>(null);
                     {s.role && <>Rôle : {s.role} – </>}
                     {s.acte_date && <>Acte : {s.acte_date}</>}
                   </div>
-                  <StatusPill statut={s.acte_statut || 'à transcrire'} />
+                  <StatusPill statut={s.acte_statut || 'TO_TRANSCRIBE'} />
                 </div>
 
                 {/* Ligne 3 – Pertinence */}

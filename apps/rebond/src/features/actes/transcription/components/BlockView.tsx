@@ -182,7 +182,7 @@ export function BlockView({ bloc, dragListeners, dragAttributes }: BlockViewProp
   const documentId = getDocumentIdFromSectionId(bloc.sectionId)
   if (!documentId) return null // ou un fallback visuel
 
-  const transcritTextColor = statutConfig.find(s => s.key === "transcrit")?.text || "text-blue-800"
+  const transcritTextColor = statutConfig.find(s => s.key === "TRANSCRIBED")?.text || "text-blue-800"
 
   return (
     <div className="flex items-start group relative">
@@ -200,10 +200,10 @@ export function BlockView({ bloc, dragListeners, dragAttributes }: BlockViewProp
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" className="w-56">
-        {bloc.statut !== "transcrit" && (
+        {bloc.statut !== "TRANSCRIBED" && (
           <DropdownMenuItem
             onClick={() => {
-              updateBlocStatut(bloc.id, "transcrit")
+              updateBlocStatut(bloc.id, "TRANSCRIBED")
               toast.success("Bloc marqué comme transcrit")
             }}
             className={transcritTextColor}
@@ -271,7 +271,7 @@ export function BlockView({ bloc, dragListeners, dragAttributes }: BlockViewProp
           }
         }}        
       />
-      {bloc.statut !== "transcrit" && (
+      {bloc.statut !== "TRANSCRIBED" && (
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -280,7 +280,7 @@ export function BlockView({ bloc, dragListeners, dragAttributes }: BlockViewProp
                 transcritTextColor
               )}
               onClick={() => {
-                updateBlocStatut(bloc.id, "transcrit")
+                updateBlocStatut(bloc.id, "TRANSCRIBED")
                 toast.success("Bloc marqué comme transcrit")
               }}
               title="Marquer comme transcrit"

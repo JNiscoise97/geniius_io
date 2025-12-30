@@ -97,7 +97,7 @@ export function SectionView({ section }: SectionViewProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button>
-              <StatusPill statut={section.statut || "à transcrire"} />
+              <StatusPill statut={section.statut || "TO_TRANSCRIBE"} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right">
@@ -105,16 +105,16 @@ export function SectionView({ section }: SectionViewProps) {
             onClick={() => {
               // 1. Marquer tous les blocs de la section comme transcrits
               section.blocs.forEach((bloc) => {
-                updateBlocStatut(bloc.id, "transcrit")
+                updateBlocStatut(bloc.id, "TRANSCRIBED")
               })
 
               // 2. Mettre à jour manuellement le statut de la section
-              updateSectionStatut(section.id, "transcrit")
+              updateSectionStatut(section.id, "TRANSCRIBED")
 
               // 3. Afficher un toast
               toast.success(`Section "${section.titre}" marquée comme transcrite`)
             }}
-            className="text-blue-800" // utilise la couleur de texte associée à "transcrit"
+            className="text-blue-800" // utilise la couleur de texte associée à "TRANSCRIBED"
           >
             <Check className="w-4 h-4 mr-2" />
             Marquer comme transcrit

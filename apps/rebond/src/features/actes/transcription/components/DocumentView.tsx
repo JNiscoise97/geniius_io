@@ -87,7 +87,7 @@ export function DocumentView({ document }: DocumentViewProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button>
-                <StatusPill statut={document.statut || "à transcrire"} />
+                <StatusPill statut={document.statut || "TO_TRANSCRIBE"} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" className="w-56">
@@ -96,18 +96,18 @@ export function DocumentView({ document }: DocumentViewProps) {
                   // 1. Marquer tous les blocs du document comme transcrits
                   document.sections.forEach((section) => {
                     section.blocs.forEach((bloc) => {
-                      useDocumentStore.getState().updateBlocStatut(bloc.id, "transcrit")
+                      useDocumentStore.getState().updateBlocStatut(bloc.id, "TRANSCRIBED")
                     })
-                    useDocumentStore.getState().updateSectionStatut(section.id, "transcrit")
+                    useDocumentStore.getState().updateSectionStatut(section.id, "TRANSCRIBED")
                   })
                   
                   // Puis MAJ manuelle du document
-                  useDocumentStore.getState().updateDocumentStatut(document.id, "transcrit")                  
+                  useDocumentStore.getState().updateDocumentStatut(document.id, "TRANSCRIBED")                  
 
                   // 2. Afficher un toast
                   toast.success(`Document "${document.titre || "Sans titre"}" marqué comme transcrit`)
                 }}
-                className={statutConfig.find(s => s.key === "transcrit")?.text}
+                className={statutConfig.find(s => s.key === "TRANSCRIBED")?.text}
               >
                 <Check className="w-4 h-4 mr-2" />
                 Marquer comme transcrit

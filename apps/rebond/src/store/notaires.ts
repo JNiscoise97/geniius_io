@@ -57,7 +57,7 @@ export const useNotaireStore = create<NotaireStore>((set, get) => ({
       const registresMapped: NotaireRegistre[] = (registres ?? []).map((r) => {
         const actes = r.actes ?? [];
         const releves = actes.length;
-        const transcrits = actes.filter((a: any) => a.statut === 'transcrit').length;
+        const transcrits = actes.filter((a: any) => a.statut === 'TRANSCRIBED').length;
 
         return {
           id: r.id,

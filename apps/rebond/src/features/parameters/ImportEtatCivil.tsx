@@ -224,10 +224,10 @@ export default function ImportEtatCivil() {
                 .replace('{compteur}', isMulti ? `${multiTotals[multiKey!]}` : ''),
               statut:
                 row['transcription'] === 'oui'
-                  ? 'en cours de transcription'
+                  ? 'IN_PROGRESS'
                   : !row['[officier] nom']
-                    ? 'à transcrire'
-                    : 'brouillon',
+                    ? 'TO_TRANSCRIBE'
+                    : 'DRAFT',
             });
           }
           const lienDeclarant =

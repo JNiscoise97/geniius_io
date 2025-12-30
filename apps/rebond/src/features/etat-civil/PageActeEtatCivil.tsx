@@ -190,7 +190,7 @@ export default function PageActeEtatCivil() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button>
-                        <StatusPill statut={acte?.statut || 'à transcrire'} />
+                        <StatusPill statut={acte?.statut || 'TO_TRANSCRIBE'} />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side='right'>
@@ -199,7 +199,7 @@ export default function PageActeEtatCivil() {
                           const now = new Date().toISOString();
                           await supabase
                             .from('etat_civil_actes')
-                            .update({ statut: 'transcrit', updated_at: now })
+                            .update({ statut: 'TRANSCRIBED', updated_at: now })
                             .eq('id', acte?.id);
 
                           toast.success('Acte marqué comme transcrit');
@@ -230,7 +230,7 @@ export default function PageActeEtatCivil() {
         )}
       </section>
 
-      {acte && acte?.statut != 'transcrit' && <ActeCoherence acteId={acte.id} />}
+      {acte && acte?.statut != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
 
       {/* 🧠 Métadonnées de l’acte */}
       {steps && <section id='chronologie' className='pt-10'>

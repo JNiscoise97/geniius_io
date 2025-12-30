@@ -379,7 +379,7 @@ function DataTableActes({
             Créer l'acte n°{row.numero_acte}
           </Button>
         ) : (
-          <StatusPill statut={row?.statut || 'à transcrire'} />
+          <StatusPill statut={row?.statut || 'TO_TRANSCRIBE'} />
         ),
     },
   ];

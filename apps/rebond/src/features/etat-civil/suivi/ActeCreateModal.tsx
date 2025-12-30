@@ -186,7 +186,7 @@ export function ActeCreateModal({
       label: label.trim(),
 
       // Par défaut
-      statut: 'brouillon',
+      statut: 'DRAFT',
     };
 
     const { data: newActe, error } = await supabase

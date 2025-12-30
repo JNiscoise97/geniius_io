@@ -127,7 +127,7 @@ export default function NotaireLayout() {
 
     const totalActes = notaire.registres?.reduce((sum, a) => sum + (a.actes_estimes ?? 0), 0) ?? 0;
     const actesReleves = actesNotaire.length;
-    const actesTranscrits = actesNotaire.filter((a) => a.statut === "transcrit").length;
+    const actesTranscrits = actesNotaire.filter((a) => a.statut === "TRANSCRIBED").length;
 
     const types: Record<string, number> = {};
     actesNotaire.forEach((a) => {

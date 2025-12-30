@@ -93,7 +93,7 @@ export function DocumentItem({ item, query }: { item: any; query: string }) {
           <div className="text-gray-900 dark:text-gray-300">
             <div className="text-xs text-gray-500 leading-snug inline-flex items-center gap-x-2">
               {item.acte_date && `${formatDateToNumericFrench(item.acte_date)}`}
-              <StatusPill statut={item.acte_statut || 'à transcrire'} />
+              <StatusPill statut={item.acte_statut || 'TO_TRANSCRIBE'} />
             </div>
             <div>{highlight(item.documentLabel, query)}</div>
             <div className="text-xs text-gray-500 leading-snug">

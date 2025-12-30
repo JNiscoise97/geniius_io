@@ -143,7 +143,7 @@ export function CenterEditor({ acteId }: { acteId: string }) {
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground mr-2">Légende :</span>
               {statutConfig
-                .filter(({ key }) => key !== "à transcrire")
+                .filter(({ key }) => key !== "TO_TRANSCRIBE")
                 .map(({ key }) => (
                   <StatusPill key={key} statut={key} />
                 ))}

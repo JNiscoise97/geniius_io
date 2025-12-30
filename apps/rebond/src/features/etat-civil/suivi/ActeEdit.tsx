@@ -321,7 +321,7 @@ export default function ActeEdit() {
       <section id={`section-Acte`} className='p-6 prose prose-sm max-w-none'>
         {activeSection === 'Acte' && (
           <Accordion type='multiple' defaultValue={['metadonnees', 'acteurs']}>
-            {acte && acte?.statut !== 'transcrit' && (
+            {acte && acte?.statut !== 'TRANSCRIBED' && (
               <AccordionItem value='incoherence'>
                 <AccordionTrigger>
                   <div className='flex items-center gap-x-2'>

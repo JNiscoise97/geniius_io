@@ -139,7 +139,7 @@ export default function NotaireActePreview() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button>
-                    <StatusPill statut={acte?.statut || 'à transcrire'} />
+                    <StatusPill statut={acte?.statut || 'TO_TRANSCRIBE'} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side='right'>

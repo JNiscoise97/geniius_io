@@ -249,7 +249,7 @@ const orderedActeurs = [...acteurs].sort((a, b) => {
   return (
     <div className='w-[85%] mx-auto py-10 px-4 space-y-8'>
       <h1 className='text-2xl font-bold'>{acteId ? 'Modifier l’acte' : 'Créer un nouvel acte'}</h1>
-      {acteId && acte?.statut != 'transcrit' && <ActeCoherence acteId={acteId} />}
+      {acteId && acte?.statut != 'TRANSCRIBED' && <ActeCoherence acteId={acteId} />}
       <form onSubmit={handleSubmit} className='space-y-6'>
         <div>
           <Label htmlFor='label'>Label</Label>

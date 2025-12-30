@@ -158,7 +158,7 @@ export const useNotaireRegistreStore = create<NotaireRegistreStore>((set) => ({
   });
 
   const releves = actes.length;
-  const transcrits = actes.filter((a: any) => a.statut === 'transcrit').length;
+  const transcrits = actes.filter((a: any) => a.statut === 'TRANSCRIBED').length;
 
   const registre: NotaireRegistre = {
     id: data.id,

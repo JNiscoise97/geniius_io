@@ -40,6 +40,7 @@ import {
 } from "./transcriptionTab.service";
 
 import { useTranscriptionTab } from "./transcriptionTab.logic";
+import { StatusPill } from "@/components/shared/StatusPill";
 
 type Props = {
     acteId: string;
@@ -51,7 +52,7 @@ type SourceDashboardRow = {
     label: string;
 
     isPreferred: boolean;
-    isTranscribed: boolean;
+    status: string
 
     latestVersionId: string | null; // “active transcription” for that source
     usedInWorkingVersion: boolean; // for info only
@@ -85,6 +86,7 @@ export default function TranscriptionTab({ acteId }: Props) {
 
     // Dashboard rows
     const dashboard = useMemo<SourceDashboardRow[]>(() => {
+
         const preferredSourceId = (t.preferredSourceId as string | null) ?? null;
 
         return (sources ?? []).map((s: any) => {
@@ -104,11 +106,14 @@ export default function TranscriptionTab({ acteId }: Props) {
             const label = [uniteTitre, inst, vuesPages].filter(Boolean).join(" · ");
             const usedInWorkingVersion = t.activeSourceId === s.id;
 
+            const tr = t.transcriptionBySourceId?.[s.id] ?? null;
+            const status = (tr?.status ?? "TO_TRANSCRIBE") as string;
+
             return {
                 id: s.id,
                 label,
                 isPreferred: !!preferredSourceId && preferredSourceId === s.id,
-                isTranscribed: !!latestVersionId,
+                status,
                 latestVersionId,
                 usedInWorkingVersion,
             };
@@ -186,7 +191,7 @@ export default function TranscriptionTab({ acteId }: Props) {
     }
 
     const isFinalized =
-        (workingVersion?.status === "in_review" || workingVersion?.status === "validated") ?? false;
+        (workingVersion?.status === "IN_REVIEW" || workingVersion?.status === "VALIDATED") ?? false;
 
     const step: 1 | 2 | 3 | 4 =
         !t.activeSourceId
@@ -450,6 +455,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
                                             const uniteCote = m?.unite_cote ?? null;
 
+                                            console.log('d', d)
+                                            console.log('g', g)
+                                            console.log('m', m)
+
                                             const vuesPages =
                                                 g?.vues_raw ||
                                                 (g?.vues_start || g?.vues_end
@@ -463,7 +472,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 uniteCote ? uniteCote : null,
                                                 vuesPages ? vuesPages : null,
                                                 g?.acte_manquant ? "Acte manquant" : null,
-                                                d.isTranscribed ? null : "Aucune transcription",
                                             ].filter(Boolean);
 
                                             const line = lineParts.join(" · ");
@@ -518,11 +526,8 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                                         </span>
                                                                     ) : null}
 
-                                                                    {d.isTranscribed ? (
-                                                                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700">
-                                                                            transcrite
-                                                                        </span>
-                                                                    ) : null}
+                                                                    <StatusPill statut={d.status || "TO_TRANSCRIBE"} />
+
                                                                 </div>
                                                             </div>
 
@@ -534,7 +539,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    t.setPreferredSource(d.id);
+                                                                    t.openSetReference(d.id);
                                                                 }}
                                                                 title={isPreferred ? "Source de référence" : "Définir comme référence"}
                                                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
@@ -722,14 +727,29 @@ export default function TranscriptionTab({ acteId }: Props) {
                             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="text-sm font-semibold text-slate-900">Workflow</div>
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <Button variant="outline" size="sm" onClick={t.setInReview} disabled={!workingVersion || t.loading}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={t.markAsTranscribed}
+                                        disabled={!workingVersion || t.loading || !(t.editorValue ?? "").trim()}
+                                    >
+                                        Marquer comme transcrit
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={t.setInReview}
+                                        disabled={!workingVersion || t.loading || workingVersion?.status !== "TRANSCRIBED"}
+                                    >
                                         Marquer en relecture
                                     </Button>
+
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => t.openSourceDiffPicker()}
-                                        disabled={dashboard.filter((d) => d.isTranscribed).length < 2}
+                                        disabled={dashboard.filter((d) => !!d.latestVersionId).length < 2}
                                     >
                                         Comparer deux sources
                                     </Button>

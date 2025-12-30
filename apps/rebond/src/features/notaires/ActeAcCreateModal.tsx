@@ -81,7 +81,7 @@ export function ActeAcCreateModal({
         numero_acte: numeroActe,
         source,
         label,
-        statut: 'brouillon',
+        statut: 'DRAFT',
         created_at: now,
       },
     ])

@@ -91,7 +91,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
                 sectionId: "section-1",
                 type: "texte",
                 contenu: "Maître Jean Dupont, notaire royal, résidant à Basse-Terre.",
-                statut: "transcrit",
+                statut: "TRANSCRIBED",
                 ordre: 1,
               },
               {
@@ -99,7 +99,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
                 sectionId: "section-1",
                 type: "titre",
                 contenu: "Témoins",
-                statut: "brouillon",
+                statut: "DRAFT",
                 ordre: 2,
               },
               {
@@ -107,7 +107,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
                 sectionId: "section-1",
                 type: "liste-à-puces",
                 contenu: "M. Pierre Lemoine",
-                statut: "brouillon",
+                statut: "DRAFT",
                 ordre: 3,
               },
               {
@@ -115,7 +115,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
                 sectionId: "section-1",
                 type: "liste-numérotée",
                 contenu: "1. Cheval noir",
-                statut: "brouillon",
+                statut: "DRAFT",
                 ordre: 4,
               },
               {
@@ -123,7 +123,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
                 sectionId: "section-1",
                 type: "texte",
                 contenu: "2. Coq rouge",
-                statut: "brouillon",
+                statut: "DRAFT",
                 ordre: 5,
               },
             ],
@@ -218,7 +218,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       acte_id: acteId,
       titre,
       ordre: 0, // temporaire, recalculé ensuite
-      statut: "brouillon",
+      statut: "DRAFT",
       sections: []
     }
   
@@ -227,7 +227,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentId: docId,
       titre: "",
       ordre: 1,
-      statut: "brouillon",
+      statut: "DRAFT",
       blocs: []
     }
   
@@ -237,7 +237,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       type: "texte",
       contenu: "",
       ordre: 1,
-      statut: "brouillon",
+      statut: "DRAFT",
     }
   
     // Étape 1 – Récupération des documents existants de l’acte
@@ -381,7 +381,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       acte_id: acteId,
       titre: `${original.titre} (copie)`,
       ordre: 0,
-      statut: "brouillon",
+      statut: "DRAFT",
       sections: original.sections.map((section, i): Section => {
         const newSectionId = generateUUID()
         const newBlocs = assignOrdre(section.blocs.map((b): Bloc => ({
@@ -390,7 +390,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
           type: b.type,
           contenu: b.contenu,
           ordre: 0,
-          statut: "brouillon",
+          statut: "DRAFT",
         })))
   
         return {
@@ -398,7 +398,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
           documentId: newDocId,
           titre: `${section.titre} (copie)`,
           ordre: i + 1,
-          statut: "brouillon",
+          statut: "DRAFT",
           blocs: newBlocs,
         }
       }),
@@ -529,9 +529,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   
     const statuts = doc.sections.map((s) => s.statut)
   
-    // Cas 1 : statut actuel = "transcrit", on vérifie s'il peut être conservé
-    if (doc.statut === "transcrit") {
-      const toutesTranscrites = statuts.every((s) => s === "transcrit")
+    // Cas 1 : statut actuel = "TRANSCRIBED", on vérifie s'il peut être conservé
+    if (doc.statut === "TRANSCRIBED") {
+      const toutesTranscrites = statuts.every((s) => s === "TRANSCRIBED")
 
       if (toutesTranscrites) {
         // On ne touche pas au statut
@@ -541,9 +541,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     }
 
     // Cas 2 : recalcul standard
-    let nouveauStatut: Statut = "brouillon"
-    if (statuts.includes("transcrit") || statuts.includes("en cours de transcription")) {
-      nouveauStatut = "en cours de transcription"
+    let nouveauStatut: Statut = "DRAFT"
+    if (statuts.includes("TRANSCRIBED") || statuts.includes("IN_PROGRESS")) {
+      nouveauStatut = "IN_PROGRESS"
     }
 
     // Mise à jour si changement
@@ -586,7 +586,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentId,
       titre,
       ordre: 0,
-      statut: "brouillon",
+      statut: "DRAFT",
       blocs: [],
     }
   
@@ -635,7 +635,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         type: "texte",
         contenu: "",
         ordre: 1,
-        statut: "brouillon",
+        statut: "DRAFT",
       }
   
       const { error: blocError } = await supabase
@@ -744,7 +744,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         type: b.type,
         contenu: b.contenu,
         ordre: 0,
-        statut: "brouillon",
+        statut: "DRAFT",
       }))
     )
   
@@ -753,7 +753,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentId: doc.id,
       titre: `${original.titre} (copie)`,
       ordre: 0,
-      statut: "brouillon",
+      statut: "DRAFT",
       blocs: newBlocs,
     }
   
@@ -859,21 +859,21 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   
     const statuts = section.blocs.map((b) => b.statut)
   
-    // Cas 1 : la section est "transcrit", on vérifie si tous les blocs le sont encore
-    if (section.statut === "transcrit") {
-      const tousTranscrits = statuts.every((s) => s === "transcrit")
+    // Cas 1 : la section est "TRANSCRIBED", on vérifie si tous les blocs le sont encore
+    if (section.statut === "TRANSCRIBED") {
+      const tousTranscrits = statuts.every((s) => s === "TRANSCRIBED")
 
       if (tousTranscrits) {
-        // Rien à faire, on garde "transcrit"
+        // Rien à faire, on garde "TRANSCRIBED"
         return
       }
       // Sinon on passe au recalcul
     }
 
     // Cas 2 : recalcul normal
-    let nouveauStatut: Statut = "brouillon"
-    if (statuts.includes("transcrit") || statuts.includes("en cours de transcription")) {
-      nouveauStatut = "en cours de transcription"
+    let nouveauStatut: Statut = "DRAFT"
+    if (statuts.includes("TRANSCRIBED") || statuts.includes("IN_PROGRESS")) {
+      nouveauStatut = "IN_PROGRESS"
     }
 
     if (section.statut !== nouveauStatut) {
@@ -923,7 +923,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       type: "texte",
       contenu,
       ordre: 0, // assignOrdre fixera cela
-      statut: "brouillon",
+      statut: "DRAFT",
     }
   
     // 🧠 Insertion locale optimiste
@@ -1073,7 +1073,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
           contenu: original.contenu,
           type: original.type,
           ordre: 0, // assignOrdre fera le tri
-          statut: "brouillon",
+          statut: "DRAFT",
         }
   
         reorderedBlocs = assignOrdre([
@@ -1315,7 +1315,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     if (contenu.trim() === "") {
       statut = undefined
     } else {
-      statut = "brouillon"
+      statut = "DRAFT"
     }
   
     // 1. Mise à jour locale immédiate (optimisme UI)

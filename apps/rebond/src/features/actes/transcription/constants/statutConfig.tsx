@@ -2,42 +2,42 @@
 import { CheckCircle, Circle } from 'lucide-react';
 export const statutConfig = [
     {
-      key: "à transcrire",
+      key: "TO_TRANSCRIBE",
       label: "À transcrire",
       color: "border-gray-300",
       bg: "bg-gray-100",
       text: "text-gray-700",
     },
     {
-      key: "brouillon",
+      key: "DRAFT",
       label: "Brouillon",
       color: "border-gray-300",
       bg: "bg-gray-100",
       text: "text-gray-700",
     },
     {
-      key: "en cours de transcription",
+      key: "IN_PROGRESS",
       label: "En cours de transcription",
       color: "border-orange-500",
       bg: "bg-orange-100",
       text: "text-orange-800",
     },
     {
-      key: "transcrit",
+      key: "TRANSCRIBED",
       label: "Transcrit par un utilisateur",
       color: "border-blue-500",
       bg: "bg-blue-100",
       text: "text-blue-800",
     },
     {
-      key: "en relecture",
+      key: "IN_REVIEW",
       label: "En relecture",
       color: "border-yellow-400",
       bg: "bg-yellow-100",
       text: "text-yellow-800",
     },
     {
-      key: "transcription validée",
+      key: "VALIDATED",
       label: "Transcription validée",
       color: "border-green-500",
       bg: "bg-green-100",
@@ -52,9 +52,9 @@ export function getIconForStatut(statut: Statut | null | undefined) {
 
   const iconColor = config.text;
   const isEnCours =
-    statut === 'à transcrire' ||
-    statut === 'brouillon' ||
-    statut === 'en cours de transcription';
+    statut === 'TO_TRANSCRIBE' ||
+    statut === 'DRAFT' ||
+    statut === 'IN_PROGRESS';
 
   const IconComponent = isEnCours ? Circle : CheckCircle;
 
@@ -62,12 +62,12 @@ export function getIconForStatut(statut: Statut | null | undefined) {
 }
 
 export function getIconForStatutFromStats(actes_estimes: number, actes_transcrits: number) {
-  let statut: Statut = 'brouillon';
+  let statut: Statut = 'DRAFT';
 
   if (actes_estimes > 0 && actes_estimes === actes_transcrits) {
-    statut = 'transcrit';
+    statut = 'TRANSCRIBED';
   } else if (actes_transcrits > 1) {
-    statut = 'en cours de transcription';
+    statut = 'IN_PROGRESS';
   }
 
   return getIconForStatut(statut);

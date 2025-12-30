@@ -1,14 +1,4 @@
 // transcriptionTab.logic.ts
-// Hook/controller: local state + orchestration calls.
-//
-// ✅ Pilotage par sources (MVP):
-// - activeSourceId : la source sélectionnée dans le dashboard
-// - preferredSourceId : source “préférée / référence” (MVP local, non persistant)
-// - workingVersion : “transcription active” = dernière version liée à la source active
-// - Save = crée une nouvelle version liée à la source active (historique conservé)
-//
-// ⚠️ DB inchangée (pour l’instant) :
-// - la note [META] reste par version (complétude + raison + diffNotes map)
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -51,6 +41,7 @@ import {
     type TranscriptionRow,
     createNewVersionForSource,
     updateTranscription,
+    setTranscriptionReference,
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
@@ -263,7 +254,11 @@ export function useTranscriptionTab({ acteId }: Props) {
     // ✅ Sources-first state
     // -----------------------------
     const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
-    const [preferredSourceId, setPreferredSourceId] = useState<string | null>(null);
+    const preferredSourceId = useMemo(() => {
+        const ref = transcriptions.find((t) => t.is_reference);
+        return ref?.acte_source_id ?? null;
+    }, [transcriptions]);
+
 
     const [workingVersionId, setWorkingVersionId] = useState<string | null>(null);
     const workingVersion = useMemo(
@@ -309,6 +304,14 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [tagKind, setTagKind] = useState<TranscriptionTagRow["kind"]>("date");
     const [tagLabel, setTagLabel] = useState("");
     const [tagActeurId, setTagActeurId] = useState("");
+
+    const [referenceDialogOpen, setReferenceDialogOpen] = useState(false);
+    const [referenceTargetSourceId, setReferenceTargetSourceId] = useState<string | null>(null);
+
+    type RefReasonKey = "best_legibility" | "most_complete" | "best_match" | "other";
+    const [refReason, setRefReason] = useState<RefReasonKey | "">("");
+    const [refComment, setRefComment] = useState("");
+
 
     // Metadata drafts (DB fields)
     type MetaDraft = {
@@ -498,7 +501,6 @@ export function useTranscriptionTab({ acteId }: Props) {
             setCurrentId(null);
 
             setActiveSourceId(null);
-            setPreferredSourceId(null);
             setWorkingVersionId(null);
 
             setActeurs([]);
@@ -662,15 +664,22 @@ export function useTranscriptionTab({ acteId }: Props) {
 
 
     const setInReview = async () => {
+
         const target = workingVersion ?? currentVersion;
         if (!target) return;
+
+        if (target.status !== "TRANSCRIBED") {
+            toast("Marque d’abord la transcription comme transcrite.", { icon: "🧾" });
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
         try {
             await setVersionStatusWithEvent(
                 target.id,
-                { status: "in_review" },
-                { type: "status_change", payload: { to: "in_review" } }
+                { status: "IN_REVIEW" },
+                { type: "status_change", payload: { to: "IN_REVIEW" } }
             );
 
             toast.success("Marquée en relecture");
@@ -682,6 +691,29 @@ export function useTranscriptionTab({ acteId }: Props) {
             setLoading(false);
         }
     };
+
+    const markAsTranscribed = async () => {
+        const target = workingVersion ?? currentVersion;
+        if (!target) return;
+
+        setLoading(true);
+        try {
+            await setVersionStatusWithEvent(
+                target.id,
+                { status: "TRANSCRIBED" },
+                { type: "status_change", payload: { to: "TRANSCRIBED" } }
+            );
+
+            toast.success("Marquée comme transcrite");
+            await refreshVersionsAndSelect(target.id);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Erreur");
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const autoStartDraftIfNeeded = async (nextText: string) => {
         if (!activeSourceId) return;
@@ -696,12 +728,13 @@ export function useTranscriptionTab({ acteId }: Props) {
         try {
             // crée une v1 brouillon avec le texte courant (1 char, paste, etc.)
             const v1 = await createNewVersion({
-                status: "draft",
+                status: (nextText ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
                 content: nextText ?? "",
                 transcription_kind: "travail",
                 confidence: "low",
                 sourceIds: [activeSourceId],
             });
+
 
             // comme on vient de persister ce texte, on n’est pas dirty à cet instant
             setEditorValue(v1.content ?? "");
@@ -853,11 +886,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         setAnchorStatusOverrides({});
     };
 
-    const setPreferredSource = (sourceId: string) => {
-        setPreferredSourceId(sourceId);
-        toast("Source marquée comme préférée", { icon: "⭐" });
-    };
-
     const startTranscriptionForActiveSource = async (): Promise<TranscriptionVersionRow | null> => {
         if (!activeSourceId) return null;
 
@@ -870,7 +898,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
 
         const newV = await createNewVersion({
-            status: "draft",
+            status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
             content: "",
             transcription_kind: "travail",
             confidence: "low",
@@ -897,7 +925,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         if (!base) {
             // cas rare: aucune version (auto-brouillon n’a pas encore eu le temps / a échoué)
             await createNewVersion({
-                status: "draft",
+                status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
                 content: editorValue ?? "",
                 transcription_kind: "travail",
                 confidence: "low",
@@ -919,7 +947,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
 
         await createNewVersion({
-            status: "draft",
+            status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
             content: editorValue ?? "",
             transcription_kind: base?.transcription_kind ?? null,
             confidence: base?.confidence ?? null,
@@ -1307,6 +1335,59 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
     };
 
+    const openSetReference = (sourceId: string) => {
+        setReferenceTargetSourceId(sourceId);
+        setRefReason("");
+        setRefComment("");
+        setReferenceDialogOpen(true);
+    };
+
+    const submitSetReference = async () => {
+        if (!referenceTargetSourceId) return;
+
+        if (!refReason) {
+            toast("Choisis une raison", { icon: "⭐" });
+            return;
+        }
+
+        const commentRequired = refReason === "other";
+        if (commentRequired && !refComment.trim()) {
+            toast("Le commentaire est requis pour 'Autre'", { icon: "✍️" });
+            return;
+        }
+
+        const tr = transcriptionBySourceId[referenceTargetSourceId];
+        if (!tr?.id) {
+            toast("Aucune transcription pour cette source (commence par transcrire)", { icon: "🧩" });
+            return;
+        }
+
+        // Raison persistée dans preference_reason (texte)
+        const reasonText =
+            refReason === "best_legibility" ? "Meilleure lisibilité / meilleure image"
+                : refReason === "most_complete" ? "Transcription la plus complète"
+                    : refReason === "best_match" ? "Correspond le mieux aux autres sources"
+                        : `Autre: ${refComment.trim()}`;
+
+        setLoading(true);
+        try {
+            await setTranscriptionReference({
+                transcriptionId: tr.id,
+                preferenceReason: reasonText,
+            });
+
+            toast("Transcription définie comme référence", { icon: "⭐" });
+            await refreshVersionsAndSelect(workingVersion?.id ?? undefined);
+            setReferenceDialogOpen(false);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Erreur");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     // -----------------------------
     // API surface
     // -----------------------------
@@ -1380,11 +1461,11 @@ export function useTranscriptionTab({ acteId }: Props) {
         insertPageBreak,
 
         setInReview,
+        markAsTranscribed,
 
         // ✅ sources-first actions
         selectSource,
         onActiveSourceChanged,
-        setPreferredSource,
         startTranscriptionForActiveSource,
         saveNewVersionForActiveSource,
         openSourceDiffPicker,
@@ -1425,6 +1506,9 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         getLatestVersionIdForSource,
         latestVersionIdBySourceId,
-        transcriptionBySourceId
+        transcriptionBySourceId,
+
+        openSetReference,
+        submitSetReference
     };
 }

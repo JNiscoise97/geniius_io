@@ -302,7 +302,7 @@ export default function ActeLayout() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button>
-                    <StatusPill statut={acte?.statut || 'à transcrire'} />
+                    <StatusPill statut={acte?.statut || 'TO_TRANSCRIBE'} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side='right'>
@@ -311,7 +311,7 @@ export default function ActeLayout() {
                       const now = new Date().toISOString();
                       await supabase
                         .from('etat_civil_actes')
-                        .update({ statut: 'transcrit', updated_at: now })
+                        .update({ statut: 'TRANSCRIBED', updated_at: now })
                         .eq('id', acte?.id);
 
                       toast.success('Acte marqué comme transcrit');
@@ -353,7 +353,7 @@ export default function ActeLayout() {
         </div>
       </div>
       <section className='p-6 prose prose-sm max-w-none'>
-        {acte && acte?.statut != 'transcrit' && <ActeCoherence acteId={acte.id} />}
+        {acte && acte?.statut != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
         {activeSection === 'Résumé' && (
           <>
             <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
