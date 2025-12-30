@@ -26,6 +26,7 @@ const T = {
 
   transcriptions: "ec_transcriptions",
   versions: "ec_transcription_versions",
+  events: "ec_transcription_version_events",
 
   annotations: "ec_transcription_annotations",
   notes: "ec_transcription_notes",
@@ -350,6 +351,58 @@ export function detectActeReperages(text: string) {
   return hits;
 }
 
+// -------------------- Events (audit) --------------------
+export const REF_TRANSCRIPTION_EVENT_TYPES = [
+  "create",
+  "edit",
+  "submit_review",
+  "validate",
+  "contest",
+  "archive",
+  "restore",
+  "note",
+  "annotation",
+  "tag",
+  "metadata",
+  "status_change",
+] as const;
+
+export type RefTranscriptionEventType = (typeof REF_TRANSCRIPTION_EVENT_TYPES)[number];
+
+async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function logVersionEvent(args: {
+  transcription_version_id: string;
+  event_type: RefTranscriptionEventType;
+  payload?: Record<string, any>;
+  event_by?: string | null;
+}) {
+  const event_by = args.event_by ?? (await getCurrentUserId());
+
+  const res = await supabase.from(T.events).insert({
+    transcription_version_id: args.transcription_version_id,
+    event_type: args.event_type as any, // enum côté DB
+    event_by,
+    payload: args.payload ?? {},
+  } as any);
+
+  // ⚠️ On ne casse pas le flux si l’audit échoue : log console uniquement
+  if (res.error) {
+    console.error("logVersionEvent error:", res.error.message, {
+      versionId: args.transcription_version_id,
+      type: args.event_type,
+    });
+  }
+}
+
+
 // -------------------- Anchor revalidation --------------------
 
 export function revalidateAnchor(content: string, a: Pick<AnnotationRow, "quote" | "start_offset" | "end_offset">): AnchorStatus {
@@ -537,8 +590,8 @@ export async function refreshTranscriptionsAndVersions(acteId: string): Promise<
 
   const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
   for (const t of transcriptions) {
-  if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
-}
+    if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
+  }
 
   const transcriptionIds = transcriptions.map((t) => t.id);
   let versions: TranscriptionVersionRow[] = [];
@@ -647,6 +700,26 @@ export async function setVersionStatus(versionId: string, patch: Partial<Transcr
   assertNoSbError(res as any, "update version");
   return res.data as any as TranscriptionVersionRow;
 }
+
+export async function setVersionStatusWithEvent(
+  versionId: string,
+  patch: Partial<TranscriptionVersionRow>,
+  event: { type: RefTranscriptionEventType; payload?: Record<string, any> }
+) {
+  const updated = await setVersionStatus(versionId, patch);
+
+  await logVersionEvent({
+    transcription_version_id: versionId,
+    event_type: event.type,
+    payload: {
+      patch,
+      ...event.payload,
+    },
+  });
+
+  return updated;
+}
+
 
 export async function updateTranscription(transcriptionId: string, patch: Partial<TranscriptionRow>) {
   const res = await supabase
@@ -810,13 +883,27 @@ export async function createNewVersionForSource(args: {
   // ✅ 1 transcription par source
   const transcription = await ensureTranscription(args.acteId, args.activeSourceId);
 
-    const newVersion = await createVersion(transcription.id, {
+  const newVersion = await createVersion(transcription.id, {
     version: args.nextVersionNumber,
     status,
     content: args.editorContent ?? "",
     transcription_kind: args.transcription_kind ?? null,
     confidence: args.confidence ?? null,
     change_summary: args.change_summary ?? null,
+  });
+
+  await logVersionEvent({
+    transcription_version_id: newVersion.id,
+    event_type: "create",
+    payload: {
+      acte_id: args.acteId,
+      acte_source_id: args.activeSourceId,
+      transcription_id: transcription.id,
+      version: newVersion.version,
+      status: newVersion.status,
+      prev_version_id: args.prevVersionId,
+      content_len: (args.editorContent ?? "").length,
+    },
   });
 
 
@@ -838,23 +925,61 @@ export async function createNewVersionForSource(args: {
 export async function insertAnnotation(payload: Partial<AnnotationRow> & { transcription_version_id: string }) {
   const res = await supabase.from(T.annotations).insert(payload as any).select("*").single();
   assertNoSbError(res as any, "insert annotation");
-  return res.data as any as AnnotationRow;
+
+  const row = res.data as any as AnnotationRow;
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "annotation",
+    payload: { action: "create", annotation_id: row.id, type: row.type },
+  });
+
+  return row;
 }
+
 
 export async function updateAnnotation(id: string, patch: Partial<AnnotationRow>) {
   const res = await supabase.from(T.annotations).update(patch as any).eq("id", id).select("*").single();
   assertNoSbError(res as any, "update annotation");
-  return res.data as any as AnnotationRow;
+
+  const row = res.data as any as AnnotationRow;
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "annotation",
+    payload: { action: "update", annotation_id: row.id, patch },
+  });
+
+  return row;
 }
 
 export async function deleteAnnotation(id: string) {
+  // 1) read to know version
+  const getRes = await supabase.from(T.annotations).select("id, transcription_version_id, type").eq("id", id).single();
+  if (getRes.error) {
+    console.error("delete annotation read", getRes.error);
+    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+  }
+
+  const row = getRes.data as any as { id: string; transcription_version_id: string; type: string };
+
+  // 2) delete
   const res = await supabase.from(T.annotations).delete().eq("id", id);
   if (res.error) {
     console.error("delete annotation", res.error);
     throw new Error(toMsg(res.error, "Suppression impossible"));
   }
+
+  // 3) log
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "annotation",
+    payload: { action: "delete", annotation_id: row.id, type: row.type },
+  });
+
   return true;
 }
+
 
 export async function persistAnnotationStatuses(changed: Array<{ id: string; status: AnchorStatus }>) {
   if (!changed.length) return;
@@ -868,37 +993,96 @@ export async function persistAnnotationStatuses(changed: Array<{ id: string; sta
 export async function insertNote(payload: Partial<NoteRow> & { transcription_version_id: string }) {
   const res = await supabase.from(T.notes).insert(payload as any).select("*").single();
   assertNoSbError(res as any, "insert note");
-  return res.data as any as NoteRow;
+
+  const row = res.data as any as NoteRow;
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "note",
+    payload: { action: "create", note_id: row.id, anchored: row.start_offset != null && row.end_offset != null },
+  });
+
+  return row;
 }
+
 
 export async function updateNote(id: string, patch: Partial<NoteRow>) {
   const res = await supabase.from(T.notes).update(patch as any).eq("id", id).select("*").single();
   assertNoSbError(res as any, "update note");
-  return res.data as any as NoteRow;
+
+  const row = res.data as any as NoteRow;
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "note",
+    payload: { action: "update", note_id: row.id, patch },
+  });
+
+  return row;
 }
 
+
 export async function deleteNote(id: string) {
+  const getRes = await supabase.from(T.notes).select("id, transcription_version_id").eq("id", id).single();
+  if (getRes.error) {
+    console.error("delete note read", getRes.error);
+    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+  }
+  const row = getRes.data as any as { id: string; transcription_version_id: string };
+
   const res = await supabase.from(T.notes).delete().eq("id", id);
   if (res.error) {
     console.error("delete note", res.error);
     throw new Error(toMsg(res.error, "Suppression impossible"));
   }
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "note",
+    payload: { action: "delete", note_id: row.id },
+  });
+
   return true;
 }
+
 
 // -------------------- Tag CRUD --------------------
 
 export async function createTag(payload: Partial<TranscriptionTagRow> & { transcription_version_id: string }) {
   const res = await supabase.from(T.tags).insert(payload as any).select("*").single();
   assertNoSbError(res as any, "create tag");
-  return res.data as any as TranscriptionTagRow;
+
+  const row = res.data as any as TranscriptionTagRow;
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "tag",
+    payload: { action: "create", tag_id: row.id, kind: row.kind, label: row.label },
+  });
+
+  return row;
 }
 
+
 export async function deleteTag(id: string) {
+  const getRes = await supabase.from(T.tags).select("id, transcription_version_id, kind").eq("id", id).single();
+  if (getRes.error) {
+    console.error("delete tag read", getRes.error);
+    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+  }
+  const row = getRes.data as any as { id: string; transcription_version_id: string; kind: string };
+
   const res = await supabase.from(T.tags).delete().eq("id", id);
   if (res.error) {
     console.error("delete tag", res.error);
     throw new Error(toMsg(res.error, "Suppression impossible"));
   }
+
+  await logVersionEvent({
+    transcription_version_id: row.transcription_version_id,
+    event_type: "tag",
+    payload: { action: "delete", tag_id: row.id, kind: row.kind },
+  });
+
   return true;
 }

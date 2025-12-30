@@ -31,7 +31,7 @@ import {
     loadVersionChildren,
     loadVersionTags,
     refreshTranscriptionsAndVersions,
-    setVersionStatus,
+    setVersionStatusWithEvent,
     updateAnnotation,
     deleteAnnotation,
     updateNote,
@@ -667,7 +667,12 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         setLoading(true);
         try {
-            await setVersionStatus(target.id, { status: "in_review" });
+            await setVersionStatusWithEvent(
+                target.id,
+                { status: "in_review" },
+                { type: "status_change", payload: { to: "in_review" } }
+            );
+
             toast.success("Marquée en relecture");
             await refreshVersionsAndSelect(target.id);
         } catch (e: any) {
@@ -1250,10 +1255,21 @@ export function useTranscriptionTab({ acteId }: Props) {
         try {
             // persist DB fields
             // 1) update version (version-level)
-            await setVersionStatus(target.id, {
-                transcription_kind: metaDraft.transcription_kind ?? null,
-                confidence: metaDraft.confidence ?? null,
-            } as any);
+            await setVersionStatusWithEvent(
+                target.id,
+                {
+                    transcription_kind: metaDraft.transcription_kind ?? null,
+                    confidence: metaDraft.confidence ?? null,
+                } as any,
+                {
+                    type: "metadata",
+                    payload: {
+                        transcription_kind: metaDraft.transcription_kind ?? null,
+                        confidence: metaDraft.confidence ?? null,
+                    },
+                }
+            );
+
 
             // 2) update transcription (transcription-level)
             if (activeSourceId) {
