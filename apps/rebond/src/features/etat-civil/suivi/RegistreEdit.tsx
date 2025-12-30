@@ -634,7 +634,7 @@ export default function RegistreEdit() {
       <div className='sticky top-0 z-10 bg-white'>
         <div className='flex items-center justify-between border-b px-6 py-3'>
           <div className='flex items-center gap-3'>
-            <button onClick={handleNavBack} aria-label='Revenir à la fiche registre'>
+            <button type='button' onClick={handleNavBack} aria-label='Revenir à la fiche registre'>
               <ArrowLeft className='h-4 w-4 cursor-pointer text-gray-600' />
             </button>
 
@@ -672,6 +672,7 @@ export default function RegistreEdit() {
             const isActive = activeSection === label;
             return (
               <button
+                type='button'
                 key={label}
                 onClick={() => setActiveSection(label)}
                 className={`-mb-px flex items-center gap-2 border-b-2 py-3 transition-all ${

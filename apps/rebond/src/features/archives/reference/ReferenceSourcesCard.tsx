@@ -103,9 +103,18 @@ export function SectionSources({
   const [pickError, setPickError] = useState<string | null>(null);
   const [pickRows, setPickRows] = useState<ManifestationPick[]>([]);
 
-  const openPicker = (idx: number) => {
-    setPickerTargetIdx(idx);
-    setPickerOpen(true);
+  // Ouvre sur une nouvelle référence : onAdd() puis on ouvre le picker dessus
+  const openPickerForNew = () => {
+    const nextIdx = sources.length;
+    onAdd();
+    // Attendre que la ligne soit rendue
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToIdx(nextIdx);
+        setPickerTargetIdx(nextIdx);
+        setPickerOpen(true);
+      });
+    });
   };
 
   const closePicker = () => {
@@ -278,6 +287,11 @@ export function SectionSources({
     closePicker();
   };
 
+  const hasAnySelected = sources.some((s) => Boolean(s.manifestation_id));
+  const selectedSources = sources
+    .map((s, idx) => ({ s, idx }))
+    .filter(({ s }) => Boolean(s.manifestation_id));
+
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
       <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
@@ -294,11 +308,7 @@ export function SectionSources({
         <div className='flex flex-wrap items-center gap-2'>
           <button
             type='button'
-            onClick={() => {
-              const nextIdx = sources.length;
-              onAdd();
-              requestAnimationFrame(() => requestAnimationFrame(() => scrollToIdx(nextIdx)));
-            }}
+            onClick={openPickerForNew}
             className='flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50'
           >
             <Plus className='w-4 h-4' />
@@ -310,8 +320,18 @@ export function SectionSources({
       <div className='mt-4 space-y-3'>
         {loading && <div className='text-sm text-slate-600'>Chargement…</div>}
 
+        {!loading && !hasAnySelected && (
+          <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
+            Aucune référence sélectionnée pour l’instant.
+            <div className='mt-2 text-xs text-slate-600'>
+              Clique sur <span className='font-medium'>“Ajouter une référence”</span> pour choisir
+              le registre / l’unité documentaire.
+            </div>
+          </div>
+        )}
+
         {!loading &&
-          sources.map((c, idx) => {
+          selectedSources.map(({ s: c, idx }, pos) => {
             const online = isOnline(c);
             const url = (c.manifestation?.url_base ?? '').trim();
             const missing =
@@ -357,7 +377,7 @@ export function SectionSources({
                   <div className='min-w-0'>
                     <div className='flex flex-wrap items-center gap-2'>
                       <div className='text-sm font-semibold text-slate-900'>
-                        Référence #{idx + 1}
+                        Référence #{pos + 1}
                       </div>
 
                       {c.manifestation?.institution_sigle && (
@@ -401,14 +421,6 @@ export function SectionSources({
                   </div>
 
                   <div className='flex flex-wrap items-center gap-2'>
-                    <button
-                      type='button'
-                      onClick={() => openPicker(idx)}
-                      className='rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
-                    >
-                      Sélectionner le registre
-                    </button>
-
                     <button
                       type='button'
                       onClick={() => onRemove(idx)}
