@@ -131,7 +131,7 @@ export default function RegistreLayout() {
                     activeSection === label
                       ? 'border-blue-600 text-blue-600 font-medium'
                       : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-                  }`}
+                    }`}
                 >
                   <Icon className='w-4 h-4' />
                   {label}
@@ -152,17 +152,11 @@ export default function RegistreLayout() {
                     <StatCard label='Actes estimés' value={registre.actes_estimes} />
                   </div>
 
-                  <div className='flex items-center justify-end mt-4'>
-                    <Button onClick={handleAddActe} className='text-xs flex items-center gap-2'>
-                      <Plus className='w-4 h-4' />
-                      Ajouter un acte
-                    </Button>
-                  </div>
-
                   <DataTableActes
                     actes={actesLocal}
                     actesEstimes={registre.actes_estimes}
                     onCreateActeDemanded={handleCreateActeDemanded}
+                    handleAddActe={handleAddActe}
                   />
                 </>
               ) : activeSection === 'Actes' ? (
@@ -209,10 +203,12 @@ function DataTableActes({
   actes,
   actesEstimes,
   onCreateActeDemanded,
+  handleAddActe
 }: {
   actes: any[];
   actesEstimes: number;
   onCreateActeDemanded: (numero: string) => void;
+  handleAddActe: () => void;
 }) {
   // Construction des actes "visibles" (actes existants + lignes vides)
   const actesParNumero: Record<string, any> = {};
@@ -400,6 +396,17 @@ function DataTableActes({
           numéro en doublon sont affichés à la fin.
         </div>
       )}
+      <div className='flex items-center justify-end gap-4'>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => handleAddActe}
+                      className='text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1'
+                    >
+                      <Plus className='w-4 h-4' />
+                      Ajouter un acte
+                    </Button>
+                  </div>
       <DataTable
         data={[...toutesLignes].sort((a, b) => {
           // 1) Groupes : normal (0) / doublons (1) / sans numéro (2)
