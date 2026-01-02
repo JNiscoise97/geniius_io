@@ -379,11 +379,12 @@ function DataTableActes({
             Créer l'acte n°{row.numero_acte}
           </Button>
         ) : (
-          <StatusPill statut={row?.statut || 'TO_TRANSCRIBE'} />
+          <StatusPill statut={row?.status || 'TO_TRANSCRIBE'} />
         ),
     },
   ];
 
+  console.log("registre.actes", actes)
   return (
     <div className='space-y-4 mt-6'>
       {trous.length > 0 && (

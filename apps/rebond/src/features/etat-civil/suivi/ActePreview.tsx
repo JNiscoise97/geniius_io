@@ -265,7 +265,7 @@ export default function ActeLayout() {
             <Link to={`/ec-registre/${bureauId}/${registreId}`}>
               <ArrowLeft className='w-4 h-4 text-gray-600 cursor-pointer' />
             </Link>
-            {getIconForStatut(acte.statut)}
+            {getIconForStatut(acte.status)}
             <div>
               <h1 className='text-base font-semibold text-gray-800'>
                 {acte.label.charAt(0).toUpperCase() + acte.label.slice(1)}
@@ -302,7 +302,7 @@ export default function ActeLayout() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button>
-                    <StatusPill statut={acte?.statut || 'TO_TRANSCRIBE'} />
+                    <StatusPill statut={acte?.status || 'TO_TRANSCRIBE'} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side='right'>
@@ -353,7 +353,7 @@ export default function ActeLayout() {
         </div>
       </div>
       <section className='p-6 prose prose-sm max-w-none'>
-        {acte && acte?.statut != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
+        {acte && acte?.status != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
         {activeSection === 'Résumé' && (
           <>
             <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
@@ -417,7 +417,7 @@ export default function ActeLayout() {
                     <li key={e.id}>Officier de l’état civil : {displayNom(e.prenom, e.nom)}</li>
                   ))}
                 <li>
-                  Statut : <strong>{acte.statut}</strong>
+                  Statut : <strong>{acte.status}</strong>
                 </li>
                 {acte.comparution_observations && (
                   <li>Observations : {acte.comparution_observations}</li>

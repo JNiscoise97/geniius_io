@@ -190,7 +190,7 @@ export default function PageActeEtatCivil() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button>
-                        <StatusPill statut={acte?.statut || 'TO_TRANSCRIBE'} />
+                        <StatusPill statut={acte?.status || 'TO_TRANSCRIBE'} />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side='right'>
@@ -230,7 +230,7 @@ export default function PageActeEtatCivil() {
         )}
       </section>
 
-      {acte && acte?.statut != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
+      {acte && acte?.status != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
 
       {/* 🧠 Métadonnées de l’acte */}
       {steps && <section id='chronologie' className='pt-10'>

@@ -42,6 +42,7 @@ import {
     createNewVersionForSource,
     updateTranscription,
     setTranscriptionReference,
+    clearTranscriptionReference,
     ensureTranscription,
     type VersionEventRow,
     loadVersionEvents,
@@ -50,7 +51,8 @@ import {
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
-type SheetMode = "annotation" | "note" | "metadata" | "compare" | "tag";
+type SheetMode = "annotation" | "note" | "metadata" | "compare" | "tag" | "reference";
+
 type Props = { acteId: string };
 
 type SplitState = { leftPct: number };
@@ -312,12 +314,127 @@ export function useTranscriptionTab({ acteId }: Props) {
     const [tagLabel, setTagLabel] = useState("");
     const [tagActeurId, setTagActeurId] = useState("");
 
-    const [referenceDialogOpen, setReferenceDialogOpen] = useState(false);
     const [referenceTargetSourceId, setReferenceTargetSourceId] = useState<string | null>(null);
 
     type RefReasonKey = "best_legibility" | "most_complete" | "best_match" | "other";
     const [refReason, setRefReason] = useState<RefReasonKey | "">("");
     const [refComment, setRefComment] = useState("");
+
+    function buildPreferenceReasonStrict(key: RefReasonKey, detail: string) {
+        const d = (detail ?? "").trim();
+
+        const label =
+            key === "best_legibility"
+                ? "Meilleure lisibilité"
+                : key === "most_complete"
+                    ? "Plus complète"
+                    : key === "best_match"
+                        ? "Correspond le mieux"
+                        : "Autre";
+
+        // On stocke un texte unique (simple et robuste)
+        return `${label} : ${d}`;
+    }
+
+    const openSetReference = (sourceId: string) => {
+        setReferenceTargetSourceId(sourceId);
+        setRefReason("");
+        setRefComment("");
+
+        // ✅ on intègre la sheet dans “l’ensemble sheet”
+        setSheetMode("reference");
+        setSheetOpen(true);
+    };
+
+    const cancelSetReference = () => {
+        // ✅ Annuler : rien ne se passe (pas de DB call)
+        setSheetOpen(false);
+        setReferenceTargetSourceId(null);
+        setRefReason("");
+        setRefComment("");
+    };
+
+    const unsetReference = async (sourceId: string) => {
+        const tr = transcriptionBySourceId[sourceId];
+        if (!tr?.id) {
+            // si pas de transcription liée, techniquement pas de référence possible
+            toast("Aucune transcription liée à cette source.", { icon: "⚠️" });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await clearTranscriptionReference({ transcriptionId: tr.id });
+            toast.success("Source de référence retirée");
+
+            await refreshVersionsAndSelect(currentId ?? undefined);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Impossible de retirer la source de référence");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const confirmSetReference = async () => {
+        if (!referenceTargetSourceId) return;
+
+        // ✅ Champs requis (ton workflow)
+        if (!refReason) {
+            toast("Choisis une raison principale.", { icon: "⭐" });
+            return;
+        }
+        if (!refComment.trim()) {
+            toast("Ajoute un détail.", { icon: "✍️" });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // ✅ 1 transcription par source ; on la crée si besoin
+            const tr = await ensureTranscription(acteId, referenceTargetSourceId);
+
+            const reason = buildPreferenceReasonStrict(refReason as RefReasonKey, refComment);
+
+            await setTranscriptionReference({
+                transcriptionId: tr.id,
+                preferenceReason: reason,
+            });
+
+            toast.success("Source définie comme référence");
+
+            // ferme la sheet
+            setSheetOpen(false);
+            setReferenceTargetSourceId(null);
+            setRefReason("");
+            setRefComment("");
+
+            // refresh pour mettre à jour preferredSourceId
+            await refreshVersionsAndSelect(currentId ?? undefined);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Impossible de définir la source de référence");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * ✅ C’est LA fonction que le bouton ⭐ doit appeler
+     */
+    const togglePreferred = async (sourceId: string) => {
+        const isPreferredNow = preferredSourceId === sourceId;
+
+        // 1) si isPreferred alors, au clic, isPreferred = false.
+        if (isPreferredNow) {
+            await unsetReference(sourceId);
+            return;
+        }
+
+        // 2) Sinon, ouverture de la sheet “Définir…”
+        openSetReference(sourceId);
+    };
+
 
 
     // Metadata drafts (DB fields)
@@ -1222,85 +1339,85 @@ export function useTranscriptionTab({ acteId }: Props) {
     };
 
     const saveMetadata = async () => {
-  if (!activeSourceId) return toast("Sélectionne une source.", { icon: "🧩" });
+        if (!activeSourceId) return toast("Sélectionne une source.", { icon: "🧩" });
 
-  const target = workingVersion ?? currentVersion;
-  if (!target) return toast("Aucune version à mettre à jour.", { icon: "⚠️" });
+        const target = workingVersion ?? currentVersion;
+        if (!target) return toast("Aucune version à mettre à jour.", { icon: "⚠️" });
 
-  const tr = transcriptionBySourceId[activeSourceId];
-  if (!tr) {
-    // normalement il existe si target existe, mais on sécurise
-    await ensureTranscription(acteId, activeSourceId);
-  }
+        const tr = transcriptionBySourceId[activeSourceId];
+        if (!tr) {
+            // normalement il existe si target existe, mais on sécurise
+            await ensureTranscription(acteId, activeSourceId);
+        }
 
-  setLoading(true);
-  try {
-    // 1) update version-level fields
-    await setVersionStatus(target.id, {
-      transcription_kind: metaDraft.transcription_kind,
-      confidence: metaDraft.confidence,
-    } as any);
+        setLoading(true);
+        try {
+            // 1) update version-level fields
+            await setVersionStatus(target.id, {
+                transcription_kind: metaDraft.transcription_kind,
+                confidence: metaDraft.confidence,
+            } as any);
 
-    // 2) update transcription-level fields
-    const tr2 = transcriptionBySourceId[activeSourceId] ?? (await ensureTranscription(acteId, activeSourceId));
+            // 2) update transcription-level fields
+            const tr2 = transcriptionBySourceId[activeSourceId] ?? (await ensureTranscription(acteId, activeSourceId));
 
-    await updateTranscription(tr2.id, {
-      visibility: metaDraft.visibility,
-      state: metaDraft.state,
+            await updateTranscription(tr2.id, {
+                visibility: metaDraft.visibility,
+                state: metaDraft.state,
 
-      source_lecture_kind: metaDraft.source_lecture_kind as any,
+                source_lecture_kind: metaDraft.source_lecture_kind as any,
 
-      scope: metaDraft.scope,
-      scope_details: metaDraft.scope_details,
+                scope: metaDraft.scope,
+                scope_details: metaDraft.scope_details,
 
-      langue_vue: metaDraft.langue_vue,
-      language_confidence: metaDraft.language_confidence,
+                langue_vue: metaDraft.langue_vue,
+                language_confidence: metaDraft.language_confidence,
 
-      handwriting_style: metaDraft.handwriting_style,
-      handwriting_legibility: metaDraft.handwriting_legibility,
+                handwriting_style: metaDraft.handwriting_style,
+                handwriting_legibility: metaDraft.handwriting_legibility,
 
-      goal: metaDraft.goal,
-      normalisation_policy: metaDraft.normalisation_policy,
+                goal: metaDraft.goal,
+                normalisation_policy: metaDraft.normalisation_policy,
 
-      conventions_id: metaDraft.conventions_id,
-      conventions_override_text: metaDraft.conventions_override_text,
+                conventions_id: metaDraft.conventions_id,
+                conventions_override_text: metaDraft.conventions_override_text,
 
-      completeness: metaDraft.completeness,
-      incompleteness_reason: metaDraft.incompleteness_reason,
+                completeness: metaDraft.completeness,
+                incompleteness_reason: metaDraft.incompleteness_reason,
 
-      reserve_level: metaDraft.reserve_level,
-      reserve_reason: metaDraft.reserve_reason,
+                reserve_level: metaDraft.reserve_level,
+                reserve_reason: metaDraft.reserve_reason,
 
-      note: metaDraft.note,
-    } as any);
+                note: metaDraft.note,
+            } as any);
 
-    // 3) log event (optional but recommended)
-    await logVersionEvent({
-      transcription_version_id: target.id,
-      event_type: "metadata",
-      payload: {
-        transcription_id: tr2.id,
-        acte_source_id: activeSourceId,
-        meta: metaDraft,
-      },
-    });
+            // 3) log event (optional but recommended)
+            await logVersionEvent({
+                transcription_version_id: target.id,
+                event_type: "metadata",
+                payload: {
+                    transcription_id: tr2.id,
+                    acte_source_id: activeSourceId,
+                    meta: metaDraft,
+                },
+            });
 
-    toast.success("Métadonnées enregistrées");
+            toast.success("Métadonnées enregistrées");
 
-    // 4) refresh + reload events
-    await refreshVersionsAndSelect(target.id);
+            // 4) refresh + reload events
+            await refreshVersionsAndSelect(target.id);
 
-    const evts = await loadVersionEvents(target.id);
-    setVersionEvents(evts);
+            const evts = await loadVersionEvents(target.id);
+            setVersionEvents(evts);
 
-    setSheetOpen(false);
-  } catch (e: any) {
-    console.error(e);
-    toast.error(e?.message ?? "Erreur enregistrement métadonnées");
-  } finally {
-    setLoading(false);
-  }
-};
+            setSheetOpen(false);
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Erreur enregistrement métadonnées");
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     // -----------------------------
@@ -1475,58 +1592,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         setNotes((prev) => [...prev, row]);
     };
 
-    const openSetReference = (sourceId: string) => {
-        setReferenceTargetSourceId(sourceId);
-        setRefReason("");
-        setRefComment("");
-        setReferenceDialogOpen(true);
-    };
-
-    const submitSetReference = async () => {
-        if (!referenceTargetSourceId) return;
-
-        if (!refReason) {
-            toast("Choisis une raison", { icon: "⭐" });
-            return;
-        }
-
-        const commentRequired = refReason === "other";
-        if (commentRequired && !refComment.trim()) {
-            toast("Le commentaire est requis pour 'Autre'", { icon: "✍️" });
-            return;
-        }
-
-        const tr = transcriptionBySourceId[referenceTargetSourceId];
-        if (!tr?.id) {
-            toast("Aucune transcription pour cette source (commence par transcrire)", { icon: "🧩" });
-            return;
-        }
-
-        // Raison persistée dans preference_reason (texte)
-        const reasonText =
-            refReason === "best_legibility" ? "Meilleure lisibilité / meilleure image"
-                : refReason === "most_complete" ? "Transcription la plus complète"
-                    : refReason === "best_match" ? "Correspond le mieux aux autres sources"
-                        : `Autre: ${refComment.trim()}`;
-
-        setLoading(true);
-        try {
-            await setTranscriptionReference({
-                transcriptionId: tr.id,
-                preferenceReason: reasonText,
-            });
-
-            toast("Transcription définie comme référence", { icon: "⭐" });
-            await refreshVersionsAndSelect(workingVersion?.id ?? undefined);
-            setReferenceDialogOpen(false);
-        } catch (e: any) {
-            console.error(e);
-            toast.error(e?.message ?? "Erreur");
-        } finally {
-            setLoading(false);
-        }
-    };
-
 
     function buildPreferenceReason(key: RefReasonKey | "", comment: string) {
         const c = (comment ?? "").trim();
@@ -1546,38 +1611,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         if (label && c) return `${label} — ${c}`;
         return label || c;
     }
-
-    const confirmSetReference = async () => {
-        if (!referenceTargetSourceId) return;
-
-        setLoading(true);
-        try {
-            // ✅ 1 transcription par source ; on la crée si besoin
-            const tr = await ensureTranscription(acteId, referenceTargetSourceId);
-
-            const reason = buildPreferenceReason(refReason as any, refComment);
-
-            await setTranscriptionReference({
-                transcriptionId: tr.id,
-                preferenceReason: reason,
-            });
-
-            toast.success("Source de référence définie");
-
-            setReferenceDialogOpen(false);
-            setReferenceTargetSourceId(null);
-
-            // refresh transcriptions + versions (pour mettre à jour is_reference + preferredSourceId)
-            await refreshVersionsAndSelect(currentId ?? undefined);
-        } catch (e: any) {
-            console.error(e);
-            toast.error(e?.message ?? "Impossible de définir la source de référence");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
 
 
 
@@ -1702,11 +1735,10 @@ export function useTranscriptionTab({ acteId }: Props) {
         latestVersionIdBySourceId,
         transcriptionBySourceId,
 
-        openSetReference,
-        submitSetReference,
-        referenceDialogOpen,
-        setReferenceDialogOpen,
+        togglePreferred,
+        cancelSetReference,
         confirmSetReference,
+        openSetReference,
         referenceTargetSourceId,
         refReason,
         setRefReason,

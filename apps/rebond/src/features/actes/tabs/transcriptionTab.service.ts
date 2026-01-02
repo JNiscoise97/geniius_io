@@ -565,6 +565,26 @@ export async function setTranscriptionReference(args: {
   }
 }
 
+export async function clearTranscriptionReference(args: {
+  transcriptionId: string;
+}) {
+  const { transcriptionId } = args;
+
+  const res = await supabase
+    .from("ec_transcriptions")
+    .update({
+      is_reference: false,
+      preference_reason: null,
+    })
+    .eq("id", transcriptionId);
+
+  if (res.error) {
+    console.error("clearTranscriptionReference error:", res.error);
+    throw new Error(res.error.message || "Impossible de retirer la source de référence");
+  }
+}
+
+
 
 // -------------------- Anchor revalidation --------------------
 

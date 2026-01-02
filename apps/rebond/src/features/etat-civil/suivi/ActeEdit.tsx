@@ -246,7 +246,7 @@ export default function ActeEdit() {
               <ArrowLeft className='w-4 h-4 text-gray-600 cursor-pointer' />
             </button>
 
-            {getIconForStatut(acte.statut)}
+            {getIconForStatut(acte.status)}
             <div>
               <div className='flex items-center gap-x-2'>
                 <h1 className='text-base font-semibold text-gray-800'>
@@ -321,7 +321,7 @@ export default function ActeEdit() {
       <section id={`section-Acte`} className='p-6 prose prose-sm max-w-none'>
         {activeSection === 'Acte' && (
           <Accordion type='multiple' defaultValue={['metadonnees', 'acteurs']}>
-            {acte && acte?.statut !== 'TRANSCRIBED' && (
+            {acte && acte?.status !== 'TRANSCRIBED' && (
               <AccordionItem value='incoherence'>
                 <AccordionTrigger>
                   <div className='flex items-center gap-x-2'>

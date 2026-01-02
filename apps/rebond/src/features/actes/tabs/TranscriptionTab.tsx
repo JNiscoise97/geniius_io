@@ -589,7 +589,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    t.openSetReference(d.id);
+                                                                    t.togglePreferred(d.id);
                                                                 }}
                                                                 title={isPreferred ? "Source de référence" : "Définir comme référence"}
                                                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
@@ -823,59 +823,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                 </div>
             </div>
 
-            <Sheet open={t.referenceDialogOpen} onOpenChange={t.setReferenceDialogOpen}>
-                <SheetContent className="sm:max-w-[520px]">
-                    <SheetHeader>
-                        <SheetTitle>Définir la source de référence</SheetTitle>
-                    </SheetHeader>
-
-                    <div className="space-y-3">
-                        <div>
-                            <div className="text-xs font-medium text-slate-700">Raison principale</div>
-                            <select
-                                className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
-                                value={t.refReason}
-                                onChange={(e) => t.setRefReason(e.target.value as any)}
-                            >
-                                <option value="">—</option>
-                                <option value="best_legibility">Meilleure lisibilité</option>
-                                <option value="most_complete">Plus complète</option>
-                                <option value="best_match">Correspond le mieux à l’acte</option>
-                                <option value="other">Autre</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <div className="text-xs font-medium text-slate-700">Détail (optionnel)</div>
-                            <Textarea
-                                className="mt-1 min-h-[90px]"
-                                value={t.refComment}
-                                onChange={(e) => t.setRefComment(e.target.value)}
-                                placeholder="Ex : page plus nette, moins de lacunes, acte complet, meilleure exposition…"
-                            />
-                        </div>
-
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
-                            Conseil : garde ça factuel. L’info est stockée dans <code className="font-mono">ec_transcriptions.preference_reason</code>.
-                        </div>
-                    </div>
-
-                    <SheetFooter>
-                        <Button type="button" variant='ghost' disabled={t.loading}>
-                            Annuler
-                        </Button>
-                        <Button type="button" onClick={(e) => {
-                            e.preventDefault();
-                            t.confirmSetReference();
-                        }}
-                            disabled={t.loading || !t.referenceTargetSourceId}>
-                            Définir comme référence
-                        </Button>
-                    </SheetFooter>
-                </SheetContent>
-            </Sheet>
-
-
             {/* Sheet */}
             <Sheet open={t.sheetOpen} onOpenChange={t.setSheetOpen}>
                 <SheetContent side="right" className="!w-[50vw] !max-w-none p-0 flex flex-col max-h-screen">
@@ -895,7 +842,9 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             ? "Comparer des sources (diff + note de cause)"
                                             : t.sheetMode === "tag"
                                                 ? "Tagger un passage"
-                                                : "Panneau"}
+                                                : t.sheetMode === "reference"
+                                                    ? "Définir la source de référence"
+                                                    : "Panneau"}
                         </SheetTitle>
                         <SheetDescription>
                             {t.sheetMode === "metadata"
@@ -1174,6 +1123,48 @@ export default function TranscriptionTab({ acteId }: Props) {
                                     </div>
                                 </TabsContent>
                             </Tabs>
+                        ) : t.sheetMode === "reference" ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="text-xs font-medium text-slate-700">Raison principale</div>
+                                    <select
+                                        className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm"
+                                        value={t.refReason}
+                                        onChange={(e) => t.setRefReason(e.target.value as any)}
+                                    >
+                                        <option value="">—</option>
+                                        <option value="best_legibility">Meilleure lisibilité</option>
+                                        <option value="most_complete">Plus complète</option>
+                                        <option value="best_match">Correspond le mieux à l’acte</option>
+                                        <option value="other">Autre</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs font-medium text-slate-700">Détail</div>
+                                    <Textarea
+                                        className="mt-1 min-h-[90px]"
+                                        value={t.refComment}
+                                        onChange={(e) => t.setRefComment(e.target.value)}
+                                        placeholder="Ex : page plus nette, acte plus complet, moins de lacunes…"
+                                    />
+                                    <div className="mt-1 text-[11px] text-slate-500">
+                                        Champs requis : raison principale + détail.
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-end gap-2 pt-2">
+                                    <Button variant="outline" onClick={t.cancelSetReference} disabled={t.loading}>
+                                        Annuler
+                                    </Button>
+                                    <Button
+                                        onClick={t.confirmSetReference}
+                                        disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
+                                    >
+                                        Définir comme référence
+                                    </Button>
+                                </div>
+                            </div>
                         ) : (
                             <div className="text-sm text-slate-600">
                                 (Contenu du panneau à implémenter pour ce mode.)

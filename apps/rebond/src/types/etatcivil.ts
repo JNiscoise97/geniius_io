@@ -50,7 +50,7 @@ export interface EtatCivilBureau {
     enfants_nombre?: string | null
     mentions_marginales?: string | null
     label: string
-    statut: string | null
+    status: string | null
     transcription: string | null
   }
   
