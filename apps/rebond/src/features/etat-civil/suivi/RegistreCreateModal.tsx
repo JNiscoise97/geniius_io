@@ -87,7 +87,7 @@ export function RegistreCreateModal({
           <DialogTitle>Ajouter un registre</DialogTitle>
         </DialogHeader>
         <div className='flex-1 flex overflow-hidden py-4 px-10 '>
-          <div className='overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4'>
+          <div className='overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4 w-full'>
             <div>
               <Label htmlFor='annee'>Année</Label>
               <Input

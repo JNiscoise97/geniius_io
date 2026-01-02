@@ -8,7 +8,7 @@
 // - Report annotations/notes/tags sur nouvelle version (best effort) -> géré dans logic/service
 
 import React, { useMemo, useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ import {
     Circle,
     Lock,
     Unlock,
+    ChevronDown,
 } from "lucide-react";
 
 import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from "./transcriptionTab.ui";
@@ -198,11 +199,6 @@ export default function TranscriptionTab({ acteId }: Props) {
         return t.currentVersion ?? null;
     }, [activeSourceRow?.latestVersionId, versions, t.currentVersion]);
 
-    // Loading
-    if (t.loading && !workingVersion && versions.length === 0) {
-        return <div className="p-4 text-sm text-slate-600">Chargement…</div>;
-    }
-
     const isFinalized =
         (workingVersion?.status === "IN_REVIEW" || workingVersion?.status === "VALIDATED") ?? false;
 
@@ -215,11 +211,32 @@ export default function TranscriptionTab({ acteId }: Props) {
                     ? 4
                     : 3;
 
+    // ✅ Sources accordion hooks MUST be before any early return
+    const [sourcesExpanded, setSourcesExpanded] = useState(step === 1);
 
+    React.useEffect(() => {
+        // règle demandée : replié si step ≠ 1
+        setSourcesExpanded(step === 1);
+    }, [step]);
+
+    const toggleSourcesExpanded = () => {
+        setSourcesExpanded((v) => !v);
+    };
+
+    // Loading (after hooks!)
+    if (t.loading && !workingVersion && versions.length === 0) {
+        return <div className="p-4 text-sm text-slate-600">Chargement…</div>;
+    }
 
     const textareaDisabled =
         step === 1 ||
         (!t.isEditableStatus && textareaLocked);
+
+    function sourcesLabel(count: number) {
+        if (count <= 2) return (count -1) + " source";
+        return (count -1) + " sources";
+    }
+
 
     return (
         <div className="p-4 space-y-4">
@@ -346,8 +363,23 @@ export default function TranscriptionTab({ acteId }: Props) {
 
 
                                 {activeSourceRow ? (
-                                    <div className="ml-2 flex items-center gap-2 min-w-0">
-                                        {activeSourceRow.isPreferred ? <Badge className="bg-amber-500 text-white">Transcription de référence</Badge> : null}
+                                    <div className="shrink-0 flex flex-col items-end gap-2">
+                                        {activeSourceRow.isPreferred && <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                t.togglePreferred(activeSourceRow.id);
+                                            }}
+                                            title={activeSourceRow.isPreferred ? "Transcription de référence" : "Définir comme référence"}
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+                                        >
+                                            <Star
+                                                className={[
+                                                    "h-4 w-4 transition-colors",
+                                                    activeSourceRow.isPreferred ? "text-amber-500 fill-amber-500" : "text-slate-400 hover:text-amber-500",
+                                                ].join(" ")}
+                                            />
+                                        </button>}
                                     </div>
                                 ) : null}
 
@@ -484,12 +516,53 @@ export default function TranscriptionTab({ acteId }: Props) {
                             {/* ✅ Sources dashboard (FIRST) */}
                             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm font-semibold text-slate-900">Sources</div>
-                                    <Badge variant="secondary">{dashboard.length}</Badge>
+                                    {/* Titre à gauche */}
+                                    <div className="text-sm font-semibold text-slate-900">
+                                        Sources
+                                    </div>
+
+                                    {/* Bouton déplier / replier à droite */}
+                                    {step !== 1 && <button
+                                        type="button"
+                                        onClick={toggleSourcesExpanded}
+                                        className={[
+                                            "inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                                            "border-slate-200 bg-white text-slate-700",
+                                            "hover:bg-slate-50 hover:text-slate-900",
+                                        ].join(" ")}
+                                        title={
+                                            sourcesExpanded
+                                                ? "Replier la liste des sources"
+                                                : "Déplier la liste des sources"
+                                        }
+                                    >
+                                        <span>
+                                            {sourcesExpanded
+                                                ? `Masquer ${sourcesLabel(dashboard.length)}`
+                                                : `Afficher ${sourcesLabel(dashboard.length)}`}
+                                        </span>
+
+                                        <ChevronDown
+                                            className={[
+                                                "h-4 w-4 transition-transform duration-200",
+                                                sourcesExpanded ? "rotate-180" : "rotate-0",
+                                            ].join(" ")}
+                                        />
+                                    </button>}
                                 </div>
-                                <p className="mt-1 text-xs text-slate-600">
-                                    Chaque source a une transcription active (la dernière version liée). Le diff compare les transcriptions actives.
-                                </p>
+
+                                {/* ✅ description : pas de conditionnel, on anime */}
+                                <div
+                                    className={[
+                                        "overflow-hidden transition-all duration-200",
+                                        sourcesExpanded ? "max-h-16 opacity-100 mt-1" : "max-h-0 opacity-0 mt-0",
+                                    ].join(" ")}
+                                >
+                                    <p className="text-xs text-slate-600">
+                                        Chaque source a une transcription active (la dernière version liée). Le diff compare les transcriptions actives.
+                                    </p>
+                                </div>
+
 
                                 <div className="mt-3 space-y-2">
                                     {dashboard.length === 0 ? (
@@ -504,10 +577,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             const uniteTitre = m?.unite_titre ?? "Source";
                                             const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
                                             const uniteCote = m?.unite_cote ?? null;
-
-                                            console.log('d', d)
-                                            console.log('g', g)
-                                            console.log('m', m)
 
                                             const vuesPages =
                                                 g?.vues_raw ||
@@ -533,10 +602,17 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 <div
                                                     key={d.id}
                                                     className={[
-                                                        "w-full rounded-xl border p-3 text-left transition",
+                                                        // base card
+                                                        "w-full rounded-xl border p-3 text-left",
+                                                        // état actif/inactif
                                                         isActive
                                                             ? "border-slate-900/20 bg-slate-50 shadow-sm ring-2 ring-slate-900/10"
                                                             : "border-slate-200 bg-white hover:bg-slate-50",
+                                                        // ✅ animation replié/déplié sans retirer du DOM
+                                                        "transition-all duration-200",
+                                                        !sourcesExpanded && !isActive
+                                                            ? "max-h-0 opacity-0 py-0 border-transparent pointer-events-none overflow-hidden"
+                                                            : "max-h-[220px] opacity-100",
                                                     ].join(" ")}
                                                 >
                                                     <div className="flex items-start justify-between gap-3">
@@ -591,7 +667,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                                     e.stopPropagation();
                                                                     t.togglePreferred(d.id);
                                                                 }}
-                                                                title={isPreferred ? "Source de référence" : "Définir comme référence"}
+                                                                title={isPreferred ? "Transcription de référence" : "Définir comme référence"}
                                                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
                                                             >
                                                                 <Star
@@ -609,7 +685,52 @@ export default function TranscriptionTab({ acteId }: Props) {
                                     )}
 
                                 </div>
+                            </div>
 
+                            {/* Workflow shortcuts */}
+                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="text-sm font-semibold text-slate-900">Workflow</div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={t.markAsTranscribed}
+                                        disabled={!workingVersion || t.loading || !(t.editorValue ?? "").trim()}
+                                    >
+                                        Marquer comme transcrit
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={t.setInReview}
+                                        disabled={!workingVersion || t.loading || workingVersion?.status !== "TRANSCRIBED"}
+                                    >
+                                        Marquer en relecture
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => t.openSourceDiffPicker()}
+                                        disabled={dashboard.filter((d) => !!d.latestVersionId).length < 2}
+                                    >
+                                        Comparer deux sources
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => t.openMetadata()}
+                                        disabled={t.loading || !t.activeSourceId}
+                                        className="gap-2"
+                                        title="Voir / modifier les métadonnées de la transcription"
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                        Métadonnées
+                                    </Button>
+                                </div>
+                                <div className="mt-2 text-xs text-slate-500">
+                                    Save = nouvelle version liée à la source active, avec report best-effort des ancres (OK / À revoir / Orpheline).
+                                </div>
                             </div>
 
                             {/* Repérages */}
@@ -770,52 +891,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 </div>
                                             </div>
                                         ))}
-                                </div>
-                            </div>
-
-                            {/* Workflow shortcuts */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                                <div className="text-sm font-semibold text-slate-900">Workflow</div>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={t.markAsTranscribed}
-                                        disabled={!workingVersion || t.loading || !(t.editorValue ?? "").trim()}
-                                    >
-                                        Marquer comme transcrit
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={t.setInReview}
-                                        disabled={!workingVersion || t.loading || workingVersion?.status !== "TRANSCRIBED"}
-                                    >
-                                        Marquer en relecture
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => t.openSourceDiffPicker()}
-                                        disabled={dashboard.filter((d) => !!d.latestVersionId).length < 2}
-                                    >
-                                        Comparer deux sources
-                                    </Button>
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => t.openMetadata()}
-                                        disabled={t.loading || !t.activeSourceId}
-                                        className="gap-2"
-                                        title="Voir / modifier les métadonnées de la transcription"
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                        Finaliser
-                                    </Button>
-                                </div>
-                                <div className="mt-2 text-xs text-slate-500">
-                                    Save = nouvelle version liée à la source active, avec report best-effort des ancres (OK / À revoir / Orpheline).
                                 </div>
                             </div>
                         </div>
@@ -1157,13 +1232,36 @@ export default function TranscriptionTab({ acteId }: Props) {
                                     <Button variant="outline" onClick={t.cancelSetReference} disabled={t.loading}>
                                         Annuler
                                     </Button>
-                                    <Button
-                                        onClick={t.confirmSetReference}
-                                        disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
-                                    >
-                                        Définir comme référence
-                                    </Button>
+
+                                    {t.referenceMode === "edit" ? (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                onClick={t.clearCurrentReference}
+                                                disabled={t.loading || !t.referenceTargetSourceId}
+                                                className="gap-2"
+                                                title="Retirer la référence"
+                                            >
+                                                Retirer la référence
+                                            </Button>
+
+                                            <Button
+                                                onClick={t.saveReferenceEdits}
+                                                disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
+                                            >
+                                                Enregistrer
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Button
+                                            onClick={t.confirmSetReference}
+                                            disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
+                                        >
+                                            Définir comme référence
+                                        </Button>
+                                    )}
                                 </div>
+
                             </div>
                         ) : (
                             <div className="text-sm text-slate-600">

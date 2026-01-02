@@ -127,8 +127,7 @@ export default function RegistreLayout() {
                 <button
                   key={label}
                   onClick={() => setActiveSection(label)}
-                  className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${
-                    activeSection === label
+                  className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
                       ? 'border-blue-600 text-blue-600 font-medium'
                       : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
                     }`}
@@ -397,16 +396,16 @@ function DataTableActes({
         </div>
       )}
       <div className='flex items-center justify-end gap-4'>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={() => handleAddActe}
-                      className='text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1'
-                    >
-                      <Plus className='w-4 h-4' />
-                      Ajouter un acte
-                    </Button>
-                  </div>
+        <Button
+          variant='ghost'
+          size='sm'
+          onClick={handleAddActe}
+          className='text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1'
+        >
+          <Plus className='w-4 h-4' />
+          Ajouter un acte
+        </Button>
+      </div>
       <DataTable
         data={[...toutesLignes].sort((a, b) => {
           // 1) Groupes : normal (0) / doublons (1) / sans numéro (2)
