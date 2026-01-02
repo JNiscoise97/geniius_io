@@ -54,7 +54,30 @@ type ActeCitationRow = {
   page_raw: string | null;
   acte_manquant: boolean;
   note: string | null;
+
   sort_order: number;
+
+  document_form: string | null;
+  document_form_details: string | null;
+
+  physical_condition: string | null;
+  damage_kinds: any; // jsonb (array)
+  damage_notes: string | null;
+
+  repro_quality: string | null;
+  repro_issues: any; // jsonb (array)
+  repro_notes: string | null;
+
+  missing_ranges: any; // jsonb (array)
+
+  marginal_mentions_present: boolean | null;
+  marginal_mentions_count: number | null;
+
+  signatures_present: boolean | null;
+  signatures_count: number | null;
+
+  marginal_crossouts_present: boolean | null;
+  marginal_crossouts_count: number | null;
 };
 
 type FormState = {
@@ -75,8 +98,6 @@ type FormState = {
 
   // legacy (à supprimer plus tard)
   comparution_observations: string;
-
-  mentions_marginales_presentes: boolean;
 
   auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
@@ -108,6 +129,28 @@ function emptyCitation(): ActeCitationDraft {
     acte_manquant: false,
     note: '',
     sort_order: 0,
+
+    document_form: null,
+    document_form_details: '',
+
+    physical_condition: null,
+    damage_kinds: [],
+    damage_notes: '',
+
+    repro_quality: null,
+    repro_issues: [],
+    repro_notes: '',
+
+    missing_ranges: [],
+
+    marginal_mentions_present: false,
+    marginal_mentions_count: null,
+
+    signatures_present: false,
+    signatures_count: null,
+
+    marginal_crossouts_present: false,
+    marginal_crossouts_count: null,
   };
 }
 
@@ -127,6 +170,32 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     acte_manquant: Boolean(r?.acte_manquant),
     note: r?.note ?? '',
     sort_order: typeof r?.sort_order === 'number' ? r!.sort_order : 0,
+
+    document_form: r?.document_form ?? null,
+    document_form_details: r?.document_form_details ?? '',
+
+    physical_condition: r?.physical_condition ?? null,
+    damage_kinds: Array.isArray(r?.damage_kinds) ? (r!.damage_kinds as any[]).filter(Boolean) : [],
+    damage_notes: r?.damage_notes ?? '',
+
+    repro_quality: r?.repro_quality ?? null,
+    repro_issues: Array.isArray(r?.repro_issues) ? (r!.repro_issues as any[]).filter(Boolean) : [],
+    repro_notes: r?.repro_notes ?? '',
+
+    missing_ranges: Array.isArray(r?.missing_ranges)
+      ? (r!.missing_ranges as any[]).filter(Boolean)
+      : [],
+
+    marginal_mentions_present: Boolean(r?.marginal_mentions_present),
+    marginal_mentions_count:
+      typeof r?.marginal_mentions_count === 'number' ? r!.marginal_mentions_count : null,
+
+    signatures_present: Boolean(r?.signatures_present),
+    signatures_count: typeof r?.signatures_count === 'number' ? r!.signatures_count : null,
+
+    marginal_crossouts_present: Boolean(r?.marginal_crossouts_present),
+    marginal_crossouts_count:
+      typeof r?.marginal_crossouts_count === 'number' ? r!.marginal_crossouts_count : null,
   };
 }
 
@@ -159,8 +228,6 @@ export default function ReferenceArchiveTab({
 
       // legacy
       comparution_observations: (acte as any).comparution_observations ?? '',
-
-      mentions_marginales_presentes: Boolean((acte as any).mentions_marginales_presentes),
 
       auteur_fonction: (acte as any).auteur_fonction ?? '',
       auteur_institutionnel_ref: tai?.id ? { ids: [tai.id], labels: [tai.label ?? ''] } : null,
@@ -216,11 +283,14 @@ export default function ReferenceArchiveTab({
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order',
+          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order,' +
+            'document_form, document_form_details, physical_condition, damage_kinds, damage_notes, repro_quality, repro_issues, repro_notes, missing_ranges,' +
+            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .returns<ActeCitationRow[]>();
 
       if (cancelled) return;
 
@@ -231,7 +301,7 @@ export default function ReferenceArchiveTab({
         return;
       }
 
-      const rows = (data ?? []) as ActeCitationRow[];
+      const rows = data ?? [];
       const drafts = rows.map((r) => normalizeCitationRow(r));
 
       // si aucune citation -> 1 ligne vide
@@ -415,6 +485,32 @@ export default function ReferenceArchiveTab({
           note: (c.note ?? '').trim() || null,
 
           sort_order: idx,
+
+          document_form: c.document_form ?? null,
+          document_form_details: (c.document_form_details ?? '').trim() || null,
+
+          physical_condition: c.physical_condition ?? null,
+          damage_kinds: Array.isArray(c.damage_kinds) ? c.damage_kinds : [],
+          damage_notes: (c.damage_notes ?? '').trim() || null,
+
+          repro_quality: c.repro_quality ?? null,
+          repro_issues: Array.isArray(c.repro_issues) ? c.repro_issues : [],
+          repro_notes: (c.repro_notes ?? '').trim() || null,
+
+          missing_ranges: Array.isArray(c.missing_ranges) ? c.missing_ranges : [],
+
+          marginal_mentions_present: Boolean(c.marginal_mentions_present),
+          marginal_mentions_count: c.marginal_mentions_present
+            ? (c.marginal_mentions_count ?? null)
+            : null,
+
+          signatures_present: Boolean(c.signatures_present),
+          signatures_count: c.signatures_present ? (c.signatures_count ?? null) : null,
+
+          marginal_crossouts_present: Boolean(c.marginal_crossouts_present),
+          marginal_crossouts_count: c.marginal_crossouts_present
+            ? (c.marginal_crossouts_count ?? null)
+            : null,
         };
 
         return c.id ? { id: c.id, ...base } : base;
@@ -472,8 +568,6 @@ export default function ReferenceArchiveTab({
       // legacy
       comparution_observations:
         form.lieu_situation === 'transporte' ? form.comparution_observations || null : null,
-
-      mentions_marginales_presentes: Boolean(form.mentions_marginales_presentes),
 
       auteur_fonction: form.auteur_fonction || null,
       auteur_institutionnel_ref: form.auteur_institutionnel_ref?.ids?.[0] ?? null,
@@ -596,7 +690,7 @@ export default function ReferenceArchiveTab({
                     'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
                     labelLocked
                       ? 'border-slate-200 bg-white hover:bg-slate-50'
-                      : 'border-amber-200 bg-amber-50 hover:bg-amber-100',
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
                   ].join(' ')}
                   title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
                   aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
@@ -604,7 +698,7 @@ export default function ReferenceArchiveTab({
                   {labelLocked ? (
                     <Lock className='h-4 w-4 text-slate-700' />
                   ) : (
-                    <Unlock className='h-4 w-4 text-amber-800' />
+                    <Unlock className='h-4 w-4 text-slate-800' />
                   )}
                 </button>
               </div>
@@ -627,7 +721,7 @@ export default function ReferenceArchiveTab({
         <SectionIdentification
           id={acteId}
           form={form}
-          mode="acte"
+          mode='acte'
           setField={setField}
           onEditBureauEnregistrement={() => {
             setBureauArgs({
@@ -794,7 +888,8 @@ export default function ReferenceArchiveTab({
 
         {/* SOURCES */}
         <SectionSources
-          mode="acte"
+          mode='acte'
+          registreId={(acte as any).registre_id ?? null}
           sources={sources}
           loading={loadingSources}
           onAdd={addSource}
@@ -828,29 +923,6 @@ export default function ReferenceArchiveTab({
 
           <p className='mt-2 text-xs text-slate-500'>
             Le nom de l’officiant est rattaché aux acteurs (niveau “entités/acteurs”), pas à l’acte.
-          </p>
-        </section>
-
-        {/* MENTIONS */}
-        <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-          <h3 className='text-sm font-semibold text-slate-900'>Mentions marginales</h3>
-
-          <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
-            <div className='md:col-span-4'>
-              <label className='inline-flex items-center gap-2 text-sm text-slate-700'>
-                <input
-                  type='checkbox'
-                  checked={form.mentions_marginales_presentes}
-                  onChange={(e) => setField('mentions_marginales_presentes', e.target.checked)}
-                  className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
-                />
-                Présence de mentions marginales
-              </label>
-            </div>
-          </div>
-
-          <p className='mt-2 text-xs text-slate-500'>
-            Le contenu des mentions marginales se trouve dans l'onglet dédié.
           </p>
         </section>
 

@@ -74,6 +74,30 @@ export type ActeCitationDraft = CitationDraftBase & {
   page_raw?: string;
 
   acte_manquant?: boolean;
+
+  document_form?: string | null;
+  document_form_details?: string | null;
+
+  physical_condition?: string | null;
+  damage_kinds?: string[]; // jsonb array in DB
+  damage_notes?: string | null;
+
+  repro_quality?: string | null;
+  repro_issues?: string[]; // jsonb array in DB
+  repro_notes?: string | null;
+
+  missing_ranges?: any[]; // jsonb array in DB (structured ranges)
+
+  marginal_mentions_present?: boolean | null;
+  marginal_mentions_count?: number | null;
+
+  signatures_present?: boolean | null;
+  signatures_count?: number | null;
+
+  // Mots rayés indiqués en marge (à distinguer des rayures dans le texte)
+  marginal_crossouts_present?: boolean | null;
+  marginal_crossouts_count?: number | null;
+
 };
 
 export type RegistreCitationDraft = CitationDraftBase & {

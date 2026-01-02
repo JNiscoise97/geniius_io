@@ -1,3 +1,5 @@
+//ReferenceSourcesCard.tsx
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type {
@@ -6,12 +8,15 @@ import type {
   ManifestationPick,
 } from '@/features/archives/reference/types';
 import { Plus } from 'lucide-react';
+import { ManifestationPickerDialog } from './ManifestationPickerDialog';
 
 type SectionMode = 'acte' | 'registre';
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 
 type SectionSourcesProps = {
   mode: SectionMode;
+
+  registreId?: string | null;
 
   sources: AnyDraft[];
   loading: boolean;
@@ -22,6 +27,7 @@ type SectionSourcesProps = {
 
 export function SectionSources({
   mode,
+  registreId,
   sources,
   loading,
   onAdd,
@@ -83,6 +89,29 @@ export function SectionSources({
     const n = Number(t);
     if (!Number.isFinite(n)) return null;
     return Math.trunc(n);
+  };
+
+  const splitCsvToList = (v: string) => {
+    return (v ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  };
+
+  const joinListToCsv = (arr: any) => {
+    if (!Array.isArray(arr)) return '';
+    return arr.filter(Boolean).join(', ');
+  };
+
+  const safeParseJsonArray = (text: string) => {
+    const t = (text ?? '').trim();
+    if (!t) return [];
+    try {
+      const parsed = JSON.parse(t);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return null; // invalid json
+    }
   };
 
   const patchActe = (idx: number, patch: Partial<ActeCitationDraft>) => onChange(idx, patch);
@@ -245,6 +274,10 @@ export function SectionSources({
 
     return Array.from(map.values()).sort((a, b) => a.unite_titre.localeCompare(b.unite_titre));
   }, [pickRows]);
+
+  const alreadyPickedManifestationIds = useMemo(() => {
+    return sources.map((s) => s.manifestation_id).filter(Boolean) as string[];
+  }, [sources]);
 
   const pick = (row: ManifestationPick) => {
     if (pickerTargetIdx == null) return;
@@ -581,98 +614,445 @@ export function SectionSources({
 
                         return (
                           <>
-                            <div className='md:col-span-6'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Vues (structuré)
-                              </label>
-                              <div className='mt-1 flex items-center gap-2'>
-                                <input
-                                  inputMode='numeric'
-                                  value={a.vues_start ?? ''}
-                                  onChange={(e) =>
-                                    patchActe(idx, { vues_start: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='début'
-                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                />
-                                <span className='text-sm text-slate-500'>→</span>
-                                <input
-                                  inputMode='numeric'
-                                  value={a.vues_end ?? ''}
-                                  onChange={(e) =>
-                                    patchActe(idx, { vues_end: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='fin'
-                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                />
-                                <span className='text-xs text-slate-600'>
-                                  {formatRangeLabel(
-                                    a.vues_start ?? null,
-                                    a.vues_end ?? null,
-                                    'vue',
-                                  ) || '—'}
-                                </span>
+                            {/* Pagination consultée */}
+                            <div className='md:col-span-12'>
+                              <div className='rounded-xl border border-slate-200 bg-slate-50 p-4'>
+                                <div className='text-sm font-semibold text-slate-900'>
+                                  Pagination consultée
+                                </div>
+                                <p className='mt-1 text-xs text-slate-600'>
+                                  Renseigne soit la pagination structurée (début/fin), soit une
+                                  saisie brute si la logique est particulière (folios, images,
+                                  etc.).
+                                </p>
+
+                                <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                                  {/* Vues structuré */}
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Vues (structuré)
+                                    </label>
+                                    <div className='mt-1 flex items-center gap-2'>
+                                      <input
+                                        inputMode='numeric'
+                                        value={a.vues_start ?? ''}
+                                        onChange={(e) =>
+                                          patchActe(idx, {
+                                            vues_start: toIntOrNull(e.target.value),
+                                          })
+                                        }
+                                        placeholder='début'
+                                        className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                      />
+                                      <span className='text-sm text-slate-500'>→</span>
+                                      <input
+                                        inputMode='numeric'
+                                        value={a.vues_end ?? ''}
+                                        onChange={(e) =>
+                                          patchActe(idx, { vues_end: toIntOrNull(e.target.value) })
+                                        }
+                                        placeholder='fin'
+                                        className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                      />
+                                      <span className='text-xs text-slate-600'>
+                                        {formatRangeLabel(
+                                          a.vues_start ?? null,
+                                          a.vues_end ?? null,
+                                          'vue',
+                                        ) || '—'}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Vues brut */}
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Vues (brut)
+                                    </label>
+                                    <input
+                                      type='text'
+                                      value={a.vues_raw ?? ''}
+                                      onChange={(e) => patchActe(idx, { vues_raw: e.target.value })}
+                                      placeholder='ex : 101-102 / vue 101 / images 3 à 4'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  {/* Pages structuré */}
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Pages (structuré)
+                                    </label>
+                                    <div className='mt-1 flex items-center gap-2'>
+                                      <input
+                                        inputMode='numeric'
+                                        value={a.page_start ?? ''}
+                                        onChange={(e) =>
+                                          patchActe(idx, {
+                                            page_start: toIntOrNull(e.target.value),
+                                          })
+                                        }
+                                        placeholder='début'
+                                        className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                      />
+                                      <span className='text-sm text-slate-500'>→</span>
+                                      <input
+                                        inputMode='numeric'
+                                        value={a.page_end ?? ''}
+                                        onChange={(e) =>
+                                          patchActe(idx, { page_end: toIntOrNull(e.target.value) })
+                                        }
+                                        placeholder='fin'
+                                        className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                      />
+                                      <span className='text-xs text-slate-600'>
+                                        {formatRangeLabel(
+                                          a.page_start ?? null,
+                                          a.page_end ?? null,
+                                          'page',
+                                        ) || '—'}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Pages brut */}
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Pages (brut)
+                                    </label>
+                                    <input
+                                      type='text'
+                                      value={a.page_raw ?? ''}
+                                      onChange={(e) => patchActe(idx, { page_raw: e.target.value })}
+                                      placeholder='ex : p. 12-13 / folio 8r-8v'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Qualité / état du document */}
+                            <div className='md:col-span-12'>
+                              <div className='rounded-xl border border-slate-200 bg-slate-50 p-4'>
+                                <div className='text-sm font-semibold text-slate-900'>
+                                  Qualité / état du document
+                                </div>
+                                <p className='mt-1 text-xs text-slate-600'>
+                                  Décris la nature (copie/extrait…), l’état matériel
+                                  (trous/déchirures…) et la qualité de reproduction (flou/cadrage…).
+                                </p>
+
+                                <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                                  <div className='md:col-span-4'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Nature du document
+                                    </label>
+                                    <select
+                                      value={a.document_form ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, { document_form: e.target.value || null })
+                                      }
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    >
+                                      <option value=''>—</option>
+                                      <option value='original'>Original</option>
+                                      <option value='copie'>Copie</option>
+                                      <option value='extrait'>Extrait</option>
+                                      <option value='expedition'>Expédition</option>
+                                      <option value='transcription_secondaire'>
+                                        Transcription secondaire
+                                      </option>
+                                      <option value='autre'>Autre</option>
+                                    </select>
+                                  </div>
+
+                                  <div className='md:col-span-8'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Détails (nature)
+                                    </label>
+                                    <input
+                                      type='text'
+                                      value={a.document_form_details ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, { document_form_details: e.target.value })
+                                      }
+                                      placeholder='ex: copie envoyée ailleurs ; duplicata ; extrait pour dossier…'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  <div className='md:col-span-4'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      État matériel
+                                    </label>
+                                    <select
+                                      value={a.physical_condition ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          physical_condition: e.target.value || null,
+                                        })
+                                      }
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    >
+                                      <option value=''>—</option>
+                                      <option value='intact'>Intact</option>
+                                      <option value='fragile'>Fragile</option>
+                                      <option value='damaged'>Abîmé</option>
+                                      <option value='heavily_damaged'>Très abîmé</option>
+                                    </select>
+                                  </div>
+
+                                  <div className='md:col-span-8'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Dommages (liste, séparée par des virgules)
+                                    </label>
+                                    <input
+                                      type='text'
+                                      value={joinListToCsv(a.damage_kinds)}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          damage_kinds: splitCsvToList(e.target.value),
+                                        })
+                                      }
+                                      placeholder='ex: holes, torn, stains, faded, water_damage…'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  <div className='md:col-span-12'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Notes (dommages)
+                                    </label>
+                                    <textarea
+                                      value={a.damage_notes ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, { damage_notes: e.target.value })
+                                      }
+                                      placeholder='ex: trou au centre qui masque les âges ; marge gauche déchirée…'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  <div className='md:col-span-4'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Qualité de reproduction
+                                    </label>
+                                    <select
+                                      value={a.repro_quality ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, { repro_quality: e.target.value || null })
+                                      }
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    >
+                                      <option value=''>—</option>
+                                      <option value='excellent'>Excellent</option>
+                                      <option value='good'>Bon</option>
+                                      <option value='ok'>OK</option>
+                                      <option value='poor'>Mauvais</option>
+                                      <option value='unusable'>Inutilisable</option>
+                                    </select>
+                                  </div>
+
+                                  <div className='md:col-span-8'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Défauts de repro (liste, séparée par des virgules)
+                                    </label>
+                                    <input
+                                      type='text'
+                                      value={joinListToCsv(a.repro_issues)}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          repro_issues: splitCsvToList(e.target.value),
+                                        })
+                                      }
+                                      placeholder='ex: blur, cropped, low_resolution, skewed…'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  <div className='md:col-span-12'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Notes (reproduction)
+                                    </label>
+                                    <textarea
+                                      value={a.repro_notes ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, { repro_notes: e.target.value })
+                                      }
+                                      placeholder='ex: cadrage coupe la marge ; flou sur signatures ; contraste trop fort…'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                    />
+                                  </div>
+
+                                  <div className='md:col-span-12'>
+                                    <div className='flex items-center justify-between gap-3'>
+                                      <label className='block text-xs font-medium text-slate-700'>
+                                        Plages manquantes (JSON array)
+                                      </label>
+                                      <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700'>
+                                        optionnel
+                                      </span>
+                                    </div>
+
+                                    {/* Edition en JSON pour commencer (simple et robuste) */}
+                                    <textarea
+                                      value={JSON.stringify(a.missing_ranges ?? [], null, 2)}
+                                      onChange={(e) => {
+                                        const parsed = safeParseJsonArray(e.target.value);
+                                        // parsed === null => JSON invalide -> on ne met pas à jour
+                                        if (parsed !== null)
+                                          patchActe(idx, { missing_ranges: parsed });
+                                      }}
+                                      placeholder='ex: [{"type":"vues","from":12,"to":14,"kind":"missing","reason":"cropped"}]'
+                                      className='mt-1 w-full font-mono rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm outline-none focus:border-slate-400'
+                                      rows={6}
+                                    />
+                                    <p className='mt-1 text-[11px] text-slate-600'>
+                                      Astuce : si le JSON est invalide, la valeur n’est pas
+                                      appliquée (pour éviter de casser la sauvegarde).
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
-                            <div className='md:col-span-6'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Vues (brut)
-                              </label>
-                              <input
-                                type='text'
-                                value={a.vues_raw ?? ''}
-                                onChange={(e) => patchActe(idx, { vues_raw: e.target.value })}
-                                placeholder='ex : 101-102 / vue 101 / images 3 à 4'
-                                className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                              />
-                            </div>
+                            {/* Marques / signes sur l’acte */}
+                            <div className='md:col-span-12'>
+                              <div className='rounded-xl border border-slate-200 bg-slate-50 p-4'>
+                                <div className='text-sm font-semibold text-slate-900'>
+                                  Marques & signes
+                                </div>
+                                <p className='mt-1 text-xs text-slate-600'>
+                                  Informations rapides sur ce que tu observes sur la page : mentions
+                                  marginales, signatures, marques en marge.
+                                </p>
 
-                            <div className='md:col-span-6'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Pages (structuré)
-                              </label>
-                              <div className='mt-1 flex items-center gap-2'>
-                                <input
-                                  inputMode='numeric'
-                                  value={a.page_start ?? ''}
-                                  onChange={(e) =>
-                                    patchActe(idx, { page_start: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='début'
-                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                />
-                                <span className='text-sm text-slate-500'>→</span>
-                                <input
-                                  inputMode='numeric'
-                                  value={a.page_end ?? ''}
-                                  onChange={(e) =>
-                                    patchActe(idx, { page_end: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='fin'
-                                  className='w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                />
-                                <span className='text-xs text-slate-600'>
-                                  {formatRangeLabel(
-                                    a.page_start ?? null,
-                                    a.page_end ?? null,
-                                    'page',
-                                  ) || '—'}
-                                </span>
+                                <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                                  {/* Mentions marginales (sur la page) */}
+                                  <div className='md:col-span-6'>
+                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
+                                      <input
+                                        type='checkbox'
+                                        checked={Boolean(a.marginal_mentions_present)}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          patchActe(idx, {
+                                            marginal_mentions_present: checked,
+                                            marginal_mentions_count: checked
+                                              ? (a.marginal_mentions_count ?? null)
+                                              : null,
+                                          });
+                                        }}
+                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
+                                      />
+                                      Mentions marginales présentes
+                                    </label>
+                                  </div>
+
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Nombre de mentions marginales
+                                    </label>
+                                    <input
+                                      inputMode='numeric'
+                                      value={a.marginal_mentions_count ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          marginal_mentions_count: toIntOrNull(e.target.value),
+                                        } as any)
+                                      }
+                                      disabled={!Boolean(a.marginal_mentions_present)}
+                                      placeholder='ex: 3'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 disabled:bg-slate-100 disabled:text-slate-500'
+                                    />
+                                  </div>
+
+                                  {/* Signatures */}
+                                  <div className='md:col-span-6'>
+                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
+                                      <input
+                                        type='checkbox'
+                                        checked={Boolean(a.signatures_present)}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          patchActe(idx, {
+                                            signatures_present: checked,
+                                            signatures_count: checked
+                                              ? (a.signatures_count ?? null)
+                                              : null,
+                                          } as any);
+                                        }}
+                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
+                                      />
+                                      Signatures présentes
+                                    </label>
+                                  </div>
+
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Nombre de signatures
+                                    </label>
+                                    <input
+                                      inputMode='numeric'
+                                      value={a.signatures_count ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          signatures_count: toIntOrNull(e.target.value),
+                                        } as any)
+                                      }
+                                      disabled={!Boolean(a.signatures_present)}
+                                      placeholder='ex: 3'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 disabled:bg-slate-100 disabled:text-slate-500'
+                                    />
+                                  </div>
+
+                                  {/* Mots rayés indiqués en marge */}
+                                  <div className='md:col-span-6'>
+                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
+                                      <input
+                                        type='checkbox'
+                                        checked={Boolean(a.marginal_crossouts_present)}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          patchActe(idx, {
+                                            marginal_crossouts_present: checked,
+                                            marginal_crossouts_count: checked
+                                              ? (a.marginal_crossouts_count ?? null)
+                                              : null,
+                                          } as any);
+                                        }}
+                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
+                                      />
+                                      Mots rayés indiqués en marge
+                                    </label>
+
+                                    {/* NOTE : à distinguer des rayures dans le texte */}
+                                    <p className='mt-1 text-[11px] text-slate-600'>
+                                      {/* À distinguer des rayures incluses dans le texte (corrections dans le corps de l’acte). */}
+                                      À distinguer des rayures incluses dans le texte (corrections
+                                      dans le corps de l’acte).
+                                    </p>
+                                  </div>
+
+                                  <div className='md:col-span-6'>
+                                    <label className='block text-xs font-medium text-slate-700'>
+                                      Nombre (en marge)
+                                    </label>
+                                    <input
+                                      inputMode='numeric'
+                                      value={a.marginal_crossouts_count ?? ''}
+                                      onChange={(e) =>
+                                        patchActe(idx, {
+                                          marginal_crossouts_count: toIntOrNull(e.target.value),
+                                        } as any)
+                                      }
+                                      disabled={!Boolean(a.marginal_crossouts_present)}
+                                      placeholder='ex: 1'
+                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 disabled:bg-slate-100 disabled:text-slate-500'
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-
-                            <div className='md:col-span-6'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Pages (brut)
-                              </label>
-                              <input
-                                type='text'
-                                value={a.page_raw ?? ''}
-                                onChange={(e) => patchActe(idx, { page_raw: e.target.value })}
-                                placeholder='ex : p. 12-13 / folio 8r-8v'
-                                className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                              />
                             </div>
                           </>
                         );
@@ -694,148 +1074,21 @@ export function SectionSources({
           })}
       </div>
 
-      {pickerOpen && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4'>
-          <div className='w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl'>
-            <div className='border-b border-slate-200 bg-slate-50 p-4'>
-              <div className='flex items-start justify-between gap-3'>
-                <div>
-                  <div className='text-sm font-semibold text-slate-900'>
-                    Choisir un registre / une manifestation
-                  </div>
-                  <div className='mt-1 text-xs text-slate-600'>
-                    Recherche par titre, cote, institution (ANOM / AD971…), dépôt…
-                  </div>
-                </div>
-                <button
-                  type='button'
-                  onClick={closePicker}
-                  className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
-                >
-                  Fermer
-                </button>
-              </div>
-
-              <div className='mt-3 space-y-2'>
-                <div className='grid grid-cols-12 gap-2'>
-                  <div className='col-span-12'>
-                    <input
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      placeholder='ex: Deshaies 1859 mariages / CAOM EC / ANOM…'
-                      className='w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                    />
-                  </div>
-                </div>
-
-                <div className='flex justify-end'>
-                  <label className='inline-flex w-fit items-center gap-2 text-sm text-slate-700'>
-                    <input
-                      type='checkbox'
-                      checked={onlyOnline}
-                      onChange={(e) => setOnlyOnline(e.target.checked)}
-                      className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
-                    />
-                    En ligne uniquement
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className='max-h-[70vh] overflow-auto p-4'>
-              {pickLoading && <div className='text-sm text-slate-600'>Recherche…</div>}
-              {pickError && (
-                <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
-                  {pickError}
-                  <div className='mt-1 text-xs text-red-700'>
-                    Astuce : crée la vue <span className='font-mono'>v_manifestations_pick</span>.
-                  </div>
-                </div>
-              )}
-
-              {!pickLoading && !pickError && pickRows.length === 0 && (
-                <div className='text-sm text-slate-600'>Aucun résultat.</div>
-              )}
-
-              {!pickLoading && !pickError && pickRows.length > 0 && (
-                <div className='space-y-2'>
-                  {groupedByUnite.map((g) => {
-                    const online =
-                      g.depot_type === 'en_ligne' ||
-                      Boolean((g.numerisation?.url_base ?? '').trim());
-
-                    return (
-                      <div
-                        key={g.unite_id}
-                        className='w-full rounded-xl border border-slate-200 bg-white p-3 text-left'
-                      >
-                        <div className='flex flex-wrap items-center gap-2'>
-                          <span className='text-sm font-semibold text-slate-900'>
-                            {g.unite_titre}
-                          </span>
-
-                          {g.institution_sigle && (
-                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                              {g.institution_sigle}
-                            </span>
-                          )}
-
-                          {online ? (
-                            <span className='rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800'>
-                              En ligne
-                            </span>
-                          ) : (
-                            <span className='rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800'>
-                              Sur place
-                            </span>
-                          )}
-
-                          {g.pagination_type && (
-                            <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                              pagination: {g.pagination_type}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className='mt-1 text-xs text-slate-600'>
-                          {g.institution_nom} · {g.depot_nom}
-                          {g.unite_cote ? ` · ${g.unite_cote}` : ''}
-                        </div>
-
-                        <div className='mt-3 flex flex-wrap gap-2'>
-                          <button
-                            type='button'
-                            disabled={!g.original}
-                            onClick={() => g.original && pick(g.original)}
-                            className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            Original
-                          </button>
-
-                          <button
-                            type='button'
-                            disabled={!g.numerisation}
-                            onClick={() => g.numerisation && pick(g.numerisation)}
-                            className='rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            Numérisation
-                          </button>
-
-                          {g.numerisation?.url_base ? (
-                            <span className='text-[11px] text-slate-500 self-center'>
-                              URL: <span className='font-mono'>{g.numerisation.url_base}</span>
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <ManifestationPickerDialog
+        open={pickerOpen}
+        onOpenChange={(v) => {
+          setPickerOpen(v);
+          if (!v) closePicker();
+        }}
+        mode='acte'
+        registreId={mode === 'acte' ? (registreId ?? null) : null}
+        excludeManifestationIds={alreadyPickedManifestationIds}
+        onlyOnline={onlyOnline}
+        setOnlyOnline={setOnlyOnline}
+        q={q}
+        setQ={setQ}
+        onPick={(row) => pick(row)}
+      />
     </section>
   );
 }

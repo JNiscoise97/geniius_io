@@ -26,8 +26,6 @@ export type ActeReferenceIdentificationFormState = {
   // legacy (à supprimer plus tard)
   comparution_observations: string;
 
-  mentions_marginales_presentes: boolean;
-
   auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 };
