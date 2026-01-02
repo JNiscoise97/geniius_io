@@ -463,13 +463,26 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             variant="outline"
                                             size="sm"
                                             className="h-8 px-2 text-xs gap-2"
-                                            onClick={() => t.insertToken("[barré]")}
+                                            onClick={t.wrapStrike}
                                             disabled={textareaDisabled || !workingVersion || t.loading}
-                                            title="Insérer le token [barré]"
+                                            title="Barrer (~...~)"
                                         >
                                             <Strikethrough className="w-4 h-4" />
                                             Barré
                                         </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.wrapBold}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                            title="Mettre en gras (*...*)"
+                                        >
+                                            <span className="font-bold text-xs">G</span>
+                                            Gras
+                                        </Button>
+
                                     </div>
 
                                     {/* Droite : actions */}
@@ -1443,63 +1456,63 @@ export default function TranscriptionTab({ acteId }: Props) {
                 </SheetContent>
             </Sheet>
             <Dialog open={t.illisibleOpen} onOpenChange={t.setIllisibleOpen}>
-  <DialogContent className="sm:max-w-[520px]">
-    <DialogHeader>
-      <DialogTitle>Insérer une zone illisible</DialogTitle>
-    </DialogHeader>
+                <DialogContent className="sm:max-w-[520px]">
+                    <DialogHeader>
+                        <DialogTitle>Insérer une zone illisible</DialogTitle>
+                    </DialogHeader>
 
-    <div className="grid grid-cols-3 gap-3">
-      <div>
-        <div className="text-xs font-medium text-slate-700">x · caractères</div>
-        <Input
-          className="mt-1"
-          type="number"
-          min={0}
-          value={t.illisibleX}
-          onChange={(e) => t.setIllisibleX(Number(e.target.value))}
-        />
-      </div>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div>
+                            <div className="text-xs font-medium text-slate-700">x · caractères</div>
+                            <Input
+                                className="mt-1"
+                                type="number"
+                                min={0}
+                                value={t.illisibleX}
+                                onChange={(e) => t.setIllisibleX(Number(e.target.value))}
+                            />
+                        </div>
 
-      <div>
-        <div className="text-xs font-medium text-slate-700">y · mots</div>
-        <Input
-          className="mt-1"
-          type="number"
-          min={0}
-          value={t.illisibleY}
-          onChange={(e) => t.setIllisibleY(Number(e.target.value))}
-        />
-      </div>
+                        <div>
+                            <div className="text-xs font-medium text-slate-700">y · mots</div>
+                            <Input
+                                className="mt-1"
+                                type="number"
+                                min={0}
+                                value={t.illisibleY}
+                                onChange={(e) => t.setIllisibleY(Number(e.target.value))}
+                            />
+                        </div>
 
-      <div>
-        <div className="text-xs font-medium text-slate-700">z · lignes</div>
-        <Input
-          className="mt-1"
-          type="number"
-          min={0}
-          value={t.illisibleZ}
-          onChange={(e) => t.setIllisibleZ(Number(e.target.value))}
-        />
-      </div>
-    </div>
+                        <div>
+                            <div className="text-xs font-medium text-slate-700">z · lignes</div>
+                            <Input
+                                className="mt-1"
+                                type="number"
+                                min={0}
+                                value={t.illisibleZ}
+                                onChange={(e) => t.setIllisibleZ(Number(e.target.value))}
+                            />
+                        </div>
+                    </div>
 
-    <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700">
-      Token inséré :{" "}
-      <span className="font-mono">
-        [ILLISIBLE_CARACTERE{t.illisibleX}_MOT{t.illisibleY}_LIGNE{t.illisibleZ}]
-      </span>
-    </div>
+                    <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700">
+                        Token inséré :{" "}
+                        <span className="font-mono">
+                            [ILLISIBLE_CARACTERE{t.illisibleX}_MOT{t.illisibleY}_LIGNE{t.illisibleZ}]
+                        </span>
+                    </div>
 
-    <DialogFooter className="mt-3 flex items-center justify-end gap-2">
-      <Button variant="outline" onClick={() => t.setIllisibleOpen(false)}>
-        Annuler
-      </Button>
-      <Button onClick={t.confirmInsertIllisible}>
-        Insérer
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+                    <DialogFooter className="mt-3 flex items-center justify-end gap-2">
+                        <Button variant="outline" onClick={() => t.setIllisibleOpen(false)}>
+                            Annuler
+                        </Button>
+                        <Button onClick={t.confirmInsertIllisible}>
+                            Insérer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
         </div>
     );

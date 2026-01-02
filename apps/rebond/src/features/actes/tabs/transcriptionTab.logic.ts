@@ -1206,6 +1206,75 @@ export function useTranscriptionTab({ acteId }: Props) {
         toast("Saut de page inséré", { icon: "📄" });
     };
 
+    function getSelectionFromTextarea() {
+        const ta = textareaRef.current;
+        if (!ta) {
+            const len = (editorValue ?? "").length;
+            return { start: len, end: len };
+        }
+        const start = ta.selectionStart ?? (editorValue ?? "").length;
+        const end = ta.selectionEnd ?? start;
+        return { start, end };
+    }
+
+    /**
+     * Wrap la sélection avec left/right.
+     * - Si sélection vide: insère left+right et place le curseur au milieu.
+     * - Si sélection non vide: entoure le texte sélectionné.
+     */
+    function wrapSelection(left: string, right = left) {
+        const ta = textareaRef.current;
+        const sel = getSelectionFromTextarea();
+
+        const raw = editorValue ?? "";
+        const start = sel.start;
+        const end = sel.end;
+
+        // (optionnel mais recommandé) : si on est dans un token illisible, avertir
+        if (!confirmIfIllisibleMayBreak({ start, end })) return;
+
+        if (start === end) {
+            const insert = left + right;
+            const next = insertAtSelection(raw, start, end, insert);
+            onChangeEditor(next);
+
+            requestAnimationFrame(() => {
+                try {
+                    ta?.focus();
+                    const pos = start + left.length;
+                    ta?.setSelectionRange(pos, pos);
+                } catch { }
+            });
+            return;
+        }
+
+        const selected = raw.slice(start, end);
+        const next = raw.slice(0, start) + left + selected + right + raw.slice(end);
+        onChangeEditor(next);
+
+        requestAnimationFrame(() => {
+            try {
+                ta?.focus();
+                // on garde la sélection sur le texte initial
+                const newStart = start + left.length;
+                const newEnd = end + left.length;
+                ta?.setSelectionRange(newStart, newEnd);
+            } catch { }
+        });
+    }
+
+    function wrapStrike() {
+        // ⚠️ Tu avais défini ta convention comme ~texte~
+        // Si tu veux vraiment ~~texte~~, remplace "~" par "~~" ci-dessous.
+        wrapSelection("~");
+    }
+
+    function wrapBold() {
+        // convention demandée : *texte*
+        wrapSelection("*");
+    }
+
+
     function insertAtCursor(text: string) {
         const ta = textareaRef.current;
         if (!ta) {
@@ -1952,6 +2021,9 @@ export function useTranscriptionTab({ acteId }: Props) {
         illisibleZ, setIllisibleZ,
         openIllisibleDialog,
         confirmInsertIllisible,
+        wrapStrike,
+        wrapBold,
+
 
         setInReview,
         markAsTranscribed,
