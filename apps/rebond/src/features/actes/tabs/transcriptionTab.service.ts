@@ -306,20 +306,62 @@ export function normalizeSpaces(s: string) {
 export type RenderBlock =
   | { kind: "section"; label: string; text: string }
   | { kind: "page_break" }
-  | { kind: "paragraph"; text: string };
+  | { kind: "paragraph"; label: string; text: string };
+
+function pushParagraphs(blocks: RenderBlock[], text: string, label = "Texte") {
+  const paras = (text ?? "")
+    .split(/\n{2,}/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  for (const p of paras) blocks.push({ kind: "paragraph", label, text: p });
+}
+
+function renumberRepeatedSectionLabels(blocks: RenderBlock[]) {
+  // Compte occurrences des sections par label
+  const counts = new Map<string, number>();
+  for (const b of blocks) {
+    if (b.kind === "section") {
+      counts.set(b.label, (counts.get(b.label) ?? 0) + 1);
+    }
+  }
+
+  // Pour chaque label qui apparaît >1 fois, renomme en "Label i/n"
+  const seen = new Map<string, number>();
+  return blocks.map((b) => {
+    if (b.kind !== "section") return b;
+
+    const total = counts.get(b.label) ?? 1;
+    if (total <= 1) return b;
+
+    const cur = (seen.get(b.label) ?? 0) + 1;
+    seen.set(b.label, cur);
+
+    return { ...b, label: `${b.label} ${cur}/${total}` };
+  });
+}
 
 export function splitIntoReadableBlocks(raw: string): RenderBlock[] {
-  const parts = raw.split(PAGE_BREAK_TOKEN);
+  const parts = (raw ?? "").split(PAGE_BREAK_TOKEN);
   const blocks: RenderBlock[] = [];
 
+  // Labels que l’on autorise à “continuer” après un saut de page
+  // (tu peux élargir ensuite si besoin)
+  const CONTINUABLE = new Set(["Comparants", "Témoins", "Signatures"]);
+
+  // Si une page se termine par une section continuable,
+  // on garde son label pour rattacher le début de la page suivante.
+  let carryLabel: string | null = null;
+
   parts.forEach((part, idx) => {
-    const t = part;
+    const t = part ?? "";
 
     const markers: Array<{ label: string; re: RegExp }> = [
       { label: "En-tête", re: /\bAujourd['’]hui\b/i },
       { label: "Comparants", re: /\bPar devant Nous\b|\bPar devant nous\b/i },
-      { label: "Témoins", re: /\ben présence\b|\bprésence\b/i },
+      { label: "Témoins", re: /\ben présence\b/i },
       { label: "Signatures", re: /\bet lecture faite\b|\bnous l['’]avons signé\b/i },
+      { label: "Bas de page", re: /\bPour copie conforme\b/i },
     ];
 
     const hits: Array<{ idx: number; label: string }> = [];
@@ -331,25 +373,59 @@ export function splitIntoReadableBlocks(raw: string): RenderBlock[] {
     hits.sort((a, b) => a.idx - b.idx);
 
     if (hits.length === 0) {
-      const paras = t
-        .split(/\n{2,}/)
-        .map((x) => x.trim())
-        .filter(Boolean);
-      for (const p of paras) blocks.push({ kind: "paragraph", text: p });
+      const whole = t.trim();
+      if (whole) {
+        if (carryLabel) {
+          // ✅ page entière rattachée à la section précédente (ex: Comparants continue)
+          blocks.push({ kind: "section", label: carryLabel, text: whole });
+        } else {
+          // sinon paragraphes “Texte”
+          pushParagraphs(blocks, whole, "Texte");
+        }
+      }
+      // carryLabel reste inchangé si page vide, sinon on l’annule (car pas de nouveau repère fiable)
+      carryLabel = null;
     } else {
+      // ✅ contenu AVANT le premier marqueur
+      const pre = t.slice(0, hits[0].idx).trim();
+      if (pre) {
+        if (carryLabel) {
+          // ✅ on considère que c’est la suite de la section précédente
+          blocks.push({ kind: "section", label: carryLabel, text: pre });
+        } else {
+          pushParagraphs(blocks, pre, "Texte");
+        }
+      }
+
+      // sections à partir des marqueurs
       for (let i = 0; i < hits.length; i++) {
         const start = hits[i].idx;
         const end = i + 1 < hits.length ? hits[i + 1].idx : t.length;
         const chunk = t.slice(start, end).trim();
         if (chunk) blocks.push({ kind: "section", label: hits[i].label, text: chunk });
       }
+
+      // déterminer le prochain carryLabel (dernier bloc section continuable dans cette page)
+      let lastSectionLabel: string | null = null;
+      for (let j = blocks.length - 1; j >= 0; j--) {
+        const b = blocks[j];
+        if (b.kind === "section") {
+          lastSectionLabel = b.label;
+          break;
+        }
+        if (b.kind === "page_break") break; // sécurité : ne remonte pas avant la page précédente
+      }
+      carryLabel = lastSectionLabel && CONTINUABLE.has(lastSectionLabel) ? lastSectionLabel : null;
     }
 
     if (idx < parts.length - 1) blocks.push({ kind: "page_break" });
   });
 
-  return blocks;
+  // ✅ renumérote Comparants / Témoins / etc s’ils apparaissent en plusieurs blocs
+  return renumberRepeatedSectionLabels(blocks);
 }
+
+
 
 // -------------------- Repérages --------------------
 

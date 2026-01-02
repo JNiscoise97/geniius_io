@@ -60,7 +60,7 @@ export default function EtatCivilList() {
         title="Bureaux d'état civil"
         data={bureaux}
         columns={columns}
-        pageSize={20}
+        pageSize={15}
         search={filter}
         onSearchChange={setFilter}
         defaultSort={["nom"]}

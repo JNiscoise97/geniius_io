@@ -8,18 +8,11 @@
 // - Report annotations/notes/tags sur nouvelle version (best effort) -> géré dans logic/service
 
 import React, { useMemo, useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -457,10 +450,12 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                     );
                                                 }
                                                 return (
-                                                    <div key={`p-${idx}`} className="whitespace-pre-wrap">
-                                                        {b.text}
+                                                    <div key={`p-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                                        <div className="text-xs font-semibold text-slate-700">{(b as any).label ?? "Texte"}</div>
+                                                        <div className="mt-1 whitespace-pre-wrap text-slate-900">{b.text}</div>
                                                     </div>
                                                 );
+
                                             })}
                                         </div>
                                     )}
@@ -828,11 +823,11 @@ export default function TranscriptionTab({ acteId }: Props) {
                 </div>
             </div>
 
-            <Dialog open={t.referenceDialogOpen} onOpenChange={t.setReferenceDialogOpen}>
-                <DialogContent className="sm:max-w-[520px]">
-                    <DialogHeader>
-                        <DialogTitle>Définir la source de référence</DialogTitle>
-                    </DialogHeader>
+            <Sheet open={t.referenceDialogOpen} onOpenChange={t.setReferenceDialogOpen}>
+                <SheetContent className="sm:max-w-[520px]">
+                    <SheetHeader>
+                        <SheetTitle>Définir la source de référence</SheetTitle>
+                    </SheetHeader>
 
                     <div className="space-y-3">
                         <div>
@@ -865,7 +860,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                         </div>
                     </div>
 
-                    <DialogFooter>
+                    <SheetFooter>
                         <Button type="button" variant='ghost' disabled={t.loading}>
                             Annuler
                         </Button>
@@ -876,9 +871,9 @@ export default function TranscriptionTab({ acteId }: Props) {
                             disabled={t.loading || !t.referenceTargetSourceId}>
                             Définir comme référence
                         </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
 
 
             {/* Sheet */}

@@ -430,19 +430,6 @@ export default function ActeEdit() {
               </p>
               <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à préserver le contenu brut et à suivre les versions de transcription et leur validation.</span></p>
             </div>
-
-            <div className="p-4">
-              <p className="text-sm leading-relaxed bg-orange-300">
-                Contenu textuel fidèle au document
-                <ul>
-                  <li>Texte original des mentions marginales (si transcrit)</li>
-                  <li>Signalement des parties illisibles/lacunes/barrés</li>
-                  <li>Langue et système d’écriture observé</li>
-                  <li>Nom du transcripteur principal (si toi ou un tiers)</li>
-                  <li>Date(s) de transcription</li>
-                </ul>
-              </p>
-            </div>
             
             <div className='p-4'>
                 <TranscriptionTab acteId={acteId!} />
