@@ -235,6 +235,113 @@ export type TranscriptionRow = {
 
 
 export const PAGE_BREAK_TOKEN = "[SAUT_DE_PAGE]";
+// -------------------- Inline formatting (read mode) --------------------
+// Conventions:
+// - *texte* => bold
+// - ~texte~ => strikethrough
+// - [ILLISIBLE_CARACTERE{x}_MOT{y}_LIGNE{z}] => illisible badge
+
+export const ILLISIBLE_TOKEN_RE =
+  /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]/g;
+
+// "suspect" = commence comme un token illisible mais pas forcément valide (token cassé)
+export const ILLISIBLE_SUSPECT_RE =
+  /\[ILLISIBLE[^\]\n]*\]?/g;
+
+export type InlineToken =
+  | { kind: "text"; text: string }
+  | { kind: "bold"; text: string }
+  | { kind: "strike"; text: string }
+  | { kind: "illisible"; raw: string; x: number; y: number; z: number };
+
+const INLINE_RE =
+  /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]|\*([^*\n]+)\*|~([^~\n]+)~/g;
+
+/**
+ * Tokenize a string into InlineToken[]
+ * - non-greedy, line-safe (*...* and ~...~ do not cross newlines)
+ * - illisible token is strict (must match exact format)
+ */
+export function tokenizeInline(raw: string): InlineToken[] {
+  const s = raw ?? "";
+  const out: InlineToken[] = [];
+
+  let last = 0;
+  for (const m of s.matchAll(INLINE_RE)) {
+    const idx = m.index ?? 0;
+
+    if (idx > last) out.push({ kind: "text", text: s.slice(last, idx) });
+
+    // 1) illisible
+    if (m[1] != null && m[2] != null && m[3] != null) {
+      const x = Number(m[1]);
+      const y = Number(m[2]);
+      const z = Number(m[3]);
+      out.push({ kind: "illisible", raw: m[0], x, y, z });
+      last = idx + m[0].length;
+      continue;
+    }
+
+    // 2) bold
+    if (m[4] != null) {
+      out.push({ kind: "bold", text: m[4] });
+      last = idx + m[0].length;
+      continue;
+    }
+
+    // 3) strike
+    if (m[5] != null) {
+      out.push({ kind: "strike", text: m[5] });
+      last = idx + m[0].length;
+      continue;
+    }
+
+    // fallback
+    out.push({ kind: "text", text: m[0] });
+    last = idx + m[0].length;
+  }
+
+  if (last < s.length) out.push({ kind: "text", text: s.slice(last) });
+  return out;
+}
+
+export type TextRange = { start: number; end: number; text: string };
+
+export function findIllisibleValidRanges(raw: string): TextRange[] {
+  const s = raw ?? "";
+  const ranges: TextRange[] = [];
+  for (const m of s.matchAll(ILLISIBLE_TOKEN_RE)) {
+    const idx = m.index ?? 0;
+    ranges.push({ start: idx, end: idx + m[0].length, text: m[0] });
+  }
+  return ranges;
+}
+
+export function findIllisibleSuspectRanges(raw: string): TextRange[] {
+  const s = raw ?? "";
+  const ranges: TextRange[] = [];
+  for (const m of s.matchAll(ILLISIBLE_SUSPECT_RE)) {
+    const idx = m.index ?? 0;
+    ranges.push({ start: idx, end: idx + m[0].length, text: m[0] });
+  }
+  return ranges;
+}
+
+export function rangesOverlap(a: { start: number; end: number }, b: { start: number; end: number }) {
+  return a.start < b.end && b.start < a.end;
+}
+
+export function isInsideAnyRange(sel: { start: number; end: number }, ranges: TextRange[]) {
+  return ranges.some((r) => rangesOverlap(sel, r));
+}
+
+export function buildIllisibleToken(x: number, y: number, z: number) {
+  const nx = Math.max(0, Math.floor(Number.isFinite(x) ? x : 0));
+  const ny = Math.max(0, Math.floor(Number.isFinite(y) ? y : 0));
+  const nz = Math.max(0, Math.floor(Number.isFinite(z) ? z : 0));
+  return `[ILLISIBLE_CARACTERE${nx}_MOT${ny}_LIGNE${nz}]`;
+}
+
 
 export function computeVersionStatusFromContent(args: {
   content: string;

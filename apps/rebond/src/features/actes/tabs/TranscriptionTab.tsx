@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 
 import {
@@ -32,6 +33,10 @@ import {
     Lock,
     Unlock,
     ChevronDown,
+    AlignLeft,
+    HelpCircle,
+    LayoutGrid,
+    Strikethrough,
 } from "lucide-react";
 
 import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from "./transcriptionTab.ui";
@@ -41,6 +46,7 @@ import {
     normalizeSpaces,
     splitIntoReadableBlocks,
     detectActeReperages,
+    tokenizeInline,
 } from "./transcriptionTab.service";
 
 import { useTranscriptionTab } from "./transcriptionTab.logic";
@@ -71,6 +77,8 @@ export default function TranscriptionTab({ acteId }: Props) {
     const annotations = t.annotations;
     const notes = t.notes;
     const tags = t.tags;
+
+    const [readGrouped, setReadGrouped] = useState(true); // lecture: blocs vs brut
 
     const onMouseDownDivider = (e: React.MouseEvent) => t.split.onMouseDownDivider(e);
 
@@ -230,11 +238,13 @@ export default function TranscriptionTab({ acteId }: Props) {
 
     const textareaDisabled =
         step === 1 ||
-        (!t.isEditableStatus && textareaLocked);
+        (!t.isEditableStatus && textareaLocked) ||
+        t.dirtyState === "saving";
+
 
     function sourcesLabel(count: number) {
-        if (count <= 2) return (count -1) + " source";
-        return (count -1) + " sources";
+        if (count <= 2) return (count - 1) + " source";
+        return (count - 1) + " sources";
     }
 
 
@@ -311,101 +321,256 @@ export default function TranscriptionTab({ acteId }: Props) {
                 {/* Left: editor */}
                 <div className="pr-2">
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className="text-sm font-semibold text-slate-900">Texte</div>
+                        <div className="flex flex-col gap-2">
+                            {/* Ligne 1 */}
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {/* Toggle edit/read */}
+                                    <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => t.setTextMode("edit")}
+                                            className={[
+                                                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                                                t.textMode === "edit" ? "bg-white shadow-sm text-slate-900" : "text-slate-600",
+                                            ].join(" ")}
+                                        >
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            Édition
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => t.setTextMode("read")}
+                                            className={[
+                                                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                                                t.textMode === "read" ? "bg-white shadow-sm text-slate-900" : "text-slate-600",
+                                            ].join(" ")}
+                                        >
+                                            <Eye className="h-3.5 w-3.5" />
+                                            Lecture
+                                        </button>
+                                    </div>
 
-                                {/* mode edit/read */}
-                                <div className="ml-2 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => t.setTextMode("edit")}
-                                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs ${t.textMode === "edit" ? "bg-white shadow-sm text-slate-900" : "text-slate-600"
-                                            }`}
-                                    >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        Édition
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => t.setTextMode("read")}
-                                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs ${t.textMode === "read" ? "bg-white shadow-sm text-slate-900" : "text-slate-600"
-                                            }`}
-                                    >
-                                        <Eye className="h-3.5 w-3.5" />
-                                        Lecture
-                                    </button>
+                                    {/* Status */}
+                                    <StatusPill statut={(workingVersion?.status as any) || "TO_TRANSCRIBE"} />
+
+                                    {/* Lock uniquement si finalisé + mode edit */}
+                                    {!t.isEditableStatus && t.textMode === "edit" && step !== 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setTextareaLocked((v) => !v)}
+                                            className={[
+                                                "inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm",
+                                                textareaLocked
+                                                    ? "border-slate-200 bg-white hover:bg-slate-50"
+                                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100",
+                                            ].join(" ")}
+                                            title={
+                                                textareaLocked
+                                                    ? "Déverrouiller l’édition (attention : version finalisée)"
+                                                    : "Verrouiller l’édition"
+                                            }
+                                        >
+                                            {textareaLocked ? (
+                                                <Lock className="h-4 w-4 text-slate-700" />
+                                            ) : (
+                                                <Unlock className="h-4 w-4 text-slate-800" />
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
 
-                                {!t.isEditableStatus && t.textMode === "edit" && step !== 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setTextareaLocked((v) => !v)}
-                                        className={[
-                                            'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
-                                            textareaLocked
-                                                ? 'border-slate-200 bg-white hover:bg-slate-50'
-                                                : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
-                                        ].join(' ')}
-                                        title={
-                                            textareaLocked
-                                                ? "Déverrouiller l’édition (attention : version finalisée)"
-                                                : "Verrouiller l’édition"
-                                        }
-                                    >
-                                        {textareaLocked ? (
-                                            <Lock className="h-4 w-4 text-slate-700" />
-                                        ) : (
-                                            <Unlock className="h-4 w-4 text-slate-800" />
-                                        )}
-                                    </button>
-                                )}
 
+                                <div className="flex items-center gap-2 min-w-0">
+                                    {t.textMode === "edit" ? (
+                                        <>
+                                            <span className="text-xs text-slate-500">
+                                                {t.dirtyLabel || ""}
+                                            </span>
 
-                                {activeSourceRow ? (
-                                    <div className="shrink-0 flex flex-col items-end gap-2">
-                                        {activeSourceRow.isPreferred && <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                t.togglePreferred(activeSourceRow.id);
-                                            }}
-                                            title={activeSourceRow.isPreferred ? "Transcription de référence" : "Définir comme référence"}
-                                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+                                            {activeSourceRow?.isPreferred ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        t.togglePreferred(activeSourceRow.id);
+                                                    }}
+                                                    title="Transcription de référence (modifier / retirer)"
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+                                                >
+                                                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                                </button>
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-xs text-slate-600">
+                                                {workingVersion?.status == "TRANSCRIBED" ? "Marqué comme transcrit" : "Dernière modification"} le :{" "}
+                                                <span className="font-medium">
+                                                    {workingVersion?.updated_at
+                                                        ? new Date(workingVersion.updated_at).toLocaleString()
+                                                        : "—"}
+                                                </span>
+                                            </span>
+
+                                            {activeSourceRow?.isPreferred ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        t.togglePreferred(activeSourceRow.id);
+                                                    }}
+                                                    title="Transcription de référence (modifier / retirer)"
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white hover:bg-slate-50"
+                                                >
+                                                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                                </button>
+                                            ) : null}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Ligne 2 */}
+                            {t.textMode === "edit" ? (
+                                <div className="flex items-center justify-between gap-2">
+                                    {/* Gauche : tokens */}
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.insertPageBreak}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
                                         >
-                                            <Star
-                                                className={[
-                                                    "h-4 w-4 transition-colors",
-                                                    activeSourceRow.isPreferred ? "text-amber-500 fill-amber-500" : "text-slate-400 hover:text-amber-500",
-                                                ].join(" ")}
-                                            />
-                                        </button>}
+                                            <SeparatorHorizontal className="w-4 h-4" />
+                                            Saut de page
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openIllisibleDialog}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                            title="Insérer le token [illisible]"
+                                        >
+                                            <HelpCircle className="w-4 h-4" />
+                                            Illisible
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={() => t.insertToken("[barré]")}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                            title="Insérer le token [barré]"
+                                        >
+                                            <Strikethrough className="w-4 h-4" />
+                                            Barré
+                                        </Button>
                                     </div>
-                                ) : null}
 
-                                <StatusPill statut={(workingVersion?.status as any) || "TO_TRANSCRIBE"} />
+                                    {/* Droite : actions */}
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openAddAnnotation}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                        >
+                                            <Plus className="w-4 h-4" /> Annotation
+                                        </Button>
 
-                            </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openAddNote}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                        >
+                                            <Plus className="w-4 h-4" /> Note
+                                        </Button>
 
-                            <div className="flex items-center gap-2 shrink-0">
-                                <Button variant="outline" onClick={t.openAddAnnotation} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
-                                    <Plus className="w-4 h-4" /> Annotation
-                                </Button>
-                                <Button variant="outline" onClick={t.openAddNote} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
-                                    <Plus className="w-4 h-4" /> Note
-                                </Button>
-                                <Button variant="outline" onClick={t.openTagPassage} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
-                                    <Tags className="w-4 h-4" />
-                                    Tag
-                                </Button>
-                                {t.textMode === "edit" && (
-                                    <Button variant="outline" onClick={t.insertPageBreak} disabled={textareaDisabled || !workingVersion || t.loading} className="gap-2">
-                                        <SeparatorHorizontal className="w-4 h-4" />
-                                        Saut de page
-                                    </Button>
-                                )}
-                            </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openTagPassage}
+                                            disabled={textareaDisabled || !workingVersion || t.loading}
+                                        >
+                                            <Tags className="w-4 h-4" /> Tags
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between gap-2">
+                                    {/* Gauche : annotation/note/tags */}
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openAddAnnotation}
+                                            disabled={!workingVersion || t.loading}
+                                        >
+                                            <Plus className="w-4 h-4" /> Annotation
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openAddNote}
+                                            disabled={!workingVersion || t.loading}
+                                        >
+                                            <Plus className="w-4 h-4" /> Note
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 px-2 text-xs gap-2"
+                                            onClick={t.openTagPassage}
+                                            disabled={!workingVersion || t.loading}
+                                        >
+                                            <Tags className="w-4 h-4" /> Tags
+                                        </Button>
+                                    </div>
+
+                                    {/* Droite : groupage par bloc */}
+                                    <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setReadGrouped(true)}
+                                            className={[
+                                                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                                                readGrouped ? "bg-white shadow-sm text-slate-900" : "text-slate-600",
+                                            ].join(" ")}
+                                            title="Afficher par blocs"
+                                        >
+                                            <LayoutGrid className="h-3.5 w-3.5" />
+                                            Blocs
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setReadGrouped(false)}
+                                            className={[
+                                                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                                                !readGrouped ? "bg-white shadow-sm text-slate-900" : "text-slate-600",
+                                            ].join(" ")}
+                                            title="Afficher en texte brut"
+                                        >
+                                            <AlignLeft className="h-3.5 w-3.5" />
+                                            Brut
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
 
                         <div className="mt-3">
                             {t.textMode === "edit" ? (
@@ -425,15 +590,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 : "border-slate-200 bg-white text-slate-900 focus:border-slate-400",
                                         ].join(" ")}
                                     />
-                                    {textareaDisabled ? (
-                                        <div className="mt-2 text-xs text-slate-500">
-                                            Sélectionne une source pour commencer.
-                                        </div>
-                                    ) : null}
-                                    <div className="mt-3">
+                                    <div className="mt-3 w-fit">
                                         <Button
                                             onClick={t.saveNewVersionForActiveSource}
-                                            disabled={t.loading || step !== 3 || !t.isDirty}
+                                            disabled={t.loading || step !== 3 || t.dirtyState !== "editing"}
                                             className="w-full gap-2"
                                             title="Enregistrer : crée une nouvelle version"
                                         >
@@ -452,14 +612,12 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 <span>Sélectionnez un passage pour créer une annotation / tag ancré.</span>
                                             )}
                                         </div>
-                                        {t.isDirty ? <span className="text-yellow-700">Modifs non enregistrées</span> : <span>—</span>}
+
                                     </div>
                                 </>
                             ) : (
                                 <div className="min-h-[520px] w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm leading-relaxed text-slate-900 shadow-sm">
-                                    {readableBlocks.length === 0 ? (
-                                        <div className="text-slate-600">—</div>
-                                    ) : (
+                                    {readGrouped ? (
                                         <div className="space-y-3">
                                             {readableBlocks.map((b, idx) => {
                                                 if (b.kind === "page_break") {
@@ -477,19 +635,30 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                     return (
                                                         <div key={`sec-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                                             <div className="text-xs font-semibold text-slate-700">{b.label}</div>
-                                                            <div className="mt-1 whitespace-pre-wrap text-slate-900">{b.text}</div>
+                                                            <div className="mt-1 whitespace-pre-wrap text-slate-900">
+                                                                <RichText text={b.text} />
+                                                            </div>
+
                                                         </div>
                                                     );
                                                 }
                                                 return (
                                                     <div key={`p-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                                         <div className="text-xs font-semibold text-slate-700">{(b as any).label ?? "Texte"}</div>
-                                                        <div className="mt-1 whitespace-pre-wrap text-slate-900">{b.text}</div>
+                                                        <div className="mt-1 whitespace-pre-wrap text-slate-900">
+                                                            <RichText text={b.text} />
+                                                        </div>
+
                                                     </div>
                                                 );
 
                                             })}
                                         </div>
+                                    ) : (
+                                        <div className="whitespace-pre-wrap text-slate-900">
+                                            <RichText text={t.editorValue?.trim() ? t.editorValue : ""} />
+                                        </div>
+
                                     )}
                                 </div>
                             )}
@@ -688,7 +857,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                             </div>
 
                             {/* Workflow shortcuts */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            {step !== 1 && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="text-sm font-semibold text-slate-900">Workflow</div>
                                 <div className="mt-3 flex flex-wrap gap-2">
                                     <Button
@@ -731,10 +900,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                 <div className="mt-2 text-xs text-slate-500">
                                     Save = nouvelle version liée à la source active, avec report best-effort des ancres (OK / À revoir / Orpheline).
                                 </div>
-                            </div>
+                            </div>}
 
                             {/* Repérages */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            {step !== 1 && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm font-semibold text-slate-900">Repérages</div>
                                     <Badge variant="secondary">heuristique</Badge>
@@ -754,10 +923,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                         <div className="mt-2 text-xs text-slate-500">Repérages visuels : rien n’est créé automatiquement.</div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>}
 
                             {/* Tags */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            {step !== 1 && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm font-semibold text-slate-900">Tags</div>
                                     <Badge variant="secondary">{tags.length}</Badge>
@@ -793,10 +962,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </div>}
 
                             {/* Annotations */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            {step !== 1 && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm font-semibold text-slate-900">Annotations</div>
                                     <Badge variant="secondary">{annotations.length}</Badge>
@@ -850,10 +1019,10 @@ export default function TranscriptionTab({ acteId }: Props) {
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </div>}
 
                             {/* Notes */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                            {step !== 1 && <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm font-semibold text-slate-900">Notes</div>
                                     <Badge variant="secondary">{notes.filter((n) => !n.content?.startsWith("[META]")).length}</Badge>
@@ -892,7 +1061,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             </div>
                                         ))}
                                 </div>
-                            </div>
+                            </div>}
                         </div>
                     </div>
                 </div>
@@ -1273,6 +1442,65 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                 </SheetContent>
             </Sheet>
+            <Dialog open={t.illisibleOpen} onOpenChange={t.setIllisibleOpen}>
+  <DialogContent className="sm:max-w-[520px]">
+    <DialogHeader>
+      <DialogTitle>Insérer une zone illisible</DialogTitle>
+    </DialogHeader>
+
+    <div className="grid grid-cols-3 gap-3">
+      <div>
+        <div className="text-xs font-medium text-slate-700">x · caractères</div>
+        <Input
+          className="mt-1"
+          type="number"
+          min={0}
+          value={t.illisibleX}
+          onChange={(e) => t.setIllisibleX(Number(e.target.value))}
+        />
+      </div>
+
+      <div>
+        <div className="text-xs font-medium text-slate-700">y · mots</div>
+        <Input
+          className="mt-1"
+          type="number"
+          min={0}
+          value={t.illisibleY}
+          onChange={(e) => t.setIllisibleY(Number(e.target.value))}
+        />
+      </div>
+
+      <div>
+        <div className="text-xs font-medium text-slate-700">z · lignes</div>
+        <Input
+          className="mt-1"
+          type="number"
+          min={0}
+          value={t.illisibleZ}
+          onChange={(e) => t.setIllisibleZ(Number(e.target.value))}
+        />
+      </div>
+    </div>
+
+    <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700">
+      Token inséré :{" "}
+      <span className="font-mono">
+        [ILLISIBLE_CARACTERE{t.illisibleX}_MOT{t.illisibleY}_LIGNE{t.illisibleZ}]
+      </span>
+    </div>
+
+    <DialogFooter className="mt-3 flex items-center justify-end gap-2">
+      <Button variant="outline" onClick={() => t.setIllisibleOpen(false)}>
+        Annuler
+      </Button>
+      <Button onClick={t.confirmInsertIllisible}>
+        Insérer
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
         </div>
     );
 }
@@ -1308,4 +1536,31 @@ function MiniHitRow({
             )}
         </div>
     )
+}
+
+function RichText({ text }: { text: string }) {
+    const tokens = React.useMemo(() => tokenizeInline(text ?? ""), [text]);
+
+    return (
+        <span>
+            {tokens.map((t, i) => {
+                if (t.kind === "text") return <React.Fragment key={i}>{t.text}</React.Fragment>;
+                if (t.kind === "bold") return <strong key={i}>{t.text}</strong>;
+                if (t.kind === "strike") return <s key={i}>{t.text}</s>;
+                if (t.kind === "illisible") {
+                    const label = `illisible · ${t.x} car. · ${t.y} mot(s) · ${t.z} ligne(s)`;
+                    return (
+                        <span
+                            key={i}
+                            title={t.raw}
+                            className="mx-0.5 inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-900"
+                        >
+                            {label}
+                        </span>
+                    );
+                }
+                return null;
+            })}
+        </span>
+    );
 }

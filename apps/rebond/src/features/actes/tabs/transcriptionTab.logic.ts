@@ -48,12 +48,32 @@ import {
     loadVersionEvents,
     setVersionStatus,
     logVersionEvent,
+    findIllisibleSuspectRanges,
+    findIllisibleValidRanges,
+    isInsideAnyRange,
+    buildIllisibleToken,
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
 type SheetMode = "annotation" | "note" | "metadata" | "compare" | "tag" | "reference";
 
 type Props = { acteId: string };
+
+type DirtyState = "clean" | "editing" | "saving" | "saved";
+
+function dirtyLabel(state: DirtyState) {
+    switch (state) {
+        case "editing":
+            return "Modifications non enregistrées";
+        case "saving":
+            return "Enregistrement…";
+        case "saved":
+            return "Enregistré";
+        default:
+            return "";
+    }
+}
+
 
 type SplitState = { leftPct: number };
 const SPLIT_LS_KEY = "rebond.transcription.split";
@@ -277,7 +297,31 @@ export function useTranscriptionTab({ acteId }: Props) {
     // Editor
     // -----------------------------
     const [editorValue, setEditorValue] = useState("");
-    const [isDirty, setIsDirty] = useState(false);
+    const [dirtyState, setDirtyState] = useState<DirtyState>("clean");
+    const savedFlashTimerRef = useRef<number | null>(null);
+
+    const [illisibleOpen, setIllisibleOpen] = useState(false);
+    const [illisibleX, setIllisibleX] = useState<number>(0);
+    const [illisibleY, setIllisibleY] = useState<number>(0);
+    const [illisibleZ, setIllisibleZ] = useState<number>(0);
+
+
+    function clearSavedFlashTimer() {
+        if (savedFlashTimerRef.current !== null) {
+            window.clearTimeout(savedFlashTimerRef.current);
+            savedFlashTimerRef.current = null;
+        }
+    }
+
+    // flash "saved" 1.2s puis retourne à clean (ou editing si l'utilisateur a retapé entre temps)
+    function flashSavedThenClean() {
+        clearSavedFlashTimer();
+        setDirtyState("saved");
+        savedFlashTimerRef.current = window.setTimeout(() => {
+            setDirtyState((prev) => (prev === "saved" ? "clean" : prev));
+        }, 1200);
+    }
+
     const [textMode, setTextMode] = useState<"edit" | "read">("edit");
 
     // Children
@@ -351,7 +395,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         best_match: "Correspond le mieux",
         other: "Autre",
     };
-    
+
 
     // parse "Label : detail" (ou "Label — detail") -> { key, detail }
     function parsePreferenceReasonStrict(reason: string | null | undefined): {
@@ -686,6 +730,13 @@ export function useTranscriptionTab({ acteId }: Props) {
         };
     }, []);
 
+    useEffect(() => {
+        return () => {
+            clearSavedFlashTimer();
+        };
+    }, []);
+
+
 
     // -----------------------------
     // Split pane (UI-only)
@@ -822,7 +873,7 @@ export function useTranscriptionTab({ acteId }: Props) {
             setNotes([]);
             setTags([]);
             setEditorValue("");
-            setIsDirty(false);
+            setDirtyState("clean");
             setSelection(null);
             setAnchorStatusOverrides({});
         };
@@ -870,7 +921,7 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         // reset editor state to that version
         setEditorValue(currentVersion.content ?? "");
-        setIsDirty(false);
+        setDirtyState("clean");
         setSelection(null);
         setTextMode(shouldDefaultToReadMode ? "read" : "edit");
         setAnchorStatusOverrides({});
@@ -1061,6 +1112,8 @@ export function useTranscriptionTab({ acteId }: Props) {
         const trimmed = (nextText ?? "").trim();
         if (!trimmed) return; // pas au 1er caractère "utile"
 
+        setDirtyState("saving");
+
         autoDraftInFlightRef.current = true;
         try {
             // crée une v1 brouillon avec le texte courant (1 char, paste, etc.)
@@ -1081,7 +1134,7 @@ export function useTranscriptionTab({ acteId }: Props) {
 
             // comme on vient de persister ce texte, on n’est pas dirty à cet instant
             setEditorValue(v1.content ?? "");
-            setIsDirty(false);
+            setDirtyState("clean");
 
             autoDraftDoneRef.current = true;
         } catch (e) {
@@ -1098,7 +1151,7 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     const onChangeEditor = (next: string) => {
         setEditorValue(next);
-        setIsDirty(true);
+        setDirtyState("editing");
 
         // ✅ Auto-brouillon : seulement après une pause de frappe (debounce)
         // Conditions de base : source active + pas encore de version pour cette source + pas déjà fait
@@ -1141,7 +1194,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         const next = insertAtSelection(editorValue, start, end, toInsert);
 
         setEditorValue(next);
-        setIsDirty(true);
+        setDirtyState("editing");
 
         requestAnimationFrame(() => {
             el.focus();
@@ -1152,6 +1205,93 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         toast("Saut de page inséré", { icon: "📄" });
     };
+
+    function insertAtCursor(text: string) {
+        const ta = textareaRef.current;
+        if (!ta) {
+            // fallback
+            onChangeEditor((editorValue ?? "") + text);
+            return;
+        }
+
+        const start = ta.selectionStart ?? (editorValue ?? "").length;
+        const end = ta.selectionEnd ?? start;
+
+        const before = (editorValue ?? "").slice(0, start);
+        const after = (editorValue ?? "").slice(end);
+
+        const next = `${before}${text}${after}`;
+        onChangeEditor(next);
+
+        // remettre le curseur après insertion
+        requestAnimationFrame(() => {
+            try {
+                ta.focus();
+                const pos = start + text.length;
+                ta.setSelectionRange(pos, pos);
+            } catch { }
+        });
+    }
+
+    function insertToken(token: string) {
+        // tu peux ajuster les espaces si tu veux un format strict
+        insertAtCursor(token);
+    }
+
+    function getCurrentSelectionOrCursor() {
+        const el = textareaRef.current;
+        const start = el?.selectionStart ?? (editorValue ?? "").length;
+        const end = el?.selectionEnd ?? start;
+        return { start, end };
+    }
+
+    function willBreakIllisibleFormatIfInsertHere(sel: { start: number; end: number }) {
+        const raw = editorValue ?? "";
+
+        // Si on est dans une zone "suspecte" [ILLISIBLE...], on avertit
+        const suspect = findIllisibleSuspectRanges(raw);
+        if (isInsideAnyRange(sel, suspect)) {
+            return true;
+        }
+
+        // Si on est dans un token valide (ex: curseur au milieu), on avertit aussi
+        const valid = findIllisibleValidRanges(raw);
+        if (isInsideAnyRange(sel, valid)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function confirmIfIllisibleMayBreak(sel: { start: number; end: number }) {
+        if (!willBreakIllisibleFormatIfInsertHere(sel)) return true;
+
+        const msg =
+            "Tu es en train d’écrire à l’intérieur d’un token [ILLISIBLE…]. " +
+            "Ça risque de casser son format et l’affichage en mode Lecture.\n\n" +
+            "Continuer quand même ?";
+        return window.confirm(msg);
+    }
+
+    function openIllisibleDialog() {
+        const sel = getCurrentSelectionOrCursor();
+        if (!confirmIfIllisibleMayBreak(sel)) return;
+
+        // defaults “sympas”
+        setIllisibleX(0);
+        setIllisibleY(1);
+        setIllisibleZ(0);
+        setIllisibleOpen(true);
+    }
+
+    function confirmInsertIllisible() {
+        const token = buildIllisibleToken(illisibleX, illisibleY, illisibleZ);
+        insertAtCursor(token);
+        setIllisibleOpen(false);
+        toast("Token illisible inséré", { icon: "🕳️" });
+    }
+
+
 
     // -----------------------------
     // Anchors auto-revalidation (debounced)
@@ -1221,7 +1361,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         // Pas de transcription liée à cette source
         setCurrentId(null);
         setEditorValue("");
-        setIsDirty(false);
+        setDirtyState("clean");
         setSelection(null);
         setAnnotations([]);
         setNotes([]);
@@ -1261,38 +1401,50 @@ export function useTranscriptionTab({ acteId }: Props) {
     const saveNewVersionForActiveSource = async () => {
         if (!activeSourceId) return;
 
-        const base = workingVersion ?? currentVersion;
-        const next = normalizeContentForCompare(editorValue ?? "");
-        const prev = normalizeContentForCompare(base?.content ?? "");
+        setDirtyState("saving");
 
-        if (!base) {
-            // cas rare: aucune version (auto-brouillon n’a pas encore eu le temps / a échoué)
+        try {
+            const base = workingVersion ?? currentVersion;
+            const next = normalizeContentForCompare(editorValue ?? "");
+            const prev = normalizeContentForCompare(base?.content ?? "");
+
+            if (!base) {
+                await createNewVersion({
+                    status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
+                    content: editorValue ?? "",
+                    transcription_kind: "travail",
+                    confidence: "low",
+                    sourceIds: [activeSourceId],
+                });
+                toast("Brouillon créé et enregistré", { icon: "📝" });
+                flashSavedThenClean();
+                return;
+            }
+
+            if (next === prev) {
+                toast("Aucun changement : nouvelle version non créée.", { icon: "🟰" });
+                setDirtyState("clean");
+                return;
+            }
+
             await createNewVersion({
                 status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
                 content: editorValue ?? "",
-                transcription_kind: "travail",
-                confidence: "low",
+                transcription_kind: base?.transcription_kind ?? null,
+                confidence: base?.confidence ?? null,
                 sourceIds: [activeSourceId],
             });
-            toast("Brouillon créé et enregistré", { icon: "📝" });
-            return;
+
+            toast("Nouvelle version enregistrée (historique conservé)", { icon: "💾" });
+            flashSavedThenClean();
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message ?? "Erreur lors de l’enregistrement");
+            // si on était en saving, on revient à editing (l’utilisateur a des modifs)
+            setDirtyState((prev) => (prev === "saving" ? "editing" : prev));
         }
-
-        if (base && next === prev) {
-            toast("Aucun changement : nouvelle version non créée.", { icon: "🟰" });
-            return;
-        }
-
-        await createNewVersion({
-            status: (editorValue ?? "").trim() ? "IN_PROGRESS" : "DRAFT",
-            content: editorValue ?? "",
-            transcription_kind: base?.transcription_kind ?? null,
-            confidence: base?.confidence ?? null,
-            sourceIds: [activeSourceId],
-        });
-
-        toast("Nouvelle version enregistrée (historique conservé)", { icon: "💾" });
     };
+
 
     // -----------------------------
     // Diff sources (bridging to compare versions)
@@ -1476,6 +1628,7 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         setLoading(true);
         try {
+            setDirtyState("saving");
             // 1) update version-level fields
             await setVersionStatus(target.id, {
                 transcription_kind: metaDraft.transcription_kind,
@@ -1527,7 +1680,7 @@ export function useTranscriptionTab({ acteId }: Props) {
             });
 
             toast.success("Métadonnées enregistrées");
-
+            flashSavedThenClean();
             // 4) refresh + reload events
             await refreshVersionsAndSelect(target.id);
 
@@ -1538,6 +1691,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         } catch (e: any) {
             console.error(e);
             toast.error(e?.message ?? "Erreur enregistrement métadonnées");
+            setDirtyState((prev) => (prev === "saving" ? "clean" : prev));
         } finally {
             setLoading(false);
         }
@@ -1736,7 +1890,8 @@ export function useTranscriptionTab({ acteId }: Props) {
 
         // editor + children
         editorValue,
-        isDirty,
+        dirtyState,
+        dirtyLabel: dirtyLabel(dirtyState),
         textMode,
         annotations,
         notes,
@@ -1789,6 +1944,14 @@ export function useTranscriptionTab({ acteId }: Props) {
         onChangeEditor,
         jumpToRange,
         insertPageBreak,
+        insertToken,
+        illisibleOpen,
+        setIllisibleOpen,
+        illisibleX, setIllisibleX,
+        illisibleY, setIllisibleY,
+        illisibleZ, setIllisibleZ,
+        openIllisibleDialog,
+        confirmInsertIllisible,
 
         setInReview,
         markAsTranscribed,
