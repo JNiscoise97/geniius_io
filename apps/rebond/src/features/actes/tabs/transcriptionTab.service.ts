@@ -1,58 +1,65 @@
 // transcriptionTab.service.ts
 
-
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
+import { getMarkersForActeType, type MarkerDef } from './transcriptionMarkers.registry';
 
 // -------------------- Supabase helpers --------------------
 
 export type SBResult<T> = { data: T | null; error: any };
 
-export function assertNoSbError<T>(res: SBResult<T>, context: string): asserts res is { data: T; error: null } {
+export function assertNoSbError<T>(
+  res: SBResult<T>,
+  context: string,
+): asserts res is { data: T; error: null } {
   if (res.error) {
     console.error(context, res.error);
-    const msg = typeof res.error?.message === "string" ? res.error.message : context;
+    const msg = typeof res.error?.message === 'string' ? res.error.message : context;
     throw new Error(msg);
   }
 }
 
 function toMsg(e: any, fallback: string) {
-  return typeof e?.message === "string" ? e.message : fallback;
+  return typeof e?.message === 'string' ? e.message : fallback;
 }
 
 // -------------------- Table names (adjust here if needed) --------------------
 
 const T = {
-  actes: "etat_civil_actes",
+  actes: 'etat_civil_actes',
 
-  transcriptions: "ec_transcriptions",
-  versions: "ec_transcription_versions",
-  events: "ec_transcription_version_events",
+  transcriptions: 'ec_transcriptions',
+  versions: 'ec_transcription_versions',
+  events: 'ec_transcription_version_events',
 
-  annotations: "ec_transcription_annotations",
-  notes: "ec_transcription_notes",
-  tags: "ec_transcription_tags",
+  annotations: 'ec_transcription_annotations',
+  notes: 'ec_transcription_notes',
+  tags: 'ec_transcription_tags',
 
-  acteurs: "etat_civil_actes_acteurs",
+  acteurs: 'etat_civil_actes_acteurs',
 } as const;
 
 // -------------------- Types --------------------
 
 export const REF_TRANSCRIPTION_STATUS_KEYS = [
-  "TO_TRANSCRIBE",
-  "DRAFT",
-  "IN_PROGRESS",
-  "TRANSCRIBED",
-  "IN_REVIEW",
-  "VALIDATED",
+  'TO_TRANSCRIBE',
+  'DRAFT',
+  'IN_PROGRESS',
+  'TRANSCRIBED',
+  'IN_REVIEW',
+  'VALIDATED',
 ] as const;
 
 export type TranscriptionStatus = (typeof REF_TRANSCRIPTION_STATUS_KEYS)[number];
 
-export type AnchorStatus = "ok" | "needs_review" | "orphaned";
+export type AnchorStatus = 'ok' | 'needs_review' | 'orphaned';
 
-export type TranscriptionKind = "diplomatique" | "semi_normalisee" | "travail";
-export type SourceLectureKind = "image_originale" | "microfilm" | "transcription_secondaire" | "autre";
-export type ConfidenceLevel = "high" | "medium" | "low";
+export type TranscriptionKind = 'diplomatique' | 'semi_normalisee' | 'travail';
+export type SourceLectureKind =
+  | 'image_originale'
+  | 'microfilm'
+  | 'transcription_secondaire'
+  | 'autre';
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
 
 export type EcActeRow = {
   id: string;
@@ -98,7 +105,7 @@ export type TranscriptionVersionSourceRow = {
 export type AnnotationRow = {
   id: string;
   transcription_version_id: string;
-  type: "doubt" | "rature" | "lacune" | "mention" | "other";
+  type: 'doubt' | 'rature' | 'lacune' | 'mention' | 'other';
   start_offset: number;
   end_offset: number;
   quote: string;
@@ -131,7 +138,7 @@ export type ActeurLightRow = {
 export type TranscriptionTagRow = {
   id: string;
   transcription_version_id: string;
-  kind: "date" | "acteur" | "lieu";
+  kind: 'date' | 'acteur' | 'lieu';
   label: string;
   start_offset: number;
   end_offset: number;
@@ -221,8 +228,8 @@ export type TranscriptionRow = {
   langue_vue: string | null;
   language_confidence: ConfidenceLevel | null;
 
-  handwriting_style: string | null;       // (enum côté DB, on garde string côté TS)
-  handwriting_legibility: string | null;  // (enum côté DB, on garde string côté TS)
+  handwriting_style: string | null; // (enum côté DB, on garde string côté TS)
+  handwriting_legibility: string | null; // (enum côté DB, on garde string côté TS)
 
   conventions_override_text: string | null;
   gabarit_id: string | null;
@@ -233,29 +240,25 @@ export type TranscriptionRow = {
   updated_by?: string | null;
 };
 
-
-export const PAGE_BREAK_TOKEN = "[SAUT_DE_PAGE]";
+export const PAGE_BREAK_TOKEN = '[SAUT_DE_PAGE]';
 // -------------------- Inline formatting (read mode) --------------------
 // Conventions:
 // - *texte* => bold
 // - ~texte~ => strikethrough
 // - [ILLISIBLE_CARACTERE{x}_MOT{y}_LIGNE{z}] => illisible badge
 
-export const ILLISIBLE_TOKEN_RE =
-  /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]/g;
+export const ILLISIBLE_TOKEN_RE = /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]/g;
 
 // "suspect" = commence comme un token illisible mais pas forcément valide (token cassé)
-export const ILLISIBLE_SUSPECT_RE =
-  /\[ILLISIBLE[^\]\n]*\]?/g;
+export const ILLISIBLE_SUSPECT_RE = /\[ILLISIBLE[^\]\n]*\]?/g;
 
 export type InlineToken =
-  | { kind: "text"; text: string }
-  | { kind: "bold"; text: string }
-  | { kind: "strike"; text: string }
-  | { kind: "illisible"; raw: string; x: number; y: number; z: number };
+  | { kind: 'text'; text: string }
+  | { kind: 'bold'; text: string }
+  | { kind: 'strike'; text: string }
+  | { kind: 'illisible'; raw: string; x: number; y: number; z: number };
 
-const INLINE_RE =
-  /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]|\*([^*\n]+)\*|~([^~\n]+)~/g;
+const INLINE_RE = /\[ILLISIBLE_CARACTERE(\d+)_MOT(\d+)_LIGNE(\d+)\]|\*([^*\n]+)\*|~([^~\n]+)~/g;
 
 /**
  * Tokenize a string into InlineToken[]
@@ -263,52 +266,52 @@ const INLINE_RE =
  * - illisible token is strict (must match exact format)
  */
 export function tokenizeInline(raw: string): InlineToken[] {
-  const s = raw ?? "";
+  const s = raw ?? '';
   const out: InlineToken[] = [];
 
   let last = 0;
   for (const m of s.matchAll(INLINE_RE)) {
     const idx = m.index ?? 0;
 
-    if (idx > last) out.push({ kind: "text", text: s.slice(last, idx) });
+    if (idx > last) out.push({ kind: 'text', text: s.slice(last, idx) });
 
     // 1) illisible
     if (m[1] != null && m[2] != null && m[3] != null) {
       const x = Number(m[1]);
       const y = Number(m[2]);
       const z = Number(m[3]);
-      out.push({ kind: "illisible", raw: m[0], x, y, z });
+      out.push({ kind: 'illisible', raw: m[0], x, y, z });
       last = idx + m[0].length;
       continue;
     }
 
     // 2) bold
     if (m[4] != null) {
-      out.push({ kind: "bold", text: m[4] });
+      out.push({ kind: 'bold', text: m[4] });
       last = idx + m[0].length;
       continue;
     }
 
     // 3) strike
     if (m[5] != null) {
-      out.push({ kind: "strike", text: m[5] });
+      out.push({ kind: 'strike', text: m[5] });
       last = idx + m[0].length;
       continue;
     }
 
     // fallback
-    out.push({ kind: "text", text: m[0] });
+    out.push({ kind: 'text', text: m[0] });
     last = idx + m[0].length;
   }
 
-  if (last < s.length) out.push({ kind: "text", text: s.slice(last) });
+  if (last < s.length) out.push({ kind: 'text', text: s.slice(last) });
   return out;
 }
 
 export type TextRange = { start: number; end: number; text: string };
 
 export function findIllisibleValidRanges(raw: string): TextRange[] {
-  const s = raw ?? "";
+  const s = raw ?? '';
   const ranges: TextRange[] = [];
   for (const m of s.matchAll(ILLISIBLE_TOKEN_RE)) {
     const idx = m.index ?? 0;
@@ -318,7 +321,7 @@ export function findIllisibleValidRanges(raw: string): TextRange[] {
 }
 
 export function findIllisibleSuspectRanges(raw: string): TextRange[] {
-  const s = raw ?? "";
+  const s = raw ?? '';
   const ranges: TextRange[] = [];
   for (const m of s.matchAll(ILLISIBLE_SUSPECT_RE)) {
     const idx = m.index ?? 0;
@@ -327,7 +330,10 @@ export function findIllisibleSuspectRanges(raw: string): TextRange[] {
   return ranges;
 }
 
-export function rangesOverlap(a: { start: number; end: number }, b: { start: number; end: number }) {
+export function rangesOverlap(
+  a: { start: number; end: number },
+  b: { start: number; end: number },
+) {
   return a.start < b.end && b.start < a.end;
 }
 
@@ -342,20 +348,19 @@ export function buildIllisibleToken(x: number, y: number, z: number) {
   return `[ILLISIBLE_CARACTERE${nx}_MOT${ny}_LIGNE${nz}]`;
 }
 
-
 export function computeVersionStatusFromContent(args: {
   content: string;
   currentStatus?: TranscriptionStatus | null;
 }): TranscriptionStatus {
-  const trimmed = (args.content ?? "").trim();
+  const trimmed = (args.content ?? '').trim();
 
   // Si déjà marqué TRANSCRIBED / IN_REVIEW / VALIDATED, on ne rétrograde pas automatiquement
   const sticky = args.currentStatus;
-  if (sticky === "TRANSCRIBED" || sticky === "IN_REVIEW" || sticky === "VALIDATED") return sticky;
+  if (sticky === 'TRANSCRIBED' || sticky === 'IN_REVIEW' || sticky === 'VALIDATED') return sticky;
 
   // Règles demandées
-  if (!trimmed) return "DRAFT";
-  return "IN_PROGRESS";
+  if (!trimmed) return 'DRAFT';
+  return 'IN_PROGRESS';
 }
 
 /**
@@ -364,17 +369,16 @@ export function computeVersionStatusFromContent(args: {
  */
 export async function syncTranscriptionStatusFromLatestVersion(args: {
   transcriptionId: string;
-  latestVersion: Pick<TranscriptionVersionRow, "status" | "content"> | null;
+  latestVersion: Pick<TranscriptionVersionRow, 'status' | 'content'> | null;
 }) {
   const nextStatus: TranscriptionStatus =
     args.latestVersion?.status ??
-    computeVersionStatusFromContent({ content: args.latestVersion?.content ?? "" }) ??
-    "TO_TRANSCRIBE";
+    computeVersionStatusFromContent({ content: args.latestVersion?.content ?? '' }) ??
+    'TO_TRANSCRIBE';
 
   await updateTranscription(args.transcriptionId, { status: nextStatus } as any);
   return nextStatus;
 }
-
 
 // -------------------- Anchors / helpers --------------------
 
@@ -393,8 +397,8 @@ export function buildLineDiff(left: string, right: string) {
   const n = Math.max(L.length, R.length);
   const rows: Array<{ i: number; left: string; right: string; same: boolean }> = [];
   for (let i = 0; i < n; i++) {
-    const a = L[i] ?? "";
-    const b = R[i] ?? "";
+    const a = L[i] ?? '';
+    const b = R[i] ?? '';
     rows.push({ i, left: a, right: b, same: a === b });
   }
   return rows;
@@ -405,30 +409,30 @@ export function insertAtSelection(text: string, start: number, end: number, inse
 }
 
 export function normalizeSpaces(s: string) {
-  return s.replace(/\s+/g, " ").trim();
+  return s.replace(/\s+/g, ' ').trim();
 }
 
 // -------------------- Read mode rendering --------------------
 
 export type RenderBlock =
-  | { kind: "section"; label: string; text: string }
-  | { kind: "page_break" }
-  | { kind: "paragraph"; label: string; text: string };
+  | { kind: 'section'; label: string; text: string }
+  | { kind: 'page_break' }
+  | { kind: 'paragraph'; label: string; text: string };
 
-function pushParagraphs(blocks: RenderBlock[], text: string, label = "Texte") {
-  const paras = (text ?? "")
+function pushParagraphs(blocks: RenderBlock[], text: string, label = 'Texte') {
+  const paras = (text ?? '')
     .split(/\n{2,}/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  for (const p of paras) blocks.push({ kind: "paragraph", label, text: p });
+  for (const p of paras) blocks.push({ kind: 'paragraph', label, text: p });
 }
 
 function renumberRepeatedSectionLabels(blocks: RenderBlock[]) {
   // Compte occurrences des sections par label
   const counts = new Map<string, number>();
   for (const b of blocks) {
-    if (b.kind === "section") {
+    if (b.kind === 'section') {
       counts.set(b.label, (counts.get(b.label) ?? 0) + 1);
     }
   }
@@ -436,7 +440,7 @@ function renumberRepeatedSectionLabels(blocks: RenderBlock[]) {
   // Pour chaque label qui apparaît >1 fois, renomme en "Label i/n"
   const seen = new Map<string, number>();
   return blocks.map((b) => {
-    if (b.kind !== "section") return b;
+    if (b.kind !== 'section') return b;
 
     const total = counts.get(b.label) ?? 1;
     if (total <= 1) return b;
@@ -448,46 +452,273 @@ function renumberRepeatedSectionLabels(blocks: RenderBlock[]) {
   });
 }
 
-export function splitIntoReadableBlocks(raw: string): RenderBlock[] {
-  const parts = (raw ?? "").split(PAGE_BREAK_TOKEN);
+function mergeTinySections(blocks: RenderBlock[], minChars = 80): RenderBlock[] {
+  const out: RenderBlock[] = [];
+
+  for (const b of blocks) {
+    if (b.kind === 'page_break') {
+      out.push(b);
+      continue;
+    }
+    if (b.kind !== 'section') {
+      out.push(b);
+      continue;
+    }
+
+    const text = (b.text ?? '').trim();
+    if (!text) continue;
+
+    const prev = out[out.length - 1];
+
+    // ✅ si micro-bloc => on le colle au bloc précédent (section), sinon on garde
+    if (text.length < minChars && prev && prev.kind === 'section') {
+      prev.text = normalizeSpaces(`${prev.text} ${text}`);
+      continue;
+    }
+
+    out.push({ ...b, text });
+  }
+
+  return out;
+}
+
+/**
+ * Empêche certains labels de se répéter (cause principale de “Époux 2/2”, “Célébration 3/3”…)
+ * Règle : si un label réapparaît, on fusionne son texte dans la section précédente.
+ */
+function squashRepeatForbiddenLabels(
+  blocks: RenderBlock[],
+  forbiddenRepeatLabels: Set<string>,
+): RenderBlock[] {
+  const out: RenderBlock[] = [];
+  const seen = new Set<string>();
+
+  for (const b of blocks) {
+    if (b.kind !== 'section') {
+      out.push(b);
+      continue;
+    }
+
+    const label = b.label;
+    const text = (b.text ?? '').trim();
+    if (!text) continue;
+
+    if (forbiddenRepeatLabels.has(label) && seen.has(label)) {
+      const prev = out[out.length - 1];
+      if (prev && prev.kind === 'section') {
+        prev.text = normalizeSpaces(`${prev.text} ${text}`);
+        continue;
+      }
+    }
+
+    out.push({ ...b, text });
+    if (forbiddenRepeatLabels.has(label)) seen.add(label);
+  }
+
+  return out;
+}
+
+type NormalizedWithMap = { norm: string; map: number[] };
+
+/**
+ * Normalisation "loose" :
+ * - lower
+ * - supprime diacritiques
+ * - remplace ponctuation/symboles par espace
+ * - collapse espaces
+ *
+ * Et on construit map[normIndex] = rawIndex (index dans texte brut).
+ */
+function normalizeWithMap(raw: string): NormalizedWithMap {
+  const s = raw ?? '';
+  const normChars: string[] = [];
+  const map: number[] = [];
+
+  let lastWasSpace = true;
+
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+
+    // 1) normalize unicode + remove diacritics
+    const decomposed = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    let c = decomposed.toLowerCase();
+
+    // 2) lettres/chiffres => keep ; sinon => space
+    if (!/[a-z0-9]/.test(c)) c = ' ';
+
+    // 3) collapse spaces
+    if (c === ' ') {
+      if (!lastWasSpace) {
+        normChars.push(' ');
+        map.push(i);
+        lastWasSpace = true;
+      }
+      continue;
+    }
+
+    normChars.push(c);
+    map.push(i);
+    lastWasSpace = false;
+  }
+
+  // trim end space
+  while (normChars.length && normChars[normChars.length - 1] === ' ') {
+    normChars.pop();
+    map.pop();
+  }
+
+  // trim start space
+  while (normChars.length && normChars[0] === ' ') {
+    normChars.shift();
+    map.shift();
+  }
+
+  return { norm: normChars.join(''), map };
+}
+
+function normalizeLoose(s: string) {
+  return normalizeWithMap(s).norm;
+}
+
+function findFirstMarkerHit(raw: string, markers: MarkerDef[]) {
+  const { norm, map } = normalizeWithMap(raw);
+
+  let best: { rawIdx: number; label: string; priority: number } | null = null;
+
+  for (const m of markers) {
+    const pri = m.priority ?? 100;
+
+    // 1) phrases (loose)
+    if (m.phrases?.length) {
+      for (const phrase of m.phrases) {
+        const p = normalizeLoose(phrase);
+        if (!p) continue;
+
+        const nIdx = norm.indexOf(p);
+        if (nIdx >= 0) {
+          const rawIdx = map[nIdx] ?? 0;
+
+          if (!best || rawIdx < best.rawIdx || (rawIdx === best.rawIdx && pri < best.priority)) {
+            best = { rawIdx, label: m.label, priority: pri };
+          }
+        }
+      }
+    }
+
+    // 2) regexRaw (fallback)
+    if (m.regexRaw) {
+      try {
+        const re = new RegExp(m.regexRaw, 'iu');
+        const match = re.exec(raw);
+        if (match && match.index != null) {
+          const rawIdx = match.index;
+
+          if (!best || rawIdx < best.rawIdx || (rawIdx === best.rawIdx && pri < best.priority)) {
+            best = { rawIdx, label: m.label, priority: pri };
+          }
+        }
+      } catch {
+        // ignore invalid regex
+      }
+    }
+  }
+
+  return best; // {rawIdx,label,...} or null
+}
+
+function computeAllHits(raw: string, markers: MarkerDef[]) {
+  // ✅ 1 seul hit par label : on garde le + tôt (rawIdx minimal).
+  const { norm, map } = normalizeWithMap(raw);
+
+  const bestByLabel = new Map<string, { idx: number; priority: number }>();
+
+  for (const m of markers) {
+    const pri = m.priority ?? 100;
+    let bestIdx: number | null = null;
+
+    // phrases
+    if (m.phrases?.length) {
+      for (const phrase of m.phrases) {
+        const p = normalizeLoose(phrase);
+        if (!p) continue;
+
+        const nIdx = norm.indexOf(p);
+        if (nIdx >= 0) {
+          const rawIdx = map[nIdx] ?? 0;
+          if (bestIdx == null || rawIdx < bestIdx) bestIdx = rawIdx;
+        }
+      }
+    }
+
+    // regexRaw (si aucun hit phrases)
+    if (bestIdx == null && m.regexRaw) {
+      try {
+        const re = new RegExp(m.regexRaw, 'iu');
+        const match = re.exec(raw);
+        if (match && match.index != null) bestIdx = match.index;
+      } catch {
+        // ignore
+      }
+    }
+
+    if (bestIdx == null) continue;
+
+    const prev = bestByLabel.get(m.label);
+    if (!prev || bestIdx < prev.idx || (bestIdx === prev.idx && pri < prev.priority)) {
+      bestByLabel.set(m.label, { idx: bestIdx, priority: pri });
+    }
+  }
+
+  const hits = Array.from(bestByLabel.entries()).map(([label, v]) => ({
+    idx: v.idx,
+    label,
+    priority: v.priority,
+  }));
+
+  // Tri : index puis priority
+  hits.sort((a, b) => a.idx - b.idx || a.priority - b.priority);
+
+  // ⚠️ on garde plusieurs labels même si même idx : on dédupe au post-traitement
+  return hits.map((h) => ({ idx: h.idx, label: h.label }));
+}
+
+export function splitIntoReadableBlocks(
+  raw: string,
+  opts?: { typeActe?: string | null },
+): RenderBlock[] {
+  const parts = (raw ?? '').split(PAGE_BREAK_TOKEN);
   const blocks: RenderBlock[] = [];
 
   // Labels que l’on autorise à “continuer” après un saut de page
   // (tu peux élargir ensuite si besoin)
-  const CONTINUABLE = new Set(["Comparants", "Témoins", "Signatures"]);
+  const CONTINUABLE = new Set(
+    getMarkersForActeType(opts?.typeActe ?? null)
+      .markers.filter((m) => m.continuable)
+      .map((m) => m.label),
+  );
 
   // Si une page se termine par une section continuable,
   // on garde son label pour rattacher le début de la page suivante.
   let carryLabel: string | null = null;
 
   parts.forEach((part, idx) => {
-    const t = part ?? "";
+    const t = part ?? '';
 
-    const markers: Array<{ label: string; re: RegExp }> = [
-      { label: "En-tête", re: /\bAujourd['’]hui\b/i },
-      { label: "Comparants", re: /\bPar devant Nous\b|\bPar devant nous\b/i },
-      { label: "Témoins", re: /\ben présence\b/i },
-      { label: "Signatures", re: /\bet lecture faite\b|\bnous l['’]avons signé\b/i },
-      { label: "Bas de page", re: /\bPour copie conforme\b/i },
-    ];
+    const profile = getMarkersForActeType(opts?.typeActe ?? null);
+    const markers = profile.markers;
 
-    const hits: Array<{ idx: number; label: string }> = [];
-    for (const m of markers) {
-      const match = m.re.exec(t);
-      if (match && match.index != null) hits.push({ idx: match.index, label: m.label });
-      m.re.lastIndex = 0;
-    }
-    hits.sort((a, b) => a.idx - b.idx);
+    // hits = 1er match par marker (phrase loose / regexRaw)
+    const hits = computeAllHits(t, markers);
 
     if (hits.length === 0) {
       const whole = t.trim();
       if (whole) {
         if (carryLabel) {
           // ✅ page entière rattachée à la section précédente (ex: Comparants continue)
-          blocks.push({ kind: "section", label: carryLabel, text: whole });
+          blocks.push({ kind: 'section', label: carryLabel, text: whole });
         } else {
           // sinon paragraphes “Texte”
-          pushParagraphs(blocks, whole, "Texte");
+          pushParagraphs(blocks, whole, 'Texte');
         }
       }
       // carryLabel reste inchangé si page vide, sinon on l’annule (car pas de nouveau repère fiable)
@@ -498,9 +729,9 @@ export function splitIntoReadableBlocks(raw: string): RenderBlock[] {
       if (pre) {
         if (carryLabel) {
           // ✅ on considère que c’est la suite de la section précédente
-          blocks.push({ kind: "section", label: carryLabel, text: pre });
+          blocks.push({ kind: 'section', label: carryLabel, text: pre });
         } else {
-          pushParagraphs(blocks, pre, "Texte");
+          blocks.push({ kind: 'section', label: 'Texte', text: pre });
         }
       }
 
@@ -509,30 +740,38 @@ export function splitIntoReadableBlocks(raw: string): RenderBlock[] {
         const start = hits[i].idx;
         const end = i + 1 < hits.length ? hits[i + 1].idx : t.length;
         const chunk = t.slice(start, end).trim();
-        if (chunk) blocks.push({ kind: "section", label: hits[i].label, text: chunk });
+        if (chunk) blocks.push({ kind: 'section', label: hits[i].label, text: chunk });
       }
 
       // déterminer le prochain carryLabel (dernier bloc section continuable dans cette page)
       let lastSectionLabel: string | null = null;
       for (let j = blocks.length - 1; j >= 0; j--) {
         const b = blocks[j];
-        if (b.kind === "section") {
+        if (b.kind === 'section') {
           lastSectionLabel = b.label;
           break;
         }
-        if (b.kind === "page_break") break; // sécurité : ne remonte pas avant la page précédente
+        if (b.kind === 'page_break') break; // sécurité : ne remonte pas avant la page précédente
       }
       carryLabel = lastSectionLabel && CONTINUABLE.has(lastSectionLabel) ? lastSectionLabel : null;
     }
 
-    if (idx < parts.length - 1) blocks.push({ kind: "page_break" });
+    if (idx < parts.length - 1) blocks.push({ kind: 'page_break' });
   });
 
-  // ✅ renumérote Comparants / Témoins / etc s’ils apparaissent en plusieurs blocs
-  return renumberRepeatedSectionLabels(blocks);
+  // ✅ Post-traitement :
+  // 1) empêche les micro-blocs
+  let out = mergeTinySections(blocks, 90);
+
+  // 2) empêche la répétition de certains labels (sinon tu te retrouves avec 1/2, 2/2, etc.)
+  out = squashRepeatForbiddenLabels(
+    out,
+    new Set(['Époux', 'Épouse', 'Formalités préalables', 'Célébration du mariage']),
+  );
+
+  // 3) renumérote uniquement ce qui reste réellement répété (souvent “Témoins” si multi)
+  return renumberRepeatedSectionLabels(out);
 }
-
-
 
 // -------------------- Repérages --------------------
 
@@ -541,7 +780,7 @@ export type Hit = { label: string; start: number; end: number };
 function findAll(re: RegExp, text: string): Hit[] {
   const hits: Hit[] = [];
   let m: RegExpExecArray | null;
-  const rr = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+  const rr = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
   while ((m = rr.exec(text))) {
     if (m.index == null) continue;
     hits.push({ label: m[0], start: m.index, end: m.index + m[0].length });
@@ -591,21 +830,20 @@ export type VersionEventRow = {
   payload: any; // jsonb
 };
 
-
 // -------------------- Events (audit) --------------------
 export const REF_TRANSCRIPTION_EVENT_TYPES = [
-  "create",
-  "edit",
-  "submit_review",
-  "validate",
-  "contest",
-  "archive",
-  "restore",
-  "note",
-  "annotation",
-  "tag",
-  "metadata",
-  "status_change",
+  'create',
+  'edit',
+  'submit_review',
+  'validate',
+  'contest',
+  'archive',
+  'restore',
+  'note',
+  'annotation',
+  'tag',
+  'metadata',
+  'status_change',
 ] as const;
 
 export type RefTranscriptionEventType = (typeof REF_TRANSCRIPTION_EVENT_TYPES)[number];
@@ -636,7 +874,7 @@ export async function logVersionEvent(args: {
 
   // ⚠️ On ne casse pas le flux si l’audit échoue : log console uniquement
   if (res.error) {
-    console.error("logVersionEvent error:", res.error.message, {
+    console.error('logVersionEvent error:', res.error.message, {
       versionId: args.transcription_version_id,
       type: args.event_type,
     });
@@ -646,14 +884,13 @@ export async function logVersionEvent(args: {
 export async function loadVersionEvents(versionId: string): Promise<VersionEventRow[]> {
   const res = await supabase
     .from(T.events)
-    .select("id, transcription_version_id, event_type, event_at, event_by, payload")
-    .eq("transcription_version_id", versionId)
-    .order("event_at", { ascending: false });
+    .select('id, transcription_version_id, event_type, event_at, event_by, payload')
+    .eq('transcription_version_id', versionId)
+    .order('event_at', { ascending: false });
 
-  assertNoSbError(res as any, "load version events");
+  assertNoSbError(res as any, 'load version events');
   return (res.data ?? []) as any as VersionEventRow[];
 }
-
 
 export async function setTranscriptionReference(args: {
   transcriptionId: string;
@@ -661,59 +898,58 @@ export async function setTranscriptionReference(args: {
 }) {
   const { transcriptionId, preferenceReason } = args;
 
-  const res = await supabase.rpc("set_transcription_reference", {
+  const res = await supabase.rpc('set_transcription_reference', {
     p_transcription_id: transcriptionId,
     p_preference_reason: preferenceReason,
   });
 
   if (res.error) {
-    console.error("set_transcription_reference error:", res.error);
-    throw new Error(res.error.message || "Impossible de définir la transcription de référence");
+    console.error('set_transcription_reference error:', res.error);
+    throw new Error(res.error.message || 'Impossible de définir la transcription de référence');
   }
 }
 
-export async function clearTranscriptionReference(args: {
-  transcriptionId: string;
-}) {
+export async function clearTranscriptionReference(args: { transcriptionId: string }) {
   const { transcriptionId } = args;
 
   const res = await supabase
-    .from("ec_transcriptions")
+    .from('ec_transcriptions')
     .update({
       is_reference: false,
       preference_reason: null,
     })
-    .eq("id", transcriptionId);
+    .eq('id', transcriptionId);
 
   if (res.error) {
-    console.error("clearTranscriptionReference error:", res.error);
-    throw new Error(res.error.message || "Impossible de retirer la source de référence");
+    console.error('clearTranscriptionReference error:', res.error);
+    throw new Error(res.error.message || 'Impossible de retirer la source de référence');
   }
 }
 
-
-
 // -------------------- Anchor revalidation --------------------
 
-export function revalidateAnchor(content: string, a: Pick<AnnotationRow, "quote" | "start_offset" | "end_offset">): AnchorStatus {
-  const quote = a.quote || "";
-  if (!quote.trim()) return "orphaned";
+export function revalidateAnchor(
+  content: string,
+  a: Pick<AnnotationRow, 'quote' | 'start_offset' | 'end_offset'>,
+): AnchorStatus {
+  const quote = a.quote || '';
+  if (!quote.trim()) return 'orphaned';
 
   const expected = content.slice(a.start_offset, a.end_offset);
-  if (expected === quote) return "ok";
+  if (expected === quote) return 'ok';
 
   const winStart = Math.max(0, a.start_offset - 120);
   const winEnd = Math.min(content.length, a.end_offset + 120);
   const windowText = content.slice(winStart, winEnd);
-  if (windowText.includes(quote)) return "needs_review";
+  if (windowText.includes(quote)) return 'needs_review';
 
-  if (content.includes(quote)) return "needs_review";
-  return "orphaned";
+  if (content.includes(quote)) return 'needs_review';
+  return 'orphaned';
 }
 
 // Try to relocate by quote (best effort)
 function relocateByQuote(newContent: string, quote: string, hintStart: number | null) {
-  const q = quote?.trim() ?? "";
+  const q = quote?.trim() ?? '';
   if (!q) return null;
 
   // First: search near the hint
@@ -724,13 +960,13 @@ function relocateByQuote(newContent: string, quote: string, hintStart: number | 
     const idx = w.indexOf(q);
     if (idx >= 0) {
       const abs = winStart + idx;
-      return { start: abs, end: abs + q.length, confidence: "near" as const };
+      return { start: abs, end: abs + q.length, confidence: 'near' as const };
     }
   }
 
   // Global fallback
   const idx2 = newContent.indexOf(q);
-  if (idx2 >= 0) return { start: idx2, end: idx2 + q.length, confidence: "global" as const };
+  if (idx2 >= 0) return { start: idx2, end: idx2 + q.length, confidence: 'global' as const };
   return null;
 }
 
@@ -759,13 +995,21 @@ type ActeBundle = {
 export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
   try {
     const [acteRes, transRes, acteursRes] = await Promise.all([
-      supabase.from(T.actes).select("*").eq("id", acteId).single(),
-      supabase.from(T.transcriptions).select("*").eq("acte_id", acteId).order("created_at", { ascending: true }),
-      supabase.from(T.acteurs).select("id, role, prenom, nom").eq("acte_id", acteId).order("created_at", { ascending: true }),
+      supabase.from(T.actes).select('*').eq('id', acteId).single(),
+      supabase
+        .from(T.transcriptions)
+        .select('*')
+        .eq('acte_id', acteId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from(T.acteurs)
+        .select('id, role, prenom, nom')
+        .eq('acte_id', acteId)
+        .order('created_at', { ascending: true }),
     ]);
 
-    assertNoSbError(acteRes as any, "load acte");
-    assertNoSbError(transRes as any, "load transcriptions");
+    assertNoSbError(acteRes as any, 'load acte');
+    assertNoSbError(transRes as any, 'load transcriptions');
 
     const acte = acteRes.data as any as EcActeRow;
     const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
@@ -779,11 +1023,11 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
     if (transcriptionIds.length) {
       const vRes = await supabase
         .from(T.versions)
-        .select("*")
-        .in("transcription_id", transcriptionIds)
-        .order("version", { ascending: false });
+        .select('*')
+        .in('transcription_id', transcriptionIds)
+        .order('version', { ascending: false });
 
-      assertNoSbError(vRes as any, "load versions");
+      assertNoSbError(vRes as any, 'load versions');
       versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
     }
 
@@ -808,10 +1052,17 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
       if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
     }
 
-    return { acte, transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId, acteurs };
+    return {
+      acte,
+      transcriptions,
+      versions,
+      transcriptionBySourceId,
+      latestVersionIdBySourceId,
+      acteurs,
+    };
   } catch (e) {
     console.error(e);
-    throw new Error(toMsg(e, "Erreur lors du chargement des données (bundle)"));
+    throw new Error(toMsg(e, 'Erreur lors du chargement des données (bundle)'));
   }
 }
 
@@ -821,8 +1072,12 @@ export async function refreshTranscriptionsAndVersions(acteId: string): Promise<
   transcriptionBySourceId: Record<string, TranscriptionRow>;
   latestVersionIdBySourceId: Record<string, string>;
 }> {
-  const transRes = await supabase.from(T.transcriptions).select("*").eq("acte_id", acteId).order("created_at", { ascending: true });
-  assertNoSbError(transRes as any, "refresh transcriptions");
+  const transRes = await supabase
+    .from(T.transcriptions)
+    .select('*')
+    .eq('acte_id', acteId)
+    .order('created_at', { ascending: true });
+  assertNoSbError(transRes as any, 'refresh transcriptions');
   const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
 
   const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
@@ -836,10 +1091,10 @@ export async function refreshTranscriptionsAndVersions(acteId: string): Promise<
   if (transcriptionIds.length) {
     const vRes = await supabase
       .from(T.versions)
-      .select("*")
-      .in("transcription_id", transcriptionIds)
-      .order("version", { ascending: false });
-    assertNoSbError(vRes as any, "refresh versions");
+      .select('*')
+      .in('transcription_id', transcriptionIds)
+      .order('version', { ascending: false });
+    assertNoSbError(vRes as any, 'refresh versions');
     versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
   }
 
@@ -859,45 +1114,59 @@ export async function refreshTranscriptionsAndVersions(acteId: string): Promise<
   return { transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId };
 }
 
-export async function ensureTranscription(acteId: string, acteSourceId: string): Promise<TranscriptionRow> {
+export async function ensureTranscription(
+  acteId: string,
+  acteSourceId: string,
+): Promise<TranscriptionRow> {
   // try get
   const getRes = await supabase
     .from(T.transcriptions)
-    .select("*")
-    .eq("acte_id", acteId)
-    .eq("acte_source_id", acteSourceId)
+    .select('*')
+    .eq('acte_id', acteId)
+    .eq('acte_source_id', acteSourceId)
     .maybeSingle();
 
-  if (getRes.error) throw new Error(toMsg(getRes.error, "Impossible de charger la transcription"));
+  if (getRes.error) throw new Error(toMsg(getRes.error, 'Impossible de charger la transcription'));
   if (getRes.data) return getRes.data as any as TranscriptionRow;
 
   // create
   const insRes = await supabase
     .from(T.transcriptions)
     .insert({ acte_id: acteId, acte_source_id: acteSourceId } as any)
-    .select("*")
+    .select('*')
     .single();
 
-  assertNoSbError(insRes as any, "create transcription");
+  assertNoSbError(insRes as any, 'create transcription');
   return insRes.data as any as TranscriptionRow;
 }
 
-
-
-
-export async function loadVersionChildren(versionId: string): Promise<{ annotations: AnnotationRow[]; notes: NoteRow[] }> {
+export async function loadVersionChildren(
+  versionId: string,
+): Promise<{ annotations: AnnotationRow[]; notes: NoteRow[] }> {
   const [annRes, noteRes] = await Promise.all([
-    supabase.from(T.annotations).select("*").eq("transcription_version_id", versionId).order("created_at", { ascending: true }),
-    supabase.from(T.notes).select("*").eq("transcription_version_id", versionId).order("created_at", { ascending: true }),
+    supabase
+      .from(T.annotations)
+      .select('*')
+      .eq('transcription_version_id', versionId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from(T.notes)
+      .select('*')
+      .eq('transcription_version_id', versionId)
+      .order('created_at', { ascending: true }),
   ]);
-  assertNoSbError(annRes as any, "load annotations");
-  assertNoSbError(noteRes as any, "load notes");
+  assertNoSbError(annRes as any, 'load annotations');
+  assertNoSbError(noteRes as any, 'load notes');
   return { annotations: (annRes.data ?? []) as any, notes: (noteRes.data ?? []) as any };
 }
 
 export async function loadVersionTags(versionId: string): Promise<TranscriptionTagRow[]> {
-  const res = await supabase.from(T.tags).select("*").eq("transcription_version_id", versionId).order("created_at", { ascending: true });
-  assertNoSbError(res as any, "load tags");
+  const res = await supabase
+    .from(T.tags)
+    .select('*')
+    .eq('transcription_version_id', versionId)
+    .order('created_at', { ascending: true });
+  assertNoSbError(res as any, 'load tags');
   return (res.data ?? []) as any;
 }
 
@@ -912,36 +1181,39 @@ export async function createVersion(
     confidence?: ConfidenceLevel | null;
 
     change_summary?: string | null;
-  }
+  },
 ): Promise<TranscriptionVersionRow> {
   const insertPayload: any = {
     transcription_id: transcriptionId,
     version: payload.version,
     status: payload.status,
-    content: payload.content ?? "",
+    content: payload.content ?? '',
 
     transcription_kind: payload.transcription_kind ?? null,
     confidence: payload.confidence ?? null,
     change_summary: payload.change_summary ?? null,
   };
 
-  const res = await supabase.from(T.versions).insert(insertPayload).select("*").single();
-  assertNoSbError(res as any, "create version");
+  const res = await supabase.from(T.versions).insert(insertPayload).select('*').single();
+  assertNoSbError(res as any, 'create version');
   return res.data as any as TranscriptionVersionRow;
 }
 
-
-
 export async function setVersionStatus(versionId: string, patch: Partial<TranscriptionVersionRow>) {
-  const res = await supabase.from(T.versions).update(patch as any).eq("id", versionId).select("*").single();
-  assertNoSbError(res as any, "update version");
+  const res = await supabase
+    .from(T.versions)
+    .update(patch as any)
+    .eq('id', versionId)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'update version');
   return res.data as any as TranscriptionVersionRow;
 }
 
 export async function setVersionStatusWithEvent(
   versionId: string,
   patch: Partial<TranscriptionVersionRow>,
-  event: { type: RefTranscriptionEventType; payload?: Record<string, any> }
+  event: { type: RefTranscriptionEventType; payload?: Record<string, any> },
 ) {
   const updated = await setVersionStatus(versionId, patch);
 
@@ -963,21 +1235,20 @@ export async function setVersionStatusWithEvent(
   return updated;
 }
 
-
-
-export async function updateTranscription(transcriptionId: string, patch: Partial<TranscriptionRow>) {
+export async function updateTranscription(
+  transcriptionId: string,
+  patch: Partial<TranscriptionRow>,
+) {
   const res = await supabase
     .from(T.transcriptions)
     .update(patch as any)
-    .eq("id", transcriptionId)
-    .select("*")
+    .eq('id', transcriptionId)
+    .select('*')
     .single();
 
-  assertNoSbError(res as any, "update transcription");
+  assertNoSbError(res as any, 'update transcription');
   return res.data as any as TranscriptionRow;
 }
-
-
 
 // -------------------- ✅ Carry over (best effort) --------------------
 // Clone annotations/notes/tags from prevVersionId to newVersionId.
@@ -997,14 +1268,26 @@ export async function carryOverChildrenBestEffort(args: {
 
   // load prev children
   const [prevAnn, prevNotes, prevTags] = await Promise.all([
-    supabase.from(T.annotations).select("*").eq("transcription_version_id", prevVersionId).order("created_at", { ascending: true }),
-    supabase.from(T.notes).select("*").eq("transcription_version_id", prevVersionId).order("created_at", { ascending: true }),
-    supabase.from(T.tags).select("*").eq("transcription_version_id", prevVersionId).order("created_at", { ascending: true }),
+    supabase
+      .from(T.annotations)
+      .select('*')
+      .eq('transcription_version_id', prevVersionId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from(T.notes)
+      .select('*')
+      .eq('transcription_version_id', prevVersionId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from(T.tags)
+      .select('*')
+      .eq('transcription_version_id', prevVersionId)
+      .order('created_at', { ascending: true }),
   ]);
 
-  if (prevAnn.error) console.error("carryOver: load annotations", prevAnn.error);
-  if (prevNotes.error) console.error("carryOver: load notes", prevNotes.error);
-  if (prevTags.error) console.error("carryOver: load tags", prevTags.error);
+  if (prevAnn.error) console.error('carryOver: load annotations', prevAnn.error);
+  if (prevNotes.error) console.error('carryOver: load notes', prevNotes.error);
+  if (prevTags.error) console.error('carryOver: load tags', prevTags.error);
 
   const annotations = (prevAnn.data ?? []) as any as AnnotationRow[];
   const notes = (prevNotes.data ?? []) as any as NoteRow[];
@@ -1018,10 +1301,10 @@ export async function carryOverChildrenBestEffort(args: {
       const end = rel?.end ?? a.end_offset;
 
       const expected = newContent.slice(start, end);
-      let status: AnchorStatus = "ok";
-      if (!rel) status = "orphaned";
-      else if (expected !== a.quote) status = "needs_review";
-      else status = rel.confidence === "near" ? "ok" : "needs_review"; // found globally -> needs_review
+      let status: AnchorStatus = 'ok';
+      if (!rel) status = 'orphaned';
+      else if (expected !== a.quote) status = 'needs_review';
+      else status = rel.confidence === 'near' ? 'ok' : 'needs_review'; // found globally -> needs_review
 
       const anchor = computeAnchor(newContent, start, end);
 
@@ -1039,11 +1322,11 @@ export async function carryOverChildrenBestEffort(args: {
     });
 
     const ins = await supabase.from(T.annotations).insert(insRows as any);
-    if (ins.error) console.error("carryOver: insert annotations", ins.error);
+    if (ins.error) console.error('carryOver: insert annotations', ins.error);
   }
 
   // ---- notes (skip [META] and [DIFF ...] notes: they are version-specific)
-  const userNotes = notes.filter((n) => !(n.content ?? "").startsWith("[DIFF "));
+  const userNotes = notes.filter((n) => !(n.content ?? '').startsWith('[DIFF '));
   if (userNotes.length) {
     const insRows = userNotes.map((n) => {
       if (n.start_offset == null || n.end_offset == null || !n.quote) {
@@ -1054,7 +1337,7 @@ export async function carryOverChildrenBestEffort(args: {
           quote: null,
           prefix: null,
           suffix: null,
-          content: n.content ?? "",
+          content: n.content ?? '',
         };
       }
 
@@ -1070,12 +1353,12 @@ export async function carryOverChildrenBestEffort(args: {
         quote: anchor.quote,
         prefix: anchor.prefix,
         suffix: anchor.suffix,
-        content: n.content ?? "",
+        content: n.content ?? '',
       };
     });
 
     const ins = await supabase.from(T.notes).insert(insRows as any);
-    if (ins.error) console.error("carryOver: insert notes", ins.error);
+    if (ins.error) console.error('carryOver: insert notes', ins.error);
   }
 
   // ---- tags
@@ -1100,7 +1383,7 @@ export async function carryOverChildrenBestEffort(args: {
     });
 
     const ins = await supabase.from(T.tags).insert(insRows as any);
-    if (ins.error) console.error("carryOver: insert tags", ins.error);
+    if (ins.error) console.error('carryOver: insert tags', ins.error);
   }
 }
 
@@ -1124,7 +1407,7 @@ export async function createNewVersionForSource(args: {
 }): Promise<{ transcription: TranscriptionRow; newVersion: TranscriptionVersionRow }> {
   // Status auto basé sur le contenu, sauf si on force explicitement TRANSCRIBED/IN_REVIEW/VALIDATED
   const computed = computeVersionStatusFromContent({
-    content: args.editorContent ?? "",
+    content: args.editorContent ?? '',
     currentStatus: args.status ?? null,
   });
 
@@ -1136,7 +1419,7 @@ export async function createNewVersionForSource(args: {
   const newVersion = await createVersion(transcription.id, {
     version: args.nextVersionNumber,
     status,
-    content: args.editorContent ?? "",
+    content: args.editorContent ?? '',
     transcription_kind: args.transcription_kind ?? null,
     confidence: args.confidence ?? null,
     change_summary: args.change_summary ?? null,
@@ -1148,10 +1431,9 @@ export async function createNewVersionForSource(args: {
     latestVersion: { status: newVersion.status, content: newVersion.content },
   });
 
-
   await logVersionEvent({
     transcription_version_id: newVersion.id,
-    event_type: "create",
+    event_type: 'create',
     payload: {
       acte_id: args.acteId,
       acte_source_id: args.activeSourceId,
@@ -1159,52 +1441,60 @@ export async function createNewVersionForSource(args: {
       version: newVersion.version,
       status: newVersion.status,
       prev_version_id: args.prevVersionId,
-      content_len: (args.editorContent ?? "").length,
+      content_len: (args.editorContent ?? '').length,
     },
   });
-
 
   if (args.prevVersionId && args.prevContent != null) {
     await carryOverChildrenBestEffort({
       prevVersionId: args.prevVersionId,
       newVersionId: newVersion.id,
       prevContent: args.prevContent,
-      newContent: args.editorContent ?? "",
+      newContent: args.editorContent ?? '',
     });
   }
 
   return { transcription, newVersion };
 }
 
-
 // -------------------- Annotation CRUD --------------------
 
-export async function insertAnnotation(payload: Partial<AnnotationRow> & { transcription_version_id: string }) {
-  const res = await supabase.from(T.annotations).insert(payload as any).select("*").single();
-  assertNoSbError(res as any, "insert annotation");
+export async function insertAnnotation(
+  payload: Partial<AnnotationRow> & { transcription_version_id: string },
+) {
+  const res = await supabase
+    .from(T.annotations)
+    .insert(payload as any)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'insert annotation');
 
   const row = res.data as any as AnnotationRow;
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "annotation",
-    payload: { action: "create", annotation_id: row.id, type: row.type },
+    event_type: 'annotation',
+    payload: { action: 'create', annotation_id: row.id, type: row.type },
   });
 
   return row;
 }
 
-
 export async function updateAnnotation(id: string, patch: Partial<AnnotationRow>) {
-  const res = await supabase.from(T.annotations).update(patch as any).eq("id", id).select("*").single();
-  assertNoSbError(res as any, "update annotation");
+  const res = await supabase
+    .from(T.annotations)
+    .update(patch as any)
+    .eq('id', id)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'update annotation');
 
   const row = res.data as any as AnnotationRow;
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "annotation",
-    payload: { action: "update", annotation_id: row.id, patch },
+    event_type: 'annotation',
+    payload: { action: 'update', annotation_id: row.id, patch },
   });
 
   return row;
@@ -1212,133 +1502,166 @@ export async function updateAnnotation(id: string, patch: Partial<AnnotationRow>
 
 export async function deleteAnnotation(id: string) {
   // 1) read to know version
-  const getRes = await supabase.from(T.annotations).select("id, transcription_version_id, type").eq("id", id).single();
+  const getRes = await supabase
+    .from(T.annotations)
+    .select('id, transcription_version_id, type')
+    .eq('id', id)
+    .single();
   if (getRes.error) {
-    console.error("delete annotation read", getRes.error);
-    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+    console.error('delete annotation read', getRes.error);
+    throw new Error(toMsg(getRes.error, 'Suppression impossible'));
   }
 
   const row = getRes.data as any as { id: string; transcription_version_id: string; type: string };
 
   // 2) delete
-  const res = await supabase.from(T.annotations).delete().eq("id", id);
+  const res = await supabase.from(T.annotations).delete().eq('id', id);
   if (res.error) {
-    console.error("delete annotation", res.error);
-    throw new Error(toMsg(res.error, "Suppression impossible"));
+    console.error('delete annotation', res.error);
+    throw new Error(toMsg(res.error, 'Suppression impossible'));
   }
 
   // 3) log
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "annotation",
-    payload: { action: "delete", annotation_id: row.id, type: row.type },
+    event_type: 'annotation',
+    payload: { action: 'delete', annotation_id: row.id, type: row.type },
   });
 
   return true;
 }
 
-
-export async function persistAnnotationStatuses(changed: Array<{ id: string; status: AnchorStatus }>) {
+export async function persistAnnotationStatuses(
+  changed: Array<{ id: string; status: AnchorStatus }>,
+) {
   if (!changed.length) return;
-  const ops = changed.map((c) => supabase.from(T.annotations).update({ status: c.status } as any).eq("id", c.id));
+  const ops = changed.map((c) =>
+    supabase
+      .from(T.annotations)
+      .update({ status: c.status } as any)
+      .eq('id', c.id),
+  );
   const results = await Promise.all(ops);
-  for (const r of results) if (r.error) console.error("persistAnnotationStatuses", r.error);
+  for (const r of results) if (r.error) console.error('persistAnnotationStatuses', r.error);
 }
 
 // -------------------- Note CRUD --------------------
 
 export async function insertNote(payload: Partial<NoteRow> & { transcription_version_id: string }) {
-  const res = await supabase.from(T.notes).insert(payload as any).select("*").single();
-  assertNoSbError(res as any, "insert note");
+  const res = await supabase
+    .from(T.notes)
+    .insert(payload as any)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'insert note');
 
   const row = res.data as any as NoteRow;
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "note",
-    payload: { action: "create", note_id: row.id, anchored: row.start_offset != null && row.end_offset != null },
+    event_type: 'note',
+    payload: {
+      action: 'create',
+      note_id: row.id,
+      anchored: row.start_offset != null && row.end_offset != null,
+    },
   });
 
   return row;
 }
-
 
 export async function updateNote(id: string, patch: Partial<NoteRow>) {
-  const res = await supabase.from(T.notes).update(patch as any).eq("id", id).select("*").single();
-  assertNoSbError(res as any, "update note");
+  const res = await supabase
+    .from(T.notes)
+    .update(patch as any)
+    .eq('id', id)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'update note');
 
   const row = res.data as any as NoteRow;
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "note",
-    payload: { action: "update", note_id: row.id, patch },
+    event_type: 'note',
+    payload: { action: 'update', note_id: row.id, patch },
   });
 
   return row;
 }
 
-
 export async function deleteNote(id: string) {
-  const getRes = await supabase.from(T.notes).select("id, transcription_version_id").eq("id", id).single();
+  const getRes = await supabase
+    .from(T.notes)
+    .select('id, transcription_version_id')
+    .eq('id', id)
+    .single();
   if (getRes.error) {
-    console.error("delete note read", getRes.error);
-    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+    console.error('delete note read', getRes.error);
+    throw new Error(toMsg(getRes.error, 'Suppression impossible'));
   }
   const row = getRes.data as any as { id: string; transcription_version_id: string };
 
-  const res = await supabase.from(T.notes).delete().eq("id", id);
+  const res = await supabase.from(T.notes).delete().eq('id', id);
   if (res.error) {
-    console.error("delete note", res.error);
-    throw new Error(toMsg(res.error, "Suppression impossible"));
+    console.error('delete note', res.error);
+    throw new Error(toMsg(res.error, 'Suppression impossible'));
   }
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "note",
-    payload: { action: "delete", note_id: row.id },
+    event_type: 'note',
+    payload: { action: 'delete', note_id: row.id },
   });
 
   return true;
 }
 
-
 // -------------------- Tag CRUD --------------------
 
-export async function createTag(payload: Partial<TranscriptionTagRow> & { transcription_version_id: string }) {
-  const res = await supabase.from(T.tags).insert(payload as any).select("*").single();
-  assertNoSbError(res as any, "create tag");
+export async function createTag(
+  payload: Partial<TranscriptionTagRow> & { transcription_version_id: string },
+) {
+  const res = await supabase
+    .from(T.tags)
+    .insert(payload as any)
+    .select('*')
+    .single();
+  assertNoSbError(res as any, 'create tag');
 
   const row = res.data as any as TranscriptionTagRow;
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "tag",
-    payload: { action: "create", tag_id: row.id, kind: row.kind, label: row.label },
+    event_type: 'tag',
+    payload: { action: 'create', tag_id: row.id, kind: row.kind, label: row.label },
   });
 
   return row;
 }
 
-
 export async function deleteTag(id: string) {
-  const getRes = await supabase.from(T.tags).select("id, transcription_version_id, kind").eq("id", id).single();
+  const getRes = await supabase
+    .from(T.tags)
+    .select('id, transcription_version_id, kind')
+    .eq('id', id)
+    .single();
   if (getRes.error) {
-    console.error("delete tag read", getRes.error);
-    throw new Error(toMsg(getRes.error, "Suppression impossible"));
+    console.error('delete tag read', getRes.error);
+    throw new Error(toMsg(getRes.error, 'Suppression impossible'));
   }
   const row = getRes.data as any as { id: string; transcription_version_id: string; kind: string };
 
-  const res = await supabase.from(T.tags).delete().eq("id", id);
+  const res = await supabase.from(T.tags).delete().eq('id', id);
   if (res.error) {
-    console.error("delete tag", res.error);
-    throw new Error(toMsg(res.error, "Suppression impossible"));
+    console.error('delete tag', res.error);
+    throw new Error(toMsg(res.error, 'Suppression impossible'));
   }
 
   await logVersionEvent({
     transcription_version_id: row.transcription_version_id,
-    event_type: "tag",
-    payload: { action: "delete", tag_id: row.id, kind: row.kind },
+    event_type: 'tag',
+    payload: { action: 'delete', tag_id: row.id, kind: row.kind },
   });
 
   return true;

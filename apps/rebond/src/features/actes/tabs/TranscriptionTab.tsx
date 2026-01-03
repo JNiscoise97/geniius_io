@@ -29,25 +29,28 @@ import {
 } from '@/components/ui/dialog';
 
 import {
-    CheckCircle2,
-    FileText,
-    Plus,
-    Save,
-    Tags,
-    SeparatorHorizontal,
-    Eye,
-    Pencil,
-    Trash2,
-    GripVertical,
-    Star,
-    Circle,
-    Lock,
-    Unlock,
-    ChevronDown,
-    AlignLeft,
-    HelpCircle,
-    LayoutGrid,
-    Strikethrough,
+  CheckCircle2,
+  FileText,
+  Plus,
+  Save,
+  Tags,
+  SeparatorHorizontal,
+  Eye,
+  Pencil,
+  Trash2,
+  GripVertical,
+  Star,
+  Circle,
+  Lock,
+  Unlock,
+  ChevronDown,
+  AlignLeft,
+  HelpCircle,
+  LayoutGrid,
+  Strikethrough,
+  PenLine,
+  Signature,
+  Scissors,
 } from 'lucide-react';
 
 import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from './transcriptionTab.ui';
@@ -95,9 +98,13 @@ export default function TranscriptionTab({ acteId }: Props) {
 
     const onMouseDownDivider = (e: React.MouseEvent) => t.split.onMouseDownDivider(e);
 
-    // Read/repérages
-    const readableBlocks = useMemo(() => splitIntoReadableBlocks(t.editorValue), [t.editorValue]);
-    const rep = useMemo(() => detectActeReperages(t.editorValue), [t.editorValue]);
+  // Read/repérages
+  const readableBlocks = useMemo(
+    () => splitIntoReadableBlocks(t.editorValue, { typeActe: (t.acte as any)?.type_acte ?? null }),
+    [t.editorValue, (t.acte as any)?.type_acte],
+  );
+
+  const rep = useMemo(() => detectActeReperages(t.editorValue), [t.editorValue]);
 
     // Build “latest version per source” map (source-first)
     const latestBySourceId = useMemo(() => {
@@ -511,31 +518,30 @@ export default function TranscriptionTab({ acteId }: Props) {
                                             Illisible
                                         </Button>
 
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 px-2 text-xs gap-2"
-                                            onClick={t.wrapStrike}
-                                            disabled={textareaDisabled || !workingVersion || t.loading}
-                                            title="Barrer (~...~)"
-                                        >
-                                            <Strikethrough className="w-4 h-4" />
-                                            Barré
-                                        </Button>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      className='h-8 px-2 text-xs gap-2'
+                      onClick={t.wrapStrike}
+                      disabled={textareaDisabled || !workingVersion || t.loading}
+                      title='Barrer (~...~)'
+                    >
+                      <Strikethrough className='w-4 h-4' />
+                      Barré
+                    </Button>
 
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 px-2 text-xs gap-2"
-                                            onClick={t.wrapBold}
-                                            disabled={textareaDisabled || !workingVersion || t.loading}
-                                            title="Mettre en gras (*...*)"
-                                        >
-                                            <span className="font-bold text-xs">G</span>
-                                            Gras
-                                        </Button>
-
-                                    </div>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      className='h-8 px-2 text-xs gap-2'
+                      onClick={t.wrapBold}
+                      disabled={textareaDisabled || !workingVersion || t.loading}
+                      title='Mettre en gras (*...*)'
+                    >
+                      <span className='font-bold text-xs'>G</span>
+                      Gras
+                    </Button>
+                  </div>
 
                                     {/* Droite : actions */}
                                     <div className='flex items-center gap-2'>
@@ -1292,95 +1298,99 @@ export default function TranscriptionTab({ acteId }: Props) {
                                                 Retirer la référence
                                             </Button>
 
-                                            <Button
-                                                onClick={t.saveReferenceEdits}
-                                                disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
-                                            >
-                                                Enregistrer
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <Button
-                                            onClick={t.confirmSetReference}
-                                            disabled={t.loading || !t.referenceTargetSourceId || !t.refReason || !t.refComment.trim()}
-                                        >
-                                            Définir comme référence
-                                        </Button>
-                                    )}
-                                </div>
+                      <Button
+                        onClick={t.saveReferenceEdits}
+                        disabled={
+                          t.loading ||
+                          !t.referenceTargetSourceId ||
+                          !t.refReason ||
+                          !t.refComment.trim()
+                        }
+                      >
+                        Enregistrer
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={t.confirmSetReference}
+                      disabled={
+                        t.loading ||
+                        !t.referenceTargetSourceId ||
+                        !t.refReason ||
+                        !t.refComment.trim()
+                      }
+                    >
+                      Définir comme référence
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className='text-sm text-slate-600'>
+                (Contenu du panneau à implémenter pour ce mode.)
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+      <Dialog open={t.illisibleOpen} onOpenChange={t.setIllisibleOpen}>
+        <DialogContent className='sm:max-w-[520px]'>
+          <DialogHeader>
+            <DialogTitle>Insérer une zone illisible</DialogTitle>
+          </DialogHeader>
 
-                            </div>
-                        ) : (
-                            <div className="text-sm text-slate-600">
-                                (Contenu du panneau à implémenter pour ce mode.)
-                            </div>
-                        )}
+          <div className='grid grid-cols-3 gap-3'>
+            <div>
+              <div className='text-xs font-medium text-slate-700'>x · caractères</div>
+              <Input
+                className='mt-1'
+                type='number'
+                min={0}
+                value={t.illisibleX}
+                onChange={(e) => t.setIllisibleX(Number(e.target.value))}
+              />
+            </div>
 
-                    </div>
+            <div>
+              <div className='text-xs font-medium text-slate-700'>y · mots</div>
+              <Input
+                className='mt-1'
+                type='number'
+                min={0}
+                value={t.illisibleY}
+                onChange={(e) => t.setIllisibleY(Number(e.target.value))}
+              />
+            </div>
 
-                </SheetContent>
-            </Sheet>
-            <Dialog open={t.illisibleOpen} onOpenChange={t.setIllisibleOpen}>
-                <DialogContent className="sm:max-w-[520px]">
-                    <DialogHeader>
-                        <DialogTitle>Insérer une zone illisible</DialogTitle>
-                    </DialogHeader>
+            <div>
+              <div className='text-xs font-medium text-slate-700'>z · lignes</div>
+              <Input
+                className='mt-1'
+                type='number'
+                min={0}
+                value={t.illisibleZ}
+                onChange={(e) => t.setIllisibleZ(Number(e.target.value))}
+              />
+            </div>
+          </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <div className="text-xs font-medium text-slate-700">x · caractères</div>
-                            <Input
-                                className="mt-1"
-                                type="number"
-                                min={0}
-                                value={t.illisibleX}
-                                onChange={(e) => t.setIllisibleX(Number(e.target.value))}
-                            />
-                        </div>
+          <div className='mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700'>
+            Token inséré :{' '}
+            <span className='font-mono'>
+              [ILLISIBLE_CARACTERE{t.illisibleX}_MOT{t.illisibleY}_LIGNE{t.illisibleZ}]
+            </span>
+          </div>
 
-                        <div>
-                            <div className="text-xs font-medium text-slate-700">y · mots</div>
-                            <Input
-                                className="mt-1"
-                                type="number"
-                                min={0}
-                                value={t.illisibleY}
-                                onChange={(e) => t.setIllisibleY(Number(e.target.value))}
-                            />
-                        </div>
-
-                        <div>
-                            <div className="text-xs font-medium text-slate-700">z · lignes</div>
-                            <Input
-                                className="mt-1"
-                                type="number"
-                                min={0}
-                                value={t.illisibleZ}
-                                onChange={(e) => t.setIllisibleZ(Number(e.target.value))}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700">
-                        Token inséré :{" "}
-                        <span className="font-mono">
-                            [ILLISIBLE_CARACTERE{t.illisibleX}_MOT{t.illisibleY}_LIGNE{t.illisibleZ}]
-                        </span>
-                    </div>
-
-                    <DialogFooter className="mt-3 flex items-center justify-end gap-2">
-                        <Button variant="outline" onClick={() => t.setIllisibleOpen(false)}>
-                            Annuler
-                        </Button>
-                        <Button onClick={t.confirmInsertIllisible}>
-                            Insérer
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-        </div>
-    );
+          <DialogFooter className='mt-3 flex items-center justify-end gap-2'>
+            <Button variant='outline' onClick={() => t.setIllisibleOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={t.confirmInsertIllisible}>Insérer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
 
 function MiniHitRow({

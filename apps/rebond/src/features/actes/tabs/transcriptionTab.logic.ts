@@ -51,7 +51,7 @@ import {
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
-type SheetMode = "annotation" | "note" | "compare" | "tag" | "reference";
+type SheetMode = "annotation" | "note" | "compare" | "tag" | "reference" | "marginal_mentions" | "signatures" | "marginal_crossouts";
 
 type Props = { acteId: string };
 
