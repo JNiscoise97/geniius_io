@@ -1,3 +1,4 @@
+//TranscriptionWorkflowStepper.tsx
 import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Circle, FileText, ClipboardCheck, Pencil, Save } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 /**
  * UI-only. Pas de logique Supabase ici.
@@ -67,6 +70,15 @@ type RigourChecklistState = {
   autres: boolean;
 };
 
+export type VersionEventRow = {
+  id: string;
+  event_type: string;
+  event_at: string;
+  event_by: string | null;
+  payload: any;
+};
+
+
 export type TranscriptionWorkflowStepperProps = {
   disabled?: boolean;
 
@@ -89,6 +101,8 @@ export type TranscriptionWorkflowStepperProps = {
   // Contrôles
   canSaveMetadata?: boolean;
   canMarkAsTranscribed?: boolean;
+
+    historyEvents?: VersionEventRow[];
 };
 
 // --- Helpers validation UI (light) -----------------------------------------
@@ -283,8 +297,15 @@ export function TranscriptionWorkflowStepper(props: TranscriptionWorkflowStepper
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {/* Bloc 1 */}
+          <div className="flex-1 overflow-y-auto p-4">
+  <Tabs defaultValue="meta" className="w-full">
+    <TabsList className="grid w-full grid-cols-2">
+      <TabsTrigger value="meta">Métadonnées</TabsTrigger>
+      <TabsTrigger value="history">Historique</TabsTrigger>
+    </TabsList>
+
+    <TabsContent value="meta" className="mt-4 space-y-6">
+               {/* Bloc 1 */}
             <div className="grid grid-cols-2 gap-3">
               <FieldSelect
                 label="Visibilité"
@@ -554,7 +575,44 @@ export function TranscriptionWorkflowStepper(props: TranscriptionWorkflowStepper
                 Enregistrer
               </Button>
             </div>
-          </div>
+            
+    </TabsContent>
+            <TabsContent value="history" className="mt-4">
+      <div className="space-y-2">
+        {props.historyEvents?.length ? (
+          props.historyEvents.map((ev) => (
+            <div
+              key={ev.id}
+              className="rounded-xl border border-slate-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-slate-900 truncate">
+                    {ev.event_type}
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    {new Date(ev.event_at).toLocaleString()}
+                    {ev.event_by ? (
+                      <>
+                        {" "}
+                        · <span className="font-mono">{ev.event_by}</span>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+              <pre className="mt-2 max-h-[240px] overflow-auto rounded-lg bg-slate-50 p-2 text-[11px] text-slate-800">
+                {JSON.stringify(ev.payload ?? {}, null, 2)}
+              </pre>
+            </div>
+          ))
+        ) : (
+          <div className="text-sm text-slate-600">Aucun événement.</div>
+        )}
+      </div>
+    </TabsContent>
+  </Tabs>
+</div>
         </SheetContent>
       </Sheet>
 

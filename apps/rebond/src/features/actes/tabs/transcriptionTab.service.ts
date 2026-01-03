@@ -740,59 +740,6 @@ export function compareKey(a: string, b: string) {
   return a < b ? `${a}|${b}` : `${b}|${a}`;
 }
 
-export function parseMetaFromNotes(notes: NoteRow[]): {
-  metaNoteId: string | null;
-  completeness: "complete" | "partial" | null;
-  referenceReason: string | null;
-  diffNotesByKey: Record<string, string>;
-} {
-  const metaNote = notes.find((n) => (n.content ?? "").startsWith("[META]")) ?? null;
-  const out = {
-    metaNoteId: metaNote?.id ?? null,
-    completeness: null as "complete" | "partial" | null,
-    referenceReason: null as string | null,
-    diffNotesByKey: {} as Record<string, string>,
-  };
-
-  if (!metaNote) return out;
-
-  const lines = (metaNote.content ?? "").split(/\r?\n/).map((l) => l.trim());
-  for (const line of lines) {
-    if (!line || line === "[META]") continue;
-
-    if (line.startsWith("completeness=")) {
-      const v = line.slice("completeness=".length).trim();
-      if (v === "complete" || v === "partial") out.completeness = v;
-    } else if (line.startsWith("reference_reason=")) {
-      const v = line.slice("reference_reason=".length).trim();
-      out.referenceReason = v || null;
-    } else if (line.startsWith("diff:")) {
-      const rest = line.slice("diff:".length);
-      const eq = rest.indexOf("=");
-      if (eq > 0) {
-        const key = rest.slice(0, eq).trim();
-        const reason = rest.slice(eq + 1).trim();
-        if (key && reason) out.diffNotesByKey[key] = reason;
-      }
-    }
-  }
-
-  return out;
-}
-
-export function composeMetaNote(payload: {
-  completeness: "complete" | "partial" | null;
-  referenceReason: string | null;
-  diffNotesByKey: Record<string, string>;
-}) {
-  const lines: string[] = ["[META]"];
-  if (payload.completeness) lines.push(`completeness=${payload.completeness}`);
-  if (payload.referenceReason) lines.push(`reference_reason=${payload.referenceReason}`);
-  const keys = Object.keys(payload.diffNotesByKey ?? {}).sort();
-  for (const k of keys) lines.push(`diff:${k}=${payload.diffNotesByKey[k]}`);
-  return lines.join("\n");
-}
-
 export function composeDiffNote(a: string, b: string, reason: string) {
   return `[DIFF ${compareKey(a, b)}] ${reason}`;
 }

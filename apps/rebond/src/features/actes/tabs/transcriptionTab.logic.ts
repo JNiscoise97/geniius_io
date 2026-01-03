@@ -10,7 +10,6 @@ import {
     type ConfidenceLevel,
     type EcActeRow,
     type NoteRow,
-    type SourceLectureKind,
     type TranscriptionKind,
     type TranscriptionStatus,
     type TranscriptionTagRow,
@@ -32,8 +31,6 @@ import {
     revalidateAnchor,
     insertAnnotation,
     insertNote,
-    parseMetaFromNotes,
-    composeMetaNote,
     compareKey,
     type CitationDraft,
     type ActeCitationRow,
@@ -46,7 +43,6 @@ import {
     ensureTranscription,
     type VersionEventRow,
     loadVersionEvents,
-    setVersionStatus,
     logVersionEvent,
     findIllisibleSuspectRanges,
     findIllisibleValidRanges,
@@ -55,7 +51,7 @@ import {
 } from "./transcriptionTab.service";
 import { supabase } from "@/lib/supabase";
 
-type SheetMode = "annotation" | "note" | "metadata" | "compare" | "tag" | "reference";
+type SheetMode = "annotation" | "note" | "compare" | "tag" | "reference";
 
 type Props = { acteId: string };
 
@@ -602,87 +598,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         openSetReference(sourceId);
     };
 
-
-
-
-    // Metadata drafts (DB fields)
-    type MetaDraft = {
-        // version-level
-        transcription_kind: TranscriptionKind | null;
-        confidence: ConfidenceLevel | null;
-
-        // transcription-level (champs DB ec_transcriptions)
-        visibility: string | null;
-        state: string | null;
-
-        source_lecture_kind: SourceLectureKind | null;
-
-        scope: string | null;
-        scope_details: string | null;
-
-        langue_vue: string | null;
-        language_confidence: ConfidenceLevel | null;
-
-        handwriting_style: string | null;
-        handwriting_legibility: string | null;
-
-        goal: string | null;
-        normalisation_policy: string | null;
-
-        conventions_id: string | null;
-        conventions_override_text: string | null;
-
-        completeness: string | null;
-        incompleteness_reason: string | null;
-
-        reserve_level: string | null;
-        reserve_reason: string | null;
-
-        note: string | null;
-    };
-
-
-    const [metaDraft, setMetaDraft] = useState<MetaDraft>({
-        transcription_kind: null,
-        confidence: null,
-
-        visibility: null,
-        state: null,
-
-        source_lecture_kind: null,
-
-        scope: null,
-        scope_details: null,
-
-        langue_vue: null,
-        language_confidence: null,
-
-        handwriting_style: null,
-        handwriting_legibility: null,
-
-        goal: null,
-        normalisation_policy: null,
-
-        conventions_id: null,
-        conventions_override_text: null,
-
-        completeness: null,
-        incompleteness_reason: null,
-
-        reserve_level: null,
-        reserve_reason: null,
-
-        note: null,
-    });
-
-
-
-    // Metadata drafts (angles morts) stored in [META] note
-    const [metaDraftCompleteness, setMetaDraftCompleteness] = useState<"" | "complete" | "partial">(
-        ""
-    );
-    const [metaDraftReferenceReason, setMetaDraftReferenceReason] = useState<string>("");
-
     // Compare (version-based internal)
     const [compareLeftId, setCompareLeftId] = useState<string>("");
     const [compareRightId, setCompareRightId] = useState<string>("");
@@ -939,10 +854,6 @@ export function useTranscriptionTab({ acteId }: Props) {
                 setNotes(children.notes);
                 setTags(t);
                 setVersionEvents(evts);
-
-                const meta = parseMetaFromNotes(children.notes);
-                setMetaDraftCompleteness(meta.completeness ?? "");
-                setMetaDraftReferenceReason(meta.referenceReason ?? "");
             } catch (e) {
                 console.error(e);
                 if (cancelled) return;
@@ -950,8 +861,6 @@ export function useTranscriptionTab({ acteId }: Props) {
                 setNotes([]);
                 setTags([]);
                 setVersionEvents([]);
-                setMetaDraftCompleteness("");
-                setMetaDraftReferenceReason("");
             }
         };
 
@@ -1079,6 +988,102 @@ export function useTranscriptionTab({ acteId }: Props) {
             setLoading(false);
         }
     };
+
+    const saveWorkflowMetadata = async (meta: any, checklist: any) => {
+  if (!activeSourceId) {
+    toast("Sélectionne une source.", { icon: "🧩" });
+    return;
+  }
+
+  const target = workingVersion ?? currentVersion;
+  if (!target) {
+    toast("Aucune version à mettre à jour.", { icon: "⚠️" });
+    return;
+  }
+
+  setLoading(true);
+  try {
+    setDirtyState("saving");
+
+    // 1) Normalisation policy : raw JSON -> string JSON canonical
+    let normalisation_policy: string | null = null;
+    const raw = (meta?.normalisation_policy_raw ?? "").trim();
+    if (raw) {
+      const parsed = JSON.parse(raw); // throw si invalide
+      normalisation_policy = JSON.stringify(parsed);
+    }
+
+    // 2) Ensure transcription (source-level row)
+    const tr0 = transcriptionBySourceId?.[activeSourceId];
+    const tr = tr0 ?? (await ensureTranscription(acteId, activeSourceId));
+
+    // 3) Update transcription-level fields (ec_transcriptions)
+    await updateTranscription(tr.id, {
+      visibility: meta.visibility,
+      state: meta.state,
+      source_lecture_kind: meta.source_lecture_kind,
+      scope: meta.scope,
+      scope_details: meta.scope_details,
+      langue_vue: meta.langue_vue,
+      language_confidence: meta.language_confidence,
+      handwriting_style: meta.handwriting_style,
+      handwriting_legibility: meta.handwriting_legibility,
+      goal: meta.goal,
+      normalisation_policy,
+      conventions_id: meta.conventions_id,
+      conventions_override_text: meta.conventions_override_text,
+      completeness: meta.completeness,
+      incompleteness_reason: meta.incompleteness_reason,
+      reserve_level: meta.reserve_level,
+      reserve_reason: meta.reserve_reason,
+
+      // 👇 nécessitent colonnes en DB (voir SQL plus bas)
+      source_page_from: meta.source_page_from,
+      source_page_to: meta.source_page_to,
+      image_transform_notes: meta.image_transform_notes,
+
+      note: meta.note,
+    } as any);
+
+    // 4) Log event: metadata + checklist (version-level history)
+    await logVersionEvent({
+      transcription_version_id: target.id,
+      event_type: "workflow_metadata",
+      payload: {
+        acte_source_id: activeSourceId,
+        transcription_id: tr.id,
+        meta: {
+          ...meta,
+          normalisation_policy,
+        },
+      },
+    } as any);
+
+    await logVersionEvent({
+      transcription_version_id: target.id,
+      event_type: "workflow_checklist",
+      payload: {
+        acte_source_id: activeSourceId,
+        checklist,
+      },
+    } as any);
+
+    toast.success("Métadonnées enregistrées");
+    flashSavedThenClean();
+
+    // Refresh versions + events
+    await refreshVersionsAndSelect(target.id);
+    const evts = await loadVersionEvents(target.id);
+    setVersionEvents(evts);
+  } catch (e: any) {
+    console.error(e);
+    toast.error(e?.message ?? "Erreur enregistrement métadonnées");
+    setDirtyState((prev) => (prev === "saving" ? "clean" : prev));
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     const markAsTranscribed = async () => {
         const target = workingVersion ?? currentVersion;
@@ -1514,46 +1519,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
     };
 
-
-    // -----------------------------
-    // Diff sources (bridging to compare versions)
-    // -----------------------------
-    const openSourceDiff = (leftSourceId?: string | null, rightSourceId?: string | null) => {
-        const leftV = leftSourceId ? getLatestVersionIdForSource(leftSourceId) : null;
-        const rightV = rightSourceId ? getLatestVersionIdForSource(rightSourceId) : null;
-
-        if (!leftV || !rightV) {
-            toast("Il faut 2 sources transcrites pour faire un diff.", { icon: "🧩" });
-            return;
-        }
-
-        setSheetMode("compare");
-        setCompareLeftId(leftV);
-        setCompareRightId(rightV);
-
-        const m = parseMetaFromNotes(notes);
-        setCompareReasonDraft(m.diffNotesByKey?.[compareKey(leftV, rightV)] ?? "");
-
-        setSheetOpen(true);
-    };
-
-    const openSourceDiffPicker = () => {
-        const pair = getTwoTranscribedSourcesVersionIds();
-        if (!pair) {
-            toast("Ajoute au moins 2 transcriptions (2 sources transcrites) pour comparer.", { icon: "🧩" });
-            return;
-        }
-
-        setSheetMode("compare");
-        setCompareLeftId(pair.left);
-        setCompareRightId(pair.right);
-
-        const m = parseMetaFromNotes(notes);
-        setCompareReasonDraft(m.diffNotesByKey?.[compareKey(pair.left, pair.right)] ?? "");
-
-        setSheetOpen(true);
-    };
-
     // -----------------------------
     // Sheet openers
     // -----------------------------
@@ -1615,157 +1580,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         setTagKind(k);
         setTagActeurId("");
     };
-
-    const openMetadata = async () => {
-        // On veut permettre d’ouvrir les métadonnées même si aucune version n’existe encore.
-        // Donc : si pas de working/current version, on crée un brouillon pour la source active, puis on ouvre.
-
-        if (!activeSourceId) {
-            toast("Sélectionne une source d’abord.", { icon: "🧩" });
-            return;
-        }
-
-        const target = workingVersion ?? currentVersion;
-        if (!target) {
-            toast("Commence par transcrire : le brouillon sera créé automatiquement au 1er caractère.", { icon: "📝" });
-            return;
-        }
-
-
-
-        setSheetMode("metadata");
-
-        // transcription liée à la source active
-        const tr = activeSourceId ? transcriptionBySourceId[activeSourceId] : undefined;
-
-        setMetaDraft({
-            // version-level
-            transcription_kind: target.transcription_kind ?? null,
-            confidence: target.confidence ?? null,
-
-            // transcription-level
-            visibility: (tr as any)?.visibility ?? null,
-            state: (tr as any)?.state ?? null,
-
-            source_lecture_kind: (tr?.source_lecture_kind ?? null) as any,
-
-            scope: (tr as any)?.scope ?? null,
-            scope_details: (tr as any)?.scope_details ?? null,
-
-            langue_vue: tr?.langue_vue ?? null,
-            language_confidence: (tr as any)?.language_confidence ?? null,
-
-            handwriting_style: (tr as any)?.handwriting_style ?? null,
-            handwriting_legibility: (tr as any)?.handwriting_legibility ?? null,
-
-            goal: (tr as any)?.goal ?? null,
-            normalisation_policy: (tr as any)?.normalisation_policy ?? null,
-
-            conventions_id: (tr as any)?.conventions_id ?? null,
-            conventions_override_text: (tr as any)?.conventions_override_text ?? null,
-
-            completeness: (tr as any)?.completeness ?? null,
-            incompleteness_reason: (tr as any)?.incompleteness_reason ?? null,
-
-            reserve_level: (tr as any)?.reserve_level ?? null,
-            reserve_reason: (tr as any)?.reserve_reason ?? null,
-
-            note: (tr as any)?.note ?? null,
-        });
-
-
-
-        // seed meta drafts from current META note
-        const m = parseMetaFromNotes(notes);
-        setMetaDraftCompleteness(m.completeness ?? "");
-        setMetaDraftReferenceReason(m.referenceReason ?? "");
-
-        setSheetOpen(true);
-    };
-
-    const saveMetadata = async () => {
-        if (!activeSourceId) return toast("Sélectionne une source.", { icon: "🧩" });
-
-        const target = workingVersion ?? currentVersion;
-        if (!target) return toast("Aucune version à mettre à jour.", { icon: "⚠️" });
-
-        const tr = transcriptionBySourceId[activeSourceId];
-        if (!tr) {
-            // normalement il existe si target existe, mais on sécurise
-            await ensureTranscription(acteId, activeSourceId);
-        }
-
-        setLoading(true);
-        try {
-            setDirtyState("saving");
-            // 1) update version-level fields
-            await setVersionStatus(target.id, {
-                transcription_kind: metaDraft.transcription_kind,
-                confidence: metaDraft.confidence,
-            } as any);
-
-            // 2) update transcription-level fields
-            const tr2 = transcriptionBySourceId[activeSourceId] ?? (await ensureTranscription(acteId, activeSourceId));
-
-            await updateTranscription(tr2.id, {
-                visibility: metaDraft.visibility,
-                state: metaDraft.state,
-
-                source_lecture_kind: metaDraft.source_lecture_kind as any,
-
-                scope: metaDraft.scope,
-                scope_details: metaDraft.scope_details,
-
-                langue_vue: metaDraft.langue_vue,
-                language_confidence: metaDraft.language_confidence,
-
-                handwriting_style: metaDraft.handwriting_style,
-                handwriting_legibility: metaDraft.handwriting_legibility,
-
-                goal: metaDraft.goal,
-                normalisation_policy: metaDraft.normalisation_policy,
-
-                conventions_id: metaDraft.conventions_id,
-                conventions_override_text: metaDraft.conventions_override_text,
-
-                completeness: metaDraft.completeness,
-                incompleteness_reason: metaDraft.incompleteness_reason,
-
-                reserve_level: metaDraft.reserve_level,
-                reserve_reason: metaDraft.reserve_reason,
-
-                note: metaDraft.note,
-            } as any);
-
-            // 3) log event (optional but recommended)
-            await logVersionEvent({
-                transcription_version_id: target.id,
-                event_type: "metadata",
-                payload: {
-                    transcription_id: tr2.id,
-                    acte_source_id: activeSourceId,
-                    meta: metaDraft,
-                },
-            });
-
-            toast.success("Métadonnées enregistrées");
-            flashSavedThenClean();
-            // 4) refresh + reload events
-            await refreshVersionsAndSelect(target.id);
-
-            const evts = await loadVersionEvents(target.id);
-            setVersionEvents(evts);
-
-            setSheetOpen(false);
-        } catch (e: any) {
-            console.error(e);
-            toast.error(e?.message ?? "Erreur enregistrement métadonnées");
-            setDirtyState((prev) => (prev === "saving" ? "clean" : prev));
-        } finally {
-            setLoading(false);
-        }
-    };
-
 
     // -----------------------------
     // Persist actions: annotation / note / tag
@@ -1913,32 +1727,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         }
     };
 
-    // -----------------------------
-    // Metadata save (DB fields + [META] note + version_sources sync)
-    // -----------------------------
-
-
-    const upsertMetaNote = async (versionId: string, nextMetaNoteText: string) => {
-        const meta = parseMetaFromNotes(notes);
-
-        if (meta.metaNoteId) {
-            const updated = await updateNote(meta.metaNoteId, { content: nextMetaNoteText });
-            setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-            return;
-        }
-
-        const row = await insertNote({
-            transcription_version_id: versionId,
-            start_offset: null,
-            end_offset: null,
-            quote: null,
-            prefix: null,
-            suffix: null,
-            content: nextMetaNoteText,
-        } as any);
-        setNotes((prev) => [...prev, row]);
-    };
-
 
 
     // -----------------------------
@@ -1985,14 +1773,6 @@ export function useTranscriptionTab({ acteId }: Props) {
         editingAnnotationId,
         editingNoteId,
 
-        // meta drafts
-        metaDraft,
-        setMetaDraft,
-        metaDraftCompleteness,
-        metaDraftReferenceReason,
-        setMetaDraftCompleteness,
-        setMetaDraftReferenceReason,
-
         // compare
         compareLeftId,
         compareRightId,
@@ -2024,6 +1804,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         wrapStrike,
         wrapBold,
 
+        saveWorkflowMetadata,
 
         setInReview,
         markAsTranscribed,
@@ -2033,12 +1814,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         onActiveSourceChanged,
         startTranscriptionForActiveSource,
         saveNewVersionForActiveSource,
-        openSourceDiffPicker,
-        openSourceDiff,
 
-        // metadata
-        openMetadata,
-        saveMetadata,
         versionEvents,
 
         // annotations / notes / tags
