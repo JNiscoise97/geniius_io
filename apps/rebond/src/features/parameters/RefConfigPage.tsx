@@ -19,15 +19,21 @@ import { Plus, Pencil, Trash2, RefreshCw, Save, X } from "lucide-react";
 
 // If one table deviates, simply add a mapping here to hide unsupported columns.
 const REF_TABLES: { value: string; label: string; columns?: Partial<Record<RefColumnKey, boolean>> }[] = [
-  { value: "ref_profession", label: "Professions" },
-  { value: "ref_statut_juridique", label: "Statuts juridiques" },
   { value: "ref_categorie_couleur", label: "Catégories de couleur" },
-  { value: "ref_situation_fiscale", label: "Situations fiscales" },
-  { value: "ref_statut_proprietaire", label: "Statuts de propriété" },
-  { value: "ref_qualite", label: "Qualités (appellations)" },
+  { value: "ref_ec_auteur_institutionnel", label: "Auteur institutionnel" },
+  { value: "ref_ec_type_acte", label: "Type d'acte" },
+  { value: "ref_ecritures", label: "Ecritures" },
   { value: "ref_filiation", label: "Filiations" },
+  { value: "ref_langues", label: "Langues" },
+  { value: "ref_profession", label: "Professions" },
+  { value: "ref_qualite", label: "Qualités (appellations)" },
   { value: "ref_signature", label: "Signature" },
+  { value: "ref_situation_fiscale", label: "Situations fiscales" },
   { value: "ref_situation_matrimoniale", label: "Situations matrimoniales" },
+  { value: "ref_statut_juridique", label: "Statuts juridiques" },
+  { value: "ref_statut_proprietaire", label: "Statuts de propriété" },
+  { value: "ref_supports", label: "Supports" },
+  { value: "ref_transcription_status", label: "Statuts de transcription" },
 ];
 
 // Column keys we support in the UI

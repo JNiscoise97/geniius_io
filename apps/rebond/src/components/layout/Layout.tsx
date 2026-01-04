@@ -19,10 +19,11 @@ export default function Layout({ children }: LayoutProps) {
   const { role } = useRoleStore()
 
   const navItems = [
-    { label: "Actes notariés", to: "ac-actes/liste" },
-    { label: "Actes d'état-civil", to: "ec-bureaux/liste" },
+    { label: "Actes notariés", to: "/ac-actes/liste" },
+    { label: "Actes d'état-civil", to: "/ec-bureaux/liste" },
     { label: "Individus", to: "/individus" },
     { label: "Familles", to: "/familles" },
+    { label: "Sources", to: "/sources" },
     { label: "Lieux", to: "/lieux" },
     { label: "Notaires", to: "/notaires/liste" },
     { label: "Recherche", to: "/recherche" },

@@ -41,7 +41,6 @@ import NotaireActePreview from "./features/notaires/NotaireActePreview"
 import { AnalyseRelationsPreview } from "./features/parameters/AnalyseRelationsPreview"
 import ActeEdit from "./features/etat-civil/suivi/ActeEdit"
 import { AnalyseLieuxPreview } from "./features/parameters/AnalyseLieuxPreview"
-import DashboardTest from "./features/accueil/DashboardTest"
 import CycleDeContribution from "./features/accueil/CycleDeContribution"
 import ConfigurationPage from "./features/configuration/Configuration"
 import { ProtectedRoute } from "./components/shared/ProtectedRoute"
@@ -59,6 +58,7 @@ import MockDialogActeur from "./components/actes/MockDialogActeur"
 import ProfessionsTable from "./features/parameters/ProfessionsTable"
 import { SchemaExplorer } from "./features/configuration/SchemaExplorer"
 import NotaireEdit from "./features/notaires/NotaireEdit"
+import { SourcesPage } from "./features/sources/SourcesPage"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -71,14 +71,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/ac-actes" element={<Navigate to="/ac-actes/liste" replace />} />
           <Route path="/ec-bureau" element={<Navigate to="/ec-bureaux/liste" replace />} />
           <Route path="/ec-bureaux" element={<Navigate to="/ec-bureaux/liste" replace />} />
-  
+
           <Route path="/" element={<LandingPage />} />
           <Route path="/configuration" element={
-              <ProtectedRoute minRole="visiteur">
-                <ConfigurationPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+            <ProtectedRoute minRole="visiteur">
+              <ConfigurationPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/faq/cycle-de-contribution" element={<CycleDeContribution />} />
           <Route path="/ac-actes/liste" element={<ActeList />} />
           <Route path="ac-actes/nouveau/minimal" element={<ActeMinimalForm />} />
@@ -108,7 +108,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/individus/liste" element={<IndividuList />} />
 
           <Route path="/individus/mention" element={<IndividuMentionsTraitement />} />
-          
+
           <Route path="/ec-acte/new" element={<ActeFormPage />} />
           <Route path="/ec-acte/edit2/:acteId" element={<ActeFormPage />} />
           <Route path="/ec-acte/edit/:acteId" element={<ActeEdit />} />
@@ -139,6 +139,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/admin/parsing/mentions-toponymes" element={<MentionsToponymesTable />} />
           <Route path="/admin/parsing/professions" element={<ProfessionsTable />} />
           <Route path="/recherche" element={<SearchResultsPage />} />
+          <Route path="/sources" element={<SourcesPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>
