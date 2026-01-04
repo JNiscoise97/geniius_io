@@ -54,6 +54,16 @@ export type TranscriptionStatus = (typeof REF_TRANSCRIPTION_STATUS_KEYS)[number]
 export type AnchorStatus = 'ok' | 'needs_review' | 'orphaned';
 
 export type TranscriptionKind = 'diplomatique' | 'semi_normalisee' | 'travail';
+
+export const REF_TRANSCRIPTION_PARTS = [
+  'main_body',
+  'marginal_mentions',
+  'signatures',
+  'marginal_crossouts',
+] as const;
+
+export type TranscriptionPart = (typeof REF_TRANSCRIPTION_PARTS)[number];
+
 export type SourceLectureKind =
   | 'image_originale'
   | 'microfilm'
@@ -211,6 +221,58 @@ export type CitationDraft = {
   } | null;
 };
 
+export type EcSignatureRow = {
+  id: string;
+  acte_id: string;
+  acte_source_id: string | null;
+  transcription_id: string | null;
+  transcription_version_id: string;
+
+  label: string;
+  signature_kind: string | null;
+  confidence: string | null;
+  legibility: string | null;
+  pattern: string | null;
+  note: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
+export type EcMarginalMentionRow = {
+  id: string;
+  acte_id: string;
+  acte_source_id: string | null;
+  transcription_id: string | null;
+  transcription_version_id: string;
+
+  type_acte_ref: string | null;
+  mention_date_raw: string | null;
+  mention_date: string | null; // date ISO string côté JS, Supabase gère en date
+  mention_content: string;
+  note: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
+export type EcMarginalCrossoutRow = {
+  id: string;
+  acte_id: string;
+  acte_source_id: string | null;
+  transcription_id: string | null;
+  transcription_version_id: string;
+
+  crossout_type: string | null;
+  target: string | null;
+  struck_text: string | null;
+  replacement_text: string | null;
+  note: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
 export type TranscriptionRow = {
   id: string;
   acte_id: string;
@@ -218,7 +280,9 @@ export type TranscriptionRow = {
   // lien à la citation/source (ta logique “1 transcription par source”)
   acte_source_id: string | null;
 
-  status: string | null;
+  transcription_part: TranscriptionPart;
+
+  status: TranscriptionStatus;
 
   is_reference: boolean;
   preference_reason: string | null;
@@ -371,10 +435,12 @@ export async function syncTranscriptionStatusFromLatestVersion(args: {
   transcriptionId: string;
   latestVersion: Pick<TranscriptionVersionRow, 'status' | 'content'> | null;
 }) {
-  const nextStatus: TranscriptionStatus =
-    args.latestVersion?.status ??
-    computeVersionStatusFromContent({ content: args.latestVersion?.content ?? '' }) ??
-    'TO_TRANSCRIBE';
+  const nextStatus: TranscriptionStatus = args.latestVersion
+    ? (args.latestVersion.status ??
+      computeVersionStatusFromContent({
+        content: args.latestVersion.content ?? '',
+      }))
+    : 'TO_TRANSCRIBE';
 
   await updateTranscription(args.transcriptionId, { status: nextStatus } as any);
   return nextStatus;
@@ -578,52 +644,6 @@ function normalizeWithMap(raw: string): NormalizedWithMap {
 
 function normalizeLoose(s: string) {
   return normalizeWithMap(s).norm;
-}
-
-function findFirstMarkerHit(raw: string, markers: MarkerDef[]) {
-  const { norm, map } = normalizeWithMap(raw);
-
-  let best: { rawIdx: number; label: string; priority: number } | null = null;
-
-  for (const m of markers) {
-    const pri = m.priority ?? 100;
-
-    // 1) phrases (loose)
-    if (m.phrases?.length) {
-      for (const phrase of m.phrases) {
-        const p = normalizeLoose(phrase);
-        if (!p) continue;
-
-        const nIdx = norm.indexOf(p);
-        if (nIdx >= 0) {
-          const rawIdx = map[nIdx] ?? 0;
-
-          if (!best || rawIdx < best.rawIdx || (rawIdx === best.rawIdx && pri < best.priority)) {
-            best = { rawIdx, label: m.label, priority: pri };
-          }
-        }
-      }
-    }
-
-    // 2) regexRaw (fallback)
-    if (m.regexRaw) {
-      try {
-        const re = new RegExp(m.regexRaw, 'iu');
-        const match = re.exec(raw);
-        if (match && match.index != null) {
-          const rawIdx = match.index;
-
-          if (!best || rawIdx < best.rawIdx || (rawIdx === best.rawIdx && pri < best.priority)) {
-            best = { rawIdx, label: m.label, priority: pri };
-          }
-        }
-      } catch {
-        // ignore invalid regex
-      }
-    }
-  }
-
-  return best; // {rawIdx,label,...} or null
 }
 
 function computeAllHits(raw: string, markers: MarkerDef[]) {
@@ -913,7 +933,7 @@ export async function clearTranscriptionReference(args: { transcriptionId: strin
   const { transcriptionId } = args;
 
   const res = await supabase
-    .from('ec_transcriptions')
+    .from(T.transcriptions)
     .update({
       is_reference: false,
       preference_reason: null,
@@ -980,6 +1000,10 @@ export function composeDiffNote(a: string, b: string, reason: string) {
   return `[DIFF ${compareKey(a, b)}] ${reason}`;
 }
 
+export function transcriptionKey(acteSourceId: string, part: TranscriptionPart) {
+  return `${acteSourceId}::${part}`;
+}
+
 // -------------------- Supabase access (bundle + CRUD) --------------------
 
 type ActeBundle = {
@@ -987,8 +1011,8 @@ type ActeBundle = {
   transcriptions: TranscriptionRow[];
   versions: TranscriptionVersionRow[];
   // maps pratiques
-  transcriptionBySourceId: Record<string, TranscriptionRow>;
-  latestVersionIdBySourceId: Record<string, string>; // sourceId -> latest version id
+  transcriptionByKey: Record<string, TranscriptionRow>; // key = `${sourceId}::${part}`
+  latestVersionIdByKey: Record<string, string>; // key -> latest version id
   acteurs: ActeurLightRow[];
 };
 
@@ -1031,14 +1055,15 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
       versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
     }
 
-    // map transcription par source
-    const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
+    const transcriptionByKey: Record<string, TranscriptionRow> = {};
     for (const t of transcriptions) {
-      if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
+      if (t.acte_source_id) {
+        const k = transcriptionKey(t.acte_source_id, t.transcription_part ?? 'main_body');
+        transcriptionByKey[k] = t;
+      }
     }
 
-    // latest version id par source (via transcription)
-    const latestVersionIdBySourceId: Record<string, string> = {};
+    const latestVersionIdByKey: Record<string, string> = {};
     for (const t of transcriptions) {
       const v = versions
         .filter((vv) => vv.transcription_id === t.id)
@@ -1049,15 +1074,18 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         })[0];
 
-      if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
+      if (v && t.acte_source_id) {
+        const k = transcriptionKey(t.acte_source_id, t.transcription_part ?? 'main_body');
+        latestVersionIdByKey[k] = v.id;
+      }
     }
 
     return {
       acte,
       transcriptions,
       versions,
-      transcriptionBySourceId,
-      latestVersionIdBySourceId,
+      transcriptionByKey,
+      latestVersionIdByKey,
       acteurs,
     };
   } catch (e) {
@@ -1069,22 +1097,28 @@ export async function loadActeBundle(acteId: string): Promise<ActeBundle> {
 export async function refreshTranscriptionsAndVersions(acteId: string): Promise<{
   transcriptions: TranscriptionRow[];
   versions: TranscriptionVersionRow[];
-  transcriptionBySourceId: Record<string, TranscriptionRow>;
-  latestVersionIdBySourceId: Record<string, string>;
+  transcriptionByKey: Record<string, TranscriptionRow>; // key = `${sourceId}::${part}`
+  latestVersionIdByKey: Record<string, string>; // key -> latest version id
 }> {
   const transRes = await supabase
     .from(T.transcriptions)
     .select('*')
     .eq('acte_id', acteId)
     .order('created_at', { ascending: true });
+
   assertNoSbError(transRes as any, 'refresh transcriptions');
   const transcriptions = (transRes.data ?? []) as any as TranscriptionRow[];
 
-  const transcriptionBySourceId: Record<string, TranscriptionRow> = {};
+  // map: sourceId::part -> transcription
+  const transcriptionByKey: Record<string, TranscriptionRow> = {};
   for (const t of transcriptions) {
-    if (t.acte_source_id) transcriptionBySourceId[t.acte_source_id] = t;
+    if (!t.acte_source_id) continue;
+    const part = (t.transcription_part ?? 'main_body') as TranscriptionPart;
+    const k = transcriptionKey(t.acte_source_id, part);
+    transcriptionByKey[k] = t;
   }
 
+  // load versions for all transcriptions
   const transcriptionIds = transcriptions.map((t) => t.id);
   let versions: TranscriptionVersionRow[] = [];
 
@@ -1094,45 +1128,67 @@ export async function refreshTranscriptionsAndVersions(acteId: string): Promise<
       .select('*')
       .in('transcription_id', transcriptionIds)
       .order('version', { ascending: false });
+
     assertNoSbError(vRes as any, 'refresh versions');
     versions = (vRes.data ?? []) as any as TranscriptionVersionRow[];
   }
 
-  const latestVersionIdBySourceId: Record<string, string> = {};
-  for (const t of transcriptions) {
-    const v = versions
-      .filter((vv) => vv.transcription_id === t.id)
-      .sort((a, b) => {
-        const av = Number(a.version ?? 0);
-        const bv = Number(b.version ?? 0);
-        if (bv !== av) return bv - av;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      })[0];
-    if (v && t.acte_source_id) latestVersionIdBySourceId[t.acte_source_id] = v.id;
+  // map: sourceId::part -> latest version id
+  const latestVersionIdByKey: Record<string, string> = {};
+
+  // petit index rapide versions par transcription_id (évite filter/sort à répétition)
+  const versionsByTranscriptionId: Record<string, TranscriptionVersionRow[]> = {};
+  for (const v of versions) {
+    (versionsByTranscriptionId[v.transcription_id] ||= []).push(v);
   }
 
-  return { transcriptions, versions, transcriptionBySourceId, latestVersionIdBySourceId };
+  for (const t of transcriptions) {
+    if (!t.acte_source_id) continue;
+
+    const part = (t.transcription_part ?? 'main_body') as TranscriptionPart;
+    const k = transcriptionKey(t.acte_source_id, part);
+
+    const list = versionsByTranscriptionId[t.id] ?? [];
+    if (!list.length) continue;
+
+    // list est déjà globalement triée par version desc via la query,
+    // mais on sécurise en prenant la “meilleure”:
+    const best = list.slice().sort((a, b) => {
+      const av = Number(a.version ?? 0);
+      const bv = Number(b.version ?? 0);
+      if (bv !== av) return bv - av;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    })[0];
+
+    if (best) latestVersionIdByKey[k] = best.id;
+  }
+
+  return { transcriptions, versions, transcriptionByKey, latestVersionIdByKey };
 }
 
 export async function ensureTranscription(
   acteId: string,
   acteSourceId: string,
+  part: TranscriptionPart = 'main_body',
 ): Promise<TranscriptionRow> {
-  // try get
   const getRes = await supabase
     .from(T.transcriptions)
     .select('*')
     .eq('acte_id', acteId)
     .eq('acte_source_id', acteSourceId)
+    .eq('transcription_part', part)
     .maybeSingle();
 
   if (getRes.error) throw new Error(toMsg(getRes.error, 'Impossible de charger la transcription'));
   if (getRes.data) return getRes.data as any as TranscriptionRow;
 
-  // create
   const insRes = await supabase
     .from(T.transcriptions)
-    .insert({ acte_id: acteId, acte_source_id: acteSourceId } as any)
+    .insert({
+      acte_id: acteId,
+      acte_source_id: acteSourceId,
+      transcription_part: part,
+    } as any)
     .select('*')
     .single();
 
@@ -1325,7 +1381,6 @@ export async function carryOverChildrenBestEffort(args: {
     if (ins.error) console.error('carryOver: insert annotations', ins.error);
   }
 
-  // ---- notes (skip [META] and [DIFF ...] notes: they are version-specific)
   const userNotes = notes.filter((n) => !(n.content ?? '').startsWith('[DIFF '));
   if (userNotes.length) {
     const insRows = userNotes.map((n) => {
@@ -1393,6 +1448,7 @@ export async function carryOverChildrenBestEffort(args: {
 export async function createNewVersionForSource(args: {
   acteId: string;
   activeSourceId: string; // = acte_source_id
+  part: TranscriptionPart; // ✅ zone
   editorContent: string;
   status?: TranscriptionStatus; // default draft
 
@@ -1414,7 +1470,7 @@ export async function createNewVersionForSource(args: {
   const status = (args.status ?? computed) as TranscriptionStatus;
 
   // ✅ 1 transcription par source
-  const transcription = await ensureTranscription(args.acteId, args.activeSourceId);
+  const transcription = await ensureTranscription(args.acteId, args.activeSourceId, args.part);
 
   const newVersion = await createVersion(transcription.id, {
     version: args.nextVersionNumber,
@@ -1437,6 +1493,7 @@ export async function createNewVersionForSource(args: {
     payload: {
       acte_id: args.acteId,
       acte_source_id: args.activeSourceId,
+      transcription_part: args.part,
       transcription_id: transcription.id,
       version: newVersion.version,
       status: newVersion.status,
