@@ -57,14 +57,14 @@ type ActeCitationRow = {
 
   sort_order: number;
 
-  document_form: string | null;
+  document_form_ref: string | null;
   document_form_details: string | null;
 
-  physical_condition: string | null;
+  physical_condition_ref: string | null;
   damage_kinds: any; // jsonb (array)
   damage_notes: string | null;
 
-  repro_quality: string | null;
+  repro_quality_ref: string | null;
   repro_issues: any; // jsonb (array)
   repro_notes: string | null;
 
@@ -130,14 +130,17 @@ function emptyCitation(): ActeCitationDraft {
     note: '',
     sort_order: 0,
 
-    document_form: null,
+    document_form_ref: null,
+    document_form_label: null,
     document_form_details: '',
 
-    physical_condition: null,
+    physical_condition_ref: null,
+    physical_condition_label: null,
     damage_kinds: [],
     damage_notes: '',
 
-    repro_quality: null,
+    repro_quality_ref: null,
+    repro_quality_label: null,
     repro_issues: [],
     repro_notes: '',
 
@@ -171,14 +174,17 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     note: r?.note ?? '',
     sort_order: typeof r?.sort_order === 'number' ? r!.sort_order : 0,
 
-    document_form: r?.document_form ?? null,
+    document_form_ref: r?.document_form_ref ?? null,
+    document_form_label: null,
     document_form_details: r?.document_form_details ?? '',
 
-    physical_condition: r?.physical_condition ?? null,
+    physical_condition_ref: r?.physical_condition_ref ?? null,
+    physical_condition_label: null,
     damage_kinds: Array.isArray(r?.damage_kinds) ? (r!.damage_kinds as any[]).filter(Boolean) : [],
     damage_notes: r?.damage_notes ?? '',
 
-    repro_quality: r?.repro_quality ?? null,
+    repro_quality_ref: r?.repro_quality_ref ?? null,
+    repro_quality_label: null,
     repro_issues: Array.isArray(r?.repro_issues) ? (r!.repro_issues as any[]).filter(Boolean) : [],
     repro_notes: r?.repro_notes ?? '',
 
@@ -284,7 +290,7 @@ export default function ReferenceArchiveTab({
         .from('etat_civil_acte_citations')
         .select(
           'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order,' +
-            'document_form, document_form_details, physical_condition, damage_kinds, damage_notes, repro_quality, repro_issues, repro_notes, missing_ranges,' +
+            'document_form_ref, document_form_details, physical_condition_ref, damage_kinds, damage_notes, repro_quality_ref, repro_issues, repro_notes, missing_ranges,' +
             'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
         .eq('acte_id', acteId)
@@ -486,14 +492,14 @@ export default function ReferenceArchiveTab({
 
           sort_order: idx,
 
-          document_form: c.document_form ?? null,
+          document_form_ref: c.document_form_ref ?? null,
           document_form_details: (c.document_form_details ?? '').trim() || null,
 
-          physical_condition: c.physical_condition ?? null,
+          physical_condition_ref: c.physical_condition_ref ?? null,
           damage_kinds: Array.isArray(c.damage_kinds) ? c.damage_kinds : [],
           damage_notes: (c.damage_notes ?? '').trim() || null,
 
-          repro_quality: c.repro_quality ?? null,
+          repro_quality_ref: c.repro_quality_ref ?? null,
           repro_issues: Array.isArray(c.repro_issues) ? c.repro_issues : [],
           repro_notes: (c.repro_notes ?? '').trim() || null,
 

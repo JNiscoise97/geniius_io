@@ -21,6 +21,9 @@ import { Plus, Pencil, Trash2, RefreshCw, Save, X } from "lucide-react";
 const REF_TABLES: { value: string; label: string; columns?: Partial<Record<RefColumnKey, boolean>> }[] = [
   { value: "ref_categorie_couleur", label: "Catégories de couleur" },
   { value: "ref_ec_auteur_institutionnel", label: "Auteur institutionnel" },
+  { value: "ref_ec_document_form", label: "Formes du document" },
+  { value: "ref_ec_physical_condition", label: "État physique du support" },
+  { value: "ref_ec_repro_quality", label: "Qualité de reproduction" },
   { value: "ref_ec_type_acte", label: "Type d'acte" },
   { value: "ref_ecritures", label: "Ecritures" },
   { value: "ref_filiation", label: "Filiations" },

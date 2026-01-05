@@ -9,6 +9,18 @@ import type {
 } from '@/features/archives/reference/types';
 import { Plus } from 'lucide-react';
 import { ManifestationPickerDialog } from './ManifestationPickerDialog';
+import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
+import {
+  DictionnaireEditorPanel,
+  type DictionnaireKind,
+} from '@/components/shared/DictionnaireEditorPanel';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 
 type SectionMode = 'acte' | 'registre';
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
@@ -150,6 +162,35 @@ export function SectionSources({
     setPickerOpen(false);
     setPickerTargetIdx(null);
     setPickError(null);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Dictionnaire (document_form_ref / physical_condition_ref / repro_quality_ref)
+  // ---------------------------------------------------------------------------
+  const [dictOpen, setDictOpen] = useState(false);
+  const [dictArgs, setDictArgs] = useState<{
+    kind: DictionnaireKind;
+    title: string;
+    multi: boolean;
+    defaultSelectedIds: string[];
+    onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
+  } | null>(null);
+
+  const openDict = (args: {
+    kind: DictionnaireKind;
+    title: string;
+    multi?: boolean;
+    defaultSelectedIds?: string[];
+    onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
+  }) => {
+    setDictArgs({
+      kind: args.kind,
+      title: args.title,
+      multi: args.multi ?? false,
+      defaultSelectedIds: args.defaultSelectedIds ?? [],
+      onValidate: args.onValidate,
+    });
+    setDictOpen(true);
   };
 
   useEffect(() => {
@@ -747,23 +788,38 @@ export function SectionSources({
                                     <label className='block text-xs font-medium text-slate-700'>
                                       Nature du document
                                     </label>
-                                    <select
-                                      value={a.document_form ?? ''}
-                                      onChange={(e) =>
-                                        patchActe(idx, { document_form: e.target.value || null })
+
+                                    <ListeChipsViewSmart
+                                      titre='Nature du document'
+                                      values={[
+                                        a.document_form_label || a.document_form_ref || '—',
+                                      ].filter((v) => v !== '—')}
+                                      dense
+                                      onEdit={() => {
+                                        openDict({
+                                          kind: 'ec_document_form_ref' as DictionnaireKind,
+                                          title: 'Nature du document',
+                                          multi: false,
+                                          defaultSelectedIds: a.document_form_ref
+                                            ? [a.document_form_ref]
+                                            : [],
+                                          onValidate: async (items) => {
+                                            const it = items?.[0];
+                                            patchActe(idx, {
+                                              document_form_ref: it?.id ?? null,
+                                              document_form_label: it?.label ?? null,
+                                            });
+                                            setDictOpen(false);
+                                          },
+                                        });
+                                      }}
+                                      onDelete={() =>
+                                        patchActe(idx, {
+                                          document_form_ref: null,
+                                          document_form_label: null,
+                                        })
                                       }
-                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                    >
-                                      <option value=''>—</option>
-                                      <option value='original'>Original</option>
-                                      <option value='copie'>Copie</option>
-                                      <option value='extrait'>Extrait</option>
-                                      <option value='expedition'>Expédition</option>
-                                      <option value='transcription_secondaire'>
-                                        Transcription secondaire
-                                      </option>
-                                      <option value='autre'>Autre</option>
-                                    </select>
+                                    />
                                   </div>
 
                                   <div className='md:col-span-8'>
@@ -785,21 +841,39 @@ export function SectionSources({
                                     <label className='block text-xs font-medium text-slate-700'>
                                       État matériel
                                     </label>
-                                    <select
-                                      value={a.physical_condition ?? ''}
-                                      onChange={(e) =>
+                                    <ListeChipsViewSmart
+                                      titre='État matériel'
+                                      values={[
+                                        a.physical_condition_label ||
+                                          a.physical_condition_ref ||
+                                          '—',
+                                      ].filter((v) => v !== '—')}
+                                      dense
+                                      onEdit={() => {
+                                        openDict({
+                                          kind: 'ec_physical_condition_ref' as DictionnaireKind,
+                                          title: 'État matériel',
+                                          multi: false,
+                                          defaultSelectedIds: a.physical_condition_ref
+                                            ? [a.physical_condition_ref]
+                                            : [],
+                                          onValidate: async (items) => {
+                                            const it = items?.[0];
+                                            patchActe(idx, {
+                                              physical_condition_ref: it?.id ?? null,
+                                              physical_condition_label: it?.label ?? null,
+                                            });
+                                            setDictOpen(false);
+                                          },
+                                        });
+                                      }}
+                                      onDelete={() =>
                                         patchActe(idx, {
-                                          physical_condition: e.target.value || null,
+                                          physical_condition_ref: null,
+                                          physical_condition_label: null,
                                         })
                                       }
-                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                    >
-                                      <option value=''>—</option>
-                                      <option value='intact'>Intact</option>
-                                      <option value='fragile'>Fragile</option>
-                                      <option value='damaged'>Abîmé</option>
-                                      <option value='heavily_damaged'>Très abîmé</option>
-                                    </select>
+                                    />
                                   </div>
 
                                   <div className='md:col-span-8'>
@@ -837,20 +911,37 @@ export function SectionSources({
                                     <label className='block text-xs font-medium text-slate-700'>
                                       Qualité de reproduction
                                     </label>
-                                    <select
-                                      value={a.repro_quality ?? ''}
-                                      onChange={(e) =>
-                                        patchActe(idx, { repro_quality: e.target.value || null })
+                                    <ListeChipsViewSmart
+                                      titre='Qualité de reproduction'
+                                      values={[
+                                        a.repro_quality_label || a.repro_quality_ref || '—',
+                                      ].filter((v) => v !== '—')}
+                                      dense
+                                      onEdit={() => {
+                                        openDict({
+                                          kind: 'ec_repro_quality_ref' as DictionnaireKind,
+                                          title: 'Qualité de reproduction',
+                                          multi: false,
+                                          defaultSelectedIds: a.repro_quality_ref
+                                            ? [a.repro_quality_ref]
+                                            : [],
+                                          onValidate: async (items) => {
+                                            const it = items?.[0];
+                                            patchActe(idx, {
+                                              repro_quality_ref: it?.id ?? null,
+                                              repro_quality_label: it?.label ?? null,
+                                            });
+                                            setDictOpen(false);
+                                          },
+                                        });
+                                      }}
+                                      onDelete={() =>
+                                        patchActe(idx, {
+                                          repro_quality_ref: null,
+                                          repro_quality_label: null,
+                                        })
                                       }
-                                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                                    >
-                                      <option value=''>—</option>
-                                      <option value='excellent'>Excellent</option>
-                                      <option value='good'>Bon</option>
-                                      <option value='ok'>OK</option>
-                                      <option value='poor'>Mauvais</option>
-                                      <option value='unusable'>Inutilisable</option>
-                                    </select>
+                                    />
                                   </div>
 
                                   <div className='md:col-span-8'>
@@ -1089,6 +1180,27 @@ export function SectionSources({
         setQ={setQ}
         onPick={(row) => pick(row)}
       />
+
+      {/* DRAWER dictionnaire */}
+      <Sheet open={dictOpen} onOpenChange={setDictOpen}>
+        <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
+          <SheetHeader className='sr-only'>
+            <SheetTitle>{dictArgs?.title ?? 'Dictionnaire'}</SheetTitle>
+            <SheetDescription>Sélection d’une valeur de dictionnaire</SheetDescription>
+          </SheetHeader>
+
+          {dictArgs && (
+            <DictionnaireEditorPanel
+              kind={dictArgs.kind}
+              title={dictArgs.title}
+              multi={dictArgs.multi}
+              defaultSelectedIds={dictArgs.defaultSelectedIds}
+              onValidate={dictArgs.onValidate}
+              onCancel={() => setDictOpen(false)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }

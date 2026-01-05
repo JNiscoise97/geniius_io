@@ -26,17 +26,17 @@ export type ReferenceOwner = {
 export type ArchiveSourceRow = {
   id: string;
   owner_kind: ReferenceOwnerKind; // acte|registre (virtuel côté front)
-  owner_id: string;              // acte_id ou registre_id
+  owner_id: string; // acte_id ou registre_id
 
-  depot_type: string | null;     // ANOM / AD / Mairie / etc.
+  depot_type: string | null; // ANOM / AD / Mairie / etc.
   nom_depot: string | null;
   chemin_classement: string | null;
   cote: string | null;
-  registre: string | null;       // titre registre / registre_titre
-  acces_mode: string | null;     // en_ligne / sur_place / copie
+  registre: string | null; // titre registre / registre_titre
+  acces_mode: string | null; // en_ligne / sur_place / copie
   url_site: string | null;
 
-  vues_pages: string | null;     // ex "p. 123-126" ou "vues 55-60"
+  vues_pages: string | null; // ex "p. 123-126" ou "vues 55-60"
   note: string | null;
 
   created_at?: string | null;
@@ -75,14 +75,17 @@ export type ActeCitationDraft = CitationDraftBase & {
 
   acte_manquant?: boolean;
 
-  document_form?: string | null;
+  document_form_ref?: string | null;
+  document_form_label?: string | null;
   document_form_details?: string | null;
 
-  physical_condition?: string | null;
+  physical_condition_ref?: string | null;
+  physical_condition_label?: string | null;
   damage_kinds?: string[]; // jsonb array in DB
   damage_notes?: string | null;
 
-  repro_quality?: string | null;
+  repro_quality_ref?: string | null;
+  repro_quality_label?: string | null;
   repro_issues?: string[]; // jsonb array in DB
   repro_notes?: string | null;
 
@@ -97,13 +100,11 @@ export type ActeCitationDraft = CitationDraftBase & {
   // Mots rayés indiqués en marge (à distinguer des rayures dans le texte)
   marginal_crossouts_present?: boolean | null;
   marginal_crossouts_count?: number | null;
-
 };
 
 export type RegistreCitationDraft = CitationDraftBase & {
   registre_manquant?: boolean;
 };
-
 
 export type CitationDraftBase = {
   id?: string;
@@ -117,7 +118,6 @@ export type CitationDraftBase = {
   note?: string;
   sort_order?: number;
 };
-
 
 export type Manifestation = {
   type_manifestation?: string;
