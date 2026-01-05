@@ -104,6 +104,12 @@ function emptyCitation(acteId: string): CitationDraft {
     acte_manquant: false,
     note: null,
     sort_order: 0,
+    marginal_mentions_present: null,
+    marginal_mentions_count: null,
+    signatures_present: null,
+    signatures_count: null,
+    marginal_crossouts_present: null,
+    marginal_crossouts_count: null,
     manifestation: null,
   };
 }
@@ -122,6 +128,12 @@ function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
     acte_manquant: Boolean(r.acte_manquant),
     note: r.note,
     sort_order: r.sort_order,
+    marginal_mentions_present: r.marginal_mentions_present,
+    marginal_mentions_count: r.marginal_mentions_count,
+    signatures_present: r.signatures_present,
+    signatures_count: r.signatures_count,
+    marginal_crossouts_present: r.marginal_crossouts_present,
+    marginal_crossouts_count: r.marginal_crossouts_count,
     manifestation: null,
   };
 }
@@ -179,7 +191,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order',
+          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -1654,7 +1666,7 @@ export function useTranscriptionTab({ acteId }: Props) {
           ta?.focus();
           const pos = start + left.length;
           ta?.setSelectionRange(pos, pos);
-        } catch {}
+        } catch { }
       });
       return;
     }
@@ -1670,7 +1682,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         const newStart = start + left.length;
         const newEnd = end + left.length;
         ta?.setSelectionRange(newStart, newEnd);
-      } catch {}
+      } catch { }
     });
   }
 
@@ -1708,7 +1720,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         ta.focus();
         const pos = start + text.length;
         ta.setSelectionRange(pos, pos);
-      } catch {}
+      } catch { }
     });
   }
 

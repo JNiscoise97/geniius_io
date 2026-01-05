@@ -172,6 +172,15 @@ export type ActeCitationRow = {
   acte_manquant: boolean | null;
   note: string | null;
   sort_order: number | null;
+
+  marginal_mentions_present : boolean | null;
+  marginal_mentions_count : number | null;
+
+  signatures_present : boolean | null;
+  signatures_count : number | null;
+
+  marginal_crossouts_present : boolean | null;
+  marginal_crossouts_count : number | null;
 };
 
 export type ManifestationPick = {
@@ -205,6 +214,15 @@ export type CitationDraft = {
   acte_manquant: boolean;
   note: string | null;
   sort_order: number | null;
+
+  marginal_mentions_present : boolean | null;
+  marginal_mentions_count : number | null;
+
+  signatures_present : boolean | null;
+  signatures_count : number | null;
+
+  marginal_crossouts_present : boolean | null;
+  marginal_crossouts_count : number | null;
 
   // enrich
   manifestation?: {

@@ -66,6 +66,7 @@ import {
 
 import { useTranscriptionTab } from './transcriptionTab.logic';
 import { StatusPill } from '@/components/shared/StatusPill';
+import { ProgressVerboseBar } from '@/components/shared/ProgressVerboseBar';
 
 type Props = {
   acteId: string;
@@ -168,9 +169,9 @@ export default function TranscriptionTab({ acteId }: Props) {
         (s.vues_start || s.vues_end
           ? `Vues ${s.vues_start ?? '?'}–${s.vues_end ?? '?'}`
           : s.page_raw ||
-            (s.page_start || s.page_end
-              ? `Pages ${s.page_start ?? '?'}–${s.page_end ?? '?'}`
-              : ''));
+          (s.page_start || s.page_end
+            ? `Pages ${s.page_start ?? '?'}–${s.page_end ?? '?'}`
+            : ''));
       const label = [uniteTitre, inst, vuesPages].filter(Boolean).join(' · ');
       const usedInWorkingVersion = t.activeSourceId === s.id;
 
@@ -260,6 +261,53 @@ export default function TranscriptionTab({ acteId }: Props) {
     }
     return t.currentVersion ?? null;
   }, [activeSourceRow?.latestVersionId, versions, t.currentVersion]);
+
+  type CitationTotals = {
+  marginalMentionsTotal: number | null;
+  signaturesTotal: number | null;
+  marginalCrossoutsTotal: number | null;
+};
+
+function normalizeTotal(present: boolean | null | undefined, count: number | null | undefined) {
+  // si present est explicitement false => 0
+  if (present === false) return 0;
+  // si present est true => on prend count (ou 0 si null)
+  if (present === true) return count ?? 0;
+  // si present est null/undefined => on ne sait pas => null (indéterminé)
+  if (count == null) return null;
+  return count; // fallback si tu as un count sans present
+}
+
+const activeCitation = useMemo(() => {
+  if (!t.activeSourceId) return null;
+  return (sources ?? []).find((x: any) => x.id === t.activeSourceId) ?? null;
+}, [sources, t.activeSourceId]);
+
+const citationTotals = useMemo<CitationTotals>(() => {
+  if (!activeCitation) {
+    return {
+      marginalMentionsTotal: null,
+      signaturesTotal: null,
+      marginalCrossoutsTotal: null,
+    };
+  }
+
+  return {
+    marginalMentionsTotal: normalizeTotal(
+      activeCitation.marginal_mentions_present,
+      activeCitation.marginal_mentions_count
+    ),
+    signaturesTotal: normalizeTotal(
+      activeCitation.signatures_present,
+      activeCitation.signatures_count
+    ),
+    marginalCrossoutsTotal: normalizeTotal(
+      activeCitation.marginal_crossouts_present,
+      activeCitation.marginal_crossouts_count
+    ),
+  };
+}, [activeCitation]);
+
 
   const isFinalized =
     (workingVersion?.status === 'IN_REVIEW' || workingVersion?.status === 'VALIDATED') ?? false;
@@ -756,7 +804,7 @@ export default function TranscriptionTab({ acteId }: Props) {
                   <div className='text-sm font-semibold text-slate-900'>Sources</div>
 
                   {/* Bouton déplier / replier à droite */}
-                  {step !== 1 && (
+                  {step !== 1 && dashboard.length > 1 && (
                     <button
                       type='button'
                       onClick={toggleSourcesExpanded}
@@ -816,19 +864,24 @@ export default function TranscriptionTab({ acteId }: Props) {
                       const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
                       const uniteCote = m?.unite_cote ?? null;
 
+                      const signatures_label = g?.signatures_present ? "avec signatures manuscrites": null;
+                      const marginal_mentions_label = g?.marginal_mentions_present ? "avec mentions marginales": null;
+
                       const vuesPages =
                         g?.vues_raw ||
                         (g?.vues_start || g?.vues_end
                           ? `Vues ${g?.vues_start ?? '?'}–${g?.vues_end ?? '?'}`
                           : g?.page_raw ||
-                            (g?.page_start || g?.page_end
-                              ? `Pages ${g?.page_start ?? '?'}–${g?.page_end ?? '?'}`
-                              : ''));
+                          (g?.page_start || g?.page_end
+                            ? `Pages ${g?.page_start ?? '?'}–${g?.page_end ?? '?'}`
+                            : ''));
 
                       const lineParts = [
                         uniteCote ? uniteCote : null,
                         vuesPages ? vuesPages : null,
                         g?.acte_manquant ? 'Acte manquant' : null,
+                        signatures_label,
+                        marginal_mentions_label
                       ].filter(Boolean);
 
                       const line = lineParts.join(' · ');
@@ -938,9 +991,9 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                   <PartSectionCard
                     title='Mentions marginales'
-                    subtitle='Transcrire et structurer les mentions en marge (mariage, décès, rectif...).'
                     Icon={PenLine}
                     count={(t.marginalMentions?.length ?? 0) as number}
+                    total={citationTotals.marginalMentionsTotal ?? 0 }
                     onAdd={() => t.openAddMarginalMention?.()}
                     onManage={() => t.openManageMarginalMentions?.()}
                     disabled={t.loading || !workingVersion}
@@ -948,9 +1001,9 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                   <PartSectionCard
                     title='Signatures'
-                    subtitle='Lister et qualifier les signatures / marques / "ne sait signer".'
                     Icon={Signature}
                     count={(t.signatures?.length ?? 0) as number}
+                    total={citationTotals.signaturesTotal ?? 0 }
                     onAdd={() => t.openAddSignature?.()}
                     onManage={() => t.openManageSignatures?.()}
                     disabled={t.loading || !workingVersion}
@@ -958,9 +1011,9 @@ export default function TranscriptionTab({ acteId }: Props) {
 
                   <PartSectionCard
                     title='Ratures marginales'
-                    subtitle='Décrire ratures/biffures, texte barré, corrections visibles en marge.'
                     Icon={Scissors}
                     count={(t.marginalCrossouts?.length ?? 0) as number}
+                    total={citationTotals.marginalCrossoutsTotal ?? 0 }
                     onAdd={() => t.openAddMarginalCrossout?.()}
                     onManage={() => t.openManageMarginalCrossouts?.()}
                     disabled={t.loading || !workingVersion}
@@ -1193,8 +1246,8 @@ export default function TranscriptionTab({ acteId }: Props) {
                     {notes.filter(
                       (n) => !n.content?.startsWith('[META]') && !n.content?.startsWith('[DIFF '),
                     ).length === 0 && (
-                      <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
-                    )}
+                        <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
+                      )}
 
                     {notes
                       .filter(
@@ -1272,12 +1325,24 @@ export default function TranscriptionTab({ acteId }: Props) {
                       ? 'Tagger un passage'
                       : t.sheetMode === 'reference'
                         ? 'Définir la source de référence'
-                        : 'Panneau'}
+                        : t.sheetMode === 'marginal_mentions'
+                          ? 'Définir les mentions marginales'
+                          : t.sheetMode === 'signatures'
+                            ? 'Définir les signatures'
+                            : t.sheetMode === 'marginal_crossouts'
+                              ? 'Définir les ratures marginales'
+                              : 'Panneau'}
             </SheetTitle>
             <SheetDescription>
               {t.sheetMode === 'compare'
                 ? 'Diff visuel entre transcriptions actives de deux sources + note de cause.'
-                : ''}
+                : t.sheetMode === 'marginal_mentions'
+                  ? 'Transcrire et structurer les mentions en marge (mariage, décès, rectif...).'
+                  : t.sheetMode === 'signatures'
+                    ? 'Ajoute une signature telle que lue (sans interprétation).'
+                    : t.sheetMode === 'marginal_crossouts'
+                      ? 'Décrire ratures/biffures, texte barré, corrections visibles en marge.'
+                      : ''}
             </SheetDescription>
           </SheetHeader>
 
@@ -1359,23 +1424,6 @@ export default function TranscriptionTab({ acteId }: Props) {
               </div>
             ) : t.sheetMode === 'marginal_mentions' ? (
               <div className='space-y-4'>
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='min-w-0'>
-                    <div className='text-sm font-semibold text-slate-900'>Mentions marginales</div>
-                    <div className='text-xs text-slate-600'>
-                      Ajoute une mention telle que lue (type + date + transcription).
-                    </div>
-                  </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => t.setSheetOpen(false)}
-                    className='h-8 px-2 text-xs'
-                  >
-                    Fermer
-                  </Button>
-                </div>
-
                 {/* Liste (si implémentée côté logic) */}
                 {Boolean((t.marginalMentions?.length ?? 0) > 0) && (
                   <div className='space-y-2'>
@@ -1511,23 +1559,6 @@ export default function TranscriptionTab({ acteId }: Props) {
               </div>
             ) : t.sheetMode === 'signatures' ? (
               <div className='space-y-4'>
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='min-w-0'>
-                    <div className='text-sm font-semibold text-slate-900'>Signatures</div>
-                    <div className='text-xs text-slate-600'>
-                      Ajoute une signature telle que lue (sans interprétation).
-                    </div>
-                  </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => t.setSheetOpen(false)}
-                    className='h-8 px-2 text-xs'
-                  >
-                    Fermer
-                  </Button>
-                </div>
-
                 {/* Liste */}
                 {Boolean((t.signatures?.length ?? 0) > 0) && (
                   <div className='space-y-2'>
@@ -1691,23 +1722,6 @@ export default function TranscriptionTab({ acteId }: Props) {
               </div>
             ) : t.sheetMode === 'marginal_crossouts' ? (
               <div className='space-y-4'>
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='min-w-0'>
-                    <div className='text-sm font-semibold text-slate-900'>Ratures marginales</div>
-                    <div className='text-xs text-slate-600'>
-                      Décris les biffures/corrections visibles.
-                    </div>
-                  </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => t.setSheetOpen(false)}
-                    className='h-8 px-2 text-xs'
-                  >
-                    Fermer
-                  </Button>
-                </div>
-
                 {/* Liste */}
                 {Boolean((t.marginalCrossouts?.length ?? 0) > 0) && (
                   <div className='space-y-2'>
@@ -1993,17 +2007,17 @@ function RichText({ text }: { text: string }) {
 
 function PartSectionCard({
   title,
-  subtitle,
   Icon,
   count,
+  total,
   onAdd,
   onManage,
   disabled,
 }: {
   title: string;
-  subtitle: string;
   Icon: React.ComponentType<{ className?: string }>;
   count: number;
+  total: number;
   onAdd: () => void;
   onManage: () => void;
   disabled: boolean;
@@ -2011,20 +2025,24 @@ function PartSectionCard({
   return (
     <div className='rounded-xl border border-slate-200 bg-slate-50 p-3'>
       <div className='flex items-start justify-between gap-3'>
-        <div className='min-w-0'>
+        <div className='w-full'>
           <div className='flex items-center gap-2'>
             <span className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white'>
               <Icon className='h-4 w-4 text-slate-700' />
             </span>
 
-            <div className='min-w-0'>
+            <div className='w-full'>
               <div className='text-sm font-semibold text-slate-900'>{title}</div>
-              <div className='text-xs text-slate-600'>{subtitle}</div>
+              <div className="w-[60%]">
+                <div className='text-xs text-slate-600'>
+                  <ProgressVerboseBar
+                    value={count}
+                    max={total}
+                    label={`${count} / ${total}`}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className='mt-2 text-xs text-slate-600'>
-            Éléments : <span className='font-semibold text-slate-900'>{count}</span>
           </div>
         </div>
 

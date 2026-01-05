@@ -21,6 +21,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { TriStateButton } from '@/components/shared/TriStateButton';
 
 type SectionMode = 'acte' | 'registre';
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
@@ -416,21 +417,21 @@ export function SectionSources({
             const vuesLabel =
               mode === 'acte'
                 ? ((c as ActeCitationDraft).vues_raw ?? '').trim() ||
-                  formatRangeLabel(
-                    (c as ActeCitationDraft).vues_start ?? null,
-                    (c as ActeCitationDraft).vues_end ?? null,
-                    'vue',
-                  )
+                formatRangeLabel(
+                  (c as ActeCitationDraft).vues_start ?? null,
+                  (c as ActeCitationDraft).vues_end ?? null,
+                  'vue',
+                )
                 : '';
 
             const pagesLabel =
               mode === 'acte'
                 ? ((c as ActeCitationDraft).page_raw ?? '').trim() ||
-                  formatRangeLabel(
-                    (c as ActeCitationDraft).page_start ?? null,
-                    (c as ActeCitationDraft).page_end ?? null,
-                    'page',
-                  )
+                formatRangeLabel(
+                  (c as ActeCitationDraft).page_start ?? null,
+                  (c as ActeCitationDraft).page_end ?? null,
+                  'page',
+                )
                 : '';
 
             return (
@@ -845,8 +846,8 @@ export function SectionSources({
                                       titre='État matériel'
                                       values={[
                                         a.physical_condition_label ||
-                                          a.physical_condition_ref ||
-                                          '—',
+                                        a.physical_condition_ref ||
+                                        '—',
                                       ].filter((v) => v !== '—')}
                                       dense
                                       onEdit={() => {
@@ -1021,23 +1022,18 @@ export function SectionSources({
                                 <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
                                   {/* Mentions marginales (sur la page) */}
                                   <div className='md:col-span-6'>
-                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
-                                      <input
-                                        type='checkbox'
-                                        checked={Boolean(a.marginal_mentions_present)}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-                                          patchActe(idx, {
-                                            marginal_mentions_present: checked,
-                                            marginal_mentions_count: checked
-                                              ? (a.marginal_mentions_count ?? null)
-                                              : null,
-                                          });
-                                        }}
-                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
-                                      />
-                                      Mentions marginales présentes
-                                    </label>
+                                    <TriStateButton
+                                      label="Mentions marginales"
+                                      value={a.marginal_mentions_present}
+                                      onChange={(v) => {
+                                        patchActe(idx, {
+                                          marginal_mentions_present: v,
+                                          // si on passe à false ou null, on efface le count
+                                          marginal_mentions_count: v === true ? (a.marginal_mentions_count ?? null) : null,
+                                        });
+                                      }}
+                                      helpText="Présent / absent / non observé."
+                                    />
                                   </div>
 
                                   <div className='md:col-span-6'>
@@ -1060,23 +1056,18 @@ export function SectionSources({
 
                                   {/* Signatures */}
                                   <div className='md:col-span-6'>
-                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
-                                      <input
-                                        type='checkbox'
-                                        checked={Boolean(a.signatures_present)}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-                                          patchActe(idx, {
-                                            signatures_present: checked,
-                                            signatures_count: checked
-                                              ? (a.signatures_count ?? null)
-                                              : null,
-                                          } as any);
-                                        }}
-                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
-                                      />
-                                      Signatures présentes
-                                    </label>
+                                    <TriStateButton
+                                      label="Signatures"
+                                      value={a.signatures_present}
+                                      onChange={(v) => {
+                                        patchActe(idx, {
+                                          signatures_present: v,
+                                          // si on passe à false ou null, on efface le count
+                                          signatures_count: v === true ? (a.signatures_count ?? null) : null,
+                                        });
+                                      }}
+                                      helpText="Présent / absent / non observé."
+                                    />
                                   </div>
 
                                   <div className='md:col-span-6'>
@@ -1099,23 +1090,18 @@ export function SectionSources({
 
                                   {/* Mots rayés indiqués en marge */}
                                   <div className='md:col-span-6'>
-                                    <label className='inline-flex items-center gap-2 text-sm text-slate-800'>
-                                      <input
-                                        type='checkbox'
-                                        checked={Boolean(a.marginal_crossouts_present)}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-                                          patchActe(idx, {
-                                            marginal_crossouts_present: checked,
-                                            marginal_crossouts_count: checked
-                                              ? (a.marginal_crossouts_count ?? null)
-                                              : null,
-                                          } as any);
-                                        }}
-                                        className='h-4 w-4 rounded border border-slate-300 text-slate-900 focus:ring-0'
-                                      />
-                                      Mots rayés indiqués en marge
-                                    </label>
+                                    <TriStateButton
+                                      label="Mots rayés indiqués en marge"
+                                      value={a.marginal_crossouts_present}
+                                      onChange={(v) => {
+                                        patchActe(idx, {
+                                          marginal_crossouts_present: v,
+                                          // si on passe à false ou null, on efface le count
+                                          marginal_crossouts_count: v === true ? (a.marginal_crossouts_count ?? null) : null,
+                                        });
+                                      }}
+                                      helpText="Présent / absent / non observé."
+                                    />
 
                                     {/* NOTE : à distinguer des rayures dans le texte */}
                                     <p className='mt-1 text-[11px] text-slate-600'>
