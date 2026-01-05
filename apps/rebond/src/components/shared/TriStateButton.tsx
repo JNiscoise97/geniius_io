@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { HelpCircle, XCircle, CheckCircle2 } from 'lucide-react';
 
 export type TriState = boolean | null | undefined;

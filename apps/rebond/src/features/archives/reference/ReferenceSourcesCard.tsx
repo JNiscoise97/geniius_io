@@ -22,6 +22,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { TriStateButton } from '@/components/shared/TriStateButton';
+import { toIds, toLabels } from '@/utils/dictionnaireValue';
 
 type SectionMode = 'acte' | 'registre';
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
@@ -792,34 +793,25 @@ export function SectionSources({
 
                                     <ListeChipsViewSmart
                                       titre='Nature du document'
-                                      values={[
-                                        a.document_form_label || a.document_form_ref || '—',
-                                      ].filter((v) => v !== '—')}
+                                      values={toLabels(a.document_form_ref)}
                                       dense
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_document_form_ref' as DictionnaireKind,
                                           title: 'Nature du document',
                                           multi: false,
-                                          defaultSelectedIds: a.document_form_ref
-                                            ? [a.document_form_ref]
-                                            : [],
+                                          defaultSelectedIds: toIds(a.document_form_ref),
                                           onValidate: async (items) => {
-                                            const it = items?.[0];
+                                            const ids = items.map((i) => i.id);
+                                            const labels = items.map((i) => i.label);
                                             patchActe(idx, {
-                                              document_form_ref: it?.id ?? null,
-                                              document_form_label: it?.label ?? null,
+                                              document_form_ref: ids.length ? { ids, labels } : null,
                                             });
                                             setDictOpen(false);
                                           },
                                         });
                                       }}
-                                      onDelete={() =>
-                                        patchActe(idx, {
-                                          document_form_ref: null,
-                                          document_form_label: null,
-                                        })
-                                      }
+                                      onDelete={() => patchActe(idx, { document_form_ref: null })}
                                     />
                                   </div>
 
@@ -844,36 +836,25 @@ export function SectionSources({
                                     </label>
                                     <ListeChipsViewSmart
                                       titre='État matériel'
-                                      values={[
-                                        a.physical_condition_label ||
-                                        a.physical_condition_ref ||
-                                        '—',
-                                      ].filter((v) => v !== '—')}
+                                      values={toLabels(a.physical_condition_ref)}
                                       dense
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_physical_condition_ref' as DictionnaireKind,
                                           title: 'État matériel',
                                           multi: false,
-                                          defaultSelectedIds: a.physical_condition_ref
-                                            ? [a.physical_condition_ref]
-                                            : [],
+                                          defaultSelectedIds: toIds(a.physical_condition_ref),
                                           onValidate: async (items) => {
-                                            const it = items?.[0];
+                                            const ids = items.map((i) => i.id);
+                                            const labels = items.map((i) => i.label);
                                             patchActe(idx, {
-                                              physical_condition_ref: it?.id ?? null,
-                                              physical_condition_label: it?.label ?? null,
+                                              physical_condition_ref: ids.length ? { ids, labels } : null,
                                             });
                                             setDictOpen(false);
                                           },
                                         });
                                       }}
-                                      onDelete={() =>
-                                        patchActe(idx, {
-                                          physical_condition_ref: null,
-                                          physical_condition_label: null,
-                                        })
-                                      }
+                                      onDelete={() => patchActe(idx, { physical_condition_ref: null })}
                                     />
                                   </div>
 
@@ -914,34 +895,25 @@ export function SectionSources({
                                     </label>
                                     <ListeChipsViewSmart
                                       titre='Qualité de reproduction'
-                                      values={[
-                                        a.repro_quality_label || a.repro_quality_ref || '—',
-                                      ].filter((v) => v !== '—')}
+                                      values={toLabels(a.repro_quality_ref)}
                                       dense
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_repro_quality_ref' as DictionnaireKind,
                                           title: 'Qualité de reproduction',
                                           multi: false,
-                                          defaultSelectedIds: a.repro_quality_ref
-                                            ? [a.repro_quality_ref]
-                                            : [],
+                                          defaultSelectedIds: toIds(a.repro_quality_ref),
                                           onValidate: async (items) => {
-                                            const it = items?.[0];
+                                            const ids = items.map((i) => i.id);
+                                            const labels = items.map((i) => i.label);
                                             patchActe(idx, {
-                                              repro_quality_ref: it?.id ?? null,
-                                              repro_quality_label: it?.label ?? null,
+                                              repro_quality_ref: ids.length ? { ids, labels } : null,
                                             });
                                             setDictOpen(false);
                                           },
                                         });
                                       }}
-                                      onDelete={() =>
-                                        patchActe(idx, {
-                                          repro_quality_ref: null,
-                                          repro_quality_label: null,
-                                        })
-                                      }
+                                      onDelete={() => patchActe(idx, { repro_quality_ref: null })}
                                     />
                                   </div>
 

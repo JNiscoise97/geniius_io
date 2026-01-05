@@ -57,14 +57,14 @@ type ActeCitationRow = {
 
   sort_order: number;
 
-  document_form_ref: string | null;
+  document_form_ref: { ids: string[]; labels: string[] } | null;
   document_form_details: string | null;
 
-  physical_condition_ref: string | null;
+  physical_condition_ref: { ids: string[]; labels: string[] } | null;
   damage_kinds: any; // jsonb (array)
   damage_notes: string | null;
 
-  repro_quality_ref: string | null;
+  repro_quality_ref: { ids: string[]; labels: string[] } | null;
   repro_issues: any; // jsonb (array)
   repro_notes: string | null;
 
@@ -131,16 +131,13 @@ function emptyCitation(): ActeCitationDraft {
     sort_order: 0,
 
     document_form_ref: null,
-    document_form_label: null,
     document_form_details: '',
 
     physical_condition_ref: null,
-    physical_condition_label: null,
     damage_kinds: [],
     damage_notes: '',
 
     repro_quality_ref: null,
-    repro_quality_label: null,
     repro_issues: [],
     repro_notes: '',
 
@@ -175,16 +172,13 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     sort_order: typeof r?.sort_order === 'number' ? r!.sort_order : 0,
 
     document_form_ref: r?.document_form_ref ?? null,
-    document_form_label: null,
     document_form_details: r?.document_form_details ?? '',
 
     physical_condition_ref: r?.physical_condition_ref ?? null,
-    physical_condition_label: null,
     damage_kinds: Array.isArray(r?.damage_kinds) ? (r!.damage_kinds as any[]).filter(Boolean) : [],
     damage_notes: r?.damage_notes ?? '',
 
     repro_quality_ref: r?.repro_quality_ref ?? null,
-    repro_quality_label: null,
     repro_issues: Array.isArray(r?.repro_issues) ? (r!.repro_issues as any[]).filter(Boolean) : [],
     repro_notes: r?.repro_notes ?? '',
 
@@ -439,6 +433,12 @@ export default function ReferenceArchiveTab({
     });
   };
 
+    const firstId = (v: { ids: string[]; labels: string[] } | null | undefined) => {
+    const ids = toIds(v);
+    return ids?.[0] ?? null;
+  };
+
+
   /**
    * =========================================================================
    * SAVE citations
@@ -492,14 +492,14 @@ export default function ReferenceArchiveTab({
 
           sort_order: idx,
 
-          document_form_ref: c.document_form_ref ?? null,
+          document_form_ref: firstId(c.document_form_ref),
           document_form_details: (c.document_form_details ?? '').trim() || null,
 
-          physical_condition_ref: c.physical_condition_ref ?? null,
+          physical_condition_ref: firstId(c.physical_condition_ref),
           damage_kinds: Array.isArray(c.damage_kinds) ? c.damage_kinds : [],
           damage_notes: (c.damage_notes ?? '').trim() || null,
 
-          repro_quality_ref: c.repro_quality_ref ?? null,
+          repro_quality_ref: firstId(c.repro_quality_ref),
           repro_issues: Array.isArray(c.repro_issues) ? c.repro_issues : [],
           repro_notes: (c.repro_notes ?? '').trim() || null,
 

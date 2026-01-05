@@ -31,7 +31,6 @@ import {
   revalidateAnchor,
   insertAnnotation,
   insertNote,
-  compareKey,
   type CitationDraft,
   type ActeCitationRow,
   type ManifestationPick,
@@ -1373,15 +1372,6 @@ export function useTranscriptionTab({ acteId }: Props) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const switchPart = async (part: TranscriptionPart) => {
-    setActivePart(part);
-
-    if (!activeSourceId) return;
-
-    const latest = getLatestVersionIdForSource(activeSourceId, part);
-    await onActiveSourceChanged(activeSourceId, latest);
   };
 
   const setInReview = async () => {

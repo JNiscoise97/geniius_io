@@ -75,17 +75,14 @@ export type ActeCitationDraft = CitationDraftBase & {
 
   acte_manquant?: boolean;
 
-  document_form_ref?: string | null;
-  document_form_label?: string | null;
+  document_form_ref?: { ids: string[]; labels: string[] } | null;
   document_form_details?: string | null;
 
-  physical_condition_ref?: string | null;
-  physical_condition_label?: string | null;
+  physical_condition_ref?: { ids: string[]; labels: string[] } | null;
   damage_kinds?: string[]; // jsonb array in DB
   damage_notes?: string | null;
 
-  repro_quality_ref?: string | null;
-  repro_quality_label?: string | null;
+  repro_quality_ref?: { ids: string[]; labels: string[] } | null;
   repro_issues?: string[]; // jsonb array in DB
   repro_notes?: string | null;
 

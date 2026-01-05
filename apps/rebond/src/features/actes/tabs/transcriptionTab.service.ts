@@ -1010,14 +1010,6 @@ function relocateByQuote(newContent: string, quote: string, hintStart: number | 
 
 // -------------------- “Angles morts” encoding --------------------
 
-export function compareKey(a: string, b: string) {
-  return a < b ? `${a}|${b}` : `${b}|${a}`;
-}
-
-export function composeDiffNote(a: string, b: string, reason: string) {
-  return `[DIFF ${compareKey(a, b)}] ${reason}`;
-}
-
 export function transcriptionKey(acteSourceId: string, part: TranscriptionPart) {
   return `${acteSourceId}::${part}`;
 }
