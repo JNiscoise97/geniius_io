@@ -119,21 +119,18 @@ export const STEPPER_COPY: Record<
 > = {
   1: {
     title: "Choisir la source",
-    subtitle: "Obligatoire (registre, cote, vues/pages, lien ANOM/AD…)",
+    subtitle: "Sélectionner l’archive ou le registre à transcrire.",
   },
   2: {
     title: "Saisir la transcription",
-    subtitle:
-      "Commence à écrire : un brouillon est créé automatiquement après une courte pause.",
+    subtitle: "Transcrire le contenu exact de la source sélectionnée.",
   },
   3: {
-    title: "Enrichir le texte",
-    subtitle:
-      "Ajoute annotations, notes, tags et repérages (dates, âges, numéros…).",
+    title: "Marquer comme transcrit",
+    subtitle: "Indiquer que la source a bien été entièrement transcrite.",
   },
   4: {
-    title: "Finaliser (relecture)",
-    subtitle:
-      "Renseigne métadonnées + décisions (confiance, complétude, source de référence).",
+    title: "Enrichir la transcription",
+    subtitle: "Ajouter annotations, notes et repérages pour contextualiser l’acte.",
   },
 };
