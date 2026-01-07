@@ -32,6 +32,38 @@ export async function fetchAuteurInstitutionnel(): Promise<{ data: DictionnaireI
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }
 
+export async function fetchConfidence(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_confiance")
+    .select("id, code, label")
+    .order("label", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+
+export async function fetchLegibility(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_legibilite")
+    .select("id, code, label")
+    .order("position", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+
+export async function fetchHandwritingStyle(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_handwriting_style")
+    .select("id, code, label")
+    .order("label", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+
+export async function fetchHandwritingLegibility(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_handwriting_legibility")
+    .select("id, code, label")
+    .order("position", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+
 export async function fetchTypeActe(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
     .from("ref_ec_type_acte")

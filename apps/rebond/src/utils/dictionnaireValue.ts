@@ -37,6 +37,15 @@ export function toIds(v: any): string[] {
   return [];
 }
 
+export function toColors(v: any): string[] {
+  if (!v) return [];
+  if (Array.isArray(v?.colors)) return v.ids;
+  if (Array.isArray(v) && v.length && typeof v[0] === 'object') {
+    return (v as DictObj[]).map((o) => o.id!).filter(Boolean);
+  }
+  return [];
+}
+
 
 
 /**

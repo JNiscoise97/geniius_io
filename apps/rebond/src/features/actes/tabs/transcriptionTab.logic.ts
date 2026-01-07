@@ -409,6 +409,12 @@ export function useTranscriptionTab({ acteId }: Props) {
   const [signatures, setSignatures] = useState<EcSignatureRow[]>([]);
   const [marginalCrossouts, setMarginalCrossouts] = useState<EcMarginalCrossoutRow[]>([]);
 
+  type SigFormMode = 'idle' | 'create' | 'edit';
+  const [sigFormMode, setSigFormMode] = useState<SigFormMode>('idle');
+
+  type MmFormMode = 'idle' | 'create' | 'edit';
+  const [mmFormMode, setMmFormMode] = useState<MmFormMode>('idle');
+
   // -----------------------------
   // Editing ids
   // -----------------------------
@@ -419,7 +425,22 @@ export function useTranscriptionTab({ acteId }: Props) {
   // -----------------------------
   // Form state - Mentions marginales
   // -----------------------------
-  const [mmTypeActeRef, setMmTypeActeRef] = useState<string>('');
+  const [mmTypeActeRef, setMmTypeActeRef] = useState<string | null>(null);
+  const [mmTypeActeLabel, setMmTypeActeLabel] = useState<string | null>(null);
+  const [mmTypeActeColor, setMmTypeActeColor] = useState<string | null>(null);
+
+  const [mmConfidenceRef, setMmConfidenceRef] = useState<string | null>(null);
+  const [mmConfidenceLabel, setMmConfidenceLabel] = useState<string | null>(null);
+
+  const [mmLegibilityRef, setMmLegibilityRef] = useState<string | null>(null);
+  const [mmLegibilityLabel, setMmLegibilityLabel] = useState<string | null>(null);
+
+  const [mmHandwritingStyleRef, setMmHandwritingStyleRef] = useState<string | null>(null);
+  const [mmHandwritingStyleLabel, setMmHandwritingStyleLabel] = useState<string | null>(null);
+
+  const [mmHandwritingLegibilityRef, setMmHandwritingLegibilityRef] = useState<string | null>(null);
+  const [mmHandwritingLegibilityLabel, setMmHandwritingLegibilityLabel] = useState<string | null>(null);
+
   const [mmDateRaw, setMmDateRaw] = useState<string>('');
   const [mmDate, setMmDate] = useState<string>(''); // YYYY-MM-DD
   const [mmContent, setMmContent] = useState<string>('');
@@ -432,6 +453,8 @@ export function useTranscriptionTab({ acteId }: Props) {
   const [sigKind, setSigKind] = useState<string>('');
   const [sigConfidence, setSigConfidence] = useState<string>('');
   const [sigLegibility, setSigLegibility] = useState<string>('');
+  const [sigHandwritingLegibilityRef, setSigHandwritingLegibilityRef] = useState<string | null>(null);
+  const [sigHandwritingLegibilityLabel, setSigHandwritingLegibilityLabel] = useState<string | null>(null);
   const [sigPatternRaw, setSigPatternRaw] = useState<string>(''); // "A;B;C" stocké en text
   const [sigNote, setSigNote] = useState<string>('');
 
@@ -449,21 +472,45 @@ export function useTranscriptionTab({ acteId }: Props) {
   // -----------------------------
   function resetMarginalMentionForm() {
     setEditingMarginalMentionId(null);
-    setMmTypeActeRef('');
+    setMmConfidenceRef(null);
+    setMmConfidenceLabel(null);
+
+    setMmLegibilityRef(null);
+    setMmLegibilityLabel(null);
+
+    setMmHandwritingStyleRef(null);
+    setMmHandwritingStyleLabel(null);
+
+    setMmHandwritingLegibilityRef(null);
+    setMmHandwritingLegibilityLabel(null);
+
+    setMmTypeActeRef(null);
     setMmDateRaw('');
     setMmDate('');
     setMmContent('');
     setMmNote('');
   }
 
-  function resetSignatureForm() {
+  function cancelMarginalMentionForm() {
+    resetMarginalMentionForm();
+    setMmFormMode('idle');
+  }
+
+  function resetSignatureDraft() {
     setEditingSignatureId(null);
+    setSigHandwritingLegibilityRef(null);
+    setSigHandwritingLegibilityLabel(null);
     setSigLabel('');
     setSigKind('');
     setSigConfidence('');
     setSigLegibility('');
     setSigPatternRaw('');
     setSigNote('');
+  }
+
+  function cancelSignatureForm() {
+    resetSignatureDraft();
+    setSigFormMode('idle');
   }
 
   function resetMarginalCrossoutForm() {
@@ -478,29 +525,70 @@ export function useTranscriptionTab({ acteId }: Props) {
   // -----------------------------
   // Loaders
   // -----------------------------
-  async function loadMarginalMentions() {
-    if (!currentPartVersionId) {
-      setMarginalMentions([]);
-      return;
-    }
+  async function loadMarginalMentions(params: { acteId: string; transcriptionVersionId: string }) {
+    const { acteId, transcriptionVersionId } = params;
 
-    const q = supabase
+    let q = supabase
       .from('ec_transcription_marginal_mentions')
-      .select('*')
+      .select(
+        `
+  id, acte_id, acte_source_id, transcription_id, transcription_version_id,
+  type_acte_ref, mention_date_raw, mention_date, mention_content, note,
+
+  confidence_ref,
+  legibility_ref,
+  handwriting_style_ref,
+  handwriting_legibility_ref,
+
+  ref_ec_type_acte: type_acte_ref ( id, label, color ),
+
+  ref_confiance: confidence_ref ( id, label ),
+  ref_legibilite: legibility_ref ( id, label ),
+  ref_handwriting_style: handwriting_style_ref ( id, label ),
+  ref_handwriting_legibility: handwriting_legibility_ref ( id, label )
+`,
+      )
+
       .eq('acte_id', acteId)
-      .eq('transcription_version_id', currentPartVersionId)
+      .eq('transcription_version_id', transcriptionVersionId)
       .order('created_at', { ascending: true });
 
-    // si on a une source active, on filtre (sinon on prend tout sur la version)
-    const res = currentPartActeSourceId
-      ? await q.eq('acte_source_id', currentPartActeSourceId)
-      : await q;
-    if (res.error) {
-      console.error(res.error);
+    if (currentPartActeSourceId) q = q.eq('acte_source_id', currentPartActeSourceId);
+    const res = await q;
+
+    if (res.error) return { data: null, error: res.error };
+
+    const rows: EcMarginalMentionRow[] = (res.data ?? []).map((row: any) => ({
+      ...row,
+
+      type_acte_label: row.ref_ec_type_acte?.label ?? null,
+      type_acte_color: row.ref_ec_type_acte?.color ?? null,
+
+      confidence_label: row.ref_confiance?.label ?? null,
+      legibility_label: row.ref_legibilite?.label ?? null,
+      handwriting_style_label: row.ref_handwriting_style?.label ?? null,
+      handwriting_legibility_label: row.ref_handwriting_legibility?.label ?? null,
+    }));
+
+    return { data: rows, error: null };
+  }
+
+  function loadMarginalMentionsCurrent() {
+    if (!currentPartVersionId) {
       setMarginalMentions([]);
-      return;
+      return Promise.resolve();
     }
-    setMarginalMentions((res.data ?? []) as any);
+    return loadMarginalMentions({
+      acteId,
+      transcriptionVersionId: currentPartVersionId,
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error(error);
+        setMarginalMentions([]);
+        return;
+      }
+      setMarginalMentions(data ?? []);
+    });
   }
 
   async function loadSignatures() {
@@ -553,7 +641,17 @@ export function useTranscriptionTab({ acteId }: Props) {
 
   // Auto-reload quand on change de version / source
   useEffect(() => {
-    void loadMarginalMentions();
+    // éviter de garder un form ouvert sur une autre version/source
+    setSigFormMode('idle');
+    setEditingSignatureId(null);
+
+    setMmFormMode('idle');
+    setEditingMarginalMentionId(null);
+
+    // (optionnel mais cohérent) idem ratures si tu veux:
+    // setEditingMarginalCrossoutId(null);
+
+    void loadMarginalMentionsCurrent();
     void loadSignatures();
     void loadMarginalCrossouts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -562,35 +660,75 @@ export function useTranscriptionTab({ acteId }: Props) {
   // -----------------------------
   // OPEN / EDIT / CANCEL
   // -----------------------------
-  function openEditMarginalMention(row: EcMarginalMentionRow) {
+  function startCreateMarginalMention() {
+    resetMarginalMentionForm();
+    setMmFormMode('create');
+  }
+
+  function startEditMarginalMention(row: EcMarginalMentionRow) {
     setEditingMarginalMentionId(row.id);
-    setMmTypeActeRef(row.type_acte_ref ?? '');
+
+    setMmTypeActeRef(row.type_acte_ref ?? null);
+
+    // ✅ IMPORTANT : alimenter la chip au chargement
+    setMmTypeActeLabel(row.type_acte_label ?? null);
+    setMmTypeActeColor(row.type_acte_color ?? null);
+
+    setMmConfidenceRef(row.confidence_ref ?? null);
+    setMmConfidenceLabel(row.confidence_label ?? null);
+
+    setMmLegibilityRef(row.legibility_ref ?? null);
+    setMmLegibilityLabel(row.legibility_label ?? null);
+
+    setMmHandwritingStyleRef(row.handwriting_style_ref ?? null);
+    setMmHandwritingStyleLabel(row.handwriting_style_label ?? null);
+
+    setMmHandwritingLegibilityRef(row.handwriting_legibility_ref ?? null);
+    setMmHandwritingLegibilityLabel(row.handwriting_legibility_label ?? null);
+
     setMmDateRaw(row.mention_date_raw ?? '');
     setMmDate(row.mention_date ?? '');
     setMmContent(row.mention_content ?? '');
     setMmNote(row.note ?? '');
+    setMmFormMode('edit');
+  }
+
+  function openEditMarginalMention(row: EcMarginalMentionRow) {
+    startEditMarginalMention(row);
     setSheetMode('marginal_mentions');
     setSheetOpen(true);
   }
 
   function cancelMarginalMentionEdit() {
-    resetMarginalMentionForm();
+    cancelMarginalMentionForm();
   }
 
-  function openEditSignature(row: EcSignatureRow) {
+  function startCreateSignature() {
+    resetSignatureDraft();
+    setSigFormMode('create');
+  }
+
+  function startEditSignature(row: EcSignatureRow) {
     setEditingSignatureId(row.id);
     setSigLabel(row.label ?? '');
     setSigKind(row.signature_kind ?? '');
     setSigConfidence(row.confidence ?? '');
     setSigLegibility(row.legibility ?? '');
-    setSigPatternRaw(row.pattern ?? '');
+    setSigHandwritingLegibilityRef(row.handwriting_legibility_ref ?? null);
+    setSigHandwritingLegibilityLabel(row.handwriting_legibility_label ?? null);
+    setSigPatternRaw((row.pattern ?? '') as any);
     setSigNote(row.note ?? '');
+    setSigFormMode('edit');
+  }
+
+  function openEditSignature(row: EcSignatureRow) {
+    startEditSignature(row);
     setSheetMode('signatures');
     setSheetOpen(true);
   }
 
   function cancelSignatureEdit() {
-    resetSignatureForm();
+    cancelSignatureForm();
   }
 
   function openEditMarginalCrossout(row: EcMarginalCrossoutRow) {
@@ -625,6 +763,11 @@ export function useTranscriptionTab({ acteId }: Props) {
       transcription_version_id: currentPartVersionId,
 
       type_acte_ref: (mmTypeActeRef || null) as string | null,
+      confidence_ref: mmConfidenceRef,
+      legibility_ref: mmLegibilityRef,
+      handwriting_style_ref: mmHandwritingStyleRef,
+      handwriting_legibility_ref: mmHandwritingLegibilityRef,
+
       mention_date_raw: (mmDateRaw || null) as string | null,
       mention_date: (mmDate || null) as string | null,
       mention_content: mmContent.trim(),
@@ -633,7 +776,8 @@ export function useTranscriptionTab({ acteId }: Props) {
 
     if (!payload.mention_content) return;
 
-    if (editingMarginalMentionId) {
+    // ✅ Calque signatures : edit si editingId, sinon create
+    if (mmFormMode === 'edit' && editingMarginalMentionId) {
       const res = await supabase
         .from('ec_transcription_marginal_mentions')
         .update({ ...payload, updated_at: new Date().toISOString() })
@@ -658,8 +802,9 @@ export function useTranscriptionTab({ acteId }: Props) {
       }
     }
 
-    resetMarginalMentionForm();
-    await loadMarginalMentions();
+    // ✅ Comme signatures
+    cancelMarginalMentionForm();
+    await loadMarginalMentionsCurrent();
   }
 
   async function saveSignature() {
@@ -679,6 +824,7 @@ export function useTranscriptionTab({ acteId }: Props) {
       signature_kind: (sigKind || null) as string | null,
       confidence: (sigConfidence || null) as string | null,
       legibility: (sigLegibility || null) as string | null,
+      handwriting_legibility_ref: sigHandwritingLegibilityRef,
       pattern: (sigPatternRaw || null) as string | null,
       note: (sigNote || null) as string | null,
     };
@@ -710,7 +856,7 @@ export function useTranscriptionTab({ acteId }: Props) {
       }
     }
 
-    resetSignatureForm();
+    cancelSignatureForm();
     await loadSignatures();
   }
 
@@ -782,8 +928,8 @@ export function useTranscriptionTab({ acteId }: Props) {
       console.error(res.error);
       return;
     }
-    if (editingMarginalMentionId === id) resetMarginalMentionForm();
-    await loadMarginalMentions();
+    if (editingMarginalMentionId === id) cancelMarginalMentionForm();
+    await loadMarginalMentionsCurrent();
   }
 
   async function deleteSignature(id: string) {
@@ -792,7 +938,8 @@ export function useTranscriptionTab({ acteId }: Props) {
       console.error(res.error);
       return;
     }
-    if (editingSignatureId === id) resetSignatureForm();
+    if (editingSignatureId === id) cancelSignatureForm();
+
     await loadSignatures();
   }
 
@@ -1656,7 +1803,7 @@ export function useTranscriptionTab({ acteId }: Props) {
           ta?.focus();
           const pos = start + left.length;
           ta?.setSelectionRange(pos, pos);
-        } catch { }
+        } catch {}
       });
       return;
     }
@@ -1672,7 +1819,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         const newStart = start + left.length;
         const newEnd = end + left.length;
         ta?.setSelectionRange(newStart, newEnd);
-      } catch { }
+      } catch {}
     });
   }
 
@@ -1710,7 +1857,7 @@ export function useTranscriptionTab({ acteId }: Props) {
         ta.focus();
         const pos = start + text.length;
         ta.setSelectionRange(pos, pos);
-      } catch { }
+      } catch {}
     });
   }
 
@@ -2274,8 +2421,16 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // Mentions marginales
     // -----------------------------
+    // -----------------------------
+    // Mentions marginales
+    // -----------------------------
+    mmFormMode,
+    startCreateMarginalMention,
+    startEditMarginalMention,
+    cancelMarginalMentionForm,
+
     openAddMarginalMention: async () => {
-      resetMarginalMentionForm();
+      startCreateMarginalMention();
       setSheetMode('marginal_mentions');
       setSheetOpen(true);
     },
@@ -2283,6 +2438,7 @@ export function useTranscriptionTab({ acteId }: Props) {
       setSheetMode('marginal_mentions');
       setSheetOpen(true);
     },
+
     openEditMarginalMention,
     deleteMarginalMention,
     cancelMarginalMentionEdit,
@@ -2290,6 +2446,31 @@ export function useTranscriptionTab({ acteId }: Props) {
 
     mmTypeActeRef,
     setMmTypeActeRef,
+    mmTypeActeLabel,
+    setMmTypeActeLabel,
+    mmTypeActeColor,
+    setMmTypeActeColor,
+
+    mmConfidenceRef,
+    setMmConfidenceRef,
+    mmConfidenceLabel,
+    setMmConfidenceLabel,
+
+    mmLegibilityRef,
+    setMmLegibilityRef,
+    mmLegibilityLabel,
+    setMmLegibilityLabel,
+
+    mmHandwritingStyleRef,
+    setMmHandwritingStyleRef,
+    mmHandwritingStyleLabel,
+    setMmHandwritingStyleLabel,
+
+    mmHandwritingLegibilityRef,
+    setMmHandwritingLegibilityRef,
+    mmHandwritingLegibilityLabel,
+    setMmHandwritingLegibilityLabel,
+
     mmDateRaw,
     setMmDateRaw,
     mmDate,
@@ -2302,8 +2483,13 @@ export function useTranscriptionTab({ acteId }: Props) {
     // -----------------------------
     // Signatures
     // -----------------------------
+    sigFormMode,
+    startCreateSignature,
+    startEditSignature,
+    cancelSignatureForm,
+
     openAddSignature: async () => {
-      resetSignatureForm();
+      startCreateSignature();
       setSheetMode('signatures');
       setSheetOpen(true);
     },
@@ -2325,6 +2511,10 @@ export function useTranscriptionTab({ acteId }: Props) {
     setSigConfidence,
     sigLegibility,
     setSigLegibility,
+    sigHandwritingLegibilityRef,
+    setSigHandwritingLegibilityRef,
+    sigHandwritingLegibilityLabel,
+    setSigHandwritingLegibilityLabel,
     sigPatternRaw,
     setSigPatternRaw,
     sigNote,

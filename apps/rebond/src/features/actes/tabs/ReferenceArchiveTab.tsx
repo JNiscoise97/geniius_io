@@ -143,13 +143,13 @@ function emptyCitation(): ActeCitationDraft {
 
     missing_ranges: [],
 
-    marginal_mentions_present: false,
+    marginal_mentions_present: null,
     marginal_mentions_count: null,
 
-    signatures_present: false,
+    signatures_present: null,
     signatures_count: null,
 
-    marginal_crossouts_present: false,
+    marginal_crossouts_present: null,
     marginal_crossouts_count: null,
   };
 }

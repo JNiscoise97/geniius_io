@@ -1,11 +1,4 @@
 // TranscriptionTab.tsx
-// Orchestration / composition only (UI + hook).
-// ✅ Pilotage par sources (MVP):
-// - Dashboard “Sources” en premier : transcrite / préférée
-// - 1 transcription “active” par source = dernière version liée à cette source
-// - Diff Source A ↔ Source B (piloté depuis le dashboard)
-// - Save = nouvelle version (historique conservé, non exposé)
-// - Report annotations/notes/tags sur nouvelle version (best effort) -> géré dans logic/service
 
 import React, { useMemo, useState } from 'react';
 import {
@@ -51,6 +44,7 @@ import {
   PenLine,
   Signature,
   Scissors,
+  AlertTriangle,
 } from 'lucide-react';
 
 import { anchorBadge, STEPPER_COPY, tagBadge, typeLabel } from './transcriptionTab.ui';
@@ -67,6 +61,10 @@ import {
 import { useTranscriptionTab } from './transcriptionTab.logic';
 import { StatusPill } from '@/components/shared/StatusPill';
 import { ProgressVerboseBar } from '@/components/shared/ProgressVerboseBar';
+import { SignatureFormSection } from './SignatureFormSection';
+import { SignatureList } from './SignatureList';
+import { MarginalMentionFormSection } from './MarginalMentionFormSection';
+import { MarginalMentionList } from './MarginalMentionList';
 
 type Props = {
   acteId: string;
@@ -86,29 +84,30 @@ type SourceDashboardRow = {
 
 type IconComp = React.ComponentType<{ className?: string }>;
 
+type CitationTotals = {
+  marginalMentionsTotal: number | null;
+  signaturesTotal: number | null;
+  marginalCrossoutsTotal: number | null;
+};
+
 export default function TranscriptionTab({ acteId }: Props) {
+  // ---------------------------------------------------------------------------
+  // Hook + shortcuts
+  // ---------------------------------------------------------------------------
   const t = useTranscriptionTab({ acteId });
 
-  // Shortcuts
   const sources = t.sources;
   const versions = t.versions;
   const annotations = t.annotations;
   const notes = t.notes;
   const tags = t.tags;
 
+  // ---------------------------------------------------------------------------
+  // Local UI state
+  // ---------------------------------------------------------------------------
   const [readGrouped, setReadGrouped] = useState(true); // lecture: blocs vs brut
 
-  const onMouseDownDivider = (e: React.MouseEvent) => t.split.onMouseDownDivider(e);
-
-  // Read/repérages
-  const readableBlocks = useMemo(
-    () => splitIntoReadableBlocks(t.editorValue, { typeActe: (t.acte as any)?.type_acte ?? null }),
-    [t.editorValue, (t.acte as any)?.type_acte],
-  );
-
-  const rep = useMemo(() => detectActeReperages(t.editorValue), [t.editorValue]);
-
-  // --- Workflow stepper UI-only states ---------------------------------
+  // Workflow stepper UI-only states
   const [wfMetaDraft, setWfMetaDraft] = useState({
     visibility: 'private',
     state: 'active',
@@ -154,7 +153,24 @@ export default function TranscriptionTab({ acteId }: Props) {
     autres: false,
   });
 
-  // Dashboard rows
+  // Lock state (only when "lockable" statuses)
+  const [textareaLocked, setTextareaLocked] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Derived data: read/repérages
+  // ---------------------------------------------------------------------------
+  const onMouseDownDivider = (e: React.MouseEvent) => t.split.onMouseDownDivider(e);
+
+  const readableBlocks = useMemo(
+    () => splitIntoReadableBlocks(t.editorValue, { typeActe: (t.acte as any)?.type_acte ?? null }),
+    [t.editorValue, (t.acte as any)?.type_acte],
+  );
+
+  const rep = useMemo(() => detectActeReperages(t.editorValue), [t.editorValue]);
+
+  // ---------------------------------------------------------------------------
+  // Dashboard rows (sources)
+  // ---------------------------------------------------------------------------
   const dashboard = useMemo<SourceDashboardRow[]>(() => {
     const preferredSourceId = (t.preferredSourceId as string | null) ?? null;
 
@@ -169,9 +185,9 @@ export default function TranscriptionTab({ acteId }: Props) {
         (s.vues_start || s.vues_end
           ? `Vues ${s.vues_start ?? '?'}–${s.vues_end ?? '?'}`
           : s.page_raw ||
-          (s.page_start || s.page_end
-            ? `Pages ${s.page_start ?? '?'}–${s.page_end ?? '?'}`
-            : ''));
+            (s.page_start || s.page_end
+              ? `Pages ${s.page_start ?? '?'}–${s.page_end ?? '?'}`
+              : ''));
       const label = [uniteTitre, inst, vuesPages].filter(Boolean).join(' · ');
       const usedInWorkingVersion = t.activeSourceId === s.id;
 
@@ -190,19 +206,119 @@ export default function TranscriptionTab({ acteId }: Props) {
     });
   }, [sources, t.preferredSourceId, t.activeSourceId, t.transcriptionByKey, t.versions]);
 
-  // 🔒 Lock state (only for finalized statuses)
-  const [textareaLocked, setTextareaLocked] = useState(true);
-
-  // auto-lock when status becomes non-editable
-  React.useEffect(() => {
-    if (!t.isEditableStatus) {
-      setTextareaLocked(true);
-    }
-  }, [t.isEditableStatus]);
+  const activeSourceRow = useMemo(() => {
+    if (!t.activeSourceId) return null;
+    return dashboard.find((d) => d.id === t.activeSourceId) ?? null;
+  }, [dashboard, t.activeSourceId]);
 
   const activeLatestVersionId = t.activeSourceId
     ? t.getLatestVersionIdForSource(t.activeSourceId)
     : null;
+
+  // Working version = latest version of active source (source-first),
+  // otherwise fallback to currentVersion (legacy)
+  const workingVersion = useMemo(() => {
+    if (activeSourceRow?.latestVersionId) {
+      return versions.find((v) => v.id === activeSourceRow.latestVersionId) ?? null;
+    }
+    return t.currentVersion ?? null;
+  }, [activeSourceRow?.latestVersionId, versions, t.currentVersion]);
+
+  // ---------------------------------------------------------------------------
+  // Stepper state
+  // ---------------------------------------------------------------------------
+  const isFinalized =
+    (workingVersion?.status === 'IN_REVIEW' || workingVersion?.status === 'VALIDATED') ?? false;
+
+  const step: 1 | 2 | 3 | 4 = !t.activeSourceId
+    ? 1
+    : !activeLatestVersionId
+      ? 2
+      : isFinalized
+        ? 4
+        : 3;
+
+  // ✅ Sources accordion hooks MUST be before any early return
+  const [sourcesExpanded, setSourcesExpanded] = useState(step === 1);
+
+  React.useEffect(() => {
+    // règle demandée : replié si step ≠ 1
+    setSourcesExpanded(step === 1);
+  }, [step]);
+
+  const toggleSourcesExpanded = () => {
+    setSourcesExpanded((v) => !v);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Loading (after hooks!)
+  // ---------------------------------------------------------------------------
+  const showLoading = t.loading && !workingVersion && versions.length === 0;
+
+  // ---------------------------------------------------------------------------
+  // Locking rules (cadenas uniquement pour certains statuts)
+  // ---------------------------------------------------------------------------
+  const lockableStatuses = new Set(['TRANSCRIBED', 'IN_REVIEW', 'VALIDATED']);
+  const isLockable = lockableStatuses.has((workingVersion?.status ?? '') as string);
+
+  React.useEffect(() => {
+    // Auto-lock uniquement quand la version est "verrouillable"
+    if (isLockable) setTextareaLocked(true);
+  }, [isLockable]);
+
+  const textareaDisabled =
+    step === 1 || (isLockable && textareaLocked) || t.dirtyState === 'saving';
+
+  // ---------------------------------------------------------------------------
+  // Active citation + totals
+  // ---------------------------------------------------------------------------
+  function normalizeTotal(present: boolean | null | undefined, count: number | null | undefined) {
+    // si present est explicitement false => 0
+    if (present === false) return 0;
+    // si present est true => on prend count (ou 0 si null)
+    if (present === true) return count ?? 0;
+    // si present est null/undefined => on ne sait pas => null (indéterminé)
+    if (count == null) return null;
+    return count; // fallback si tu as un count sans present
+  }
+
+  const activeCitation = useMemo(() => {
+    if (!t.activeSourceId) return null;
+    return (sources ?? []).find((x: any) => x.id === t.activeSourceId) ?? null;
+  }, [sources, t.activeSourceId]);
+
+  const citationTotals = useMemo<CitationTotals>(() => {
+    if (!activeCitation) {
+      return {
+        marginalMentionsTotal: null,
+        signaturesTotal: null,
+        marginalCrossoutsTotal: null,
+      };
+    }
+
+    return {
+      marginalMentionsTotal: normalizeTotal(
+        activeCitation.marginal_mentions_present,
+        activeCitation.marginal_mentions_count,
+      ),
+      signaturesTotal: normalizeTotal(
+        activeCitation.signatures_present,
+        activeCitation.signatures_count,
+      ),
+      marginalCrossoutsTotal: normalizeTotal(
+        activeCitation.marginal_crossouts_present,
+        activeCitation.marginal_crossouts_count,
+      ),
+    };
+  }, [activeCitation]);
+
+  // ---------------------------------------------------------------------------
+  // Small helpers
+  // ---------------------------------------------------------------------------
+  function sourcesLabel(count: number) {
+    if (count <= 2) return count - 1 + ' source';
+    return count - 1 + ' sources';
+  }
 
   const StepItem = ({
     idx,
@@ -248,103 +364,9 @@ export default function TranscriptionTab({ acteId }: Props) {
     );
   };
 
-  const activeSourceRow = useMemo(() => {
-    if (!t.activeSourceId) return null;
-    return dashboard.find((d) => d.id === t.activeSourceId) ?? null;
-  }, [dashboard, t.activeSourceId]);
-
-  // Working version = latest version of active source (source-first),
-  // otherwise fallback to currentVersion (legacy)
-  const workingVersion = useMemo(() => {
-    if (activeSourceRow?.latestVersionId) {
-      return versions.find((v) => v.id === activeSourceRow.latestVersionId) ?? null;
-    }
-    return t.currentVersion ?? null;
-  }, [activeSourceRow?.latestVersionId, versions, t.currentVersion]);
-
-  type CitationTotals = {
-  marginalMentionsTotal: number | null;
-  signaturesTotal: number | null;
-  marginalCrossoutsTotal: number | null;
-};
-
-function normalizeTotal(present: boolean | null | undefined, count: number | null | undefined) {
-  // si present est explicitement false => 0
-  if (present === false) return 0;
-  // si present est true => on prend count (ou 0 si null)
-  if (present === true) return count ?? 0;
-  // si present est null/undefined => on ne sait pas => null (indéterminé)
-  if (count == null) return null;
-  return count; // fallback si tu as un count sans present
-}
-
-const activeCitation = useMemo(() => {
-  if (!t.activeSourceId) return null;
-  return (sources ?? []).find((x: any) => x.id === t.activeSourceId) ?? null;
-}, [sources, t.activeSourceId]);
-
-const citationTotals = useMemo<CitationTotals>(() => {
-  if (!activeCitation) {
-    return {
-      marginalMentionsTotal: null,
-      signaturesTotal: null,
-      marginalCrossoutsTotal: null,
-    };
-  }
-
-  return {
-    marginalMentionsTotal: normalizeTotal(
-      activeCitation.marginal_mentions_present,
-      activeCitation.marginal_mentions_count
-    ),
-    signaturesTotal: normalizeTotal(
-      activeCitation.signatures_present,
-      activeCitation.signatures_count
-    ),
-    marginalCrossoutsTotal: normalizeTotal(
-      activeCitation.marginal_crossouts_present,
-      activeCitation.marginal_crossouts_count
-    ),
-  };
-}, [activeCitation]);
-
-
-  const isFinalized =
-    (workingVersion?.status === 'IN_REVIEW' || workingVersion?.status === 'VALIDATED') ?? false;
-
-  const step: 1 | 2 | 3 | 4 = !t.activeSourceId
-    ? 1
-    : !activeLatestVersionId
-      ? 2
-      : isFinalized
-        ? 4
-        : 3;
-
-  // ✅ Sources accordion hooks MUST be before any early return
-  const [sourcesExpanded, setSourcesExpanded] = useState(step === 1);
-
-  React.useEffect(() => {
-    // règle demandée : replié si step ≠ 1
-    setSourcesExpanded(step === 1);
-  }, [step]);
-
-  const toggleSourcesExpanded = () => {
-    setSourcesExpanded((v) => !v);
-  };
-
-  // Loading (after hooks!)
-  if (t.loading && !workingVersion && versions.length === 0) {
+  if (showLoading) {
     return <div className='p-4 text-sm text-slate-600'>Chargement…</div>;
   }
-
-  const textareaDisabled =
-    step === 1 || (!t.isEditableStatus && textareaLocked) || t.dirtyState === 'saving';
-
-  function sourcesLabel(count: number) {
-    if (count <= 2) return count - 1 + ' source';
-    return count - 1 + ' sources';
-  }
-
   return (
     <div className='p-4 space-y-4'>
       <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
@@ -455,7 +477,7 @@ const citationTotals = useMemo<CitationTotals>(() => {
                   <StatusPill statut={(workingVersion?.status as any) || 'TO_TRANSCRIBE'} />
 
                   {/* Lock uniquement si finalisé + mode edit */}
-                  {!t.isEditableStatus && t.textMode === 'edit' && step !== 1 && (
+                  {isLockable && t.textMode === 'edit' && step !== 1 && (
                     <button
                       type='button'
                       onClick={() => setTextareaLocked((v) => !v)}
@@ -864,24 +886,28 @@ const citationTotals = useMemo<CitationTotals>(() => {
                       const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
                       const uniteCote = m?.unite_cote ?? null;
 
-                      const signatures_label = g?.signatures_present ? "avec signatures manuscrites": null;
-                      const marginal_mentions_label = g?.marginal_mentions_present ? "avec mentions marginales": null;
+                      const signatures_label = g?.signatures_present
+                        ? 'avec signatures manuscrites'
+                        : null;
+                      const marginal_mentions_label = g?.marginal_mentions_present
+                        ? 'avec mentions marginales'
+                        : null;
 
                       const vuesPages =
                         g?.vues_raw ||
                         (g?.vues_start || g?.vues_end
                           ? `Vues ${g?.vues_start ?? '?'}–${g?.vues_end ?? '?'}`
                           : g?.page_raw ||
-                          (g?.page_start || g?.page_end
-                            ? `Pages ${g?.page_start ?? '?'}–${g?.page_end ?? '?'}`
-                            : ''));
+                            (g?.page_start || g?.page_end
+                              ? `Pages ${g?.page_start ?? '?'}–${g?.page_end ?? '?'}`
+                              : ''));
 
                       const lineParts = [
                         uniteCote ? uniteCote : null,
                         vuesPages ? vuesPages : null,
                         g?.acte_manquant ? 'Acte manquant' : null,
                         signatures_label,
-                        marginal_mentions_label
+                        marginal_mentions_label,
                       ].filter(Boolean);
 
                       const line = lineParts.join(' · ');
@@ -993,30 +1019,33 @@ const citationTotals = useMemo<CitationTotals>(() => {
                     title='Mentions marginales'
                     Icon={PenLine}
                     count={(t.marginalMentions?.length ?? 0) as number}
-                    total={citationTotals.marginalMentionsTotal ?? 0 }
+                    total={citationTotals.marginalMentionsTotal ?? 0}
                     onAdd={() => t.openAddMarginalMention?.()}
                     onManage={() => t.openManageMarginalMentions?.()}
                     disabled={t.loading || !workingVersion}
+                    present={activeCitation?.marginal_mentions_present}
                   />
 
                   <PartSectionCard
                     title='Signatures'
                     Icon={Signature}
                     count={(t.signatures?.length ?? 0) as number}
-                    total={citationTotals.signaturesTotal ?? 0 }
+                    total={citationTotals.signaturesTotal ?? 0}
                     onAdd={() => t.openAddSignature?.()}
                     onManage={() => t.openManageSignatures?.()}
                     disabled={t.loading || !workingVersion}
+                    present={activeCitation?.signatures_present}
                   />
 
                   <PartSectionCard
                     title='Ratures marginales'
                     Icon={Scissors}
                     count={(t.marginalCrossouts?.length ?? 0) as number}
-                    total={citationTotals.marginalCrossoutsTotal ?? 0 }
+                    total={citationTotals.marginalCrossoutsTotal ?? 0}
                     onAdd={() => t.openAddMarginalCrossout?.()}
                     onManage={() => t.openManageMarginalCrossouts?.()}
                     disabled={t.loading || !workingVersion}
+                    present={activeCitation?.marginal_crossouts_present}
                   />
                 </div>
               )}
@@ -1246,8 +1275,8 @@ const citationTotals = useMemo<CitationTotals>(() => {
                     {notes.filter(
                       (n) => !n.content?.startsWith('[META]') && !n.content?.startsWith('[DIFF '),
                     ).length === 0 && (
-                        <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
-                      )}
+                      <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
+                    )}
 
                     {notes
                       .filter(
@@ -1424,301 +1453,79 @@ const citationTotals = useMemo<CitationTotals>(() => {
               </div>
             ) : t.sheetMode === 'marginal_mentions' ? (
               <div className='space-y-4'>
-                {/* Liste (si implémentée côté logic) */}
-                {Boolean((t.marginalMentions?.length ?? 0) > 0) && (
-                  <div className='space-y-2'>
-                    {(t.marginalMentions ?? []).map((m: any) => (
-                      <div
-                        key={m.id}
-                        className='rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-sm'
-                      >
-                        <div className='flex items-start justify-between gap-3'>
-                          <div className='min-w-0'>
-                            <div className='text-sm font-semibold text-slate-900'>
-                              {m.type_label ?? m.type_acte_label ?? 'Mention'}
-                            </div>
-                            <div className='text-xs text-slate-600'>
-                              {m.mention_date_raw || m.mention_date || '—'}
-                            </div>
-                            <div className='mt-2 text-sm text-slate-800 whitespace-pre-wrap'>
-                              {m.mention_content ?? '—'}
-                            </div>
-                            {m.note ? (
-                              <div className='mt-2 text-xs text-slate-600 whitespace-pre-wrap'>
-                                {m.note}
-                              </div>
-                            ) : null}
-                          </div>
-
-                          <div className='shrink-0 flex items-center gap-2'>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='h-8 px-2 text-xs'
-                              onClick={() => t.openEditMarginalMention?.(m)}
-                              disabled={t.loading || !t.workingVersion}
-                            >
-                              Modifier
-                            </Button>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='h-8 px-2 text-xs'
-                              onClick={() => t.deleteMarginalMention?.(m.id)}
-                              disabled={t.loading || !t.workingVersion}
-                            >
-                              Supprimer
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                {/* Liste */}
+                {step !== 1 && (
+                  <MarginalMentionList
+                    items={t.marginalMentions ?? []}
+                    disabled={t.loading || !t.workingVersion}
+                    mode={t.mmFormMode}
+                    onNew={() => t.startCreateMarginalMention?.()}
+                    onEdit={(row) => t.openEditMarginalMention?.(row)}
+                    onDelete={(id) => t.deleteMarginalMention?.(id)}
+                  />
                 )}
 
-                {/* Formulaire */}
-                <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3'>
-                  <div className='grid grid-cols-2 gap-3'>
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Type d’acte (référence)
-                      </div>
-                      {/* Remplace par ton picker ref_ec_type_acte quand tu l’as */}
-                      <Input
-                        className='mt-1'
-                        placeholder='UUID ref_ec_type_acte (temporaire)'
-                        value={t.mmTypeActeRef ?? ''}
-                        onChange={(e) => t.setMmTypeActeRef?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
+                {/* Formulaire (masqué par défaut) */}
+                {step !== 1 && t.mmFormMode !== 'idle' && (
+                  <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3'>
+                    <MarginalMentionFormSection t={t} />
 
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>Date telle que lue</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='ex: "le 3 Xbre 1881"'
-                        value={t.mmDateRaw ?? ''}
-                        onChange={(e) => t.setMmDateRaw?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
+                    <div className='flex items-center justify-end gap-2 pt-2'>
+                      <Button
+                        variant='outline'
+                        onClick={() => t.cancelMarginalMentionForm?.()}
+                        disabled={t.loading}
+                      >
+                        Annuler
+                      </Button>
 
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Date normalisée (option)
-                      </div>
-                      <Input
-                        className='mt-1'
-                        placeholder='YYYY-MM-DD'
-                        value={t.mmDate ?? ''}
-                        onChange={(e) => t.setMmDate?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>Texte transcrit</div>
-                      <Textarea
-                        className='mt-1 min-h-[140px]'
-                        placeholder='Transcription...'
-                        value={t.mmContent ?? ''}
-                        onChange={(e) => t.setMmContent?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>Note</div>
-                      <Textarea
-                        className='mt-1 min-h-[90px]'
-                        placeholder='Contexte, ambiguïtés…'
-                        value={t.mmNote ?? ''}
-                        onChange={(e) => t.setMmNote?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
+                      <Button
+                        onClick={() => t.saveMarginalMention?.()}
+                        disabled={t.loading || !t.workingVersion || !(t.mmContent ?? '').trim()}
+                      >
+                        {t.mmFormMode === 'edit' ? 'Enregistrer la modification' : 'Enregistrer'}
+                      </Button>
                     </div>
                   </div>
-
-                  <div className='flex items-center justify-end gap-2 pt-2'>
-                    <Button
-                      variant='outline'
-                      onClick={() => t.cancelMarginalMentionEdit?.() ?? t.setSheetOpen(false)}
-                      disabled={t.loading}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      onClick={() => t.saveMarginalMention?.()}
-                      disabled={t.loading || !t.workingVersion || !(t.mmContent ?? '').trim()}
-                    >
-                      Enregistrer
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
             ) : t.sheetMode === 'signatures' ? (
               <div className='space-y-4'>
                 {/* Liste */}
-                {Boolean((t.signatures?.length ?? 0) > 0) && (
-                  <div className='space-y-2'>
-                    {(t.signatures ?? []).map((s: any) => (
-                      <div
-                        key={s.id}
-                        className='rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-sm'
-                      >
-                        <div className='flex items-start justify-between gap-3'>
-                          <div className='min-w-0'>
-                            <div className='text-sm font-semibold text-slate-900'>{s.label}</div>
-                            <div className='mt-1 text-xs text-slate-600'>
-                              {[
-                                s.signature_kind ? `Type: ${s.signature_kind}` : null,
-                                s.confidence ? `Confiance: ${s.confidence}` : null,
-                                s.legibility ? `Lisibilité: ${s.legibility}` : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ') || '—'}
-                            </div>
-
-                            {Array.isArray(s.pattern) && s.pattern.length ? (
-                              <div className='mt-2 flex flex-wrap gap-2'>
-                                {s.pattern.map((p: string, i: number) => (
-                                  <span
-                                    key={`${s.id}-p-${i}`}
-                                    className='inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] text-slate-700'
-                                  >
-                                    {p}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : null}
-
-                            {s.note ? (
-                              <div className='mt-2 text-xs text-slate-600 whitespace-pre-wrap'>
-                                {s.note}
-                              </div>
-                            ) : null}
-                          </div>
-
-                          <div className='shrink-0 flex items-center gap-2'>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='h-8 px-2 text-xs'
-                              onClick={() => t.openEditSignature?.(s)}
-                              disabled={t.loading || !t.workingVersion}
-                            >
-                              Modifier
-                            </Button>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='h-8 px-2 text-xs'
-                              onClick={() => t.deleteSignature?.(s.id)}
-                              disabled={t.loading || !t.workingVersion}
-                            >
-                              Supprimer
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                {step !== 1 && (
+                  <SignatureList
+                    items={t.signatures ?? []}
+                    disabled={t.loading || !t.workingVersion}
+                    mode={t.sigFormMode}
+                    onNew={() => t.startCreateSignature?.()}
+                    onEdit={(row) => t.openEditSignature?.(row)}
+                    onDelete={(id) => t.deleteSignature?.(id)}
+                  />
                 )}
 
-                {/* Formulaire */}
-                <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3'>
-                  <div className='grid grid-cols-2 gap-3'>
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Signature (tel que lu)
-                      </div>
-                      <Input
-                        className='mt-1'
-                        placeholder='Nom / initiales / paraphe…'
-                        value={t.sigLabel ?? ''}
-                        onChange={(e) => t.setSigLabel?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
+                {/* Formulaire (masqué par défaut) */}
+                {step !== 1 && t.sigFormMode !== 'idle' && (
+                  <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3'>
+                    <SignatureFormSection t={t} />
 
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>Type</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='signature / paraphe / initiales / marque…'
-                        value={t.sigKind ?? ''}
-                        onChange={(e) => t.setSigKind?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
+                    <div className='flex items-center justify-end gap-2 pt-2'>
+                      <Button
+                        variant='outline'
+                        onClick={() => t.cancelSignatureForm?.()}
+                        disabled={t.loading}
+                      >
+                        Annuler
+                      </Button>
 
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>Confiance</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='low / medium / high'
-                        value={t.sigConfidence ?? ''}
-                        onChange={(e) => t.setSigConfidence?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='clear / partial / poor / illegible'
-                        value={t.sigLegibility ?? ''}
-                        onChange={(e) => t.setSigLegibility?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Pattern (ordre important)
-                      </div>
-                      <Input
-                        className='mt-1'
-                        placeholder='Ex: NOM; P_INITIALE+NOM; PARTIE_NOM'
-                        value={t.sigPatternRaw ?? ''}
-                        onChange={(e) => t.setSigPatternRaw?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                      <div className='mt-1 text-[11px] text-slate-600'>
-                        Sépare par <span className='font-mono'>;</span> (on stockera en tableau).
-                      </div>
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>Note</div>
-                      <Textarea
-                        className='mt-1 min-h-[90px]'
-                        placeholder='Détails…'
-                        value={t.sigNote ?? ''}
-                        onChange={(e) => t.setSigNote?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
+                      <Button
+                        onClick={() => t.saveSignature?.()}
+                        disabled={t.loading || !t.workingVersion || !(t.sigLabel ?? '').trim()}
+                      >
+                        {t.sigFormMode === 'edit' ? 'Enregistrer la modification' : 'Enregistrer'}
+                      </Button>
                     </div>
                   </div>
-
-                  <div className='flex items-center justify-end gap-2 pt-2'>
-                    <Button
-                      variant='outline'
-                      onClick={() => t.cancelSignatureEdit?.() ?? t.setSheetOpen(false)}
-                      disabled={t.loading}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      onClick={() => t.saveSignature?.()}
-                      disabled={t.loading || !t.workingVersion || !(t.sigLabel ?? '').trim()}
-                    >
-                      Enregistrer
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
             ) : t.sheetMode === 'marginal_crossouts' ? (
               <div className='space-y-4'>
@@ -2013,36 +1820,53 @@ function PartSectionCard({
   onAdd,
   onManage,
   disabled,
+  present,
 }: {
   title: string;
   Icon: React.ComponentType<{ className?: string }>;
   count: number;
-  total: number;
+  total: number | null;
   onAdd: () => void;
   onManage: () => void;
   disabled: boolean;
+  present?: boolean | null;
 }) {
+  // 1) absent => on masque totalement la section
+  if (present === false) return null;
+
   return (
     <div className='rounded-xl border border-slate-200 bg-slate-50 p-3'>
       <div className='flex items-start justify-between gap-3'>
+        {/* Partie gauche */}
         <div className='w-full'>
           <div className='flex items-center gap-2'>
             <span className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white'>
               <Icon className='h-4 w-4 text-slate-700' />
             </span>
 
-            <div className='w-full'>
-              <div className='text-sm font-semibold text-slate-900'>{title}</div>
-              <div className="w-[60%]">
-                <div className='text-xs text-slate-600'>
-                  <ProgressVerboseBar
-                    value={count}
-                    max={total}
-                    label={`${count} / ${total}`}
-                  />
+            {/* 2) indéterminé sur la présence => message ambre */}
+            {present === null ? (
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-slate-900'>{title}</div>
+                <div className='mt-1 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 w-fit flex items-center gap-1'>
+                  <HelpCircle className='h-3.5 w-3.5' />
+                  Présence à renseigner dans « Référence archive »
                 </div>
               </div>
-            </div>
+            ) : (
+              /* 3) présence confirmée => on montre la barre et rien d’autre */
+              <div className='w-full min-w-0'>
+                <div className='w-[60%]'>
+                  <div className='font-semibold text-slate-900 lowercase'>
+                    <ProgressVerboseBar
+                      value={count}
+                      max={total ?? 0}
+                      label={`${count} / ${total ?? '—'} ${title}${(total ?? 0) < count ? ' ⚠️' : ''}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2050,27 +1874,36 @@ function PartSectionCard({
           <Button
             variant='outline'
             size='sm'
-            className='h-8 px-2 text-xs gap-1'
             onClick={onManage}
             disabled={disabled}
             title='Voir / modifier / supprimer'
+            className='h-8 px-2 text-xs gap-1'
           >
             <Eye className='h-4 w-4' />
             Voir
           </Button>
 
+          {/* Bouton Ajouter */}
           <Button
             size='sm'
-            className='h-8 px-2 text-xs gap-1'
             onClick={onAdd}
             disabled={disabled}
             title='Ajouter'
+            className='h-8 px-2 text-xs gap-1'
           >
             <Plus className='h-4 w-4' />
             Ajouter
           </Button>
         </div>
       </div>
+
+      {/* 4) Si total est renseigné (>0) et que count > total => message d’erreur rouge */}
+      {present === true && total !== null && total > 0 && count > total && (
+        <div className='mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1 w-fit flex items-center gap-1'>
+          <AlertTriangle className='h-3.5 w-3.5' />
+          Incohérence : {count} relevé(s) mais total attendu = {total}
+        </div>
+      )}
     </div>
   );
 }

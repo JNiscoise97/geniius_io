@@ -21,6 +21,10 @@ import {
   fetchEcDocumentForm,
   fetchEcPhysicalCondition,
   fetchEcReproQuality,
+  fetchConfidence,
+  fetchHandwritingLegibility,
+  fetchHandwritingStyle,
+  fetchLegibility,
 } from '@/services/dictionnaires.rpc';
 import { fetchAuteurInstitutionnel } from '../../services/dictionnaires.rpc';
 
@@ -39,7 +43,11 @@ export type DictionnaireKind =
   | 'signature_ref'
   | 'ec_document_form_ref'
   | 'ec_physical_condition_ref'
-  | 'ec_repro_quality_ref';
+  | 'ec_repro_quality_ref'
+  | "confidence_ref"
+  | "legibility_ref"
+  | "handwriting_style_ref"
+  | "handwriting_legibility_ref";
 
 export type DictionnaireEditorPanelProps = {
   title: string; // ex: "Modifier les professions"
@@ -77,6 +85,14 @@ export function DictionnaireEditorPanel({
         loader = fetchTypeActe;
       } else if (kind === 'auteur_institutionnel_ref') {
         loader = fetchAuteurInstitutionnel;
+      } else if (kind === 'confidence_ref') {
+        loader = fetchConfidence;
+      } else if (kind === 'legibility_ref') {
+        loader = fetchLegibility;
+      } else if (kind === 'handwriting_style_ref') {
+        loader = fetchHandwritingStyle;
+      } else if (kind === 'handwriting_legibility_ref') {
+        loader = fetchHandwritingLegibility;
       } else if (kind === 'qualite_ref') {
         loader = fetchQualite;
       } else if (kind === 'situation_matrimoniale_ref') {

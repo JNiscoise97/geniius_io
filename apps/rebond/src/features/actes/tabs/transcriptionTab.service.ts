@@ -173,14 +173,14 @@ export type ActeCitationRow = {
   note: string | null;
   sort_order: number | null;
 
-  marginal_mentions_present : boolean | null;
-  marginal_mentions_count : number | null;
+  marginal_mentions_present: boolean | null;
+  marginal_mentions_count: number | null;
 
-  signatures_present : boolean | null;
-  signatures_count : number | null;
+  signatures_present: boolean | null;
+  signatures_count: number | null;
 
-  marginal_crossouts_present : boolean | null;
-  marginal_crossouts_count : number | null;
+  marginal_crossouts_present: boolean | null;
+  marginal_crossouts_count: number | null;
 };
 
 export type ManifestationPick = {
@@ -215,14 +215,14 @@ export type CitationDraft = {
   note: string | null;
   sort_order: number | null;
 
-  marginal_mentions_present : boolean | null;
-  marginal_mentions_count : number | null;
+  marginal_mentions_present: boolean | null;
+  marginal_mentions_count: number | null;
 
-  signatures_present : boolean | null;
-  signatures_count : number | null;
+  signatures_present: boolean | null;
+  signatures_count: number | null;
 
-  marginal_crossouts_present : boolean | null;
-  marginal_crossouts_count : number | null;
+  marginal_crossouts_present: boolean | null;
+  marginal_crossouts_count: number | null;
 
   // enrich
   manifestation?: {
@@ -250,6 +250,8 @@ export type EcSignatureRow = {
   signature_kind: string | null;
   confidence: string | null;
   legibility: string | null;
+  handwriting_legibility_ref?: string | null;
+  handwriting_legibility_label?: string | null;
   pattern: string | null;
   note: string | null;
 
@@ -265,6 +267,20 @@ export type EcMarginalMentionRow = {
   transcription_version_id: string;
 
   type_acte_ref: string | null;
+  type_acte_label?: string | null;
+  type_acte_color?: string | null;
+  confidence_ref?: string | null;
+  confidence_label?: string | null;
+
+  legibility_ref?: string | null;
+  legibility_label?: string | null;
+
+  handwriting_style_ref?: string | null;
+  handwriting_style_label?: string | null;
+
+  handwriting_legibility_ref?: string | null;
+  handwriting_legibility_label?: string | null;
+
   mention_date_raw: string | null;
   mention_date: string | null; // date ISO string côté JS, Supabase gère en date
   mention_content: string;
