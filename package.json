@@ -5,15 +5,17 @@
   "scripts": {
     "dev:rebond": "pnpm --dir apps/rebond dev",
     "dev:echo": "pnpm --dir apps/echo dev:web",
-    "dev": "concurrently -n REBOND,ECHO -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\"",
-
+    "dev:journal": "pnpm --dir apps/journal dev",
+    "dev:connect": "pnpm --dir apps/connect dev",
+    "dev": "concurrently -n REBOND,ECHO,JOURNAL,CONNECT -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\" \"pnpm dev:journal\" \"pnpm dev:connect\"",
     "build:schema": "pnpm --filter @geniius/schema build",
     "build:gedcom": "pnpm --filter @geniius/gedcom-core build",
     "build:rebond": "pnpm --dir apps/rebond build",
     "build:echo": "pnpm --dir apps/echo build:web",
-
+    "build:journal": "pnpm --dir apps/journal build",
+    "build:connect": "pnpm --dir apps/connect build",
     "build:libs": "pnpm --filter @geniius/schema --filter @geniius/gedcom-core build",
-    "build": "pnpm run build:libs && pnpm run build:rebond && pnpm run build:echo"
+    "build": "pnpm run build:libs && pnpm run build:rebond && pnpm run build:echo && pnpm run build:journal && pnpm run build:connect"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
