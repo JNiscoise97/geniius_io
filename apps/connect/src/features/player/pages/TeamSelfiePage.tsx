@@ -78,40 +78,65 @@ export function TeamSelfiePage() {
 
     setLoading(true);
     try {
-      // 1) compression
-      const blob = await compressImageFile(file, {
-        maxSize: 1600,
-        quality: 0.78,
+      // 1) Deux versions : HQ (com) + preview (app)
+      const blobHQ = await compressImageFile(file, {
+        maxSize: 4096,
+        quality: 0.93,
         mimeType: "image/jpeg",
       });
 
-      const ext = "jpg";
-      const path = `events/${s.eventId}/teams/${s.teamId}/selfie.${ext}`;
+      const blobPreview = await compressImageFile(file, {
+        maxSize: 1600,
+        quality: 0.82,
+        mimeType: "image/jpeg",
+      });
 
-      // 2) upload storage
-      const up = await supabase.storage
+      const base = `events/${s.eventId}/teams/${s.teamId}`;
+      const pathHQ = `${base}/selfie.hq.jpg`;
+      const pathPreview = `${base}/selfie.preview.jpg`;
+
+      // 2) Upload Storage (upsert pour retake)
+      const upHQ = await supabase.storage
         .from("connect-public")
-        .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        .upload(pathHQ, blobHQ, { contentType: "image/jpeg", upsert: true });
 
-      if (up.error) throw new Error(up.error.message);
+      if (upHQ.error) throw new Error(upHQ.error.message);
 
-      // 3) update team selfie_path
+      const upPrev = await supabase.storage
+        .from("connect-public")
+        .upload(pathPreview, blobPreview, { contentType: "image/jpeg", upsert: true });
+
+      if (upPrev.error) throw new Error(upPrev.error.message);
+
+      // 3) Update DB (⚠️ nécessite colonne selfie_path_preview)
       const upd = await supabase
         .from("teams")
-        .update({ selfie_path: path })
-        .eq("id", s.teamId);
+        .update({ selfie_path: pathHQ, selfie_path_preview: pathPreview })
+        .eq("id", s.teamId)
+        .select("id, selfie_path, selfie_path_preview")
+        .single();
 
       if (upd.error) throw new Error(upd.error.message);
+      if (!upd.data) throw new Error("Update team failed (no row updated)");
 
-      // 4) tracking uploads (optionnel mais utile)
-      const ins = await supabase.from("uploads").insert({
+      // 4) Tracking uploads (optionnel mais utile)
+      const ins1 = await supabase.from("uploads").insert({
         event_id: s.eventId,
         team_id: s.teamId,
         kind: "team_selfie",
         storage_bucket: "connect-public",
-        storage_path: path,
+        storage_path: pathHQ,
       });
-      if (ins.error) throw new Error(ins.error.message);
+      if (ins1.error) throw new Error(ins1.error.message);
+
+      const ins2 = await supabase.from("uploads").insert({
+        event_id: s.eventId,
+        team_id: s.teamId,
+        kind: "team_selfie",
+        storage_bucket: "connect-public",
+        storage_path: pathPreview,
+      });
+      if (ins2.error) throw new Error(ins2.error.message);
 
       nav(`/e/${slug}/standby`, { replace: true });
     } catch (e: any) {
@@ -151,7 +176,11 @@ export function TeamSelfiePage() {
         />
 
         {!file ? (
-          <button className="btn btn--primary" type="button" onClick={() => fileInputRef.current?.click()}>
+          <button
+            className="btn btn--primary"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+          >
             Prendre le selfie
           </button>
         ) : (
@@ -160,7 +189,11 @@ export function TeamSelfiePage() {
               <img
                 src={previewUrl}
                 alt="Aperçu selfie"
-                style={{ width: "100%", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{
+                  width: "100%",
+                  borderRadius: 16,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
               />
             )}
 
@@ -168,7 +201,12 @@ export function TeamSelfiePage() {
               <button className="btn" type="button" onClick={retake} disabled={loading}>
                 Reprendre la photo
               </button>
-              <button className="btn btn--primary" type="button" onClick={uploadSelfie} disabled={loading}>
+              <button
+                className="btn btn--primary"
+                type="button"
+                onClick={uploadSelfie}
+                disabled={loading}
+              >
                 {loading ? "Envoi..." : "Envoyer le selfie"}
               </button>
             </div>
@@ -182,7 +220,8 @@ export function TeamSelfiePage() {
         )}
 
         <p className="muted" style={{ fontSize: 12, opacity: 0.9 }}>
-          Astuce : rapproche l’équipe, bonne lumière. L’image est compressée avant envoi.
+          Astuce : rapproche l’équipe, bonne lumière. Une version HQ est conservée pour la com + une preview
+          optimisée pour l’app.
         </p>
       </div>
     </div>

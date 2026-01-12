@@ -1,3 +1,5 @@
+//imageCompress.ts
+
 export type CompressOptions = {
   maxSize: number;     // ex 1600 px
   quality: number;     // 0.6–0.85

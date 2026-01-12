@@ -1,3 +1,5 @@
+//contentLoader.ts
+
 import yaml from "js-yaml";
 
 export type ContentEvent = {
@@ -33,7 +35,10 @@ function parseEventYaml(raw: string): ContentEvent {
     slug: String(data.slug),
     title: String(data.title),
     zones: Array.isArray(data.zones)
-      ? data.zones.map((z: any) => ({ file: String(z.file), title: String(z.title ?? z.file) }))
+      ? data.zones.map((z: any) => ({
+          file: String(z.file),
+          title: String(z.title ?? z.file),
+        }))
       : [],
   };
 }
@@ -63,7 +68,10 @@ function splitFrontmatter(raw: string): { fmRaw: string | null; body: string } {
   }
 
   const fmRaw = lines.slice(1, end).join("\n");
-  const body = lines.slice(end + 1).join("\n").trim();
+  const body = lines
+    .slice(end + 1)
+    .join("\n")
+    .trim();
   return { fmRaw, body };
 }
 
@@ -80,8 +88,9 @@ function parseZoneMd(raw: string): ContentZone {
   };
 }
 
-
-export function getLocalEvent(slug: string): { event: ContentEvent; zones: ContentZone[] } | null {
+export function getLocalEvent(
+  slug: string
+): { event: ContentEvent; zones: ContentZone[] } | null {
   const eventEntry = Object.entries(eventYamlByPath).find(([path]) =>
     path.includes(`/events/${slug}/event.yaml`)
   );
@@ -94,7 +103,14 @@ export function getLocalEvent(slug: string): { event: ContentEvent; zones: Conte
       path.includes(`/events/${slug}/zones/${z.file}`)
     );
     if (!zoneEntry) {
-      throw new Error(`Missing zone file: ${z.file} for event ${slug}`);
+      console.warn(`Missing zone file: ${z.file} for event ${slug}`);
+      return {
+        id: `missing:${z.file}`,
+        title: z.title ?? z.file,
+        theme: undefined,
+        body: "",
+        rawFrontmatter: {},
+      };
     }
     return parseZoneMd(zoneEntry[1]);
   });
