@@ -1,0 +1,7 @@
+slug: demo
+title: "Événement Démo"
+zones:
+  - file: "01-famille.md"
+    title: "Zone 1 — Famille"
+  - file: "02-lieu.md"
+    title: "Zone 2 — Lieu"
