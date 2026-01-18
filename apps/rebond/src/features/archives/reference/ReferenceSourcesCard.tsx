@@ -72,6 +72,8 @@ export function SectionSources({
     return depotType === 'en_ligne' || hasUrl;
   };
 
+  const actionsInvisible = false;
+
   const titleFor = (c: AnyDraft) => {
     const sigle = c.manifestation?.institution_sigle?.trim();
     const inst = c.manifestation?.institution_nom?.trim();
@@ -795,6 +797,7 @@ export function SectionSources({
                                       titre='Nature du document'
                                       values={toLabels(a.document_form_ref)}
                                       dense
+                                      actionsInvisible = {actionsInvisible}
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_document_form_ref' as DictionnaireKind,
@@ -838,6 +841,7 @@ export function SectionSources({
                                       titre='État matériel'
                                       values={toLabels(a.physical_condition_ref)}
                                       dense
+                                      actionsInvisible = {actionsInvisible}
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_physical_condition_ref' as DictionnaireKind,
@@ -897,6 +901,7 @@ export function SectionSources({
                                       titre='Qualité de reproduction'
                                       values={toLabels(a.repro_quality_ref)}
                                       dense
+                                      actionsInvisible = {actionsInvisible}
                                       onEdit={() => {
                                         openDict({
                                           kind: 'ec_repro_quality_ref' as DictionnaireKind,

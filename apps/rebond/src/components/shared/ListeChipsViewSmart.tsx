@@ -32,6 +32,10 @@ type ListeChipsViewProps = {
   colors?: Array<string | null | undefined>;
 
   dense?: boolean;
+
+  readonly?: boolean;
+  actionsInvisible?: boolean;
+
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -84,10 +88,18 @@ export function ListeChipsViewSmart({
   values,
   colors,
   dense = false,
+  readonly = false,
+  actionsInvisible = true,
   onEdit,
   onDelete,
 }: ListeChipsViewProps) {
   const isEmpty = !values || values.length === 0;
+
+  const showActions = !readonly && (onEdit || onDelete);
+
+  const actionsVisibilityClass = actionsInvisible
+    ? 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity'
+    : 'opacity-100';
 
   // Heuristique : passe en mode compact si 1 valeur courte ou si dense=true
   const isSingleShort = values && values.length === 1 && (values[0]?.length ?? 0) <= 14;
@@ -119,26 +131,33 @@ export function ListeChipsViewSmart({
           </div>
         )}
 
-        <div className='ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity'>
-          <button
-            type='button'
-            onClick={onEdit}
-            title='Modifier'
-            aria-label='Modifier la sélection'
-            className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-indigo-700'
-          >
-            <Pencil className='w-4 h-4' />
-          </button>
-          <button
-            type='button'
-            onClick={handleDelete}
-            title='Supprimer'
-            aria-label='Supprimer la sélection'
-            className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-red-700'
-          >
-            <Trash className='w-4 h-4' />
-          </button>
-        </div>
+        {showActions && (
+          <div className={`ml-auto flex items-center gap-1 ${actionsVisibilityClass}`}>
+            {onEdit && (
+              <button
+                type='button'
+                onClick={onEdit}
+                title='Modifier'
+                aria-label='Modifier la sélection'
+                className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-indigo-700'
+              >
+                <Pencil className='w-4 h-4' />
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                type='button'
+                onClick={handleDelete}
+                title='Supprimer'
+                aria-label='Supprimer la sélection'
+                className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-red-700'
+              >
+                <Trash className='w-4 h-4' />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -149,26 +168,33 @@ export function ListeChipsViewSmart({
     >
       <div className='flex items-center mb-2'>
         <span className='font-semibold text-sm text-gray-900'>{titre}</span>
-        <div className='ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity'>
-          <button
-            type='button'
-            onClick={onEdit}
-            title='Modifier'
-            aria-label='Modifier la sélection'
-            className='p-1.5 rounded-sm hover:bg-gray-50 text-gray-700 hover:text-indigo-700'
-          >
-            <Pencil className='w-4 h-4' />
-          </button>
-          <button
-            type='button'
-            onClick={handleDelete}
-            title='Supprimer'
-            aria-label='Supprimer la sélection'
-            className='p-1.5 rounded-sm hover:bg-gray-50 text-gray-700 hover:text-red-700'
-          >
-            <Trash className='w-4 h-4' />
-          </button>
-        </div>
+        {showActions && (
+          <div className={`ml-auto flex items-center gap-1 ${actionsVisibilityClass}`}>
+            {onEdit && (
+              <button
+                type='button'
+                onClick={onEdit}
+                title='Modifier'
+                aria-label='Modifier la sélection'
+                className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-indigo-700'
+              >
+                <Pencil className='w-4 h-4' />
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                type='button'
+                onClick={handleDelete}
+                title='Supprimer'
+                aria-label='Supprimer la sélection'
+                className='p-1 rounded hover:bg-gray-100 text-gray-600 hover:text-red-700'
+              >
+                <Trash className='w-4 h-4' />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {isEmpty ? (
