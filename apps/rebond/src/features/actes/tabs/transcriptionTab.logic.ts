@@ -33,7 +33,7 @@ import {
   insertNote,
   type CitationDraft,
   type ActeCitationRow,
-  type ManifestationPick,
+  type ExemplairePick,
   type TranscriptionRow,
   createNewVersionForSource,
   updateTranscription,
@@ -93,7 +93,7 @@ function emptyCitation(acteId: string): CitationDraft {
   return {
     id: 'tmp-' + crypto.randomUUID(),
     acte_id: acteId,
-    manifestation_id: null,
+    exemplaire_id: null,
     vues_start: null,
     vues_end: null,
     vues_raw: null,
@@ -109,7 +109,7 @@ function emptyCitation(acteId: string): CitationDraft {
     signatures_count: null,
     marginal_crossouts_present: null,
     marginal_crossouts_count: null,
-    manifestation: null,
+    exemplaire: null,
   };
 }
 
@@ -117,7 +117,7 @@ function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
   return {
     id: r.id,
     acte_id: r.acte_id,
-    manifestation_id: r.manifestation_id,
+    exemplaire_id: r.exemplaire_id,
     vues_start: r.vues_start,
     vues_end: r.vues_end,
     vues_raw: r.vues_raw,
@@ -133,32 +133,33 @@ function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
     signatures_count: r.signatures_count,
     marginal_crossouts_present: r.marginal_crossouts_present,
     marginal_crossouts_count: r.marginal_crossouts_count,
-    manifestation: null,
+    exemplaire: null,
   };
 }
 
-function bestPickPerManifestation(picks: any[]): Map<string, ManifestationPick> {
-  const bestByManId = new Map<string, ManifestationPick>();
+function bestPickPerExemplaire(picks: any[]): Map<string, ExemplairePick> {
+  const bestByManId = new Map<string, ExemplairePick>();
 
   for (const r of picks) {
-    const candidate: ManifestationPick = {
-      manifestation_id: r.manifestation_id,
-      type_manifestation: r.type_manifestation ?? null,
+    const candidate: ExemplairePick = {
+      exemplaire_id: r.exemplaire_id,
+      nature_id: r.nature_id ?? null,
       unite_id: r.unite_id ?? null,
       unite_titre: r.unite_titre ?? null,
-      unite_cote: r.unite_cote ?? null,
+      cote_locale: r.cote_locale ?? null,
       pagination_type: r.pagination_type ?? null,
       depot_nom: r.depot_nom ?? null,
-      depot_type: r.depot_type ?? null,
+      depot_is_online: r.depot_is_online ?? null,
+      depot_is_physical: r.depot_is_physical ?? null,
       institution_nom: r.institution_nom ?? null,
       institution_sigle: r.institution_sigle ?? null,
       url_base: r.url_base ?? null,
       plateforme_code: r.plateforme_code ?? null,
     };
 
-    const current = bestByManId.get(candidate.manifestation_id);
+    const current = bestByManId.get(candidate.exemplaire_id);
     if (!current) {
-      bestByManId.set(candidate.manifestation_id, candidate);
+      bestByManId.set(candidate.exemplaire_id, candidate);
       continue;
     }
 
@@ -167,7 +168,7 @@ function bestPickPerManifestation(picks: any[]): Map<string, ManifestationPick> 
     const candHasUrl = Boolean((candidate.url_base ?? '').trim());
 
     if (!curHasUrl && candHasUrl) {
-      bestByManId.set(candidate.manifestation_id, candidate);
+      bestByManId.set(candidate.exemplaire_id, candidate);
     }
   }
 
@@ -190,7 +191,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
+          'id, acte_id, exemplaire_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -216,7 +217,7 @@ export function useActeCitationsSources(acteId: string) {
 
       // 2) enrich from view
       const manIds = Array.from(
-        new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[]),
+        new Set(drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[]),
       );
 
       if (!manIds.length) {
@@ -226,11 +227,11 @@ export function useActeCitationsSources(acteId: string) {
       }
 
       const { data: pickData, error: pickErr } = await supabase
-        .from('v_manifestations_pick')
+        .from('v_exemplaires_pick')
         .select(
-          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
         )
-        .in('manifestation_id', manIds);
+        .in('exemplaire_id', manIds);
 
       if (cancelled) return;
 
@@ -240,25 +241,26 @@ export function useActeCitationsSources(acteId: string) {
         return;
       }
 
-      const bestByManId = bestPickPerManifestation(pickData ?? []);
+      const bestByManId = bestPickPerExemplaire(pickData ?? []);
 
       const enriched = drafts.map((d) => {
-        const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
-        if (!m) return d;
+        const e = d.exemplaire_id ? bestByManId.get(d.exemplaire_id) : null;
+        if (!e) return d;
 
         return {
           ...d,
-          manifestation: {
-            type_manifestation: m.type_manifestation,
-            unite_titre: m.unite_titre,
-            unite_cote: m.unite_cote,
-            pagination_type: m.pagination_type,
-            depot_nom: m.depot_nom,
-            depot_type: m.depot_type,
-            institution_nom: m.institution_nom,
-            institution_sigle: m.institution_sigle,
-            url_base: m.url_base,
-            plateforme_code: m.plateforme_code,
+          exemplaire: {
+            nature_id: e.nature_id,
+            unite_titre: e.unite_titre,
+            cote_locale: e.cote_locale,
+            pagination_type: e.pagination_type,
+            depot_nom: e.depot_nom,
+            depot_is_online: e.depot_is_online,
+            depot_is_physical: e.depot_is_physical,
+            institution_nom: e.institution_nom,
+            institution_sigle: e.institution_sigle,
+            url_base: e.url_base,
+            plateforme_code: e.plateforme_code,
           },
         } satisfies CitationDraft;
       });

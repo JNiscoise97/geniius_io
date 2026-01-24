@@ -178,8 +178,8 @@ export default function TranscriptionTab({ acteId }: Props) {
       const latestVersionId = t.getLatestVersionIdForSource(s.id) ?? null;
 
       // label simple
-      const uniteTitre = s.manifestation?.unite_titre ?? 'Source';
-      const inst = s.manifestation?.institution_sigle ?? s.manifestation?.depot_type ?? null;
+      const uniteTitre = s.exemplaire?.unite_titre ?? 'Source';
+      const inst = s.exemplaire?.institution_sigle ?? (s.exemplaire?.depot_is_online || s.exemplaire?.depot_is_physical) ?? null;
       const vuesPages =
         s.vues_raw ||
         (s.vues_start || s.vues_end
@@ -880,11 +880,11 @@ export default function TranscriptionTab({ acteId }: Props) {
                       const g = sources.find((x: any) => x.id === d.id) as any; // récupère l’objet enrichi
                       const isActive = d.id === t.activeSourceId;
 
-                      const m = g?.manifestation ?? null;
+                      const m = g?.exemplaire ?? null;
                       const online = Boolean((m?.url_base ?? '').trim());
                       const uniteTitre = m?.unite_titre ?? 'Source';
-                      const institutionSigle = m?.institution_sigle ?? m?.depot_type ?? null;
-                      const uniteCote = m?.unite_cote ?? null;
+                      const institutionSigle = m?.institution_sigle ?? (m?.depot_is_physical || m?.depot_is_online) ?? null;
+                      const uniteCote = m?.cote_locale ?? null;
 
                       const signatures_label = g?.signatures_present
                         ? 'avec signatures manuscrites'

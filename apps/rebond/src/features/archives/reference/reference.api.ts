@@ -42,7 +42,8 @@ export async function createArchiveSource(owner: ReferenceOwner, values: Partial
 
   const payload: any = {
     [fk]: owner.id,
-    depot_type: values.depot_type ?? null,
+    depot_is_online: values.depot_is_online ?? null,
+    depot_is_physical: values.depot_is_physical ?? null,
     nom_depot: values.nom_depot ?? null,
     chemin_classement: values.chemin_classement ?? null,
     cote: values.cote ?? null,
@@ -71,7 +72,8 @@ export async function updateArchiveSource(
   const table = tableFor(owner.kind);
 
   const payload: any = {
-    depot_type: patch.depot_type ?? undefined,
+    depot_is_online: patch.depot_is_online ?? undefined,
+    depot_is_physical: patch.depot_is_physical ?? undefined,
     nom_depot: patch.nom_depot ?? undefined,
     chemin_classement: patch.chemin_classement ?? undefined,
     cote: patch.cote ?? undefined,

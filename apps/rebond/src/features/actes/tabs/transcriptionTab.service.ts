@@ -162,7 +162,7 @@ export type TranscriptionTagRow = {
 export type ActeCitationRow = {
   id: string;
   acte_id: string;
-  manifestation_id: string | null;
+  exemplaire_id: string | null;
   vues_start: number | null;
   vues_end: number | null;
   vues_raw: string | null;
@@ -183,15 +183,16 @@ export type ActeCitationRow = {
   marginal_crossouts_count: number | null;
 };
 
-export type ManifestationPick = {
-  manifestation_id: string;
-  type_manifestation: string | null;
+export type ExemplairePick = {
+  exemplaire_id: string;
+  nature_id: string | null;
   unite_id: string | null;
   unite_titre: string | null;
-  unite_cote: string | null;
+  cote_locale: string | null;
   pagination_type: string | null;
   depot_nom: string | null;
-  depot_type: string | null;
+  depot_is_physical: boolean | null;
+  depot_is_online: boolean | null;
   institution_nom: string | null;
   institution_sigle: string | null;
   url_base: string | null;
@@ -201,7 +202,7 @@ export type ManifestationPick = {
 export type CitationDraft = {
   id: string;
   acte_id: string;
-  manifestation_id: string | null;
+  exemplaire_id: string | null;
 
   // pagination / vues/pages
   vues_start: number | null;
@@ -225,13 +226,14 @@ export type CitationDraft = {
   marginal_crossouts_count: number | null;
 
   // enrich
-  manifestation?: {
-    type_manifestation: string | null;
+  exemplaire?: {
+    nature_id: string | null;
     unite_titre: string | null;
-    unite_cote: string | null;
+    cote_locale: string | null;
     pagination_type: string | null;
     depot_nom: string | null;
-    depot_type: string | null;
+    depot_is_physical: boolean | null;
+    depot_is_online: boolean | null;
     institution_nom: string | null;
     institution_sigle: string | null;
     url_base: string | null;

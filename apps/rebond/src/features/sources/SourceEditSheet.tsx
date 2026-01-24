@@ -1,14 +1,9 @@
-// SourceSheet.tsx
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+// SourceEditSheet.tsx
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { SourceForm } from './SourceForm';
 import { ExemplairesEditor } from './ExemplairesEditor';
 
-export function SourceSheet({
+export function SourceEditSheet({
   open,
   onClose,
   sourceId,
@@ -17,6 +12,11 @@ export function SourceSheet({
   onClose: () => void;
   sourceId: string | null;
 }) {
+  if (!sourceId) {
+    // sécurité : la création est gérée par CreateSourceDialog
+    return null;
+  }
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
@@ -27,21 +27,12 @@ export function SourceSheet({
         "
       >
         <SheetHeader className="shrink-0 border-b px-6 py-4">
-          <SheetTitle>
-            {sourceId ? 'Modifier la source' : 'Créer une source'}
-          </SheetTitle>
+          <SheetTitle>Modifier la source</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           <SourceForm sourceId={sourceId} onDone={onClose} />
-
-          {sourceId ? (
-            <ExemplairesEditor uniteDocumentaireId={sourceId} />
-          ) : (
-            <div className="border-t pt-4 text-sm text-muted-foreground">
-              Crée d’abord la source pour gérer ses exemplaires et accès numériques.
-            </div>
-          )}
+          <ExemplairesEditor uniteDocumentaireId={sourceId} />
         </div>
       </SheetContent>
     </Sheet>

@@ -1,18 +1,18 @@
+// source.store.ts
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { SourceDB, SourceRow } from './source.types';
-
 
 type SourceState = {
   sources: SourceRow[];
   loading: boolean;
   error: string | null;
+
   fetchSources: () => Promise<void>;
   createSource: (payload: Partial<SourceDB>) => Promise<void>;
   updateSource: (id: string, payload: Partial<SourceDB>) => Promise<void>;
   deleteSource: (id: string) => Promise<void>;
 };
-
 
 export const useSourceStore = create<SourceState>((set, get) => ({
   sources: [],
@@ -26,19 +26,22 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       .from('ref_unites_documentaires')
       .select(`
         id,
-        titre,
         type_unite,
-        cote,
-        depot_id,
-        date_couverture_start,
-        date_couverture_end,
-        pagination_type,
-        depot:ref_depots (
-          nom,
-          institution:ref_institutions ( nom )
-        )
+        titre,
+        identifiant_interne,
+        description,
+        langue_id,
+        ecriture_id,
+        serie_ref,
+        couverture_label,
+        couverture_sort_start,
+        couverture_sort_end,
+        created_at,
+        updated_at
       `)
-      .order('titre');
+      // tri “humain” pour l’état civil (1880, 1881…)
+      .order('couverture_sort_start', { ascending: true })
+      .order('titre', { ascending: true });
 
     if (error) {
       console.error('[fetchSources]', error);
@@ -46,35 +49,63 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       return;
     }
 
-    const mapped: SourceRow[] = (data ?? []).map((d: any) => ({
-      id: d.id,
-      titre: d.titre,
-      type_unite: d.type_unite,
-      cote: d.cote,
-      depot_id: d.depot_id,
-      date_couverture_start: d.date_couverture_start,
-      date_couverture_end: d.date_couverture_end,
-      pagination_type: d.pagination_type,
-      depot_nom: d.depot?.nom,
-      institution_nom: d.depot?.institution?.nom,
-    }));
-
-    set({ sources: mapped, loading: false });
+    set({ sources: (data ?? []) as any, loading: false });
   },
 
   createSource: async (payload) => {
-    const { error } = await supabase
-      .from('ref_unites_documentaires')
-      .insert(payload);
+    // garde-fou : au minimum titre + type_unite
+    if (!payload.titre?.trim()) throw new Error('titre requis');
+    if (!payload.type_unite) throw new Error('type_unite requis');
+
+    const { error } = await supabase.from('ref_unites_documentaires').insert({
+      type_unite: payload.type_unite,
+      titre: payload.titre.trim(),
+      identifiant_interne: payload.identifiant_interne?.trim() || null,
+      description: payload.description?.trim() || null,
+      langue_id: payload.langue_id ?? null,
+      ecriture_id: payload.ecriture_id ?? null,
+      serie_ref: payload.serie_ref ?? null,
+      couverture_label: payload.couverture_label?.trim() || null,
+      couverture_sort_start: payload.couverture_sort_start ?? null,
+      couverture_sort_end: payload.couverture_sort_end ?? null,
+    });
 
     if (error) throw error;
     await get().fetchSources();
   },
 
   updateSource: async (id, payload) => {
+    const patch: Partial<SourceDB> = {
+      ...(payload.type_unite ? { type_unite: payload.type_unite } : {}),
+      ...(payload.titre !== undefined ? { titre: payload.titre?.trim() || '' } : {}),
+      ...(payload.identifiant_interne !== undefined
+        ? { identifiant_interne: payload.identifiant_interne?.trim() || null }
+        : {}),
+      ...(payload.description !== undefined
+        ? { description: payload.description?.trim() || null }
+        : {}),
+      ...(payload.langue_id !== undefined ? { langue_id: payload.langue_id } : {}),
+      ...(payload.ecriture_id !== undefined ? { ecriture_id: payload.ecriture_id } : {}),
+      ...(payload.serie_ref !== undefined ? { serie_ref: payload.serie_ref } : {}),
+      ...(payload.couverture_label !== undefined
+        ? { couverture_label: payload.couverture_label?.trim() || null }
+        : {}),
+      ...(payload.couverture_sort_start !== undefined
+        ? { couverture_sort_start: payload.couverture_sort_start }
+        : {}),
+      ...(payload.couverture_sort_end !== undefined
+        ? { couverture_sort_end: payload.couverture_sort_end }
+        : {}),
+    };
+
+    // garde-fou : si titre est modifié, il doit rester non vide
+    if (patch.titre !== undefined && !patch.titre.trim()) {
+      throw new Error('titre requis');
+    }
+
     const { error } = await supabase
       .from('ref_unites_documentaires')
-      .update(payload)
+      .update(patch)
       .eq('id', id);
 
     if (error) throw error;
@@ -82,10 +113,9 @@ export const useSourceStore = create<SourceState>((set, get) => ({
   },
 
   deleteSource: async (id) => {
-    const { error } = await supabase
-      .from('ref_unites_documentaires')
-      .delete()
-      .eq('id', id);
+    // NB: si tu as des exemplaires liés, la FK côté ref_exemplaires (on delete cascade)
+    // supprimera automatiquement; sinon ça plantera et c’est ok.
+    const { error } = await supabase.from('ref_unites_documentaires').delete().eq('id', id);
 
     if (error) throw error;
     await get().fetchSources();

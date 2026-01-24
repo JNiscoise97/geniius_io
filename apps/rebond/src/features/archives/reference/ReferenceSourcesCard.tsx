@@ -1,14 +1,13 @@
 //ReferenceSourcesCard.tsx
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useMemo, useRef, useState } from 'react';
 import type {
   ActeCitationDraft,
   RegistreCitationDraft,
-  ManifestationPick,
+  ExemplairePick,
 } from '@/features/archives/reference/types';
 import { Plus } from 'lucide-react';
-import { ManifestationPickerDialog } from './ManifestationPickerDialog';
+import { ExemplairePickerDialog } from './ExemplairePickerDialog';
 import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
 import {
   DictionnaireEditorPanel,
@@ -67,21 +66,20 @@ export function SectionSources({
   };
 
   const isOnline = (c: AnyDraft) => {
-    const depotType = c.manifestation?.depot_type;
-    const hasUrl = Boolean((c.manifestation?.url_base ?? '').trim());
-    return depotType === 'en_ligne' || hasUrl;
+    const hasUrl = Boolean((c.exemplaire?.url_base ?? '').trim());
+    return c.exemplaire?.depot_is_online || hasUrl;
   };
 
   const actionsInvisible = false;
 
   const titleFor = (c: AnyDraft) => {
-    const sigle = c.manifestation?.institution_sigle?.trim();
-    const inst = c.manifestation?.institution_nom?.trim();
-    const depot = c.manifestation?.depot_nom?.trim();
-    const unite = c.manifestation?.unite_titre?.trim();
-    const cote = (c.manifestation?.unite_cote ?? '').trim();
-    const man = c.manifestation?.type_manifestation
-      ? ` · ${c.manifestation.type_manifestation}`
+    const sigle = c.exemplaire?.institution_sigle?.trim();
+    const inst = c.exemplaire?.institution_nom?.trim();
+    const depot = c.exemplaire?.depot_nom?.trim();
+    const unite = c.exemplaire?.unite_titre?.trim();
+    const cote = (c.exemplaire?.cote_locale ?? '').trim();
+    const man = c.exemplaire?.nature_id
+      ? ` · ${c.exemplaire.nature_id}`
       : '';
 
     const left = sigle && inst ? `${inst} (${sigle})` : inst ? inst : sigle ? sigle : 'Source';
@@ -137,16 +135,13 @@ export function SectionSources({
 
   /**
    * =========================================================================
-   * Picker (v_manifestations_pick)
+   * Picker (v_exemplaires_pick)
    * =========================================================================
    */
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerTargetIdx, setPickerTargetIdx] = useState<number | null>(null);
   const [q, setQ] = useState('');
   const [onlyOnline, setOnlyOnline] = useState(false);
-  const [pickLoading, setPickLoading] = useState(false);
-  const [pickError, setPickError] = useState<string | null>(null);
-  const [pickRows, setPickRows] = useState<ManifestationPick[]>([]);
 
   // Ouvre sur une nouvelle référence : onAdd() puis on ouvre le picker dessus
   const openPickerForNew = () => {
@@ -165,7 +160,6 @@ export function SectionSources({
   const closePicker = () => {
     setPickerOpen(false);
     setPickerTargetIdx(null);
-    setPickError(null);
   };
 
   // ---------------------------------------------------------------------------
@@ -197,144 +191,22 @@ export function SectionSources({
     setDictOpen(true);
   };
 
-  useEffect(() => {
-    if (!pickerOpen) return;
-    let cancelled = false;
-
-    const run = async () => {
-      setPickLoading(true);
-      setPickError(null);
-
-      let query = supabase
-        .from('v_manifestations_pick')
-        .select(
-          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
-        )
-        .order('institution_sigle', { ascending: true })
-        .order('unite_titre', { ascending: true })
-        .limit(50);
-
-      const needle = q.trim();
-      if (needle) {
-        query = query.or(
-          [
-            `unite_titre.ilike.%${needle}%`,
-            `unite_cote.ilike.%${needle}%`,
-            `institution_nom.ilike.%${needle}%`,
-            `institution_sigle.ilike.%${needle}%`,
-            `depot_nom.ilike.%${needle}%`,
-          ].join(','),
-        );
-      }
-
-      if (onlyOnline) {
-        query = query.or('depot_type.eq.en_ligne,url_base.not.is.null');
-      }
-
-      const { data, error } = await query;
-
-      if (cancelled) return;
-
-      if (error) {
-        setPickError(error.message);
-        setPickRows([]);
-        setPickLoading(false);
-        return;
-      }
-
-      const rows = (data ?? []) as any[];
-      const mapped: ManifestationPick[] = rows.map((r) => ({
-        manifestation_id: r.manifestation_id,
-        type_manifestation: r.type_manifestation,
-        unite_id: r.unite_id,
-        unite_titre: r.unite_titre,
-        unite_cote: r.unite_cote,
-        pagination_type: r.pagination_type,
-        depot_nom: r.depot_nom,
-        depot_type: r.depot_type,
-        institution_nom: r.institution_nom,
-        institution_sigle: r.institution_sigle,
-        url_base: r.url_base,
-        plateforme_code: r.plateforme_code,
-      }));
-
-      setPickRows(mapped);
-      setPickLoading(false);
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [pickerOpen, q, onlyOnline]);
-
-  const groupedByUnite = useMemo(() => {
-    type UniteGroup = {
-      unite_id: string;
-      unite_titre: string;
-      unite_cote: string | null;
-      pagination_type: ManifestationPick['pagination_type'];
-
-      depot_nom: string;
-      depot_type: ManifestationPick['depot_type'];
-
-      institution_nom: string;
-      institution_sigle: string | null;
-
-      original?: ManifestationPick;
-      numerisation?: ManifestationPick;
-    };
-
-    const best = (cur: ManifestationPick | undefined, cand: ManifestationPick) => {
-      if (!cur) return cand;
-      const curHasUrl = Boolean((cur.url_base ?? '').trim());
-      const candHasUrl = Boolean((cand.url_base ?? '').trim());
-      if (!curHasUrl && candHasUrl) return cand;
-      return cur;
-    };
-
-    const map = new Map<string, UniteGroup>();
-
-    for (const r of pickRows) {
-      if (r.type_manifestation !== 'original' && r.type_manifestation !== 'numerisation') continue;
-
-      const g =
-        map.get(r.unite_id) ??
-        ({
-          unite_id: r.unite_id,
-          unite_titre: r.unite_titre,
-          unite_cote: r.unite_cote ?? null,
-          pagination_type: r.pagination_type ?? null,
-          depot_nom: r.depot_nom,
-          depot_type: r.depot_type,
-          institution_nom: r.institution_nom,
-          institution_sigle: r.institution_sigle ?? null,
-        } satisfies UniteGroup);
-
-      if (r.type_manifestation === 'original') g.original = best(g.original, r);
-      if (r.type_manifestation === 'numerisation') g.numerisation = best(g.numerisation, r);
-
-      map.set(r.unite_id, g);
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.unite_titre.localeCompare(b.unite_titre));
-  }, [pickRows]);
-
-  const alreadyPickedManifestationIds = useMemo(() => {
-    return sources.map((s) => s.manifestation_id).filter(Boolean) as string[];
+  const alreadyPickedExemplaireIds = useMemo(() => {
+    return sources.map((s) => s.exemplaire_id).filter(Boolean) as string[];
   }, [sources]);
 
-  const pick = (row: ManifestationPick) => {
+  const pick = (row: ExemplairePick) => {
     if (pickerTargetIdx == null) return;
 
     // Champs communs (Acte + Registre)
     const base = {
-      manifestation_id: row.manifestation_id,
-      manifestation: {
-        type_manifestation: row.type_manifestation,
+      exemplaire_id: row.exemplaire_id,
+      exemplaire: {
+        nature_id: row.nature_id,
         unite_titre: row.unite_titre,
-        unite_cote: row.unite_cote,
-        depot_type: row.depot_type,
+        cote_locale: row.cote_locale,
+        depot_is_online: row.depot_is_online,
+        depot_is_physical: row.depot_is_physical,
         depot_nom: row.depot_nom,
         institution_sigle: row.institution_sigle,
         institution_nom: row.institution_nom,
@@ -365,10 +237,10 @@ export function SectionSources({
     closePicker();
   };
 
-  const hasAnySelected = sources.some((s) => Boolean(s.manifestation_id));
+  const hasAnySelected = sources.some((s) => Boolean(s.exemplaire_id));
   const selectedSources = sources
     .map((s, idx) => ({ s, idx }))
-    .filter(({ s }) => Boolean(s.manifestation_id));
+    .filter(({ s }) => Boolean(s.exemplaire_id));
 
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
@@ -377,7 +249,7 @@ export function SectionSources({
           <h3 className='text-sm font-semibold text-slate-900'>Sources & références</h3>
           <p className='mt-1 text-sm text-slate-600'>
             Tu choisis un <span className='font-medium'>registre / unité documentaire</span> (via
-            une manifestation : original, microfilm, numérisation) puis tu saisis ce qui est
+            un exemplaire : original, microfilm, numérisation) puis tu saisis ce qui est
             spécifique à l’acte : <span className='font-medium'>vues/pages</span>,{' '}
             <span className='font-medium'>lacune</span>, note.
           </p>
@@ -411,7 +283,7 @@ export function SectionSources({
         {!loading &&
           selectedSources.map(({ s: c, idx }, pos) => {
             const online = isOnline(c);
-            const url = (c.manifestation?.url_base ?? '').trim();
+            const url = (c.exemplaire?.url_base ?? '').trim();
             const missing =
               mode === 'acte'
                 ? Boolean((c as ActeCitationDraft).acte_manquant)
@@ -458,9 +330,9 @@ export function SectionSources({
                         Référence #{pos + 1}
                       </div>
 
-                      {c.manifestation?.institution_sigle && (
+                      {c.exemplaire?.institution_sigle && (
                         <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                          {c.manifestation.institution_sigle}
+                          {c.exemplaire.institution_sigle}
                         </span>
                       )}
 
@@ -494,7 +366,7 @@ export function SectionSources({
                     </div>
 
                     <div className='mt-1 truncate text-xs text-slate-600'>
-                      {c.manifestation_id ? titleFor(c) : 'Aucune source sélectionnée'}
+                      {c.exemplaire_id ? titleFor(c) : 'Aucune source sélectionnée'}
                     </div>
                   </div>
 
@@ -517,41 +389,41 @@ export function SectionSources({
 
                         <div className='mt-1 flex flex-wrap items-center gap-2'>
                           <div className='text-sm font-semibold text-slate-900'>
-                            {c.manifestation?.unite_titre || '—'}
+                            {c.exemplaire?.unite_titre || '—'}
                           </div>
 
-                          {c.manifestation?.institution_sigle && (
+                          {c.exemplaire?.institution_sigle && (
                             <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                              {c.manifestation.institution_sigle}
+                              {c.exemplaire.institution_sigle}
                             </span>
                           )}
 
-                          {c.manifestation?.depot_nom && (
+                          {c.exemplaire?.depot_nom && (
                             <span className='rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700'>
-                              {c.manifestation.depot_nom}
+                              {c.exemplaire.depot_nom}
                             </span>
                           )}
 
-                          {c.manifestation?.type_manifestation && (
+                          {c.exemplaire?.nature_id && (
                             <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                              {c.manifestation.type_manifestation}
+                              {c.exemplaire.nature_id}
                             </span>
                           )}
                         </div>
 
                         <div className='mt-1 text-xs text-slate-600'>
-                          {c.manifestation?.unite_cote ? (
+                          {c.exemplaire?.cote_locale ? (
                             <span>
                               Cote :{' '}
-                              <span className='font-medium'>{c.manifestation.unite_cote}</span>
+                              <span className='font-medium'>{c.exemplaire.cote_locale}</span>
                             </span>
                           ) : (
                             <span className='text-slate-500'>—</span>
                           )}
-                          {c.manifestation?.pagination_type ? (
+                          {c.exemplaire?.pagination_type ? (
                             <span className='text-slate-500'>
                               {' '}
-                              · Pagination : {c.manifestation.pagination_type}
+                              · Pagination : {c.exemplaire.pagination_type}
                             </span>
                           ) : null}
                         </div>
@@ -564,30 +436,36 @@ export function SectionSources({
                             <div>
                               <span className='text-slate-500'>Institution :</span>{' '}
                               <span className='font-medium'>
-                                {c.manifestation?.institution_nom ?? '—'}
+                                {c.exemplaire?.institution_nom ?? '—'}
                               </span>
                             </div>
                             <div>
                               <span className='text-slate-500'>Dépôt :</span>{' '}
                               <span className='font-medium'>
-                                {c.manifestation?.depot_nom ?? '—'}
+                                {c.exemplaire?.depot_nom ?? '—'}
                               </span>
-                              {c.manifestation?.depot_type ? (
+                              {c.exemplaire?.depot_is_physical ? (
                                 <span className='text-slate-500'>
                                   {' '}
-                                  · {c.manifestation.depot_type}
+                                  · {c.exemplaire.depot_is_physical}
+                                </span>
+                              ) : null}
+                              {c.exemplaire?.depot_is_online ? (
+                                <span className='text-slate-500'>
+                                  {' '}
+                                  · {c.exemplaire.depot_is_online}
                                 </span>
                               ) : null}
                             </div>
                             <div>
-                              <span className='text-slate-500'>Manifestation :</span>{' '}
+                              <span className='text-slate-500'>Exemplaire :</span>{' '}
                               <span className='font-medium'>
-                                {c.manifestation?.type_manifestation ?? '—'}
+                                {c.exemplaire?.nature_id ?? '—'}
                               </span>
-                              {c.manifestation?.pagination_type ? (
+                              {c.exemplaire?.pagination_type ? (
                                 <span className='text-slate-500'>
                                   {' '}
-                                  · pagination {c.manifestation.pagination_type}
+                                  · pagination {c.exemplaire.pagination_type}
                                 </span>
                               ) : null}
                             </div>
@@ -1128,15 +1006,15 @@ export function SectionSources({
           })}
       </div>
 
-      <ManifestationPickerDialog
+      <ExemplairePickerDialog
         open={pickerOpen}
         onOpenChange={(v) => {
           setPickerOpen(v);
           if (!v) closePicker();
         }}
-        mode='acte'
+        mode={mode}
         registreId={mode === 'acte' ? (registreId ?? null) : null}
-        excludeManifestationIds={alreadyPickedManifestationIds}
+        excludeExemplaireIds={alreadyPickedExemplaireIds}
         onlyOnline={onlyOnline}
         setOnlyOnline={setOnlyOnline}
         q={q}

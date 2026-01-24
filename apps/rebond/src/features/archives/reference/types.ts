@@ -28,7 +28,8 @@ export type ArchiveSourceRow = {
   owner_kind: ReferenceOwnerKind; // acte|registre (virtuel côté front)
   owner_id: string; // acte_id ou registre_id
 
-  depot_type: string | null; // ANOM / AD / Mairie / etc.
+  depot_is_online: boolean | null;
+  depot_is_physical: boolean | null;
   nom_depot: string | null;
   chemin_classement: string | null;
   cote: string | null;
@@ -43,23 +44,34 @@ export type ArchiveSourceRow = {
   updated_at?: string | null;
 };
 
-export type ManifestationPick = {
-  manifestation_id: string;
-  type_manifestation: 'original' | 'microfilm' | 'numerisation';
+export type ExemplairePick = {
+  exemplaire_id: string;
+  nature_id: string;
 
   unite_id: string;
   unite_titre: string;
-  unite_cote: string | null;
+  cote_locale: string | null;
   pagination_type: 'vues' | 'pages' | 'folios' | 'images' | null;
 
   depot_nom: string;
-  depot_type: 'physique' | 'en_ligne';
+  depot_is_physical: boolean | null;
+  depot_is_online: boolean | null;
 
   institution_nom: string;
   institution_sigle: string | null;
 
   url_base: string | null;
   plateforme_code: string | null;
+
+  serie_code?: string | null;
+  serie_label?: string | null;
+
+  couverture_label?: string | null;
+  couverture_sort_start?: string | null;
+  couverture_sort_end?: string | null;
+
+  bureau_labels?: string[] | null;
+  type_acte_labels?: string[] | null;
 };
 
 export type ActeCitationDraft = CitationDraftBase & {
@@ -107,23 +119,24 @@ export type CitationDraftBase = {
   id?: string;
 
   // FK
-  manifestation_id?: string;
+  exemplaire_id?: string;
 
-  // Dénormalisation UI (depuis v_manifestations_pick)
-  manifestation?: Manifestation;
+  // Dénormalisation UI (depuis v_exemplaires_pick)
+  exemplaire?: Exemplaire;
 
   note?: string;
   sort_order?: number;
 };
 
-export type Manifestation = {
-  type_manifestation?: string;
+export type Exemplaire = {
+  nature_id?: string;
   unite_titre?: string;
-  unite_cote?: string | null;
+  cote_locale?: string | null;
   pagination_type?: string | null;
 
   depot_nom?: string;
-  depot_type?: 'physique' | 'en_ligne';
+  depot_is_physical: boolean | null;
+  depot_is_online: boolean | null;
 
   institution_nom?: string;
   institution_sigle?: string | null;

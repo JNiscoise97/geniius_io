@@ -22,7 +22,7 @@ import {
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
 import { Lock, Unlock } from 'lucide-react';
-import type { ActeCitationDraft, ManifestationPick } from '@/features/archives/reference/types';
+import type { ActeCitationDraft, ExemplairePick } from '@/features/archives/reference/types';
 import { SectionIdentification, SectionSources } from '@/features/archives/reference';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
@@ -38,14 +38,14 @@ type ReferenceArchiveTabProps = {
  * NOUVEAU MODELE - TYPES
  * =========================================================================
  * - sources = citations (etat_civil_acte_citations)
- * - chaque citation pointe vers une manifestation (ref_manifestations)
- * - l’UI dénormalise un peu via v_manifestations_pick
+ * - chaque citation pointe vers une exemplaire (ref_exemplaires)
+ * - l’UI dénormalise un peu via v_exemplaires_pick
  */
 
 type ActeCitationRow = {
   id: string;
   acte_id: string;
-  manifestation_id: string;
+  exemplaire_id: string;
   vues_start: number | null;
   vues_end: number | null;
   vues_raw: string | null;
@@ -115,8 +115,8 @@ function toDateInput(v: any) {
 
 function emptyCitation(): ActeCitationDraft {
   return {
-    manifestation_id: undefined,
-    manifestation: undefined,
+    exemplaire_id: undefined,
+    exemplaire: undefined,
 
     vues_start: null,
     vues_end: null,
@@ -157,7 +157,7 @@ function emptyCitation(): ActeCitationDraft {
 function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): ActeCitationDraft {
   return {
     id: r?.id,
-    manifestation_id: r?.manifestation_id,
+    exemplaire_id: r?.exemplaire_id,
 
     vues_start: r?.vues_start ?? null,
     vues_end: r?.vues_end ?? null,
@@ -186,14 +186,14 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
       ? (r!.missing_ranges as any[]).filter(Boolean)
       : [],
 
-    marginal_mentions_present: Boolean(r?.marginal_mentions_present),
+    marginal_mentions_present: r?.marginal_mentions_present ?? null,
     marginal_mentions_count:
       typeof r?.marginal_mentions_count === 'number' ? r!.marginal_mentions_count : null,
 
-    signatures_present: Boolean(r?.signatures_present),
+    signatures_present: r?.signatures_present ?? null,
     signatures_count: typeof r?.signatures_count === 'number' ? r!.signatures_count : null,
 
-    marginal_crossouts_present: Boolean(r?.marginal_crossouts_present),
+    marginal_crossouts_present: r?.marginal_crossouts_present ?? null,
     marginal_crossouts_count:
       typeof r?.marginal_crossouts_count === 'number' ? r!.marginal_crossouts_count : null,
   };
@@ -269,7 +269,7 @@ export default function ReferenceArchiveTab({
 
   /**
    * =========================================================================
-   * LOAD citations (etat_civil_acte_citations) + enrich from v_manifestations_pick
+   * LOAD citations (etat_civil_acte_citations) + enrich from v_exemplaires_pick
    * =========================================================================
    */
   useEffect(() => {
@@ -283,7 +283,7 @@ export default function ReferenceArchiveTab({
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, manifestation_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order,' +
+          'id, acte_id, exemplaire_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order,' +
             'document_form_ref, document_form_details, physical_condition_ref, damage_kinds, damage_notes, repro_quality_ref, repro_issues, repro_notes, missing_ranges,' +
             'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
@@ -313,7 +313,7 @@ export default function ReferenceArchiveTab({
 
       // 2) enrich from view (optional but nice)
       const manIds = Array.from(
-        new Set(drafts.map((d) => d.manifestation_id).filter(Boolean) as string[]),
+        new Set(drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[]),
       );
 
       if (!manIds.length) {
@@ -323,11 +323,11 @@ export default function ReferenceArchiveTab({
       }
 
       const { data: pickData, error: pickErr } = await supabase
-        .from('v_manifestations_pick')
+        .from('v_exemplaires_pick')
         .select(
-          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
         )
-        .in('manifestation_id', manIds);
+        .in('exemplaire_id', manIds);
 
       if (cancelled) return;
 
@@ -340,20 +340,21 @@ export default function ReferenceArchiveTab({
 
       const pickRows = (pickData ?? []) as any[];
 
-      // ⚠️ La view peut dupliquer une manifestation si plusieurs url (acces_numeriques).
-      // On choisit la "meilleure" ligne par manifestation : celle qui a url_base non null si possible.
-      const bestByManId = new Map<string, ManifestationPick>();
+      // ⚠️ La view peut dupliquer une exemplaire si plusieurs url (acces_numeriques).
+      // On choisit la "meilleure" ligne par exemplaire : celle qui a url_base non null si possible.
+      const bestByManId = new Map<string, ExemplairePick>();
       for (const r of pickRows) {
-        const current = bestByManId.get(r.manifestation_id);
-        const candidate: ManifestationPick = {
-          manifestation_id: r.manifestation_id,
-          type_manifestation: r.type_manifestation,
+        const current = bestByManId.get(r.exemplaire_id);
+        const candidate: ExemplairePick = {
+          exemplaire_id: r.exemplaire_id,
+          nature_id: r.nature_id,
           unite_id: r.unite_id,
           unite_titre: r.unite_titre,
-          unite_cote: r.unite_cote,
+          cote_locale: r.cote_locale,
           pagination_type: r.pagination_type,
           depot_nom: r.depot_nom,
-          depot_type: r.depot_type,
+          depot_is_online: r.depot_is_online,
+          depot_is_physical: r.depot_is_physical,
           institution_nom: r.institution_nom,
           institution_sigle: r.institution_sigle,
           url_base: r.url_base,
@@ -361,7 +362,7 @@ export default function ReferenceArchiveTab({
         };
 
         if (!current) {
-          bestByManId.set(r.manifestation_id, candidate);
+          bestByManId.set(r.exemplaire_id, candidate);
           continue;
         }
 
@@ -369,27 +370,28 @@ export default function ReferenceArchiveTab({
         const candHasUrl = Boolean((candidate.url_base ?? '').trim());
 
         if (!curHasUrl && candHasUrl) {
-          bestByManId.set(r.manifestation_id, candidate);
+          bestByManId.set(r.exemplaire_id, candidate);
         }
       }
 
       const enriched = drafts.map((d) => {
-        const m = d.manifestation_id ? bestByManId.get(d.manifestation_id) : null;
-        if (!m) return d;
+        const e = d.exemplaire_id ? bestByManId.get(d.exemplaire_id) : null;
+        if (!e) return d;
 
         return {
           ...d,
-          manifestation: {
-            type_manifestation: m.type_manifestation,
-            unite_titre: m.unite_titre,
-            unite_cote: m.unite_cote,
-            pagination_type: m.pagination_type,
-            depot_nom: m.depot_nom,
-            depot_type: m.depot_type,
-            institution_nom: m.institution_nom,
-            institution_sigle: m.institution_sigle,
-            url_base: m.url_base,
-            plateforme_code: m.plateforme_code,
+          exemplaire: {
+            nature_id: e.nature_id,
+            unite_titre: e.unite_titre,
+            cote_locale: e.cote_locale,
+            pagination_type: e.pagination_type,
+            depot_nom: e.depot_nom,
+            depot_is_online: e.depot_is_online,
+            depot_is_physical: e.depot_is_physical,
+            institution_nom: e.institution_nom,
+            institution_sigle: e.institution_sigle,
+            url_base: e.url_base,
+            plateforme_code: e.plateforme_code,
           },
         } satisfies ActeCitationDraft;
       });
@@ -433,11 +435,16 @@ export default function ReferenceArchiveTab({
     });
   };
 
-    const firstId = (v: { ids: string[]; labels: string[] } | null | undefined) => {
+  const firstId = (v: { ids: string[]; labels: string[] } | null | undefined) => {
     const ids = toIds(v);
     return ids?.[0] ?? null;
   };
 
+  const toBoolOrNull = (v: any): boolean | null => {
+    if (v === true) return true;
+    if (v === false) return false;
+    return null;
+  };
 
   /**
    * =========================================================================
@@ -473,11 +480,11 @@ export default function ReferenceArchiveTab({
     // 2) upsert (IMPORTANT: include id when present)
     const payload = sources
       .map((c, idx) => {
-        if (!c.manifestation_id) return null;
+        if (!c.exemplaire_id) return null;
 
         const base = {
           acte_id: acteId,
-          manifestation_id: c.manifestation_id,
+          exemplaire_id: c.exemplaire_id,
 
           vues_start: c.vues_start ?? null,
           vues_end: c.vues_end ?? null,
@@ -505,18 +512,16 @@ export default function ReferenceArchiveTab({
 
           missing_ranges: Array.isArray(c.missing_ranges) ? c.missing_ranges : [],
 
-          marginal_mentions_present: Boolean(c.marginal_mentions_present),
-          marginal_mentions_count: c.marginal_mentions_present
-            ? (c.marginal_mentions_count ?? null)
-            : null,
+          marginal_mentions_present: toBoolOrNull(c.marginal_mentions_present),
+          marginal_mentions_count:
+            c.marginal_mentions_present === true ? (c.marginal_mentions_count ?? null) : null,
 
-          signatures_present: Boolean(c.signatures_present),
-          signatures_count: c.signatures_present ? (c.signatures_count ?? null) : null,
+          signatures_present: toBoolOrNull(c.signatures_present),
+          signatures_count: c.signatures_present === true ? (c.signatures_count ?? null) : null,
 
-          marginal_crossouts_present: Boolean(c.marginal_crossouts_present),
-          marginal_crossouts_count: c.marginal_crossouts_present
-            ? (c.marginal_crossouts_count ?? null)
-            : null,
+          marginal_crossouts_present: toBoolOrNull(c.marginal_crossouts_present),
+          marginal_crossouts_count:
+            c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
         };
 
         return c.id ? { id: c.id, ...base } : base;
@@ -528,7 +533,7 @@ export default function ReferenceArchiveTab({
     const { data: upserted, error } = await supabase
       .from('etat_civil_acte_citations')
       .upsert(payload, { onConflict: 'id' })
-      .select('id, manifestation_id, sort_order');
+      .select('id, exemplaire_id, sort_order');
 
     if (error) throw error;
 
@@ -536,13 +541,13 @@ export default function ReferenceArchiveTab({
     // pour éviter que la prochaine sauvegarde réinsère à nouveau
     if (upserted?.length) {
       const byKey = new Map(
-        upserted.map((r: any) => [`${r.manifestation_id}__${r.sort_order}`, r.id as string]),
+        upserted.map((r: any) => [`${r.exemplaire_id}__${r.sort_order}`, r.id as string]),
       );
 
       setSources((prev) =>
         prev.map((c, idx) => {
           if (c.id) return c;
-          const key = `${c.manifestation_id}__${idx}`;
+          const key = `${c.exemplaire_id}__${idx}`;
           const newId = byKey.get(key);
           return newId ? { ...c, id: newId } : c;
         }),
@@ -914,6 +919,7 @@ export default function ReferenceArchiveTab({
                 titre='Fonction'
                 values={currentAuteurInstitutionnelLabels}
                 dense
+                actionsInvisible = {false}
                 onEdit={() =>
                   openDictionnaireAuteurInstitutionnel(
                     'auteur_institutionnel_ref',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,9 @@ import { toast } from "sonner";
 
 type AccesRow = {
   id: string;
-  manifestation_id: string;
+  exemplaire_id: string;
   plateforme_id: string | null;
+  type_acces_id: string;
   url_base: string;
   schema_deep_link: string | null;
   restrictions: string | null;
@@ -16,34 +17,51 @@ type AccesRow = {
 };
 
 type PlateformeOption = { id: string; label: string };
+type TypeAccesOption = { id: string; label: string; code: string };
 
-export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: string }) {
+export function AccesNumeriqueEditor({ exemplaireId }: { exemplaireId: string }) {
   const [rows, setRows] = useState<AccesRow[]>([]);
   const [plateformes, setPlateformes] = useState<PlateformeOption[]>([]);
+  const [typesAcces, setTypesAcces] = useState<TypeAccesOption[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const defaultTypeAccesId = useMemo(() => {
+    const viewer = typesAcces.find((t) => t.code === "VIEWER");
+    return viewer?.id ?? typesAcces[0]?.id ?? null;
+  }, [typesAcces]);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: acces, error: e1 }, { data: plats, error: e2 }] = await Promise.all([
-      supabase
-        .from("ref_acces_numeriques")
-        .select("id, manifestation_id, plateforme_id, url_base, schema_deep_link, restrictions, note")
-        .eq("manifestation_id", manifestationId)
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("ref_plateformes")
-        .select("id, libelle, code")
-        .order("libelle", { ascending: true }),
-    ]);
+
+    const [{ data: acces, error: e1 }, { data: plats, error: e2 }, { data: kinds, error: e3 }] =
+      await Promise.all([
+        supabase
+          .from("ref_acces_numeriques")
+          .select("id, exemplaire_id, plateforme_id, type_acces_id, url_base, schema_deep_link, restrictions, note")
+          .eq("exemplaire_id", exemplaireId)
+          .order("created_at", { ascending: true }),
+        supabase.from("ref_plateformes").select("id, libelle, code").order("libelle", { ascending: true }),
+        supabase.from("ref_type_acces").select("id, code, label").order("label", { ascending: true }),
+      ]);
 
     if (e1) toast.error(e1.message);
     if (e2) toast.error(e2.message);
+    if (e3) toast.error(e3.message);
 
     setRows((acces ?? []) as any);
+
     setPlateformes(
       (plats ?? []).map((p: any) => ({
         id: p.id,
         label: p.code ? `${p.code} — ${p.libelle}` : p.libelle,
+      }))
+    );
+
+    setTypesAcces(
+      (kinds ?? []).map((k: any) => ({
+        id: k.id,
+        code: k.code,
+        label: `${k.label} (${k.code})`,
       }))
     );
 
@@ -53,17 +71,22 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifestationId]);
+  }, [exemplaireId]);
 
   const add = async () => {
+    if (!defaultTypeAccesId) {
+      toast.error("Aucun type d’accès disponible (ref_type_acces).");
+      return;
+    }
+
     const { error } = await supabase.from("ref_acces_numeriques").insert({
-      manifestation_id: manifestationId,
+      exemplaire_id: exemplaireId,
+      type_acces_id: defaultTypeAccesId,
       url_base: "",
       plateforme_id: null,
     });
 
     if (error) {
-      // unique constraint (manifestation_id, plateforme_id) possible si plateforme_id non null
       toast.error(error.message);
       return;
     }
@@ -81,6 +104,7 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
       .from("ref_acces_numeriques")
       .update({
         plateforme_id: r.plateforme_id,
+        type_acces_id: r.type_acces_id,
         url_base: r.url_base.trim(),
         schema_deep_link: r.schema_deep_link?.trim() || null,
         restrictions: r.restrictions?.trim() || null,
@@ -130,14 +154,29 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
 
       {!rows.length && (
         <div className="text-xs text-muted-foreground">
-          Aucun accès numérique pour cette manifestation.
+          Aucun accès numérique pour cet exemplaire.
         </div>
       )}
 
       <div className="space-y-2">
         {rows.map((r) => (
           <div key={r.id} className="rounded border bg-background p-2">
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className="grid gap-2 md:grid-cols-3">
+              <div className="space-y-1">
+                <div className="text-xs font-medium">Type d’accès</div>
+                <select
+                  className="w-full rounded-md border px-2 py-2 text-sm"
+                  value={r.type_acces_id}
+                  onChange={(e) => patch(r.id, { type_acces_id: e.target.value })}
+                >
+                  {typesAcces.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <div className="text-xs font-medium">Plateforme</div>
                 <select
@@ -154,7 +193,7 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
                 </select>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 md:col-span-1">
                 <div className="text-xs font-medium">URL de base</div>
                 <Input
                   value={r.url_base ?? ""}
@@ -163,7 +202,7 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 md:col-span-2">
                 <div className="text-xs font-medium">Deep-link (optionnel)</div>
                 <Input
                   value={r.schema_deep_link ?? ""}
@@ -172,16 +211,16 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 md:col-span-1">
                 <div className="text-xs font-medium">Restrictions (optionnel)</div>
                 <Input
                   value={r.restrictions ?? ""}
                   onChange={(e) => patch(r.id, { restrictions: e.target.value })}
-                  placeholder="accès lecteur, abonnement, etc."
+                  placeholder="accès lecteur, abonnement…"
                 />
               </div>
 
-              <div className="space-y-1 md:col-span-2">
+              <div className="space-y-1 md:col-span-3">
                 <div className="text-xs font-medium">Note (optionnelle)</div>
                 <Input
                   value={r.note ?? ""}
@@ -192,12 +231,7 @@ export function AccesNumeriqueEditor({ manifestationId }: { manifestationId: str
             </div>
 
             <div className="mt-2 flex justify-end gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => void saveRow(r)}
-                className="gap-2"
-              >
+              <Button size="sm" variant="secondary" onClick={() => void saveRow(r)} className="gap-2">
                 <Save className="h-4 w-4" />
                 Sauver
               </Button>

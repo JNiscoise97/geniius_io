@@ -26,7 +26,7 @@ import {
   type RegistreReferenceIdentificationFormState,
 } from '@/features/archives/reference';
 
-import type { RegistreCitationDraft, ManifestationPick } from '@/features/archives/reference/types';
+import type { RegistreCitationDraft, ExemplairePick } from '@/features/archives/reference/types';
 
 import {
   DictionnaireEditorPanel,
@@ -38,14 +38,14 @@ const tabs = [{ label: 'Référence archive', icon: Archive }] as const;
 type RegistreEditTab = (typeof tabs)[number]['label'];
 
 const REGISTRE_CITATIONS_TABLE = 'etat_civil_registre_citations';
-const MANIFESTATIONS_PICK_VIEW = 'v_manifestations_pick';
+const EXEMPLAIRES_PICK_VIEW = 'v_exemplaires_pick';
 const REGISTRE_TYPE_ACTE_TABLE = 'etat_civil_registres_type_acte';
 const REF_TYPE_ACTE_TABLE = 'ref_ec_type_acte';
 
 type RegistreCitationRow = {
   id: string;
   registre_id: string;
-  manifestation_id: string | null;
+  exemplaire_id: string | null;
 
   registre_manquant: boolean | null;
   note: string | null;
@@ -55,8 +55,8 @@ type RegistreCitationRow = {
 function emptyCitation(sort_order: number): RegistreCitationDraft {
   return {
     id: undefined,
-    manifestation_id: undefined,
-    manifestation: undefined,
+    exemplaire_id: undefined,
+    exemplaire: undefined,
 
     registre_manquant: false,
     note: '',
@@ -67,8 +67,8 @@ function emptyCitation(sort_order: number): RegistreCitationDraft {
 function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
   return {
     id: r.id,
-    manifestation_id: r.manifestation_id ?? undefined,
-    manifestation: undefined,
+    exemplaire_id: r.exemplaire_id ?? undefined,
+    exemplaire: undefined,
 
     registre_manquant: Boolean(r.registre_manquant),
     note: r.note ?? '',
@@ -197,7 +197,7 @@ export default function RegistreEdit() {
   }, [registreId, fetchRegistre, fetchBureau]);
 
   // ---------------------------------------------------------------------------
-  // Chargement des sources (citations du registre) + enrichissement manifestation
+  // Chargement des sources (citations du registre) + enrichissement exemplaire
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!registreId) return;
@@ -210,7 +210,7 @@ export default function RegistreEdit() {
 
         const { data, error } = await supabase
           .from(REGISTRE_CITATIONS_TABLE)
-          .select('id, registre_id, manifestation_id, registre_manquant, note, sort_order')
+          .select('id, registre_id, exemplaire_id, registre_manquant, note, sort_order')
           .eq('registre_id', registreId)
           .order('sort_order', { ascending: true });
 
@@ -223,28 +223,29 @@ export default function RegistreEdit() {
 
         let drafts = rows.length ? rows.map(mapRowToDraft) : [emptyCitation(0)];
 
-        // enrichir les manifestations (pour affichage “joli” dans SectionSources)
-        const manIds = drafts.map((d) => d.manifestation_id).filter(Boolean) as string[];
+        // enrichir les exemplaires (pour affichage “joli” dans SectionSources)
+        const manIds = drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[];
         if (manIds.length) {
           const { data: pickRows, error: pickErr } = await supabase
-            .from(MANIFESTATIONS_PICK_VIEW)
+            .from(EXEMPLAIRES_PICK_VIEW)
             .select(
-              'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+              'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
             )
-            .in('manifestation_id', manIds);
+            .in('exemplaire_id', manIds);
 
           if (!pickErr && pickRows?.length) {
-            const map = new Map<string, ManifestationPick>();
+            const map = new Map<string, ExemplairePick>();
             for (const r of pickRows as any[]) {
-              map.set(r.manifestation_id, {
-                manifestation_id: r.manifestation_id,
-                type_manifestation: r.type_manifestation,
-                unite_id: r.unite_id ?? r.manifestation_id, // fallback
+              map.set(r.exemplaire_id, {
+                exemplaire_id: r.exemplaire_id,
+                nature_id: r.nature_id,
+                unite_id: r.unite_id ?? r.exemplaire_id, // fallback
                 unite_titre: r.unite_titre,
-                unite_cote: r.unite_cote,
+                cote_locale: r.cote_locale,
                 pagination_type: r.pagination_type,
                 depot_nom: r.depot_nom,
-                depot_type: r.depot_type,
+                depot_is_online: r.depot_is_online,
+                depot_is_physical: r.depot_is_physical,
                 institution_nom: r.institution_nom,
                 institution_sigle: r.institution_sigle,
                 url_base: r.url_base,
@@ -253,17 +254,18 @@ export default function RegistreEdit() {
             }
 
             drafts = drafts.map((d) => {
-              const r = d.manifestation_id ? map.get(d.manifestation_id) : undefined;
+              const r = d.exemplaire_id ? map.get(d.exemplaire_id) : undefined;
               if (!r) return d;
               return {
                 ...d,
-                manifestation: {
-                  type_manifestation: r.type_manifestation,
+                exemplaire: {
+                  nature_id: r.nature_id,
                   unite_titre: r.unite_titre,
-                  unite_cote: r.unite_cote,
+                  cote_locale: r.cote_locale,
                   pagination_type: r.pagination_type,
                   depot_nom: r.depot_nom,
-                  depot_type: r.depot_type,
+                  depot_is_online: r.depot_is_online,
+                  depot_is_physical: r.depot_is_physical,
                   institution_nom: r.institution_nom,
                   institution_sigle: r.institution_sigle,
                   url_base: r.url_base,
@@ -426,11 +428,11 @@ export default function RegistreEdit() {
     // 3) préparer payload (en conservant l'ordre)
     const rows = sources
       .map((c, idx) => {
-        if (!c.manifestation_id) return null;
+        if (!c.exemplaire_id) return null;
         return {
           id: c.id, // undefined ok
           registre_id: registreId,
-          manifestation_id: c.manifestation_id,
+          exemplaire_id: c.exemplaire_id,
           registre_manquant: Boolean(c.registre_manquant),
           note: (c.note ?? '').trim() || null,
           sort_order: idx,
@@ -460,7 +462,7 @@ export default function RegistreEdit() {
     // 6) reload complet pour récupérer les ids DB (le plus fiable)
     const { data: reloaded, error: reloadErr } = await supabase
       .from(REGISTRE_CITATIONS_TABLE)
-      .select('id, registre_id, manifestation_id, registre_manquant, note, sort_order')
+      .select('id, registre_id, exemplaire_id, registre_manquant, note, sort_order')
       .eq('registre_id', registreId)
       .order('sort_order', { ascending: true });
 
@@ -468,28 +470,29 @@ export default function RegistreEdit() {
 
     let drafts = (reloaded?.length ? reloaded : []).map(mapRowToDraft);
 
-    // enrichir manifestations
-    const manIds = drafts.map((d) => d.manifestation_id).filter(Boolean) as string[];
+    // enrichir exemplaires
+    const manIds = drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[];
     if (manIds.length) {
       const { data: pickRows, error: pickErr } = await supabase
-        .from(MANIFESTATIONS_PICK_VIEW)
+        .from(EXEMPLAIRES_PICK_VIEW)
         .select(
-          'manifestation_id,type_manifestation,unite_id,unite_titre,unite_cote,pagination_type,depot_nom,depot_type,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
         )
-        .in('manifestation_id', manIds);
+        .in('exemplaire_id', manIds);
 
       if (!pickErr && pickRows?.length) {
-        const map = new Map<string, ManifestationPick>();
+        const map = new Map<string, ExemplairePick>();
         for (const r of pickRows as any[]) {
-          map.set(r.manifestation_id, {
-            manifestation_id: r.manifestation_id,
-            type_manifestation: r.type_manifestation,
-            unite_id: r.unite_id ?? r.manifestation_id,
+          map.set(r.exemplaire_id, {
+            exemplaire_id: r.exemplaire_id,
+            nature_id: r.nature_id,
+            unite_id: r.unite_id ?? r.exemplaire_id,
             unite_titre: r.unite_titre,
-            unite_cote: r.unite_cote,
+            cote_locale: r.cote_locale,
             pagination_type: r.pagination_type,
             depot_nom: r.depot_nom,
-            depot_type: r.depot_type,
+            depot_is_online: r.depot_is_online,
+            depot_is_physical: r.depot_is_physical,
             institution_nom: r.institution_nom,
             institution_sigle: r.institution_sigle,
             url_base: r.url_base,
@@ -498,17 +501,18 @@ export default function RegistreEdit() {
         }
 
         drafts = drafts.map((d) => {
-          const r = d.manifestation_id ? map.get(d.manifestation_id) : undefined;
+          const r = d.exemplaire_id ? map.get(d.exemplaire_id) : undefined;
           if (!r) return d;
           return {
             ...d,
-            manifestation: {
-              type_manifestation: r.type_manifestation,
+            exemplaire: {
+              nature_id: r.nature_id,
               unite_titre: r.unite_titre,
-              unite_cote: r.unite_cote,
+              cote_locale: r.cote_locale,
               pagination_type: r.pagination_type,
               depot_nom: r.depot_nom,
-              depot_type: r.depot_type,
+              depot_is_online: r.depot_is_online,
+              depot_is_physical: r.depot_is_physical,
               institution_nom: r.institution_nom,
               institution_sigle: r.institution_sigle,
               url_base: r.url_base,
