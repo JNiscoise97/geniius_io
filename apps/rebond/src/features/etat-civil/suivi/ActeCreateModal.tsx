@@ -252,6 +252,7 @@ export function ActeCreateModal({
                 titre="Type d'acte"
                 values={currentTypeLabels}
                 dense
+                actionsInvisible = {false}
                 onEdit={openTypeActeDictionnaire}
                 onDelete={clearTypeActe}
               />

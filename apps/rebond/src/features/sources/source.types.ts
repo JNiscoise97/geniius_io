@@ -79,3 +79,23 @@ export type AccesDraft = {
   restrictions: string;
   note: string;
 };
+
+
+export type SerieOption = { id: string; code?: string | null; label: string };
+export type EcritureOption = { id: string; code?: string | null; label: string };
+export type LangueOption = { id: string; code?: string | null; label: string };
+export type DepotOption = { id: string; labelCourt: string; labelLong: string };
+export type NatureOption = { id: string; label: string };
+export type SupportOption = { id: string; label: string; code?: string | null };
+export type PlateformeOption = { id: string; label: string };
+export type TypeAccesOption = { id: string; code: string; label: string };
+export type BureauOption = {
+  id: string;
+  nom: string;
+  commune: string | null;
+  departement: string | null;
+  region: string | null;
+  label: string; // affichage
+};
+
+export type TypeActeOption = { id: string; label: string; ordre: number | null };

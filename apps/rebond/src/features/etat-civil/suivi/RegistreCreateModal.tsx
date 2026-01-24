@@ -1,4 +1,4 @@
-// FusionActeursModal.tsx
+// RegistreCreateModal.tsx
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilRegistre } from '@/types/etatcivil';
+import { DictionnaireEditorPanel, type DictionnaireKind } from '@/components/shared/DictionnaireEditorPanel';
+import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 export function RegistreCreateModal({
   open,
@@ -36,22 +39,32 @@ export function RegistreCreateModal({
   const [numeroActeMin, setNumeroActeMin] = useState<number | null>(1);
   const [numeroActeMax, setNumeroActeMax] = useState<number | null>(null);
 
+
+  type MultiRef = { ids: string[]; labels: string[]; colors?: string[] } | null;
+
+  const [typeActeRef, setTypeActeRef] = useState<MultiRef>(null);
+  const [dictOpen, setDictOpen] = useState(false);
+  const [dictArgs, setDictArgs] = useState<null | {
+    kind: DictionnaireKind;
+    title: string;
+    multi: boolean;
+    defaultSelectedIds: string[];
+    onValidate: (items: Array<{ id: string; label: string, color?: string | undefined }>) => Promise<void> | void;
+  }>(null);
+
+
+  const currentTypeIds = typeActeRef?.ids ?? [];
+  const currentTypeColors = typeActeRef?.colors ?? [];
+  const currentTypeLabels = typeActeRef?.labels ?? [];
+
+  // On garde “selectedTypes” comme alias logique, parce que tu l’utilises plus bas (conflit/insert/disable)
+  const selectedTypes = currentTypeLabels;
+
+
   const [complet, setComplet] = useState(false);
-  const allTypes = [
-    'naissance',
-    'reconnaissance',
-    'affranchissement',
-    'jugement',
-    'mariage',
-    'divorce',
-    'décès',
-    'baptême',
-    'mariage religieux',
-    'inhumation',
-  ];
   function resetForm() {
     setAnnee('');
-    setSelectedTypes([]);
+    setTypeActeRef(null);
     setModeRegistre('par_type');
     setStatutJuridique(null);
     setOrdreNumerotation('par_type');
@@ -62,19 +75,40 @@ export function RegistreCreateModal({
     setRegistreCreateLoading(false);
   }
 
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-
   useEffect(() => {
     if (selectedTypes.length > 1) {
       setOrdreNumerotation('globale');
       setModeRegistre('chronologique_mixte');
     }
-  }, [selectedTypes]);
+  }, [selectedTypes.length]);
 
   function handleClose() {
     resetForm();
     onClose();
   }
+
+  function openTypeActeDictionnaire() {
+    setDictArgs({
+      kind: 'type_acte_ref',
+      title: 'Sélectionner le type d’acte',
+      multi: true,
+      defaultSelectedIds: currentTypeIds,
+      onValidate: async (items) => {
+        const ids = items.map((i) => i.id);
+        const labels = items.map((i) => i.label);
+        const colors = items.map((i) => i.color ?? '');
+        setTypeActeRef({ ids, labels, colors });
+
+        setDictOpen(false);
+      },
+    });
+    setDictOpen(true);
+  }
+
+  function clearTypeActe() {
+    setTypeActeRef(null);
+  }
+
 
 
   return (
@@ -97,36 +131,20 @@ export function RegistreCreateModal({
                 onChange={(e) => setAnnee(e.target.value)}
               />
             </div>
-            <div className='col-span-2'>
-              <Label>Types d’actes</Label>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2'>
-                {allTypes.map((type) => {
-                  const isChecked = selectedTypes.includes(type);
-                  return (
-                    <label key={type} className='flex items-center gap-2 text-sm'>
-                      <input
-                        type='checkbox'
-                        value={type}
-                        checked={isChecked}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedTypes((prev) => [...prev, type]);
-                          } else {
-                            setSelectedTypes((prev) => prev.filter((t) => t !== type));
-                          }
-                        }}
-                      />
-                      {type}
-                    </label>
-                  );
-                })}
-              </div>
-              {selectedTypes.length > 0 && (
-                <div className='mt-1 text-sm text-gray-600 italic'>
-                  Sélection : {selectedTypes.join(', ')}
-                </div>
-              )}
+            <div className='sm:col-span-2'>
+              <Label>Type d’acte</Label>
+              <ListeChipsViewSmart
+                titre="Type d'acte"
+                values={currentTypeLabels}
+                colors={currentTypeColors}
+                dense
+                actionsInvisible={false}
+                onEdit={openTypeActeDictionnaire}
+                onDelete={clearTypeActe}
+              />
+              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est requis.</p>
             </div>
+
             <div className='col-span-2'>
               <Label className='block mb-2 text-sm font-medium text-gray-700'>
                 Mode du registre
@@ -332,8 +350,9 @@ export function RegistreCreateModal({
                 if (r.annee !== anneeInt) return false;
                 if (r.statut_juridique !== statutJuridique) return false;
 
-                const existingTypes = r.type_acte.split('|');
+                const existingTypes = (r.type_acte ?? '').split('|').filter(Boolean);
                 return existingTypes.some((type) => selectedSet.has(type));
+
               });
 
               if (conflit) {
@@ -361,6 +380,22 @@ export function RegistreCreateModal({
                 ]).select()
                   .single();
 
+                if (!error && data && currentTypeIds.length) {
+                  const rows = currentTypeIds.map((typeId) => ({
+                    registre_id: data.id,
+                    type_acte_id: typeId,
+                  }));
+
+                  const { error: linkErr } = await supabase
+                    .from('etat_civil_registres_type_acte')
+                    .insert(rows);
+
+                  if (linkErr) {
+                    console.error('[RegistreCreateModal] Erreur liaison types actes:', linkErr.message);
+                    toast.error("Registre créé, mais erreur lors de l'association des types d'actes");
+                  }
+                }
+
                 if (error) {
                   console.error('[RegistreCreateModal] Erreur supabase :', error.message);
                   toast.error("Erreur lors de l'ajout du registre");
@@ -383,6 +418,22 @@ export function RegistreCreateModal({
             {registreCreateLoading ? 'Ajout en cours...' : 'Ajouter le registre'}
           </Button>
         </DialogFooter>
+        {/* Dictionnaire */}
+        <Sheet open={dictOpen} onOpenChange={setDictOpen}>
+          <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
+            {dictArgs && (
+              <DictionnaireEditorPanel
+                kind={dictArgs.kind}
+                title={dictArgs.title}
+                multi={dictArgs.multi}
+                defaultSelectedIds={dictArgs.defaultSelectedIds}
+                onValidate={dictArgs.onValidate}
+                onCancel={() => setDictOpen(false)}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
+
       </DialogContent>
     </Dialog>
   );

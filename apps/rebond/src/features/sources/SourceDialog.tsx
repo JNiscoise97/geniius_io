@@ -18,7 +18,7 @@ import { PAGINATION_OPTIONS, TYPE_UNITE_OPTIONS, type TypeUnite } from './source
 import { ExemplairesStep } from './ExemplairesStep';
 import { UniteDocumentaireStep } from './UniteDocumentaireStep';
 import { EtatCivilStep } from './EtatCivilStep';
-import type { ExemplaireDraft } from './source.types';
+import type { BureauOption, DepotOption, EcritureOption, ExemplaireDraft, LangueOption, NatureOption, PlateformeOption, SerieOption, SupportOption, TypeAccesOption, TypeActeOption } from './source.types';
 
 export type SourceDialogMode = 'create' | 'edit-unite' | 'edit-exemplaire';
 
@@ -313,25 +313,6 @@ function parseCoverage(input: string): CoverageParse {
   };
 }
 
-type SerieOption = { id: string; code?: string | null; label: string };
-type EcritureOption = { id: string; code?: string | null; label: string };
-type LangueOption = { id: string; code?: string | null; label: string };
-type DepotOption = { id: string; label: string };
-type NatureOption = { id: string; label: string };
-type SupportOption = { id: string; label: string; code?: string | null };
-type PlateformeOption = { id: string; label: string };
-type TypeAccesOption = { id: string; code: string; label: string };
-type BureauOption = {
-  id: string;
-  nom: string;
-  commune: string | null;
-  departement: string | null;
-  region: string | null;
-  label: string; // affichage
-};
-
-type TypeActeOption = { id: string; label: string };
-
 function uid() {
   return crypto.randomUUID();
 }
@@ -474,9 +455,21 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
 
   const selectedTypeActeLabels = useMemo(() => {
     if (!typeActeIds.length) return [];
-    const map = new Map(typesActes.map((t) => [t.id, t.label]));
-    return typeActeIds.map((id) => map.get(id)).filter(Boolean) as string[];
+
+    const map = new Map(typesActes.map((t) => [t.id, { label: t.label, ordre: t.ordre ?? 9999 }]));
+
+    return typeActeIds
+      .map((id) => map.get(id))
+      .filter(Boolean)
+      .sort((a, b) => {
+        // tri principal: ordre
+        if (a!.ordre !== b!.ordre) return a!.ordre - b!.ordre;
+        // fallback: label (stable si ordre identique / null)
+        return a!.label.localeCompare(b!.label, 'fr');
+      })
+      .map((x) => x!.label);
   }, [typeActeIds, typesActes]);
+
 
   const stepSerieLabel = useMemo(() => {
     if (!serieRef) return '';
@@ -568,7 +561,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         supabase
           .from('ref_depots')
           .select('id, nom, institution:ref_institutions (nom, sigle)')
-          .order('nom'),
+          .order('institution(nom)', { ascending: true })
+          .order('nom', { ascending: true }),
         supabase.from('ref_natures').select('id, libelle').order('libelle'),
         supabase.from('ref_supports').select('id, libelle, code').order('libelle'),
         supabase.from('ref_plateformes').select('id, libelle, code').order('libelle'),
@@ -577,7 +571,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           .from('etat_civil_bureaux')
           .select('id, nom, commune, departement, region')
           .order('nom'),
-        supabase.from('ref_ec_type_acte').select('id, label, code').order('label'),
+        supabase.from('ref_ec_type_acte').select('id, label, code, ordre').order('label'),
         supabase.from('ref_ecritures').select('id, libelle').order('libelle'),
         supabase.from('ref_langues').select('id, libelle').order('libelle'),
       ]);
@@ -604,9 +598,12 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       setDepots(
         (s2.data ?? []).map((d: any) => ({
           id: d.id,
-          label: d.institution?.sigle
-            ? `${d.institution?.nom} (${d.institution.sigle}) — ${d.nom}`
+          labelCourt: d.institution?.sigle
+            ? `${d.institution?.sigle} — ${d.nom}`
             : `${d.institution?.nom ?? 'Institution'} — ${d.nom}`,
+          labelLong: d.institution?.sigle
+            ? `${d.institution?.nom} (${d.institution.sigle}) — ${d.nom}`
+            : `${d.institution?.nom ?? 'Institution'} — ${d.nom}`
         })),
       );
 
@@ -650,6 +647,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         (s8.data ?? []).map((a: any) => ({
           id: a.id,
           label: a.label,
+          ordre: a.ordre,
         })),
       );
 
@@ -970,7 +968,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         if (uniteId) {
           await supabase.from('ref_unites_documentaires').delete().eq('id', uniteId);
         }
-      } catch {}
+      } catch { }
     } finally {
       setSubmitting(false);
     }
@@ -1105,28 +1103,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     </div>
   );
 
-  const Step2 = (
-    <ExemplairesStep
-      depots={depots}
-      natures={natures}
-      supports={supports}
-      paginationOptions={PAGINATION_OPTIONS as any}
-      plateformes={plateformes}
-      typesAcces={typesAcces}
-      defaultTypeAccesId={defaultTypeAccesId}
-      uniteCouvertureLabel={couvertureLabel}
-      exemplaires={exemplaires}
-      setExemplaires={setExemplaires}
-      selectedExId={selectedExId}
-      setSelectedExId={(id) => setSelectedExId(id)}
-      onAdd={() => {
-        const ex = createEmptyExemplaireDraft();
-        setExemplaires((prev) => [...prev, ex]);
-        setSelectedExId(ex.id);
-      }}
-    />
-  );
-
   const dialogTitle = useMemo(() => {
     if (effectiveMode === 'edit-unite') return 'Modifier l’unité documentaire';
     if (effectiveMode === 'edit-exemplaire') return 'Modifier les exemplaires';
@@ -1218,7 +1194,26 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
               />
             ) : null}
 
-            {stepKind === 'exemplaires' ? Step2 : null}
+            {stepKind === 'exemplaires' ?
+              <ExemplairesStep
+                depots={depots}
+                natures={natures}
+                supports={supports}
+                paginationOptions={PAGINATION_OPTIONS as any}
+                plateformes={plateformes}
+                typesAcces={typesAcces}
+                defaultTypeAccesId={defaultTypeAccesId}
+                uniteCouvertureLabel={couvertureLabel}
+                exemplaires={exemplaires}
+                setExemplaires={setExemplaires}
+                selectedExId={selectedExId}
+                setSelectedExId={(id) => setSelectedExId(id)}
+                onAdd={() => {
+                  const ex = createEmptyExemplaireDraft();
+                  setExemplaires((prev) => [...prev, ex]);
+                  setSelectedExId(ex.id);
+                }}
+              /> : null}
           </div>
         </div>
 

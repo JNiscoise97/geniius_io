@@ -6,6 +6,7 @@ export type DictionnaireItem = {
   id: string;
   code: string;
   label: string;
+  color?: string;
 };
 
 export async function fetchProfession(): Promise<{ data: DictionnaireItem[]; error: any }> {
@@ -67,7 +68,7 @@ export async function fetchHandwritingLegibility(): Promise<{ data: Dictionnaire
 export async function fetchTypeActe(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
     .from("ref_ec_type_acte")
-    .select("id, code, label")
+    .select("id, code, label, color")
     .order("label", { ascending: true });
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }

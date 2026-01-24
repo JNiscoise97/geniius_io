@@ -185,6 +185,9 @@ importers:
       '@radix-ui/react-label':
         specifier: ^2.1.6
         version: 2.1.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-radio-group':
+        specifier: ^1.3.8
+        version: 1.3.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-scroll-area':
         specifier: ^1.2.8
         version: 1.2.10(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -250,7 +253,7 @@ importers:
         version: 6.30.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-vertical-timeline-component:
         specifier: ^3.5.3
-        version: 3.5.3(react@19.2.3)
+        version: 3.5.3(@babel/core@7.28.5)(react@19.2.3)
       recharts:
         specifier: ^3.1.0
         version: 3.6.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react-is@16.13.1)(react@19.2.3)(redux@5.0.1)
@@ -1469,6 +1472,19 @@ packages:
 
   '@radix-ui/react-primitive@2.1.4':
     resolution: {integrity: sha512-9hQc4+GNVtJAIEPEqlYqW5RiYdrr8ea5XQ0ZOnD6fgru+83kqT15mq2OCcbe8KnjRZl5vF3ks69AKz3kh1jrhg==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
+  '@radix-ui/react-radio-group@1.3.8':
+    resolution: {integrity: sha512-VBKYIYImA5zsxACdisNQ3BjCBfmbGH3kQlnFVqlWU4tXwjy7cGX8ta80BcrO+WJXIn5iBylEH3K6ZTlee//lgQ==}
     peerDependencies:
       '@types/react': '*'
       '@types/react-dom': '*'
@@ -4107,21 +4123,25 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.5
 
-  '@babel/plugin-transform-arrow-functions@7.0.0-beta.53':
+  '@babel/plugin-transform-arrow-functions@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-block-scoped-functions@7.0.0-beta.53':
+  '@babel/plugin-transform-block-scoped-functions@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-block-scoping@7.0.0-beta.53':
+  '@babel/plugin-transform-block-scoping@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
       lodash: 4.17.21
 
-  '@babel/plugin-transform-classes@7.0.0-beta.53':
+  '@babel/plugin-transform-classes@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-annotate-as-pure': 7.0.0-beta.53
       '@babel/helper-define-map': 7.0.0-beta.53
       '@babel/helper-function-name': 7.0.0-beta.53
@@ -4133,65 +4153,78 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-computed-properties@7.0.0-beta.53':
+  '@babel/plugin-transform-computed-properties@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-destructuring@7.0.0-beta.53':
+  '@babel/plugin-transform-destructuring@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-duplicate-keys@7.0.0-beta.53':
+  '@babel/plugin-transform-duplicate-keys@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-for-of@7.0.0-beta.53':
+  '@babel/plugin-transform-for-of@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-function-name@7.0.0-beta.53':
+  '@babel/plugin-transform-function-name@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-function-name': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-instanceof@7.0.0-beta.53':
+  '@babel/plugin-transform-instanceof@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-literals@7.0.0-beta.53':
+  '@babel/plugin-transform-literals@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-modules-amd@7.0.0-beta.53':
+  '@babel/plugin-transform-modules-amd@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-module-transforms': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-modules-commonjs@7.0.0-beta.53':
+  '@babel/plugin-transform-modules-commonjs@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-module-transforms': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
       '@babel/helper-simple-access': 7.0.0-beta.53
 
-  '@babel/plugin-transform-modules-systemjs@7.0.0-beta.53':
+  '@babel/plugin-transform-modules-systemjs@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-hoist-variables': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-modules-umd@7.0.0-beta.53':
+  '@babel/plugin-transform-modules-umd@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-module-transforms': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-object-super@7.0.0-beta.53':
+  '@babel/plugin-transform-object-super@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
       '@babel/helper-replace-supers': 7.0.0-beta.53
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-parameters@7.0.0-beta.53':
+  '@babel/plugin-transform-parameters@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-call-delegate': 7.0.0-beta.53
       '@babel/helper-get-function-arity': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
@@ -4208,65 +4241,73 @@ snapshots:
       '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-transform-regenerator@7.0.0-beta.53':
+  '@babel/plugin-transform-regenerator@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       regenerator-transform: 0.13.4
 
-  '@babel/plugin-transform-shorthand-properties@7.0.0-beta.53':
+  '@babel/plugin-transform-shorthand-properties@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-spread@7.0.0-beta.53':
+  '@babel/plugin-transform-spread@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-sticky-regex@7.0.0-beta.53':
+  '@babel/plugin-transform-sticky-regex@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
       '@babel/helper-regex': 7.0.0-beta.53
 
-  '@babel/plugin-transform-template-literals@7.0.0-beta.53':
+  '@babel/plugin-transform-template-literals@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-annotate-as-pure': 7.0.0-beta.53
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-typeof-symbol@7.0.0-beta.53':
+  '@babel/plugin-transform-typeof-symbol@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
 
-  '@babel/plugin-transform-unicode-regex@7.0.0-beta.53':
+  '@babel/plugin-transform-unicode-regex@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
       '@babel/helper-regex': 7.0.0-beta.53
       regexpu-core: 4.8.0
 
-  '@babel/preset-es2015@7.0.0-beta.53':
+  '@babel/preset-es2015@7.0.0-beta.53(@babel/core@7.28.5)':
     dependencies:
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.0.0-beta.53
-      '@babel/plugin-transform-arrow-functions': 7.0.0-beta.53
-      '@babel/plugin-transform-block-scoped-functions': 7.0.0-beta.53
-      '@babel/plugin-transform-block-scoping': 7.0.0-beta.53
-      '@babel/plugin-transform-classes': 7.0.0-beta.53
-      '@babel/plugin-transform-computed-properties': 7.0.0-beta.53
-      '@babel/plugin-transform-destructuring': 7.0.0-beta.53
-      '@babel/plugin-transform-duplicate-keys': 7.0.0-beta.53
-      '@babel/plugin-transform-for-of': 7.0.0-beta.53
-      '@babel/plugin-transform-function-name': 7.0.0-beta.53
-      '@babel/plugin-transform-instanceof': 7.0.0-beta.53
-      '@babel/plugin-transform-literals': 7.0.0-beta.53
-      '@babel/plugin-transform-modules-amd': 7.0.0-beta.53
-      '@babel/plugin-transform-modules-commonjs': 7.0.0-beta.53
-      '@babel/plugin-transform-modules-systemjs': 7.0.0-beta.53
-      '@babel/plugin-transform-modules-umd': 7.0.0-beta.53
-      '@babel/plugin-transform-object-super': 7.0.0-beta.53
-      '@babel/plugin-transform-parameters': 7.0.0-beta.53
-      '@babel/plugin-transform-regenerator': 7.0.0-beta.53
-      '@babel/plugin-transform-shorthand-properties': 7.0.0-beta.53
-      '@babel/plugin-transform-spread': 7.0.0-beta.53
-      '@babel/plugin-transform-sticky-regex': 7.0.0-beta.53
-      '@babel/plugin-transform-template-literals': 7.0.0-beta.53
-      '@babel/plugin-transform-typeof-symbol': 7.0.0-beta.53
-      '@babel/plugin-transform-unicode-regex': 7.0.0-beta.53
+      '@babel/plugin-transform-arrow-functions': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-block-scoped-functions': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-block-scoping': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-classes': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-computed-properties': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-destructuring': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-duplicate-keys': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-for-of': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-function-name': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-instanceof': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-literals': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-modules-amd': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-modules-commonjs': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-modules-systemjs': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-modules-umd': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-object-super': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-parameters': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-regenerator': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-shorthand-properties': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-spread': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-sticky-regex': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-template-literals': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-typeof-symbol': 7.0.0-beta.53(@babel/core@7.28.5)
+      '@babel/plugin-transform-unicode-regex': 7.0.0-beta.53(@babel/core@7.28.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -4928,6 +4969,24 @@ snapshots:
   '@radix-ui/react-primitive@2.1.4(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.7)(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    optionalDependencies:
+      '@types/react': 19.2.7
+      '@types/react-dom': 19.2.3(@types/react@19.2.7)
+
+  '@radix-ui/react-radio-group@1.3.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.3
+      '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-context': 1.1.2(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-direction': 1.1.1(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-presence': 1.1.5(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-primitive': 2.1.3(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-roving-focus': 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-use-controllable-state': 1.2.2(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-use-previous': 1.1.1(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-use-size': 1.1.1(@types/react@19.2.7)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     optionalDependencies:
@@ -6986,9 +7045,9 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.7
 
-  react-vertical-timeline-component@3.5.3(react@19.2.3):
+  react-vertical-timeline-component@3.5.3(@babel/core@7.28.5)(react@19.2.3):
     dependencies:
-      '@babel/preset-es2015': 7.0.0-beta.53
+      '@babel/preset-es2015': 7.0.0-beta.53(@babel/core@7.28.5)
       classnames: 2.5.1
       react-intersection-observer: 8.34.0(react@19.2.3)
     transitivePeerDependencies:

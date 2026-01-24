@@ -6,13 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
 import { ETAT_CONSERVATION_OPTIONS, QUALITE_OPTIONS } from './source.constants';
-import type { AccesDraft, ExemplaireDraft } from './source.types';
-
-type DepotOption = { id: string; label: string };
-type NatureOption = { id: string; label: string };
-type SupportOption = { id: string; label: string };
-type PlateformeOption = { id: string; label: string };
-type TypeAccesOption = { id: string; label: string };
+import type { AccesDraft, DepotOption, ExemplaireDraft, NatureOption, PlateformeOption, SupportOption, TypeAccesOption } from './source.types';
 
 
 type Props = {
@@ -117,7 +111,7 @@ export function ExemplairesStep({
     });
   };
 
-  const getDepotLabel = (id: string) => depots.find((d) => d.id === id)?.label ?? 'Dépôt ?';
+  const getDepotLabel = (id: string) => depots.find((d) => d.id === id)?.labelCourt ?? 'Dépôt ?';
 
   return (
     <div className='grid gap-4 md:grid-cols-[280px_1fr] h-full min-h-0'>
@@ -139,26 +133,79 @@ export function ExemplairesStep({
           <div className='space-y-2'>
             {exemplaires.map((e, idx) => {
               const active = e.id === selectedExId;
-              const title = e.cote_locale?.trim() ? e.cote_locale.trim() : `Exemplaire ${idx + 1}`;
+
+              // --- helpers locaux ---
+              const norm = (s: string) =>
+                (s ?? '')
+                  .trim()
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, ''); // enlève les accents
+
+              const getNature = (natureId?: string | null) =>
+                natureId ? natures.find((n) => n.id === natureId) ?? null : null;
+
+              const isComplementNature = (nature: any | null) => {
+                if (!nature) return false;
+
+                // si tu as un code dans NatureOption (selon ton modèle), on le privilégie
+                const code = norm(String((nature as any).code ?? ''));
+                if (code === 'numerisation' || code === 'double') return true;
+
+                // fallback: comparaison sur label
+                const label = norm(String((nature as any).label ?? ''));
+                return label === 'numerisation' || label === 'double';
+              };
+
+              const primary = e.cote_locale?.trim() ? e.cote_locale.trim() : '';
+
+              // --- complément ---
+              // condition: (nature == numerisation ou double) ET source_exemplaire_id non null
+              const nature = getNature(e.nature_id ?? null);
+              const sourceId = e.source_exemplaire_id?.trim() ? e.source_exemplaire_id.trim() : '';
+
+              let complement = '';
+              if (isComplementNature(nature) && sourceId) {
+                const sourceEx = exemplaires.find((x) => x.id === sourceId) ?? null;
+                const sourceCote = sourceEx?.cote_locale?.trim() ? sourceEx.cote_locale.trim() : '';
+                if (sourceCote) {
+                  // "nature.libelle de source_exemplaire_id.cote_locale"
+                  complement = `${nature?.label ?? ''} de ${sourceCote}`.trim();
+                }
+              }
+
+              // --- règles demandées ---
+              // si e.cote_locale et complément => "cote (complément)"
+              // si e.cote_locale et pas complément => "cote"
+              // si pas cote et complément => "complément"
+              // si ni cote ni complément => "Exemplaire N"
+              const title =
+                primary && complement
+                  ? `${primary} (${complement})`
+                  : primary
+                    ? primary
+                    : complement
+                      ? complement
+                      : `Exemplaire ${idx + 1}`;
+
               const subtitle = e.depot_id ? getDepotLabel(e.depot_id) : 'Dépôt non renseigné';
 
               return (
                 <button
                   key={e.id}
-                  type='button'
+                  type="button"
                   onClick={() => setSelectedExId(e.id)}
                   className={[
                     'w-full text-left rounded-md border px-3 py-2 transition',
-                    active
-                      ? 'bg-background border-foreground'
-                      : 'bg-background/60 hover:bg-background',
+                    active ? 'bg-background border-foreground' : 'bg-background/60 hover:bg-background',
                   ].join(' ')}
                 >
-                  <div className='text-sm font-medium truncate'>{title}</div>
-                  <div className='text-xs text-muted-foreground truncate'>{subtitle}</div>
+                  <div className="text-sm font-medium truncate">{title}</div>
+                  <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
                 </button>
               );
             })}
+
           </div>
         </div>
       </div>
@@ -194,7 +241,7 @@ export function ExemplairesStep({
                     <option value=''>— Choisir —</option>
                     {depots.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.label}
+                        {d.labelLong}
                       </option>
                     ))}
                   </select>
