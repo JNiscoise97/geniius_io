@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
-import { Badge } from '@/components/ui/badge';
 import { RegistreCreateModal } from './RegistreCreateModal';
 import type { EtatCivilRegistre } from '@/types/etatcivil';
 import { Link } from 'react-router-dom';
@@ -64,16 +63,6 @@ export function BureauRegistres({
             '—'
           ),
       },
-      {
-        key: 'complet',
-        label: 'Complet',
-        render: (r) =>
-          r.complet ? (
-            <Badge variant='default'>Oui</Badge>
-          ) : (
-            <Badge variant='destructive'>Non</Badge>
-          ),
-      },
     ],
     [],
   );
@@ -83,7 +72,6 @@ export function BureauRegistres({
     'type',
     'progress_releve',
     'progress_transcription',
-    'complet',
   ];
   const [registresLocal, setRegistresLocal] = useState(registres);
 

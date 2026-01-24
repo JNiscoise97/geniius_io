@@ -26,7 +26,6 @@ export interface EtatCivilBureau {
     actes_a_transcrire: number;
     actes_releves: number
     actes_a_relever: number
-    complet: boolean;
     actes?: EtatCivilActe[];
   };
 

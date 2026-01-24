@@ -60,8 +60,6 @@ export function RegistreCreateModal({
   // On garde “selectedTypes” comme alias logique, parce que tu l’utilises plus bas (conflit/insert/disable)
   const selectedTypes = currentTypeLabels;
 
-
-  const [complet, setComplet] = useState(false);
   function resetForm() {
     setAnnee('');
     setTypeActeRef(null);
@@ -71,7 +69,6 @@ export function RegistreCreateModal({
     setNombreActesEstime(null);
     setNumeroActeMin(1);
     setNumeroActeMax(null);
-    setComplet(false);
     setRegistreCreateLoading(false);
   }
 
@@ -322,17 +319,6 @@ export function RegistreCreateModal({
                 />
               </div>
             </div>
-
-            <div className='col-span-2'>
-              <label className='flex items-center space-x-2'>
-                <input
-                  type='checkbox'
-                  checked={complet}
-                  onChange={(e) => setComplet(e.target.checked)}
-                />
-                <span>Ce registre est-il complet ?</span>
-              </label>
-            </div>
           </div>
         </div>
         <DialogFooter className='px-6 py-4 border-t shrink-0 flex justify-end gap-2'>
@@ -375,7 +361,6 @@ export function RegistreCreateModal({
                     nombre_actes_estime: nombreActesEstime,
                     numero_acte_min: numeroActeMin,
                     numero_acte_max: numeroActeMax,
-                    complet,
                   },
                 ]).select()
                   .single();

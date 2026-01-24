@@ -113,7 +113,6 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
     mode_registre,
     statut_juridique,
     nombre_actes_estime,
-    complet,
     actes:etat_civil_actes(
       id,
       status
@@ -139,7 +138,6 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
         statut_juridique: r.statut_juridique,
         mode_registre: r.mode_registre,
         actes_estimes: r.nombre_actes_estime,
-        complet: r.complet,
         actes_releves: releves,
         actes_a_relever: r.nombre_actes_estime - releves,
         actes_transcrits: transcrits,
@@ -183,7 +181,6 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
         statut_juridique,
         mode_registre,
         nombre_actes_estime,
-        complet,
         actes:etat_civil_actes (
           id, bureau_id, registre_id, date, heure, annee, source, type_acte, numero_acte, comparution_mairie, label, status, transcription,auteur_institutionnel_ref,type_acte_ref, type_acte_ref_obj:ref_ec_type_acte ( id, code, label, color )
         )
@@ -209,7 +206,6 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
       statut_juridique: data.statut_juridique,
       mode_registre: data.mode_registre,
       actes_estimes: data.nombre_actes_estime,
-      complet: data.complet,
       actes_releves: releves,
       actes_a_relever: data.nombre_actes_estime - releves,
       actes_transcrits: transcrits,
