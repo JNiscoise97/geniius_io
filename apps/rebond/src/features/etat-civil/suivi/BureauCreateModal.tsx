@@ -13,9 +13,74 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilBureau } from '@/types/etatcivil';
+import { Building2, MapPin, AlertTriangle } from 'lucide-react';
 
 function norm(s: string) {
   return (s ?? '').trim().toLocaleLowerCase();
+}
+
+function Field({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+  required,
+}: {
+  id: string;
+  label: string;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id} className="text-sm">
+          {label} {required ? <span className="text-destructive">*</span> : null}
+        </Label>
+      </div>
+      <Input
+        id={id}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-10"
+      />
+    </div>
+  );
+}
+
+function Section({
+  icon,
+  title,
+  subtitle,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border bg-card">
+      <div className="flex items-start gap-3 border-b px-4 py-3">
+        <div className="mt-0.5 rounded-lg border bg-muted p-2 text-muted-foreground">
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium leading-5">{title}</div>
+          {subtitle ? (
+            <div className="text-xs text-muted-foreground">{subtitle}</div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="p-4">{children}</div>
+    </div>
+  );
 }
 
 export function BureauCreateModal({
@@ -31,7 +96,6 @@ export function BureauCreateModal({
 }) {
   const [bureauCreateLoading, setBureauCreateLoading] = useState(false);
 
-  // ✅ inputs controlled: string (pas null)
   const [nom, setNom] = useState('');
   const [commune, setCommune] = useState('');
   const [departement, setDepartement] = useState('');
@@ -50,15 +114,11 @@ export function BureauCreateModal({
     onClose();
   }
 
-  // ✅ reset quand on ré-ouvre le modal (optionnel mais propre)
   useEffect(() => {
-    if (open) {
-      resetForm();
-    }
+    if (open) resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // ✅ conflit: même nom + même commune + même département (ou région si tu préfères)
   const conflit = useMemo(() => {
     const nNom = norm(nom);
     const nCommune = norm(commune);
@@ -73,149 +133,174 @@ export function BureauCreateModal({
       const rDept = norm((r as any).departement ?? '');
       const rRegion = norm((r as any).region ?? '');
 
-      // 👉 règle conseillée : nom + commune + département (si département rempli)
-      if (nDept) {
-        return rNom === nNom && rCommune === nCommune && rDept === nDept;
-      }
+      if (nDept) return rNom === nNom && rCommune === nCommune && rDept === nDept;
+      if (nRegion) return rNom === nNom && rCommune === nCommune && rRegion === nRegion;
 
-      // sinon fallback : nom + commune + région (si région remplie)
-      if (nRegion) {
-        return rNom === nNom && rCommune === nCommune && rRegion === nRegion;
-      }
-
-      // sinon minimal : nom + commune
       return rNom === nNom && rCommune === nCommune && rDept === nDept && rRegion === nRegion;
     });
   }, [bureauxExistants, nom, commune, departement, region]);
 
-  const canSubmit = !bureauCreateLoading && norm(nom) && norm(commune);
+  const canSubmit = !bureauCreateLoading && !!norm(nom) && !!norm(commune);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        // ✅ IMPORTANT : on ferme seulement quand nextOpen === false
         if (!nextOpen) handleClose();
       }}
     >
       <DialogContent
-        className="flex flex-col p-0"
-        style={{ width: '50vw', height: '95vh', maxWidth: 'none', maxHeight: 'none' }}
+        className="p-0 overflow-hidden"
+        style={{ width: '54vw', height: '92vh', maxWidth: 'none', maxHeight: 'none' }}
       >
-        <DialogHeader className="px-6 py-4 border-b shrink-0 sticky top-0 z-10">
-          <DialogTitle>Ajouter un bureau</DialogTitle>
+        {/* Header plus “marqué” */}
+        <DialogHeader className="shrink-0 border-b bg-muted/40 px-6 py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <DialogTitle className="text-lg">Ajouter un bureau</DialogTitle>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Renseigne au minimum le <b>nom</b> et la <b>commune</b>. Département / région sont optionnels.
+              </div>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="flex-1 flex overflow-hidden py-4 px-10">
-          <div className="overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-            <div>
-              <Label htmlFor="nom">Nom</Label>
-              <Input
-                id="nom"
-                type="text"
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-                placeholder="ex: Mairie de Sainte-Rose"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="commune">Commune</Label>
-              <Input
-                id="commune"
-                type="text"
-                value={commune}
-                onChange={(e) => setCommune(e.target.value)}
-                placeholder="ex: Sainte-Rose"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="departement">Département</Label>
-              <Input
-                id="departement"
-                type="text"
-                value={departement}
-                onChange={(e) => setDepartement(e.target.value)}
-                placeholder="ex: Guadeloupe"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="region">Région</Label>
-              <Input
-                id="region"
-                type="text"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                placeholder="ex: Guadeloupe"
-              />
-            </div>
-
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="mx-auto max-w-3xl space-y-4">
             {conflit ? (
-              <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                Un bureau avec ce nom existe déjà pour cette commune (même département/région).
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-amber-700">
+                    <AlertTriangle className="size-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-amber-900">
+                      Doublon détecté
+                    </div>
+                    <div className="mt-0.5 text-xs text-amber-900/80">
+                      Un bureau avec ce nom existe déjà pour cette commune (même département/région).
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : null}
+
+            <Section
+              icon={<Building2 className="size-4" />}
+              title="Infos principales"
+              subtitle="Les champs indispensables pour identifier le bureau"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  id="nom"
+                  label="Nom"
+                  required
+                  value={nom}
+                  onChange={setNom}
+                  placeholder="ex: Mairie de Sainte-Rose"
+                />
+                <Field
+                  id="commune"
+                  label="Commune"
+                  required
+                  value={commune}
+                  onChange={setCommune}
+                  placeholder="ex: Sainte-Rose"
+                />
+              </div>
+            </Section>
+
+            <Section
+              icon={<MapPin className="size-4" />}
+              title="Localisation"
+              subtitle="Optionnel, utile pour lever les ambiguïtés"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  id="departement"
+                  label="Département"
+                  value={departement}
+                  onChange={setDepartement}
+                  placeholder="ex: Guadeloupe"
+                />
+                <Field
+                  id="region"
+                  label="Région"
+                  value={region}
+                  onChange={setRegion}
+                  placeholder="ex: Guadeloupe"
+                />
+              </div>
+
+              <div className="mt-3 text-xs text-muted-foreground">
+                Astuce : si tu remplis le <b>département</b>, c’est lui qui est utilisé pour détecter les doublons,
+                sinon on se rabat sur la région.
+              </div>
+            </Section>
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t shrink-0 flex justify-end gap-2">
-          <Button variant="ghost" onClick={handleClose} disabled={bureauCreateLoading}>
-            Annuler
-          </Button>
+        {/* Footer plus net */}
+        <DialogFooter className="shrink-0 border-t bg-muted/30 px-6 py-4">
+          <div className="flex w-full items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground">
+              <span className="text-destructive">*</span> Champs obligatoires
+            </div>
 
-          <Button
-            onClick={async () => {
-              if (!norm(nom) || !norm(commune)) return;
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={handleClose} disabled={bureauCreateLoading}>
+                Annuler
+              </Button>
 
-              // ✅ anti-doublon front
-              if (conflit) {
-                toast.error('Un bureau avec ce nom existe déjà pour cette commune.');
-                return;
-              }
+              <Button
+                onClick={async () => {
+                  if (!norm(nom) || !norm(commune)) return;
 
-              setBureauCreateLoading(true);
+                  if (conflit) {
+                    toast.error('Un bureau avec ce nom existe déjà pour cette commune.');
+                    return;
+                  }
 
-              try {
-                const payload = {
-                  nom: nom.trim(),
-                  commune: commune.trim(),
-                  // ✅ on envoie null si vide pour éviter de polluer la DB
-                  departement: departement.trim() ? departement.trim() : null,
-                  region: region.trim() ? region.trim() : null,
-                };
+                  setBureauCreateLoading(true);
 
-                const { data, error } = await supabase
-                  .from('etat_civil_bureaux')
-                  .insert([payload])
-                  .select()
-                  .single();
+                  try {
+                    const payload = {
+                      nom: nom.trim(),
+                      commune: commune.trim(),
+                      departement: departement.trim() ? departement.trim() : null,
+                      region: region.trim() ? region.trim() : null,
+                    };
 
-                if (error) {
-                  console.error('[BureauCreateModal] Erreur supabase :', error.message);
+                    const { data, error } = await supabase
+                      .from('etat_civil_bureaux')
+                      .insert([payload])
+                      .select()
+                      .single();
 
-                  // si tu as une contrainte unique côté DB, ça tombera ici
-                  toast.error("Erreur lors de l'ajout du bureau");
-                  return;
-                }
+                    if (error) {
+                      console.error('[BureauCreateModal] Erreur supabase :', error.message);
+                      toast.error("Erreur lors de l'ajout du bureau");
+                      return;
+                    }
 
-                toast.success('Bureau ajouté avec succès');
-                if (onBureauCreated && data) {
-                  onBureauCreated(data as EtatCivilBureau);
-                }
-                handleClose();
-              } catch (error) {
-                console.error('[BureauCreateModal] Erreur JS :', error);
-                toast.error('Une erreur est survenue');
-              } finally {
-                setBureauCreateLoading(false);
-              }
-            }}
-            disabled={!canSubmit || conflit}
-          >
-            {bureauCreateLoading ? 'Ajout en cours...' : 'Ajouter le bureau'}
-          </Button>
+                    toast.success('Bureau ajouté avec succès');
+                    if (onBureauCreated && data) onBureauCreated(data as EtatCivilBureau);
+                    handleClose();
+                  } catch (error) {
+                    console.error('[BureauCreateModal] Erreur JS :', error);
+                    toast.error('Une erreur est survenue');
+                  } finally {
+                    setBureauCreateLoading(false);
+                  }
+                }}
+                disabled={!canSubmit || conflit}
+                className="min-w-[180px]"
+              >
+                {bureauCreateLoading ? 'Ajout en cours...' : 'Ajouter le bureau'}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
