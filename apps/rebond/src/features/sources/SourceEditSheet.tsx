@@ -13,7 +13,7 @@ export function SourceEditSheet({
   sourceId: string | null;
 }) {
   if (!sourceId) {
-    // sécurité : la création est gérée par CreateSourceDialog
+    // sécurité : la création est gérée par SourceDialog
     return null;
   }
 

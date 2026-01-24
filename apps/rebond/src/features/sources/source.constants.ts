@@ -48,3 +48,13 @@ export const QUALITE_OPTIONS = [
 ] as const;
 
 export type Qualite = typeof QUALITE_OPTIONS[number]['value'];
+
+
+
+export const PAGINATION_OPTIONS = [
+  { value: '', label: '—' },
+  { value: 'vues', label: 'Vues' },
+  { value: 'pages', label: 'Pages' },
+  { value: 'folios', label: 'Folios' },
+  { value: 'images', label: 'Images' },
+] as const;

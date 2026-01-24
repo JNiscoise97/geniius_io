@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button';
 import { useSourceStore } from './source.store';
 import { SourcesTable } from './SourcesTable';
 import { SourceEditSheet } from './SourceEditSheet';
-import { CreateSourceDialog } from './CreateSourceDialog';
+import { SourceDialog, type SourceDialogMode } from './SourceDialog';
 import { Plus } from 'lucide-react';
 
 export function SourcesPage() {
   const { fetchSources } = useSourceStore();
 
-  const [openCreate, setOpenCreate] = useState(false);
+  const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [mode, setMode] = useState<SourceDialogMode | null>(null);
 
   useEffect(() => {
     fetchSources();
@@ -26,7 +27,8 @@ export function SourcesPage() {
         <Button
           onClick={() => {
             setEditingId(null);
-            setOpenCreate(true);
+            setOpen(true);
+            setMode('create');
           }}
         >
           <Plus size={14}/> Ajouter une source
@@ -34,18 +36,30 @@ export function SourcesPage() {
       </div>
 
       <SourcesTable
-        onEdit={(id) => {
+        onEditUnite={(id) => {
           setEditingId(id);
-          setOpenEdit(true);
+          setOpen(true);
+          setMode('edit-unite');
+        }}
+        onEditExemplaires={(id) => {
+          setEditingId(id);
+          setOpen(true);
+          setMode('edit-exemplaire');
         }}
       />
 
       {/* ✅ Création = Dialog stepper */}
-      <CreateSourceDialog
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
+      <SourceDialog
+        open={open}
+        sourceId={editingId}
+        mode={mode}
+        onClose={() => {
+          setOpen(false);
+          setMode(null);
+        }}
         onCreated={async () => {
-          setOpenCreate(false);
+          setOpen(false);
+          setMode(null);
           await fetchSources();
         }}
       />

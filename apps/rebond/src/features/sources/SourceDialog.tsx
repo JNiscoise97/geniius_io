@@ -1,4 +1,4 @@
-// CreateSourceDialog.tsx
+// SourceDialog.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -14,25 +14,51 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { type TypeUnite } from './source.constants';
+import { PAGINATION_OPTIONS, TYPE_UNITE_OPTIONS, type TypeUnite } from './source.constants';
 import { ExemplairesStep } from './ExemplairesStep';
 import { UniteDocumentaireStep } from './UniteDocumentaireStep';
 import { EtatCivilStep } from './EtatCivilStep';
 import type { ExemplaireDraft } from './source.types';
 
+export type SourceDialogMode = 'create' | 'edit-unite' | 'edit-exemplaire';
+
 type Props = {
   open: boolean;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
+  mode: SourceDialogMode | null;
   sourceId?: string | null;
 };
 
 function normSpaces(s: string) {
-  return s.replace(/\s+/g, ' ').trim();
+  return (s ?? '').replace(/\s+/g, ' ').trim();
 }
 
 function stripAllSpaces(s: string) {
   return (s ?? '').replace(/\s+/g, '');
+}
+
+function formatDeSerie(serie: string): string {
+  const s = normSpaces(serie).toLowerCase();
+  if (!s) return '';
+
+  // voyelles + variantes accentuées
+  const startsWithVowel = /^[aeiouyàâäáæãåèêëéìîïíòôöóœùûüúÿh]/i.test(s);
+
+  return startsWithVowel ? `d’${s}` : `de ${s}`;
+}
+
+function joinWithEt(items: string[]) {
+  const clean = items.map(normSpaces).filter(Boolean);
+  if (clean.length === 0) return '';
+  if (clean.length === 1) return clean[0];
+  if (clean.length === 2) return `${clean[0]} et ${clean[1]}`;
+  return `${clean.slice(0, -1).join(', ')} et ${clean[clean.length - 1]}`;
+}
+
+function joinWithSlash(items: string[]) {
+  const clean = items.map(normSpaces).filter(Boolean);
+  return clean.join(' / ');
 }
 
 function romanToInt(romanRaw: string): number | null {
@@ -317,18 +343,10 @@ function toIntOrNull(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const PAGINATION_OPTIONS = [
-  { value: '', label: '—' },
-  { value: 'vues', label: 'Vues' },
-  { value: 'pages', label: 'Pages' },
-  { value: 'folios', label: 'Folios' },
-  { value: 'images', label: 'Images' },
-] as const;
-
-function compactList(items: string[], max = 3) {
-  const clean = items.map((s) => normSpaces(s)).filter(Boolean);
-  if (clean.length <= max) return clean.join(', ');
-  return `${clean.slice(0, max).join(', ')} +${clean.length - max}`;
+export function typeUniteToLabel(typeUnite?: TypeUnite | null): string {
+  if (!typeUnite) return '';
+  const found = TYPE_UNITE_OPTIONS.find((o) => o.value === typeUnite);
+  return found?.label ?? '';
 }
 
 function createEmptyExemplaireDraft(): ExemplaireDraft {
@@ -362,9 +380,10 @@ function createEmptyExemplaireDraft(): ExemplaireDraft {
   };
 }
 
-export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props) {
-  const isEdit = !!sourceId;
+export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props) {
   const [step, setStep] = useState(0);
+
+  const effectiveMode: SourceDialogMode = mode ?? 'create';
 
   // -----------------------------
   // Lookups
@@ -460,35 +479,82 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
   }, [typeActeIds, typesActes]);
 
   const stepSerieLabel = useMemo(() => {
-    // Tant que la série n'est pas choisie : pas de titre
     if (!serieRef) return '';
-    // Sinon : on affiche le label de la série (Etat-civil ou autre)
     return serieLabel || '';
   }, [serieRef, serieLabel]);
 
+  const stepExemplairesLabel = 'Exemplaires';
+  const stepUnitesDocumentairesLabel = 'Unité documentaire';
+
   const steps = useMemo(() => {
-    return ['Unité documentaire', stepSerieLabel, 'Exemplaires'];
-  }, [stepSerieLabel]);
+    if (effectiveMode === 'edit-exemplaire') return [stepExemplairesLabel];
+    if (effectiveMode === 'edit-unite') return [stepUnitesDocumentairesLabel, stepSerieLabel];
+    return [stepUnitesDocumentairesLabel, stepSerieLabel, stepExemplairesLabel];
+  }, [effectiveMode, stepSerieLabel]);
 
   useEffect(() => {
-    // Période sans espaces
+    setStep((s) => Math.min(s, Math.max(0, steps.length - 1)));
+  }, [steps.length]);
+
+  type StepKind = 'unite' | 'etat_civil' | 'exemplaires';
+
+  const stepKind: StepKind = useMemo(() => {
+    if (effectiveMode === 'edit-exemplaire') return 'exemplaires';
+    if (effectiveMode === 'edit-unite') return step === 0 ? 'unite' : 'etat_civil';
+    // create
+    return step === 0 ? 'unite' : step === 1 ? 'etat_civil' : 'exemplaires';
+  }, [effectiveMode, step]);
+
+  useEffect(() => {
+    if (effectiveMode === 'edit-exemplaire') return;
+
+    // Période sans espaces (on conserve les tirets longs –/—)
     const periodeNoSpaces = couvertureLabel?.trim()
-      ? stripAllSpaces(normSpaces(couvertureLabel).replace(/[–—]/g, '-'))
-      : null;
+      ? stripAllSpaces(normSpaces(couvertureLabel))
+      : '';
 
-    const parts: string[] = [serieLabel || 'Série'].filter(Boolean) as string[];
+    const typeLabel = typeUniteToLabel(typeUnite); // <-- suppose que tu as typeUnite en state
+    const serie = normSpaces(serieLabel);
 
-    // ✅ si état civil, ajoute bureaux + types d’acte
-    if (isEtatCivil) {
-      const b = compactList(selectedBureauxLabels, 3);
-      const t = compactList(selectedTypeActeLabels, 3);
+    const parts: string[] = [];
 
-      if (b) parts.push(`Bureaux: ${b}`);
-      if (t) parts.push(`Actes: ${t}`);
+    // [TypeUnite label] + [de/d’] + [serieLabel]
+    if (typeLabel && serie) {
+      parts.push(`${typeLabel} ${formatDeSerie(serieLabel)}`);
+    } else if (serie) {
+      parts.push(serie);
+    } else if (typeLabel) {
+      parts.push(typeLabel);
     }
-    if (periodeNoSpaces) parts.push('(' + periodeNoSpaces + ')');
-    setTitre(parts.join(' — '));
-  }, [serieLabel, couvertureLabel, isEtatCivil, selectedBureauxLabels, selectedTypeActeLabels]);
+
+    // état civil : "incluant ..." + " – bureaux"
+    if (isEtatCivil) {
+      const actes = joinWithEt(selectedTypeActeLabels).toLowerCase(); // naissances...
+      if (actes) parts[0] = `${parts[0]} incluant ${actes}`;
+
+      const bureaux = joinWithSlash(selectedBureauxLabels);
+      if (bureaux) parts.push(`– ${bureaux}`);
+    }
+
+    if (periodeNoSpaces) parts.push(`(${periodeNoSpaces})`);
+
+    // Attention: on veut exactement un espace autour du tiret " – " (pas un em dash)
+    // Ici on a mis "–" comme séparateur de bloc, donc on join sans " — "
+    const titreFinal = parts
+      .join(' ')
+      .replace(/\s+–\s+/g, ' – ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    setTitre(titreFinal);
+  }, [
+    typeUnite,
+    serieLabel,
+    couvertureLabel,
+    isEtatCivil,
+    selectedTypeActeLabels,
+    selectedBureauxLabels,
+  ]);
 
   // -----------------------------
   // Load lookups when open
@@ -593,11 +659,127 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
 
       // defaults
       if (!depotId && (s2.data?.[0]?.id ?? null)) setDepotId(s2.data![0].id);
+
+      // ---- EDIT: hydrate form from DB
+      if (effectiveMode !== 'create') {
+        if (!sourceId) {
+          toast.error('sourceId manquant pour l’édition');
+          return;
+        }
+
+        // 1) unité
+        if (effectiveMode === 'edit-exemplaire') {
+          const { data: uTitle, error: euTitle } = await supabase
+            .from('ref_unites_documentaires')
+            .select('id, titre') // ✅ seulement ce dont tu as besoin
+            .eq('id', sourceId)
+            .single();
+
+          if (euTitle) {
+            toast.error(euTitle.message);
+            return;
+          }
+
+          setTitre(uTitle?.titre ?? '');
+        } else {
+          const { data: u, error: eu } = await supabase
+            .from('ref_unites_documentaires')
+            .select(
+              'id, type_unite, titre, identifiant_interne, description, langue_id, ecriture_id, serie_ref, couverture_label, couverture_sort_start, couverture_sort_end',
+            )
+            .eq('id', sourceId)
+            .single();
+
+          if (eu) {
+            toast.error(eu.message);
+            return;
+          }
+
+          setTypeUnite((u.type_unite as TypeUnite) ?? 'registre');
+          setTitre(u.titre ?? '');
+          setIdentifiantInterne(u.identifiant_interne ?? '');
+          setDescription(u.description ?? '');
+          setLangueRef(u.langue_id ?? '');
+          setEcritureRef(u.ecriture_id ?? '');
+          setSerieRef(u.serie_ref ?? '');
+          setCouvertureLabel(u.couverture_label ?? '');
+        }
+
+        // 2) pivots EC (si edit-unite)
+        if (effectiveMode === 'edit-unite') {
+          const [pb, pa] = await Promise.all([
+            supabase
+              .from('ref_unites_documentaires_bureaux')
+              .select('bureau_id')
+              .eq('unite_id', sourceId),
+            supabase
+              .from('ref_unites_documentaires_types_actes')
+              .select('type_acte_id')
+              .eq('unite_id', sourceId),
+          ]);
+
+          if (pb.error) {
+            toast.error(pb.error.message);
+            return;
+          }
+          if (pa.error) {
+            toast.error(pa.error.message);
+            return;
+          }
+
+          setBureauIds((pb.data ?? []).map((x: any) => x.bureau_id));
+          setTypeActeIds((pa.data ?? []).map((x: any) => x.type_acte_id));
+        }
+
+        // 3) exemplaires (si edit-exemplaire)
+        if (effectiveMode === 'edit-exemplaire') {
+          const { data: ex, error: eex } = await supabase
+            .from('ref_exemplaires')
+            .select(
+              'id, depot_id, nature_id, support_id, cote_locale, identifiant_interne, localisation_interne, conditionnement, qualite, etat_conservation, pagination_type, nb_pages, source_exemplaire_id, couverture_label, couverture_sort_start, couverture_sort_end, description, note',
+            )
+            .eq('unite_documentaire_id', sourceId)
+            .order('created_at', { ascending: true });
+
+          if (eex) {
+            toast.error(eex.message);
+            return;
+          }
+
+          setExemplaires(
+            (ex ?? []).map((row: any) => ({
+              id: row.id,
+              depot_id: row.depot_id ?? '',
+              nature_id: row.nature_id ?? null,
+              support_id: row.support_id ?? null,
+              cote_locale: row.cote_locale ?? '',
+              identifiant_interne: row.identifiant_interne ?? '',
+              localisation_interne: row.localisation_interne ?? '',
+              conditionnement: row.conditionnement ?? '',
+              qualite: row.qualite ?? '',
+              etat_conservation: row.etat_conservation ?? '',
+              pagination_type: row.pagination_type ?? '',
+              nb_pages: row.nb_pages?.toString?.() ?? '',
+              source_exemplaire_id: row.source_exemplaire_id ?? '',
+              couverture_label: row.couverture_label ?? '',
+              couverture_sort_start: row.couverture_sort_start?.toString?.() ?? '',
+              couverture_sort_end: row.couverture_sort_end?.toString?.() ?? '',
+              description: row.description ?? '',
+              note: row.note ?? '',
+              acces: [],
+            })),
+          );
+
+          setSelectedExId((ex?.[0]?.id ?? null) as string | null);
+        }
+
+        setStep(0);
+      }
     };
 
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, effectiveMode, sourceId]);
 
   // reset when close
   useEffect(() => {
@@ -621,26 +803,43 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
   }, [open]);
 
   const canNext = useMemo(() => {
+    // edit-exemplaire : une seule étape → bouton "Enregistrer", pas "Suivant"
+    if (effectiveMode === 'edit-exemplaire') {
+      // ex: au moins 1 exemplaire et chacun a un dépôt
+      return exemplaires.length > 0 && exemplaires.every((e) => !!e.depot_id);
+    }
+
+    // edit-unite : 2 étapes
+    if (effectiveMode === 'edit-unite') {
+      if (step === 0) {
+        const okBase = !!typeUnite && !!serieRef;
+        const okCoverage = couvertureLabel.trim().length > 0 && couvertureParsed.isValid;
+        return okBase && okCoverage;
+      }
+      if (step === 1) {
+        if (isEtatCivil) return bureauIds.length > 0 && typeActeIds.length > 0;
+        return true;
+      }
+      return true;
+    }
+
+    // create : ton comportement actuel
     if (step === 0) {
       const okBase = !!typeUnite && !!serieRef;
       const okCoverage = couvertureLabel.trim().length > 0 && couvertureParsed.isValid;
       return okBase && okCoverage;
     }
-
     if (step === 1) {
-      // ✅ si ETAT_CIVIL : au moins 1 bureau + 1 type d’acte
       if (isEtatCivil) return bureauIds.length > 0 && typeActeIds.length > 0;
       return true;
     }
-
     if (step === 2) return exemplaires.length > 0 && exemplaires.every((e) => !!e.depot_id);
-
     return true;
   }, [
+    effectiveMode,
     step,
     typeUnite,
     serieRef,
-    depotId,
     couvertureLabel,
     couvertureParsed.isValid,
     isEtatCivil,
@@ -777,6 +976,104 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
     }
   };
 
+  const submitUpdateUnite = async () => {
+    if (!sourceId) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('ref_unites_documentaires')
+        .update({
+          type_unite: typeUnite,
+          titre: titre.trim(),
+          identifiant_interne: identifiantInterne.trim() || null,
+          description: description.trim() || null,
+          langue_id: langueRef || null,
+          ecriture_id: ecritureRef || null,
+          serie_ref: serieRef,
+          couverture_label: couvertureLabel.trim() || null,
+          couverture_sort_start: toIntOrNull(couvertureStart),
+          couverture_sort_end: toIntOrNull(couvertureEnd),
+        })
+        .eq('id', sourceId);
+
+      if (error) throw error;
+
+      // pivots EC: stratégie simple = delete + insert
+      if (isEtatCivil) {
+        const [d1, d2] = await Promise.all([
+          supabase.from('ref_unites_documentaires_bureaux').delete().eq('unite_id', sourceId),
+          supabase.from('ref_unites_documentaires_types_actes').delete().eq('unite_id', sourceId),
+        ]);
+        if (d1.error) throw d1.error;
+        if (d2.error) throw d2.error;
+
+        if (bureauIds.length) {
+          const { error: e1 } = await supabase
+            .from('ref_unites_documentaires_bureaux')
+            .insert(bureauIds.map((bid) => ({ unite_id: sourceId, bureau_id: bid })));
+          if (e1) throw e1;
+        }
+        if (typeActeIds.length) {
+          const { error: e2 } = await supabase
+            .from('ref_unites_documentaires_types_actes')
+            .insert(typeActeIds.map((tid) => ({ unite_id: sourceId, type_acte_id: tid })));
+          if (e2) throw e2;
+        }
+      }
+
+      toast.success('Unité mise à jour');
+      await onCreated();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message ?? 'Erreur mise à jour');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const submitUpdateExemplaires = async () => {
+    if (!sourceId) return;
+    setSubmitting(true);
+    try {
+      for (const exDraft of exemplaires) {
+        const { error } = await supabase.from('ref_exemplaires').upsert(
+          {
+            id: exDraft.id, // si c'est un id existant => update, sinon insert
+            unite_documentaire_id: sourceId,
+            depot_id: exDraft.depot_id,
+            nature_id: exDraft.nature_id || null,
+            support_id: exDraft.support_id || null,
+            cote_locale: exDraft.cote_locale.trim() || null,
+            identifiant_interne: exDraft.identifiant_interne.trim() || null,
+            localisation_interne: exDraft.localisation_interne.trim() || null,
+            conditionnement: exDraft.conditionnement.trim() || null,
+            description: exDraft.description.trim() || null,
+            note: exDraft.note.trim() || null,
+            qualite: exDraft.qualite.trim() || null,
+            etat_conservation: exDraft.etat_conservation.trim() || null,
+            pagination_type: exDraft.pagination_type || null,
+            nb_pages: toIntOrNull(exDraft.nb_pages),
+            source_exemplaire_id: exDraft.source_exemplaire_id.trim() || null,
+            couverture_label: exDraft.couverture_label.trim() || null,
+            couverture_sort_start: toIntOrNull(exDraft.couverture_sort_start),
+            couverture_sort_end: toIntOrNull(exDraft.couverture_sort_end),
+          },
+          { onConflict: 'id' },
+        );
+
+        if (error) throw error;
+      }
+
+      toast.success('Exemplaires mis à jour');
+      await onCreated();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message ?? 'Erreur mise à jour');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // -----------------------------------
   // UI blocks per step
   // -----------------------------------
@@ -830,6 +1127,22 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
     />
   );
 
+  const dialogTitle = useMemo(() => {
+    if (effectiveMode === 'edit-unite') return 'Modifier l’unité documentaire';
+    if (effectiveMode === 'edit-exemplaire') return 'Modifier les exemplaires';
+    return 'Créer une source';
+  }, [effectiveMode]);
+
+  const isSingleStep = effectiveMode === 'edit-exemplaire';
+  const isLastStep = step >= steps.length - 1;
+
+  const onSubmit = async () => {
+    if (effectiveMode === 'create') return submitAll();
+    if (effectiveMode === 'edit-unite') return submitUpdateUnite();
+    if (effectiveMode === 'edit-exemplaire') return submitUpdateExemplaires();
+    return;
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
       <DialogContent
@@ -839,7 +1152,7 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
         {/* Header */}
         <div className='shrink-0 border-b px-6 py-4'>
           <DialogHeader className='p-0'>
-            <DialogTitle>Créer une source</DialogTitle>
+            <DialogTitle>{dialogTitle}</DialogTitle>
           </DialogHeader>
         </div>
 
@@ -851,7 +1164,12 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
             {StepHeader}
 
             <div className='space-y-1'>
-              <div className='text-xs font-medium'>Titre (généré automatiquement)</div>
+              <div className='text-xs font-medium'>
+                {effectiveMode === 'edit-exemplaire'
+                  ? 'Titre (unité documentaire)'
+                  : 'Titre (généré automatiquement)'}
+              </div>
+
               <Input value={titre} readOnly className='bg-muted' />
             </div>
           </div>
@@ -860,10 +1178,10 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
           <div
             className={[
               'rounded-md border p-4 flex-1 min-h-0',
-              step === 2 ? 'overflow-hidden flex flex-col' : 'overflow-y-auto',
+              stepKind === 'exemplaires' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto',
             ].join(' ')}
           >
-            {step === 0 ? (
+            {stepKind === 'unite' ? (
               <UniteDocumentaireStep
                 series={series}
                 langues={langues}
@@ -887,7 +1205,7 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
               />
             ) : null}
 
-            {step === 1 ? (
+            {stepKind === 'etat_civil' ? (
               <EtatCivilStep
                 isEtatCivil={isEtatCivil}
                 serieLabel={serieLabel}
@@ -900,7 +1218,7 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
               />
             ) : null}
 
-            {step === 2 ? Step2 : null}
+            {stepKind === 'exemplaires' ? Step2 : null}
           </div>
         </div>
 
@@ -916,17 +1234,19 @@ export function CreateSourceDialog({ open, onClose, onCreated, sourceId }: Props
                 Annuler
               </Button>
 
-              <Button variant='secondary' onClick={prev} disabled={submitting || step === 0}>
-                Retour
-              </Button>
+              {!isSingleStep ? (
+                <Button variant='secondary' onClick={prev} disabled={submitting || step === 0}>
+                  Retour
+                </Button>
+              ) : null}
 
-              {step < steps.length - 1 ? (
+              {!isLastStep ? (
                 <Button onClick={next} disabled={!canNext || submitting}>
                   Suivant
                 </Button>
               ) : (
-                <Button onClick={submitAll} disabled={!canNext || submitting}>
-                  {sourceId ? 'Enregistrer' : 'Créer'}
+                <Button onClick={onSubmit} disabled={!canNext || submitting}>
+                  {effectiveMode === 'create' ? 'Créer' : 'Enregistrer'}
                 </Button>
               )}
             </div>
