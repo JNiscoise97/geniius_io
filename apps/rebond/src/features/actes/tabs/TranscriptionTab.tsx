@@ -179,7 +179,10 @@ export default function TranscriptionTab({ acteId }: Props) {
 
       // label simple
       const uniteTitre = s.exemplaire?.unite_titre ?? 'Source';
-      const inst = s.exemplaire?.institution_sigle ?? (s.exemplaire?.depot_is_online || s.exemplaire?.depot_is_physical) ?? null;
+      const inst =
+        s.exemplaire?.institution_sigle ??
+        (s.exemplaire?.depot_is_online || s.exemplaire?.depot_is_physical) ??
+        null;
       const vuesPages =
         s.vues_raw ||
         (s.vues_start || s.vues_end
@@ -316,8 +319,8 @@ export default function TranscriptionTab({ acteId }: Props) {
   // Small helpers
   // ---------------------------------------------------------------------------
   function sourcesLabel(count: number) {
-    if (count <= 2) return count - 1 + ' source';
-    return count - 1 + ' sources';
+    if (count <= 1) return '1 source';
+    return `${count} sources`;
   }
 
   const StepItem = ({
@@ -881,9 +884,12 @@ export default function TranscriptionTab({ acteId }: Props) {
                       const isActive = d.id === t.activeSourceId;
 
                       const m = g?.exemplaire ?? null;
-                      const online = Boolean((m?.url_base ?? '').trim());
+                      const online = m?.depot_is_online;
                       const uniteTitre = m?.unite_titre ?? 'Source';
-                      const institutionSigle = m?.institution_sigle ?? (m?.depot_is_physical || m?.depot_is_online) ?? null;
+                      const institutionSigle =
+                        m?.institution_sigle ??
+                        (m?.depot_is_physical || m?.depot_is_online) ??
+                        null;
                       const uniteCote = m?.cote_locale ?? null;
 
                       const signatures_label = g?.signatures_present
@@ -962,12 +968,6 @@ export default function TranscriptionTab({ acteId }: Props) {
                                       Sur place
                                     </span>
                                   )}
-
-                                  {m?.pagination_type ? (
-                                    <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                                      pagination: {m.pagination_type}
-                                    </span>
-                                  ) : null}
 
                                   <StatusPill statut={d.status || 'TO_TRANSCRIBE'} />
                                 </div>

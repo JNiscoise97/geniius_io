@@ -381,6 +381,7 @@ export default function ReferenceArchiveTab({
         return {
           ...d,
           exemplaire: {
+            unite_id: e.unite_id,
             nature_id: e.nature_id,
             unite_titre: e.unite_titre,
             cote_locale: e.cote_locale,

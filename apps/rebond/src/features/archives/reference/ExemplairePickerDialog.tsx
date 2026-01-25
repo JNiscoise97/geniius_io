@@ -14,7 +14,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { ExternalLink, Check, Search, Filter, X, Plus, AlertTriangle } from 'lucide-react';
+import { ExternalLink, Check, Search, Filter, X, Plus } from 'lucide-react';
+import { SourceDialog, type SourceDialogMode } from '@/features/sources/SourceDialog';
 
 type PickerMode = 'acte' | 'registre';
 
@@ -67,152 +68,6 @@ function normalizeRows(rows: any[]): ExemplairePick[] {
   }));
 }
 
-// -----------------------------------------------------------------------------
-// Création (UI only) : Unité + Exemplaire + Accès
-// -----------------------------------------------------------------------------
-type CreateDraft = {
-  unite_titre: string;
-  cote_locale: string;
-  pagination_type: '' | NonNullable<ExemplairePick['pagination_type']>;
-  depot_nom: string;
-  depot_is_online: ExemplairePick['depot_is_online'];
-  depot_is_physical: ExemplairePick['depot_is_physical'];
-  institution_nom: string;
-  institution_sigle: string;
-  nature_id: ExemplairePick['nature_id'];
-  url_base: string;
-  plateforme_code: string;
-};
-
-type UniteCreateDraft = {
-  depot_id: string | null; // REQUIRED
-  type_unite: '' | NonNullable<ExemplairePick['pagination_type']>; // REQUIRED
-  titre: string; // REQUIRED
-
-  cote: string;
-
-  pagination_type: '' | 'vues' | 'pages' | 'folios' | 'images';
-  nb_pages: string; // input text -> parse int
-
-  couverture_label: string;
-  couverture_sort_start: string; // parse int
-  couverture_sort_end: string; // parse int
-
-  description: string;
-};
-
-function toUniteInsert(d: UniteCreateDraft) {
-  const trimOrNull = (s: string) => (s.trim() ? s.trim() : null);
-  const intOrNull = (s: string) => {
-    const t = s.trim();
-    if (!t) return null;
-    const n = Number(t);
-    return Number.isFinite(n) ? Math.trunc(n) : null;
-  };
-  const dateOrNull = (s: string) => (s.trim() ? s.trim() : null);
-
-  return {
-    depot_id: d.depot_id!,
-    type_unite: d.type_unite,
-    titre: d.titre.trim(),
-
-    cote: trimOrNull(d.cote),
-
-    pagination_type: d.pagination_type ? d.pagination_type : null,
-    nb_pages: intOrNull(d.nb_pages),
-
-    couverture_label: trimOrNull(d.couverture_label),
-    couverture_sort_start: intOrNull(d.couverture_sort_start),
-    couverture_sort_end: intOrNull(d.couverture_sort_end),
-
-    description: trimOrNull(d.description),
-  };
-}
-
-function makeDefaultDraftFromQuery(q: string): CreateDraft {
-  const guessTitle = q.trim() ? q.trim() : '';
-  return {
-    unite_titre: guessTitle,
-    cote_locale: '',
-    pagination_type: '',
-    depot_nom: '',
-    depot_is_online: false,
-    depot_is_physical: true,
-    institution_nom: '',
-    institution_sigle: '',
-    nature_id: 'numerisation',
-    url_base: '',
-    plateforme_code: '',
-  };
-}
-
-function norm(s: string) {
-  return (s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function seemsDuplicate(d: CreateDraft, existing: ExemplairePick[]) {
-  const titre = norm(d.unite_titre);
-  const cote = norm(d.cote_locale);
-  const inst = norm(d.institution_sigle || d.institution_nom);
-
-  if (!titre && !cote) return [];
-
-  const scored = existing
-    .map((r) => {
-      const rTitre = norm(r.unite_titre);
-      const rCote = norm(r.cote_locale || '');
-      const rInst = norm(r.institution_sigle || r.institution_nom);
-
-      // score très simple
-      let score = 0;
-      if (titre && rTitre.includes(titre)) score += 2;
-      if (titre && titre.includes(rTitre)) score += 2;
-      if (cote && rCote === cote) score += 4;
-      if (inst && rInst === inst) score += 1;
-
-      return { r, score };
-    })
-    .filter((x) => x.score >= 3) // seuil
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
-    .map((x) => x.r);
-
-  return scored;
-}
-
-function makeLocalPickFromDraft(d: CreateDraft): ExemplairePick {
-  // ⚠️ IDs locaux (non UUID). OK pour UI; tu les remplaceras après insert DB.
-  const now = Date.now();
-  const exemplaire_id = `local-man-${now}`;
-  const unite_id = `local-uni-${now}`;
-
-  const depot_is_online = d.depot_is_online;
-  const depot_is_physical = d.depot_is_physical;
-  const url_base = d.url_base?.trim() ? d.url_base.trim() : null;
-
-  return {
-    exemplaire_id,
-    nature_id: d.nature_id,
-
-    unite_id,
-    unite_titre: d.unite_titre.trim() || '(Sans titre)',
-    cote_locale: d.cote_locale.trim() ? d.cote_locale.trim() : null,
-    pagination_type: (d.pagination_type || null) as any,
-
-    depot_nom:
-      d.depot_nom.trim() || (depot_is_online ? 'Dépôt en ligne' : 'Dépôt physique'),
-    
-    depot_is_online,
-    depot_is_physical,
-
-    institution_nom: d.institution_nom.trim() || 'Institution',
-    institution_sigle: d.institution_sigle.trim() ? d.institution_sigle.trim() : null,
-
-    url_base,
-    plateforme_code: d.plateforme_code.trim() ? d.plateforme_code.trim() : null,
-  };
-}
-
 export function ExemplairePickerDialog({
   open,
   onOpenChange,
@@ -226,9 +81,7 @@ export function ExemplairePickerDialog({
   onPick,
 }: Props) {
   // UI
-  const [typeFilter, setTypeFilter] = useState<ExemplairePick['nature_id'] | 'all'>(
-    'all',
-  );
+  const [typeFilter, setTypeFilter] = useState<ExemplairePick['nature_id'] | 'all'>('all');
   const [institutionFilter, setInstitutionFilter] = useState<string>('all');
   const [sort, setSort] = useState<'relevance' | 'institution' | 'title'>('relevance');
 
@@ -246,11 +99,11 @@ export function ExemplairePickerDialog({
   // Local rows created in UI (no DB yet)
   const [localRows, setLocalRows] = useState<ExemplairePick[]>([]);
 
+  const [modeCreate, setModeCreate] = useState<SourceDialogMode | null>(null);
+
   // Create dialog
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createStep, setCreateStep] = useState<'unite' | 'exemplaire' | 'acces'>('unite');
-  const [draft, setDraft] = useState<CreateDraft>(() => makeDefaultDraftFromQuery(''));
-  const [forceCreate, setForceCreate] = useState(false); // ignore duplicates warning
+  const [openCreate, setOpenCreate] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const excludedKey = useMemo(
     () => excludeExemplaireIds.slice().sort().join(','),
@@ -273,7 +126,7 @@ export function ExemplairePickerDialog({
 
   const [depots, setDepots] = useState<{ id: string; nom: string }[]>([]);
   useEffect(() => {
-    if (!createOpen) return;
+    if (!openCreate) return;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
@@ -287,7 +140,7 @@ export function ExemplairePickerDialog({
     return () => {
       cancelled = true;
     };
-  }, [createOpen]);
+  }, [openCreate]);
 
   // ---------------------------------------------------------------------------
   // Reset léger à l’ouverture
@@ -386,8 +239,7 @@ export function ExemplairePickerDialog({
       );
 
       let filtered = rows;
-      if (typeFilter !== 'all')
-        filtered = filtered.filter((r) => r.nature_id === typeFilter);
+      if (typeFilter !== 'all') filtered = filtered.filter((r) => r.nature_id === typeFilter);
       if (institutionFilter !== 'all')
         filtered = filtered.filter(
           (r) => (r.institution_sigle || r.institution_nom) === institutionFilter,
@@ -400,7 +252,7 @@ export function ExemplairePickerDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, mode, registreId, excludedKey, onlyOnline, typeFilter, institutionFilter]);
+  }, [open, mode, registreId, excludedKey, onlyOnline, typeFilter, institutionFilter, refreshKey]);
 
   // ---------------------------------------------------------------------------
   // Section "Recherche globale" (v_exemplaires_pick)
@@ -483,7 +335,7 @@ export function ExemplairePickerDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, q, onlyOnline, typeFilter, institutionFilter, sort, excludedKey]);
+  }, [open, q, onlyOnline, typeFilter, institutionFilter, sort, excludedKey, refreshKey]);
 
   // ---------------------------------------------------------------------------
   // Sélection & preview
@@ -532,10 +384,6 @@ export function ExemplairePickerDialog({
               Sur place
             </Badge>
           )}
-
-          {r.pagination_type ? (
-            <Badge variant='outline'>pagination: {r.pagination_type}</Badge>
-          ) : null}
         </div>
 
         <div className='mt-1 text-xs text-slate-600'>
@@ -555,53 +403,6 @@ export function ExemplairePickerDialog({
   const registreTitle = registreId
     ? 'Sources du registre associé'
     : 'Sources du registre associé (aucun registre)';
-
-  // ---------------------------------------------------------------------------
-  // CTA "Créer"
-  // ---------------------------------------------------------------------------
-  const openCreate = () => {
-    setDraft(makeDefaultDraftFromQuery(q));
-    setCreateStep('unite');
-    setForceCreate(false);
-    setCreateOpen(true);
-  };
-
-  const duplicates = useMemo(() => seemsDuplicate(draft, allLoadedRows), [draft, allLoadedRows]);
-
-  const canCreate =
-    Boolean(draft.unite_titre.trim()) &&
-    Boolean(draft.depot_nom.trim()) &&
-    Boolean(draft.institution_nom.trim()) &&
-    (draft.depot_is_physical || Boolean(draft.url_base.trim()));
-
-  const shouldWarnDuplicates = duplicates.length > 0 && !forceCreate;
-
-  const createAndSelect = async () => {
-    // 1) garde-fou
-    if (!canCreate) return;
-    if (shouldWarnDuplicates) return;
-
-    // 2) Création locale
-    const row = makeLocalPickFromDraft(draft);
-
-    // 3) TODO DB (facultatif)
-    // Ici tu brancheras:
-    // - ref_unites_documentaires insert (en retrouvant depot_id etc.)
-    // - ref_exemplaires insert
-    // - ref_acces_numeriques insert si url_base
-    //
-    // Ensuite tu remplaces les ids "local-*" par les UUID DB et tu continues.
-
-    setLocalRows((prev) => [row, ...prev]);
-    setSelectedId(row.exemplaire_id);
-
-    // sélection immédiate dans le parent (UX attendue)
-    onPick(row);
-
-    setCreateOpen(false);
-    // Option : fermer le picker directement comme quand on clique "Choisir"
-    onOpenChange(false);
-  };
 
   return (
     <>
@@ -812,7 +613,13 @@ export function ExemplairePickerDialog({
                   <div className='text-xs text-slate-600'>
                     Rien ne correspond ? Crée une nouvelle unité / exemplaire.
                   </div>
-                  <Button variant='outline' onClick={openCreate}>
+                  <Button
+                    variant='outline'
+                    onClick={() => {
+                      setModeCreate('create'); // ou 'edit-unite' / 'edit-exemplaire' selon ton besoin
+                      setOpenCreate(true);
+                    }}
+                  >
                     <Plus className='h-4 w-4 mr-2' />
                     Créer une nouvelle source
                   </Button>
@@ -875,13 +682,6 @@ export function ExemplairePickerDialog({
                           Sur place
                         </Badge>
                       )}
-
-                      {selected.pagination_type ? (
-                        <Badge variant='outline'>pagination: {selected.pagination_type}</Badge>
-                      ) : null}
-                      {selected.plateforme_code ? (
-                        <Badge variant='outline'>plateforme: {selected.plateforme_code}</Badge>
-                      ) : null}
                     </div>
 
                     <div>
@@ -938,350 +738,20 @@ export function ExemplairePickerDialog({
         </DialogContent>
       </Dialog>
 
-      {/* --------------------------------------------------------------------- */}
-      {/* CREATE DIALOG                                                        */}
-      {/* --------------------------------------------------------------------- */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent
-          className='flex flex-col p-0'
-          style={{ width: '70vw', height: '70vh', maxWidth: 'none', maxHeight: 'none' }}
-        >
-          <DialogHeader className='border-b bg-slate-50 px-4 py-3'>
-            <DialogTitle className='text-sm font-semibold text-slate-900'>
-              Créer une nouvelle unité / exemplaire
-            </DialogTitle>
-            <div className='mt-2 text-xs text-slate-600'>
-              Étape {createStep === 'unite' ? '1' : createStep === 'exemplaire' ? '2' : '3'} / 3
-            </div>
-          </DialogHeader>
-
-          <div className='p-4 space-y-4'>
-            {/* steps */}
-            <div className='flex flex-wrap items-center gap-2'>
-              <Badge
-                className={createStep === 'unite' ? 'bg-slate-900 text-white' : ''}
-                variant={createStep === 'unite' ? 'default' : 'outline'}
-              >
-                1. Unité
-              </Badge>
-              <Badge
-                className={createStep === 'exemplaire' ? 'bg-slate-900 text-white' : ''}
-                variant={createStep === 'exemplaire' ? 'default' : 'outline'}
-              >
-                2. Exemplaire
-              </Badge>
-              <Badge
-                className={createStep === 'acces' ? 'bg-slate-900 text-white' : ''}
-                variant={createStep === 'acces' ? 'default' : 'outline'}
-              >
-                3. Accès
-              </Badge>
-            </div>
-
-            {/* duplicate warning */}
-            {duplicates.length > 0 && (
-              <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3'>
-                <div className='flex items-start gap-2'>
-                  <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                  <div className='space-y-2'>
-                    <div className='text-sm font-semibold text-amber-900'>
-                      Une source similaire existe peut-être
-                    </div>
-                    <div className='text-xs text-amber-800'>
-                      Vérifie avant de créer (anti-doublon). Tu peux forcer si tu es sûr.
-                    </div>
-                    <div className='space-y-2'>
-                      {duplicates.map((r) => (
-                        <button
-                          key={r.exemplaire_id}
-                          type='button'
-                          className='w-full text-left rounded-lg border border-amber-200 bg-white px-3 py-2 hover:bg-amber-50'
-                          onClick={() => {
-                            setCreateOpen(false);
-                            setSelectedId(r.exemplaire_id);
-                          }}
-                        >
-                          <div className='text-sm font-semibold text-slate-900'>
-                            {r.unite_titre}
-                          </div>
-                          <div className='text-xs text-slate-600'>
-                            {r.institution_sigle || r.institution_nom} · {r.depot_nom}
-                            {r.cote_locale ? ` · ${r.cote_locale}` : ''}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className='flex items-center gap-2'>
-                      <Checkbox
-                        checked={forceCreate}
-                        onCheckedChange={(v) => setForceCreate(Boolean(v))}
-                        id='forceCreate'
-                      />
-                      <label htmlFor='forceCreate' className='text-xs text-amber-900'>
-                        Je confirme : je veux créer quand même
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* step contents */}
-            {createStep === 'unite' && (
-              <div className='space-y-3'>
-                <div>
-                  <div className='text-xs text-slate-500'>Titre de l’unité (obligatoire)</div>
-                  <Input
-                    value={draft.unite_titre}
-                    onChange={(e) => setDraft((p) => ({ ...p, unite_titre: e.target.value }))}
-                    placeholder='ex : Deshaies – État civil – 1859 – Mariages'
-                  />
-
-                  <div className='mt-1 text-[11px] text-slate-500'>
-                    Format : [commune]-([période couverte avec comme séparateur , ou -])
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                  <div>
-                    <div className='text-xs text-slate-500'>Dépôt (obligatoire)</div>
-                    <select
-                      className='w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm'
-                      value={draft.depot_id ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, depot_id: e.target.value || null }))
-                      }
-                    >
-                      <option value=''>— Choisir un dépôt —</option>
-                      {depots.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.nom}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                  <div>
-                    <div className='text-xs text-slate-500'>Cote (optionnelle)</div>
-                    <Input
-                      value={draft.cote_locale}
-                      onChange={(e) => setDraft((p) => ({ ...p, cote_locale: e.target.value }))}
-                      placeholder='ex : 2E 123 / 1E 45…'
-                    />
-                  </div>
-
-                  <div>
-                    <div className='text-xs text-slate-500'>Pagination (optionnelle)</div>
-                    <select
-                      className='w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm'
-                      value={draft.pagination_type ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({
-                          ...p,
-                          pagination_type: (e.target.value as CreateDraft['pagination_type']) ?? '',
-                        }))
-                      }
-                    >
-                      <option value=''>(aucune)</option>
-                      <option value='vues'>vues</option>
-                      <option value='pages'>pages</option>
-                      <option value='folios'>folios</option>
-                      <option value='images'>images</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                  <div>
-                    <div className='text-xs text-slate-500'>Institution (obligatoire)</div>
-                    <Input
-                      value={draft.institution_nom}
-                      onChange={(e) => setDraft((p) => ({ ...p, institution_nom: e.target.value }))}
-                      placeholder='ex : Archives nationales d’outre-mer'
-                    />
-                    <div className='mt-1 text-[11px] text-slate-500'>
-                      Astuce : mets le nom complet. Le sigle est optionnel.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className='text-xs text-slate-500'>Sigle (optionnel)</div>
-                    <Input
-                      value={draft.institution_sigle}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, institution_sigle: e.target.value }))
-                      }
-                      placeholder='ex : ANOM / ADG / ADR…'
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className='text-xs text-slate-500'>Dépôt (obligatoire)</div>
-                  <Input
-                    value={draft.depot_nom}
-                    onChange={(e) => setDraft((p) => ({ ...p, depot_nom: e.target.value }))}
-                    placeholder='ex : Archives nationales d’outre-mer (en ligne) / Salle de lecture…'
-                  />
-                </div>
-              </div>
-            )}
-
-            {createStep === 'exemplaire' && (
-              <div className='space-y-3'>
-                <div>
-                  <div className='text-xs text-slate-500'>Type d'exemplaire</div>
-                  <div className='flex flex-wrap gap-2'>
-                    {(['numerisation', 'microfilm', 'original'] as const).map((t) => (
-                      <Button
-                        key={t}
-                        type='button'
-                        variant={draft.nature_id === t ? 'default' : 'outline'}
-                        onClick={() => setDraft((p) => ({ ...p, nature_id: t }))}
-                      >
-                        {badgeType(t)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className='text-xs text-slate-500'>Consultation</div>
-                  <div className='flex flex-wrap gap-2'>
-                    <Button
-                      type='button'
-                      variant={draft.depot_is_online ? 'default' : 'outline'}
-                      onClick={() => setDraft((p) => ({ ...p, depot_is_online: true, depot_is_physical: false, }))}
-                    >
-                      En ligne
-                    </Button>
-                    <Button
-                      type='button'
-                      variant={draft.depot_is_physical ? 'default' : 'outline'}
-                      onClick={() =>
-                        setDraft((p) => ({
-                          ...p,
-                          depot_is_physical: true,
-                          depot_is_online: false,
-                          url_base: '',
-                          plateforme_code: '',
-                        }))
-                      }
-                    >
-                      Sur place
-                    </Button>
-                  </div>
-
-                  <div className='mt-2 text-xs text-slate-600'>
-                    Astuce : si “En ligne”, l’accès (URL) est demandé à l’étape suivante.
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {createStep === 'acces' && (
-              <div className='space-y-3'>
-                {draft.depot_is_physical ? (
-                  <div className='text-sm text-slate-600'>
-                    Pas d’accès en ligne requis (consultation sur place).
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <div className='text-xs text-slate-500'>URL (obligatoire si en ligne)</div>
-                      <Input
-                        value={draft.url_base}
-                        onChange={(e) => setDraft((p) => ({ ...p, url_base: e.target.value }))}
-                        placeholder='ex : https://recherche-anom.culture.gouv.fr/...'
-                      />
-                    </div>
-                    <div>
-                      <div className='text-xs text-slate-500'>Plateforme (optionnel)</div>
-                      <Input
-                        value={draft.plateforme_code}
-                        onChange={(e) =>
-                          setDraft((p) => ({ ...p, plateforme_code: e.target.value }))
-                        }
-                        placeholder='ex : ANOM / Filae / AD... '
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div className='rounded-xl border border-slate-200 bg-slate-50 p-3'>
-                  <div className='text-xs text-slate-600'>
-                    <span className='font-semibold'>Récap :</span>{' '}
-                    {draft.unite_titre || '(sans titre)'}
-                  </div>
-                  <div className='text-xs text-slate-600'>
-                    {draft.institution_sigle || draft.institution_nom || 'Institution'} ·{' '}
-                    {draft.depot_nom || 'Dépôt'}
-                    {draft.cote_locale ? ` · ${draft.cote_locale}` : ''}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* footer buttons */}
-            <div className='flex flex-wrap items-center justify-between gap-2'>
-              <div className='flex items-center gap-2'>
-                <Button type='button' variant='ghost' onClick={() => setCreateOpen(false)}>
-                  Annuler
-                </Button>
-              </div>
-
-              <div className='flex items-center gap-2'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  disabled={createStep === 'unite'}
-                  onClick={() => {
-                    setForceCreate(false);
-                    setCreateStep((s) => (s === 'acces' ? 'exemplaire' : 'unite'));
-                  }}
-                >
-                  Retour
-                </Button>
-
-                {createStep !== 'acces' ? (
-                  <Button
-                    type='button'
-                    onClick={() => {
-                      setForceCreate(false);
-                      setCreateStep((s) => (s === 'unite' ? 'exemplaire' : 'acces'));
-                    }}
-                    disabled={createStep === 'unite' && !draft.unite_titre.trim()}
-                  >
-                    Continuer
-                  </Button>
-                ) : (
-                  <Button
-                    type='button'
-                    onClick={createAndSelect}
-                    disabled={!canCreate || shouldWarnDuplicates}
-                  >
-                    <Plus className='h-4 w-4 mr-2' />
-                    Créer et sélectionner
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {!canCreate && (
-              <div className='text-xs text-slate-500'>
-                Champs requis : Titre unité, Institution, Dépôt, et URL si “En ligne”.
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* ✅ Création = Dialog stepper */}
+      <SourceDialog
+        open={openCreate}
+        mode={modeCreate}
+        onClose={() => {
+          setOpenCreate(false);
+          setModeCreate(null);
+        }}
+        onCreated={async () => {
+          setOpenCreate(false);
+          setModeCreate(null);
+          setRefreshKey((k) => k + 1);
+        }}
+      />
     </>
   );
 }

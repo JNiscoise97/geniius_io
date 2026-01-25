@@ -202,6 +202,7 @@ export type ExemplairePick = {
 export type CitationDraft = {
   id: string;
   acte_id: string;
+  unite_id?: string;
   exemplaire_id: string | null;
 
   // pagination / vues/pages
@@ -227,6 +228,7 @@ export type CitationDraft = {
 
   // enrich
   exemplaire?: {
+    unite_id: string | null;
     nature_id: string | null;
     unite_titre: string | null;
     cote_locale: string | null;

@@ -117,7 +117,9 @@ export type RegistreCitationDraft = CitationDraftBase & {
 
 export type CitationDraftBase = {
   id?: string;
-
+  
+  unite_id?: string;
+  
   // FK
   exemplaire_id?: string;
 
@@ -130,6 +132,7 @@ export type CitationDraftBase = {
 
 export type Exemplaire = {
   nature_id?: string;
+  unite_id?: string;
   unite_titre?: string;
   cote_locale?: string | null;
   pagination_type?: string | null;
