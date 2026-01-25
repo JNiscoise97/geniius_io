@@ -456,7 +456,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   const selectedTypeActeLabels = useMemo(() => {
     if (!typeActeIds.length) return [];
 
-    const map = new Map(typesActes.map((t) => [t.id, { label: t.label, ordre: t.ordre ?? 9999 }]));
+    const map = new Map(typesActes.map((t) => [t.id, { label: t.label, label_pluriel: t.label_pluriel, ordre: t.ordre ?? 9999 }]));
 
     return typeActeIds
       .map((id) => map.get(id))
@@ -465,9 +465,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         // tri principal: ordre
         if (a!.ordre !== b!.ordre) return a!.ordre - b!.ordre;
         // fallback: label (stable si ordre identique / null)
-        return a!.label.localeCompare(b!.label, 'fr');
+        return a!.label_pluriel.localeCompare(b!.label_pluriel, 'fr');
       })
-      .map((x) => x!.label);
+      .map((x) => x!.label_pluriel);
   }, [typeActeIds, typesActes]);
 
 
@@ -523,7 +523,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     // état civil : "incluant ..." + " – bureaux"
     if (isEtatCivil) {
       const actes = joinWithEt(selectedTypeActeLabels).toLowerCase(); // naissances...
-      if (actes) parts[0] = `${parts[0]} incluant ${actes}`;
+      if (actes) parts[0] = `${parts[0]} des ${actes}`;
 
       const bureaux = joinWithSlash(selectedBureauxLabels);
       if (bureaux) parts.push(`– ${bureaux}`);
@@ -571,7 +571,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           .from('etat_civil_bureaux')
           .select('id, nom, commune, departement, region')
           .order('nom'),
-        supabase.from('ref_ec_type_acte').select('id, label, code, ordre').order('label'),
+        supabase.from('ref_ec_type_acte').select('id, label, label_pluriel, code, ordre').order('label'),
         supabase.from('ref_ecritures').select('id, libelle').order('libelle'),
         supabase.from('ref_langues').select('id, libelle').order('libelle'),
       ]);
@@ -647,6 +647,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         (s8.data ?? []).map((a: any) => ({
           id: a.id,
           label: a.label,
+          label_pluriel: a.label_pluriel,
           ordre: a.ordre,
         })),
       );

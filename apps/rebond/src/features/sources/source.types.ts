@@ -98,4 +98,4 @@ export type BureauOption = {
   label: string; // affichage
 };
 
-export type TypeActeOption = { id: string; label: string; ordre: number | null };
+export type TypeActeOption = { id: string; label: string; label_pluriel: string; ordre: number | null };
