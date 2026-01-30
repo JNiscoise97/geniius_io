@@ -234,6 +234,8 @@ export function SectionSources({
         url_base: row.url_base,
         plateforme_code: row.plateforme_code,
         pagination_type: row.pagination_type,
+        support_id: (row as any).support_id ?? null,
+        source_exemplaire_id: (row as any).source_exemplaire_id ?? null,
       },
     };
 
@@ -313,6 +315,72 @@ export function SectionSources({
     'grouped',
     groupedByUnite.map((g) => ({ key: g.key, n: g.items.length, unite: g.uniteLabel })),
   );
+  // ---------------------------------------------------------------------------
+  // Header "scannable" pour les exemplaires
+  // ---------------------------------------------------------------------------
+
+  const natureLabel = (code?: string | null) => {
+    const c = (code ?? '').toLowerCase().trim();
+    if (!c) return 'Exemplaire';
+    if (c === 'original') return 'Original';
+    if (c === 'double') return 'Double';
+    if (c === 'copie') return 'Copie';
+    if (c === 'numerisation') return 'Numérisation';
+    return code ?? 'Exemplaire';
+  };
+
+  const supportLabel = (code?: string | null) => {
+    const c = (code ?? '').toLowerCase().trim();
+    if (!c) return '';
+    if (c === 'papier') return 'papier';
+    if (c === 'microfilm') return 'microfilm';
+    if (c === 'numerique') return 'numérique';
+    return code ?? '';
+  };
+
+  const accessLabel = (c: AnyDraft) => {
+    const hasUrl = Boolean((c.exemplaire?.url_base ?? '').trim());
+    const online = Boolean(c.exemplaire?.depot_is_online) || hasUrl;
+    const physical = Boolean(c.exemplaire?.depot_is_physical);
+
+    if (online) return 'En ligne';
+    if (physical) return 'Sur place';
+    return 'Accès ?';
+  };
+
+  const institutionShort = (c: AnyDraft) => {
+    const sigle = (c.exemplaire?.institution_sigle ?? '').trim();
+    const nom = (c.exemplaire?.institution_nom ?? '').trim();
+    return sigle || nom || 'Institution';
+  };
+
+  const depotShort = (c: AnyDraft) => {
+    const depot = (c.exemplaire?.depot_nom ?? '').trim();
+    return depot || 'Dépôt';
+  };
+
+  const copyOfLabel = (
+    sourceExemplaireId: string | null | undefined,
+    exemplaireIdToNumber: Map<string, number>,
+  ) => {
+    const src = (sourceExemplaireId ?? '').trim();
+    if (!src) return '';
+    const n = exemplaireIdToNumber.get(src);
+    return n ? `copie de l’exemplaire #${n}` : 'copie d’un exemplaire';
+  };
+
+  const buildMainHeader = (c: AnyDraft, exemplaireIdToNumber: Map<string, number>) => {
+    const ex: any = c.exemplaire ?? {};
+    const nat = natureLabel(ex.nature_id);
+    const sup = supportLabel(ex.support_id); // optionnel
+    const acc = accessLabel(c);
+
+    const rel = copyOfLabel(ex.source_exemplaire_id, exemplaireIdToNumber);
+    const left = [nat, sup].filter(Boolean).join(' ');
+    return rel ? `${left} — ${acc} (${rel})` : `${left} — ${acc}`;
+  };
+
+
 
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
@@ -422,25 +490,30 @@ export function SectionSources({
                         mode === 'acte'
                           ? Boolean((c as ActeCitationDraft).acte_manquant)
                           : Boolean((c as RegistreCitationDraft).registre_manquant);
+                      // Map exemplaire_id -> numéro (#1..#N) dans cette unité (pour "copie de ...")
+                      const exemplaireIdToNumber = new Map<string, number>();
+                      g.items.forEach((it, i) => {
+                        if (it.s.exemplaire_id) exemplaireIdToNumber.set(it.s.exemplaire_id, i + 1);
+                      });
 
                       const vuesLabel =
                         mode === 'acte'
                           ? ((c as ActeCitationDraft).vues_raw ?? '').trim() ||
-                            formatRangeLabel(
-                              (c as ActeCitationDraft).vues_start ?? null,
-                              (c as ActeCitationDraft).vues_end ?? null,
-                              'vue',
-                            )
+                          formatRangeLabel(
+                            (c as ActeCitationDraft).vues_start ?? null,
+                            (c as ActeCitationDraft).vues_end ?? null,
+                            'vue',
+                          )
                           : '';
 
                       const pagesLabel =
                         mode === 'acte'
                           ? ((c as ActeCitationDraft).page_raw ?? '').trim() ||
-                            formatRangeLabel(
-                              (c as ActeCitationDraft).page_start ?? null,
-                              (c as ActeCitationDraft).page_end ?? null,
-                              'page',
-                            )
+                          formatRangeLabel(
+                            (c as ActeCitationDraft).page_start ?? null,
+                            (c as ActeCitationDraft).page_end ?? null,
+                            'page',
+                          )
                           : '';
 
                       return (
@@ -457,77 +530,68 @@ export function SectionSources({
                               : '',
                           ].join(' ')}
                         >
-                          <div className='flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center md:justify-between'>
-                            <div className='min-w-0'>
-                              <div className='flex flex-wrap items-center gap-2'>
-                                <div className='text-sm font-semibold text-slate-900'>
-                                  Exemplaire #{pos + 1}
+                          <div className='border-b border-slate-200 bg-slate-50 p-4'>
+                            <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
+                              <div className='min-w-0'>
+                                <div className='flex flex-wrap items-center gap-2'>
+                                  <span className='rounded-full bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white'>
+                                    Exemplaire #{pos + 1}
+                                  </span>
+
+                                  <div className='text-sm font-semibold text-slate-900'>
+                                    {buildMainHeader(c, exemplaireIdToNumber)}
+                                  </div>
+
+                                  {missing && (
+                                    <span className='rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-800'>
+                                      {mode === 'acte' ? 'Acte manquant' : 'Registre manquant'}
+                                    </span>
+                                  )}
+
+                                  {vuesLabel && (
+                                    <span className='rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700'>
+                                      {vuesLabel}
+                                    </span>
+                                  )}
+
+                                  {pagesLabel && (
+                                    <span className='rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700'>
+                                      {pagesLabel}
+                                    </span>
+                                  )}
+
+                                  {c.exemplaire?.cote_locale && (
+                                    <span className='rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700'>
+                                      Cote {c.exemplaire.cote_locale}
+                                    </span>
+                                  )}
                                 </div>
 
-                                {c.exemplaire?.institution_sigle && (
-                                  <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                                    {c.exemplaire.institution_sigle}
-                                  </span>
-                                )}
-
-                                {online ? (
-                                  <span className='rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800'>
-                                    En ligne
-                                  </span>
-                                ) : (
-                                  <span className='rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800'>
-                                    Sur place
-                                  </span>
-                                )}
-
-                                {missing && (
-                                  <span className='rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800'>
-                                    Acte manquant
-                                  </span>
-                                )}
-
-                                {vuesLabel && (
-                                  <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                                    {vuesLabel}
-                                  </span>
-                                )}
-
-                                {pagesLabel && (
-                                  <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                                    {pagesLabel}
-                                  </span>
-                                )}
-
-                                {c.exemplaire?.cote_locale && (
-                                  <span className='rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-700'>
-                                    Cote : {c.exemplaire.cote_locale}
-                                  </span>
-                                )}
+                                <div className='mt-1 truncate text-xs text-slate-600'>
+                                  {c.exemplaire_id ? `${institutionShort(c)} · ${depotShort(c)}` : 'Aucune source sélectionnée'}
+                                </div>
                               </div>
 
-                              <div className='mt-1 truncate text-xs text-slate-600'>
-                                {c.exemplaire_id ? titleFor(c) : 'Aucune source sélectionnée'}
+                              <div className='flex flex-wrap items-center gap-2'>
+                                <button
+                                  type='button'
+                                  onClick={() => openPickerForIdx(idx)}
+                                  className='rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
+                                >
+                                  Changer
+                                </button>
+
+                                <button
+                                  type='button'
+                                  onClick={() => onRemove(idx)}
+                                  className='rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50'
+                                >
+                                  Supprimer
+                                </button>
                               </div>
-                            </div>
-
-                            <div className='flex flex-wrap items-center gap-2'>
-                              <button
-                                type='button'
-                                onClick={() => openPickerForIdx(idx)}
-                                className='rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-50'
-                              >
-                                Changer
-                              </button>
-
-                              <button
-                                type='button'
-                                onClick={() => onRemove(idx)}
-                                className='rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50'
-                              >
-                                Supprimer
-                              </button>
                             </div>
                           </div>
+
 
                           <div className='p-4'>
                             <div className='rounded-xl border border-slate-200 bg-white p-3'>
