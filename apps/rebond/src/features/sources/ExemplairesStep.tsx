@@ -1,13 +1,21 @@
 // ExemplairesStep.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { ETAT_CONSERVATION_OPTIONS, QUALITE_OPTIONS } from './source.constants';
-import type { AccesDraft, DepotOption, ExemplaireDraft, NatureOption, PlateformeOption, SupportOption, TypeAccesOption } from './source.types';
-
+import type {
+  AccesDraft,
+  DepotOption,
+  ExemplaireDraft,
+  NatureOption,
+  PlateformeOption,
+  SupportOption,
+  TypeAccesOption,
+} from './source.types';
 
 type Props = {
   depots: DepotOption[];
@@ -46,6 +54,29 @@ export function ExemplairesStep({
   onAdd,
 }: Props) {
   const selected = exemplaires.find((e) => e.id === selectedExId) ?? null;
+
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // fallback (anciens navigateurs / contexte non sécurisé)
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    setCopied(true);
+    toast.success('ID copié dans le presse-papier');
+    window.setTimeout(() => setCopied(false), 1200);
+  };
 
   const patchSelected = (patch: Partial<ExemplaireDraft>) => {
     if (!selected) return;
@@ -143,7 +174,7 @@ export function ExemplairesStep({
                   .replace(/[\u0300-\u036f]/g, ''); // enlève les accents
 
               const getNature = (natureId?: string | null) =>
-                natureId ? natures.find((n) => n.id === natureId) ?? null : null;
+                natureId ? (natures.find((n) => n.id === natureId) ?? null) : null;
 
               const isComplementNature = (nature: any | null) => {
                 if (!nature) return false;
@@ -193,19 +224,20 @@ export function ExemplairesStep({
               return (
                 <button
                   key={e.id}
-                  type="button"
+                  type='button'
                   onClick={() => setSelectedExId(e.id)}
                   className={[
                     'w-full text-left rounded-md border px-3 py-2 transition',
-                    active ? 'bg-background border-foreground' : 'bg-background/60 hover:bg-background',
+                    active
+                      ? 'bg-background border-foreground'
+                      : 'bg-background/60 hover:bg-background',
                   ].join(' ')}
                 >
-                  <div className="text-sm font-medium truncate">{title}</div>
-                  <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
+                  <div className='text-sm font-medium truncate'>{title}</div>
+                  <div className='text-xs text-muted-foreground truncate'>{subtitle}</div>
                 </button>
               );
             })}
-
           </div>
         </div>
       </div>
@@ -229,6 +261,24 @@ export function ExemplairesStep({
 
             {/* Contenu scrollable */}
             <div className='flex-1 min-h-0 overflow-y-auto p-4'>
+              <div className='space-y-1'>
+                <div className='text-xs font-medium'>id</div>
+
+                <div className='flex gap-2'>
+                  <Input value={selected.id} disabled className='font-mono' />
+
+                  <Button
+                    type='button'
+                    size='icon'
+                    variant='secondary'
+                    onClick={() => copyToClipboard(selected.id)}
+                    title='Copier l’id'
+                    aria-label='Copier l’id'
+                  >
+                    {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+                  </Button>
+                </div>
+              </div>
               <div className='space-y-3'>
                 {/* dépôt */}
                 <div className='space-y-1'>
@@ -272,7 +322,6 @@ export function ExemplairesStep({
                       ))}
                     </select>
                   </div>
-
                 </div>
 
                 <div className='grid gap-2 md:grid-cols-2'>

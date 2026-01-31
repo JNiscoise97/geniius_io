@@ -146,15 +146,26 @@ function bestPickPerExemplaire(picks: any[]): Map<string, ExemplairePick> {
       nature_id: r.nature_id ?? null,
       unite_id: r.unite_id ?? null,
       unite_titre: r.unite_titre ?? null,
+      nature_code: r.nature_code ?? null,
+      nature_label: r.nature_label ?? null,
+      support_id: r.support_id ?? null,
+      support_code: r.support_code ?? null,
+      support_label: r.support_label ?? null,
       cote_locale: r.cote_locale ?? null,
       pagination_type: r.pagination_type ?? null,
+      nb_pages: r.nb_pages,
       depot_nom: r.depot_nom ?? null,
       depot_is_online: r.depot_is_online ?? null,
       depot_is_physical: r.depot_is_physical ?? null,
       institution_nom: r.institution_nom ?? null,
       institution_sigle: r.institution_sigle ?? null,
+      identifiant_interne: r.identifiant_interne,
+      localisation_interne: r.localisation_interne,
+      etat_conservation: r.etat_conservation,
+      qualite: r.qualite,
       url_base: r.url_base ?? null,
       plateforme_code: r.plateforme_code ?? null,
+      source_exemplaire_id: r.source_exemplaire_id ?? null,
     };
 
     const current = bestByManId.get(candidate.exemplaire_id);
@@ -229,7 +240,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data: pickData, error: pickErr } = await supabase
         .from('v_exemplaires_pick')
         .select(
-          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,etat_conservation,qualite',
         )
         .in('exemplaire_id', manIds);
 
@@ -250,18 +261,30 @@ export function useActeCitationsSources(acteId: string) {
         return {
           ...d,
           exemplaire: {
+            exemplaire_id: e.exemplaire_id,
             unite_id: e.unite_id,
             nature_id: e.nature_id,
+            nature_code: e.nature_code,
+            nature_label: e.nature_label,
+            support_id: e.support_id ?? null,
+            support_code: e.support_code ?? null,
+            support_label: e.support_label ?? null,
             unite_titre: e.unite_titre,
             cote_locale: e.cote_locale,
             pagination_type: e.pagination_type,
+            nb_pages: e.nb_pages,
             depot_nom: e.depot_nom,
             depot_is_online: e.depot_is_online,
             depot_is_physical: e.depot_is_physical,
             institution_nom: e.institution_nom,
             institution_sigle: e.institution_sigle,
+            identifiant_interne: e.identifiant_interne,
+            localisation_interne: e.localisation_interne,
+            etat_conservation: e.etat_conservation,
+            qualite: e.qualite,
             url_base: e.url_base,
             plateforme_code: e.plateforme_code,
+            source_exemplaire_id: e.source_exemplaire_id,
           },
         } satisfies CitationDraft;
       });
@@ -442,7 +465,9 @@ export function useTranscriptionTab({ acteId }: Props) {
   const [mmHandwritingStyleLabel, setMmHandwritingStyleLabel] = useState<string | null>(null);
 
   const [mmHandwritingLegibilityRef, setMmHandwritingLegibilityRef] = useState<string | null>(null);
-  const [mmHandwritingLegibilityLabel, setMmHandwritingLegibilityLabel] = useState<string | null>(null);
+  const [mmHandwritingLegibilityLabel, setMmHandwritingLegibilityLabel] = useState<string | null>(
+    null,
+  );
 
   const [mmDateRaw, setMmDateRaw] = useState<string>('');
   const [mmDate, setMmDate] = useState<string>(''); // YYYY-MM-DD
@@ -456,8 +481,12 @@ export function useTranscriptionTab({ acteId }: Props) {
   const [sigKind, setSigKind] = useState<string>('');
   const [sigConfidence, setSigConfidence] = useState<string>('');
   const [sigLegibility, setSigLegibility] = useState<string>('');
-  const [sigHandwritingLegibilityRef, setSigHandwritingLegibilityRef] = useState<string | null>(null);
-  const [sigHandwritingLegibilityLabel, setSigHandwritingLegibilityLabel] = useState<string | null>(null);
+  const [sigHandwritingLegibilityRef, setSigHandwritingLegibilityRef] = useState<string | null>(
+    null,
+  );
+  const [sigHandwritingLegibilityLabel, setSigHandwritingLegibilityLabel] = useState<string | null>(
+    null,
+  );
   const [sigPatternRaw, setSigPatternRaw] = useState<string>(''); // "A;B;C" stocké en text
   const [sigNote, setSigNote] = useState<string>('');
 

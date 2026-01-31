@@ -325,7 +325,7 @@ export default function ReferenceArchiveTab({
       const { data: pickData, error: pickErr } = await supabase
         .from('v_exemplaires_pick')
         .select(
-          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,etat_conservation,qualite',
         )
         .in('exemplaire_id', manIds);
 
@@ -348,17 +348,28 @@ export default function ReferenceArchiveTab({
         const candidate: ExemplairePick = {
           exemplaire_id: r.exemplaire_id,
           nature_id: r.nature_id,
+          nature_code: r.nature_code,
+          nature_label: r.nature_label,
+          support_id: r.support_id,
+          support_code: r.support_code,
+          support_label: r.support_label,
           unite_id: r.unite_id,
           unite_titre: r.unite_titre,
           cote_locale: r.cote_locale,
           pagination_type: r.pagination_type,
+          nb_pages: r.nb_pages,
           depot_nom: r.depot_nom,
           depot_is_online: r.depot_is_online,
           depot_is_physical: r.depot_is_physical,
           institution_nom: r.institution_nom,
           institution_sigle: r.institution_sigle,
+          identifiant_interne: r.identifiant_interne,
+          localisation_interne: r.localisation_interne,
+          etat_conservation: r.etat_conservation,
+          qualite: r.qualite,
           url_base: r.url_base,
           plateforme_code: r.plateforme_code,
+          source_exemplaire_id: r.source_exemplaire_id,
         };
 
         if (!current) {
@@ -381,18 +392,30 @@ export default function ReferenceArchiveTab({
         return {
           ...d,
           exemplaire: {
+            exemplaire_id: e.exemplaire_id,
             unite_id: e.unite_id,
             nature_id: e.nature_id,
             unite_titre: e.unite_titre,
+            nature_code: e.nature_code,
+            nature_label: e.nature_label,
+            support_id: e.support_id,
+            support_code: e.support_code,
+            support_label: e.support_label,
             cote_locale: e.cote_locale,
             pagination_type: e.pagination_type,
+            nb_pages: e.nb_pages,
             depot_nom: e.depot_nom,
             depot_is_online: e.depot_is_online,
             depot_is_physical: e.depot_is_physical,
             institution_nom: e.institution_nom,
             institution_sigle: e.institution_sigle,
+            identifiant_interne: e.identifiant_interne,
+            localisation_interne: e.localisation_interne,
+            etat_conservation: e.etat_conservation,
+            qualite: e.qualite,
             url_base: e.url_base,
             plateforme_code: e.plateforme_code,
+            source_exemplaire_id: e.source_exemplaire_id,
           },
         } satisfies ActeCitationDraft;
       });
@@ -920,7 +943,7 @@ export default function ReferenceArchiveTab({
                 titre='Fonction'
                 values={currentAuteurInstitutionnelLabels}
                 dense
-                actionsInvisible = {false}
+                actionsInvisible={false}
                 onEdit={() =>
                   openDictionnaireAuteurInstitutionnel(
                     'auteur_institutionnel_ref',

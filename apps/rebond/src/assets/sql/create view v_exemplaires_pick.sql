@@ -82,8 +82,12 @@ select
   e.unite_documentaire_id as unite_id,
   e.depot_id,
   e.nature_id,
-  e.source_exemplaire_id,
+  n.libelle as nature_label,
+  n.code as nature_code,
   e.support_id,
+  sup.libelle as support_label,
+  sup.code as support_code,
+  e.source_exemplaire_id,
   e.cote_locale,
   e.identifiant_interne,
   e.localisation_interne,
@@ -91,7 +95,7 @@ select
   e.etat_conservation,
   e.qualite,
   e.pagination_type,
-  e.nb_pages as exemplaire_nb_pages,
+  e.nb_pages,
   e.couverture_label as exemplaire_couverture_label,
   e.couverture_sort_start as exemplaire_couverture_sort_start,
   e.couverture_sort_end as exemplaire_couverture_sort_end,
@@ -137,6 +141,8 @@ from
   left join ref_series_documentaires s on s.id = u.serie_ref
   join ref_depots d on d.id = e.depot_id
   join ref_institutions i on i.id = d.institution_id
+  left join ref_natures n on n.id = e.nature_id
+  left join ref_supports sup on sup.id = e.support_id
   left join best_url bu on bu.exemplaire_id = e.id
   left join agg_bureaux ab on ab.unite_id = u.id
   left join agg_types_actes ata on ata.unite_id = u.id;

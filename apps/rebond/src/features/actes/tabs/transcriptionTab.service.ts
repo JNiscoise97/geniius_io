@@ -186,17 +186,28 @@ export type ActeCitationRow = {
 export type ExemplairePick = {
   exemplaire_id: string;
   nature_id: string | null;
+  nature_code: string | null;
+  nature_label: string | null;
+  support_id: string | null;
+  support_code: string | null;
+  support_label: string | null;
   unite_id: string | null;
   unite_titre: string | null;
   cote_locale: string | null;
   pagination_type: string | null;
+  nb_pages: number | null;
   depot_nom: string | null;
   depot_is_physical: boolean | null;
   depot_is_online: boolean | null;
   institution_nom: string | null;
   institution_sigle: string | null;
+  identifiant_interne: string | null;
+  localisation_interne: string | null;
+  etat_conservation: string | null;
+  qualite: string | null;
   url_base: string | null;
   plateforme_code: string | null;
+  source_exemplaire_id: string | null;
 };
 
 export type CitationDraft = {
@@ -227,20 +238,7 @@ export type CitationDraft = {
   marginal_crossouts_count: number | null;
 
   // enrich
-  exemplaire?: {
-    unite_id: string | null;
-    nature_id: string | null;
-    unite_titre: string | null;
-    cote_locale: string | null;
-    pagination_type: string | null;
-    depot_nom: string | null;
-    depot_is_physical: boolean | null;
-    depot_is_online: boolean | null;
-    institution_nom: string | null;
-    institution_sigle: string | null;
-    url_base: string | null;
-    plateforme_code: string | null;
-  } | null;
+  exemplaire?: ExemplairePick | null;
 };
 
 export type EcSignatureRow = {

@@ -46,12 +46,20 @@ export type ArchiveSourceRow = {
 
 export type ExemplairePick = {
   exemplaire_id: string;
+
   nature_id: string;
+  nature_code?: string;
+  nature_label?: string;
+
+  support_id?: string;
+  support_code?: string;
+  support_label?: string;
 
   unite_id: string;
   unite_titre: string;
   cote_locale: string | null;
   pagination_type: 'vues' | 'pages' | 'folios' | 'images' | null;
+  nb_pages: number | null;
 
   depot_nom: string;
   depot_is_physical: boolean | null;
@@ -59,6 +67,12 @@ export type ExemplairePick = {
 
   institution_nom: string;
   institution_sigle: string | null;
+
+  identifiant_interne: string | null;
+  localisation_interne: string | null;
+
+  etat_conservation: string | null;
+  qualite: string | null;
 
   url_base: string | null;
   plateforme_code: string | null;
@@ -72,6 +86,7 @@ export type ExemplairePick = {
 
   bureau_labels?: string[] | null;
   type_acte_labels?: string[] | null;
+  source_exemplaire_id?: string;
 };
 
 export type ActeCitationDraft = CitationDraftBase & {
@@ -131,11 +146,20 @@ export type CitationDraftBase = {
 };
 
 export type Exemplaire = {
+  exemplaire_id?: string;
   nature_id?: string;
+  nature_code?: string;
+  nature_label?: string;
+
+  support_id?: string;
+  support_code?: string;
+  support_label?: string;
+
   unite_id?: string;
   unite_titre?: string;
   cote_locale?: string | null;
   pagination_type?: string | null;
+  nb_pages: number | null;
 
   depot_nom?: string;
   depot_is_physical: boolean | null;
@@ -144,6 +168,13 @@ export type Exemplaire = {
   institution_nom?: string;
   institution_sigle?: string | null;
 
+  identifiant_interne: string | null;
+  localisation_interne: string | null;
+
+  etat_conservation: string | null;
+  qualite: string | null;
+
   url_base?: string | null;
   plateforme_code?: string | null;
+  source_exemplaire_id?: string;
 };

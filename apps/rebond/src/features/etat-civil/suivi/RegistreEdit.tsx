@@ -229,7 +229,7 @@ export default function RegistreEdit() {
           const { data: pickRows, error: pickErr } = await supabase
             .from(EXEMPLAIRES_PICK_VIEW)
             .select(
-              'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
+              'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,etat_conservation,qualite',
             )
             .in('exemplaire_id', manIds);
 
@@ -239,17 +239,28 @@ export default function RegistreEdit() {
               map.set(r.exemplaire_id, {
                 exemplaire_id: r.exemplaire_id,
                 nature_id: r.nature_id,
+                nature_code: r.nature_code,
+                nature_label: r.nature_label,
+                support_id: r.support_id,
+                support_code: r.support_code,
+                support_label: r.support_label,
                 unite_id: r.unite_id ?? r.exemplaire_id, // fallback
                 unite_titre: r.unite_titre,
                 cote_locale: r.cote_locale,
                 pagination_type: r.pagination_type,
+                nb_pages: r.nb_pages,
                 depot_nom: r.depot_nom,
                 depot_is_online: r.depot_is_online,
                 depot_is_physical: r.depot_is_physical,
                 institution_nom: r.institution_nom,
                 institution_sigle: r.institution_sigle,
+                identifiant_interne: r.identifiant_interne,
+                localisation_interne: r.localisation_interne,
+                etat_conservation: r.etat_conservation,
+                qualite: r.qualite,
                 url_base: r.url_base,
                 plateforme_code: r.plateforme_code,
+                source_exemplaire_id: r.source_exemplaire_id,
               });
             }
 
@@ -259,17 +270,29 @@ export default function RegistreEdit() {
               return {
                 ...d,
                 exemplaire: {
+                  exemplaire_id: r.exemplaire_id,
                   nature_id: r.nature_id,
+                  nature_code: r.nature_code,
+                  nature_label: r.nature_label,
+                  support_id: r.support_id,
+                  support_code: r.support_code,
+                  support_label: r.support_label,
                   unite_titre: r.unite_titre,
                   cote_locale: r.cote_locale,
                   pagination_type: r.pagination_type,
+                  nb_pages: r.nb_pages,
                   depot_nom: r.depot_nom,
                   depot_is_online: r.depot_is_online,
                   depot_is_physical: r.depot_is_physical,
                   institution_nom: r.institution_nom,
                   institution_sigle: r.institution_sigle,
+                  identifiant_interne: r.identifiant_interne,
+                  localisation_interne: r.localisation_interne,
+                  etat_conservation: r.etat_conservation,
+                  qualite: r.qualite,
                   url_base: r.url_base,
                   plateforme_code: r.plateforme_code,
+                  source_exemplaire_id: r.source_exemplaire_id,
                 },
               };
             });
@@ -476,7 +499,7 @@ export default function RegistreEdit() {
       const { data: pickRows, error: pickErr } = await supabase
         .from(EXEMPLAIRES_PICK_VIEW)
         .select(
-          'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code',
+          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,etat_conservation,qualite',
         )
         .in('exemplaire_id', manIds);
 
@@ -486,17 +509,28 @@ export default function RegistreEdit() {
           map.set(r.exemplaire_id, {
             exemplaire_id: r.exemplaire_id,
             nature_id: r.nature_id,
+            nature_code: r.nature_code,
+            nature_label: r.nature_label,
+            support_id: r.support_id,
+            support_code: r.support_code,
+            support_label: r.support_label,
             unite_id: r.unite_id ?? r.exemplaire_id,
             unite_titre: r.unite_titre,
             cote_locale: r.cote_locale,
             pagination_type: r.pagination_type,
+            nb_pages: r.nb_pages,
             depot_nom: r.depot_nom,
             depot_is_online: r.depot_is_online,
             depot_is_physical: r.depot_is_physical,
             institution_nom: r.institution_nom,
             institution_sigle: r.institution_sigle,
+            identifiant_interne: r.identifiant_interne,
+            localisation_interne: r.localisation_interne,
+            etat_conservation: r.etat_conservation,
+            qualite: r.qualite,
             url_base: r.url_base,
             plateforme_code: r.plateforme_code,
+            source_exemplaire_id: r.source_exemplaire_id,
           });
         }
 
@@ -506,17 +540,29 @@ export default function RegistreEdit() {
           return {
             ...d,
             exemplaire: {
+              exemplaire_id: r.exemplaire_id,
               nature_id: r.nature_id,
+              nature_code: r.nature_code,
+              nature_label: r.nature_label,
+              support_id: r.support_id,
+              support_code: r.support_code,
+              support_label: r.support_label,
               unite_titre: r.unite_titre,
               cote_locale: r.cote_locale,
               pagination_type: r.pagination_type,
+              nb_pages: r.nb_pages,
               depot_nom: r.depot_nom,
               depot_is_online: r.depot_is_online,
               depot_is_physical: r.depot_is_physical,
               institution_nom: r.institution_nom,
               institution_sigle: r.institution_sigle,
+              identifiant_interne: r.identifiant_interne,
+              localisation_interne: r.localisation_interne,
+              etat_conservation: r.etat_conservation,
+              qualite: r.qualite,
               url_base: r.url_base,
               plateforme_code: r.plateforme_code,
+              source_exemplaire_id: r.source_exemplaire_id,
             },
           };
         });

@@ -1,4 +1,4 @@
-//ExemplairePickerDialog.tsx
+// ExemplairePickerDialog.tsx
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -14,10 +14,26 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { ExternalLink, Check, Search, Filter, X, Plus } from 'lucide-react';
+import {
+  ExternalLink,
+  Check,
+  Search,
+  Filter,
+  X,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { SourceDialog, type SourceDialogMode } from '@/features/sources/SourceDialog';
 
 type PickerMode = 'acte' | 'registre';
+type NatureCode = 'numerisation' | 'microfilm' | 'original';
+
+function badgeType(code: string | null | undefined) {
+  if (code === 'numerisation') return 'Numérisation';
+  if (code === 'microfilm') return 'Microfilm';
+  return 'Original';
+}
 
 type Props = {
   open: boolean;
@@ -25,6 +41,11 @@ type Props = {
 
   mode: PickerMode;
   registreId?: string | null;
+
+  /**
+   * Liste des exemplaire_id déjà liés à l’acte.
+   * ⚠️ Doivent apparaître grisés + label “déjà lié”, consultables, mais non sélectionnables.
+   */
   excludeExemplaireIds?: string[];
 
   onlyOnline: boolean;
@@ -38,13 +59,10 @@ type Props = {
 
 // mêmes champs que dans tes queries supabase (v_exemplaires_pick)
 const PICK_SELECT =
-  'exemplaire_id,nature_id,unite_id,unite_titre,cote_locale,pagination_type,depot_nom,depot_is_online, depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code';
-
-function badgeType(t: ExemplairePick['nature_id']) {
-  if (t === 'numerisation') return 'Numérisation';
-  if (t === 'microfilm') return 'Microfilm';
-  return 'Original';
-}
+  'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,' +
+  'pagination_type,nb_pages,identifiant_interne,localisation_interne,qualite,etat_conservation,' +
+  'depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,' +
+  'url_base,plateforme_code,source_exemplaire_id';
 
 function isOnline(r: ExemplairePick) {
   return r.depot_is_online || Boolean((r.url_base ?? '').trim());
@@ -54,10 +72,22 @@ function normalizeRows(rows: any[]): ExemplairePick[] {
   return (rows ?? []).map((r) => ({
     exemplaire_id: r.exemplaire_id,
     nature_id: r.nature_id,
+    nature_code: r.nature_code,
+    nature_label: r.nature_label,
+    support_id: r.support_id,
+    support_code: r.support_code,
+    support_label: r.support_label,
     unite_id: r.unite_id,
     unite_titre: r.unite_titre,
     cote_locale: r.cote_locale,
+
     pagination_type: r.pagination_type,
+    nb_pages: r.nb_pages,
+    identifiant_interne: r.identifiant_interne,
+    localisation_interne: r.localisation_interne,
+    qualite: r.qualite,
+    etat_conservation: r.etat_conservation,
+
     depot_nom: r.depot_nom,
     depot_is_online: r.depot_is_online,
     depot_is_physical: r.depot_is_physical,
@@ -65,7 +95,185 @@ function normalizeRows(rows: any[]): ExemplairePick[] {
     institution_sigle: r.institution_sigle,
     url_base: r.url_base,
     plateforme_code: r.plateforme_code,
+    source_exemplaire_id: r.source_exemplaire_id,
   }));
+}
+
+type TreeInstitutionNode = {
+  kind: 'institution';
+  key: string;
+  label: string;
+  count: number;
+  children: TreeDepotNode[];
+};
+
+type TreeDepotNode = {
+  kind: 'depot';
+  key: string;
+  label: string;
+  online: boolean;
+  count: number;
+  children: TreeUniteNode[];
+};
+
+type TreeUniteNode = {
+  kind: 'unite';
+  key: string;
+  uniteId: string;
+  label: string;
+  count: number;
+  children: TreeLeafNode[];
+};
+
+type TreeLeafNode = {
+  kind: 'leaf';
+  key: string;
+  row: ExemplairePick;
+};
+
+function safeLabel(x: string | null | undefined, fallback = '—') {
+  const s = (x ?? '').trim();
+  return s.length ? s : fallback;
+}
+
+function buildTree(rows: ExemplairePick[]): TreeInstitutionNode[] {
+  // Institution -> Depot -> Unite -> Exemplaires
+  const instMap = new Map<
+    string,
+    {
+      label: string;
+      depots: Map<
+        string,
+        {
+          label: string;
+          online: boolean;
+          unites: Map<
+            string,
+            {
+              uniteId: string;
+              label: string;
+              rows: ExemplairePick[];
+            }
+          >;
+        }
+      >;
+    }
+  >();
+
+  for (const r of rows) {
+    const instLabel = safeLabel(r.institution_sigle || r.institution_nom);
+    const instKey = `inst:${instLabel}`;
+
+    const depotLabel = safeLabel(r.depot_nom);
+    const depotKey = `depot:${instLabel}||${depotLabel}`;
+    const depotOnline = Boolean(r.depot_is_online) || Boolean((r.url_base ?? '').trim());
+
+    const uniteId = r.unite_id;
+    const uniteLabel = safeLabel(r.unite_titre);
+    const uniteKey = `unite:${uniteId}`;
+
+    if (!instMap.has(instKey)) {
+      instMap.set(instKey, { label: instLabel, depots: new Map() });
+    }
+    const inst = instMap.get(instKey)!;
+
+    if (!inst.depots.has(depotKey)) {
+      inst.depots.set(depotKey, { label: depotLabel, online: depotOnline, unites: new Map() });
+    }
+    const depot = inst.depots.get(depotKey)!;
+    depot.online = depot.online || depotOnline;
+
+    if (!depot.unites.has(uniteKey)) {
+      depot.unites.set(uniteKey, { uniteId, label: uniteLabel, rows: [] });
+    }
+    depot.unites.get(uniteKey)!.rows.push(r);
+  }
+
+  const institutions: TreeInstitutionNode[] = Array.from(instMap.entries())
+    .map(([instKey, inst]) => {
+      const depots: TreeDepotNode[] = Array.from(inst.depots.entries())
+        .map(([depotKey, d]) => {
+          const unites: TreeUniteNode[] = Array.from(d.unites.entries())
+            .map(([uniteKey, u]) => {
+              const sortedLeaves = u.rows.slice().sort((a, b) => {
+                const ao = isOnline(a) ? 0 : 1;
+                const bo = isOnline(b) ? 0 : 1;
+                if (ao !== bo) return ao - bo;
+
+                const na = badgeType(a.nature_code).localeCompare(badgeType(b.nature_code));
+                if (na !== 0) return na;
+
+                const ca = (a.cote_locale ?? '').localeCompare(b.cote_locale ?? '');
+                if (ca !== 0) return ca;
+
+                return (a.exemplaire_id ?? '').localeCompare(b.exemplaire_id ?? '');
+              });
+
+              const leaves: TreeLeafNode[] = sortedLeaves.map((row) => ({
+                kind: 'leaf' as const,
+                key: `leaf:${row.exemplaire_id}`,
+                row,
+              }));
+
+              return {
+                kind: 'unite' as const,
+                key: uniteKey,
+                uniteId: u.uniteId,
+                label: u.label,
+                count: leaves.length,
+                children: leaves,
+              };
+            })
+            .sort((a, b) => a.label.localeCompare(b.label));
+
+          const count = unites.reduce((acc, u) => acc + u.count, 0);
+
+          return {
+            kind: 'depot' as const,
+            key: depotKey,
+            label: d.label,
+            online: d.online,
+            count,
+            children: unites,
+          };
+        })
+        .sort((a, b) => {
+          if (a.online !== b.online) return a.online ? -1 : 1;
+          return a.label.localeCompare(b.label);
+        });
+
+      const count = depots.reduce((acc, d) => acc + d.count, 0);
+
+      return {
+        kind: 'institution' as const,
+        key: instKey,
+        label: inst.label,
+        count,
+        children: depots,
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  return institutions;
+}
+
+function Chip({
+  children,
+  variant = 'outline',
+  className = '',
+}: {
+  children: React.ReactNode;
+  variant?: 'outline' | 'secondary';
+  className?: string;
+}) {
+  return (
+    <Badge
+      variant={variant}
+      className={['text-[11px] px-2 py-0.5 rounded-full', className].join(' ')}
+    >
+      {children}
+    </Badge>
+  );
 }
 
 export function ExemplairePickerDialog({
@@ -81,11 +289,21 @@ export function ExemplairePickerDialog({
   onPick,
 }: Props) {
   // UI
-  const [typeFilter, setTypeFilter] = useState<ExemplairePick['nature_id'] | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<NatureCode | 'all'>('all');
   const [institutionFilter, setInstitutionFilter] = useState<string>('all');
+  const [onlyAlreadyLinked, setOnlyAlreadyLinked] = useState(false);
   const [sort, setSort] = useState<'relevance' | 'institution' | 'title'>('relevance');
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Tree expand/collapse state
+  const [openNodes, setOpenNodes] = useState<Record<string, boolean>>({});
+  const toggleNode = (key: string) =>
+    setOpenNodes((m) => ({
+      ...m,
+      [key]: !m[key],
+    }));
+  const isNodeOpen = (key: string) => Boolean(openNodes[key]);
 
   // DATA
   const [loadingRegistre, setLoadingRegistre] = useState(false);
@@ -97,7 +315,7 @@ export function ExemplairePickerDialog({
   const [searchRows, setSearchRows] = useState<ExemplairePick[]>([]);
 
   // Local rows created in UI (no DB yet)
-  const [localRows, setLocalRows] = useState<ExemplairePick[]>([]);
+  const [localRows] = useState<ExemplairePick[]>([]);
 
   const [modeCreate, setModeCreate] = useState<SourceDialogMode | null>(null);
 
@@ -118,29 +336,9 @@ export function ExemplairePickerDialog({
 
   const institutions = useMemo(() => {
     const set = new Set<string>();
-    for (const r of allLoadedRows) {
-      set.add(r.institution_sigle || r.institution_nom);
-    }
+    for (const r of allLoadedRows) set.add(safeLabel(r.institution_sigle || r.institution_nom));
     return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [allLoadedRows]);
-
-  const [depots, setDepots] = useState<{ id: string; nom: string }[]>([]);
-  useEffect(() => {
-    if (!openCreate) return;
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('ref_depots')
-        .select('id, nom')
-        .order('nom', { ascending: true })
-        .limit(500);
-      if (cancelled) return;
-      if (!error) setDepots((data ?? []) as any);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [openCreate]);
 
   // ---------------------------------------------------------------------------
   // Reset léger à l’ouverture
@@ -150,6 +348,7 @@ export function ExemplairePickerDialog({
     setErrRegistre(null);
     setErrSearch(null);
     setSelectedId(null);
+    setOpenNodes({});
     // garde q/onlyOnline contrôlés par le parent
   }, [open]);
 
@@ -201,7 +400,7 @@ export function ExemplairePickerDialog({
       for (const id of orderedIds) {
         if (seen.has(id)) continue;
         seen.add(id);
-        if (excludedSet.has(id)) continue;
+        // ✅ on NE filtre plus les ids déjà liés => on les affiche grisés
         uniqOrderedIds.push(id);
       }
 
@@ -217,7 +416,7 @@ export function ExemplairePickerDialog({
         .in('exemplaire_id', uniqOrderedIds);
 
       if (onlyOnline) {
-        query = query.or('depot_is_online.eq.true,url_base.not.is.null');
+        query = query.or('depot_is_online.eq.true,url_base.not.is.null,url_base.neq.""');
       }
 
       const { data: pickData, error: pickErr } = await query.limit(200);
@@ -233,17 +432,21 @@ export function ExemplairePickerDialog({
 
       const rows = normalizeRows(pickData as any[]);
 
+      // conserve l'ordre donné par registre_citations
       const order = new Map(uniqOrderedIds.map((id, i) => [id, i]));
       rows.sort(
         (a, b) => (order.get(a.exemplaire_id) ?? 9999) - (order.get(b.exemplaire_id) ?? 9999),
       );
 
       let filtered = rows;
-      if (typeFilter !== 'all') filtered = filtered.filter((r) => r.nature_id === typeFilter);
-      if (institutionFilter !== 'all')
+      if (typeFilter !== 'all') filtered = filtered.filter((r) => r.nature_code === typeFilter);
+      if (institutionFilter !== 'all') {
         filtered = filtered.filter(
           (r) => (r.institution_sigle || r.institution_nom) === institutionFilter,
         );
+      }
+
+      filtered = applyAlreadyLinkedFilter(filtered);
 
       setRegistreRows(filtered);
       setLoadingRegistre(false);
@@ -252,7 +455,16 @@ export function ExemplairePickerDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, mode, registreId, excludedKey, onlyOnline, typeFilter, institutionFilter, refreshKey]);
+  }, [
+    open,
+    mode,
+    registreId,
+    onlyOnline,
+    typeFilter,
+    institutionFilter,
+    onlyAlreadyLinked,
+    refreshKey,
+  ]);
 
   // ---------------------------------------------------------------------------
   // Section "Recherche globale" (v_exemplaires_pick)
@@ -261,7 +473,6 @@ export function ExemplairePickerDialog({
     if (!open) return;
 
     const needle = q.trim();
-
     if (!needle) {
       setSearchRows([]);
       setErrSearch(null);
@@ -288,33 +499,27 @@ export function ExemplairePickerDialog({
       );
 
       if (onlyOnline) {
-        query = query.or('depot_is_online.eq.true,url_base.not.is.null');
+        query = query.or('depot_is_online.eq.true,url_base.not.is.null,url_base.neq.""');
       }
 
       if (typeFilter !== 'all') {
-        query = query.eq('nature_id', typeFilter);
+        query = query.eq('nature_code', typeFilter);
       }
 
-      if (institutionFilter !== 'all') {
-        query = query.or(
-          `institution_sigle.eq.${institutionFilter},institution_nom.eq.${institutionFilter}`,
-        );
-      }
-
-      if (excludeExemplaireIds.length) {
-        const quoted = excludeExemplaireIds.map((id) => `"${id}"`).join(',');
-        query = query.not('exemplaire_id', 'in', `(${quoted})`);
-      }
+      // ✅ on NE filtre plus les ids déjà liés => on les affiche grisés
+      // (on garde excludedSet côté UI pour désactiver le “Choisir”)
 
       if (sort === 'institution') {
         query = query
           .order('institution_sigle', { ascending: true })
+          .order('depot_nom', { ascending: true })
           .order('unite_titre', { ascending: true });
       } else if (sort === 'title') {
         query = query.order('unite_titre', { ascending: true });
       } else {
         query = query
           .order('institution_sigle', { ascending: true })
+          .order('depot_nom', { ascending: true })
           .order('unite_titre', { ascending: true });
       }
 
@@ -326,7 +531,18 @@ export function ExemplairePickerDialog({
         setErrSearch(error.message);
         setSearchRows([]);
       } else {
-        setSearchRows(normalizeRows(data as any[]));
+        let rows = normalizeRows(data as any[]);
+
+        // (optionnel mais cohérent : appliquer institutionFilter aussi ici si tu veux)
+        if (institutionFilter !== 'all') {
+          rows = rows.filter(
+            (r) => (r.institution_sigle || r.institution_nom) === institutionFilter,
+          );
+        }
+
+        rows = applyAlreadyLinkedFilter(rows);
+
+        setSearchRows(rows);
       }
 
       setLoadingSearch(false);
@@ -335,7 +551,7 @@ export function ExemplairePickerDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, q, onlyOnline, typeFilter, institutionFilter, sort, excludedKey, refreshKey]);
+  }, [open, q, onlyOnline, typeFilter, institutionFilter, onlyAlreadyLinked, sort, refreshKey]);
 
   // ---------------------------------------------------------------------------
   // Sélection & preview
@@ -348,55 +564,214 @@ export function ExemplairePickerDialog({
     return all.find((r) => r.exemplaire_id === id) ?? null;
   }, [selectedId, allLoadedRows]);
 
+  const selectedIsAlreadyLinked = Boolean(selected && excludedSet.has(selected.exemplaire_id));
+
   function resetFilters() {
     setOnlyOnline(false);
     setTypeFilter('all');
     setInstitutionFilter('all');
     setSort('relevance');
+    setOnlyAlreadyLinked(false);
   }
 
-  function ResultRow({ r }: { r: ExemplairePick }) {
-    const active = selected?.exemplaire_id === r.exemplaire_id;
-    const online = isOnline(r);
-    const sig = r.institution_sigle || r.institution_nom;
+  // ---------------------------------------------------------------------------
+  // TreeView rendering
+  // ---------------------------------------------------------------------------
+  function TreeLeafRow({ row }: { row: ExemplairePick }) {
+    const active = selected?.exemplaire_id === row.exemplaire_id;
+    const alreadyLinked = excludedSet.has(row.exemplaire_id);
+
+    const showUrl = active && Boolean((row.url_base ?? '').trim());
+    const cote = (row.cote_locale ?? '').trim();
 
     return (
       <button
         type='button'
-        onClick={() => setSelectedId(r.exemplaire_id)}
+        onClick={() => setSelectedId(row.exemplaire_id)}
         className={[
           'w-full rounded-xl border p-3 text-left transition',
           active ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:bg-slate-50',
+          alreadyLinked ? 'opacity-60' : '',
         ].join(' ')}
       >
+        {/* LIGNE 1 */}
         <div className='flex flex-wrap items-center gap-2'>
-          <div className='text-sm font-semibold text-slate-900'>{r.unite_titre}</div>
+          {alreadyLinked ? (
+            <Chip className='border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-100'>
+              <span className='inline-flex items-center gap-1'>
+                <Check className='h-3.5 w-3.5' />
+                Déjà lié
+              </span>
+            </Chip>
+          ) : null}
 
-          <Badge variant='secondary'>{sig}</Badge>
-          <Badge variant='outline'>{badgeType(r.nature_id)}</Badge>
+          <Chip variant='outline'>{badgeType(row.nature_code)}</Chip>
 
-          {online ? (
-            <Badge className='border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
-              En ligne
-            </Badge>
+          {row.support_label ? <Chip variant='secondary'>Support: {row.support_label}</Chip> : null}
+
+          {cote ? (
+            <Chip variant='secondary'>Cote: {cote}</Chip>
           ) : (
-            <Badge className='border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
-              Sur place
-            </Badge>
+            <Chip variant='secondary'>Cote: —</Chip>
           )}
+
+          {row.nb_pages && row.pagination_type ? (
+            <Chip variant='outline'>
+              Pagination: {row.nb_pages} {row.pagination_type}
+            </Chip>
+          ) : null}
         </div>
 
-        <div className='mt-1 text-xs text-slate-600'>
-          {r.institution_nom} · {r.depot_nom}
-          {r.cote_locale ? ` · ${r.cote_locale}` : ''}
+        {/* LIGNE 2 */}
+        {row.identifiant_interne ||
+        row.localisation_interne ||
+        row.qualite ||
+        row.etat_conservation ? (
+          <div className='mt-2 flex flex-wrap items-center gap-2'>
+            {row.identifiant_interne ? (
+              <Chip variant='outline'>Identifiant interne: {row.identifiant_interne}</Chip>
+            ) : null}
+
+            {row.localisation_interne ? (
+              <Chip variant='outline'>Localisation interne: {row.localisation_interne}</Chip>
+            ) : null}
+
+            {row.qualite ? <Chip variant='outline'>Qualité: {row.qualite}</Chip> : null}
+
+            {row.etat_conservation ? (
+              <Chip variant='outline'>État de conservation: {row.etat_conservation}</Chip>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className='mt-2 text-xs text-slate-600'>
+          {safeLabel(row.institution_nom)} · {safeLabel(row.depot_nom)} ·{' '}
+          <span className='font-medium text-slate-800'>{safeLabel(row.unite_titre)}</span>
         </div>
 
-        {r.url_base ? (
-          <div className='mt-2 text-[11px] text-slate-500 break-all'>
-            URL: <span className='font-mono'>{r.url_base}</span>
+        {showUrl ? (
+          <div className='mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2'>
+            <div className='text-[11px] text-slate-500 mb-1'>URL</div>
+            <div className='text-xs text-slate-700 break-all font-mono'>{row.url_base}</div>
           </div>
         ) : null}
       </button>
+    );
+  }
+
+  function applyAlreadyLinkedFilter(rows: ExemplairePick[]) {
+    if (!onlyAlreadyLinked) return rows;
+    return rows.filter((r) => excludedSet.has(r.exemplaire_id));
+  }
+
+  function TreeView({ rows, empty }: { rows: ExemplairePick[]; empty: React.ReactNode }) {
+    if (!rows.length) return <>{empty}</>;
+
+    const tree = buildTree(rows);
+
+    return (
+      <div className='space-y-2 pb-28'>
+        {tree.map((inst) => (
+          <div key={inst.key} className='rounded-2xl border border-slate-200 bg-white'>
+            <button
+              type='button'
+              onClick={() => toggleNode(inst.key)}
+              className='w-full px-3 py-2 flex items-center justify-between text-left'
+            >
+              <div className='flex items-center gap-2'>
+                {isNodeOpen(inst.key) ? (
+                  <ChevronDown className='h-4 w-4 text-slate-600' />
+                ) : (
+                  <ChevronRight className='h-4 w-4 text-slate-600' />
+                )}
+                <div className='text-sm font-semibold text-slate-900'>{inst.label}</div>
+                <Badge variant='secondary' className='text-[11px]'>
+                  {inst.count}
+                </Badge>
+              </div>
+            </button>
+
+            {isNodeOpen(inst.key) ? (
+              <div className='px-3 pb-3 space-y-2'>
+                {inst.children.map((depot) => (
+                  <div key={depot.key} className='rounded-xl border border-slate-200 bg-slate-50'>
+                    <button
+                      type='button'
+                      onClick={() => toggleNode(depot.key)}
+                      className='w-full px-3 py-2 flex items-center justify-between text-left'
+                    >
+                      <div className='flex items-center gap-2'>
+                        {isNodeOpen(depot.key) ? (
+                          <ChevronDown className='h-4 w-4 text-slate-600' />
+                        ) : (
+                          <ChevronRight className='h-4 w-4 text-slate-600' />
+                        )}
+                        <div className='text-sm font-medium text-slate-900'>{depot.label}</div>
+
+                        {depot.online ? (
+                          <Chip className='border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
+                            En ligne
+                          </Chip>
+                        ) : (
+                          <Chip className='border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
+                            Sur place
+                          </Chip>
+                        )}
+
+                        <Badge variant='secondary' className='text-[11px]'>
+                          {depot.count}
+                        </Badge>
+                      </div>
+                    </button>
+
+                    {isNodeOpen(depot.key) ? (
+                      <div className='px-3 pb-3 space-y-2'>
+                        {depot.children.map((unite) => (
+                          <div
+                            key={unite.key}
+                            className='rounded-xl border border-slate-200 bg-white'
+                          >
+                            <button
+                              type='button'
+                              onClick={() => toggleNode(unite.key)}
+                              className='w-full px-3 py-2 flex items-center justify-between text-left'
+                            >
+                              <div className='flex items-start gap-2'>
+                                {isNodeOpen(unite.key) ? (
+                                  <ChevronDown className='h-4 w-4 text-slate-600 mt-0.5' />
+                                ) : (
+                                  <ChevronRight className='h-4 w-4 text-slate-600 mt-0.5' />
+                                )}
+
+                                <div>
+                                  <div className='text-sm font-semibold text-slate-900'>
+                                    {unite.label}
+                                  </div>
+                                  <div className='mt-1 flex flex-wrap items-center gap-2'>
+                                    <Chip variant='secondary'>Exemplaires: {unite.count}</Chip>
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+
+                            {isNodeOpen(unite.key) ? (
+                              <div className='px-3 pb-3 space-y-2'>
+                                {unite.children.map((leaf) => (
+                                  <TreeLeafRow key={leaf.key} row={leaf.row} />
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
     );
   }
 
@@ -497,6 +872,21 @@ export function ExemplairePickerDialog({
                     </select>
                   </div>
 
+                  <button
+                    type='button'
+                    onClick={() => setOnlyAlreadyLinked((v) => !v)}
+                    className={[
+                      'inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs',
+                      onlyAlreadyLinked
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50',
+                    ].join(' ')}
+                    title='Afficher uniquement les exemplaires déjà liés'
+                  >
+                    <Check className='h-3.5 w-3.5' />
+                    Déjà liés
+                  </button>
+
                   {/* sort */}
                   <div className='inline-flex rounded-lg border border-slate-200 overflow-hidden'>
                     <select
@@ -532,29 +922,31 @@ export function ExemplairePickerDialog({
                   {mode === 'acte' ? (
                     <TabsContent value='registre' className='mt-3 flex-1 min-h-0'>
                       <div className='text-xs text-slate-600 mb-2'>
-                        {registreTitle} — exclut ce qui est déjà lié à l’acte.
+                        {registreTitle} — les lignes “déjà lié” sont consultables mais non
+                        sélectionnables.
                       </div>
 
                       <ScrollArea className='h-full pr-3'>
-                        <div className='space-y-2 pb-28'>
-                          {loadingRegistre ? (
-                            <div className='text-sm text-slate-600'>Chargement…</div>
-                          ) : errRegistre ? (
-                            <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
-                              {errRegistre}
-                            </div>
-                          ) : !registreId ? (
-                            <div className='text-sm text-slate-600'>
-                              Aucun registre associé (registreId absent).
-                            </div>
-                          ) : registreRows.length === 0 ? (
-                            <div className='text-sm text-slate-600'>
-                              Aucune suggestion (tout est exclu ou ne correspond pas aux filtres).
-                            </div>
-                          ) : (
-                            registreRows.map((r) => <ResultRow key={r.exemplaire_id} r={r} />)
-                          )}
-                        </div>
+                        {loadingRegistre ? (
+                          <div className='text-sm text-slate-600'>Chargement…</div>
+                        ) : errRegistre ? (
+                          <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
+                            {errRegistre}
+                          </div>
+                        ) : !registreId ? (
+                          <div className='text-sm text-slate-600'>
+                            Aucun registre associé (registreId absent).
+                          </div>
+                        ) : registreRows.length === 0 ? (
+                          <div className='text-sm text-slate-600'>
+                            Aucune suggestion (rien ne correspond aux filtres).
+                          </div>
+                        ) : (
+                          <TreeView
+                            rows={registreRows}
+                            empty={<div className='text-sm text-slate-600'>Aucune suggestion.</div>}
+                          />
+                        )}
                       </ScrollArea>
                     </TabsContent>
                   ) : null}
@@ -566,27 +958,28 @@ export function ExemplairePickerDialog({
                     </div>
 
                     <ScrollArea className='h-full pr-3'>
-                      <div className='space-y-2 pb-28'>
-                        {!q.trim() ? (
-                          <div className='text-sm text-slate-600'>
-                            Saisis un terme pour lancer la recherche.
+                      {!q.trim() ? (
+                        <div className='text-sm text-slate-600'>
+                          Saisis un terme pour lancer la recherche.
+                        </div>
+                      ) : loadingSearch ? (
+                        <div className='text-sm text-slate-600'>Recherche…</div>
+                      ) : errSearch ? (
+                        <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
+                          {errSearch}
+                          <div className='mt-1 text-xs text-red-700'>
+                            Astuce : vérifie la vue{' '}
+                            <span className='font-mono'>v_exemplaires_pick</span>.
                           </div>
-                        ) : loadingSearch ? (
-                          <div className='text-sm text-slate-600'>Recherche…</div>
-                        ) : errSearch ? (
-                          <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
-                            {errSearch}
-                            <div className='mt-1 text-xs text-red-700'>
-                              Astuce : vérifie la vue{' '}
-                              <span className='font-mono'>v_exemplaires_pick</span>.
-                            </div>
-                          </div>
-                        ) : searchRows.length === 0 ? (
-                          <div className='text-sm text-slate-600'>Aucun résultat.</div>
-                        ) : (
-                          searchRows.map((r) => <ResultRow key={r.exemplaire_id} r={r} />)
-                        )}
-                      </div>
+                        </div>
+                      ) : searchRows.length === 0 ? (
+                        <div className='text-sm text-slate-600'>Aucun résultat.</div>
+                      ) : (
+                        <TreeView
+                          rows={searchRows}
+                          empty={<div className='text-sm text-slate-600'>Aucun résultat.</div>}
+                        />
+                      )}
                     </ScrollArea>
                   </TabsContent>
 
@@ -596,11 +989,12 @@ export function ExemplairePickerDialog({
                         Sources créées localement (IHM) — à brancher DB ensuite.
                       </div>
                       <ScrollArea className='h-full pr-3'>
-                        <div className='space-y-2 pb-28'>
-                          {localRows.map((r) => (
-                            <ResultRow key={r.exemplaire_id} r={r} />
-                          ))}
-                        </div>
+                        <TreeView
+                          rows={localRows}
+                          empty={
+                            <div className='text-sm text-slate-600'>Aucune source locale.</div>
+                          }
+                        />
                       </ScrollArea>
                     </TabsContent>
                   ) : null}
@@ -639,90 +1033,240 @@ export function ExemplairePickerDialog({
                   </div>
 
                   <Button
-                    disabled={!selected}
+                    disabled={!selected || selectedIsAlreadyLinked}
                     onClick={() => {
                       if (!selected) return;
+                      if (excludedSet.has(selected.exemplaire_id)) return;
                       onPick(selected);
                       onOpenChange(false);
                     }}
+                    title={
+                      !selected
+                        ? undefined
+                        : selectedIsAlreadyLinked
+                          ? 'Cet exemplaire est déjà lié à l’acte.'
+                          : undefined
+                    }
                   >
                     <Check className='h-4 w-4 mr-2' />
                     Choisir
                   </Button>
                 </div>
 
+                {selectedIsAlreadyLinked ? (
+                  <div className='mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700'>
+                    <span className='inline-flex items-center gap-2'>
+                      <Check className='h-4 w-4 text-slate-700' />
+                      Déjà lié à l’acte — consultable, non sélectionnable.
+                    </span>
+                  </div>
+                ) : null}
+
                 <Separator className='my-4' />
 
                 {!selected ? (
                   <div className='text-sm text-slate-600'>Aucune sélection.</div>
                 ) : (
-                  <div className='space-y-3'>
-                    <div>
-                      <div className='text-xs text-slate-500'>Unité</div>
-                      <div className='text-sm font-semibold text-slate-900'>
-                        {selected.unite_titre}
+                  <div className='space-y-4'>
+                    {/* Header compact */}
+                    <div className='rounded-xl border border-slate-200 bg-slate-50 p-3'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        {selectedIsAlreadyLinked ? (
+                          <Badge className='border border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-100'>
+                            <span className='inline-flex items-center gap-1'>
+                              <Check className='h-4 w-4' />
+                              Déjà lié
+                            </span>
+                          </Badge>
+                        ) : null}
+
+                        <Badge variant='secondary'>
+                          {selected.institution_sigle || selected.institution_nom}
+                        </Badge>
+
+                        <Badge variant='outline'>{badgeType(selected.nature_code)}</Badge>
+
+                        {selected.support_label ? (
+                          <Badge variant='outline'>Support : {selected.support_label}</Badge>
+                        ) : null}
+
+                        {isOnline(selected) ? (
+                          <Badge className='border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
+                            En ligne
+                          </Badge>
+                        ) : (
+                          <Badge className='border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
+                            Sur place
+                          </Badge>
+                        )}
                       </div>
-                      <div className='text-xs text-slate-600'>
+
+                      <div className='mt-2'>
+                        <div className='text-xs text-slate-500'>Unité</div>
+                        <div className='text-sm font-semibold text-slate-900'>
+                          {selected.unite_titre}
+                        </div>
+                      </div>
+
+                      <div className='mt-1 text-xs text-slate-600'>
+                        {selected.depot_nom} ·{' '}
                         {selected.cote_locale ? `Cote : ${selected.cote_locale}` : 'Cote : —'}
                       </div>
                     </div>
 
-                    <div className='flex flex-wrap gap-2'>
-                      <Badge variant='secondary'>
-                        {selected.institution_sigle || selected.institution_nom}
-                      </Badge>
-                      <Badge variant='outline'>{badgeType(selected.nature_id)}</Badge>
-
-                      {isOnline(selected) ? (
-                        <Badge className='border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
-                          En ligne
-                        </Badge>
-                      ) : (
-                        <Badge className='border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
-                          Sur place
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className='text-xs text-slate-500'>Dépôt</div>
-                      <div className='text-sm text-slate-900'>{selected.depot_nom}</div>
-                      <div className='text-xs text-slate-600'>
-                        Type : {selected.depot_is_online ? 'en ligne' : 'physique'}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className='text-xs text-slate-500'>Accès</div>
-                      {selected.url_base ? (
-                        <div className='flex items-center justify-between gap-2'>
-                          <div className='text-xs text-slate-700 break-all font-mono'>
-                            {selected.url_base}
+                    {/* Bloc: Exemplaire */}
+                    <div className='rounded-xl border border-slate-200 p-3'>
+                      <div className='text-xs font-semibold text-slate-900'>Exemplaire</div>
+                      <div className='mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <div>
+                          <div className='text-[11px] text-slate-500'>ID exemplaire</div>
+                          <div className='text-xs font-mono break-all text-slate-800'>
+                            {selected.exemplaire_id}
                           </div>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => window.open(selected.url_base!, '_blank')}
-                          >
-                            <ExternalLink className='h-4 w-4 mr-2' />
-                            Ouvrir
-                          </Button>
                         </div>
-                      ) : (
-                        <div className='text-sm text-slate-600'>
-                          Pas de lien (consultation sur place).
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>
+                            Source exemplaire (copie de)
+                          </div>
+                          <div className='text-xs font-mono break-all text-slate-800'>
+                            {selected.source_exemplaire_id || '—'}
+                          </div>
                         </div>
-                      )}
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Nature</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.nature_label || badgeType(selected.nature_code)}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Support</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.support_label ? selected.support_label : '—'}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Pagination</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.nb_pages && selected.pagination_type
+                              ? `${selected.nb_pages} ${selected.pagination_type}`
+                              : selected.pagination_type
+                                ? selected.pagination_type
+                                : '—'}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Qualité</div>
+                          <div className='text-xs text-slate-800'>{selected.qualite || '—'}</div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>État de conservation</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.etat_conservation || '—'}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Identifiant interne</div>
+                          <div className='text-xs text-slate-800 break-all'>
+                            {selected.identifiant_interne || '—'}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Localisation interne</div>
+                          <div className='text-xs text-slate-800 break-all'>
+                            {selected.localisation_interne || '—'}
+                          </div>
+                        </div>
+
+                        <div className='sm:col-span-2'>
+                          <div className='text-[11px] text-slate-500'>Cote locale</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.cote_locale || '—'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className='rounded-xl bg-slate-50 border border-slate-200 p-3'>
-                      <div className='text-xs text-slate-600'>
-                        <span className='font-semibold'>ID exemplaire :</span>{' '}
-                        <span className='font-mono'>{selected.exemplaire_id}</span>
+                    {/* Bloc: Unité + Dépôt + Institution */}
+                    <div className='rounded-xl border border-slate-200 p-3'>
+                      <div className='text-xs font-semibold text-slate-900'>Localisation</div>
+
+                      <div className='mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <div>
+                          <div className='text-[11px] text-slate-500'>ID unité</div>
+                          <div className='text-xs font-mono break-all text-slate-800'>
+                            {selected.unite_id}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Dépôt</div>
+                          <div className='text-xs text-slate-800'>{selected.depot_nom}</div>
+                          <div className='text-[11px] text-slate-500 mt-1'>
+                            {selected.depot_is_online ? 'Dépôt en ligne' : null}
+                            {selected.depot_is_physical
+                              ? (selected.depot_is_online ? ' · ' : '') + 'Dépôt physique'
+                              : null}
+                            {!selected.depot_is_online && !selected.depot_is_physical ? '—' : null}
+                          </div>
+                        </div>
+
+                        <div className='sm:col-span-2'>
+                          <div className='text-[11px] text-slate-500'>Institution</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.institution_nom || '—'}
+                            {selected.institution_sigle ? (
+                              <span className='text-slate-500'>
+                                {' '}
+                                · {selected.institution_sigle}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
-                      <div className='text-xs text-slate-600'>
-                        <span className='font-semibold'>ID unité :</span>{' '}
-                        <span className='font-mono'>{selected.unite_id}</span>
+                    </div>
+
+                    {/* Bloc: Accès */}
+                    <div className='rounded-xl border border-slate-200 p-3'>
+                      <div className='text-xs font-semibold text-slate-900'>Accès</div>
+
+                      <div className='mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <div>
+                          <div className='text-[11px] text-slate-500'>Plateforme</div>
+                          <div className='text-xs text-slate-800'>
+                            {selected.plateforme_code || '—'}
+                          </div>
+                        </div>
+
+                        <div className='sm:col-span-2'>
+                          <div className='text-[11px] text-slate-500'>URL</div>
+                          {selected.url_base ? (
+                            <div className='flex items-start justify-between gap-2'>
+                              <div className='text-xs text-slate-700 break-all font-mono'>
+                                {selected.url_base}
+                              </div>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => window.open(selected.url_base!, '_blank')}
+                              >
+                                <ExternalLink className='h-4 w-4 mr-2' />
+                                Ouvrir
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className='text-xs text-slate-600'>
+                              Pas de lien (consultation sur place).
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
