@@ -200,7 +200,7 @@ export function ExemplairesStep({
                 const sourceEx = exemplaires.find((x) => x.id === sourceId) ?? null;
                 const sourceCote = sourceEx?.cote_locale?.trim() ? sourceEx.cote_locale.trim() : '';
                 if (sourceCote) {
-                  // "nature.libelle de source_exemplaire_id.cote_locale"
+                  // "nature.label de source_exemplaire_id.cote_locale"
                   complement = `${nature?.label ?? ''} de ${sourceCote}`.trim();
                 }
               }

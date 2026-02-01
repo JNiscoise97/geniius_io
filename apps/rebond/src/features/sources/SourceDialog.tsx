@@ -563,17 +563,17 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           .select('id, nom, institution:ref_institutions (nom, sigle)')
           .order('institution(nom)', { ascending: true })
           .order('nom', { ascending: true }),
-        supabase.from('ref_natures').select('id, libelle').order('libelle'),
-        supabase.from('ref_supports').select('id, libelle, code').order('libelle'),
-        supabase.from('ref_plateformes').select('id, libelle, code').order('libelle'),
+        supabase.from('ref_natures').select('id, label').order('label'),
+        supabase.from('ref_supports').select('id, label, code').order('label'),
+        supabase.from('ref_plateformes').select('id, label, code').order('label'),
         supabase.from('ref_type_acces').select('id, code, label').order('label'),
         supabase
           .from('etat_civil_bureaux')
           .select('id, nom, commune, departement, region')
           .order('nom'),
         supabase.from('ref_ec_type_acte').select('id, label, label_pluriel, code, ordre').order('label'),
-        supabase.from('ref_ecritures').select('id, libelle').order('libelle'),
-        supabase.from('ref_langues').select('id, libelle').order('libelle'),
+        supabase.from('ref_ecritures').select('id, label').order('label'),
+        supabase.from('ref_langues').select('id, label').order('label'),
       ]);
 
       if (s1.error) toast.error(s1.error.message);
@@ -607,20 +607,20 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         })),
       );
 
-      setNatures((s3.data ?? []).map((n: any) => ({ id: n.id, label: n.libelle })));
+      setNatures((s3.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
 
       setSupports(
         (s4.data ?? []).map((x: any) => ({
           id: x.id,
           code: x.code ?? null,
-          label: x.libelle,
+          label: x.label,
         })),
       );
 
       setPlateformes(
         (s5.data ?? []).map((p: any) => ({
           id: p.id,
-          label: p.code ? `${p.code} — ${p.libelle}` : p.libelle,
+          label: p.code ? `${p.code} — ${p.label}` : p.label,
         })),
       );
 
@@ -652,9 +652,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         })),
       );
 
-      setEcritures((s9.data ?? []).map((n: any) => ({ id: n.id, label: n.libelle })));
+      setEcritures((s9.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
 
-      setLangues((s10.data ?? []).map((n: any) => ({ id: n.id, label: n.libelle })));
+      setLangues((s10.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
 
       // defaults
       if (!depotId && (s2.data?.[0]?.id ?? null)) setDepotId(s2.data![0].id);

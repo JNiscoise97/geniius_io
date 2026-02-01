@@ -79,13 +79,13 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
 
       supabase
         .from("ref_natures")
-        .select("id, code, libelle")
-        .order("libelle", { ascending: true }),
+        .select("id, code, label")
+        .order("label", { ascending: true }),
 
       supabase
         .from("ref_supports")
-        .select("id, code, libelle")
-        .order("libelle", { ascending: true }),
+        .select("id, code, label")
+        .order("label", { ascending: true }),
     ]);
 
     if (e1) toast.error(e1.message);
@@ -108,7 +108,7 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
       (nat ?? []).map((n: any) => ({
         id: n.id,
         code: n.code,
-        label: n.code ? `${n.libelle} (${n.code})` : n.libelle,
+        label: n.code ? `${n.label} (${n.code})` : n.label,
       }))
     );
 
@@ -116,7 +116,7 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
       (sup ?? []).map((s: any) => ({
         id: s.id,
         code: s.code,
-        label: s.code ? `${s.libelle} (${s.code})` : s.libelle,
+        label: s.code ? `${s.label} (${s.code})` : s.label,
       }))
     );
 

@@ -40,7 +40,7 @@ export function AccesNumeriqueEditor({ exemplaireId }: { exemplaireId: string })
           .select("id, exemplaire_id, plateforme_id, type_acces_id, url_base, schema_deep_link, restrictions, note")
           .eq("exemplaire_id", exemplaireId)
           .order("created_at", { ascending: true }),
-        supabase.from("ref_plateformes").select("id, libelle, code").order("libelle", { ascending: true }),
+        supabase.from("ref_plateformes").select("id, label, code").order("label", { ascending: true }),
         supabase.from("ref_type_acces").select("id, code, label").order("label", { ascending: true }),
       ]);
 
@@ -53,7 +53,7 @@ export function AccesNumeriqueEditor({ exemplaireId }: { exemplaireId: string })
     setPlateformes(
       (plats ?? []).map((p: any) => ({
         id: p.id,
-        label: p.code ? `${p.code} — ${p.libelle}` : p.libelle,
+        label: p.code ? `${p.code} — ${p.label}` : p.label,
       }))
     );
 
