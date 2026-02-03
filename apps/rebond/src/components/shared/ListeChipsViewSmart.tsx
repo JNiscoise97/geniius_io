@@ -32,6 +32,7 @@ type ListeChipsViewProps = {
   colors?: Array<string | null | undefined>;
 
   dense?: boolean;
+  placeholderEmpty?: string;
 
   readonly?: boolean;
   actionsInvisible?: boolean;
@@ -90,6 +91,7 @@ export function ListeChipsViewSmart({
   dense = false,
   readonly = false,
   actionsInvisible = true,
+  placeholderEmpty = 'Non renseigné',
   onEdit,
   onDelete,
 }: ListeChipsViewProps) {
@@ -112,18 +114,20 @@ export function ListeChipsViewSmart({
   };
 
   if (compact) {
+    const compactLayout = values.length <= 3;
     return (
       <div className='group flex items-center gap-2 text-sm' role='group' aria-label={titre}>
+        {/* Valeur(s) ou placeholder */}
         {isEmpty ? (
-          <span className='text-gray-400 italic'>—</span>
+          <span className='text-xs text-muted-foreground italic'>{placeholderEmpty}</span>
         ) : (
-          <div className='flex items-center gap-1.5' role='list' aria-label='Liste de valeurs'>
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0" role='list' aria-label='Liste de valeurs'>
             {values.map((v, i) => (
               <span
                 key={`${v}-${i}`}
                 role='listitem'
                 title={v}
-                className={`${getChipClass(colors?.[i])} mt-2 px-2 py-0.5`} // (tu gardes ton padding compact)
+                className={`${getChipClass(colors?.[i])} px-2 py-0.5`}
               >
                 {v}
               </span>
@@ -131,8 +135,17 @@ export function ListeChipsViewSmart({
           </div>
         )}
 
+        {/* Actions */}
         {showActions && (
-          <div className={`ml-auto flex items-center gap-1 ${actionsVisibilityClass}`}>
+          <div
+            className={[
+              'flex items-center gap-1',
+              !compactLayout && 'ml-auto',
+              actionsVisibilityClass,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             {onEdit && (
               <button
                 type='button'
@@ -145,7 +158,7 @@ export function ListeChipsViewSmart({
               </button>
             )}
 
-            {onDelete && (
+            {!isEmpty && onDelete && (
               <button
                 type='button'
                 onClick={handleDelete}

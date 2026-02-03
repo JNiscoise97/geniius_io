@@ -81,10 +81,10 @@ select
   -- exemplaire (nouveau modèle)
   e.unite_documentaire_id as unite_id,
   e.depot_id,
-  e.nature_id,
+  e.nature_ref,
   n.label as nature_label,
   n.code as nature_code,
-  e.support_id,
+  e.support_ref,
   sup.label as support_label,
   sup.code as support_code,
   e.source_exemplaire_id,
@@ -92,9 +92,7 @@ select
   e.identifiant_interne,
   e.localisation_interne,
   e.conditionnement,
-  e.etat_conservation,
-  e.qualite,
-  e.pagination_type,
+  e.pagination_type_ref,
   e.nb_pages,
   e.couverture_label as exemplaire_couverture_label,
   e.couverture_sort_start as exemplaire_couverture_sort_start,
@@ -103,11 +101,9 @@ select
   e.note as exemplaire_note,
 
   -- unité documentaire
-  u.type_unite,
+  u.type_unite_ref,
   u.titre as unite_titre,
   u.identifiant_interne as unite_identifiant_interne,
-  u.langue_id,
-  u.ecriture_id,
   u.serie_ref,
   s.code as serie_code,
   s.label as serie_label,
@@ -141,8 +137,8 @@ from
   left join ref_series_documentaires s on s.id = u.serie_ref
   join ref_depots d on d.id = e.depot_id
   join ref_institutions i on i.id = d.institution_id
-  left join ref_natures n on n.id = e.nature_id
-  left join ref_supports sup on sup.id = e.support_id
+  left join ref_natures n on n.id = e.nature_ref
+  left join ref_supports sup on sup.id = e.support_ref
   left join best_url bu on bu.exemplaire_id = e.id
   left join agg_bureaux ab on ab.unite_id = u.id
   left join agg_types_actes ata on ata.unite_id = u.id;

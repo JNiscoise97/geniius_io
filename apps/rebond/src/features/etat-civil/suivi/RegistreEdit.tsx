@@ -755,7 +755,7 @@ export default function RegistreEdit() {
                     </p>
                     <p>
                       <span className='font-semibold text-sm text-slate-700'>
-                        Il sert à retrouver et citer précisément l’acte.
+                        Il sert à retrouver et citer précisément le registre.
                       </span>
                     </p>
                   </div>

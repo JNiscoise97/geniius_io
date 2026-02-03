@@ -145,17 +145,17 @@ export async function fetchEcDocumentForm(): Promise<{ data: DictionnaireItem[];
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }
 
-export async function fetchEcPhysicalCondition(): Promise<{ data: DictionnaireItem[]; error: any }> {
+export async function fetchPhysicalCondition(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
-    .from("ref_ec_physical_condition")
+    .from("ref_physical_condition")
     .select("id, code, label")
     .order("label", { ascending: true });
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }
 
-export async function fetchEcReproQuality(): Promise<{ data: DictionnaireItem[]; error: any }> {
+export async function fetchReproQuality(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
-    .from("ref_ec_repro_quality")
+    .from("ref_repro_quality")
     .select("id, code, label")
     .order("label", { ascending: true });
   return { data: (data as DictionnaireItem[]) ?? [], error };

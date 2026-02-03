@@ -1,30 +1,38 @@
 // ExemplairesStep.tsx
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { ETAT_CONSERVATION_OPTIONS, QUALITE_OPTIONS } from './source.constants';
+
 import type {
   AccesDraft,
   DepotOption,
   ExemplaireDraft,
   NatureOption,
   PlateformeOption,
-  SupportOption,
-  TypeAccesOption,
 } from './source.types';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 
 type Props = {
   depots: DepotOption[];
   natures: NatureOption[];
-  supports: SupportOption[];
-  paginationOptions: Array<{ value: string; label: string }>;
+
+  natureRef: string;
+  setNatureRef: (v: string) => void;
+
+  supportRef: string;
+  setSupportRef: (v: string) => void;
+
+  paginationTypeRef: string;
+  setPaginationTypeRef: (v: string) => void;
+
+  physicalConditionRef: string;
+  setPhysicalConditionRef: (v: string) => void;
 
   plateformes: PlateformeOption[];
-  typesAcces: TypeAccesOption[];
   defaultTypeAccesId: string | null;
 
   uniteCouvertureLabel: string;
@@ -41,19 +49,31 @@ type Props = {
 export function ExemplairesStep({
   depots,
   natures,
-  supports,
-  paginationOptions,
+
+  natureRef,
+  setNatureRef,
+  supportRef,
+  setSupportRef,
+  physicalConditionRef,
+  setPhysicalConditionRef,
+  paginationTypeRef,
+  setPaginationTypeRef,
+
   plateformes,
-  typesAcces,
   defaultTypeAccesId,
+
   uniteCouvertureLabel,
+
   exemplaires,
   setExemplaires,
   selectedExId,
   setSelectedExId,
   onAdd,
 }: Props) {
-  const selected = exemplaires.find((e) => e.id === selectedExId) ?? null;
+  const selected = useMemo(
+    () => exemplaires.find((e) => e.id === selectedExId) ?? null,
+    [exemplaires, selectedExId],
+  );
 
   const [copied, setCopied] = useState(false);
 
@@ -61,7 +81,6 @@ export function ExemplairesStep({
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // fallback (anciens navigateurs / contexte non sécurisé)
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -125,8 +144,7 @@ export function ExemplairesStep({
     setExemplaires((prev) =>
       prev.map((e) => {
         if (e.id !== selected.id) return e;
-        const nextAcces = (e.acces ?? []).filter((a) => a.id !== accesId);
-        return { ...e, acces: nextAcces }; // ✅ autorise []
+        return { ...e, acces: (e.acces ?? []).filter((a) => a.id !== accesId) };
       }),
     );
   };
@@ -135,7 +153,6 @@ export function ExemplairesStep({
     if (!selected) return;
     setExemplaires((prev) => {
       const next = prev.filter((e) => e.id !== selected.id);
-      // si on supprime le sélectionné, sélectionner le 1er restant
       const fallback = next[0]?.id ?? null;
       if (fallback) setSelectedExId(fallback);
       return next.length ? next : prev; // option: empêcher 0 exemplaire
@@ -144,11 +161,82 @@ export function ExemplairesStep({
 
   const getDepotLabel = (id: string) => depots.find((d) => d.id === id)?.labelCourt ?? 'Dépôt ?';
 
+  // --- helpers pour la liste de gauche (titre + complément) ---
+  const norm = (s: string) =>
+    (s ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  const getNature = (natureId?: string | null) =>
+    natureId ? (natures.find((n) => n.id === natureId) ?? null) : null;
+
+  const isComplementNature = (nature: any | null) => {
+    if (!nature) return false;
+    const code = norm(String((nature as any).code ?? ''));
+    if (code === 'numerisation' || code === 'double') return true;
+
+    const label = norm(String((nature as any).label ?? ''));
+    return label === 'numerisation' || label === 'double';
+  };
+
+  const renderLeftTitle = (e: ExemplaireDraft, idx: number) => {
+    const primary = e.cote_locale?.trim() ? e.cote_locale.trim() : '';
+
+    const nature = getNature(e.nature_ref ?? null);
+    const sourceId = e.source_exemplaire_id?.trim() ? e.source_exemplaire_id.trim() : '';
+
+    let complement = '';
+    if (isComplementNature(nature) && sourceId) {
+      const sourceEx = exemplaires.find((x) => x.id === sourceId) ?? null;
+      const sourceCote = sourceEx?.cote_locale?.trim() ? sourceEx.cote_locale.trim() : '';
+      if (sourceCote) complement = `${nature?.label ?? ''} de ${sourceCote}`.trim();
+    }
+
+    return primary && complement
+      ? `${primary} (${complement})`
+      : primary
+        ? primary
+        : complement
+          ? complement
+          : `Exemplaire ${idx + 1}`;
+  };
+
+  // --- petits composants UI (blocs) ---
+  const Section = ({
+    title,
+    description,
+    children,
+  }: {
+    title: string;
+    description?: React.ReactNode;
+    children: React.ReactNode;
+  }) => (
+    <section className='rounded-md border bg-background'>
+      <div className='border-b px-4 py-3'>
+        <div className='text-sm font-semibold'>{title}</div>
+        {description ? (
+          <div className='text-xs text-muted-foreground mt-1'>{description}</div>
+        ) : null}
+      </div>
+      <div className='p-4 space-y-3'>{children}</div>
+    </section>
+  );
+
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className='space-y-1'>
+      <div className='text-xs font-medium'>{label}</div>
+      {children}
+    </div>
+  );
+
   return (
     <div className='grid gap-4 md:grid-cols-[280px_1fr] h-full min-h-0'>
-      {/* Left panel (scroll indépendant) */}
+      {/* =========================================================
+          LEFT: liste des exemplaires (scroll indépendant)
+         ========================================================= */}
       <div className='rounded-md border bg-muted/20 flex flex-col min-h-0'>
-        {/* Header fixe */}
         <div className='shrink-0 p-3 border-b bg-muted/10'>
           <div className='flex items-center justify-between gap-2'>
             <div className='text-sm font-semibold'>Exemplaires</div>
@@ -159,66 +247,11 @@ export function ExemplairesStep({
           </div>
         </div>
 
-        {/* Liste scrollable */}
         <div className='flex-1 min-h-0 overflow-y-auto p-3'>
           <div className='space-y-2'>
             {exemplaires.map((e, idx) => {
               const active = e.id === selectedExId;
-
-              // --- helpers locaux ---
-              const norm = (s: string) =>
-                (s ?? '')
-                  .trim()
-                  .toLowerCase()
-                  .normalize('NFD')
-                  .replace(/[\u0300-\u036f]/g, ''); // enlève les accents
-
-              const getNature = (natureId?: string | null) =>
-                natureId ? (natures.find((n) => n.id === natureId) ?? null) : null;
-
-              const isComplementNature = (nature: any | null) => {
-                if (!nature) return false;
-
-                // si tu as un code dans NatureOption (selon ton modèle), on le privilégie
-                const code = norm(String((nature as any).code ?? ''));
-                if (code === 'numerisation' || code === 'double') return true;
-
-                // fallback: comparaison sur label
-                const label = norm(String((nature as any).label ?? ''));
-                return label === 'numerisation' || label === 'double';
-              };
-
-              const primary = e.cote_locale?.trim() ? e.cote_locale.trim() : '';
-
-              // --- complément ---
-              // condition: (nature == numerisation ou double) ET source_exemplaire_id non null
-              const nature = getNature(e.nature_id ?? null);
-              const sourceId = e.source_exemplaire_id?.trim() ? e.source_exemplaire_id.trim() : '';
-
-              let complement = '';
-              if (isComplementNature(nature) && sourceId) {
-                const sourceEx = exemplaires.find((x) => x.id === sourceId) ?? null;
-                const sourceCote = sourceEx?.cote_locale?.trim() ? sourceEx.cote_locale.trim() : '';
-                if (sourceCote) {
-                  // "nature.label de source_exemplaire_id.cote_locale"
-                  complement = `${nature?.label ?? ''} de ${sourceCote}`.trim();
-                }
-              }
-
-              // --- règles demandées ---
-              // si e.cote_locale et complément => "cote (complément)"
-              // si e.cote_locale et pas complément => "cote"
-              // si pas cote et complément => "complément"
-              // si ni cote ni complément => "Exemplaire N"
-              const title =
-                primary && complement
-                  ? `${primary} (${complement})`
-                  : primary
-                    ? primary
-                    : complement
-                      ? complement
-                      : `Exemplaire ${idx + 1}`;
-
+              const title = renderLeftTitle(e, idx);
               const subtitle = e.depot_id ? getDepotLabel(e.depot_id) : 'Dépôt non renseigné';
 
               return (
@@ -242,7 +275,9 @@ export function ExemplairesStep({
         </div>
       </div>
 
-      {/* Right panel (scroll indépendant) */}
+      {/* =========================================================
+          RIGHT: formulaire détaillé (scroll indépendant)
+         ========================================================= */}
       <div className='rounded-md border flex flex-col min-h-0'>
         {!selected ? (
           <div className='p-4 text-sm text-muted-foreground'>
@@ -250,7 +285,7 @@ export function ExemplairesStep({
           </div>
         ) : (
           <>
-            {/* Header fixe */}
+            {/* header fixe */}
             <div className='shrink-0 p-4 border-b flex items-center justify-between'>
               <div className='text-sm font-semibold'>Détails de l’exemplaire</div>
               <Button size='sm' variant='destructive' className='gap-2' onClick={removeSelected}>
@@ -259,233 +294,196 @@ export function ExemplairesStep({
               </Button>
             </div>
 
-            {/* Contenu scrollable */}
+            {/* contenu scrollable */}
             <div className='flex-1 min-h-0 overflow-y-auto p-4'>
-              <div className='space-y-1'>
-                <div className='text-xs font-medium'>id</div>
+              <div className='space-y-4'>
+                {/* 0) Identité */}
+                <Section
+                  title='Identité'
+                  description='Infos techniques (utile pour debug / liens internes).'
+                >
+                  <Field label='id'>
+                    <div className='flex gap-2'>
+                      <Input value={selected.id} disabled className='font-mono' />
+                      <Button
+                        type='button'
+                        size='icon'
+                        variant='secondary'
+                        onClick={() => copyToClipboard(selected.id)}
+                        title='Copier l’id'
+                        aria-label='Copier l’id'
+                      >
+                        {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+                      </Button>
+                    </div>
+                  </Field>
+                </Section>
 
-                <div className='flex gap-2'>
-                  <Input value={selected.id} disabled className='font-mono' />
+                {/* 1) Localisation & repérage */}
+                <Section
+                  title='Repérage'
+                  description='Où se trouve l’exemplaire et comment le retrouver.'
+                >
+                  <Field label='Dépôt *'>
+                    <select
+                      className='w-full rounded-md border px-2 py-2 text-sm'
+                      value={selected.depot_id}
+                      onChange={(e) => patchSelected({ depot_id: e.target.value })}
+                    >
+                      <option value=''>— Choisir —</option>
+                      {depots.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.labelLong}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-                  <Button
-                    type='button'
-                    size='icon'
-                    variant='secondary'
-                    onClick={() => copyToClipboard(selected.id)}
-                    title='Copier l’id'
-                    aria-label='Copier l’id'
-                  >
-                    {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
-                  </Button>
-                </div>
-              </div>
-              <div className='space-y-3'>
-                {/* dépôt */}
-                <div className='space-y-1'>
-                  <div className='text-xs font-medium'>Dépôt *</div>
-                  <select
-                    className='w-full rounded-md border px-2 py-2 text-sm'
-                    value={selected.depot_id}
-                    onChange={(e) => patchSelected({ depot_id: e.target.value })}
-                  >
-                    <option value=''>— Choisir —</option>
-                    {depots.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.labelLong}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div className='grid gap-3 md:grid-cols-2'>
+                    <Field label='Cote locale'>
+                      <Input
+                        value={selected.cote_locale}
+                        onChange={(e) => patchSelected({ cote_locale: e.target.value })}
+                        placeholder='ex: 2E/123, 1MI/45…'
+                      />
+                    </Field>
 
-                <div className='grid gap-2 md:grid-cols-2'>
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Cote locale</div>
+                    <Field label='Identifiant interne'>
+                      <Input
+                        value={selected.identifiant_interne}
+                        onChange={(e) => patchSelected({ identifiant_interne: e.target.value })}
+                        placeholder='optionnel'
+                      />
+                    </Field>
+
+                    <Field label='Localisation interne'>
+                      <Input
+                        value={selected.localisation_interne}
+                        onChange={(e) => patchSelected({ localisation_interne: e.target.value })}
+                        placeholder='armoire / carton / étagère…'
+                      />
+                    </Field>
+
+                    <Field label='Conditionnement'>
+                      <Input
+                        value={selected.conditionnement}
+                        onChange={(e) => patchSelected({ conditionnement: e.target.value })}
+                        placeholder='boîte, carton…'
+                      />
+                    </Field>
+                  </div>
+                </Section>
+
+                {/* 2) Typologie & état */}
+                <Section
+                  title='Caractéristiques'
+                  description='Nature, support, pagination, état physique.'
+                >
+                  <div className='grid gap-3 md:grid-cols-2'>
+                    <Field label='Nature'>
+                      <RefSinglePickerSmart
+                        table='ref_natures'
+                        value={natureRef || null}
+                        onChange={(id) => setNatureRef(id ?? '')}
+                        mode='edit'
+                        actionsInvisible={false}
+                      />
+                    </Field>
+
+                    <Field label='Condition physique'>
+                      <RefSinglePickerSmart
+                        table='ref_physical_condition'
+                        value={physicalConditionRef || null}
+                        onChange={(id) => setPhysicalConditionRef(id ?? '')}
+                        mode='edit'
+                        actionsInvisible={false}
+                      />
+                    </Field>
+
+                    <Field label='Support'>
+                      <RefSinglePickerSmart
+                        table='ref_supports'
+                        value={supportRef || null}
+                        onChange={(id) => setSupportRef(id ?? '')}
+                        mode='edit'
+                        actionsInvisible={false}
+                      />
+                    </Field>
+
+                    <Field label='source_exemplaire_id'>
+                      <Input
+                        value={selected.source_exemplaire_id}
+                        onChange={(e) => patchSelected({ source_exemplaire_id: e.target.value })}
+                        placeholder='uuid (optionnel)'
+                      />
+                    </Field>
+
+                    <Field label='Type de pagination'>
+                      <RefSinglePickerSmart
+                        table='ref_pagination_type'
+                        value={paginationTypeRef || null}
+                        onChange={(id) => setPaginationTypeRef(id ?? '')}
+                        mode='edit'
+                        actionsInvisible={false}
+                      />
+                    </Field>
+
+                    <Field label='Nombre'>
+                      <Input
+                        value={selected.nb_pages}
+                        onChange={(e) => patchSelected({ nb_pages: e.target.value })}
+                        placeholder='ex: 300'
+                        inputMode='numeric'
+                      />
+                    </Field>
+                  </div>
+                </Section>
+
+                {/* 3) Couverture */}
+                <Section
+                  title='Couverture'
+                  description={
+                    <>
+                      À renseigner <b>uniquement si la couverture diffère</b> de l’unité
+                      documentaire : <b>{uniteCouvertureLabel || '— non renseignée —'}</b>.
+                    </>
+                  }
+                >
+                  <Field label='Couverture de l’exemplaire (optionnelle)'>
                     <Input
-                      value={selected.cote_locale}
-                      onChange={(e) => patchSelected({ cote_locale: e.target.value })}
-                      placeholder='ex: 2E/123, 1MI/45…'
+                      value={selected.couverture_label}
+                      onChange={(e) => patchSelected({ couverture_label: e.target.value })}
+                      placeholder='ex: 1859 ; 1859-1860 ; octobre 1821-05/1830…'
                     />
-                  </div>
+                  </Field>
+                </Section>
 
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Support</div>
-                    <select
-                      className='w-full rounded-md border px-2 py-2 text-sm'
-                      value={selected.support_id ?? ''}
-                      onChange={(e) => patchSelected({ support_id: e.target.value || null })}
-                    >
-                      <option value=''>— Choisir —</option>
-                      {supports.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className='grid gap-2 md:grid-cols-2'>
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Nature</div>
-                    <select
-                      className='w-full rounded-md border px-2 py-2 text-sm'
-                      value={selected.nature_id ?? ''}
-                      onChange={(e) => patchSelected({ nature_id: e.target.value || null })}
-                    >
-                      <option value=''>— Choisir —</option>
-                      {natures.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          {n.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>source_exemplaire_id</div>
-                    <Input
-                      value={selected.source_exemplaire_id}
-                      onChange={(e) => patchSelected({ source_exemplaire_id: e.target.value })}
-                      placeholder='uuid (optionnel)'
-                    />
-                  </div>
-                </div>
-
-                <div className='grid gap-2 md:grid-cols-2'>
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Pagination type</div>
-                    <select
-                      className='w-full rounded-md border px-2 py-2 text-sm'
-                      value={selected.pagination_type}
-                      onChange={(e) => patchSelected({ pagination_type: e.target.value })}
-                    >
-                      <option value=''>— Choisir —</option>
-                      {paginationOptions.map((p) => (
-                        <option key={p.value} value={p.value}>
-                          {p.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Nombre</div>
-                    <Input
-                      value={selected.nb_pages}
-                      onChange={(e) => patchSelected({ nb_pages: e.target.value })}
-                      placeholder='ex: 300'
-                      inputMode='numeric'
-                    />
-                  </div>
-                </div>
-
-                <div className='grid gap-2 md:grid-cols-2'>
-                  {/* État de conservation */}
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>État de conservation</div>
-                    <select
-                      className='w-full rounded-md border px-2 py-2 text-sm'
-                      value={selected.etat_conservation}
-                      onChange={(e) => patchSelected({ etat_conservation: e.target.value })}
-                    >
-                      <option value=''>— Choisir —</option>
-                      {ETAT_CONSERVATION_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Qualité */}
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Qualité</div>
-                    <select
-                      className='w-full rounded-md border px-2 py-2 text-sm'
-                      value={selected.qualite}
-                      onChange={(e) => patchSelected({ qualite: e.target.value })}
-                    >
-                      <option value=''>— Choisir —</option>
-                      {QUALITE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className='grid gap-2 md:grid-cols-2'>
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Identifiant interne</div>
-                    <Input
-                      value={selected.identifiant_interne}
-                      onChange={(e) => patchSelected({ identifiant_interne: e.target.value })}
+                {/* 4) Notes */}
+                <Section title='Texte libre' description='Infos complémentaires (non structurées).'>
+                  <Field label='Description'>
+                    <Textarea
+                      value={selected.description}
+                      onChange={(e) => patchSelected({ description: e.target.value })}
                       placeholder='optionnel'
+                      className='min-h-[80px]'
                     />
-                  </div>
+                  </Field>
 
-                  <div className='space-y-1'>
-                    <div className='text-xs font-medium'>Localisation interne</div>
-                    <Input
-                      value={selected.localisation_interne}
-                      onChange={(e) => patchSelected({ localisation_interne: e.target.value })}
-                      placeholder='armoire / carton / étagère…'
+                  <Field label='Note'>
+                    <Textarea
+                      value={selected.note}
+                      onChange={(e) => patchSelected({ note: e.target.value })}
+                      placeholder='optionnel'
+                      className='min-h-[80px]'
                     />
-                  </div>
-                </div>
+                  </Field>
+                </Section>
 
-                <div className='space-y-1'>
-                  <div className='text-xs font-medium'>Conditionnement</div>
-                  <Input
-                    value={selected.conditionnement}
-                    onChange={(e) => patchSelected({ conditionnement: e.target.value })}
-                    placeholder='boîte, carton…'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <div className='text-xs font-medium'>
-                    Couverture de l’exemplaire (optionnelle)
-                  </div>
-
-                  <Input
-                    value={selected.couverture_label}
-                    onChange={(e) => patchSelected({ couverture_label: e.target.value })}
-                    placeholder='ex: 1859 ; 1859-1860 ; octobre 1821-05/1830…'
-                  />
-
-                  <div className='text-xs text-muted-foreground'>
-                    À renseigner <b>uniquement si la couverture de cet exemplaire diffère</b> de la
-                    période de l’unité documentaire :{' '}
-                    <b>{uniteCouvertureLabel || '— non renseignée —'}</b>.
-                  </div>
-                </div>
-
-                <div className='space-y-1'>
-                  <div className='text-xs font-medium'>Description</div>
-                  <Textarea
-                    value={selected.description}
-                    onChange={(e) => patchSelected({ description: e.target.value })}
-                    placeholder='optionnel'
-                    className='min-h-[80px]'
-                  />
-                </div>
-
-                <div className='space-y-1'>
-                  <div className='text-xs font-medium'>Note</div>
-                  <Textarea
-                    value={selected.note}
-                    onChange={(e) => patchSelected({ note: e.target.value })}
-                    placeholder='optionnel'
-                    className='min-h-[80px]'
-                  />
-                </div>
-
-                <div className='h-px bg-border' />
-
-                {/* Accès numériques */}
-                <div className='space-y-3'>
+                {/* 5) Accès numériques */}
+                <Section
+                  title='Accès numériques'
+                  description="0..n (ne seront insérés que s'il y a une URL)."
+                >
                   <div className='flex items-center justify-between'>
                     <div className='text-sm font-semibold'>Accès numériques (0..n)</div>
                     <Button size='sm' variant='secondary' className='gap-2' onClick={addAcces}>
@@ -507,21 +505,19 @@ export function ExemplairesStep({
                         <div key={a.id} className='rounded border p-3 space-y-2'>
                           <div className='grid gap-2 md:grid-cols-3'>
                             <div className='space-y-1'>
-                              <div className='text-xs font-medium'>Type d’accès</div>
-                              <select
-                                className='w-full rounded-md border px-2 py-2 text-sm'
-                                value={a.type_acces_id ?? defaultTypeAccesId ?? ''}
-                                onChange={(e) =>
-                                  patchSelectedAcces(a.id, { type_acces_id: e.target.value })
-                                }
-                              >
-                                <option value=''>— Choisir —</option>
-                                {typesAcces.map((t) => (
-                                  <option key={t.id} value={t.id}>
-                                    {t.label}
-                                  </option>
-                                ))}
-                              </select>
+                              <Field label='Type d’accès'>
+                                <RefSinglePickerSmart
+                                  table='ref_type_acces'
+                                  value={(a.type_acces_id ?? defaultTypeAccesId) || null}
+                                  onChange={(id) =>
+                                    patchSelectedAcces(a.id, {
+                                      type_acces_id: id, // id peut être null si "Aucune sélection"
+                                    })
+                                  }
+                                  mode='edit'
+                                  actionsInvisible={false}
+                                />
+                              </Field>
                             </div>
 
                             <div className='space-y-1'>
@@ -606,7 +602,7 @@ export function ExemplairesStep({
                   <div className='text-xs text-muted-foreground'>
                     Tu peux laisser les accès vides : seuls ceux avec une URL seront insérés.
                   </div>
-                </div>
+                </Section>
               </div>
             </div>
           </>

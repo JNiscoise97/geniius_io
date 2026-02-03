@@ -19,8 +19,8 @@ import {
   fetchStatutJuridique,
   fetchSituationFiscale,
   fetchEcDocumentForm,
-  fetchEcPhysicalCondition,
-  fetchEcReproQuality,
+  fetchPhysicalCondition,
+  fetchReproQuality,
   fetchConfidence,
   fetchHandwritingLegibility,
   fetchHandwritingStyle,
@@ -42,8 +42,8 @@ export type DictionnaireKind =
   | 'situation_fiscale_ref'
   | 'signature_ref'
   | 'ec_document_form_ref'
-  | 'ec_physical_condition_ref'
-  | 'ec_repro_quality_ref'
+  | 'physical_condition_ref'
+  | 'repro_quality_ref'
   | "confidence_ref"
   | "legibility_ref"
   | "handwriting_style_ref"
@@ -111,10 +111,10 @@ export function DictionnaireEditorPanel({
         loader = fetchSituationFiscale;
       } else if (kind === 'ec_document_form_ref') {
         loader = fetchEcDocumentForm;
-      } else if (kind === 'ec_physical_condition_ref') {
-        loader = fetchEcPhysicalCondition;
-      } else if (kind === 'ec_repro_quality_ref') {
-        loader = fetchEcReproQuality;
+      } else if (kind === 'physical_condition_ref') {
+        loader = fetchPhysicalCondition;
+      } else if (kind === 'repro_quality_ref') {
+        loader = fetchReproQuality;
       } else {
         loader = fetchStatus;
       }

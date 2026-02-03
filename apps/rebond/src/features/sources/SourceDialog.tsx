@@ -14,13 +14,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { PAGINATION_OPTIONS, TYPE_UNITE_OPTIONS, type TypeUnite } from './source.constants';
 import { ExemplairesStep } from './ExemplairesStep';
 import { UniteDocumentaireStep } from './UniteDocumentaireStep';
 import { EtatCivilStep } from './EtatCivilStep';
-import type { BureauOption, DepotOption, EcritureOption, ExemplaireDraft, LangueOption, NatureOption, PlateformeOption, SerieOption, SupportOption, TypeAccesOption, TypeActeOption } from './source.types';
+import type {
+  BureauOption,
+  DepotOption,
+  ExemplaireDraft,
+  NatureOption,
+  PlateformeOption,
+  SerieOption,
+  TypeAccesOption,
+  TypeActeOption,
+} from './source.types';
 
 export type SourceDialogMode = 'create' | 'edit-unite' | 'edit-exemplaire';
+
+type TypeUnite = string;
 
 type Props = {
   open: boolean;
@@ -324,28 +334,28 @@ function toIntOrNull(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function typeUniteToLabel(typeUnite?: TypeUnite | null): string {
-  if (!typeUnite) return '';
-  const found = TYPE_UNITE_OPTIONS.find((o) => o.value === typeUnite);
-  return found?.label ?? '';
+function typeUniteToLabel(
+  code: string | null | undefined,
+  typeUnites: Array<{ code: string; label: string }>,
+) {
+  const c = (code ?? '').trim();
+  if (!c) return '';
+  return typeUnites.find((t) => t.code === c)?.label ?? c;
 }
 
 function createEmptyExemplaireDraft(): ExemplaireDraft {
   return {
     id: uid(),
     depot_id: '',
-    nature_id: null,
-    support_id: null,
+    nature_ref: null,
+    support_ref: null,
 
     cote_locale: '',
     identifiant_interne: '',
     localisation_interne: '',
     conditionnement: '',
 
-    qualite: '',
-    etat_conservation: '',
-
-    pagination_type: '',
+    pagination_type_ref: '',
     nb_pages: '',
 
     source_exemplaire_id: '',
@@ -353,6 +363,8 @@ function createEmptyExemplaireDraft(): ExemplaireDraft {
     couverture_label: '',
     couverture_sort_start: '',
     couverture_sort_end: '',
+
+    physical_condition_ref: '',
 
     description: '',
     note: '',
@@ -370,27 +382,26 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   // Lookups
   // -----------------------------
   const [series, setSeries] = useState<SerieOption[]>([]);
-  const [ecritures, setEcritures] = useState<EcritureOption[]>([]);
-  const [langues, setLangues] = useState<LangueOption[]>([]);
   const [depots, setDepots] = useState<DepotOption[]>([]);
   const [natures, setNatures] = useState<NatureOption[]>([]);
-  const [supports, setSupports] = useState<SupportOption[]>([]);
   const [plateformes, setPlateformes] = useState<PlateformeOption[]>([]);
   const [typesAcces, setTypesAcces] = useState<TypeAccesOption[]>([]);
   const [bureaux, setBureaux] = useState<BureauOption[]>([]);
   const [typesActes, setTypesActes] = useState<TypeActeOption[]>([]);
+  const [typeUnites, setTypeUnites] = useState<Array<{ id: string; code: string; label: string }>>(
+    [],
+  );
 
   // -----------------------------
   // Step 1 — Unité documentaire
   // -----------------------------
-  const [typeUnite, setTypeUnite] = useState<TypeUnite>('registre');
+  const [typeUnite, setTypeUnite] = useState<TypeUnite>('');
   const [titre, setTitre] = useState('');
   const [identifiantInterne, setIdentifiantInterne] = useState('');
   const [description, setDescription] = useState('');
 
+  const [typeUniteRef, setTypeUniteRef] = useState<string>('');
   const [serieRef, setSerieRef] = useState<string>('');
-  const [ecritureRef, setEcritureRef] = useState<string>('');
-  const [langueRef, setLangueRef] = useState<string>('');
   const [couvertureLabel, setCouvertureLabel] = useState('');
   const [couvertureStart, setCouvertureStart] = useState('');
   const [couvertureEnd, setCouvertureEnd] = useState('');
@@ -408,6 +419,10 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
 
   const [exemplaires, setExemplaires] = useState<ExemplaireDraft[]>(() => []);
   const [selectedExId, setSelectedExId] = useState<string | null>(null);
+  const [natureRef, setNatureRef] = useState<string>('');
+  const [supportRef, setSupportRef] = useState<string>('');
+  const [paginationTypeRef, setPaginationTypeRef] = useState<string>('');
+  const [physicalConditionRef, setPhysicalConditionRef] = useState<string>('');
 
   // -----------------------------
   // Step 4 — Accès numériques
@@ -456,7 +471,12 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   const selectedTypeActeLabels = useMemo(() => {
     if (!typeActeIds.length) return [];
 
-    const map = new Map(typesActes.map((t) => [t.id, { label: t.label, label_pluriel: t.label_pluriel, ordre: t.ordre ?? 9999 }]));
+    const map = new Map(
+      typesActes.map((t) => [
+        t.id,
+        { label: t.label, label_pluriel: t.label_pluriel, ordre: t.ordre ?? 9999 },
+      ]),
+    );
 
     return typeActeIds
       .map((id) => map.get(id))
@@ -469,7 +489,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       })
       .map((x) => x!.label_pluriel);
   }, [typeActeIds, typesActes]);
-
 
   const stepSerieLabel = useMemo(() => {
     if (!serieRef) return '';
@@ -506,7 +525,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       ? stripAllSpaces(normSpaces(couvertureLabel))
       : '';
 
-    const typeLabel = typeUniteToLabel(typeUnite); // <-- suppose que tu as typeUnite en state
+    const typeLabel = typeUniteToLabel(typeUnite, typeUnites);
     const serie = normSpaces(serieLabel);
 
     const parts: string[] = [];
@@ -542,6 +561,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     setTitre(titreFinal);
   }, [
     typeUnite,
+    typeUnites,
     serieLabel,
     couvertureLabel,
     isEtatCivil,
@@ -556,7 +576,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     if (!open) return;
 
     const load = async () => {
-      const [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10] = await Promise.all([
+      const [s1, s2, s3, s4, s5, s6, s7, s8] = await Promise.all([
         supabase.from('ref_series_documentaires').select('id, code, label').order('label'),
         supabase
           .from('ref_depots')
@@ -564,16 +584,17 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           .order('institution(nom)', { ascending: true })
           .order('nom', { ascending: true }),
         supabase.from('ref_natures').select('id, label').order('label'),
-        supabase.from('ref_supports').select('id, label, code').order('label'),
         supabase.from('ref_plateformes').select('id, label, code').order('label'),
         supabase.from('ref_type_acces').select('id, code, label').order('label'),
         supabase
           .from('etat_civil_bureaux')
           .select('id, nom, commune, departement, region')
           .order('nom'),
-        supabase.from('ref_ec_type_acte').select('id, label, label_pluriel, code, ordre').order('label'),
-        supabase.from('ref_ecritures').select('id, label').order('label'),
-        supabase.from('ref_langues').select('id, label').order('label'),
+        supabase
+          .from('ref_ec_type_acte')
+          .select('id, label, label_pluriel, code, ordre')
+          .order('label'),
+        supabase.from('ref_type_unite').select('id, code, label').order('ordre').order('label'),
       ]);
 
       if (s1.error) toast.error(s1.error.message);
@@ -584,8 +605,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       if (s6.error) toast.error(s6.error.message);
       if (s7.error) toast.error(s7.error.message);
       if (s8.error) toast.error(s8.error.message);
-      if (s9.error) toast.error(s9.error.message);
-      if (s10.error) toast.error(s10.error.message);
 
       setSeries(
         (s1.data ?? []).map((x: any) => ({
@@ -603,29 +622,21 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             : `${d.institution?.nom ?? 'Institution'} — ${d.nom}`,
           labelLong: d.institution?.sigle
             ? `${d.institution?.nom} (${d.institution.sigle}) — ${d.nom}`
-            : `${d.institution?.nom ?? 'Institution'} — ${d.nom}`
+            : `${d.institution?.nom ?? 'Institution'} — ${d.nom}`,
         })),
       );
 
       setNatures((s3.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
 
-      setSupports(
-        (s4.data ?? []).map((x: any) => ({
-          id: x.id,
-          code: x.code ?? null,
-          label: x.label,
-        })),
-      );
-
       setPlateformes(
-        (s5.data ?? []).map((p: any) => ({
+        (s4.data ?? []).map((p: any) => ({
           id: p.id,
           label: p.code ? `${p.code} — ${p.label}` : p.label,
         })),
       );
 
       setTypesAcces(
-        (s6.data ?? []).map((t: any) => ({
+        (s5.data ?? []).map((t: any) => ({
           id: t.id,
           code: String(t.code ?? ''),
           label: `${t.label} (${t.code})`,
@@ -633,7 +644,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       );
 
       setBureaux(
-        (s7.data ?? []).map((b: any) => ({
+        (s6.data ?? []).map((b: any) => ({
           id: b.id,
           nom: b.nom ?? '—',
           commune: b.commune ?? null,
@@ -644,7 +655,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       );
 
       setTypesActes(
-        (s8.data ?? []).map((a: any) => ({
+        (s7.data ?? []).map((a: any) => ({
           id: a.id,
           label: a.label,
           label_pluriel: a.label_pluriel,
@@ -652,9 +663,12 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         })),
       );
 
-      setEcritures((s9.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
+      const typeUnitesFresh = (s8.data ?? []) as Array<{ id: string; code: string; label: string }>;
+      setTypeUnites(typeUnitesFresh);
 
-      setLangues((s10.data ?? []).map((n: any) => ({ id: n.id, label: n.label })));
+      if (!typeUnite && typeUnitesFresh[0]?.code) {
+        setTypeUnite(typeUnitesFresh[0].code);
+      }
 
       // defaults
       if (!depotId && (s2.data?.[0]?.id ?? null)) setDepotId(s2.data![0].id);
@@ -684,7 +698,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           const { data: u, error: eu } = await supabase
             .from('ref_unites_documentaires')
             .select(
-              'id, type_unite, titre, identifiant_interne, description, langue_id, ecriture_id, serie_ref, couverture_label, couverture_sort_start, couverture_sort_end',
+              'id, type_unite_ref, titre, identifiant_interne, description, serie_ref, couverture_label, couverture_sort_start, couverture_sort_end',
             )
             .eq('id', sourceId)
             .single();
@@ -694,12 +708,20 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             return;
           }
 
-          setTypeUnite((u.type_unite as TypeUnite) ?? 'registre');
+          const typeUnitesFresh = (s8.data ?? []) as Array<{
+            id: string;
+            code: string;
+            label: string;
+          }>;
+          const code =
+            typeUnitesFresh.find((t) => t.id === u.type_unite_ref)?.code ??
+            typeUnitesFresh[0]?.code ??
+            '';
+          setTypeUnite(code);
           setTitre(u.titre ?? '');
           setIdentifiantInterne(u.identifiant_interne ?? '');
           setDescription(u.description ?? '');
-          setLangueRef(u.langue_id ?? '');
-          setEcritureRef(u.ecriture_id ?? '');
+          setTypeUniteRef(u.type_unite_ref ?? '');
           setSerieRef(u.serie_ref ?? '');
           setCouvertureLabel(u.couverture_label ?? '');
         }
@@ -735,7 +757,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           const { data: ex, error: eex } = await supabase
             .from('ref_exemplaires')
             .select(
-              'id, depot_id, nature_id, support_id, cote_locale, identifiant_interne, localisation_interne, conditionnement, qualite, etat_conservation, pagination_type, nb_pages, source_exemplaire_id, couverture_label, couverture_sort_start, couverture_sort_end, description, note',
+              'id, depot_id, nature_ref, support_ref, cote_locale, identifiant_interne, localisation_interne, conditionnement, pagination_type_ref, nb_pages, source_exemplaire_id, couverture_label, couverture_sort_start, couverture_sort_end, physical_condition_ref, description, note',
             )
             .eq('unite_documentaire_id', sourceId)
             .order('created_at', { ascending: true });
@@ -749,20 +771,19 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             (ex ?? []).map((row: any) => ({
               id: row.id,
               depot_id: row.depot_id ?? '',
-              nature_id: row.nature_id ?? null,
-              support_id: row.support_id ?? null,
+              nature_ref: row.nature_ref ?? null,
+              support_ref: row.support_ref ?? null,
+              pagination_type_ref: row.pagination_type_ref ?? null,
               cote_locale: row.cote_locale ?? '',
               identifiant_interne: row.identifiant_interne ?? '',
               localisation_interne: row.localisation_interne ?? '',
               conditionnement: row.conditionnement ?? '',
-              qualite: row.qualite ?? '',
-              etat_conservation: row.etat_conservation ?? '',
-              pagination_type: row.pagination_type ?? '',
               nb_pages: row.nb_pages?.toString?.() ?? '',
               source_exemplaire_id: row.source_exemplaire_id ?? '',
               couverture_label: row.couverture_label ?? '',
               couverture_sort_start: row.couverture_sort_start?.toString?.() ?? '',
               couverture_sort_end: row.couverture_sort_end?.toString?.() ?? '',
+              physical_condition_ref: row.physical_condition_ref ?? null,
               description: row.description ?? '',
               note: row.note ?? '',
               acces: [],
@@ -784,12 +805,14 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   useEffect(() => {
     if (open) return;
     setStep(0);
-    setTypeUnite('registre');
+    setTypeUnite('');
     setTitre('');
     setIdentifiantInterne('');
     setDescription('');
-    setLangueRef('');
-    setEcritureRef('');
+    setNatureRef('');
+    setSupportRef('');
+    setPaginationTypeRef('');
+    setTypeUniteRef('');
     setSerieRef('');
     setCouvertureLabel('');
     setCouvertureStart('');
@@ -811,7 +834,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     // edit-unite : 2 étapes
     if (effectiveMode === 'edit-unite') {
       if (step === 0) {
-        const okBase = !!typeUnite && !!serieRef;
+        const okBase = !!typeUniteRef && !!serieRef;
         const okCoverage = couvertureLabel.trim().length > 0 && couvertureParsed.isValid;
         return okBase && okCoverage;
       }
@@ -824,7 +847,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
 
     // create : ton comportement actuel
     if (step === 0) {
-      const okBase = !!typeUnite && !!serieRef;
+      const okBase = !!typeUniteRef && !!serieRef;
       const okCoverage = couvertureLabel.trim().length > 0 && couvertureParsed.isValid;
       return okBase && okCoverage;
     }
@@ -837,7 +860,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   }, [
     effectiveMode,
     step,
+    typeUniteRef,
     typeUnite,
+    typeUnites,
     serieRef,
     couvertureLabel,
     couvertureParsed.isValid,
@@ -857,6 +882,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   // -----------------------------------
   const [submitting, setSubmitting] = useState(false);
 
+
   const submitAll = async () => {
     setSubmitting(true);
 
@@ -868,12 +894,10 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       const { data: unite, error: eUnite } = await supabase
         .from('ref_unites_documentaires')
         .insert({
-          type_unite: typeUnite,
+          type_unite_ref: typeUniteRef,
           titre: titre.trim(),
           identifiant_interne: identifiantInterne.trim() || null,
           description: description.trim() || null,
-          langue_id: langueRef || null,
-          ecriture_id: ecritureRef || null,
           serie_ref: serieRef,
           couverture_label: couvertureLabel.trim() || null,
           couverture_sort_start: toIntOrNull(couvertureStart),
@@ -910,8 +934,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             unite_documentaire_id: uniteId,
 
             depot_id: exDraft.depot_id,
-            nature_id: exDraft.nature_id || null,
-            support_id: exDraft.support_id || null,
+            nature_ref: exDraft.nature_ref || null,
+            support_ref: exDraft.support_ref || null,
 
             cote_locale: exDraft.cote_locale.trim() || null,
             identifiant_interne: exDraft.identifiant_interne.trim() || null,
@@ -920,10 +944,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             description: exDraft.description.trim() || null,
             note: exDraft.note.trim() || null,
 
-            qualite: exDraft.qualite.trim() || null,
-            etat_conservation: exDraft.etat_conservation.trim() || null,
-
-            pagination_type: exDraft.pagination_type || null,
+            pagination_type_ref: exDraft.pagination_type_ref || null,
             nb_pages: toIntOrNull(exDraft.nb_pages),
 
             source_exemplaire_id: exDraft.source_exemplaire_id.trim() || null,
@@ -931,6 +952,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             couverture_label: exDraft.couverture_label.trim() || null,
             couverture_sort_start: toIntOrNull(exDraft.couverture_sort_start),
             couverture_sort_end: toIntOrNull(exDraft.couverture_sort_end),
+
+            physical_condition_ref: exDraft.physical_condition_ref || null,
           })
           .select('id')
           .single();
@@ -969,7 +992,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         if (uniteId) {
           await supabase.from('ref_unites_documentaires').delete().eq('id', uniteId);
         }
-      } catch { }
+      } catch {}
     } finally {
       setSubmitting(false);
     }
@@ -982,12 +1005,10 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       const { error } = await supabase
         .from('ref_unites_documentaires')
         .update({
-          type_unite: typeUnite,
+          type_unite_ref: typeUniteRef,
           titre: titre.trim(),
           identifiant_interne: identifiantInterne.trim() || null,
           description: description.trim() || null,
-          langue_id: langueRef || null,
-          ecriture_id: ecritureRef || null,
           serie_ref: serieRef,
           couverture_label: couvertureLabel.trim() || null,
           couverture_sort_start: toIntOrNull(couvertureStart),
@@ -1040,22 +1061,21 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             id: exDraft.id, // si c'est un id existant => update, sinon insert
             unite_documentaire_id: sourceId,
             depot_id: exDraft.depot_id,
-            nature_id: exDraft.nature_id || null,
-            support_id: exDraft.support_id || null,
+            nature_ref: exDraft.nature_ref || null,
+            support_ref: exDraft.support_ref || null,
             cote_locale: exDraft.cote_locale.trim() || null,
             identifiant_interne: exDraft.identifiant_interne.trim() || null,
             localisation_interne: exDraft.localisation_interne.trim() || null,
             conditionnement: exDraft.conditionnement.trim() || null,
             description: exDraft.description.trim() || null,
             note: exDraft.note.trim() || null,
-            qualite: exDraft.qualite.trim() || null,
-            etat_conservation: exDraft.etat_conservation.trim() || null,
-            pagination_type: exDraft.pagination_type || null,
+            pagination_type_ref: exDraft.pagination_type_ref || null,
             nb_pages: toIntOrNull(exDraft.nb_pages),
             source_exemplaire_id: exDraft.source_exemplaire_id.trim() || null,
             couverture_label: exDraft.couverture_label.trim() || null,
             couverture_sort_start: toIntOrNull(exDraft.couverture_sort_start),
             couverture_sort_end: toIntOrNull(exDraft.couverture_sort_end),
+            physical_condition_ref: exDraft.physical_condition_ref || null,
           },
           { onConflict: 'id' },
         );
@@ -1160,21 +1180,14 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           >
             {stepKind === 'unite' ? (
               <UniteDocumentaireStep
-                series={series}
-                langues={langues}
-                ecritures={ecritures}
-                typeUnite={typeUnite}
-                setTypeUnite={setTypeUnite}
+                typeUniteRef={typeUniteRef}
+                setTypeUniteRef={setTypeUniteRef}
                 serieRef={serieRef}
                 setSerieRef={setSerieRef}
                 couvertureLabel={couvertureLabel}
                 setCouvertureLabel={setCouvertureLabel}
                 couvertureParsed={couvertureParsed}
                 couvertureExpanded={couvertureExpanded}
-                langueRef={langueRef}
-                setLangueRef={setLangueRef}
-                ecritureRef={ecritureRef}
-                setEcritureRef={setEcritureRef}
                 description={description}
                 setDescription={setDescription}
                 identifiantInterne={identifiantInterne}
@@ -1195,16 +1208,21 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
               />
             ) : null}
 
-            {stepKind === 'exemplaires' ?
+            {stepKind === 'exemplaires' ? (
               <ExemplairesStep
                 depots={depots}
                 natures={natures}
-                supports={supports}
-                paginationOptions={PAGINATION_OPTIONS as any}
+                natureRef={natureRef}
+                setNatureRef={setNatureRef}
+                supportRef={supportRef}
+                setSupportRef={setSupportRef}
+                paginationTypeRef={paginationTypeRef}
+                setPaginationTypeRef={setPaginationTypeRef}
                 plateformes={plateformes}
-                typesAcces={typesAcces}
                 defaultTypeAccesId={defaultTypeAccesId}
                 uniteCouvertureLabel={couvertureLabel}
+                physicalConditionRef={physicalConditionRef}
+                setPhysicalConditionRef={setPhysicalConditionRef}
                 exemplaires={exemplaires}
                 setExemplaires={setExemplaires}
                 selectedExId={selectedExId}
@@ -1214,7 +1232,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
                   setExemplaires((prev) => [...prev, ex]);
                   setSelectedExId(ex.id);
                 }}
-              /> : null}
+              />
+            ) : null}
           </div>
         </div>
 

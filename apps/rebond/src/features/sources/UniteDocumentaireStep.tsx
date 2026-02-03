@@ -1,9 +1,8 @@
-//UniteDocumentaireStep.tsx
+// UniteDocumentaireStep.tsx
 import { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { TypeUnite } from './source.constants';
-import { TYPE_UNITE_OPTIONS } from './source.constants';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 
 type YearGap = { start: number; end: number };
 type CoverageExpandedRow = { year: number; covered: boolean };
@@ -22,11 +21,7 @@ type CoverageParse = {
   minYear: number | null;
   maxYear: number | null;
   error?: string;
-};
-
-type SerieOption = { id: string; code?: string | null; label: string };
-type EcritureOption = { id: string; code?: string | null; label: string };
-type LangueOption = { id: string; code?: string | null; label: string };
+}
 
 function computeGaps(rows: { year: number; covered: boolean }[]): YearGap[] {
   const gaps: YearGap[] = [];
@@ -51,15 +46,10 @@ function formatGap(g: YearGap): string {
 }
 
 type Props = {
-  // lookups
-  series: SerieOption[];
-  langues: LangueOption[];
-  ecritures: EcritureOption[];
 
-  // state
-  typeUnite: TypeUnite;
-  setTypeUnite: (v: TypeUnite) => void;
-
+  typeUniteRef: string;
+  setTypeUniteRef: (v: string) => void;
+  
   serieRef: string;
   setSerieRef: (v: string) => void;
 
@@ -69,12 +59,6 @@ type Props = {
   couvertureParsed: CoverageParse;
   couvertureExpanded: CoverageExpanded | null;
 
-  langueRef: string;
-  setLangueRef: (v: string) => void;
-
-  ecritureRef: string;
-  setEcritureRef: (v: string) => void;
-
   description: string;
   setDescription: (v: string) => void;
 
@@ -83,12 +67,8 @@ type Props = {
 };
 
 export function UniteDocumentaireStep({
-  series,
-  langues,
-  ecritures,
-
-  typeUnite,
-  setTypeUnite,
+  typeUniteRef,
+  setTypeUniteRef,
 
   serieRef,
   setSerieRef,
@@ -98,12 +78,6 @@ export function UniteDocumentaireStep({
 
   couvertureParsed,
   couvertureExpanded,
-
-  langueRef,
-  setLangueRef,
-
-  ecritureRef,
-  setEcritureRef,
 
   description,
   setDescription,
@@ -123,34 +97,24 @@ export function UniteDocumentaireStep({
       <div className='grid gap-2 md:grid-cols-2'>
         <div className='space-y-1'>
           <div className='text-xs font-medium'>Type d’unité *</div>
-          <select
-            className='w-full rounded-md border px-2 py-2 text-sm'
-            value={typeUnite}
-            onChange={(e) => setTypeUnite(e.target.value as TypeUnite)}
-          >
-            {TYPE_UNITE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+          <RefSinglePickerSmart
+            table='ref_type_unite'
+            value={typeUniteRef || null}
+            onChange={(id) => setTypeUniteRef(id ?? '')}
+            mode='edit'
+            actionsInvisible={false}
+          />
         </div>
 
         <div className='space-y-1'>
           <div className='text-xs font-medium'>Série *</div>
-          <select
-            className='w-full rounded-md border px-2 py-2 text-sm'
-            value={serieRef}
-            onChange={(e) => setSerieRef(e.target.value)}
-          >
-            <option value=''>— Choisir —</option>
-            {series.length === 0 ? <option value={serieRef || ''}>Chargement…</option> : null}
-            {series.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          <RefSinglePickerSmart
+            table='ref_series_documentaires'
+            value={serieRef || null}
+            onChange={(id) => setSerieRef(id ?? '')}
+            mode='edit'
+            actionsInvisible={false}
+          />
         </div>
       </div>
 
@@ -189,7 +153,8 @@ export function UniteDocumentaireStep({
               </div>
 
               <div className='text-[11px] italic'>
-                Années non couvertes entre {couvertureExpanded.minYear} et {couvertureExpanded.maxYear}
+                Années non couvertes entre {couvertureExpanded.minYear} et{' '}
+                {couvertureExpanded.maxYear}
               </div>
             </div>
           </details>
@@ -198,53 +163,6 @@ export function UniteDocumentaireStep({
         {!couvertureParsed.isValid ? (
           <div className='text-xs text-red-600'>{couvertureParsed.error}</div>
         ) : null}
-      </div>
-
-      <div className='h-px bg-border' />
-
-      {/* 3) Langue + Écriture */}
-      <div className='grid gap-2 md:grid-cols-2'>
-        <div className='space-y-1'>
-          <div className='text-xs font-medium'>Langue (optionnelle)</div>
-          <select
-            className='w-full rounded-md border px-2 py-2 text-sm'
-            value={langueRef}
-            onChange={(e) => setLangueRef(e.target.value)}
-          >
-            <option value=''>— Choisir —</option>
-            {langues.length === 0 ? (
-              <option value='' disabled>
-                Chargement…
-              </option>
-            ) : null}
-            {langues.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className='space-y-1'>
-          <div className='text-xs font-medium'>Écriture (optionnelle)</div>
-          <select
-            className='w-full rounded-md border px-2 py-2 text-sm'
-            value={ecritureRef}
-            onChange={(e) => setEcritureRef(e.target.value)}
-          >
-            <option value=''>— Choisir —</option>
-            {ecritures.length === 0 ? (
-              <option value='' disabled>
-                Chargement…
-              </option>
-            ) : null}
-            {ecritures.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <div className='h-px bg-border' />

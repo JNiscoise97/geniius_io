@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, RefreshCw, Save, X } from "lucide-react";
+import { ALL_COLUMNS, REF_TABLES, type RefColumnKey } from "@/types/referentiel";
 
 /**
  * Generic configuration page to CRUD your ref_* tables.
@@ -17,43 +18,7 @@ import { Plus, Pencil, Trash2, RefreshCw, Save, X } from "lucide-react";
  * scope (text[]), period_from (date), period_to (date), note (text)
  */
 
-// If one table deviates, simply add a mapping here to hide unsupported columns.
-const REF_TABLES: { value: string; label: string; columns?: Partial<Record<RefColumnKey, boolean>> }[] = [
-  { value: "ref_categorie_couleur", label: "Catégories de couleur" },
-  { value: "ref_ec_auteur_institutionnel", label: "Auteur institutionnel" },
-  { value: "ref_ec_document_form", label: "Formes du document" },
-  { value: "ref_ec_physical_condition", label: "État physique du support" },
-  { value: "ref_ec_repro_quality", label: "Qualité de reproduction" },
-  { value: "ref_document_readability_features", label: "Caractéristiques de lisibilité du document" },
-  { value: "ref_ec_type_acte", label: "Type d'acte" },
-  { value: "ref_ecritures", label: "Ecritures" },
-  { value: "ref_filiation", label: "Filiations" },
-  { value: "ref_langues", label: "Langues" },
-  { value: "ref_natures", label: "Natures" },
-  { value: "ref_handwriting_legibility", label: "Niveau de lisibilité (manuscrit)" },
-  { value: "ref_profession", label: "Professions" },
-  { value: "ref_qualite", label: "Qualités (appellations)" },
-  { value: "ref_series_documentaires", label: "Séries documentaires" },
-  { value: "ref_signature", label: "Signature" },
-  { value: "ref_situation_fiscale", label: "Situations fiscales" },
-  { value: "ref_situation_matrimoniale", label: "Situations matrimoniales" },
-  { value: "ref_statut_juridique", label: "Statuts juridiques" },
-  { value: "ref_statut_proprietaire", label: "Statuts de propriété" },
-  { value: "ref_supports", label: "Supports" },
-  { value: "ref_handwriting_style", label: "Style d’écriture manuscrite" },
-  { value: "ref_transcription_status", label: "Statuts de transcription" },
-  { value: "ref_type_acces", label: "Type d'accès" },
-];
 
-// Column keys we support in the UI
-const ALL_COLUMNS = [
-  "code",
-  "label",
-  "description",
-  "note",
-] as const;
-
-type RefColumnKey = typeof ALL_COLUMNS[number];
 
 type RefRow = {
   id: string;

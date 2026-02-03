@@ -26,12 +26,10 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       .from('ref_unites_documentaires')
       .select(`
         id,
-        type_unite,
+        type_unite_ref,
         titre,
         identifiant_interne,
         description,
-        langue_id,
-        ecriture_id,
         serie_ref,
         couverture_label,
         couverture_sort_start,
@@ -53,17 +51,15 @@ export const useSourceStore = create<SourceState>((set, get) => ({
   },
 
   createSource: async (payload) => {
-    // garde-fou : au minimum titre + type_unite
+    // garde-fou : au minimum titre + type_unite_ref
     if (!payload.titre?.trim()) throw new Error('titre requis');
-    if (!payload.type_unite) throw new Error('type_unite requis');
+    if (!payload.type_unite_ref) throw new Error('type_unite_ref requis');
 
     const { error } = await supabase.from('ref_unites_documentaires').insert({
-      type_unite: payload.type_unite,
+      type_unite_ref: payload.type_unite_ref,
       titre: payload.titre.trim(),
       identifiant_interne: payload.identifiant_interne?.trim() || null,
       description: payload.description?.trim() || null,
-      langue_id: payload.langue_id ?? null,
-      ecriture_id: payload.ecriture_id ?? null,
       serie_ref: payload.serie_ref ?? null,
       couverture_label: payload.couverture_label?.trim() || null,
       couverture_sort_start: payload.couverture_sort_start ?? null,
@@ -76,7 +72,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
 
   updateSource: async (id, payload) => {
     const patch: Partial<SourceDB> = {
-      ...(payload.type_unite ? { type_unite: payload.type_unite } : {}),
+      ...(payload.type_unite_ref ? { type_unite_ref: payload.type_unite_ref } : {}),
       ...(payload.titre !== undefined ? { titre: payload.titre?.trim() || '' } : {}),
       ...(payload.identifiant_interne !== undefined
         ? { identifiant_interne: payload.identifiant_interne?.trim() || null }
@@ -84,8 +80,6 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       ...(payload.description !== undefined
         ? { description: payload.description?.trim() || null }
         : {}),
-      ...(payload.langue_id !== undefined ? { langue_id: payload.langue_id } : {}),
-      ...(payload.ecriture_id !== undefined ? { ecriture_id: payload.ecriture_id } : {}),
       ...(payload.serie_ref !== undefined ? { serie_ref: payload.serie_ref } : {}),
       ...(payload.couverture_label !== undefined
         ? { couverture_label: payload.couverture_label?.trim() || null }

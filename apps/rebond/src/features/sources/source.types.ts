@@ -5,7 +5,7 @@
 // ===============================
 export type UniteDocumentaireDB = {
   id: string;
-  type_unite: string;
+  type_unite_ref: string;
   titre: string;
 
   identifiant_interne: string | null;
@@ -44,19 +44,18 @@ export type SourceRow = UniteDocumentaireRow;
 export type ExemplaireDraft = {
   id: string;
   depot_id: string;
-  nature_id: string | null;
-  support_id: string | null;
+  nature_ref: string | null;
+  support_ref: string | null;
 
   cote_locale: string;
   identifiant_interne: string;
   localisation_interne: string;
   conditionnement: string;
 
-  qualite: string;
-  etat_conservation: string;
-
-  pagination_type: string;
+  pagination_type_ref: string | null;
   nb_pages: string;
+
+  physical_condition_ref: string | null;
 
   source_exemplaire_id: string;
 
