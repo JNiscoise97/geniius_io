@@ -232,15 +232,15 @@ export function SectionSources({
       exemplaire: {
         exemplaire_id: row.exemplaire_id,
         unite_id: row.unite_id,
-        nature_id: row.nature_id,
+        nature_ref: row.nature_ref,
         nature_code: row.nature_code,
         nature_label: row.nature_label,
-        support_id: row.support_id,
+        support_ref: row.support_ref,
         support_code: row.support_code,
         support_label: row.support_label,
         unite_titre: row.unite_titre,
         cote_locale: row.cote_locale,
-        pagination_type: row.pagination_type,
+        pagination_type_ref: row.pagination_type_ref,
         nb_pages: row.nb_pages,
         depot_is_online: row.depot_is_online,
         depot_is_physical: row.depot_is_physical,
@@ -249,8 +249,6 @@ export function SectionSources({
         institution_nom: row.institution_nom,
         identifiant_interne: row.identifiant_interne,
         localisation_interne: row.localisation_interne,
-        etat_conservation: row.etat_conservation,
-        qualite: row.qualite,
         url_base: row.url_base,
         plateforme_code: row.plateforme_code,
         source_exemplaire_id: (row as any).source_exemplaire_id ?? null,
@@ -665,7 +663,7 @@ export function SectionSources({
     // registre
     const hasNote = Boolean(((c as any).note ?? '').trim());
     const hasMarks = Array.isArray((c as any).marks) && (c as any).marks.length > 0;
-    const hasSome = hasNote || hasMarks || Boolean(ex.pagination_type) || Boolean(ex.nb_pages);
+    const hasSome = hasNote || hasMarks || Boolean(ex.pagination_type_ref) || Boolean(ex.nb_pages);
     if (!hasSome) return 'todo';
     return 'ok';
   };
@@ -861,9 +859,9 @@ export function SectionSources({
                   <Chip variant='secondary'>Support: {ex.support_label}</Chip>
                 ) : null}
                 <Chip variant='secondary'>Cote: {cote || '—'}</Chip>
-                {ex.nb_pages && ex.pagination_type ? (
+                {ex.nb_pages && ex.pagination_type_ref ? (
                   <Chip variant='outline'>
-                    Pagination: {ex.nb_pages} {ex.pagination_type}
+                    Pagination: {ex.nb_pages} {ex.pagination_type_ref}
                   </Chip>
                 ) : null}
                 {online ? (

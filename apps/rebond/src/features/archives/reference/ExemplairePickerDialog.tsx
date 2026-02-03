@@ -59,8 +59,8 @@ type Props = {
 
 // mêmes champs que dans tes queries supabase (v_exemplaires_pick)
 const PICK_SELECT =
-  'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,' +
-  'pagination_type,nb_pages,identifiant_interne,localisation_interne,qualite,etat_conservation,' +
+  'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,' +
+  'pagination_type_ref,nb_pages,identifiant_interne,localisation_interne,' +
   'depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,' +
   'url_base,plateforme_code,source_exemplaire_id';
 
@@ -71,22 +71,20 @@ function isOnline(r: ExemplairePick) {
 function normalizeRows(rows: any[]): ExemplairePick[] {
   return (rows ?? []).map((r) => ({
     exemplaire_id: r.exemplaire_id,
-    nature_id: r.nature_id,
+    nature_ref: r.nature_ref,
     nature_code: r.nature_code,
     nature_label: r.nature_label,
-    support_id: r.support_id,
+    support_ref: r.support_ref,
     support_code: r.support_code,
     support_label: r.support_label,
     unite_id: r.unite_id,
     unite_titre: r.unite_titre,
     cote_locale: r.cote_locale,
 
-    pagination_type: r.pagination_type,
+    pagination_type_ref: r.pagination_type_ref,
     nb_pages: r.nb_pages,
     identifiant_interne: r.identifiant_interne,
     localisation_interne: r.localisation_interne,
-    qualite: r.qualite,
-    etat_conservation: r.etat_conservation,
 
     depot_nom: r.depot_nom,
     depot_is_online: r.depot_is_online,
@@ -615,18 +613,16 @@ export function ExemplairePickerDialog({
             <Chip variant='secondary'>Cote: —</Chip>
           )}
 
-          {row.nb_pages && row.pagination_type ? (
+          {row.nb_pages && row.pagination_type_ref ? (
             <Chip variant='outline'>
-              Pagination: {row.nb_pages} {row.pagination_type}
+              Pagination: {row.nb_pages} {row.pagination_type_ref}
             </Chip>
           ) : null}
         </div>
 
         {/* LIGNE 2 */}
         {row.identifiant_interne ||
-        row.localisation_interne ||
-        row.qualite ||
-        row.etat_conservation ? (
+        row.localisation_interne ? (
           <div className='mt-2 flex flex-wrap items-center gap-2'>
             {row.identifiant_interne ? (
               <Chip variant='outline'>Identifiant interne: {row.identifiant_interne}</Chip>
@@ -634,12 +630,6 @@ export function ExemplairePickerDialog({
 
             {row.localisation_interne ? (
               <Chip variant='outline'>Localisation interne: {row.localisation_interne}</Chip>
-            ) : null}
-
-            {row.qualite ? <Chip variant='outline'>Qualité: {row.qualite}</Chip> : null}
-
-            {row.etat_conservation ? (
-              <Chip variant='outline'>État de conservation: {row.etat_conservation}</Chip>
             ) : null}
           </div>
         ) : null}
@@ -1151,23 +1141,11 @@ export function ExemplairePickerDialog({
                         <div>
                           <div className='text-[11px] text-slate-500'>Pagination</div>
                           <div className='text-xs text-slate-800'>
-                            {selected.nb_pages && selected.pagination_type
-                              ? `${selected.nb_pages} ${selected.pagination_type}`
-                              : selected.pagination_type
-                                ? selected.pagination_type
+                            {selected.nb_pages && selected.pagination_type_ref
+                              ? `${selected.nb_pages} ${selected.pagination_type_ref}`
+                              : selected.pagination_type_ref
+                                ? selected.pagination_type_ref
                                 : '—'}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className='text-[11px] text-slate-500'>Qualité</div>
-                          <div className='text-xs text-slate-800'>{selected.qualite || '—'}</div>
-                        </div>
-
-                        <div>
-                          <div className='text-[11px] text-slate-500'>État de conservation</div>
-                          <div className='text-xs text-slate-800'>
-                            {selected.etat_conservation || '—'}
                           </div>
                         </div>
 

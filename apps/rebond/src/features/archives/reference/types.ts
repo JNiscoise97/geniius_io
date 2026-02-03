@@ -47,18 +47,18 @@ export type ArchiveSourceRow = {
 export type ExemplairePick = {
   exemplaire_id: string;
 
-  nature_id: string;
+  nature_ref: string;
   nature_code?: string;
   nature_label?: string;
 
-  support_id?: string;
+  support_ref?: string;
   support_code?: string;
   support_label?: string;
 
   unite_id: string;
   unite_titre: string;
   cote_locale: string | null;
-  pagination_type: 'vues' | 'pages' | 'folios' | 'images' | null;
+  pagination_type_ref: 'vues' | 'pages' | 'folios' | 'images' | null;
   nb_pages: number | null;
 
   depot_nom: string;
@@ -70,9 +70,6 @@ export type ExemplairePick = {
 
   identifiant_interne: string | null;
   localisation_interne: string | null;
-
-  etat_conservation: string | null;
-  qualite: string | null;
 
   url_base: string | null;
   plateforme_code: string | null;
@@ -147,18 +144,18 @@ export type CitationDraftBase = {
 
 export type Exemplaire = {
   exemplaire_id?: string;
-  nature_id?: string;
+  nature_ref?: string;
   nature_code?: string;
   nature_label?: string;
 
-  support_id?: string;
+  support_ref?: string;
   support_code?: string;
   support_label?: string;
 
   unite_id?: string;
   unite_titre?: string;
   cote_locale?: string | null;
-  pagination_type?: string | null;
+  pagination_type_ref?: string | null;
   nb_pages: number | null;
 
   depot_nom?: string;
@@ -170,9 +167,6 @@ export type Exemplaire = {
 
   identifiant_interne: string | null;
   localisation_interne: string | null;
-
-  etat_conservation: string | null;
-  qualite: string | null;
 
   url_base?: string | null;
   plateforme_code?: string | null;

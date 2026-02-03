@@ -12,8 +12,8 @@ type ExemplaireRow = {
   unite_documentaire_id: string;
 
   depot_id: string;
-  nature_id: string | null;
-  support_id: string | null;
+  nature_ref: string | null;
+  support_ref: string | null;
 
   cote_locale: string | null;
   localisation_interne: string | null;
@@ -52,8 +52,8 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
           id,
           unite_documentaire_id,
           depot_id,
-          nature_id,
-          support_id,
+          nature_ref,
+          support_ref,
           cote_locale,
           localisation_interne,
           conditionnement,
@@ -139,8 +139,8 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
     const { error } = await supabase.from("ref_exemplaires").insert({
       unite_documentaire_id: uniteDocumentaireId,
       depot_id: defaultDepotId,
-      nature_id: null,
-      support_id: null,
+      nature_ref: null,
+      support_ref: null,
     });
 
     if (error) {
@@ -166,8 +166,8 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
       .from("ref_exemplaires")
       .update({
         depot_id: e.depot_id,
-        nature_id: e.nature_id,
-        support_id: e.support_id,
+        nature_ref: e.nature_ref,
+        support_ref: e.support_ref,
         cote_locale: e.cote_locale?.trim() || null,
         localisation_interne: e.localisation_interne?.trim() || null,
         conditionnement: e.conditionnement?.trim() || null,
@@ -202,7 +202,7 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
 
   // Heuristique UI : on considère “numérisation” si support = numerise (ref_supports.code = 'numerise')
   const isNumerise = (ex: ExemplaireRow) => {
-    const s = supports.find((x) => x.id === ex.support_id);
+    const s = supports.find((x) => x.id === ex.support_ref);
     return (s?.code ?? "").toLowerCase() === "numerise";
   };
 
@@ -250,8 +250,8 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
                 <div className="text-xs font-medium">Nature (optionnelle)</div>
                 <select
                   className="w-full rounded-md border px-2 py-2 text-sm"
-                  value={ex.nature_id ?? ""}
-                  onChange={(ev) => patch(ex.id, { nature_id: ev.target.value || null })}
+                  value={ex.nature_ref ?? ""}
+                  onChange={(ev) => patch(ex.id, { nature_ref: ev.target.value || null })}
                 >
                   <option value="">— (Aucune) —</option>
                   {natures.map((n) => (
@@ -267,8 +267,8 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
                 <div className="text-xs font-medium">Support (optionnel)</div>
                 <select
                   className="w-full rounded-md border px-2 py-2 text-sm"
-                  value={ex.support_id ?? ""}
-                  onChange={(ev) => patch(ex.id, { support_id: ev.target.value || null })}
+                  value={ex.support_ref ?? ""}
+                  onChange={(ev) => patch(ex.id, { support_ref: ev.target.value || null })}
                 >
                   <option value="">— (Aucun) —</option>
                   {supports.map((s) => (
@@ -306,16 +306,6 @@ export function ExemplairesEditor({ uniteDocumentaireId }: { uniteDocumentaireId
                   value={ex.conditionnement ?? ""}
                   onChange={(ev) => patch(ex.id, { conditionnement: ev.target.value })}
                   placeholder="armoire, boîte, carton…"
-                />
-              </div>
-
-              {/* Qualité */}
-              <div className="space-y-1">
-                <div className="text-xs font-medium">Qualité (optionnelle)</div>
-                <Input
-                  value={ex.qualite ?? ""}
-                  onChange={(ev) => patch(ex.id, { qualite: ev.target.value })}
-                  placeholder="bonne, HD, faible…"
                 />
               </div>
 

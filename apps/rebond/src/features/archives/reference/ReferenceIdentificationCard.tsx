@@ -2,6 +2,11 @@
 import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
 import { toIds, toLabels } from '@/utils/dictionnaireValue';
 import type { DictionnaireKind } from '@/components/shared/DictionnaireEditorPanel';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Check, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
@@ -40,45 +45,45 @@ export type RegistreReferenceIdentificationFormState = {
 
 type Props =
   | {
-      id: string;
-      mode: 'acte';
-      form: ActeReferenceIdentificationFormState;
-      setField: <K extends keyof ActeReferenceIdentificationFormState>(
-        key: K,
-        value: ActeReferenceIdentificationFormState[K],
-      ) => void;
+    id: string;
+    mode: 'acte';
+    form: ActeReferenceIdentificationFormState;
+    setField: <K extends keyof ActeReferenceIdentificationFormState>(
+      key: K,
+      value: ActeReferenceIdentificationFormState[K],
+    ) => void;
 
-      onEditBureauEnregistrement: () => void;
-      onClearBureauEnregistrement: () => void;
+    onEditBureauEnregistrement: () => void;
+    onClearBureauEnregistrement: () => void;
 
-      onEditTypeActe: (args: {
-        kind: DictionnaireKind;
-        title: string;
-        multi: boolean;
-        defaultSelectedIds: string[];
-      }) => void;
-      onClearTypeActe: () => void;
-    }
+    onEditTypeActe: (args: {
+      kind: DictionnaireKind;
+      title: string;
+      multi: boolean;
+      defaultSelectedIds: string[];
+    }) => void;
+    onClearTypeActe: () => void;
+  }
   | {
-      id: string;
-      mode: 'registre';
-      form: RegistreReferenceIdentificationFormState;
-      setField: <K extends keyof RegistreReferenceIdentificationFormState>(
-        key: K,
-        value: RegistreReferenceIdentificationFormState[K],
-      ) => void;
+    id: string;
+    mode: 'registre';
+    form: RegistreReferenceIdentificationFormState;
+    setField: <K extends keyof RegistreReferenceIdentificationFormState>(
+      key: K,
+      value: RegistreReferenceIdentificationFormState[K],
+    ) => void;
 
-      onEditBureauEnregistrement: () => void;
-      onClearBureauEnregistrement: () => void;
+    onEditBureauEnregistrement: () => void;
+    onClearBureauEnregistrement: () => void;
 
-      onEditTypeActe: (args: {
-        kind: DictionnaireKind;
-        title: string;
-        multi: boolean;
-        defaultSelectedIds: string[];
-      }) => void;
-      onClearTypeActe: () => void;
-    };
+    onEditTypeActe: (args: {
+      kind: DictionnaireKind;
+      title: string;
+      multi: boolean;
+      defaultSelectedIds: string[];
+    }) => void;
+    onClearTypeActe: () => void;
+  };
 
 function isoToFr(iso?: string) {
   if (!iso) return '';
@@ -113,9 +118,29 @@ export function SectionIdentification(props: Props) {
   const currentTypeActeColors = form.type_acte_ref?.colors ?? [];
   const currentTypeActeIds = toIds(form.type_acte_ref);
 
-  console.log('currentTypeActeLabels',currentTypeActeLabels)
-  console.log('currentTypeActeIds',currentTypeActeIds)
+  console.log('currentTypeActeLabels', currentTypeActeLabels)
+  console.log('currentTypeActeIds', currentTypeActeIds)
+  const [copied, setCopied] = useState(false);
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    setCopied(true);
+    toast.success('ID copié dans le presse-papier');
+    window.setTimeout(() => setCopied(false), 1200);
+  };
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
       <h3 className='text-sm font-semibold text-slate-900'>Identification</h3>
@@ -123,8 +148,18 @@ export function SectionIdentification(props: Props) {
       <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
         <div className='md:col-span-12'>
           <label className='block text-xs font-medium text-slate-700'>Identifiant unique</label>
-          <div className='mt-1 w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>
-            {id}
+          <div className='flex w-fit gap-2'>
+            <Input value={id} disabled className='font-mono' />
+            <Button
+              type='button'
+              size='icon'
+              variant='secondary'
+              onClick={() => copyToClipboard(id)}
+              title='Copier l’id'
+              aria-label='Copier l’id'
+            >
+              {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+            </Button>
           </div>
         </div>
 
@@ -136,6 +171,7 @@ export function SectionIdentification(props: Props) {
             dense
             onEdit={onEditBureauEnregistrement}
             onDelete={onClearBureauEnregistrement}
+            actionsInvisible={false}
           />
         </div>
 
@@ -146,6 +182,7 @@ export function SectionIdentification(props: Props) {
             titre="Type d'acte"
             values={currentTypeActeLabels}
             colors={currentTypeActeColors}
+            actionsInvisible={false}
             dense
             onEdit={() =>
               onEditTypeActe({
