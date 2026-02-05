@@ -94,13 +94,10 @@ function emptyCitation(acteId: string): CitationDraft {
     id: 'tmp-' + crypto.randomUUID(),
     acte_id: acteId,
     exemplaire_id: null,
-    vues_start: null,
-    vues_end: null,
-    vues_raw: null,
-    page_start: null,
-    page_end: null,
-    page_raw: null,
-    acte_manquant: false,
+    loc_start: null,
+    loc_end: null,
+    loc_raw: null,
+    is_missing: false,
     note: null,
     sort_order: 0,
     marginal_mentions_present: null,
@@ -118,13 +115,10 @@ function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
     id: r.id,
     acte_id: r.acte_id,
     exemplaire_id: r.exemplaire_id,
-    vues_start: r.vues_start,
-    vues_end: r.vues_end,
-    vues_raw: r.vues_raw,
-    page_start: r.page_start,
-    page_end: r.page_end,
-    page_raw: r.page_raw,
-    acte_manquant: Boolean(r.acte_manquant),
+    loc_start: r.loc_start,
+    loc_end: r.loc_end,
+    loc_raw: r.loc_raw,
+    is_missing: Boolean(r.is_missing),
     note: r.note,
     sort_order: r.sort_order,
     marginal_mentions_present: r.marginal_mentions_present,
@@ -151,8 +145,13 @@ function bestPickPerExemplaire(picks: any[]): Map<string, ExemplairePick> {
       support_id: r.support_id ?? null,
       support_code: r.support_code ?? null,
       support_label: r.support_label ?? null,
+      physical_condition_ref: r.physical_condition_ref ?? null,
+      physical_condition_code: r.physical_condition_code ?? null,
+      physical_condition_label: r.physical_condition_label ?? null,
       cote_locale: r.cote_locale ?? null,
-      pagination_type: r.pagination_type ?? null,
+      pagination_type_ref: r.pagination_type_ref ?? null,
+      pagination_type_code: r.pagination_type_code ?? null,
+      pagination_type_label: r.pagination_type_label ?? null,
       nb_pages: r.nb_pages,
       depot_nom: r.depot_nom ?? null,
       depot_is_online: r.depot_is_online ?? null,
@@ -202,7 +201,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, exemplaire_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
+          'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -240,7 +239,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data: pickData, error: pickErr } = await supabase
         .from('v_exemplaires_pick')
         .select(
-          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,etat_conservation,qualite',
+          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne, physical_condition_ref,physical_condition_code,physical_condition_label',
         )
         .in('exemplaire_id', manIds);
 
@@ -269,9 +268,14 @@ export function useActeCitationsSources(acteId: string) {
             support_id: e.support_id ?? null,
             support_code: e.support_code ?? null,
             support_label: e.support_label ?? null,
+            physical_condition_ref: e.physical_condition_code ?? null,
+            physical_condition_code: e.physical_condition_code ?? null,
+            physical_condition_label: e.physical_condition_code ?? null,
             unite_titre: e.unite_titre,
             cote_locale: e.cote_locale,
-            pagination_type: e.pagination_type,
+            pagination_type_ref: e.pagination_type_ref,
+            pagination_type_code: e.pagination_type_code,
+            pagination_type_label: e.pagination_type_label,
             nb_pages: e.nb_pages,
             depot_nom: e.depot_nom,
             depot_is_online: e.depot_is_online,

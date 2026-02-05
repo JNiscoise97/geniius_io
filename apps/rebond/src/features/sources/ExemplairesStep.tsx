@@ -20,18 +20,6 @@ type Props = {
   depots: DepotOption[];
   natures: NatureOption[];
 
-  natureRef: string;
-  setNatureRef: (v: string) => void;
-
-  supportRef: string;
-  setSupportRef: (v: string) => void;
-
-  paginationTypeRef: string;
-  setPaginationTypeRef: (v: string) => void;
-
-  physicalConditionRef: string;
-  setPhysicalConditionRef: (v: string) => void;
-
   plateformes: PlateformeOption[];
   defaultTypeAccesId: string | null;
 
@@ -49,15 +37,6 @@ type Props = {
 export function ExemplairesStep({
   depots,
   natures,
-
-  natureRef,
-  setNatureRef,
-  supportRef,
-  setSupportRef,
-  physicalConditionRef,
-  setPhysicalConditionRef,
-  paginationTypeRef,
-  setPaginationTypeRef,
 
   plateformes,
   defaultTypeAccesId,
@@ -383,8 +362,8 @@ export function ExemplairesStep({
                     <Field label='Nature'>
                       <RefSinglePickerSmart
                         table='ref_natures'
-                        value={natureRef || null}
-                        onChange={(id) => setNatureRef(id ?? '')}
+                        value={selected.nature_ref ?? null}
+                        onChange={(id) => patchSelected({ nature_ref: id ?? null })}
                         mode='edit'
                         actionsInvisible={false}
                       />
@@ -393,8 +372,8 @@ export function ExemplairesStep({
                     <Field label='Condition physique'>
                       <RefSinglePickerSmart
                         table='ref_physical_condition'
-                        value={physicalConditionRef || null}
-                        onChange={(id) => setPhysicalConditionRef(id ?? '')}
+                        value={selected.physical_condition_ref ?? null}
+                        onChange={(id) => patchSelected({ physical_condition_ref: id ?? null })}
                         mode='edit'
                         actionsInvisible={false}
                       />
@@ -403,8 +382,8 @@ export function ExemplairesStep({
                     <Field label='Support'>
                       <RefSinglePickerSmart
                         table='ref_supports'
-                        value={supportRef || null}
-                        onChange={(id) => setSupportRef(id ?? '')}
+                        value={selected.support_ref ?? null}
+                        onChange={(id) => patchSelected({ support_ref: id ?? null })}
                         mode='edit'
                         actionsInvisible={false}
                       />
@@ -421,8 +400,8 @@ export function ExemplairesStep({
                     <Field label='Type de pagination'>
                       <RefSinglePickerSmart
                         table='ref_pagination_type'
-                        value={paginationTypeRef || null}
-                        onChange={(id) => setPaginationTypeRef(id ?? '')}
+                        value={selected.pagination_type_ref ?? null}
+                        onChange={(id) => patchSelected({ pagination_type_ref: id ?? null })}
                         mode='edit'
                         actionsInvisible={false}
                       />

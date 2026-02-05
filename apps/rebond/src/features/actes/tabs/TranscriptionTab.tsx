@@ -184,13 +184,10 @@ export default function TranscriptionTab({ acteId }: Props) {
         (s.exemplaire?.depot_is_online || s.exemplaire?.depot_is_physical) ??
         null;
       const vuesPages =
-        s.vues_raw ||
-        (s.vues_start || s.vues_end
-          ? `Vues ${s.vues_start ?? '?'}–${s.vues_end ?? '?'}`
-          : s.page_raw ||
-            (s.page_start || s.page_end
-              ? `Pages ${s.page_start ?? '?'}–${s.page_end ?? '?'}`
-              : ''));
+        s.loc_raw ||
+        (s.loc_start || s.loc_end
+          ? `Vues ${s.loc_start ?? '?'}–${s.loc_end ?? '?'}`
+          : '');
       const label = [uniteTitre, inst, vuesPages].filter(Boolean).join(' · ');
       const usedInWorkingVersion = t.activeSourceId === s.id;
 
@@ -900,18 +897,15 @@ export default function TranscriptionTab({ acteId }: Props) {
                         : null;
 
                       const vuesPages =
-                        g?.vues_raw ||
-                        (g?.vues_start || g?.vues_end
-                          ? `Vues ${g?.vues_start ?? '?'}–${g?.vues_end ?? '?'}`
-                          : g?.page_raw ||
-                            (g?.page_start || g?.page_end
-                              ? `Pages ${g?.page_start ?? '?'}–${g?.page_end ?? '?'}`
-                              : ''));
+                        g?.loc_raw ||
+                        (g?.loc_start || g?.loc_end
+                          ? `Vues ${g?.loc_start ?? '?'}–${g?.loc_end ?? '?'}`
+                          : '');
 
                       const lineParts = [
                         uniteCote ? uniteCote : null,
                         vuesPages ? vuesPages : null,
-                        g?.acte_manquant ? 'Acte manquant' : null,
+                        g?.is_missing ? 'Acte manquant' : null,
                         signatures_label,
                         marginal_mentions_label,
                       ].filter(Boolean);

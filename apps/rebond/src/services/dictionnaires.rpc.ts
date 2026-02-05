@@ -27,7 +27,7 @@ export async function fetchFiliation(): Promise<{ data: DictionnaireItem[]; erro
 
 export async function fetchAuteurInstitutionnel(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
-    .from("ref_ec_auteur_institutionnel")
+    .from("ref_auteur_institutionnel")
     .select("id, code, label")
     .order("label", { ascending: true });
   return { data: (data as DictionnaireItem[]) ?? [], error };

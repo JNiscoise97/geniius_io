@@ -87,12 +87,17 @@ select
   e.support_ref,
   sup.label as support_label,
   sup.code as support_code,
+  e.physical_condition_ref,
+  phc.label as physical_condition_label,
+  phc.code as physical_condition_code,
   e.source_exemplaire_id,
   e.cote_locale,
   e.identifiant_interne,
   e.localisation_interne,
   e.conditionnement,
   e.pagination_type_ref,
+  pty.label as pagination_type_label,
+  pty.code as pagination_type_code,
   e.nb_pages,
   e.couverture_label as exemplaire_couverture_label,
   e.couverture_sort_start as exemplaire_couverture_sort_start,
@@ -139,6 +144,8 @@ from
   join ref_institutions i on i.id = d.institution_id
   left join ref_natures n on n.id = e.nature_ref
   left join ref_supports sup on sup.id = e.support_ref
+  left join ref_pagination_type pty on pty.id = e.pagination_type_ref
+  left join ref_physical_condition phc on phc.id = e.physical_condition_ref
   left join best_url bu on bu.exemplaire_id = e.id
   left join agg_bureaux ab on ab.unite_id = u.id
   left join agg_types_actes ata on ata.unite_id = u.id;

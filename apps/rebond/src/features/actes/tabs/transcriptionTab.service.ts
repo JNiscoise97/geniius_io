@@ -163,13 +163,10 @@ export type ActeCitationRow = {
   id: string;
   acte_id: string;
   exemplaire_id: string | null;
-  vues_start: number | null;
-  vues_end: number | null;
-  vues_raw: string | null;
-  page_start: number | null;
-  page_end: number | null;
-  page_raw: string | null;
-  acte_manquant: boolean | null;
+  loc_start: number | null;
+  loc_end: number | null;
+  loc_raw: string | null;
+  is_missing: boolean | null;
   note: string | null;
   sort_order: number | null;
 
@@ -191,10 +188,15 @@ export type ExemplairePick = {
   support_id: string | null;
   support_code: string | null;
   support_label: string | null;
+  physical_condition_ref: string | null;
+  physical_condition_code: string | null;
+  physical_condition_label: string | null;
   unite_id: string | null;
   unite_titre: string | null;
   cote_locale: string | null;
-  pagination_type: string | null;
+  pagination_type_ref: string | null;
+  pagination_type_code: string | null;
+  pagination_type_label: string | null;
   nb_pages: number | null;
   depot_nom: string | null;
   depot_is_physical: boolean | null;
@@ -217,14 +219,11 @@ export type CitationDraft = {
   exemplaire_id: string | null;
 
   // pagination / vues/pages
-  vues_start: number | null;
-  vues_end: number | null;
-  vues_raw: string | null;
-  page_start: number | null;
-  page_end: number | null;
-  page_raw: string | null;
+  loc_start: number | null;
+  loc_end: number | null;
+  loc_raw: string | null;
 
-  acte_manquant: boolean;
+  is_missing: boolean;
   note: string | null;
   sort_order: number | null;
 

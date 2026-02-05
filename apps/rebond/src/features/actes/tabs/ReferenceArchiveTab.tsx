@@ -21,9 +21,10 @@ import {
   formatBureauLabel,
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
-import { Lock, Unlock } from 'lucide-react';
+import { AlertTriangle, Lock, Unlock } from 'lucide-react';
 import type { ActeCitationDraft, ExemplairePick } from '@/features/archives/reference/types';
 import { SectionIdentification, SectionSources } from '@/features/archives/reference';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
@@ -46,38 +47,53 @@ type ActeCitationRow = {
   id: string;
   acte_id: string;
   exemplaire_id: string;
-  vues_start: number | null;
-  vues_end: number | null;
-  vues_raw: string | null;
-  page_start: number | null;
-  page_end: number | null;
-  page_raw: string | null;
-  acte_manquant: boolean;
-  note: string | null;
 
+  loc_start: number | null;
+  loc_end: number | null;
+  loc_raw: string | null;
+
+  is_missing: boolean;
+  note: string | null;
   sort_order: number;
 
-  document_form_ref: { ids: string[]; labels: string[] } | null;
-  document_form_details: string | null;
+  // ✅ DB: uuid
+  physical_condition_ref: string | null;
+  repro_quality_ref: string | null;
 
-  physical_condition_ref: { ids: string[]; labels: string[] } | null;
-  damage_kinds: any; // jsonb (array)
+  // ✅ jsonb
+  missing_ranges: any;
+
   damage_notes: string | null;
-
-  repro_quality_ref: { ids: string[]; labels: string[] } | null;
-  repro_issues: any; // jsonb (array)
   repro_notes: string | null;
 
-  missing_ranges: any; // jsonb (array)
-
+  // ✅ atomiques
   marginal_mentions_present: boolean | null;
   marginal_mentions_count: number | null;
-
   signatures_present: boolean | null;
   signatures_count: number | null;
-
   marginal_crossouts_present: boolean | null;
   marginal_crossouts_count: number | null;
+
+  // ✅ si tu as aussi ces champs dans la table citations (sinon ignore)
+  langue_ref?: string | null;
+  ecriture_ref?: string | null;
+  handwriting_legibility_ref?: string | null;
+
+  // ✅ multi: arrays d'uuid
+  document_damage_kinds_ids?: string[] | null;
+  document_readability_features_ids?: string[] | null;
+
+  // localisation / repères
+  anchor_hint?: string | null;
+  acte_no?: number | null;
+
+  // lacunes
+  lacune?: boolean | null;
+  lacune_note?: string | null;
+
+  // divers
+  marks?: string | null;
+  work_note?: string | null;
 };
 
 type FormState = {
@@ -115,71 +131,66 @@ function toDateInput(v: any) {
 
 function emptyCitation(): ActeCitationDraft {
   return {
+    id: undefined,
     exemplaire_id: undefined,
     exemplaire: undefined,
 
-    vues_start: null,
-    vues_end: null,
-    vues_raw: '',
+    loc_start: null,
+    loc_end: null,
+    loc_raw: '',
 
-    page_start: null,
-    page_end: null,
-    page_raw: '',
-
-    acte_manquant: false,
+    is_missing: false,
     note: '',
     sort_order: 0,
 
-    document_form_ref: null,
-    document_form_details: '',
-
+    // ✅ uuid
     physical_condition_ref: null,
-    damage_kinds: [],
-    damage_notes: '',
-
     repro_quality_ref: null,
-    repro_issues: [],
+
+    // ✅ notes
+    damage_notes: '',
     repro_notes: '',
 
+    // ✅ jsonb
     missing_ranges: [],
 
+    // ✅ atomiques
     marginal_mentions_present: null,
     marginal_mentions_count: null,
-
     signatures_present: null,
     signatures_count: null,
-
     marginal_crossouts_present: null,
     marginal_crossouts_count: null,
-  };
+
+    // ✅ si présents dans le draft/UI
+    langue_ref: null,
+    ecriture_ref: null,
+    handwriting_legibility_ref: null,
+    document_damage_kinds_ids: [],
+    document_readability_features_ids: [],
+  } as any;
 }
 
 function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): ActeCitationDraft {
+  const arrOrEmpty = (v: any) => (Array.isArray(v) ? v.filter(Boolean) : []);
+
   return {
     id: r?.id,
     exemplaire_id: r?.exemplaire_id,
 
-    vues_start: r?.vues_start ?? null,
-    vues_end: r?.vues_end ?? null,
-    vues_raw: r?.vues_raw ?? '',
+    loc_start: r?.loc_start ?? null,
+    loc_end: r?.loc_end ?? null,
+    loc_raw: r?.loc_raw ?? '',
 
-    page_start: r?.page_start ?? null,
-    page_end: r?.page_end ?? null,
-    page_raw: r?.page_raw ?? '',
-
-    acte_manquant: Boolean(r?.acte_manquant),
+    is_missing: r?.is_missing ?? false,
     note: r?.note ?? '',
-    sort_order: typeof r?.sort_order === 'number' ? r!.sort_order : 0,
+    sort_order: typeof r?.sort_order === 'number' ? r.sort_order : 0,
 
-    document_form_ref: r?.document_form_ref ?? null,
-    document_form_details: r?.document_form_details ?? '',
+    // ✅ uuid direct
+    physical_condition_ref: (r?.physical_condition_ref ?? null) as any,
+    repro_quality_ref: (r?.repro_quality_ref ?? null) as any,
 
-    physical_condition_ref: r?.physical_condition_ref ?? null,
-    damage_kinds: Array.isArray(r?.damage_kinds) ? (r!.damage_kinds as any[]).filter(Boolean) : [],
     damage_notes: r?.damage_notes ?? '',
-
-    repro_quality_ref: r?.repro_quality_ref ?? null,
-    repro_issues: Array.isArray(r?.repro_issues) ? (r!.repro_issues as any[]).filter(Boolean) : [],
     repro_notes: r?.repro_notes ?? '',
 
     missing_ranges: Array.isArray(r?.missing_ranges)
@@ -188,15 +199,31 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
 
     marginal_mentions_present: r?.marginal_mentions_present ?? null,
     marginal_mentions_count:
-      typeof r?.marginal_mentions_count === 'number' ? r!.marginal_mentions_count : null,
+      typeof r?.marginal_mentions_count === 'number' ? r.marginal_mentions_count : null,
 
     signatures_present: r?.signatures_present ?? null,
-    signatures_count: typeof r?.signatures_count === 'number' ? r!.signatures_count : null,
+    signatures_count: typeof r?.signatures_count === 'number' ? r.signatures_count : null,
 
     marginal_crossouts_present: r?.marginal_crossouts_present ?? null,
     marginal_crossouts_count:
-      typeof r?.marginal_crossouts_count === 'number' ? r!.marginal_crossouts_count : null,
-  };
+      typeof r?.marginal_crossouts_count === 'number' ? r.marginal_crossouts_count : null,
+
+    // ✅ si tu les as dans la table citations
+    langue_ref: (r as any)?.langue_ref ?? null,
+    ecriture_ref: (r as any)?.ecriture_ref ?? null,
+    handwriting_legibility_ref: (r as any)?.handwriting_legibility_ref ?? null,
+
+    document_damage_kinds_ids: arrOrEmpty((r as any)?.document_damage_kinds_ids),
+    document_readability_features_ids: arrOrEmpty((r as any)?.document_readability_features_ids),
+
+    anchor_hint: (r as any)?.anchor_hint ?? '',
+    acte_no: typeof (r as any)?.acte_no === 'number' ? (r as any).acte_no : null,
+
+    lacune: (r as any)?.lacune ?? null,
+    lacune_note: (r as any)?.lacune_note ?? '',
+
+    marks: (r as any)?.marks ?? '',
+  } as any;
 }
 
 export default function ReferenceArchiveTab({
@@ -283,9 +310,11 @@ export default function ReferenceArchiveTab({
       const { data, error } = await supabase
         .from('etat_civil_acte_citations')
         .select(
-          'id, acte_id, exemplaire_id, vues_start, vues_end, vues_raw, page_start, page_end, page_raw, acte_manquant, note, sort_order,' +
-            'document_form_ref, document_form_details, physical_condition_ref, damage_kinds, damage_notes, repro_quality_ref, repro_issues, repro_notes, missing_ranges,' +
-            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
+          'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
+            'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
+            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
+            'anchor_hint, acte_no, lacune, lacune_note, marks, work_note,' +
+            'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -325,7 +354,7 @@ export default function ReferenceArchiveTab({
       const { data: pickData, error: pickErr } = await supabase
         .from('v_exemplaires_pick')
         .select(
-          'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne',
+          'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,physical_condition_ref, physical_condition_code,physical_condition_label ',
         )
         .in('exemplaire_id', manIds);
 
@@ -353,10 +382,15 @@ export default function ReferenceArchiveTab({
           support_ref: r.support_ref,
           support_code: r.support_code,
           support_label: r.support_label,
+          physical_condition_ref: r.physical_condition_ref,
+          physical_condition_code: r.physical_condition_code,
+          physical_condition_label: r.physical_condition_label,
           unite_id: r.unite_id,
           unite_titre: r.unite_titre,
           cote_locale: r.cote_locale,
           pagination_type_ref: r.pagination_type_ref,
+          pagination_type_code: r.pagination_type_code,
+          pagination_type_label: r.pagination_type_label,
           nb_pages: r.nb_pages,
           depot_nom: r.depot_nom,
           depot_is_online: r.depot_is_online,
@@ -399,8 +433,13 @@ export default function ReferenceArchiveTab({
             support_ref: e.support_ref,
             support_code: e.support_code,
             support_label: e.support_label,
+            physical_condition_ref: e.physical_condition_ref,
+            physical_condition_code: e.physical_condition_code,
+            physical_condition_label: e.physical_condition_label,
             cote_locale: e.cote_locale,
             pagination_type_ref: e.pagination_type_ref,
+            pagination_type_code: e.pagination_type_code,
+            pagination_type_label: e.pagination_type_label,
             nb_pages: e.nb_pages,
             depot_nom: e.depot_nom,
             depot_is_online: e.depot_is_online,
@@ -506,28 +545,20 @@ export default function ReferenceArchiveTab({
           acte_id: acteId,
           exemplaire_id: c.exemplaire_id,
 
-          vues_start: c.vues_start ?? null,
-          vues_end: c.vues_end ?? null,
-          vues_raw: (c.vues_raw ?? '').trim() || null,
+          loc_start: c.loc_start ?? null,
+          loc_end: c.loc_end ?? null,
+          loc_raw: (c.loc_raw ?? '').trim() || null,
 
-          page_start: c.page_start ?? null,
-          page_end: c.page_end ?? null,
-          page_raw: (c.page_raw ?? '').trim() || null,
-
-          acte_manquant: Boolean(c.acte_manquant),
+          is_missing: c.is_missing,
           note: (c.note ?? '').trim() || null,
 
           sort_order: idx,
 
-          document_form_ref: firstId(c.document_form_ref),
-          document_form_details: (c.document_form_details ?? '').trim() || null,
+          // ✅ uuid direct
+          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
+          repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
 
-          physical_condition_ref: firstId(c.physical_condition_ref),
-          damage_kinds: Array.isArray(c.damage_kinds) ? c.damage_kinds : [],
           damage_notes: (c.damage_notes ?? '').trim() || null,
-
-          repro_quality_ref: firstId(c.repro_quality_ref),
-          repro_issues: Array.isArray(c.repro_issues) ? c.repro_issues : [],
           repro_notes: (c.repro_notes ?? '').trim() || null,
 
           missing_ranges: Array.isArray(c.missing_ranges) ? c.missing_ranges : [],
@@ -542,6 +573,30 @@ export default function ReferenceArchiveTab({
           marginal_crossouts_present: toBoolOrNull(c.marginal_crossouts_present),
           marginal_crossouts_count:
             c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
+
+          // ✅ si tu les enregistres aussi au niveau citation
+          langue_ref: (c as any).langue_ref ?? null,
+          ecriture_ref: (c as any).ecriture_ref ?? null,
+          handwriting_legibility_ref: (c as any).handwriting_legibility_ref ?? null,
+
+          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
+            ? (c as any).document_damage_kinds_ids
+            : [],
+          document_readability_features_ids: Array.isArray(
+            (c as any).document_readability_features_ids,
+          )
+            ? (c as any).document_readability_features_ids
+            : [],
+
+          anchor_hint: (c as any).anchor_hint?.trim?.() || null,
+          acte_no: (c as any).acte_no ?? null,
+
+          // ➕ AJOUTS lacunes
+          lacune: toBoolOrNull((c as any).lacune),
+          lacune_note: (c as any).lacune_note?.trim?.() || null,
+
+          // ➕ AJOUTS divers
+          marks: (c as any).marks?.trim?.() || null,
         };
 
         return c.id ? { id: c.id, ...base } : base;
@@ -573,6 +628,16 @@ export default function ReferenceArchiveTab({
         }),
       );
     }
+  };
+
+  const toUuidOrNull = (v: any): string | null => {
+    if (!v) return null;
+    if (typeof v === 'string') return v || null;
+    if (typeof v === 'object') {
+      if (typeof v.id === 'string') return v.id;
+      if (Array.isArray(v.ids) && typeof v.ids[0] === 'string') return v.ids[0];
+    }
+    return null;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -626,6 +691,32 @@ export default function ReferenceArchiveTab({
 
   const currentAuteurInstitutionnelLabels = toLabels(form.auteur_institutionnel_ref);
   const currentAuteurInstitutionnelIds = toIds(form.auteur_institutionnel_ref);
+  const currentAuteurInstitutionnelId = currentAuteurInstitutionnelIds?.[0] ?? null;
+
+  const setAuteurInstitutionnel = async (nextId: string | null) => {
+    if (!nextId) {
+      setField('auteur_institutionnel_ref', null);
+      return;
+    }
+
+    // hydrate le label pour garder ton modèle {ids,labels}
+    const { data, error } = await supabase
+      .from('ref_auteur_institutionnel')
+      .select('id,label')
+      .eq('id', nextId)
+      .maybeSingle();
+
+    if (error) {
+      // fallback : on garde au moins l'id
+      setField('auteur_institutionnel_ref', { ids: [nextId], labels: [''] });
+      return;
+    }
+
+    setField('auteur_institutionnel_ref', {
+      ids: [nextId],
+      labels: [data?.label ?? ''],
+    });
+  };
 
   const openDictionnaireTypeActe = (
     kind: DictionnaireKind,
@@ -696,6 +787,20 @@ export default function ReferenceArchiveTab({
             </div>
           </div>
 
+          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+            <div className='flex items-start gap-3'>
+              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+                <div className='mt-0.5 text-xs text-amber-800'>
+                  <ol>
+                    <li>Mode view</li>
+                    <li>raison du transport</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className='w-full'>
             <div className='w-full md:max-w-xl'>
               <label className='block text-xs font-medium text-slate-700'>Label</label>
@@ -752,7 +857,7 @@ export default function ReferenceArchiveTab({
         <SectionIdentification
           id={acteId}
           form={form}
-          mode='acte'
+          type='acte'
           setField={setField}
           onEditBureauEnregistrement={() => {
             setBureauArgs({
@@ -775,6 +880,30 @@ export default function ReferenceArchiveTab({
           }
           onClearTypeActe={() => clearDictValueTypeActe()}
         />
+
+        {/* AUTEUR INSTITUTIONNEL */}
+        <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+          <h3 className='text-sm font-semibold text-slate-900'>Auteur institutionnel</h3>
+
+          <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+            <div className='md:col-span-4'>
+              <label className='block text-xs font-medium text-slate-700'>Fonction</label>
+              <RefSinglePickerSmart
+                table='ref_auteur_institutionnel'
+                mode={'edit'}
+                actionsInvisible={false}
+                value={currentAuteurInstitutionnelId}
+                onChange={(nextId) => {
+                  void setAuteurInstitutionnel(nextId);
+                }}
+              />
+            </div>
+          </div>
+
+          <p className='mt-2 text-xs text-slate-500'>
+            Le nom de l’officiant est rattaché aux acteurs (niveau “entités/acteurs”), pas à l’acte.
+          </p>
+        </section>
 
         {/* LIEU DE REDACTION */}
         <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
@@ -919,7 +1048,8 @@ export default function ReferenceArchiveTab({
 
         {/* SOURCES */}
         <SectionSources
-          mode='acte'
+          type='acte'
+          mode='edit'
           registreId={(acte as any).registre_id ?? null}
           sources={sources}
           loading={loadingSources}
@@ -927,36 +1057,6 @@ export default function ReferenceArchiveTab({
           onRemove={removeSource}
           onChange={updateSource}
         />
-
-        {/* AUTEUR INSTITUTIONNEL */}
-        <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-          <h3 className='text-sm font-semibold text-slate-900'>Auteur institutionnel</h3>
-
-          <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Fonction</label>
-              <ListeChipsViewSmart
-                titre='Fonction'
-                values={currentAuteurInstitutionnelLabels}
-                dense
-                actionsInvisible={false}
-                onEdit={() =>
-                  openDictionnaireAuteurInstitutionnel(
-                    'auteur_institutionnel_ref',
-                    "Modifier la fonction de l'auteur institutionnel",
-                    false,
-                    currentAuteurInstitutionnelIds,
-                  )
-                }
-                onDelete={() => clearDictValueAuteurInstitutionnel()}
-              />
-            </div>
-          </div>
-
-          <p className='mt-2 text-xs text-slate-500'>
-            Le nom de l’officiant est rattaché aux acteurs (niveau “entités/acteurs”), pas à l’acte.
-          </p>
-        </section>
 
         {errorMsg && (
           <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>

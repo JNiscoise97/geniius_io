@@ -121,7 +121,7 @@ export function ListeChipsViewSmart({
         {isEmpty ? (
           <span className='text-xs text-muted-foreground italic'>{placeholderEmpty}</span>
         ) : (
-          <div className="flex flex-wrap items-center gap-1.5 min-w-0" role='list' aria-label='Liste de valeurs'>
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0 mt-2" role='list' aria-label='Liste de valeurs'>
             {values.map((v, i) => (
               <span
                 key={`${v}-${i}`}
@@ -139,7 +139,7 @@ export function ListeChipsViewSmart({
         {showActions && (
           <div
             className={[
-              'flex items-center gap-1',
+              'flex items-center gap-1 mt-2',
               !compactLayout && 'ml-auto',
               actionsVisibilityClass,
             ]

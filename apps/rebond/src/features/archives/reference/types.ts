@@ -55,10 +55,17 @@ export type ExemplairePick = {
   support_code?: string;
   support_label?: string;
 
+  physical_condition_ref?: string;
+  physical_condition_code?: string;
+  physical_condition_label?: string;
+
   unite_id: string;
   unite_titre: string;
   cote_locale: string | null;
-  pagination_type_ref: 'vues' | 'pages' | 'folios' | 'images' | null;
+  
+  pagination_type_ref: string | null;
+  pagination_type_code: string | null;
+  pagination_type_label: string | null;
   nb_pages: number | null;
 
   depot_nom: string;
@@ -88,26 +95,16 @@ export type ExemplairePick = {
 
 export type ActeCitationDraft = CitationDraftBase & {
   // Vues
-  vues_start?: number | null;
-  vues_end?: number | null;
-  vues_raw?: string;
+  loc_start?: number | null;
+  loc_end?: number | null;
+  loc_raw?: string;
 
-  // Pages
-  page_start?: number | null;
-  page_end?: number | null;
-  page_raw?: string;
-
-  acte_manquant?: boolean;
-
-  document_form_ref?: { ids: string[]; labels: string[] } | null;
-  document_form_details?: string | null;
+  is_missing?: boolean;
 
   physical_condition_ref?: { ids: string[]; labels: string[] } | null;
-  damage_kinds?: string[]; // jsonb array in DB
   damage_notes?: string | null;
 
   repro_quality_ref?: { ids: string[]; labels: string[] } | null;
-  repro_issues?: string[]; // jsonb array in DB
   repro_notes?: string | null;
 
   missing_ranges?: any[]; // jsonb array in DB (structured ranges)
@@ -123,8 +120,33 @@ export type ActeCitationDraft = CitationDraftBase & {
   marginal_crossouts_count?: number | null;
 };
 
+export type RegistreSegmentDraft = {
+  id?: string;
+  kind_ref: string | null;        // UI peut être null, BD NOT NULL -> on validera avant save
+  label_override: string | null;
+  scope: 'full' | 'interest' | 'unknown';
+  range_start: number | null;
+  range_end: number | null;
+  date_from: string | null;       // 'YYYY-MM-DD'
+  date_to: string | null;
+  year_from: number | null;
+  year_to: number | null;
+  note: string | null;
+  sort_order?: number | null;
+};
+
 export type RegistreCitationDraft = CitationDraftBase & {
-  registre_manquant?: boolean;
+  is_missing?: boolean | null;
+  lacune?: boolean | null;
+  lacune_note?: string | null;
+  locating?: any; // jsonb
+  physical_condition_ref?: string | null;
+  repro_quality_ref?: string | null;
+  marks?: string | null;
+  document_damage_kinds_ids?: string[] | null; // uuid[]
+  segments?: RegistreSegmentDraft[];
+  work_note?: string | null;
+  writing?: any;
 };
 
 export type CitationDraftBase = {
@@ -152,10 +174,16 @@ export type Exemplaire = {
   support_code?: string;
   support_label?: string;
 
+  physical_condition_ref?: string;
+  physical_condition_code?: string;
+  physical_condition_label?: string;
+
   unite_id?: string;
   unite_titre?: string;
   cote_locale?: string | null;
   pagination_type_ref?: string | null;
+  pagination_type_code?: string | null;
+  pagination_type_label?: string | null;
   nb_pages: number | null;
 
   depot_nom?: string;

@@ -39,8 +39,6 @@ export type UniteDocumentaireRow = UniteDocumentaireDB & {
 export type SourceDB = UniteDocumentaireDB;
 export type SourceRow = UniteDocumentaireRow;
 
-
-
 export type ExemplaireDraft = {
   id: string;
   depot_id: string;
@@ -79,7 +77,6 @@ export type AccesDraft = {
   note: string;
 };
 
-
 export type SerieOption = { id: string; code?: string | null; label: string };
 export type EcritureOption = { id: string; code?: string | null; label: string };
 export type LangueOption = { id: string; code?: string | null; label: string };
@@ -97,4 +94,9 @@ export type BureauOption = {
   label: string; // affichage
 };
 
-export type TypeActeOption = { id: string; label: string; label_pluriel: string; ordre: number | null };
+export type TypeActeOption = {
+  id: string;
+  label: string;
+  label_pluriel: string;
+  ordre: number | null;
+};

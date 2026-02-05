@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronsDown, ChevronsUp, ChevronRight } from 'lucide-react';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 
 type BureauOption = {
   id: string;
@@ -109,7 +110,6 @@ type Props = {
   bureauIds: string[];
   setBureauIds: React.Dispatch<React.SetStateAction<string[]>>;
 
-  typesActes: TypeActeOption[];
   typeActeIds: string[];
   setTypeActeIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
@@ -122,7 +122,6 @@ export function EtatCivilStep({
   bureauIds,
   setBureauIds,
 
-  typesActes,
   typeActeIds,
   setTypeActeIds,
 }: Props) {
@@ -317,7 +316,10 @@ export function EtatCivilStep({
                                       });
                                     }}
                                   />
-                                  <Badge variant='outline' className='bg-muted border-border text-[11px]'>
+                                  <Badge
+                                    variant='outline'
+                                    className='bg-muted border-border text-[11px]'
+                                  >
                                     département
                                   </Badge>
                                   <span className='font-medium'>{departement}</span>
@@ -325,7 +327,8 @@ export function EtatCivilStep({
                               </div>
 
                               <span className='text-xs text-muted-foreground'>
-                                {depIds.filter((id) => bureauIds.includes(id)).length}/{depIds.length}
+                                {depIds.filter((id) => bureauIds.includes(id)).length}/
+                                {depIds.length}
                               </span>
                             </summary>
 
@@ -365,7 +368,10 @@ export function EtatCivilStep({
                                                 });
                                               }}
                                             />
-                                            <Badge variant='outline' className='bg-muted border-border text-[11px]'>
+                                            <Badge
+                                              variant='outline'
+                                              className='bg-muted border-border text-[11px]'
+                                            >
                                               commune
                                             </Badge>
                                             <span className='font-medium'>{commune}</span>
@@ -373,17 +379,23 @@ export function EtatCivilStep({
                                         </div>
 
                                         <span className='text-xs text-muted-foreground'>
-                                          {communeIds.filter((id) => bureauIds.includes(id)).length}/{communeIds.length}
+                                          {communeIds.filter((id) => bureauIds.includes(id)).length}
+                                          /{communeIds.length}
                                         </span>
                                       </summary>
 
                                       <div className='mt-2 grid gap-2 md:grid-cols-2 pl-3'>
                                         {annexes.map((b) => (
-                                          <label key={b.id} className='flex items-center gap-2 text-sm'>
+                                          <label
+                                            key={b.id}
+                                            className='flex items-center gap-2 text-sm'
+                                          >
                                             <input
                                               type='checkbox'
                                               checked={bureauIds.includes(b.id)}
-                                              onChange={() => setBureauIds((prev) => toggleInList(prev, b.id))}
+                                              onChange={() =>
+                                                setBureauIds((prev) => toggleInList(prev, b.id))
+                                              }
                                             />
                                             <span>{b.nom}</span>
                                           </label>
@@ -407,18 +419,15 @@ export function EtatCivilStep({
 
       <div>
         <div className='text-sm font-semibold mb-2'>Types d’actes</div>
-        <div className='grid gap-2 md:grid-cols-2'>
-          {typesActes.map((t) => (
-            <label key={t.id} className='flex items-center gap-2 text-sm'>
-              <input
-                type='checkbox'
-                checked={typeActeIds.includes(t.id)}
-                onChange={() => setTypeActeIds((prev) => toggleInList(prev, t.id))}
-              />
-              <span>{t.label}</span>
-            </label>
-          ))}
-        </div>
+        <RefSinglePickerSmart
+          table='ref_ec_type_acte'
+          mode='edit'
+          actionsInvisible={false}
+          multi={true}
+          value={typeActeIds as any}
+          onChange={(next) => setTypeActeIds((next ?? []) as any)}
+          titleOverride='Types d’actes'
+        />
       </div>
     </div>
   );

@@ -592,9 +592,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           .order('nom'),
         supabase
           .from('ref_ec_type_acte')
-          .select('id, label, label_pluriel, code, ordre')
+          .select('id, label, label_pluriel, code, position')
           .order('label'),
-        supabase.from('ref_type_unite').select('id, code, label').order('ordre').order('label'),
+        supabase.from('ref_type_unite').select('id, code, label').order('position').order('label'),
       ]);
 
       if (s1.error) toast.error(s1.error.message);
@@ -659,7 +659,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           id: a.id,
           label: a.label,
           label_pluriel: a.label_pluriel,
-          ordre: a.ordre,
+          ordre: a.position,
         })),
       );
 
@@ -767,6 +767,26 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
             return;
           }
 
+          const exIds = (ex ?? []).map((r: any) => r.id);
+
+          const { data: accesRows, error: eAcc } = await supabase
+            .from('ref_acces_numeriques')
+            .select(
+              'id, exemplaire_id, plateforme_id, type_acces_id, url_base, schema_deep_link, restrictions, note',
+            )
+            .in('exemplaire_id', exIds);
+
+          if (eAcc) {
+            toast.error(eAcc.message);
+            return;
+          }
+
+          const accesByExId = new Map<string, any[]>();
+          for (const r of accesRows ?? []) {
+            const k = r.exemplaire_id as string;
+            accesByExId.set(k, [...(accesByExId.get(k) ?? []), r]);
+          }
+
           setExemplaires(
             (ex ?? []).map((row: any) => ({
               id: row.id,
@@ -786,7 +806,15 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
               physical_condition_ref: row.physical_condition_ref ?? null,
               description: row.description ?? '',
               note: row.note ?? '',
-              acces: [],
+              acces: (accesByExId.get(row.id) ?? []).map((a: any) => ({
+                id: a.id, // important : tu réutilises l’id DB ou un uuid, comme tu veux
+                plateforme_id: a.plateforme_id ?? null,
+                type_acces_id: a.type_acces_id ?? null,
+                url_base: a.url_base ?? '',
+                schema_deep_link: a.schema_deep_link ?? '',
+                restrictions: a.restrictions ?? '',
+                note: a.note ?? '',
+              })),
             })),
           );
 
@@ -881,7 +909,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   // Final submit (create everything)
   // -----------------------------------
   const [submitting, setSubmitting] = useState(false);
-
 
   const submitAll = async () => {
     setSubmitting(true);
@@ -1054,33 +1081,71 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   const submitUpdateExemplaires = async () => {
     if (!sourceId) return;
     setSubmitting(true);
+
     try {
       for (const exDraft of exemplaires) {
-        const { error } = await supabase.from('ref_exemplaires').upsert(
-          {
-            id: exDraft.id, // si c'est un id existant => update, sinon insert
-            unite_documentaire_id: sourceId,
-            depot_id: exDraft.depot_id,
-            nature_ref: exDraft.nature_ref || null,
-            support_ref: exDraft.support_ref || null,
-            cote_locale: exDraft.cote_locale.trim() || null,
-            identifiant_interne: exDraft.identifiant_interne.trim() || null,
-            localisation_interne: exDraft.localisation_interne.trim() || null,
-            conditionnement: exDraft.conditionnement.trim() || null,
-            description: exDraft.description.trim() || null,
-            note: exDraft.note.trim() || null,
-            pagination_type_ref: exDraft.pagination_type_ref || null,
-            nb_pages: toIntOrNull(exDraft.nb_pages),
-            source_exemplaire_id: exDraft.source_exemplaire_id.trim() || null,
-            couverture_label: exDraft.couverture_label.trim() || null,
-            couverture_sort_start: toIntOrNull(exDraft.couverture_sort_start),
-            couverture_sort_end: toIntOrNull(exDraft.couverture_sort_end),
-            physical_condition_ref: exDraft.physical_condition_ref || null,
-          },
-          { onConflict: 'id' },
-        );
+        // 1) Upsert exemplaire
+        const payload = {
+          id: exDraft.id, // existant => update, sinon insert
+          unite_documentaire_id: sourceId,
 
-        if (error) throw error;
+          depot_id: exDraft.depot_id,
+          nature_ref: exDraft.nature_ref || null,
+          support_ref: exDraft.support_ref || null,
+
+          cote_locale: exDraft.cote_locale.trim() || null,
+          identifiant_interne: exDraft.identifiant_interne.trim() || null,
+          localisation_interne: exDraft.localisation_interne.trim() || null,
+          conditionnement: exDraft.conditionnement.trim() || null,
+
+          description: exDraft.description.trim() || null,
+          note: exDraft.note.trim() || null,
+
+          pagination_type_ref: exDraft.pagination_type_ref || null,
+          nb_pages: toIntOrNull(exDraft.nb_pages),
+
+          source_exemplaire_id: exDraft.source_exemplaire_id.trim() || null,
+
+          couverture_label: exDraft.couverture_label.trim() || null,
+          couverture_sort_start: toIntOrNull(exDraft.couverture_sort_start),
+          couverture_sort_end: toIntOrNull(exDraft.couverture_sort_end),
+
+          physical_condition_ref: exDraft.physical_condition_ref || null,
+        };
+
+        const { error: eUpsert } = await supabase
+          .from('ref_exemplaires')
+          .upsert(payload, { onConflict: 'id' });
+
+        if (eUpsert) throw eUpsert;
+
+        // 2) Accès numériques : stratégie simple = delete + insert
+        const { error: eDel } = await supabase
+          .from('ref_acces_numeriques')
+          .delete()
+          .eq('exemplaire_id', exDraft.id);
+
+        if (eDel) throw eDel;
+
+        const accesToInsert = (exDraft.acces ?? [])
+          .filter((a) => (a.url_base ?? '').trim())
+          .map((a) => ({
+            exemplaire_id: exDraft.id,
+            plateforme_id: a.plateforme_id || null,
+            type_acces_id: a.type_acces_id || defaultTypeAccesId,
+            url_base: (a.url_base ?? '').trim(),
+            schema_deep_link: (a.schema_deep_link ?? '').trim() || null,
+            restrictions: (a.restrictions ?? '').trim() || null,
+            note: (a.note ?? '').trim() || null,
+            last_checked_at: new Date().toISOString(),
+          }))
+          // sécurité : évite de casser l'index unique (exemplaire, plateforme, type)
+          .filter((row) => !!row.type_acces_id);
+
+        if (accesToInsert.length) {
+          const { error: eIns } = await supabase.from('ref_acces_numeriques').insert(accesToInsert);
+          if (eIns) throw eIns;
+        }
       }
 
       toast.success('Exemplaires mis à jour');
@@ -1202,7 +1267,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
                 bureaux={bureaux}
                 bureauIds={bureauIds}
                 setBureauIds={setBureauIds}
-                typesActes={typesActes}
                 typeActeIds={typeActeIds}
                 setTypeActeIds={setTypeActeIds}
               />
@@ -1212,17 +1276,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
               <ExemplairesStep
                 depots={depots}
                 natures={natures}
-                natureRef={natureRef}
-                setNatureRef={setNatureRef}
-                supportRef={supportRef}
-                setSupportRef={setSupportRef}
-                paginationTypeRef={paginationTypeRef}
-                setPaginationTypeRef={setPaginationTypeRef}
                 plateformes={plateformes}
                 defaultTypeAccesId={defaultTypeAccesId}
                 uniteCouvertureLabel={couvertureLabel}
-                physicalConditionRef={physicalConditionRef}
-                setPhysicalConditionRef={setPhysicalConditionRef}
                 exemplaires={exemplaires}
                 setExemplaires={setExemplaires}
                 selectedExId={selectedExId}

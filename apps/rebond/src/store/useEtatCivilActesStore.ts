@@ -77,7 +77,7 @@ export const useEtatCivilActesStore = create<EtatCivilActesStore>((set) => ({
       .select(`
     *,
     type_acte_ref:ref_ec_type_acte ( id, code, label ),
-    auteur_institutionnel_ref:ref_ec_auteur_institutionnel ( id, code, label )`)
+    auteur_institutionnel_ref:ref_auteur_institutionnel ( id, code, label )`)
       .eq('id', acteId)
       .single()
 

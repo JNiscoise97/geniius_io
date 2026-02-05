@@ -8,12 +8,15 @@ export type TriStateButtonProps = {
   value: TriState;
   onChange: (v: TriState) => void;
 
+  // NEW
+  mode?: 'edit' | 'view'; // default 'edit'
+
   // Texte personnalisable
   unknownLabel?: string; // null
   noLabel?: string; // false
   yesLabel?: string; // true
 
-  // Désactivation globale
+  // Désactivation globale (en edit)
   disabled?: boolean;
 
   // Si tu veux un mode compact
@@ -40,6 +43,7 @@ export function TriStateButton({
   label,
   value,
   onChange,
+  mode = 'edit',
   unknownLabel = 'Non observé',
   noLabel = 'Absent',
   yesLabel = 'Présent',
@@ -52,77 +56,81 @@ export function TriStateButton({
 
   const baseBtn =
     'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors select-none';
-  const wrap =
-    'inline-flex rounded-lg border border-slate-200 bg-white p-1';
-
+  const wrap = 'inline-flex rounded-lg border border-slate-200 bg-white p-1';
   const size = compact ? '' : 'min-h-[36px]';
+
+  const isView = mode === 'view';
+
+  const commonBtn = [
+    baseBtn,
+    isView ? 'cursor-default pointer-events-none' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={['space-y-1', className].filter(Boolean).join(' ')}>
-      {label ? (
-        <div className="text-xs font-medium text-slate-700">{label}</div>
-      ) : null}
+      {label ? <div className='text-xs font-medium text-slate-700'>{label}</div> : null}
 
-      {helpText ? (
-        <div className="text-[11px] text-slate-600">{helpText}</div>
-      ) : null}
+      {helpText ? <div className='text-[11px] text-slate-600'>{helpText}</div> : null}
 
-      <div className={[wrap, size, disabled ? 'opacity-60 pointer-events-none' : ''].join(' ')}>
+      <div
+        className={[
+          wrap,
+          size,
+          !isView && disabled ? 'opacity-60 pointer-events-none' : '',
+        ].join(' ')}
+      >
         <button
-          type="button"
-          onClick={() => onChange(fromKey('unknown'))}
+          type='button'
+          onClick={() => (!isView ? onChange(fromKey('unknown')) : undefined)}
           aria-pressed={k === 'unknown'}
           className={[
-            baseBtn,
+            commonBtn,
             k === 'unknown'
               ? 'bg-slate-100 text-slate-900'
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+            isView ? 'hover:bg-transparent hover:text-current' : '',
           ].join(' ')}
-          title="Non observé / non renseigné"
+          title='Non observé / non renseigné'
         >
-          <HelpCircle className="h-4 w-4" />
+          <HelpCircle className='h-4 w-4' />
           {unknownLabel}
         </button>
 
         <button
-          type="button"
-          onClick={() => onChange(fromKey('no'))}
+          type='button'
+          onClick={() => (!isView ? onChange(fromKey('no')) : undefined)}
           aria-pressed={k === 'no'}
           className={[
-            baseBtn,
+            commonBtn,
             k === 'no'
               ? 'bg-rose-50 text-rose-700'
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+            isView ? 'hover:bg-transparent hover:text-current' : '',
           ].join(' ')}
-          title="Absent"
+          title='Absent'
         >
-          <XCircle className="h-4 w-4" />
+          <XCircle className='h-4 w-4' />
           {noLabel}
         </button>
 
         <button
-          type="button"
-          onClick={() => onChange(fromKey('yes'))}
+          type='button'
+          onClick={() => (!isView ? onChange(fromKey('yes')) : undefined)}
           aria-pressed={k === 'yes'}
           className={[
-            baseBtn,
+            commonBtn,
             k === 'yes'
               ? 'bg-emerald-50 text-emerald-700'
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+            isView ? 'hover:bg-transparent hover:text-current' : '',
           ].join(' ')}
-          title="Présent"
+          title='Présent'
         >
-          <CheckCircle2 className="h-4 w-4" />
+          <CheckCircle2 className='h-4 w-4' />
           {yesLabel}
         </button>
-      </div>
-
-      {/* petit hint visuel en dessous si tu veux */}
-      <div className="text-[11px] text-slate-500">
-        Valeur enregistrée :{' '}
-        <span className="font-mono">
-          {value === null ? 'null' : value ? 'true' : 'false'}
-        </span>
       </div>
     </div>
   );

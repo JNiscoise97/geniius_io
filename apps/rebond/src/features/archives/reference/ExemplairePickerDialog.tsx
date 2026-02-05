@@ -39,7 +39,7 @@ type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
 
-  mode: PickerMode;
+  type: PickerMode;
   registreId?: string | null;
 
   /**
@@ -60,8 +60,9 @@ type Props = {
 // mêmes champs que dans tes queries supabase (v_exemplaires_pick)
 const PICK_SELECT =
   'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,' +
-  'pagination_type_ref,nb_pages,identifiant_interne,localisation_interne,' +
+  'pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,identifiant_interne,localisation_interne,' +
   'depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,' +
+  'physical_condition_ref,physical_condition_code,physical_condition_label,' +
   'url_base,plateforme_code,source_exemplaire_id';
 
 function isOnline(r: ExemplairePick) {
@@ -77,11 +78,16 @@ function normalizeRows(rows: any[]): ExemplairePick[] {
     support_ref: r.support_ref,
     support_code: r.support_code,
     support_label: r.support_label,
+    physical_condition_ref: r.physical_condition_ref,
+    physical_condition_code: r.physical_condition_code,
+    physical_condition_label: r.physical_condition_label,
     unite_id: r.unite_id,
     unite_titre: r.unite_titre,
     cote_locale: r.cote_locale,
 
     pagination_type_ref: r.pagination_type_ref,
+    pagination_type_code: r.pagination_type_code,
+    pagination_type_label: r.pagination_type_label,
     nb_pages: r.nb_pages,
     identifiant_interne: r.identifiant_interne,
     localisation_interne: r.localisation_interne,
@@ -277,7 +283,7 @@ function Chip({
 export function ExemplairePickerDialog({
   open,
   onOpenChange,
-  mode,
+  type,
   registreId,
   excludeExemplaireIds = [],
   onlyOnline,
@@ -351,12 +357,12 @@ export function ExemplairePickerDialog({
   }, [open]);
 
   // ---------------------------------------------------------------------------
-  // Section "Du registre associé" (uniquement en mode acte)
+  // Section "Du registre associé" (uniquement en type acte)
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!open) return;
 
-    if (mode !== 'acte') {
+    if (type !== 'acte') {
       setRegistreRows([]);
       setErrRegistre(null);
       setLoadingRegistre(false);
@@ -455,7 +461,7 @@ export function ExemplairePickerDialog({
     };
   }, [
     open,
-    mode,
+    type,
     registreId,
     onlyOnline,
     typeFilter,
@@ -613,9 +619,9 @@ export function ExemplairePickerDialog({
             <Chip variant='secondary'>Cote: —</Chip>
           )}
 
-          {row.nb_pages && row.pagination_type_ref ? (
+          {row.nb_pages && row.pagination_type_label ? (
             <Chip variant='outline'>
-              Pagination: {row.nb_pages} {row.pagination_type_ref}
+              Pagination: {row.nb_pages} {row.pagination_type_label}
             </Chip>
           ) : null}
         </div>
@@ -783,7 +789,7 @@ export function ExemplairePickerDialog({
 
             <div className='mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
               <div className='text-xs text-slate-600'>
-                {mode === 'acte'
+                {type === 'acte'
                   ? 'Mode acte : suggestions depuis le registre associé + recherche globale'
                   : 'Mode registre : recherche globale'}
               </div>
@@ -896,11 +902,11 @@ export function ExemplairePickerDialog({
 
               <div className='px-4 py-3 flex-1 min-h-0'>
                 <Tabs
-                  defaultValue={mode === 'acte' ? 'registre' : 'recherche'}
+                  defaultValue={type === 'acte' ? 'registre' : 'recherche'}
                   className='h-full flex flex-col'
                 >
                   <TabsList>
-                    {mode === 'acte' ? (
+                    {type === 'acte' ? (
                       <TabsTrigger value='registre'>Du registre associé</TabsTrigger>
                     ) : null}
                     <TabsTrigger value='recherche'>Recherche globale</TabsTrigger>
@@ -909,7 +915,7 @@ export function ExemplairePickerDialog({
                     ) : null}
                   </TabsList>
 
-                  {mode === 'acte' ? (
+                  {type === 'acte' ? (
                     <TabsContent value='registre' className='mt-3 flex-1 min-h-0'>
                       <div className='text-xs text-slate-600 mb-2'>
                         {registreTitle} — les lignes “déjà lié” sont consultables mais non
@@ -1141,10 +1147,10 @@ export function ExemplairePickerDialog({
                         <div>
                           <div className='text-[11px] text-slate-500'>Pagination</div>
                           <div className='text-xs text-slate-800'>
-                            {selected.nb_pages && selected.pagination_type_ref
-                              ? `${selected.nb_pages} ${selected.pagination_type_ref}`
-                              : selected.pagination_type_ref
-                                ? selected.pagination_type_ref
+                            {selected.nb_pages && selected.pagination_type_label
+                              ? `${selected.nb_pages} ${selected.pagination_type_label}`
+                              : selected.pagination_type_label
+                                ? selected.pagination_type_label
                                 : '—'}
                           </div>
                         </div>

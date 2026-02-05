@@ -19,7 +19,7 @@ export type Langue = ReferentielBase;
 
 
 // Column keys we support in the UI
-export const ALL_COLUMNS = ['code', 'label', 'description', 'note', 'ordre', 'color'] as const;
+export const ALL_COLUMNS = ['code', 'label', 'description', 'note', 'position', 'color', 'categorie'] as const;
 export type RefColumnKey = (typeof ALL_COLUMNS)[number];
 
 export const REF_TABLES: {
@@ -28,15 +28,17 @@ export const REF_TABLES: {
   columns?: Partial<Record<RefColumnKey, boolean>>;
 }[] = [
   { value: 'ref_categorie_couleur', label: 'Catégories de couleur' },
-  { value: 'ref_ec_auteur_institutionnel', label: 'Auteur institutionnel' },
+  { value: 'ref_auteur_institutionnel', label: 'Auteur institutionnel', columns: { categorie: true, position: true } },
   { value: 'ref_ec_document_form', label: 'Formes du document' },
-  { value: 'ref_physical_condition', label: 'État physique du support' },
-  { value: 'ref_repro_quality', label: 'Qualité de reproduction' },
+  { value: 'ref_physical_condition', label: 'État physique du support', columns: { position: true } },
+  { value: 'ref_repro_quality', label: 'Qualité de reproduction', columns: { position: true } },
+  { value: 'ref_document_damage_kinds', label: 'Dommages', columns: { categorie: true } },
   {
     value: 'ref_document_readability_features',
     label: 'Caractéristiques de lisibilité du document',
+    columns: { categorie: true }
   },
-  { value: 'ref_ec_type_acte', label: "Type d'acte", columns: { color: true } },
+  { value: 'ref_ec_type_acte', label: "Type d'acte", columns: { categorie: true, position: true, color: true } },
   { value: 'ref_ecritures', label: 'Ecritures' },
   { value: 'ref_filiation', label: 'Filiations' },
   { value: 'ref_langues', label: 'Langues' },
@@ -57,6 +59,7 @@ export const REF_TABLES: {
   { value: 'ref_institutions_types', label: 'Types d’institutions' },
   { value: 'ref_pagination_type', label: 'Types de pagination' },
   { value: 'ref_plateforme_type', label: 'Types de plateforme' },
+  { value: 'ref_ec_registre_segment_kinds', label: 'Types de segments de registre (état-civil)', columns: { position: true } },
   { value: 'ref_type_unite', label: 'Types d’unité documentaire' },
 ];
 
@@ -66,6 +69,7 @@ export type RefRow = {
   label?: string | null;
   description?: string | null;
   note?: string | null;
-  ordre?: number | null;
+  position?: number | null;
   color?: string | null;
+  categorie?: string | null;
 };

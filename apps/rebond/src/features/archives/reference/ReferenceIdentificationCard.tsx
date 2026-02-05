@@ -46,7 +46,7 @@ export type RegistreReferenceIdentificationFormState = {
 type Props =
   | {
     id: string;
-    mode: 'acte';
+    type: 'acte';
     form: ActeReferenceIdentificationFormState;
     setField: <K extends keyof ActeReferenceIdentificationFormState>(
       key: K,
@@ -66,7 +66,7 @@ type Props =
   }
   | {
     id: string;
-    mode: 'registre';
+    type: 'registre';
     form: RegistreReferenceIdentificationFormState;
     setField: <K extends keyof RegistreReferenceIdentificationFormState>(
       key: K,
@@ -111,7 +111,7 @@ function autoFormatFrDate(v: string) {
 }
 
 export function SectionIdentification(props: Props) {
-  const { id, mode, form, onEditBureauEnregistrement, onClearBureauEnregistrement, onEditTypeActe, onClearTypeActe } =
+  const { id, type, form, onEditBureauEnregistrement, onClearBureauEnregistrement, onEditTypeActe, onClearTypeActe } =
     props;
 
   const currentTypeActeLabels = toLabels(form.type_acte_ref);
@@ -175,7 +175,7 @@ export function SectionIdentification(props: Props) {
           />
         </div>
 
-        {/* Type d'acte: commun, mais multi dépend du mode */}
+        {/* Type d'acte: commun, mais multi dépend du type */}
         <div className='md:col-span-4'>
           <label className='block text-xs font-medium text-slate-700'>Type d’acte</label>
           <ListeChipsViewSmart
@@ -188,7 +188,7 @@ export function SectionIdentification(props: Props) {
               onEditTypeActe({
                 kind: 'type_acte_ref',
                 title: "Modifier le type d'acte",
-                multi: mode === 'registre',
+                multi: type === 'registre',
                 defaultSelectedIds: currentTypeActeIds,
               })
             }
@@ -197,7 +197,7 @@ export function SectionIdentification(props: Props) {
         </div>
 
         {/* Champs acte-only */}
-        {mode === 'acte' && (
+        {type === 'acte' && (
           <>
             <div className='md:col-span-4'>
               <label className='block text-xs font-medium text-slate-700'>Numéro d’acte</label>
