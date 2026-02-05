@@ -22,7 +22,7 @@ import {
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
 import { AlertTriangle, Lock, Unlock } from 'lucide-react';
-import type { ActeCitationDraft, ExemplairePick } from '@/features/archives/reference/types';
+import type { ActeCitationDraft, ExemplairePick, Mode } from '@/features/archives/reference/types';
 import { SectionIdentification, SectionSources } from '@/features/archives/reference';
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 
@@ -30,6 +30,7 @@ type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
 type ReferenceArchiveTabProps = {
   acte: EtatCivilActe;
+  mode?: Mode;
   bureauLabel?: string;
   onUpdated?: () => Promise<void> | void;
 };
@@ -228,6 +229,7 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
 
 export default function ReferenceArchiveTab({
   acte,
+  mode = 'edit',
   bureauLabel,
   onUpdated,
 }: ReferenceArchiveTabProps) {
@@ -313,7 +315,7 @@ export default function ReferenceArchiveTab({
           'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
             'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
             'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
-            'anchor_hint, acte_no, lacune, lacune_note, marks, work_note,' +
+            'anchor_hint, acte_no, lacune, lacune_note, marks,' +
             'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
         )
         .eq('acte_id', acteId)
@@ -791,65 +793,67 @@ export default function ReferenceArchiveTab({
             <div className='flex items-start gap-3'>
               <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
               <div className='min-w-0'>
-                <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
-                    <li>Mode view</li>
+                    <li>Mode view (identification.inputs + lieu de rédaction)</li>
                     <li>raison du transport</li>
                   </ol>
                 </div>
               </div>
             </div>
           </div>
-          <div className='w-full'>
-            <div className='w-full md:max-w-xl'>
-              <label className='block text-xs font-medium text-slate-700'>Label</label>
+          {mode == 'edit' && (
+            <div className='w-full'>
+              <div className='w-full md:max-w-xl'>
+                <label className='block text-xs font-medium text-slate-700'>Label</label>
 
-              <div className='mt-1 flex items-center gap-2 w-full'>
-                <input
-                  value={labelDraft}
-                  onChange={(e) => setLabelDraft(e.target.value)}
-                  readOnly={labelLocked}
-                  className={[
-                    'w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none',
-                    labelLocked
-                      ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
-                      : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
-                  ].join(' ')}
-                  placeholder='Label…'
-                />
+                <div className='mt-1 flex items-center gap-2 w-full'>
+                  <input
+                    value={labelDraft}
+                    onChange={(e) => setLabelDraft(e.target.value)}
+                    readOnly={labelLocked}
+                    className={[
+                      'w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none',
+                      labelLocked
+                        ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
+                        : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
+                    ].join(' ')}
+                    placeholder='Label…'
+                  />
 
-                <button
-                  type='button'
-                  onClick={() => setLabelLocked((v) => !v)}
-                  className={[
-                    'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
-                    labelLocked
-                      ? 'border-slate-200 bg-white hover:bg-slate-50'
-                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
-                  ].join(' ')}
-                  title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
-                  aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
-                >
-                  {labelLocked ? (
-                    <Lock className='h-4 w-4 text-slate-700' />
-                  ) : (
-                    <Unlock className='h-4 w-4 text-slate-800' />
-                  )}
-                </button>
+                  <button
+                    type='button'
+                    onClick={() => setLabelLocked((v) => !v)}
+                    className={[
+                      'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
+                      labelLocked
+                        ? 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
+                    ].join(' ')}
+                    title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                    aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                  >
+                    {labelLocked ? (
+                      <Lock className='h-4 w-4 text-slate-700' />
+                    ) : (
+                      <Unlock className='h-4 w-4 text-slate-800' />
+                    )}
+                  </button>
+                </div>
+
+                {labelLocked ? (
+                  <p className='mt-1 text-xs text-slate-500'>
+                    Le label est verrouillé. Déverrouille-le pour le modifier.
+                  </p>
+                ) : (
+                  <p className='mt-1 text-xs text-amber-700'>
+                    Label déverrouillé : toute modification sera enregistrée.
+                  </p>
+                )}
               </div>
-
-              {labelLocked ? (
-                <p className='mt-1 text-xs text-slate-500'>
-                  Le label est verrouillé. Déverrouille-le pour le modifier.
-                </p>
-              ) : (
-                <p className='mt-1 text-xs text-amber-700'>
-                  Label déverrouillé : toute modification sera enregistrée.
-                </p>
-              )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* IDENTIFICATION */}
@@ -858,6 +862,7 @@ export default function ReferenceArchiveTab({
           id={acteId}
           form={form}
           type='acte'
+          mode={mode}
           setField={setField}
           onEditBureauEnregistrement={() => {
             setBureauArgs({
@@ -890,7 +895,7 @@ export default function ReferenceArchiveTab({
               <label className='block text-xs font-medium text-slate-700'>Fonction</label>
               <RefSinglePickerSmart
                 table='ref_auteur_institutionnel'
-                mode={'edit'}
+                mode={mode}
                 actionsInvisible={false}
                 value={currentAuteurInstitutionnelId}
                 onChange={(nextId) => {
@@ -1047,16 +1052,26 @@ export default function ReferenceArchiveTab({
         </section>
 
         {/* SOURCES */}
-        <SectionSources
-          type='acte'
-          mode='edit'
-          registreId={(acte as any).registre_id ?? null}
-          sources={sources}
-          loading={loadingSources}
-          onAdd={addSource}
-          onRemove={removeSource}
-          onChange={updateSource}
-        />
+        {mode === 'edit' ? (
+          <SectionSources
+            type='acte'
+            mode='edit'
+            registreId={(acte as any).registre_id ?? null}
+            sources={sources}
+            loading={loadingSources}
+            onAdd={addSource}
+            onRemove={removeSource}
+            onChange={updateSource}
+          />
+        ) : (
+          <SectionSources
+            type='acte'
+            mode='view'
+            registreId={(acte as any).registre_id ?? null}
+            sources={sources}
+            loading={loadingSources}
+          />
+        )}
 
         {errorMsg && (
           <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800'>
@@ -1064,15 +1079,17 @@ export default function ReferenceArchiveTab({
           </div>
         )}
 
-        <div className='flex items-center justify-end gap-3'>
-          <button
-            type='submit'
-            disabled={saving}
-            className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-          >
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
-          </button>
-        </div>
+        {mode === 'edit' ? (
+          <div className='flex items-center justify-end gap-3'>
+            <button
+              type='submit'
+              disabled={saving}
+              className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
+            >
+              {saving ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </div>
+        ) : null}
       </form>
 
       {/* DRAWERS */}

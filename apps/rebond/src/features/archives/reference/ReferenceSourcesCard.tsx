@@ -5,6 +5,7 @@ import type {
   ActeCitationDraft,
   RegistreCitationDraft,
   ExemplairePick,
+  Mode,
 } from '@/features/archives/reference/types';
 
 import { ExemplairePickerDialog } from './ExemplairePickerDialog';
@@ -66,8 +67,6 @@ import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/Segments
 
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
-
-type Mode = 'view' | 'edit';
 
 type EditCallbacks =
   | {
@@ -874,119 +873,125 @@ export function SectionSources(props: SectionSourcesProps) {
                 ) : null}
 
                 {/* missing_ranges */}
-                <div className='mt-4'>
-                  <div className='flex items-center justify-between gap-3'>
-                    <div>
-                      <div className='text-sm font-semibold text-slate-900'>Plages manquantes</div>
-                      <div className='mt-1 text-xs text-slate-600'>
-                        Détaille précisément les vues/pages absentes (utile si « lacune »).
+                {isLacune ? (
+                  <div className='mt-4'>
+                    <div className='flex items-center justify-between gap-3'>
+                      <div>
+                        <div className='text-sm font-semibold text-slate-900'>
+                          Plages manquantes
+                        </div>
+                        <div className='mt-1 text-xs text-slate-600'>
+                          Détaille précisément les vues/pages absentes (utile si « lacune »).
+                        </div>
                       </div>
+
+                      {!isRO && (
+                        <Button
+                          type='button'
+                          variant='outline'
+                          onClick={addMissingRange}
+                          disabled={!isLacune}
+                          title={
+                            !isLacune
+                              ? 'Active “Lacune” pour ajouter des plages manquantes.'
+                              : undefined
+                          }
+                        >
+                          Ajouter…
+                        </Button>
+                      )}
                     </div>
 
-                    <Button
-                      type='button'
-                      variant='outline'
-                      onClick={addMissingRange}
-                      disabled={!isLacune}
-                      title={
-                        !isLacune
-                          ? 'Active “Lacune” pour ajouter des plages manquantes.'
-                          : undefined
-                      }
-                    >
-                      Ajouter…
-                    </Button>
-                  </div>
+                    {!isLacune ? (
+                      <div className='mt-2 text-xs text-slate-500'>
+                        Active <span className='font-medium'>Lacune</span> pour renseigner des
+                        plages manquantes.
+                      </div>
+                    ) : null}
 
-                  {!isLacune ? (
-                    <div className='mt-2 text-xs text-slate-500'>
-                      Active <span className='font-medium'>Lacune</span> pour renseigner des plages
-                      manquantes.
-                    </div>
-                  ) : null}
+                    {isLacune && !hasMissingRanges ? (
+                      <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                        Aucune plage renseignée.
+                      </div>
+                    ) : null}
 
-                  {isLacune && !hasMissingRanges ? (
-                    <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
-                      Aucune plage renseignée.
-                    </div>
-                  ) : null}
+                    {isLacune && hasMissingRanges ? (
+                      <div className='mt-3 space-y-2'>
+                        {missingRanges.map((r, i) => (
+                          <div key={i} className='rounded-xl border border-slate-200 bg-white p-3'>
+                            <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                              <div className='md:col-span-3'>
+                                <label className='block text-xs font-medium text-slate-700'>
+                                  Type
+                                </label>
+                                <select
+                                  className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
+                                  value={String(r.kind ?? 'vue')}
+                                  onChange={(e) => updateMissingRange(i, { kind: e.target.value })}
+                                >
+                                  <option value='vue'>Vues</option>
+                                  <option value='page'>Pages</option>
+                                </select>
+                              </div>
 
-                  {isLacune && hasMissingRanges ? (
-                    <div className='mt-3 space-y-2'>
-                      {missingRanges.map((r, i) => (
-                        <div key={i} className='rounded-xl border border-slate-200 bg-white p-3'>
-                          <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
-                            <div className='md:col-span-3'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Type
-                              </label>
-                              <select
-                                className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
-                                value={String(r.kind ?? 'vue')}
-                                onChange={(e) => updateMissingRange(i, { kind: e.target.value })}
-                              >
-                                <option value='vue'>Vues</option>
-                                <option value='page'>Pages</option>
-                              </select>
-                            </div>
+                              <div className='md:col-span-3'>
+                                <label className='block text-xs font-medium text-slate-700'>
+                                  Début
+                                </label>
+                                <Input
+                                  inputMode='numeric'
+                                  className='mt-1'
+                                  value={r.start ?? ''}
+                                  onChange={(e) =>
+                                    updateMissingRange(i, { start: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='ex. 120'
+                                />
+                              </div>
 
-                            <div className='md:col-span-3'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Début
-                              </label>
-                              <Input
-                                inputMode='numeric'
-                                className='mt-1'
-                                value={r.start ?? ''}
-                                onChange={(e) =>
-                                  updateMissingRange(i, { start: toIntOrNull(e.target.value) })
-                                }
-                                placeholder='ex. 120'
-                              />
-                            </div>
+                              <div className='md:col-span-3'>
+                                <label className='block text-xs font-medium text-slate-700'>
+                                  Fin
+                                </label>
+                                <Input
+                                  inputMode='numeric'
+                                  className='mt-1'
+                                  value={r.end ?? ''}
+                                  onChange={(e) =>
+                                    updateMissingRange(i, { end: toIntOrNull(e.target.value) })
+                                  }
+                                  placeholder='ex. 140'
+                                />
+                              </div>
 
-                            <div className='md:col-span-3'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Fin
-                              </label>
-                              <Input
-                                inputMode='numeric'
-                                className='mt-1'
-                                value={r.end ?? ''}
-                                onChange={(e) =>
-                                  updateMissingRange(i, { end: toIntOrNull(e.target.value) })
-                                }
-                                placeholder='ex. 140'
-                              />
-                            </div>
+                              <div className='md:col-span-3 flex items-end justify-end'>
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  onClick={() => removeMissingRange(i)}
+                                >
+                                  Supprimer
+                                </Button>
+                              </div>
 
-                            <div className='md:col-span-3 flex items-end justify-end'>
-                              <Button
-                                type='button'
-                                variant='ghost'
-                                onClick={() => removeMissingRange(i)}
-                              >
-                                Supprimer
-                              </Button>
-                            </div>
-
-                            <div className='md:col-span-12'>
-                              <label className='block text-xs font-medium text-slate-700'>
-                                Note
-                              </label>
-                              <Input
-                                className='mt-1'
-                                value={String(r.note ?? '')}
-                                onChange={(e) => updateMissingRange(i, { note: e.target.value })}
-                                placeholder='ex. pages arrachées, reliure masquée, scan manquant…'
-                              />
+                              <div className='md:col-span-12'>
+                                <label className='block text-xs font-medium text-slate-700'>
+                                  Note
+                                </label>
+                                <Input
+                                  className='mt-1'
+                                  value={String(r.note ?? '')}
+                                  onChange={(e) => updateMissingRange(i, { note: e.target.value })}
+                                  placeholder='ex. pages arrachées, reliure masquée, scan manquant…'
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
 
               <Separator />
@@ -996,7 +1001,7 @@ export function SectionSources(props: SectionSourcesProps) {
                 <div className='flex items-start gap-3'>
                   <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
                   <div className='min-w-0'>
-                    <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+                    <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                     <div className='mt-0.5 text-xs text-amber-800'>
                       <ol className='list-decimal pl-4'>
                         <li>Repères dans l’exemplaire issus du registre</li>
@@ -1031,7 +1036,7 @@ export function SectionSources(props: SectionSourcesProps) {
                     <Field
                       label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
                       readonly={isRO}
-                      value={String((c as any).loc_raw ?? '').trim() || '—'}
+                      value={String((c as any).loc_raw ?? '').trim() || null}
                     >
                       <Input
                         value={String((c as any).loc_raw ?? (c as any).loc_raw ?? '')}
@@ -1056,7 +1061,7 @@ export function SectionSources(props: SectionSourcesProps) {
                     <Field
                       label='Début'
                       readonly={isRO}
-                      value={String((c as any).loc_start ?? (c as any).loc_start ?? '—')}
+                      value={String((c as any).loc_start ?? (c as any).loc_start ?? '')}
                     >
                       <Input
                         inputMode='numeric'
@@ -1076,7 +1081,7 @@ export function SectionSources(props: SectionSourcesProps) {
                     <Field
                       label='Fin'
                       readonly={isRO}
-                      value={String((c as any).loc_end ?? (c as any).loc_end ?? '—')}
+                      value={String((c as any).loc_end ?? (c as any).loc_end ?? '')}
                     >
                       <Input
                         inputMode='numeric'
@@ -1108,7 +1113,7 @@ export function SectionSources(props: SectionSourcesProps) {
                     <Field
                       label='N° d’acte'
                       readonly={isRO}
-                      value={String((c as any).acte_no ?? '').trim() || '—'}
+                      value={String((c as any).acte_no ?? '').trim() || null}
                     >
                       <Input
                         inputMode='numeric'
@@ -1804,7 +1809,7 @@ export function SectionSources(props: SectionSourcesProps) {
       value,
       children,
       readonly,
-      empty = <span className='text-slate-400'>—</span>,
+      empty = <span className='text-xs text-muted-foreground italic'>Non renseigné</span>,
     } = props;
 
     return (
@@ -1916,7 +1921,7 @@ export function SectionSources(props: SectionSourcesProps) {
               <div className='flex items-start gap-3'>
                 <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
                 <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
                       <li>Vérifier les champs requis</li>
@@ -1946,7 +1951,7 @@ export function SectionSources(props: SectionSourcesProps) {
               <div className='flex items-start gap-3'>
                 <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
                 <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
                       <li>En-tête de l'exemplaire: tester le bouton changer</li>

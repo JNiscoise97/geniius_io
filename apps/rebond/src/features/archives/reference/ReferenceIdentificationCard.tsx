@@ -7,14 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
+import type { Mode } from './types';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
+import { supabase } from '@/lib/supabase';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
 export type ActeReferenceIdentificationFormState = {
   type_acte: string;
   type_acte_ref: { ids: string[]; labels: string[]; colors?: (string | null)[] } | null;
-
 
   numero_acte: string;
   date: string; // ISO yyyy-mm-dd ou ''
@@ -45,45 +46,47 @@ export type RegistreReferenceIdentificationFormState = {
 
 type Props =
   | {
-    id: string;
-    type: 'acte';
-    form: ActeReferenceIdentificationFormState;
-    setField: <K extends keyof ActeReferenceIdentificationFormState>(
-      key: K,
-      value: ActeReferenceIdentificationFormState[K],
-    ) => void;
+      id: string;
+      type: 'acte';
+      mode?: Mode;
+      form: ActeReferenceIdentificationFormState;
+      setField: <K extends keyof ActeReferenceIdentificationFormState>(
+        key: K,
+        value: ActeReferenceIdentificationFormState[K],
+      ) => void;
 
-    onEditBureauEnregistrement: () => void;
-    onClearBureauEnregistrement: () => void;
+      onEditBureauEnregistrement: () => void;
+      onClearBureauEnregistrement: () => void;
 
-    onEditTypeActe: (args: {
-      kind: DictionnaireKind;
-      title: string;
-      multi: boolean;
-      defaultSelectedIds: string[];
-    }) => void;
-    onClearTypeActe: () => void;
-  }
+      onEditTypeActe: (args: {
+        kind: DictionnaireKind;
+        title: string;
+        multi: boolean;
+        defaultSelectedIds: string[];
+      }) => void;
+      onClearTypeActe: () => void;
+    }
   | {
-    id: string;
-    type: 'registre';
-    form: RegistreReferenceIdentificationFormState;
-    setField: <K extends keyof RegistreReferenceIdentificationFormState>(
-      key: K,
-      value: RegistreReferenceIdentificationFormState[K],
-    ) => void;
+      id: string;
+      type: 'registre';
+      mode?: Mode;
+      form: RegistreReferenceIdentificationFormState;
+      setField: <K extends keyof RegistreReferenceIdentificationFormState>(
+        key: K,
+        value: RegistreReferenceIdentificationFormState[K],
+      ) => void;
 
-    onEditBureauEnregistrement: () => void;
-    onClearBureauEnregistrement: () => void;
+      onEditBureauEnregistrement: () => void;
+      onClearBureauEnregistrement: () => void;
 
-    onEditTypeActe: (args: {
-      kind: DictionnaireKind;
-      title: string;
-      multi: boolean;
-      defaultSelectedIds: string[];
-    }) => void;
-    onClearTypeActe: () => void;
-  };
+      onEditTypeActe: (args: {
+        kind: DictionnaireKind;
+        title: string;
+        multi: boolean;
+        defaultSelectedIds: string[];
+      }) => void;
+      onClearTypeActe: () => void;
+    };
 
 function isoToFr(iso?: string) {
   if (!iso) return '';
@@ -111,16 +114,35 @@ function autoFormatFrDate(v: string) {
 }
 
 export function SectionIdentification(props: Props) {
-  const { id, type, form, onEditBureauEnregistrement, onClearBureauEnregistrement, onEditTypeActe, onClearTypeActe } =
-    props;
+  const {
+    id,
+    type,
+    form,
+    onEditBureauEnregistrement,
+    onClearBureauEnregistrement,
+    onEditTypeActe,
+    onClearTypeActe,
+  } = props;
+
+  const isEdit = props.mode === 'edit';
+  const mode = props.mode;
 
   const currentTypeActeLabels = toLabels(form.type_acte_ref);
   const currentTypeActeColors = form.type_acte_ref?.colors ?? [];
   const currentTypeActeIds = toIds(form.type_acte_ref);
 
-  console.log('currentTypeActeLabels', currentTypeActeLabels)
-  console.log('currentTypeActeIds', currentTypeActeIds)
+  console.log('currentTypeActeLabels', currentTypeActeLabels);
+  console.log('currentTypeActeIds', currentTypeActeIds);
   const [copied, setCopied] = useState(false);
+
+  const setTypeActeRef = (
+    v:
+      | ActeReferenceIdentificationFormState['type_acte_ref']
+      | RegistreReferenceIdentificationFormState['type_acte_ref'],
+  ) => {
+    if (props.type === 'acte') props.setField('type_acte_ref', v);
+    else props.setField('type_acte_ref', v);
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -146,29 +168,35 @@ export function SectionIdentification(props: Props) {
       <h3 className='text-sm font-semibold text-slate-900'>Identification</h3>
 
       <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
-        <div className='md:col-span-12'>
-          <label className='block text-xs font-medium text-slate-700'>Identifiant unique</label>
-          <div className='flex w-fit gap-2'>
-            <Input value={id} disabled className='font-mono' />
-            <Button
-              type='button'
-              size='icon'
-              variant='secondary'
-              onClick={() => copyToClipboard(id)}
-              title='Copier l’id'
-              aria-label='Copier l’id'
-            >
-              {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
-            </Button>
+        {isEdit && (
+          <div className='md:col-span-12'>
+            <label className='block text-xs font-medium text-slate-700'>Identifiant unique</label>
+            <div className='flex w-fit gap-2'>
+              <Input value={id} disabled className='font-mono' />
+              <Button
+                type='button'
+                size='icon'
+                variant='secondary'
+                onClick={() => copyToClipboard(id)}
+                title='Copier l’id'
+                aria-label='Copier l’id'
+              >
+                {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className='md:col-span-4'>
-          <label className='block text-xs font-medium text-slate-700'>Bureau d’enregistrement</label>
+          <label className='block text-xs font-medium text-slate-700'>
+            Bureau d’enregistrement
+          </label>
+
           <ListeChipsViewSmart
             titre='Bureau d’enregistrement'
             values={form.bureau_id ? [form.bureau_enregistrement_label || '—'] : []}
             dense
+            readonly={!isEdit}
             onEdit={onEditBureauEnregistrement}
             onDelete={onClearBureauEnregistrement}
             actionsInvisible={false}
@@ -178,21 +206,28 @@ export function SectionIdentification(props: Props) {
         {/* Type d'acte: commun, mais multi dépend du type */}
         <div className='md:col-span-4'>
           <label className='block text-xs font-medium text-slate-700'>Type d’acte</label>
-          <ListeChipsViewSmart
-            titre="Type d'acte"
-            values={currentTypeActeLabels}
-            colors={currentTypeActeColors}
+          <RefSinglePickerSmart
+            table='ref_ec_type_acte'
+            mode={isEdit ? 'edit':'view'}
             actionsInvisible={false}
-            dense
-            onEdit={() =>
-              onEditTypeActe({
-                kind: 'type_acte_ref',
-                title: "Modifier le type d'acte",
-                multi: type === 'registre',
-                defaultSelectedIds: currentTypeActeIds,
-              })
-            }
-            onDelete={onClearTypeActe}
+            value={currentTypeActeIds as any}
+            onChange={async (next) => {
+              const ids = Array.isArray(next) ? (next as string[]) : next ? [String(next)] : [];
+
+              if (!ids.length) {
+                setTypeActeRef(null);
+                return;
+              }
+
+              const { data } = await supabase
+                .from('ref_ec_type_acte')
+                .select('id,label')
+                .in('id', ids);
+
+              const map = new Map((data ?? []).map((r: any) => [r.id, r.label ?? '']));
+              setTypeActeRef({ ids, labels: ids.map((id) => map.get(id) ?? '') });
+            }}
+            titleOverride='Types d’actes'
           />
         </div>
 
@@ -211,7 +246,9 @@ export function SectionIdentification(props: Props) {
             </div>
 
             <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Date d’enregistrement</label>
+              <label className='block text-xs font-medium text-slate-700'>
+                Date d’enregistrement
+              </label>
               <input
                 type='text'
                 inputMode='numeric'
@@ -232,7 +269,9 @@ export function SectionIdentification(props: Props) {
             </div>
 
             <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Heure d’enregistrement</label>
+              <label className='block text-xs font-medium text-slate-700'>
+                Heure d’enregistrement
+              </label>
               <input
                 type='time'
                 name='heure'

@@ -2,6 +2,8 @@
 
 export type ReferenceOwnerKind = 'acte' | 'registre';
 
+export type Mode = 'view' | 'edit';
+
 /**
  * Le "propriétaire" de la référence archive (un acte ou un registre).
  * On évite les types du domaine (EtatCivilActe / EtatCivilRegistre) pour rendre les cards

@@ -1023,25 +1023,12 @@ export default function RegistreEdit() {
                   </div>
                 </div>
 
-                <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-                  <div className='flex items-start gap-3'>
-                    <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                    <div className='min-w-0'>
-                      <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
-                      <div className='mt-0.5 text-xs text-amber-800'>
-                        <ol>
-                          <li>Mode view</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <div className='space-y-6 p-1'>
                   <SectionIdentification
                     id={registre.id}
                     type='registre'
                     form={form}
+                    mode={'edit'}
                     setField={setField}
                     onEditBureauEnregistrement={() => {
                       toast('À implémenter : picker bureau côté RegistreEdit', { icon: 'ℹ️' });

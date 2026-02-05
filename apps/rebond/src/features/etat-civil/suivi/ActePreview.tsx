@@ -17,6 +17,7 @@ import {
   Settings,
   Check,
   History,
+  Archive,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -44,9 +45,11 @@ import AuditHistoryTab from '@/components/shared/AuditHistoryTab';
 import { buildTranscriptionNarrative } from '@/lib/enrichirTranscription';
 import TimelineWithIcons, { type TimelineItem } from '@/components/actes/TimelineWithIcons';
 import { formatDateToNumericFrench } from '@/utils/date';
+import ReferenceArchiveTab from '@/features/actes/tabs/ReferenceArchiveTab';
 
 const tabs = [
   { label: 'Résumé', icon: ScrollText },
+  { label: 'Référence archive', icon: Archive },
   { label: 'Acteurs', icon: Users },
   { label: 'Chronologie', icon: CalendarDays },
   { label: 'Transcription', icon: Pen },
@@ -105,8 +108,8 @@ export default function ActeLayout() {
   const acteTypeEstNaissance = acte?.type_acte === 'naissance';
   const acteTypeEstMariage = acte?.type_acte === 'mariage';
 
-  let titleColorClass = "text-gray-800";
-  
+  let titleColorClass = 'text-gray-800';
+
   let stepsTmp: any[] = [];
   let steps: TimelineItem[] = [];
 
@@ -120,7 +123,7 @@ export default function ActeLayout() {
         titleColorClass: titleColorClass,
         whenDate: formatDateToNumericFrench(enfant?.naissance_date),
         whenHour: enfant?.naissance_heure,
-        description: 'Où a eu lieu exactement la naissance? '+enfant?.naissance_lieu_commune,
+        description: 'Où a eu lieu exactement la naissance? ' + enfant?.naissance_lieu_commune,
       });
 
       stepsTmp.push({
@@ -138,7 +141,7 @@ export default function ActeLayout() {
         titleColorClass: titleColorClass,
         whenDate: formatDateToNumericFrench(acte?.date),
         whenHour: acte?.heure,
-        description: 'quel bureau? qui était présent?'
+        description: 'quel bureau? qui était présent?',
       });
 
       stepsTmp.push({
@@ -152,16 +155,14 @@ export default function ActeLayout() {
     steps = [];
     stepsTmp = [];
     if (defunt?.deces_date) {
-
       steps.push({
         icon: CalendarFold,
         title: 'Décès',
         titleColorClass: titleColorClass,
         whenDate: formatDateToNumericFrench(defunt?.deces_date),
         whenHour: defunt?.deces_heure,
-        description: 'Où a eu lieu exactement le décès? '+defunt?.deces_lieu_commune,
+        description: 'Où a eu lieu exactement le décès? ' + defunt?.deces_lieu_commune,
       });
-
 
       stepsTmp.push({
         icon: CalendarFold,
@@ -178,9 +179,9 @@ export default function ActeLayout() {
         titleColorClass: titleColorClass,
         whenDate: formatDateToNumericFrench(acte?.date),
         whenHour: acte?.heure,
-        description: 'quel bureau? qui était présent?'
+        description: 'quel bureau? qui était présent?',
       });
-      
+
       stepsTmp.push({
         icon: Landmark,
         title: "Déclaration à l'état-civil",
@@ -197,10 +198,12 @@ export default function ActeLayout() {
         titleColorClass: titleColorClass,
         whenDate: formatDateToNumericFrench(acte?.date),
         whenHour: acte?.heure,
-        description: (!acte?.comparution_mairie ? (acte?.comparution_observations ?? '') : 'quel bureau?')+'qui était présent?',
+        description:
+          (!acte?.comparution_mairie ? (acte?.comparution_observations ?? '') : 'quel bureau?') +
+          'qui était présent?',
       },
     ];
-    
+
     stepsTmp = [
       {
         icon: iconMariage,
@@ -211,15 +214,26 @@ export default function ActeLayout() {
       },
     ];
   } else if (acte?.type_acte === 'reconnaissance' && acteDate) {
-    steps = [{ icon: Landmark, title: 'Reconnaissance', titleColorClass: titleColorClass, whenDate: formatDateToNumericFrench(acte?.date), whenHour: acte?.heure, description: 'quel bureau? qui était présent?' }];
-    stepsTmp = [{ icon: Landmark, title: 'Reconnaissance', date: acteDate, color: 'text-indigo-600' }];
+    steps = [
+      {
+        icon: Landmark,
+        title: 'Reconnaissance',
+        titleColorClass: titleColorClass,
+        whenDate: formatDateToNumericFrench(acte?.date),
+        whenHour: acte?.heure,
+        description: 'quel bureau? qui était présent?',
+      },
+    ];
+    stepsTmp = [
+      { icon: Landmark, title: 'Reconnaissance', date: acteDate, color: 'text-indigo-600' },
+    ];
   } else if (acte?.type_acte === 'affranchissement' && acteDate) {
     const arreteDate = extractArreteDateFromNote(sujet?.note || '');
     steps = [
       {
         icon: Unlink,
         title: "Arrêté d'affranchissement du Gouverneur",
-        whenDate: formatDateToNumericFrench(arreteDate?.toISOString().substring(0, 10)?? ''),
+        whenDate: formatDateToNumericFrench(arreteDate?.toISOString().substring(0, 10) ?? ''),
         titleColorClass: titleColorClass,
       },
       {
@@ -228,10 +242,10 @@ export default function ActeLayout() {
         whenDate: formatDateToNumericFrench(acte?.date),
         whenHour: acte?.heure,
         titleColorClass: titleColorClass,
-        description: 'quel bureau? qui était présent?'
+        description: 'quel bureau? qui était présent?',
       },
     ];
-    
+
     stepsTmp = [
       {
         icon: Unlink,
@@ -256,7 +270,7 @@ export default function ActeLayout() {
   }
 
   console.log('entites', entites);
-  
+
   return (
     <div className='flex flex-col'>
       <div className='sticky top-0 z-10 bg-white'>
@@ -336,10 +350,11 @@ export default function ActeLayout() {
             <button
               key={label}
               onClick={() => setActiveSection(label)}
-              className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
-                ? 'border-blue-600 text-blue-600 font-medium'
-                : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-                }`}
+              className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${
+                activeSection === label
+                  ? 'border-blue-600 text-blue-600 font-medium'
+                  : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
+              }`}
             >
               <Icon className='w-4 h-4' />
               {label}
@@ -359,11 +374,11 @@ export default function ActeLayout() {
             <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
 
             {/* Bloc transcription + timeline côte à côte */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className='grid grid-cols-3 gap-6 mb-8'>
               {/* 2/3 : transcription */}
-              <div className="col-span-2">
-                <h2 className="text-lg font-semibold mb-4">Transcription (générée)</h2>
-                <article className="whitespace-pre-wrap leading-relaxed text-[15px] text-gray-800">
+              <div className='col-span-2'>
+                <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
+                <article className='whitespace-pre-wrap leading-relaxed text-[15px] text-gray-800'>
                   {buildTranscriptionNarrative({
                     acte,
                     entites,
@@ -374,11 +389,10 @@ export default function ActeLayout() {
               </div>
 
               {/* 1/3 : timeline */}
-              <div className="col-span-1">
+              <div className='col-span-1'>
                 <TimelineWithIcons steps={steps} />
               </div>
             </div>
-
 
             <h2 className='text-lg font-semibold mb-4'>Résumé structuré de l’acte</h2>
 
@@ -522,6 +536,16 @@ export default function ActeLayout() {
               </ul>
             </div>
           </>
+        )}
+        
+        {activeSection === 'Référence archive' && (
+          <div className='p-1'>
+            <ReferenceArchiveTab
+              acte={acte}
+              mode={'view'}
+              bureauLabel={bureau?.nom ?? ''}
+            />
+          </div>
         )}
 
         {activeSection === 'Acteurs' && (

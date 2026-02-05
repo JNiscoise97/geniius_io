@@ -39,7 +39,7 @@ export function SourcesPage() {
         <div className='flex items-start gap-3'>
           <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
           <div className='min-w-0'>
-            <div className='text-sm font-semibold text-amber-900'>Chantier en cours</div>
+            <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
             <div className='mt-0.5 text-xs text-amber-800'>
               <ol>
                 <li>CRUD institutions et dépôts</li>
