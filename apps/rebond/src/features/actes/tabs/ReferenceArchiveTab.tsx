@@ -796,6 +796,7 @@ export default function ReferenceArchiveTab({
                 <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
+                    <li>Nouvelle section: Enregistrement de l’acte avec les champs (Date d’enregistrement, Heure d’enregistrement ; identifiant administratif pur ; Auteur de l’acte, autorité qui confère validité à l’acte ; Bureau d’enregistrement , Lieu de rédaction)</li>
                     <li>Mode view (identification.inputs + lieu de rédaction)</li>
                     <li>raison du transport</li>
                   </ol>

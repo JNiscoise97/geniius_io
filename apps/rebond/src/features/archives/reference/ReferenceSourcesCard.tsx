@@ -68,6 +68,126 @@ import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/Segments
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
 
+type CompletenessStatus = 'ok' | 'todo' | 'missing';
+
+type CompletenessResult = {
+  status: CompletenessStatus;
+  missing: string[]; // liste de "champs/attendus" manquants (lisible humain)
+};
+
+function hasText(v: any) {
+  return String(v ?? '').trim().length > 0;
+}
+
+function hasAnyLocActe(c: any) {
+  const locRawOk = hasText(c.loc_raw);
+  const rangeOk = c.loc_start != null && c.loc_end != null;
+  return locRawOk || rangeOk;
+}
+
+function hasAnyRangeItems(arr: any) {
+  return Array.isArray(arr) && arr.length > 0;
+}
+
+function isTriStateSet(v: any) {
+  return v === true || v === false || v === null;
+}
+
+function isBoolSet(v: any) {
+  return v === true || v === false;
+}
+
+/**
+ * ACTE — complétude minimale "utile"
+ * Rappels:
+ * - exemplaire_id requis
+ * - is_missing requis (tri-state)
+ * - si pas manquant -> localisation (loc_raw OU (loc_start & loc_end))
+ * - champs tri-state d'observation requis: marginal_mentions_present, signatures_present, marginal_crossouts_present
+ * - counts requis si present === true
+ * - si lacune === true -> lacune_note OU missing_ranges non vide
+ */
+export function getActeCompleteness(c: any): CompletenessResult {
+  const missing: string[] = [];
+
+  // 1) lien exemplaire
+  if (!hasText(c.exemplaire_id)) missing.push('exemplaire_id');
+
+  // 2) statut acte manquant (tri-state attendu)
+  if (!isTriStateSet(c.is_missing)) missing.push('is_missing (true/false/null)');
+
+  // 3) localisation si pas manquant
+  const isMissing = c.is_missing === true;
+  if (!isMissing) {
+    if (!hasAnyLocActe(c)) {
+      missing.push('localisation (loc_raw OU loc_start+loc_end)');
+    }
+  }
+
+  // 4) lacune: note OU plages
+  const lacune = c.lacune === true;
+  if (lacune) {
+    const hasNote = hasText(c.lacune_note);
+    const hasRanges = hasAnyRangeItems(c.missing_ranges);
+    if (!hasNote && !hasRanges) missing.push('lacune: lacune_note OU missing_ranges[]');
+  }
+
+  // 5) observations tri-state requises
+  // (tu peux changer isTriStateSet -> isBoolSet si tu veux interdire null)
+  if (!isTriStateSet(c.marginal_mentions_present))
+    missing.push('marginal_mentions_present (true/false/null)');
+  if (!isTriStateSet(c.signatures_present)) missing.push('signatures_present (true/false/null)');
+  if (!isTriStateSet(c.marginal_crossouts_present))
+    missing.push('marginal_crossouts_present (true/false/null)');
+
+  // 6) counts conditionnels
+  if (c.marginal_mentions_present === true) {
+    if (c.marginal_mentions_count == null) missing.push('marginal_mentions_count (si présent)');
+  }
+  if (c.signatures_present === true) {
+    if (c.signatures_count == null) missing.push('signatures_count (si présent)');
+  }
+  if (c.marginal_crossouts_present === true) {
+    if (c.marginal_crossouts_count == null) missing.push('marginal_crossouts_count (si présent)');
+  }
+
+  // Status
+  if (isMissing) return { status: 'missing', missing: [] }; // "missing" = acte manquant déclaré => on ne le pénalise pas
+  return { status: missing.length ? 'todo' : 'ok', missing };
+}
+
+/**
+ * REGISTRE — complétude minimale "utile"
+ * Rappels:
+ * - exemplaire_id requis
+ * - is_missing requis (tri-state)
+ * - si pas manquant -> segments.length > 0
+ * - si lacune === true -> lacune_note OU missing_ranges non vide
+ */
+export function getRegistreCompleteness(c: any): CompletenessResult {
+  const missing: string[] = [];
+
+  if (!hasText(c.exemplaire_id)) missing.push('exemplaire_id');
+
+  if (!isTriStateSet(c.is_missing)) missing.push('is_missing (true/false/null)');
+
+  const isMissing = c.is_missing === true;
+  if (!isMissing) {
+    const segs = Array.isArray(c.segments) ? c.segments : [];
+    if (segs.length === 0) missing.push('segments (au moins 1 si pas manquant)');
+  }
+
+  const lacune = c.lacune === true;
+  if (lacune) {
+    const hasNote = hasText(c.lacune_note);
+    const hasRanges = hasAnyRangeItems(c.missing_ranges);
+    if (!hasNote && !hasRanges) missing.push('lacune: lacune_note OU missing_ranges[]');
+  }
+
+  if (isMissing) return { status: 'missing', missing: [] };
+  return { status: missing.length ? 'todo' : 'ok', missing };
+}
+
 type EditCallbacks =
   | {
       mode: 'edit';
@@ -574,27 +694,8 @@ export function SectionSources(props: SectionSourcesProps) {
   };
 
   const getExemplaireStatus = (c: AnyDraft) => {
-    if (type === 'acte') {
-      const missing = (c as ActeCitationDraft).is_missing;
-      if (missing) return 'missing';
-
-      const a = c as ActeCitationDraft;
-      const hasLoc = Boolean((a.loc_raw ?? '').trim()) || a.loc_start != null || a.loc_end != null;
-
-      return hasLoc ? 'ok' : 'todo';
-    }
-
-    const missing = (c as any).is_missing;
-    if (missing) return 'missing';
-
-    const loc0 = getLocSystem0((c as any).locating);
-    const hasLoc =
-      Boolean((loc0.raw ?? '').toString().trim()) || loc0.start != null || loc0.end != null;
-
-    const hasNote = Boolean(((c as any).note ?? '').toString().trim());
-    const hasMarks = Boolean(((c as any).marks ?? '').toString().trim());
-
-    return hasLoc || hasNote || hasMarks ? 'ok' : 'todo';
+    const r = type === 'acte' ? getActeCompleteness(c) : getRegistreCompleteness(c);
+    return r.status; // 'ok' | 'todo' | 'missing'
   };
 
   const StatusIcon = ({ status }: { status: 'ok' | 'todo' | 'missing' }) => {
@@ -1924,8 +2025,8 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>Vérifier les champs requis</li>
-                      <li>Vérifier les champs requis pour changement de badge sur exemplaire</li>
+                      <li>Enregistrement du formulaire quand changement d'exemplaire</li>
+                      <li>Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les archives" soit distinct de celui de la section "Identification" par exemple</li>
                       <li>afficher un toast quand enregistrement</li>
                       <li>En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
                       <li>En-tête de l'exemplaire: tester le bouton changer</li>
@@ -1955,8 +2056,8 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
                       <li>En-tête de l'exemplaire: tester le bouton changer</li>
-                      <li>Vérifier les champs requis</li>
-                      <li>Vérifier les champs requis pour changement de badge sur exemplaire</li>
+                      <li>Enregistrement du formulaire quand changement d'exemplaire</li>
+                      <li>Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les archives" soit distinct de celui de la section "Identification" par exemple</li>
                       <li>(repérées de ? à ?)</li>
                       <li>Champ work_note</li>
                     </ol>
