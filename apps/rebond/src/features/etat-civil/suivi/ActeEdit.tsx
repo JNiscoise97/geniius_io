@@ -1,5 +1,5 @@
 // ActeEdit.tsx
-import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users, InfoIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEtatCivilActesStore } from '@/store/useEtatCivilActesStore';
@@ -36,6 +36,7 @@ const tabs = [
   { label: 'Référence archive', icon: Archive },
   { label: 'Transcription', icon: FileText },
   { label: 'Acteurs & rôles', icon: Users },
+  { label: 'Informations', icon: InfoIcon },
   { label: 'Mentions complémentaires', icon: NotepadText },
   { label: 'Faits familiaux', icon: Network },
   { label: 'Documents liés', icon: LinkIcon },
@@ -443,6 +444,26 @@ export default function ActeEdit() {
               domiciles et statuts lorsqu’ils sont mentionnés.
             </p>
             <p><span className="font-semibold text-sm leading-relaxed text-slate-700">Il sert à comprendre qui intervient dans le document.</span></p>
+          </div>
+        )}
+        {activeSection === 'Informations' && (
+          <div className="p-4">
+            
+
+          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+            <div className='flex items-start gap-3'>
+              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                <div className='mt-0.5 text-xs text-amber-800'>
+                  <ol>
+                    <li>[MODEL] etat_civil_actes.lieu_transport_raison </li>
+                    <li>[MODEL] etat_civil_actes.comparution_observations (obsolète)</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
           </div>
         )}
         {activeSection === 'Faits familiaux' && (

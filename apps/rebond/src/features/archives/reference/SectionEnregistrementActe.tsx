@@ -23,7 +23,6 @@ export type ActeEnregistrementFormState = {
   lieu_situation: LieuSituation;
   redaction_bureau_id: string | null;
   redaction_bureau_label: string;
-  lieu_transport_raison: string;
 
   // legacy (à supprimer plus tard)
   comparution_observations: string;
@@ -201,7 +200,6 @@ export function SectionEnregistrementActe({
                         setField('lieu_situation', 'bureau_courant');
                         setField('redaction_bureau_id', null);
                         setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
                       }}
                       className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                     />
@@ -224,7 +222,6 @@ export function SectionEnregistrementActe({
                         setField('lieu_situation', 'autre_bureau');
                         setField('redaction_bureau_id', null);
                         setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
                       }}
                       className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                     />
@@ -245,7 +242,6 @@ export function SectionEnregistrementActe({
                         setField('lieu_situation', 'transporte');
                         setField('redaction_bureau_id', null);
                         setField('redaction_bureau_label', '');
-                        setField('lieu_transport_raison', '');
                       }}
                       className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
                     />
@@ -266,49 +262,11 @@ export function SectionEnregistrementActe({
                     titre='Bureau de rédaction'
                     values={form.redaction_bureau_id ? [form.redaction_bureau_label || '—'] : []}
                     dense
+                    actionsInvisible = {false}
                     readonly={!isEdit}
                     onEdit={onEditBureauRedaction}
                     onDelete={onClearBureauRedaction}
                   />
-                </div>
-              )}
-
-              {form.lieu_situation === 'transporte' && (
-                <div className='rounded-xl border border-slate-200 bg-white p-4'>
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-12'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Raison du transport
-                      </label>
-                      <textarea
-                        value={form.lieu_transport_raison}
-                        disabled={!isEdit}
-                        onChange={(e) => setField('lieu_transport_raison', e.target.value)}
-                        className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 disabled:bg-slate-50'
-                      />
-                    </div>
-
-                    <div className='md:col-span-12'>
-                      <div className='flex items-center justify-between gap-3'>
-                        <label className='block text-xs font-medium text-red-700'>
-                          Comparution observations (legacy)
-                        </label>
-                        <span className='rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700'>
-                          À supprimer
-                        </span>
-                      </div>
-                      <textarea
-                        value={form.comparution_observations}
-                        disabled={!isEdit}
-                        onChange={(e) => setField('comparution_observations', e.target.value)}
-                        className='mt-1 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 shadow-sm outline-none placeholder:text-red-400 focus:border-red-300 disabled:opacity-60'
-                      />
-                      <p className='mt-1 text-xs text-red-700'>
-                        Champ hérité (legacy). À remplacer par des champs structurés +{' '}
-                        <span className='font-medium'>mentions_toponymes</span>.
-                      </p>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>

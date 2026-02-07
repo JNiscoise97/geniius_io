@@ -398,10 +398,6 @@ type FormStateActe = {
   lieu_situation: LieuSituation;
   redaction_bureau_id: string | null;
   redaction_bureau_label: string;
-  lieu_transport_raison: string;
-
-  // legacy
-  comparution_observations: string;
 };
 
 function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type: 'acte' }>) {
@@ -430,9 +426,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       lieu_situation: ((acte as any).lieu_situation as LieuSituation) ?? 'bureau_courant',
       redaction_bureau_id: (acte as any).redaction_bureau_id ?? null,
       redaction_bureau_label: (acte as any).redaction_bureau_label ?? '',
-      lieu_transport_raison: (acte as any).lieu_transport_raison ?? '',
-
-      comparution_observations: (acte as any).comparution_observations ?? '',
     }),
     [acte, bureauLabel],
   );
@@ -896,10 +889,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       lieu_situation: form.lieu_situation,
 
       redaction_bureau_id: form.lieu_situation === 'autre_bureau' ? form.redaction_bureau_id : null,
-
-      lieu_transport_raison: form.lieu_situation === 'transporte' ? form.lieu_transport_raison || null : null,
-
-      comparution_observations: form.lieu_situation === 'transporte' ? form.comparution_observations || null : null,
     };
 
     const { error } = await supabase.from('etat_civil_actes').update(patch).eq('id', acteId);
@@ -967,20 +956,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               <p>
                 <span className='font-semibold text-sm text-slate-700'>Il sert à retrouver et citer précisément l’acte.</span>
               </p>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-            <div className='flex items-start gap-3'>
-              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-              <div className='min-w-0'>
-                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                <div className='mt-0.5 text-xs text-amber-800'>
-                  <ol>
-                    <li>[MODEL] raison du transport</li>
-                  </ol>
-                </div>
-              </div>
             </div>
           </div>
 

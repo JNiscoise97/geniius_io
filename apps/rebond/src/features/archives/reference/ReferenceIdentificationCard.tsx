@@ -24,8 +24,6 @@ export type ActeReferenceIdentificationFormState = {
   lieu_situation: LieuSituation;
   redaction_bureau_id: string | null;
   redaction_bureau_label: string;
-  lieu_transport_raison: string;
-  comparution_observations: string;
   auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 };
