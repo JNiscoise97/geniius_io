@@ -9,7 +9,8 @@ import {
   BarChart2,
   Pen,
   Plus,
-  Pencil
+  Pencil,
+  AlertTriangle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -97,105 +98,117 @@ export default function RegistreLayout() {
         </div>
       )}
       {!isLoading && bureau && registre ? (
-        <div className='flex max-h-auto flex-col'>
-          <div className='sticky top-0 z-10 bg-white'>
-            <div className='flex items-center justify-between px-6 py-3 border-b bg-white'>
-              <div className='flex items-center gap-3'>
-                <Link to={`/ec-bureau/${bureauId}`}>
-                  <ArrowLeft className='w-4 h-4 text-gray-600 cursor-pointer'>
-                    <title>Retour</title>
-                  </ArrowLeft>
-                </Link>
-                {getIconForStatutFromStats(registre.actes_estimes, registre.actes_transcrits)}
-                <span className='text-base font-semibold text-gray-800'>
-                  {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
-                </span>
-                <span className='text-sm text-gray-500'>{registre.annee}</span>
-                <span className='text-sm text-gray-500'>
-                  enregistré à la {bureau.nom} ({bureau.departement})
-                </span>
+        <><div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+          <div className='flex items-start gap-3'>
+            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+            <div className='min-w-0'>
+              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+              <div className='mt-0.5 text-xs text-amber-800'>
+                <ol>
+                  <li>[BUG] après création d'un registre, Liste des actes vides comme si nombre total d'acte non renseigné (cas TB N 1891, pas de nombre d'actes estimés)</li>
+                  <li>[BUG] champs texte de la section Identification à mettre comme il faut</li>
+                  <li>[BUG] transformer les champs mode_registre et ordre numérotation en ref</li>
+                  <li>[BUG] champ type d'acte à lier à la table etat_civil_registres_type_acte</li>
+                </ol>
               </div>
-              <div className='flex items-center gap-4'>
-                <Link to={`/ec-registre/edit/${registre.id}`}>
-                  <Button
-                    variant='ghost'
-                    className='flex items-center gap-2 text-sm text-gray-600 hover:text-black'
+            </div>
+          </div>
+        </div><div className='flex max-h-auto flex-col'>
+            <div className='sticky top-0 z-10 bg-white'>
+              <div className='flex items-center justify-between px-6 py-3 border-b bg-white'>
+                <div className='flex items-center gap-3'>
+                  <Link to={`/ec-bureau/${bureauId}`}>
+                    <ArrowLeft className='w-4 h-4 text-gray-600 cursor-pointer'>
+                      <title>Retour</title>
+                    </ArrowLeft>
+                  </Link>
+                  {getIconForStatutFromStats(registre.actes_estimes, registre.actes_transcrits)}
+                  <span className='text-base font-semibold text-gray-800'>
+                    {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
+                  </span>
+                  <span className='text-sm text-gray-500'>{registre.annee}</span>
+                  <span className='text-sm text-gray-500'>
+                    enregistré à la {bureau.nom} ({bureau.departement})
+                  </span>
+                </div>
+                <div className='flex items-center gap-4'>
+                  <Link to={`/ec-registre/edit/${registre.id}`}>
+                    <Button
+                      variant='ghost'
+                      className='flex items-center gap-2 text-sm text-gray-600 hover:text-black'
+                    >
+                      <Pencil className='w-4 h-4' />
+                      Modifier
+                    </Button>
+                  </Link>
+                  <Settings className='w-5 h-5 text-gray-700 cursor-pointer' />
+                </div>
+              </div>
+
+              <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+                {tabs.map(({ label, icon: Icon }) => (
+                  <button
+                    key={label}
+                    onClick={() => setActiveSection(label)}
+                    className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
+                      ? 'border-blue-600 text-blue-600 font-medium'
+                      : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'}`}
                   >
-                    <Pencil className='w-4 h-4' />
-                    Modifier
-                  </Button>
-                </Link>
-                <Settings className='w-5 h-5 text-gray-700 cursor-pointer' />
+                    <Icon className='w-4 h-4' />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
+            <div className='flex flex-1 overflow-hidden'>
+              <section className='flex-1 overflow-y-auto p-6 mb-4 prose prose-sm'>
+                {activeSection === 'Actes' ? (
+                  <>
+                    <h2 className='text-lg font-semibold mb-4'>Actes</h2>
+                    <div className='grid grid-cols-2 md:grid-cols-5 gap-4 text-sm'>
+                      <StatCard label='Actes à transcrire' value={registre.actes_a_transcrire} />
+                      <StatCard label='Actes transcrits' value={registre.actes_transcrits} />
+                      <StatCard label='Actes à relever' value={registre.actes_a_relever} />
+                      <StatCard label='Actes relevés' value={registre.actes_releves} />
+                      <StatCard label='Actes estimés' value={registre.actes_estimes} />
+                    </div>
 
-            <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
-              {tabs.map(({ label, icon: Icon }) => (
-                <button
-                  key={label}
-                  onClick={() => setActiveSection(label)}
-                  className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
-                    ? 'border-blue-600 text-blue-600 font-medium'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-                    }`}
-                >
-                  <Icon className='w-4 h-4' />
-                  {label}
-                </button>
-              ))}
+                    <DataTableActes
+                      actes={actesLocal}
+                      actesEstimes={registre.actes_estimes}
+                      onCreateActeDemanded={handleCreateActeDemanded}
+                      handleAddActe={handleAddActe} />
+                  </>
+                ) : activeSection === 'Référence archive' ? (
+                  id && (<div className='p-1'>
+                    <ReferenceArchiveTab
+                      registreId={id}
+                      type={'registre'}
+                      mode={'view'}
+                      bureauLabel={bureau?.nom ?? ''} />
+                  </div>)
+
+                ) : (
+                  <>
+                    <h2 className='text-lg font-semibold mb-4'>Notes</h2>
+                    <p className='text-sm text-gray-700'>
+                      📝 Notes et commentaires de recherche liés à ce registre.
+                    </p>
+                  </>
+                )}
+              </section>
             </div>
-          </div>
-          <div className='flex flex-1 overflow-hidden'>
-            <section className='flex-1 overflow-y-auto p-6 mb-4 prose prose-sm'>
-              {activeSection === 'Actes' ? (
-                <>
-                  <h2 className='text-lg font-semibold mb-4'>Actes</h2>
-                  <div className='grid grid-cols-2 md:grid-cols-5 gap-4 text-sm'>
-                    <StatCard label='Actes à transcrire' value={registre.actes_a_transcrire} />
-                    <StatCard label='Actes transcrits' value={registre.actes_transcrits} />
-                    <StatCard label='Actes à relever' value={registre.actes_a_relever} />
-                    <StatCard label='Actes relevés' value={registre.actes_releves} />
-                    <StatCard label='Actes estimés' value={registre.actes_estimes} />
-                  </div>
-
-                  <DataTableActes
-                    actes={actesLocal}
-                    actesEstimes={registre.actes_estimes}
-                    onCreateActeDemanded={handleCreateActeDemanded}
-                    handleAddActe={handleAddActe}
-                  />
-                </>
-              ) : activeSection === 'Référence archive' ? (
-                id && (<div className='p-1'>
-                  <ReferenceArchiveTab
-                    registreId={id}
-                    type={'registre'}
-                    mode={'view'}
-                    bureauLabel={bureau?.nom ?? ''} />
-                </div>)
-
-              ) : (
-                <>
-                  <h2 className='text-lg font-semibold mb-4'>Notes</h2>
-                  <p className='text-sm text-gray-700'>
-                    📝 Notes et commentaires de recherche liés à ce registre.
-                  </p>
-                </>
-              )}
-            </section>
-          </div>
-          <ActeCreateModal
-            bureauId={bureau.id}
-            registreId={registre.id}
-            open={createActeModalOpen}
-            onClose={() => {
-              setCreateActeModalOpen(false);
-              setNumeroActeACreer(null);
-            }}
-            numeroParDefaut={numeroActeACreer}
-            onActeCreated={handleNewActe}
-          />
-        </div>
+            <ActeCreateModal
+              bureauId={bureau.id}
+              registreId={registre.id}
+              open={createActeModalOpen}
+              onClose={() => {
+                setCreateActeModalOpen(false);
+                setNumeroActeACreer(null);
+              }}
+              numeroParDefaut={numeroActeACreer}
+              onActeCreated={handleNewActe} />
+          </div></>
       ) : null}
     </>
   );

@@ -107,6 +107,14 @@ function makeInitialForm(args: {
 
     bureau_id: bureauId,
     bureau_enregistrement_label: bureauLabel,
+
+    annee: '',
+    mode_registre: '',
+    ordre_numerotation: '',
+    nombre_actes_estime: '',
+    numero_acte_min: '',
+    numero_acte_max: '',
+    statut_juridique: '',
   };
 }
 
@@ -127,7 +135,7 @@ export default function RegistreEdit() {
 
   // Référence archive
   const [form, setForm] = useState<RegistreReferenceIdentificationFormState | null>(null);
-  const [sources, setSources] = useState<RegistreCitationDraft[]>([emptyCitation(0)]);
+  const [sources, setSources] = useState<RegistreCitationDraft[]>([]);
   const [loadingSources, setLoadingSources] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -148,7 +156,7 @@ export default function RegistreEdit() {
     setBureau(null);
     setBureauId(null);
     setForm(null);
-    setSources([emptyCitation(0)]);
+    setSources([]);
     setErrorMsg(null);
     initialSnapshotRef.current = '';
   }, [registreId]);
@@ -412,7 +420,7 @@ export default function RegistreEdit() {
   // ---------------------------------------------------------------------------
   // Helpers UI/state
   // ---------------------------------------------------------------------------
-  
+
   async function handleNavBack() {
     navigate(`/ec-registre/${bureauId ?? ''}/${registreId}`);
   }

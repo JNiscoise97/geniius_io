@@ -329,6 +329,7 @@ export function SectionSources(props: SectionSourcesProps) {
 
   const sources = props.sources as AnyDraft[];
   const count = sources ? sources.length : 0;
+  const isEmpty = !loading && count === 0;
 
   const onChange = (idx: number, patch: Partial<AnyDraft>) => {
     if (!isEdit) return;
@@ -340,8 +341,12 @@ export function SectionSources(props: SectionSourcesProps) {
   // Draft keys (no module-global Map)
   // ---------------------------------------------------------------------------
   const tmpKeyByIndexRef = useRef(new Map<number, DraftKey>());
-  const getKey = (c: AnyDraft, idx?: number) =>
-    getDraftKeyHelper(c as any, idx, tmpKeyByIndexRef.current);
+
+  const getKey = (c: AnyDraft, idx?: number) => {
+    const exId = (c as any)?.exemplaire_id ?? null;
+    if (exId) return `ex:${exId}`;               // ✅ stable et cohérent avec setSelectedKey
+    return getDraftKeyHelper(c as any, idx, tmpKeyByIndexRef.current);
+  };
 
   // ---------------------------------------------------------------------------
   // Selection states
@@ -490,6 +495,7 @@ export function SectionSources(props: SectionSourcesProps) {
     if (type === 'acte') {
       patchActe(pickerTargetIdx, {
         ...(base as any),
+        loc_mode: 'raw',
         loc_start: null,
         loc_end: null,
         loc_raw: '',
@@ -936,13 +942,48 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const showNatureOrCopy = natureLabel && hasSource ? copyOf : natureLabel ? natureLabel : '';
 
-    const vuesLabel =
-      ((c as ActeCitationDraft).loc_raw ?? '').trim() ||
-      formatRangeLabel(
-        (c as ActeCitationDraft).loc_start ?? null,
-        (c as ActeCitationDraft).loc_end ?? null,
-        'vue',
-      );
+    const paginationLabelBase =
+      (ex.pagination_type_label ?? ex.pagination_type ?? 'vue')
+        .toString()
+        .toLowerCase();
+
+    function labelForRaw(label: string, raw: string) {
+      // raw = nombre unique → singulier
+      if (/^\d+$/.test(raw)) {
+        return label.endsWith('s') ? label.slice(0, -1) : label;
+      }
+
+      // raw = plage explicite "x-y" → pluriel
+      if (/^\d+\s*-\s*\d+$/.test(raw)) {
+        return label.endsWith('s') ? label : `${label}s`;
+      }
+
+      // autre chose (12r–13v, texte libre) → on garde le label tel quel
+      return label;
+    }
+
+    const vuesLabel = (() => {
+      const raw = String((c as ActeCitationDraft).loc_raw ?? '').trim();
+      if (raw) {
+        const label = labelForRaw(paginationLabelBase, raw);
+        return `${label} ${raw}`;
+      }
+
+      const start = (c as ActeCitationDraft).loc_start ?? null;
+      const end = (c as ActeCitationDraft).loc_end ?? null;
+      if (start == null && end == null) return '';
+
+      const label =
+        start != null && end != null && start !== end
+          ? (paginationLabelBase.endsWith('s')
+            ? paginationLabelBase
+            : `${paginationLabelBase}s`)
+          : (paginationLabelBase.endsWith('s')
+            ? paginationLabelBase.slice(0, -1)
+            : paginationLabelBase);
+
+      return `${label} ${formatRangeLabel(start, end, '')}`;
+    })();
 
     return (
       <div className='shrink-0 border-b border-slate-200 bg-slate-50 p-4'>
@@ -1076,7 +1117,7 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const hasMissingRanges = missingRanges.length > 0;
 
-    const locMode: LocMode = (c as any).loc_mode ?? detectModeFromState(c);
+    const locMode: LocMode = ((c as any).loc_mode ?? 'raw') as LocMode;
 
     const setLocMode = (mode: LocMode) => {
       // Optionnel : stocker le mode (UI-only) pour ne pas “sauter” quand raw change
@@ -1107,7 +1148,7 @@ export function SectionSources(props: SectionSourcesProps) {
     const exId = String((ex as any)?.exemplaire_id ?? (c as any)?.exemplaire_id ?? '');
     const registreSegments = exId ? (segmentsByExId[exId] ?? []) : [];
 
-
+    const estManuscrit = (c as any).ecriture_ref == '6d2f68c7-bce6-411e-a4d1-00b1e535c219';
     return (
       <div className='flex-1 min-h-0 overflow-y-auto p-4'>
         <div className='space-y-6'>
@@ -1381,17 +1422,18 @@ export function SectionSources(props: SectionSourcesProps) {
                           value={String((c as any).loc_raw ?? '')}
                           onChange={(e) => {
                             const raw = e.target.value;
+                            // ✅ ne pas remplir loc_start/loc_end ici
+                            onChange(idx, { loc_raw: raw } as any);
+                          }}
+                          onBlur={() => {
+                            const raw = String((c as any).loc_raw ?? '').trim();
                             const parsed = parseRawToRange(raw);
-
-                            // Règles : si raw est exactement "x" ou "x-y", on remplit aussi start/end
+                            // ✅ sync structuré uniquement à la fin (si c'est exactement "x" ou "x-y")
                             if (parsed.start != null && parsed.end != null) {
-                              onChange(idx, {
-                                loc_raw: raw,
-                                loc_start: parsed.start,
-                                loc_end: parsed.end,
-                              } as any);
+                              onChange(idx, { loc_start: parsed.start, loc_end: parsed.end } as any);
                             } else {
-                              onChange(idx, { loc_raw: raw } as any);
+                              // optionnel : si raw non parseable, on remet le structuré à null
+                              onChange(idx, { loc_start: null, loc_end: null } as any);
                             }
                           }}
                           placeholder='Ex. f°12r–f°13v ; vue 23 ; page 120'
@@ -1653,34 +1695,30 @@ export function SectionSources(props: SectionSourcesProps) {
                       />
                     </div>
 
-                    <div className='md:col-span-4'>
-                      <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
-                      <RefSinglePickerSmart
-                        table='ref_handwriting_legibility'
-                        mode={mode}
-                        actionsInvisible={false}
-                        value={((c as any).handwriting_legibility_ref ?? null) as any}
-                        onChange={(next) =>
-                          onChange(idx, { handwriting_legibility_ref: next } as any)
-                        }
-                      />
-                    </div>
-
-                    <div className='md:col-span-12'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Caractéristiques de lisibilité du document
-                      </div>
-                      <RefSinglePickerSmart
-                        table='ref_document_readability_features'
-                        mode={mode}
-                        multi={true}
-                        actionsInvisible={false}
-                        value={((c as any).document_readability_features_ids ?? null) as any}
-                        onChange={(next) =>
-                          onChange(idx, { document_readability_features_ids: next } as any)
-                        }
-                      />
-                    </div>
+                    {estManuscrit && (
+                      <>
+                        <div className='md:col-span-4'>
+                          <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
+                          <RefSinglePickerSmart
+                            table='ref_handwriting_legibility'
+                            mode={mode}
+                            actionsInvisible={false}
+                            value={((c as any).handwriting_legibility_ref ?? null) as any}
+                            onChange={(next) => onChange(idx, { handwriting_legibility_ref: next } as any)} />
+                        </div>
+                        <div className='md:col-span-12'>
+                          <div className='text-xs font-medium text-slate-700'>
+                            Caractéristiques de lisibilité du document
+                          </div>
+                          <RefSinglePickerSmart
+                            table='ref_document_readability_features'
+                            mode={mode}
+                            multi={true}
+                            actionsInvisible={false}
+                            value={((c as any).document_readability_features_ids ?? null) as any}
+                            onChange={(next) => onChange(idx, { document_readability_features_ids: next } as any)} />
+                        </div>
+                      </>)}
                   </div>
                 </div>
               </div>
@@ -2287,11 +2325,16 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
+                      <li>[BUG] le numéro de vue se met à jour trop vite, je perds le focus pour écrire par exemple 14</li>
+                      <li>[BUG] occurrence à 1 par défaut</li>
+                      <li>[BUG] lacune à false par défaut</li>
+                      <li>[BUG] lisibilité manuscrite</li>
+
                       <li>[UX] En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
                       <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
-                      
+
                       <li>[MODEL] Champ work_note</li>
-                      
+
                       <li>[LABEL] revoir les titres des headers des sections</li>
                       <li>[LABEL] virer les textes tels que "Auto : Position = numéro, Début = Fin = numéro."</li>
                     </ol>
@@ -2315,12 +2358,14 @@ export function SectionSources(props: SectionSourcesProps) {
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>                      
+                    <ol>
+                      <li>[BUG] lacune à false par défaut</li>
+
                       <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
 
                       <li>[MODEL] (repérées de ? à ?)</li>
                       <li>[MODEL] Champ work_note</li>
-                      
+
                       <li>[LABEL] revoir les titres des headers des sections</li>
                     </ol>
                   </div>
@@ -2331,7 +2376,24 @@ export function SectionSources(props: SectionSourcesProps) {
         ) : null}
       </div>
 
-      <div
+      {isEmpty ? (
+        <div className='rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6'>
+          <div className='text-sm font-semibold text-slate-900'>Aucune occurrence</div>
+          <div className='mt-1 text-sm text-slate-600'>
+            Ajoute un exemplaire pour créer une occurrence {type === 'acte' ? "d'acte" : 'de registre'}.
+          </div>
+
+          {isEdit ? (
+            <div className='mt-4'>
+              <Button type='button' onClick={openPickerForNew}>
+                Ajouter une occurrence…
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!isEmpty ? (<div
         className={[
           'grid gap-4 h-[72vh] min-h-0',
           leftCollapsed ? 'md:grid-cols-[1fr]' : 'md:grid-cols-[340px_340px_1fr]',
@@ -2399,6 +2461,7 @@ export function SectionSources(props: SectionSourcesProps) {
           )}
         />
       </div>
+      ) : null}
 
       <ExemplairePickerDialog
         open={pickerOpen}

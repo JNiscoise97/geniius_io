@@ -33,21 +33,21 @@ type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
 type ReferenceArchiveTabProps =
   | {
-      type: 'acte';
-      acte: EtatCivilActe;
-      registreId?: string;
-      mode?: Mode;
-      bureauLabel?: string;
-      onUpdated?: () => Promise<void> | void;
-    }
+    type: 'acte';
+    acte: EtatCivilActe;
+    registreId?: string;
+    mode?: Mode;
+    bureauLabel?: string;
+    onUpdated?: () => Promise<void> | void;
+  }
   | {
-      type: 'registre';
-      acte?: never;
-      registreId: string;
-      mode?: Mode;
-      bureauLabel?: string;
-      onUpdated?: () => Promise<void> | void;
-    };
+    type: 'registre';
+    acte?: never;
+    registreId: string;
+    mode?: Mode;
+    bureauLabel?: string;
+    onUpdated?: () => Promise<void> | void;
+  };
 
 /**
  * =========================================================================
@@ -433,7 +433,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
   const [form, setForm] = useState<FormStateActe>(initialState);
 
   const [loadingActesSources, setLoadingActesSources] = useState(false);
-  const [actesSources, setActesSources] = useState<ActeCitationDraft[]>([emptyActeCitation()]);
+  const [actesSources, setActesSources] = useState<ActeCitationDraft[]>([]);
 
   // drawers (acte only)
   const [dictOpen, setDictOpen] = useState(false);
@@ -551,10 +551,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         .from('etat_civil_acte_citations')
         .select(
           'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
-            'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
-            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
-            'anchor_hint, acte_no, lacune, lacune_note, marks,' +
-            'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
+          'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
+          'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
+          'anchor_hint, acte_no, lacune, lacune_note, marks,' +
+          'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -565,7 +565,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
 
       if (error) {
         setSectionError('sources', error.message);
-        setActesSources([emptyActeCitation()]);
+        setActesSources([]);
         setLoadingActesSources(false);
         return;
       }
@@ -574,7 +574,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       const drafts = rows.map((r) => normalizeCitationRow(r));
 
       if (!drafts.length) {
-        setActesSources([emptyActeCitation()]);
+        setActesSources([]);
         setLoadingActesSources(false);
         return;
       }
@@ -716,10 +716,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
   };
 
   const removeSource = (idx: number) => {
-    setActesSources((prev) => {
-      if (prev.length === 1) return [emptyActeCitation()];
-      return prev.filter((_, i) => i !== idx);
-    });
+    setActesSources((prev) => prev.filter((_, i) => i !== idx));
     if (mode === 'edit') markDirty('sources');
   };
 
@@ -956,6 +953,20 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               <p>
                 <span className='font-semibold text-sm text-slate-700'>Il sert à retrouver et citer précisément l’acte.</span>
               </p>
+            </div>
+          </div>
+
+          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+            <div className='flex items-start gap-3'>
+              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                <div className='mt-0.5 text-xs text-amber-800'>
+                  <ol>
+                    <li>[UX] acte-view: deux scrolls en parallèle</li>
+                  </ol>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1237,40 +1248,204 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
  * =========================================================================
  */
 
+type FormStateRegistre = {
+  // champs affichés dans SectionIdentification (registre)
+  bureau_id: string | null;
+  annee: string;
+  mode_registre: 'par_type' | 'chronologique_mixte' | '';
+  type_acte: string;
+  type_acte_ref: { ids: string[]; labels: string[] } | null;
+  ordre_numerotation: 'par_type' | 'globale' | '';
+  nombre_actes_estime: string;
+  numero_acte_min: string;
+  numero_acte_max: string;
+  statut_juridique: 'esclave' | 'nouveau_libre' | '';
+};
+
+
 function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { type: 'registre' }>) {
   const { type, registreId, mode = 'edit', onUpdated } = props;
 
-  const [registresSources, setRegistresSources] = useState<RegistreCitationDraft[]>([emptyRegistreCitation(0)]);
+  type DirtyKeyReg = 'identification' | 'sources';
+
+  type ModeRegistre = 'par_type' | 'chronologique_mixte' | '';
+  type OrdreNumerotation = 'par_type' | 'globale' | '';
+  type StatutJuridique = 'esclave' | 'nouveau_libre' | '';
+
+  type FormStateRegistre = {
+    bureau_id: string | null;
+    bureau_enregistrement_label: string; // affichage (si tu l’utilises plus tard)
+    annee: string; // string pour inputs
+    mode_registre: ModeRegistre;
+
+    type_acte: string;
+    type_acte_ref: { ids: string[]; labels: string[] } | null;
+
+    ordre_numerotation: OrdreNumerotation;
+    nombre_actes_estime: string;
+    numero_acte_min: string;
+    numero_acte_max: string;
+
+    statut_juridique: StatutJuridique;
+  };
+
+  const toIntOrNull = (v: any): number | null => {
+    const s = String(v ?? '').trim();
+    if (!s) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const [form, setForm] = useState<FormStateRegistre>({
+    bureau_id: null,
+    bureau_enregistrement_label: '',
+    annee: '',
+    mode_registre: '',
+
+    type_acte: '',
+    type_acte_ref: null,
+
+    ordre_numerotation: '',
+    nombre_actes_estime: '',
+    numero_acte_min: '',
+    numero_acte_max: '',
+
+    statut_juridique: '',
+  });
+
+  const [registresSources, setRegistresSources] = useState<RegistreCitationDraft[]>([]);
   const [loadingRegistresSources, setLoadingRegistresSources] = useState(false);
 
-  const [dirtySources, setDirtySources] = useState(false);
-  const [savingSources, setSavingSources] = useState(false);
-  const [savedAtSources, setSavedAtSources] = useState<number | null>(null);
-  const [errorSources, setErrorSources] = useState<string | null>(null);
+  const [dirty, setDirty] = useState<Record<DirtyKeyReg, boolean>>({
+    identification: false,
+    sources: false,
+  });
 
-  const markDirty = () => {
-    setDirtySources(true);
-    setSavedAtSources(null);
+  const [savingBy, setSavingBy] = useState<Record<DirtyKeyReg, boolean>>({
+    identification: false,
+    sources: false,
+  });
+
+  const [errorBy, setErrorBy] = useState<Record<DirtyKeyReg, string | null>>({
+    identification: null,
+    sources: null,
+  });
+
+  const [savedAtBy, setSavedAtBy] = useState<Record<DirtyKeyReg, number | null>>({
+    identification: null,
+    sources: null,
+  });
+
+  const isAnyDirty = Object.values(dirty).some(Boolean);
+
+  const markDirty = (k: DirtyKeyReg) => {
+    setDirty((prev) => (prev[k] ? prev : { ...prev, [k]: true }));
+    setSavedAtBy((prev) => ({ ...prev, [k]: null }));
   };
 
-  const clearDirty = () => {
-    setDirtySources(false);
-    setSavedAtSources(Date.now());
+  const clearDirty = (k: DirtyKeyReg) => {
+    setDirty((prev) => ({ ...prev, [k]: false }));
+    setSavedAtBy((prev) => ({ ...prev, [k]: Date.now() }));
   };
 
-  // Guard navigateur (registre) si dirty
+  const setSectionError = (k: DirtyKeyReg, msg: string | null) => {
+    setErrorBy((prev) => ({ ...prev, [k]: msg }));
+  };
+
+  const setSectionSaving = (k: DirtyKeyReg, v: boolean) => {
+    setSavingBy((prev) => ({ ...prev, [k]: v }));
+  };
+
+  const setFieldIn = <K extends keyof FormStateRegistre>(key: K, value: FormStateRegistre[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (mode === 'edit') markDirty('identification');
+  };
+
+  // guard navigateur (registre) si dirty
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (!dirtySources) return;
+      if (!isAnyDirty) return;
       e.preventDefault();
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [dirtySources]);
+  }, [isAnyDirty]);
+
+  /**
+   * LOAD registre row -> hydrate identification form
+   */
+  useEffect(() => {
+    if (!registreId) return;
+    let cancelled = false;
+
+    (async () => {
+      setSectionError('identification', null);
+
+      const { data, error } = await supabase
+  .from('etat_civil_registres')
+  .select(
+    'id,bureau_id,annee,mode_registre,ordre_numerotation,nombre_actes_estime,numero_acte_min,numero_acte_max,statut_juridique',
+  )
+  .eq('id', registreId)
+  .maybeSingle();
+
+  // type_acte via table de jointure
+const { data: taRows, error: taErr } = await supabase
+  .from('etat_civil_registres_type_acte')
+  .select('type_acte_id, ref_ec_type_acte:ref_ec_type_acte(id,label)')
+  .eq('registre_id', registreId);
+
+if (taErr) {
+  // tu peux choisir de "throw" ou juste log
+  console.warn('load registre type_acte failed', taErr);
+}
+
+const typeActeId = (taRows?.[0] as any)?.type_acte_id ?? null;
+const typeActeLabel = (taRows?.[0] as any)?.ref_ec_type_acte?.label ?? '';
+
+
+
+      if (cancelled) return;
+
+      if (error) {
+        setSectionError('identification', error.message);
+        return;
+      }
+
+      const r: any = data ?? {};
+      setForm({
+        bureau_id: r.bureau_id ?? null,
+        bureau_enregistrement_label: '',
+
+        annee: r.annee != null ? String(r.annee) : '',
+        mode_registre: (r.mode_registre ?? '') as ModeRegistre,
+
+        type_acte: typeActeLabel || '',
+type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : null,
+
+
+        ordre_numerotation: (r.ordre_numerotation ?? '') as OrdreNumerotation,
+        nombre_actes_estime: r.nombre_actes_estime != null ? String(r.nombre_actes_estime) : '',
+        numero_acte_min: r.numero_acte_min != null ? String(r.numero_acte_min) : '',
+        numero_acte_max: r.numero_acte_max != null ? String(r.numero_acte_max) : '',
+
+        statut_juridique: (r.statut_juridique ?? '') as StatutJuridique,
+      });
+
+      setDirty((prev) => ({ ...prev, identification: false }));
+      setSavedAtBy((prev) => ({ ...prev, identification: null }));
+      setSectionError('identification', null);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [registreId]);
 
   /**
    * LOAD registre citations + segments + enrich exemplaires
+   * (ta version, avec erreurs branchées sur errorBy.sources)
    */
   useEffect(() => {
     if (!registreId) return;
@@ -1279,19 +1454,19 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
     (async () => {
       try {
         setLoadingRegistresSources(true);
-        setErrorSources(null);
+        setSectionError('sources', null);
 
         // 1) citations
         const { data, error } = await supabase
           .from(TABLE_REGISTRE_CITATIONS)
           .select(
             `
-            id, registre_id, exemplaire_id,
-            is_missing, lacune, lacune_note, locating,
-            physical_condition_ref, repro_quality_ref,
-            marks, document_damage_kinds_ids,
-            note, sort_order
-          `,
+              id, registre_id, exemplaire_id,
+              is_missing, lacune, lacune_note, locating,
+              physical_condition_ref, repro_quality_ref,
+              marks, document_damage_kinds_ids,
+              note, sort_order
+            `,
           )
           .eq('registre_id', registreId)
           .order('sort_order', { ascending: true });
@@ -1299,8 +1474,10 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
         if (cancelled) return;
         if (error) throw error;
 
-        const rows = ((data ?? []) as RegistreCitationRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-        let drafts: RegistreCitationDraft[] = rows.length ? rows.map(mapRowToDraft) : [emptyRegistreCitation(0)];
+        const rows = ((data ?? []) as RegistreCitationRow[]).sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        );
+        let drafts: RegistreCitationDraft[] = rows.length ? rows.map(mapRowToDraft) : [];
 
         // 2) segments
         const citIds = drafts.map((d) => d.id).filter(Boolean) as string[];
@@ -1309,12 +1486,12 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
             .from(TABLE_REGISTRE_SEGMENTS)
             .select(
               `
-              id, registre_citation_id,
-              kind_ref, label_override, scope,
-              range_start, range_end,
-              date_from, date_to, year_from, year_to,
-              note, sort_order
-            `,
+                id, registre_citation_id,
+                kind_ref, label_override, scope,
+                range_start, range_end,
+                date_from, date_to, year_from, year_to,
+                note, sort_order
+              `,
             )
             .in('registre_citation_id', citIds)
             .order('sort_order', { ascending: true });
@@ -1431,12 +1608,12 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
           });
         }
 
-        if (!cancelled) setRegistresSources(drafts.length ? drafts : [emptyRegistreCitation(0)]);
+        if (!cancelled) setRegistresSources(drafts.length ? drafts : []);
       } catch (err: any) {
         if (cancelled) return;
         console.error('Erreur chargement références registre', err);
-        setRegistresSources([emptyRegistreCitation(0)]);
-        setErrorSources(err?.message ?? 'Erreur chargement registre.');
+        setRegistresSources([]);
+        setSectionError('sources', err?.message ?? 'Erreur chargement registre.');
       } finally {
         if (!cancelled) setLoadingRegistresSources(false);
       }
@@ -1452,32 +1629,93 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
    */
   const updateRegSource = (idx: number, patch: Partial<RegistreCitationDraft>) => {
     setRegistresSources((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
-    if (mode === 'edit') markDirty();
+    if (mode === 'edit') markDirty('sources');
   };
 
   const addRegSource = () => {
     setRegistresSources((prev) => [...prev, emptyRegistreCitation(prev.length)]);
-    if (mode === 'edit') markDirty();
+    if (mode === 'edit') markDirty('sources');
   };
 
   const removeRegSource = (idx: number) => {
-    setRegistresSources((prev) => {
-      if (prev.length === 1) return [emptyRegistreCitation(0)];
-      const next = prev.filter((_, i) => i !== idx).map((c, i) => ({ ...c, sort_order: i }));
-      return next;
-    });
-    if (mode === 'edit') markDirty();
+    setRegistresSources((prev) => prev.filter((_, i) => i !== idx).map((c, i) => ({ ...c, sort_order: i })));
+    if (mode === 'edit') markDirty('sources');
   };
 
   /**
-   * SAVE registre sources (citations + segments)
+   * SAVE - identification (registre)
+   */
+  const saveIdentification = async () => {
+    if (mode !== 'edit') return;
+    if (!dirty.identification) return;
+
+    setSectionSaving('identification', true);
+    setSectionError('identification', null);
+
+    // NB: bureau_id + annee sont NOT NULL en DB -> à sécuriser via UI/validation si besoin
+    const patch: Record<string, any> = {
+      bureau_id: form.bureau_id ?? null,
+      annee: toIntOrNull(form.annee),
+      mode_registre: form.mode_registre || null,
+
+      ordre_numerotation: form.ordre_numerotation || null,
+      nombre_actes_estime: toIntOrNull(form.nombre_actes_estime),
+      numero_acte_min: toIntOrNull(form.numero_acte_min),
+      numero_acte_max: toIntOrNull(form.numero_acte_max),
+
+      statut_juridique: form.statut_juridique || null,
+    };
+
+    const { error } = await supabase.from('etat_civil_registres').update(patch).eq('id', registreId);
+
+    const nextTypeActeId = form.type_acte_ref?.ids?.[0] ?? null;
+
+// 1) on purge les liens existants (vu que ton UI est single)
+{
+  const { error: delErr } = await supabase
+    .from('etat_civil_registres_type_acte')
+    .delete()
+    .eq('registre_id', registreId);
+
+  if (delErr) {
+    setSectionError('identification', delErr.message);
+    return;
+  }
+}
+
+// 2) si un type est choisi, on (re)crée le lien
+if (nextTypeActeId) {
+  const { error: insErr } = await supabase
+    .from('etat_civil_registres_type_acte')
+    .insert({ registre_id: registreId, type_acte_id: nextTypeActeId });
+
+  if (insErr) {
+    setSectionError('identification', insErr.message);
+    return;
+  }
+}
+
+    setSectionSaving('identification', false);
+
+    if (error) {
+      setSectionError('identification', error.message);
+      return;
+    }
+
+    clearDirty('identification');
+    await onUpdated?.();
+  };
+
+  /**
+   * SAVE - sources (citations + segments)
+   * (ta version, ré-branchée sur dirty/saving/errorBy.sources)
    */
   const saveRegistreSources = async () => {
     if (mode !== 'edit') return;
-    if (!dirtySources) return;
+    if (!dirty.sources) return;
 
-    setSavingSources(true);
-    setErrorSources(null);
+    setSectionSaving('sources', true);
+    setSectionError('sources', null);
 
     try {
       // --- 1) delete removed citations
@@ -1493,7 +1731,6 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
       const toDelete = existingIds.filter((id) => !uiExistingIds.includes(id));
 
       if (toDelete.length) {
-        // segments cascade? si pas de FK cascade, on delete segments d’abord
         await supabase.from(TABLE_REGISTRE_SEGMENTS).delete().in('registre_citation_id', toDelete);
         const { error: delErr } = await supabase.from(TABLE_REGISTRE_CITATIONS).delete().in('id', toDelete);
         if (delErr) throw delErr;
@@ -1510,14 +1747,18 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
 
             is_missing: toBoolOrNull((c as any).is_missing),
             lacune: toBoolOrNull((c as any).lacune),
-            lacune_note: ((c as any).lacune_note ?? null) ? String((c as any).lacune_note).trim() || null : null,
+            lacune_note: ((c as any).lacune_note ?? null)
+              ? String((c as any).lacune_note).trim() || null
+              : null,
             locating: (c as any).locating ?? { systems: [{}] },
 
             physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
             repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
 
             marks: ((c as any).marks ?? '').trim() || null,
-            document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids) ? (c as any).document_damage_kinds_ids : [],
+            document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
+              ? (c as any).document_damage_kinds_ids
+              : [],
 
             note: ((c as any).note ?? '').trim() || null,
             sort_order: idx,
@@ -1534,7 +1775,7 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
 
       if (upErr) throw upErr;
 
-      // map new ids back into UI (same heuristic as acte)
+      // backfill ids
       if (upserted?.length) {
         const byKey = new Map(upserted.map((r: any) => [`${r.exemplaire_id}__${r.sort_order}`, r.id as string]));
         setRegistresSources((prev) =>
@@ -1548,12 +1789,11 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
       }
 
       // --- 3) segments sync (delete missing + upsert)
-      const citIds = (upserted ?? [])
-        .map((r: any) => r.id as string)
-        .filter(Boolean);
+      const citIdsFromUpsert = (upserted ?? []).map((r: any) => r.id as string).filter(Boolean);
+      const allCitIds = citIdsFromUpsert.length
+        ? citIdsFromUpsert
+        : (registresSources.map((c) => c.id).filter(Boolean) as string[]);
 
-      // If no upserted (rare), fallback to current state ids
-      const allCitIds = citIds.length ? citIds : (registresSources.map((c) => c.id).filter(Boolean) as string[]);
       if (allCitIds.length) {
         const { data: existingSegs, error: segListErr } = await supabase
           .from(TABLE_REGISTRE_SEGMENTS)
@@ -1575,18 +1815,17 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
           uiSegIdsByCit.set(c.id, ids);
         }
 
-        // delete removed segments
         const toDeleteSeg: string[] = [];
         for (const [citId, segIds] of existingSegIds.entries()) {
           const uiIds = uiSegIdsByCit.get(citId) ?? [];
           for (const id of segIds) if (!uiIds.includes(id)) toDeleteSeg.push(id);
         }
+
         if (toDeleteSeg.length) {
           const { error: delSegErr } = await supabase.from(TABLE_REGISTRE_SEGMENTS).delete().in('id', toDeleteSeg);
           if (delSegErr) throw delSegErr;
         }
 
-        // upsert segments
         const segPayload: any[] = [];
         for (const c of registresSources) {
           if (!c.id) continue;
@@ -1613,28 +1852,33 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
         }
 
         if (segPayload.length) {
-          const { error: segUpErr } = await supabase.from(TABLE_REGISTRE_SEGMENTS).upsert(segPayload, { onConflict: 'id' });
+          const { error: segUpErr } = await supabase
+            .from(TABLE_REGISTRE_SEGMENTS)
+            .upsert(segPayload, { onConflict: 'id' });
           if (segUpErr) throw segUpErr;
         }
       }
 
-      clearDirty();
+      clearDirty('sources');
       await onUpdated?.();
     } catch (err: any) {
-      setErrorSources(err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
+      setSectionError('sources', err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
     } finally {
-      setSavingSources(false);
+      setSectionSaving('sources', false);
     }
+  };
+
+  const saveAll = async () => {
+    if (mode !== 'edit') return;
+    if (dirty.identification) await saveIdentification();
+    if (dirty.sources) await saveRegistreSources();
   };
 
   const handleLegacySubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (mode === 'edit') await saveRegistreSources();
+    await saveAll();
   };
 
-  /**
-   * Render (registre) — IMPORTANT: sections displayed per your rules.
-   */
   return (
     <div className='p-4'>
       <form className='space-y-6' onSubmit={handleLegacySubmit}>
@@ -1642,7 +1886,6 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
           <div>
             <h2 className='text-base font-semibold text-slate-900'>Référence archive</h2>
 
-            {/* intro registre */}
             <div className='mt-1 space-y-1'>
               <p className='text-sm leading-relaxed text-slate-700'>
                 Cet onglet vous permet de décrire le registre en tant que document d’archive : identification, dépôts de conservation.
@@ -1652,17 +1895,75 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
               </p>
             </div>
           </div>
+
+          {/* Global helper (top) */}
+          {mode === 'edit' ? (
+            <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
+              <div className='flex items-center justify-between gap-3'>
+                <div className='min-w-0'>
+                  <div className='text-sm font-semibold text-slate-900'>État des modifications</div>
+                  <div className='mt-0.5 text-xs text-slate-600'>
+                    {isAnyDirty ? 'Certaines sections ont des modifications non enregistrées.' : 'Tout est à jour.'}
+                  </div>
+                </div>
+
+                <button
+                  type='button'
+                  onClick={saveAll}
+                  disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
+                  className='inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
+                  title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
+                >
+                  {Object.values(savingBy).some(Boolean) ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <Save className='h-4 w-4' />
+                  )}
+                  Tout enregistrer
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {/* 4) Sources — type == 'registre' && (mode == 'view' || mode == 'edit') */}
+        {/* Identification — registre */}
+        {type === 'registre' ? (
+          <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
+            <SectionHeaderRow
+              title='Identification'
+              subtitle='Caractéristiques administratives du registre.'
+              dirty={dirty.identification}
+              saving={savingBy.identification}
+              savedAt={savedAtBy.identification}
+              onSave={mode === 'edit' ? saveIdentification : undefined}
+              readonly={mode === 'view'}
+            />
+
+            <SectionIdentification
+              id={registreId}
+              form={form as any}
+              type='registre'
+              mode={mode}
+              setField={setFieldIn as any}
+            />
+
+            {errorBy.identification ? (
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                {errorBy.identification}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Sources — registre */}
         {type === 'registre' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
               title='Sources'
               subtitle='Citations par exemplaire + segments.'
-              dirty={mode === 'edit' ? dirtySources : false}
-              saving={mode === 'edit' ? savingSources : false}
-              savedAt={mode === 'edit' ? savedAtSources : Date.now()}
+              dirty={mode === 'edit' ? dirty.sources : false}
+              saving={mode === 'edit' ? savingBy.sources : false}
+              savedAt={mode === 'edit' ? savedAtBy.sources : Date.now()}
               onSave={mode === 'edit' ? saveRegistreSources : undefined}
               disabled={loadingRegistresSources}
               readonly={mode === 'view'}
@@ -1689,23 +1990,25 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
               />
             )}
 
-            {errorSources ? (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>{errorSources}</div>
+            {errorBy.sources ? (
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                {errorBy.sources}
+              </div>
             ) : null}
           </div>
         ) : null}
 
-        {/* footer registre edit: juste “sources” */}
+        {/* Footer registre edit */}
         {mode === 'edit' ? (
           <div className='flex items-center justify-end gap-3'>
             <button
               type='button'
-              onClick={saveRegistreSources}
-              disabled={!dirtySources || savingSources}
+              onClick={saveAll}
+              disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
               className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-              title={dirtySources ? 'Enregistrer les sources' : 'Aucune modification'}
+              title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
             >
-              {savingSources ? 'Enregistrement…' : 'Tout enregistrer'}
+              {Object.values(savingBy).some(Boolean) ? 'Enregistrement…' : 'Tout enregistrer'}
             </button>
           </div>
         ) : null}
