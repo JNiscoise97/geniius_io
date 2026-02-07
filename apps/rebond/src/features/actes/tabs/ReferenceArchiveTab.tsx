@@ -10,8 +10,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
-import { toIds, toLabels } from '@/utils/dictionnaireValue';
 import {
   DictionnaireEditorPanel,
   type DictionnaireKind,
@@ -24,7 +22,7 @@ import {
 import { AlertTriangle, Lock, Unlock } from 'lucide-react';
 import type { ActeCitationDraft, ExemplairePick, Mode } from '@/features/archives/reference/types';
 import { SectionIdentification, SectionSources } from '@/features/archives/reference';
-import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
+import { SectionEnregistrementActe } from '@/features/archives/reference/SectionEnregistrementActe';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
@@ -496,11 +494,6 @@ export default function ReferenceArchiveTab({
     });
   };
 
-  const firstId = (v: { ids: string[]; labels: string[] } | null | undefined) => {
-    const ids = toIds(v);
-    return ids?.[0] ?? null;
-  };
-
   const toBoolOrNull = (v: any): boolean | null => {
     if (v === true) return true;
     if (v === false) return false;
@@ -691,85 +684,6 @@ export default function ReferenceArchiveTab({
     await onUpdated?.();
   };
 
-  const currentAuteurInstitutionnelLabels = toLabels(form.auteur_institutionnel_ref);
-  const currentAuteurInstitutionnelIds = toIds(form.auteur_institutionnel_ref);
-  const currentAuteurInstitutionnelId = currentAuteurInstitutionnelIds?.[0] ?? null;
-
-  const setAuteurInstitutionnel = async (nextId: string | null) => {
-    if (!nextId) {
-      setField('auteur_institutionnel_ref', null);
-      return;
-    }
-
-    // hydrate le label pour garder ton modèle {ids,labels}
-    const { data, error } = await supabase
-      .from('ref_auteur_institutionnel')
-      .select('id,label')
-      .eq('id', nextId)
-      .maybeSingle();
-
-    if (error) {
-      // fallback : on garde au moins l'id
-      setField('auteur_institutionnel_ref', { ids: [nextId], labels: [''] });
-      return;
-    }
-
-    setField('auteur_institutionnel_ref', {
-      ids: [nextId],
-      labels: [data?.label ?? ''],
-    });
-  };
-
-  const openDictionnaireTypeActe = (
-    kind: DictionnaireKind,
-    title: string,
-    multi = true,
-    defaultSelectedIds: string[] = [],
-  ) => {
-    setDictArgs({
-      kind,
-      title,
-      multi,
-      defaultSelectedIds,
-      onValidate: async (items) => {
-        const ids = items.map((i) => i.id);
-        const labels = items.map((i) => i.label);
-        setField('type_acte_ref', { ids, labels });
-        setDictOpen(false);
-      },
-    });
-    setDictOpen(true);
-  };
-
-  const clearDictValueTypeActe = () => {
-    setField('type_acte_ref', null);
-  };
-
-  const openDictionnaireAuteurInstitutionnel = (
-    kind: DictionnaireKind,
-    title: string,
-    multi = true,
-    defaultSelectedIds: string[] = [],
-  ) => {
-    setDictArgs({
-      kind,
-      title,
-      multi,
-      defaultSelectedIds,
-      onValidate: async (items) => {
-        const ids = items.map((i) => i.id);
-        const labels = items.map((i) => i.label);
-        setField('auteur_institutionnel_ref', { ids, labels });
-        setDictOpen(false);
-      },
-    });
-    setDictOpen(true);
-  };
-
-  const clearDictValueAuteurInstitutionnel = () => {
-    setField('auteur_institutionnel_ref', null);
-  };
-
   return (
     <div className='p-4'>
       <form className='space-y-6' onSubmit={handleSubmit}>
@@ -796,8 +710,7 @@ export default function ReferenceArchiveTab({
                 <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
-                    <li>Nouvelle section: Enregistrement de l’acte avec les champs (Date d’enregistrement, Heure d’enregistrement ; identifiant administratif pur ; Auteur de l’acte, autorité qui confère validité à l’acte ; Bureau d’enregistrement , Lieu de rédaction)</li>
-                    <li>Mode view (identification.inputs + lieu de rédaction)</li>
+                    <li>Mode view (lieu de rédaction)</li>
                     <li>raison du transport</li>
                   </ol>
                 </div>
@@ -861,10 +774,16 @@ export default function ReferenceArchiveTab({
 
         <SectionIdentification
           id={acteId}
-          form={form}
+          form={form as any}
           type='acte'
           mode={mode}
-          setField={setField}
+          setField={setField as any}
+        />
+
+        <SectionEnregistrementActe
+          mode={mode}
+          form={form as any}
+          setField={setField as any}
           onEditBureauEnregistrement={() => {
             setBureauArgs({
               title: 'Sélectionner un bureau d’état civil',
@@ -881,176 +800,23 @@ export default function ReferenceArchiveTab({
             setField('bureau_id', null);
             setField('bureau_enregistrement_label', '');
           }}
-          onEditTypeActe={({ kind, title, multi, defaultSelectedIds }) =>
-            openDictionnaireTypeActe(kind, title, multi, defaultSelectedIds)
-          }
-          onClearTypeActe={() => clearDictValueTypeActe()}
+          onEditBureauRedaction={() => {
+            setBureauArgs({
+              title: 'Sélectionner le bureau de rédaction',
+              defaultSelectedId: form.redaction_bureau_id,
+              onValidate: async (bureau) => {
+                setField('redaction_bureau_id', bureau.id);
+                setField('redaction_bureau_label', formatBureauLabel(bureau));
+                setBureauOpen(false);
+              },
+            });
+            setBureauOpen(true);
+          }}
+          onClearBureauRedaction={() => {
+            setField('redaction_bureau_id', null);
+            setField('redaction_bureau_label', '');
+          }}
         />
-
-        {/* AUTEUR INSTITUTIONNEL */}
-        <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-          <h3 className='text-sm font-semibold text-slate-900'>Auteur institutionnel</h3>
-
-          <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Fonction</label>
-              <RefSinglePickerSmart
-                table='ref_auteur_institutionnel'
-                mode={mode}
-                actionsInvisible={false}
-                value={currentAuteurInstitutionnelId}
-                onChange={(nextId) => {
-                  void setAuteurInstitutionnel(nextId);
-                }}
-              />
-            </div>
-          </div>
-
-          <p className='mt-2 text-xs text-slate-500'>
-            Le nom de l’officiant est rattaché aux acteurs (niveau “entités/acteurs”), pas à l’acte.
-          </p>
-        </section>
-
-        {/* LIEU DE REDACTION */}
-        <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-          <h3 className='text-sm font-semibold text-slate-900'>Lieu de rédaction</h3>
-
-          <div className='mt-4 space-y-4'>
-            <fieldset className='rounded-xl border border-slate-200 bg-slate-50 p-4'>
-              <legend className='px-1 text-xs font-medium text-slate-700'>Situation</legend>
-
-              <div className='mt-2 grid grid-cols-1 gap-3 md:grid-cols-12'>
-                <label className='flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 md:col-span-4'>
-                  <input
-                    type='radio'
-                    name='lieu_situation'
-                    value='bureau_courant'
-                    checked={form.lieu_situation === 'bureau_courant'}
-                    onChange={() => {
-                      setField('lieu_situation', 'bureau_courant');
-                      setField('redaction_bureau_id', null);
-                      setField('redaction_bureau_label', '');
-                      setField('lieu_transport_raison', '');
-                    }}
-                    className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
-                  />
-                  <div>
-                    <div className='text-sm font-medium text-slate-900'>Bureau courant</div>
-                    <div className='text-xs text-slate-600'>
-                      Rédigé au bureau d’état-civil indiqué.
-                    </div>
-                  </div>
-                </label>
-
-                <label className='flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 md:col-span-4'>
-                  <input
-                    type='radio'
-                    name='lieu_situation'
-                    value='autre_bureau'
-                    checked={form.lieu_situation === 'autre_bureau'}
-                    onChange={() => {
-                      setField('lieu_situation', 'autre_bureau');
-                      setField('redaction_bureau_id', null);
-                      setField('redaction_bureau_label', '');
-                      setField('lieu_transport_raison', '');
-                    }}
-                    className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
-                  />
-                  <div>
-                    <div className='text-sm font-medium text-slate-900'>Autre bureau</div>
-                    <div className='text-xs text-slate-600'>Rédigé dans un autre bureau.</div>
-                  </div>
-                </label>
-
-                <label className='flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 md:col-span-4'>
-                  <input
-                    type='radio'
-                    name='lieu_situation'
-                    value='transporte'
-                    checked={form.lieu_situation === 'transporte'}
-                    onChange={() => {
-                      setField('lieu_situation', 'transporte');
-                      setField('redaction_bureau_id', null);
-                      setField('redaction_bureau_label', '');
-                      setField('lieu_transport_raison', '');
-                    }}
-                    className='mt-0.5 h-4 w-4 border-slate-300 text-slate-900 focus:ring-0'
-                  />
-                  <div>
-                    <div className='text-sm font-medium text-slate-900'>Acte transporté</div>
-                    <div className='text-xs text-slate-600'>Rédigé hors du bureau.</div>
-                  </div>
-                </label>
-              </div>
-            </fieldset>
-
-            {form.lieu_situation === 'autre_bureau' && (
-              <div className='rounded-xl border border-slate-200 bg-white p-4'>
-                <label className='block text-xs font-medium text-slate-700'>
-                  Bureau de rédaction
-                </label>
-                <ListeChipsViewSmart
-                  titre='Bureau de rédaction'
-                  values={form.redaction_bureau_id ? [form.redaction_bureau_label || '—'] : []}
-                  dense
-                  onEdit={() => {
-                    setBureauArgs({
-                      title: 'Sélectionner le bureau de rédaction',
-                      defaultSelectedId: form.redaction_bureau_id,
-                      onValidate: async (bureau) => {
-                        setField('redaction_bureau_id', bureau.id);
-                        setField('redaction_bureau_label', formatBureauLabel(bureau));
-                        setBureauOpen(false);
-                      },
-                    });
-                    setBureauOpen(true);
-                  }}
-                  onDelete={() => {
-                    setField('redaction_bureau_id', null);
-                    setField('redaction_bureau_label', '');
-                  }}
-                />
-              </div>
-            )}
-
-            {form.lieu_situation === 'transporte' && (
-              <div className='rounded-xl border border-slate-200 bg-white p-4'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                  <div className='md:col-span-12'>
-                    <label className='block text-xs font-medium text-slate-700'>
-                      Raison du transport
-                    </label>
-                    <textarea
-                      value={form.lieu_transport_raison}
-                      onChange={(e) => setField('lieu_transport_raison', e.target.value)}
-                      className='mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400'
-                    />
-                  </div>
-
-                  <div className='md:col-span-12'>
-                    <div className='flex items-center justify-between gap-3'>
-                      <label className='block text-xs font-medium text-red-700'>
-                        Comparution observations (legacy)
-                      </label>
-                      <span className='rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700'>
-                        À supprimer
-                      </span>
-                    </div>
-                    <textarea
-                      value={form.comparution_observations}
-                      onChange={(e) => setField('comparution_observations', e.target.value)}
-                      className='mt-1 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 shadow-sm outline-none placeholder:text-red-400 focus:border-red-300'
-                    />
-                    <p className='mt-1 text-xs text-red-700'>
-                      Champ hérité (legacy). À remplacer par des champs structurés +{' '}
-                      <span className='font-medium'>mentions_toponymes</span>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* SOURCES */}
         {mode === 'edit' ? (

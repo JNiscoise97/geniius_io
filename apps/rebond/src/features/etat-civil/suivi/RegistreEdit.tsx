@@ -1028,19 +1028,8 @@ export default function RegistreEdit() {
                     id={registre.id}
                     type='registre'
                     form={form}
-                    mode={'edit'}
+                    mode='edit'
                     setField={setField}
-                    onEditBureauEnregistrement={() => {
-                      toast('À implémenter : picker bureau côté RegistreEdit', { icon: 'ℹ️' });
-                    }}
-                    onClearBureauEnregistrement={() => {
-                      setField('bureau_id', null);
-                      setField('bureau_enregistrement_label', '');
-                    }}
-                    onEditTypeActe={({ kind, title, multi, defaultSelectedIds }) =>
-                      openDictionnaireTypeActe(kind, title, multi, defaultSelectedIds)
-                    }
-                    onClearTypeActe={clearDictValueTypeActe}
                   />
 
                   <SectionSources

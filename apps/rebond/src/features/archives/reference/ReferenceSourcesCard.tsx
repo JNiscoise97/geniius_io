@@ -10,19 +10,6 @@ import type {
 
 import { ExemplairePickerDialog } from './ExemplairePickerDialog';
 
-import {
-  DictionnaireEditorPanel,
-  type DictionnaireKind,
-} from '@/components/shared/DictionnaireEditorPanel';
-
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,22 +35,18 @@ import {
   normKey,
   normalizeUrl,
   formatRangeLabel,
-  toIntOrNull,
-  splitCsvToList,
-  joinListToCsv,
 } from './ReferenceSourcesCard/helpers/utils';
 
 import { getDraftKey as getDraftKeyHelper } from './ReferenceSourcesCard/helpers/keys';
 
 import { getLocSystem0 } from './ReferenceSourcesCard/json/locating';
-import { getMarginalia0, setMarginalia0 } from './ReferenceSourcesCard/json/marginalia';
-import { getWriting } from './ReferenceSourcesCard/json/writing';
 
 import { UnitsPanel } from './ReferenceSourcesCard/components/UnitsPanel';
 import { ExemplairesPanel } from './ReferenceSourcesCard/components/ExemplairesPanel';
 import { EditorPanel } from './ReferenceSourcesCard/components/EditorPanel';
 
 import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/SegmentsEditor';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
@@ -74,6 +57,64 @@ type CompletenessResult = {
   status: CompletenessStatus;
   missing: string[]; // liste de "champs/attendus" manquants (lisible humain)
 };
+
+type LocMode = 'raw' | 'num' | 'range';
+
+function normalizeDash(s: string) {
+  return String(s ?? '')
+    .trim()
+    .replace(/[–—]/g, '-') // en-dash / em-dash -> hyphen
+    .replace(/\s+/g, ' ');
+}
+
+function parseRawToRange(raw: string): { start: number | null; end: number | null; isSingle: boolean } {
+  const s = normalizeDash(raw);
+
+  // exact "x-y" (with optional spaces)
+  const m = s.match(/^(\d+)\s*-\s*(\d+)$/);
+  if (m) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (Number.isFinite(a) && Number.isFinite(b)) return { start: a, end: b, isSingle: a === b };
+  }
+
+  // exact single number
+  const n = s.match(/^(\d+)$/);
+  if (n) {
+    const a = Number(n[1]);
+    if (Number.isFinite(a)) return { start: a, end: a, isSingle: true };
+  }
+
+  return { start: null, end: null, isSingle: false };
+}
+
+function formatRangeToRaw(start: number | null, end: number | null): string {
+  if (start == null && end == null) return '';
+  if (start != null && (end == null || end === start)) return String(start);
+  if (start == null && end != null) return String(end);
+  return `${start}-${end}`;
+}
+
+function detectModeFromState(c: any): LocMode {
+  const raw = String(c?.loc_raw ?? '').trim();
+  const start = c?.loc_start ?? null;
+  const end = c?.loc_end ?? null;
+
+  // priorité au structuré si présent
+  if (typeof start === 'number' || typeof end === 'number') {
+    if (start != null && end != null && start !== end) return 'range';
+    return 'num';
+  }
+
+  // sinon on déduit du raw
+  const parsed = parseRawToRange(raw);
+  if (parsed.start != null && parsed.end != null) {
+    return parsed.isSingle ? 'num' : 'range';
+  }
+
+  return 'raw';
+}
+
 
 function hasText(v: any) {
   return String(v ?? '').trim().length > 0;
@@ -91,10 +132,6 @@ function hasAnyRangeItems(arr: any) {
 
 function isTriStateSet(v: any) {
   return v === true || v === false || v === null;
-}
-
-function isBoolSet(v: any) {
-  return v === true || v === false;
 }
 
 /**
@@ -380,35 +417,6 @@ export function SectionSources(props: SectionSourcesProps) {
   };
 
   // ---------------------------------------------------------------------------
-  // Dictionnaire (Drawer)
-  // ---------------------------------------------------------------------------
-  const [dictOpen, setDictOpen] = useState(false);
-  const [dictArgs, setDictArgs] = useState<{
-    kind: DictionnaireKind;
-    title: string;
-    multi: boolean;
-    defaultSelectedIds: string[];
-    onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
-  } | null>(null);
-
-  const openDict = (args: {
-    kind: DictionnaireKind;
-    title: string;
-    multi?: boolean;
-    defaultSelectedIds?: string[];
-    onValidate: (items: { id: string; code: string; label: string }[]) => Promise<void> | void;
-  }) => {
-    setDictArgs({
-      kind: args.kind,
-      title: args.title,
-      multi: args.multi ?? false,
-      defaultSelectedIds: args.defaultSelectedIds ?? [],
-      onValidate: args.onValidate,
-    });
-    setDictOpen(true);
-  };
-
-  // ---------------------------------------------------------------------------
   // Pick action
   // ---------------------------------------------------------------------------
   const patchActe = (idx: number, patch: Partial<ActeCitationDraft>) => onChange(idx, patch);
@@ -677,6 +685,49 @@ export function SectionSources(props: SectionSourcesProps) {
     [exemplairesForActiveUnite],
   );
 
+  function isIntString(s: string) {
+    return /^\d+$/.test(s);
+  }
+
+  function parseRawToRange(raw: string): { start: number | null; end: number | null } {
+    const s = (raw ?? '').trim();
+    if (!s) return { start: null, end: null };
+
+    // "x"
+    if (isIntString(s)) {
+      const n = Number(s);
+      return { start: n, end: n };
+    }
+
+    // "x-y" EXACT (espaces autorisés autour du tiret)
+    const m = s.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (m) {
+      const a = Number(m[1]);
+      const b = Number(m[2]);
+      return { start: a, end: b };
+    }
+
+    // sinon : pas de parsing auto
+    return { start: null, end: null };
+  }
+
+  function formatRangeToRaw(start: number | null, end: number | null): string {
+    if (start == null && end == null) return '';
+    if (start != null && end == null) return String(start);
+    if (start == null && end != null) return String(end);
+    // start & end
+    if (start === end) return String(start);
+    return `${start}-${end}`;
+  }
+
+  function toIntOrNull(v: string): number | null {
+    const s = (v ?? '').trim();
+    if (!s) return null;
+    if (!isIntString(s)) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
   // ---------------------------------------------------------------------------
   // UI labels & completeness
   // ---------------------------------------------------------------------------
@@ -906,6 +957,34 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const hasMissingRanges = missingRanges.length > 0;
 
+    const locMode: LocMode = (c as any).loc_mode ?? detectModeFromState(c);
+
+    const setLocMode = (mode: LocMode) => {
+      // Optionnel : stocker le mode (UI-only) pour ne pas “sauter” quand raw change
+      onChange(idx, { loc_mode: mode } as any);
+
+      // Optionnel : quand on change de mode, on normalise un minimum
+      if (mode === 'raw') {
+        // on garde tout tel quel
+        return;
+      }
+
+      if (mode === 'num') {
+        const raw = String((c as any).loc_raw ?? '').trim();
+        const parsed = parseRawToRange(raw);
+        const n = parsed.start ?? (c as any).loc_start ?? (c as any).loc_end ?? null;
+        if (n != null) onChange(idx, { loc_start: n, loc_end: n, loc_raw: String(n) } as any);
+        return;
+      }
+
+      if (mode === 'range') {
+        const start = (c as any).loc_start ?? null;
+        const end = (c as any).loc_end ?? null;
+        const raw = formatRangeToRaw(start, end);
+        if (raw) onChange(idx, { loc_raw: raw } as any);
+      }
+    };
+
     return (
       <div className='flex-1 min-h-0 overflow-y-auto p-4'>
         <div className='space-y-6'>
@@ -1131,102 +1210,172 @@ export function SectionSources(props: SectionSourcesProps) {
                     Pagination : {safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? '—')}
                   </Chip>
                 </div>
+                <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-12'>
+                    <Field label='Mode de saisie' readonly={isRO} value={null}>
+                      <RadioGroup
+                        value={locMode}
+                        onValueChange={(v) => setLocMode(v as LocMode)}
+                        className='flex flex-col gap-2 md:flex-row md:items-center md:gap-6'
+                      >
+                        <div className='flex items-center gap-2'>
+                          <RadioGroupItem value='num' id={`loc-mode-num-${idx}`} disabled={isRO} />
+                          <label htmlFor={`loc-mode-num-${idx}`} className='text-sm text-slate-700'>
+                            Numéro
+                          </label>
+                        </div>
 
-                <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
-                  <div className='md:col-span-6'>
-                    <Field
-                      label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
-                      readonly={isRO}
-                      value={String((c as any).loc_raw ?? '').trim() || null}
-                    >
-                      <Input
-                        value={String((c as any).loc_raw ?? (c as any).loc_raw ?? '')}
-                        onChange={(e) => {
-                          const pt = String(ex.pagination_type ?? '').toLowerCase();
-                          const v = e.target.value;
-                          if (pt.includes('page')) onChange(idx, { loc_raw: v } as any);
-                          else onChange(idx, { loc_raw: v } as any);
-                        }}
-                        placeholder='Ex. 23–24 ; 120 ; f°12r–f°13v'
-                      />
+                        <div className='flex items-center gap-2'>
+                          <RadioGroupItem
+                            value='range'
+                            id={`loc-mode-range-${idx}`}
+                            disabled={isRO}
+                          />
+                          <label
+                            htmlFor={`loc-mode-range-${idx}`}
+                            className='text-sm text-slate-700'
+                          >
+                            Plage (début/fin)
+                          </label>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                          <RadioGroupItem value='raw' id={`loc-mode-raw-${idx}`} disabled={isRO} />
+                          <label htmlFor={`loc-mode-raw-${idx}`} className='text-sm text-slate-700'>
+                            Texte libre
+                          </label>
+                        </div>
+                      </RadioGroup>
                     </Field>
 
                     <div className='mt-1 text-[11px] text-slate-500'>
-                      Si ton exemplaire est en pages, on remplit{' '}
-                      <span className='font-medium'>loc_raw</span>; sinon{' '}
-                      <span className='font-medium'>loc_raw</span>.
+                      Choisis <span className='font-medium'>un seul</span> mode. Les champs non
+                      nécessaires sont masqués.
                     </div>
                   </div>
 
-                  <div className='md:col-span-3'>
-                    <Field
-                      label='Début'
-                      readonly={isRO}
-                      value={String((c as any).loc_start ?? (c as any).loc_start ?? '')}
-                    >
-                      <Input
-                        inputMode='numeric'
-                        value={String((c as any).loc_start ?? (c as any).loc_start ?? '')}
-                        onChange={(e) => {
-                          const pt = String(ex.pagination_type ?? '').toLowerCase();
-                          const n = toIntOrNull(e.target.value);
-                          if (pt.includes('page')) onChange(idx, { loc_start: n } as any);
-                          else onChange(idx, { loc_start: n } as any);
-                        }}
-                        placeholder='ex. 23'
-                      />
-                    </Field>
-                  </div>
+                  {/* --- MODE TEXTE LIBRE --- */}
+                  {locMode === 'raw' && (
+                    <div className='md:col-span-12'>
+                      <Field
+                        label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
+                        readonly={isRO}
+                        value={String((c as any).loc_raw ?? '').trim() || null}
+                      >
+                        <Input
+                          value={String((c as any).loc_raw ?? '')}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const parsed = parseRawToRange(raw);
 
-                  <div className='md:col-span-3'>
-                    <Field
-                      label='Fin'
-                      readonly={isRO}
-                      value={String((c as any).loc_end ?? (c as any).loc_end ?? '')}
-                    >
-                      <Input
-                        inputMode='numeric'
-                        value={String((c as any).loc_end ?? (c as any).loc_end ?? '')}
-                        onChange={(e) => {
-                          const pt = String(ex.pagination_type ?? '').toLowerCase();
-                          const n = toIntOrNull(e.target.value);
-                          if (pt.includes('page')) onChange(idx, { loc_end: n } as any);
-                          else onChange(idx, { loc_end: n } as any);
-                        }}
-                        placeholder='ex. 24'
-                      />
-                    </Field>
-                  </div>
+                            // Règles : si raw est exactement "x" ou "x-y", on remplit aussi start/end
+                            if (parsed.start != null && parsed.end != null) {
+                              onChange(idx, {
+                                loc_raw: raw,
+                                loc_start: parsed.start,
+                                loc_end: parsed.end,
+                              } as any);
+                            } else {
+                              onChange(idx, { loc_raw: raw } as any);
+                            }
+                          }}
+                          placeholder='Ex. f°12r–f°13v ; vue 23 ; page 120'
+                        />
+                      </Field>
+                    </div>
+                  )}
 
-                  {/* Repère / acte_no / acte_date (colonnes dédiées) */}
-                  <div className='md:col-span-6'>
-                    <TextAreaField
-                      label='Repère rapide'
-                      readonly={isRO}
-                      value={String((c as any).anchor_hint ?? '')}
-                      onChange={(next) => onChange(idx, { anchor_hint: next } as any)}
-                      placeholder='Ex. “à gauche, sous le titre”, “2e acte du jour”, “après l’acte n°10”, “en haut à droite”…'
-                      minHeightClassName='min-h-[70px]'
-                    />
-                  </div>
+                  {/* --- MODE NUMÉRO --- */}
+                  {locMode === 'num' && (
+                    <>
+                      <div className='md:col-span-4'>
+                        <Field
+                          label='Numéro'
+                          readonly={isRO}
+                          value={String((c as any).loc_start ?? '')}
+                        >
+                          <Input
+                            inputMode='numeric'
+                            value={String((c as any).loc_start ?? '')}
+                            onChange={(e) => {
+                              const n = toIntOrNull(e.target.value);
+                              onChange(idx, {
+                                loc_start: n,
+                                loc_end: n,
+                                loc_raw: n == null ? '' : String(n),
+                              } as any);
+                            }}
+                            placeholder='ex. 120'
+                          />
+                        </Field>
+                      </div>
 
-                  <div className='md:col-span-3'>
-                    <Field
-                      label='N° d’acte'
-                      readonly={isRO}
-                      value={String((c as any).acte_no ?? '').trim() || null}
-                    >
-                      <Input
-                        inputMode='numeric'
-                        value={String((c as any).acte_no ?? '')}
-                        onChange={(e) =>
-                          onChange(idx, { acte_no: toIntOrNull(e.target.value) } as any)
-                        }
-                        placeholder='ex. 11'
-                      />
-                    </Field>
-                  </div>
+                      <div className='md:col-span-8 flex items-center text-[11px] text-slate-500'>
+                        Auto : Position = numéro, Début = Fin = numéro.
+                      </div>
+                    </>
+                  )}
+
+                  {/* --- MODE PLAGE --- */}
+                  {locMode === 'range' && (
+                    <>
+                      <div className='md:col-span-3'>
+                        <Field
+                          label='Début'
+                          readonly={isRO}
+                          value={String((c as any).loc_start ?? '')}
+                        >
+                          <Input
+                            inputMode='numeric'
+                            value={String((c as any).loc_start ?? '')}
+                            onChange={(e) => {
+                              const start = toIntOrNull(e.target.value);
+                              const end = (c as any).loc_end ?? null;
+                              onChange(idx, {
+                                loc_start: start,
+                                loc_raw: formatRangeToRaw(start, end),
+                              } as any);
+                            }}
+                            placeholder='ex. 23'
+                          />
+                        </Field>
+                      </div>
+
+                      <div className='md:col-span-3'>
+                        <Field label='Fin' readonly={isRO} value={String((c as any).loc_end ?? '')}>
+                          <Input
+                            inputMode='numeric'
+                            value={String((c as any).loc_end ?? '')}
+                            onChange={(e) => {
+                              const end = toIntOrNull(e.target.value);
+                              const start = (c as any).loc_start ?? null;
+                              onChange(idx, {
+                                loc_end: end,
+                                loc_raw: formatRangeToRaw(start, end),
+                              } as any);
+                            }}
+                            placeholder='ex. 24'
+                          />
+                        </Field>
+                      </div>
+
+                      <div className='md:col-span-6'>
+                        <Field
+                          label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
+                          readonly
+                          value={String((c as any).loc_raw ?? '').trim() || null}
+                        >
+                          <Input value={String((c as any).loc_raw ?? '')} readOnly />
+                        </Field>
+
+                        <div className='mt-1 text-[11px] text-slate-500'>
+                          Auto : Position = “début-fin”.
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
+                
 
                 <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
                   {(() => {
@@ -1440,7 +1589,7 @@ export function SectionSources(props: SectionSourcesProps) {
                             marginal_mentions_count: v === true ? (mmCount ?? null) : null,
                           } as any)
                         }
-                        helpText='Présent / absent / non observé.'
+                        helpText=''
                       />
                     </div>
 
@@ -1473,7 +1622,7 @@ export function SectionSources(props: SectionSourcesProps) {
                             signatures_count: v === true ? (sigCount ?? null) : null,
                           } as any)
                         }
-                        helpText='Présent / absent / non observé.'
+                        helpText=''
                       />
                     </div>
 
@@ -1504,7 +1653,7 @@ export function SectionSources(props: SectionSourcesProps) {
                             marginal_crossouts_count: v === true ? (mcCount ?? null) : null,
                           } as any)
                         }
-                        helpText='À distinguer des ratures dans le corps du texte.'
+                        helpText=''
                       />
                     </div>
 
@@ -1713,9 +1862,6 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const isMissing = (c as any).is_missing;
     const lacune = (c as any).lacune;
-
-    const loc0 = getLocSystem0((c as any).locating);
-    const writing = getWriting((c as any).writing);
 
     return (
       <div className='flex-1 min-h-0 overflow-y-auto p-4'>
@@ -2026,11 +2172,15 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
                       <li>Enregistrement du formulaire quand changement d'exemplaire</li>
-                      <li>Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les archives" soit distinct de celui de la section "Identification" par exemple</li>
+                      <li>
+                        Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les
+                        archives" soit distinct de celui de la section "Identification" par exemple
+                      </li>
                       <li>afficher un toast quand enregistrement</li>
                       <li>En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
                       <li>En-tête de l'exemplaire: tester le bouton changer</li>
                       <li>Repères dans l’exemplaire issus du registre</li>
+                      <li>virer les textes tels que "Auto : Position = numéro, Début = Fin = numéro."</li>
                       <li>Champ work_note</li>
                     </ol>
                   </div>
@@ -2057,7 +2207,10 @@ export function SectionSources(props: SectionSourcesProps) {
                     <ol>
                       <li>En-tête de l'exemplaire: tester le bouton changer</li>
                       <li>Enregistrement du formulaire quand changement d'exemplaire</li>
-                      <li>Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les archives" soit distinct de celui de la section "Identification" par exemple</li>
+                      <li>
+                        Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les
+                        archives" soit distinct de celui de la section "Identification" par exemple
+                      </li>
                       <li>(repérées de ? à ?)</li>
                       <li>Champ work_note</li>
                     </ol>
@@ -2157,25 +2310,6 @@ export function SectionSources(props: SectionSourcesProps) {
         setQ={setQ}
         onPick={(row) => pick(row)}
       />
-      <Sheet open={dictOpen} onOpenChange={setDictOpen}>
-        <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
-          <SheetHeader className='sr-only'>
-            <SheetTitle>{dictArgs?.title ?? 'Dictionnaire'}</SheetTitle>
-            <SheetDescription>Sélection d’une valeur de dictionnaire</SheetDescription>
-          </SheetHeader>
-
-          {dictArgs && (
-            <DictionnaireEditorPanel
-              kind={dictArgs.kind}
-              title={dictArgs.title}
-              multi={dictArgs.multi}
-              defaultSelectedIds={dictArgs.defaultSelectedIds}
-              onValidate={dictArgs.onValidate}
-              onCancel={() => setDictOpen(false)}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
     </section>
   );
 }

@@ -43,7 +43,7 @@ export const REF_TABLES: {
   { value: 'ref_filiation', label: 'Filiations' },
   { value: 'ref_langues', label: 'Langues' },
   { value: 'ref_natures', label: 'Natures' },
-  { value: 'ref_handwriting_legibility', label: 'Niveau de lisibilité (manuscrit)' },
+  { value: 'ref_handwriting_legibility', label: 'Niveau de lisibilité (manuscrit)', columns: { position: true } },
   { value: 'ref_profession', label: 'Professions' },
   { value: 'ref_qualite', label: 'Qualités (appellations)' },
   { value: 'ref_series_documentaires', label: 'Séries documentaires' },
