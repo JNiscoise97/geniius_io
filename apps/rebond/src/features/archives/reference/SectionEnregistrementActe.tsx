@@ -177,7 +177,7 @@ export function SectionEnregistrementActe({
               titre='Bureau d’enregistrement'
               values={form.bureau_id ? [form.bureau_enregistrement_label || '—'] : []}
               dense
-              readonly={!isEdit}
+              readonly={true}
               onEdit={onEditBureauEnregistrement}
               onDelete={onClearBureauEnregistrement}
               actionsInvisible={false}

@@ -63,10 +63,8 @@ export default function ActeEdit() {
   const [erreurs, setErreurs] = useState<Incoherence[]>([]);
   const [relations, setRelations] = useState<RelationPreview[]>([]);
   const acteFormRef = useRef<ActeFormHandle & { isDirty?: () => boolean }>(null);
-  const [lieuSituation, setLieuSituation] = useState<any>();
 
   const [saving, setSaving] = useState(false);
-  const [blockNav, setBlockNav] = useState(false); // garde de sortie
 
   // --- Helpers diff ----------------------------------------------------------
 
@@ -413,6 +411,7 @@ export default function ActeEdit() {
         {activeSection === 'Référence archive' && (
           <div className="p-1">
             <ReferenceArchiveTab
+              type={'acte'}
               acte={acte}
               bureauLabel={bureau?.nom ?? ""}
               onUpdated={async () => {

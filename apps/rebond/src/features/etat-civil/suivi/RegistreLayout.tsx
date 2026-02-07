@@ -9,8 +9,7 @@ import {
   BarChart2,
   Pen,
   Plus,
-  Pencil,
-  AlertTriangle
+  Pencil
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -22,11 +21,7 @@ import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/shared/StatusPill';
 import { getIconForStatutFromStats } from '@/features/actes/transcription/constants/statutConfig';
-import {
-  SectionSources,
-} from '@/features/archives/reference';
-import { supabase } from '@/lib/supabase';
-import type { RegistreCitationDraft, ExemplairePick } from '@/features/archives/reference/types';
+import ReferenceArchiveTab from '@/features/actes/tabs/ReferenceArchiveTab';
 
 const tabs: { label: string; icon: React.ElementType }[] = [
   { label: 'Actes', icon: BarChart2 },
@@ -36,75 +31,7 @@ const tabs: { label: string; icon: React.ElementType }[] = [
   { label: 'Notes', icon: Pen },
 ];
 
-const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
-const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
-const VIEW_EXEMPLAIRES_PICK = 'v_exemplaires_pick';
 
-type RegistreCitationRow = {
-  id: string;
-  registre_id: string;
-  exemplaire_id: string;
-
-  is_missing: boolean | null;
-  lacune: boolean | null;
-  lacune_note: string | null;
-  locating: any;
-
-  physical_condition_ref: string | null;
-  repro_quality_ref: string | null;
-  marks: string | null;
-  document_damage_kinds_ids: string[] | null;
-
-  note: string | null;
-  sort_order: number | null;
-};
-
-function emptyCitation(sort_order: number): RegistreCitationDraft {
-  return {
-    id: undefined,
-    exemplaire_id: undefined,
-    exemplaire: undefined,
-
-    is_missing: null,
-    lacune: null,
-    lacune_note: null,
-    locating: { systems: [{}] },
-
-    physical_condition_ref: null,
-    repro_quality_ref: null,
-    marks: '',
-    document_damage_kinds_ids: [],
-
-    note: '',
-    sort_order,
-    segments: [],
-    work_note: '',
-  };
-}
-
-function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
-  return {
-    id: r.id,
-    exemplaire_id: r.exemplaire_id,
-    exemplaire: undefined,
-
-    is_missing: r.is_missing,
-    lacune: r.lacune,
-    lacune_note: r.lacune_note,
-    locating: r.locating ?? {},
-
-    physical_condition_ref: r.physical_condition_ref,
-    repro_quality_ref: r.repro_quality_ref,
-    marks: r.marks ?? '',
-    document_damage_kinds_ids: r.document_damage_kinds_ids ?? [],
-
-    note: r.note ?? '',
-    sort_order: r.sort_order ?? 0,
-
-    segments: [], // chargé séparément
-    work_note: '',
-  };
-}
 
 export default function RegistreLayout() {
   const { id } = useParams();
@@ -158,186 +85,9 @@ export default function RegistreLayout() {
     setActesLocal((prev) => [...prev, newActe]);
   };
 
-    const [sources, setSources] = useState<RegistreCitationDraft[]>([emptyCitation(0)]);
-  const [loadingSources, setLoadingSources] = useState(false);
 
-    useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
 
-    (async () => {
-      try {
-        setLoadingSources(true);
 
-        // 1) citations
-        const { data, error } = await supabase
-          .from(TABLE_REGISTRE_CITATIONS)
-          .select(
-            `
-            id, registre_id, exemplaire_id,
-            is_missing, lacune, lacune_note, locating,
-            physical_condition_ref, repro_quality_ref,
-            marks, document_damage_kinds_ids,
-            note, sort_order
-          `,
-          )
-          .eq('registre_id', id)
-          .order('sort_order', { ascending: true });
-
-        if (cancelled) return;
-        if (error) throw error;
-
-        const rows = ((data ?? []) as RegistreCitationRow[]).sort(
-          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
-        );
-
-        let drafts: RegistreCitationDraft[] = rows.length
-          ? rows.map(mapRowToDraft)
-          : [emptyCitation(0)];
-
-        // 2) segments
-        const citIds = drafts.map((d) => d.id).filter(Boolean) as string[];
-        if (citIds.length) {
-          const { data: segRows, error: segErr } = await supabase
-            .from(TABLE_REGISTRE_SEGMENTS)
-            .select(
-              `
-              id, registre_citation_id,
-              kind_ref, label_override, scope,
-              range_start, range_end,
-              date_from, date_to, year_from, year_to,
-              note, sort_order
-            `,
-            )
-            .in('registre_citation_id', citIds)
-            .order('sort_order', { ascending: true });
-
-          if (segErr) throw segErr;
-
-          const byCit = new Map<string, any[]>();
-          for (const s of (segRows ?? []) as any[]) {
-            const k = s.registre_citation_id as string;
-            byCit.set(k, [...(byCit.get(k) ?? []), s]);
-          }
-
-          drafts = drafts.map((d) => {
-            const segs = d.id ? (byCit.get(d.id) ?? []) : [];
-            return {
-              ...d,
-              segments: segs.map((s: any) => ({
-                id: s.id,
-                kind_ref: s.kind_ref,
-                label_override: s.label_override,
-                scope: s.scope,
-                range_start: s.range_start,
-                range_end: s.range_end,
-                date_from: s.date_from,
-                date_to: s.date_to,
-                year_from: s.year_from,
-                year_to: s.year_to,
-                note: s.note,
-                sort_order: s.sort_order ?? 0,
-              })),
-            };
-          });
-        }
-
-        // 3) enrich exemplaires
-        const exIds = drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[];
-        if (exIds.length) {
-          const { data: pickRows, error: pickErr } = await supabase
-            .from(VIEW_EXEMPLAIRES_PICK)
-            .select(
-              'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,physical_condition_ref,physical_condition_code,physical_condition_label',
-            )
-            .in('exemplaire_id', exIds);
-
-          if (pickErr) throw pickErr;
-
-          const map = new Map<string, ExemplairePick>();
-          for (const r of (pickRows ?? []) as any[]) {
-            map.set(r.exemplaire_id, {
-              exemplaire_id: r.exemplaire_id,
-              nature_ref: r.nature_ref,
-              nature_code: r.nature_code,
-              nature_label: r.nature_label,
-              support_ref: r.support_ref,
-              support_code: r.support_code,
-              support_label: r.support_label,
-              physical_condition_ref: r.physical_condition_ref,
-              physical_condition_code: r.physical_condition_code,
-              physical_condition_label: r.physical_condition_label,
-              unite_id: r.unite_id ?? r.exemplaire_id,
-              unite_titre: r.unite_titre,
-              cote_locale: r.cote_locale,
-              pagination_type_ref: r.pagination_type_ref,
-              pagination_type_code: r.pagination_type_code,
-              pagination_type_label: r.pagination_type_label,
-              nb_pages: r.nb_pages,
-              depot_nom: r.depot_nom,
-              depot_is_online: r.depot_is_online,
-              depot_is_physical: r.depot_is_physical,
-              institution_nom: r.institution_nom,
-              institution_sigle: r.institution_sigle,
-              identifiant_interne: r.identifiant_interne,
-              localisation_interne: r.localisation_interne,
-              url_base: r.url_base,
-              plateforme_code: r.plateforme_code,
-              source_exemplaire_id: r.source_exemplaire_id,
-            });
-          }
-
-          drafts = drafts.map((d) => {
-            const r = d.exemplaire_id ? map.get(d.exemplaire_id) : undefined;
-            if (!r) return d;
-            return {
-              ...d,
-              exemplaire: {
-                exemplaire_id: r.exemplaire_id,
-                nature_ref: r.nature_ref,
-                nature_code: r.nature_code,
-                nature_label: r.nature_label,
-                support_ref: r.support_ref,
-                support_code: r.support_code,
-                support_label: r.support_label,
-                physical_condition_ref: r.physical_condition_ref,
-                physical_condition_code: r.physical_condition_code,
-                physical_condition_label: r.physical_condition_label,
-                unite_titre: r.unite_titre,
-                cote_locale: r.cote_locale,
-                pagination_type_ref: r.pagination_type_ref,
-                pagination_type_code: r.pagination_type_code,
-                pagination_type_label: r.pagination_type_label,
-                nb_pages: r.nb_pages,
-                depot_nom: r.depot_nom,
-                depot_is_online: r.depot_is_online,
-                depot_is_physical: r.depot_is_physical,
-                institution_nom: r.institution_nom,
-                institution_sigle: r.institution_sigle,
-                identifiant_interne: r.identifiant_interne,
-                localisation_interne: r.localisation_interne,
-                url_base: r.url_base,
-                plateforme_code: r.plateforme_code,
-                source_exemplaire_id: r.source_exemplaire_id,
-              },
-            };
-          });
-        }
-
-        if (!cancelled) setSources(drafts.length ? drafts : [emptyCitation(0)]);
-      } catch (err) {
-        if (cancelled) return;
-        console.error('Erreur chargement références registre (view)', err);
-        setSources([emptyCitation(0)]);
-      } finally {
-        if (!cancelled) setLoadingSources(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
 
   return (
     <>
@@ -385,8 +135,8 @@ export default function RegistreLayout() {
                   key={label}
                   onClick={() => setActiveSection(label)}
                   className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
-                      ? 'border-blue-600 text-blue-600 font-medium'
-                      : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
+                    ? 'border-blue-600 text-blue-600 font-medium'
+                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
                     }`}
                 >
                   <Icon className='w-4 h-4' />
@@ -416,33 +166,14 @@ export default function RegistreLayout() {
                   />
                 </>
               ) : activeSection === 'Référence archive' ? (
-                <div className='p-4'>
-              <div className='space-y-10'>
-                <div>
-                  <h2 className='text-base font-semibold text-slate-900'>Référence archive</h2>
-                  <div className='mt-1 space-y-1'>
-                    <p className='text-sm leading-relaxed text-slate-700'>
-                      Cet onglet vous permet de décrire le registre en tant que document d’archive : identification,
-                      dépôts de conservation.
-                    </p>
-                    <p>
-                      <span className='font-semibold text-sm text-slate-700'>
-                        Il sert à retrouver et citer précisément le registre.
-                      </span>
-                    </p>
-                  </div>
-                </div>
+                id && (<div className='p-1'>
+                  <ReferenceArchiveTab
+                    registreId={id}
+                    type={'registre'}
+                    mode={'view'}
+                    bureauLabel={bureau?.nom ?? ''} />
+                </div>)
 
-                <div className='space-y-6 p-1'>
-                  <SectionSources
-                    type='registre'
-                    mode='view'
-                    sources={sources}
-                    loading={loadingSources}
-                  />
-                </div>
-              </div>
-          </div>
               ) : (
                 <>
                   <h2 className='text-lg font-semibold mb-4'>Notes</h2>

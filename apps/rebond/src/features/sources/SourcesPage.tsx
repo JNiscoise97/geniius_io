@@ -42,8 +42,8 @@ export function SourcesPage() {
             <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
             <div className='mt-0.5 text-xs text-amber-800'>
               <ol>
-                <li>CRUD institutions et dépôts</li>
-                <li>Picker + label pour source_exemplaire_id</li>
+                <li>[UX] CRUD institutions et dépôts</li>
+                <li>[UX] Picker + label pour source_exemplaire_id</li>
               </ol>
             </div>
           </div>

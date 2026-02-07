@@ -1,6 +1,6 @@
 // src/features/archives/reference/types.ts
 
-export type ReferenceOwnerKind = 'acte' | 'registre';
+export type TypeDocument = 'acte' | 'registre';
 
 export type Mode = 'view' | 'edit';
 
@@ -10,7 +10,7 @@ export type Mode = 'view' | 'edit';
  * réutilisables sans importer tout le projet.
  */
 export type ReferenceOwner = {
-  kind: ReferenceOwnerKind;
+  kind: TypeDocument;
   id: string;
 
   // Contexte (optionnel) - utile pour autocompléter / afficher
@@ -27,7 +27,7 @@ export type ReferenceOwner = {
  */
 export type ArchiveSourceRow = {
   id: string;
-  owner_kind: ReferenceOwnerKind; // acte|registre (virtuel côté front)
+  owner_kind: TypeDocument; // acte|registre (virtuel côté front)
   owner_id: string; // acte_id ou registre_id
 
   depot_is_online: boolean | null;

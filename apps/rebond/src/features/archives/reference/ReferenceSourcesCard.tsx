@@ -47,6 +47,7 @@ import { EditorPanel } from './ReferenceSourcesCard/components/EditorPanel';
 
 import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/SegmentsEditor';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { supabase } from '@/lib/supabase';
 
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
@@ -86,13 +87,6 @@ function parseRawToRange(raw: string): { start: number | null; end: number | nul
   }
 
   return { start: null, end: null, isSingle: false };
-}
-
-function formatRangeToRaw(start: number | null, end: number | null): string {
-  if (start == null && end == null) return '';
-  if (start != null && (end == null || end === start)) return String(start);
-  if (start == null && end != null) return String(end);
-  return `${start}-${end}`;
 }
 
 function detectModeFromState(c: any): LocMode {
@@ -227,17 +221,17 @@ export function getRegistreCompleteness(c: any): CompletenessResult {
 
 type EditCallbacks =
   | {
-      mode: 'edit';
-      onAdd: () => void;
-      onRemove: (idx: number) => void;
-      onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
-    }
+    mode: 'edit';
+    onAdd: () => void;
+    onRemove: (idx: number) => void;
+    onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
+  }
   | {
-      mode: 'edit';
-      onAdd: () => void;
-      onRemove: (idx: number) => void;
-      onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
-    };
+    mode: 'edit';
+    onAdd: () => void;
+    onRemove: (idx: number) => void;
+    onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
+  };
 
 type ViewCallbacks =
   | { mode: 'view'; onAdd?: never; onRemove?: never; onChange?: never }
@@ -264,17 +258,17 @@ function Chip({
 
 type SectionSourcesProps =
   | ({
-      type: 'acte';
-      registreId?: string | null;
-      sources: ActeCitationDraft[];
-      loading: boolean;
-    } & (EditCallbacks | ViewCallbacks))
+    type: 'acte';
+    registreId?: string | null;
+    sources: ActeCitationDraft[];
+    loading: boolean;
+  } & (EditCallbacks | ViewCallbacks))
   | ({
-      type: 'registre';
-      registreId?: string | null;
-      sources: RegistreCitationDraft[];
-      loading: boolean;
-    } & (EditCallbacks | ViewCallbacks));
+    type: 'registre';
+    registreId?: string | null;
+    sources: RegistreCitationDraft[];
+    loading: boolean;
+  } & (EditCallbacks | ViewCallbacks));
 
 type SectionSourcesEditProps = Extract<SectionSourcesProps, { mode: 'edit' }>;
 
@@ -355,6 +349,36 @@ export function SectionSources(props: SectionSourcesProps) {
   const [activeUniteKey, setActiveUniteKey] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<DraftKey | null>(null);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+
+  const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
+  const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
+
+  type RegistreCitationRow = {
+    id: string;
+    exemplaire_id: string;
+  };
+
+  type RegistreSegmentRow = {
+    id: string;
+    registre_citation_id: string;
+    kind_ref: string | null;
+    label_override: string | null;
+    scope: 'full' | 'interest' | 'unknown';
+    range_start: number | null;
+    range_end: number | null;
+    year_from: number | null;
+    year_to: number | null;
+    date_from: string | null;
+    date_to: string | null;
+    note: string | null;
+    sort_order: number | null;
+  };
+
+  const [segmentsByExId, setSegmentsByExId] = useState<Record<string, RegistreSegmentRow[]>>({});
+  const [segmentsByCitId, setSegmentsByCitId] = useState<Record<string, RegistreSegmentRow[]>>({});
+  const [citationIdByExId, setCitationIdByExId] = useState<Record<string, string>>({});
+  const [loadingSegments, setLoadingSegments] = useState(false);
+
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -661,6 +685,103 @@ export function SectionSources(props: SectionSourcesProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [units, pickedKeys.join('|'), sources]);
 
+  useEffect(() => {
+    const rid = registreId ?? null;
+    if (!rid) {
+      setSegmentsByExId({});
+      setSegmentsByCitId({});
+      setCitationIdByExId({});
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setLoadingSegments(true);
+
+      // 1) citations (id + exemplaire_id) pour ce registre
+      const { data: citRows, error: citErr } = await supabase
+        .from(TABLE_REGISTRE_CITATIONS)
+        .select('id, exemplaire_id')
+        .eq('registre_id', rid)
+        .order('sort_order', { ascending: true });
+
+      if (cancelled) return;
+
+      if (citErr) {
+        console.error('load registre citations', citErr);
+        setSegmentsByExId({});
+        setSegmentsByCitId({});
+        setCitationIdByExId({});
+        setLoadingSegments(false);
+        return;
+      }
+
+      const citations = (citRows ?? []) as RegistreCitationRow[];
+      const citIds = citations.map((c) => c.id);
+      const citByEx: Record<string, string> = {};
+      for (const c of citations) citByEx[c.exemplaire_id] = c.id;
+      setCitationIdByExId(citByEx);
+
+      // s'il n'y a aucune citation, pas de segments
+      if (citIds.length === 0) {
+        setSegmentsByExId({});
+        setSegmentsByCitId({});
+        setLoadingSegments(false);
+        return;
+      }
+
+      // 2) segments depuis etat_civil_registre_exemplaire_segments par registre_citation_id
+      const { data: segRows, error: segErr } = await supabase
+        .from(TABLE_REGISTRE_SEGMENTS)
+        .select(`
+        id, registre_citation_id,
+        kind_ref, label_override, scope,
+        range_start, range_end,
+        date_from, date_to, year_from, year_to,
+        note, sort_order
+      `)
+        .in('registre_citation_id', citIds)
+        .order('sort_order', { ascending: true });
+
+      if (cancelled) return;
+
+      if (segErr) {
+        console.error('load registre segments', segErr);
+        setSegmentsByExId({});
+        setSegmentsByCitId({});
+        setLoadingSegments(false);
+        return;
+      }
+
+      const segs = (segRows ?? []) as RegistreSegmentRow[];
+
+      // 3) map segments par citationId
+      const byCit: Record<string, RegistreSegmentRow[]> = {};
+      for (const s of segs) {
+        const k = s.registre_citation_id;
+        if (!byCit[k]) byCit[k] = [];
+        byCit[k].push(s);
+      }
+      setSegmentsByCitId(byCit);
+
+      // 4) map segments par exemplaire_id (via citation)
+      const byEx: Record<string, RegistreSegmentRow[]> = {};
+      for (const cit of citations) {
+        byEx[cit.exemplaire_id] = byCit[cit.id] ?? [];
+      }
+      setSegmentsByExId(byEx);
+
+      setLoadingSegments(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [registreId]);
+
+
+
   // ---------------------------------------------------------------------------
   // Middle panel: exemplaires for active unite
   // ---------------------------------------------------------------------------
@@ -917,9 +1038,7 @@ export function SectionSources(props: SectionSourcesProps) {
     const { c, idx, mode } = args;
 
     const ex: any = c.exemplaire ?? {};
-    const online = isOnlineEx(c);
     const url = (ex.url_base ?? '').trim();
-    const cote = (ex.cote_locale ?? '').trim();
 
     const isMissing = (c as ActeCitationDraft).is_missing;
     const isLacune = (c as any).lacune === true;
@@ -984,6 +1103,10 @@ export function SectionSources(props: SectionSourcesProps) {
         if (raw) onChange(idx, { loc_raw: raw } as any);
       }
     };
+
+    const exId = String((ex as any)?.exemplaire_id ?? (c as any)?.exemplaire_id ?? '');
+    const registreSegments = exId ? (segmentsByExId[exId] ?? []) : [];
+
 
     return (
       <div className='flex-1 min-h-0 overflow-y-auto p-4'>
@@ -1176,20 +1299,12 @@ export function SectionSources(props: SectionSourcesProps) {
 
               <Separator />
 
-              {/* Chantier */}
-              <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-                <div className='flex items-start gap-3'>
-                  <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                  <div className='min-w-0'>
-                    <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                    <div className='mt-0.5 text-xs text-amber-800'>
-                      <ol className='list-decimal pl-4'>
-                        <li>Repères dans l’exemplaire issus du registre</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SegmentsEditor
+                ex={ex}
+                segments={Array.isArray(registreSegments) ? registreSegments : []}
+                readonly={true}
+                type={'acte'}
+              />
 
               <Separator />
 
@@ -1375,7 +1490,7 @@ export function SectionSources(props: SectionSourcesProps) {
                     </>
                   )}
                 </div>
-                
+
 
                 <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
                   {(() => {
@@ -1922,6 +2037,7 @@ export function SectionSources(props: SectionSourcesProps) {
                 segments={Array.isArray((c as any).segments) ? (c as any).segments : []}
                 onChange={!isEdit ? undefined : (next) => onChange(idx, { segments: next } as any)}
                 readonly={!isEdit}
+                type={'registre'}
               />
             </div>
           </div>
@@ -2171,17 +2287,13 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>Enregistrement du formulaire quand changement d'exemplaire</li>
-                      <li>
-                        Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les
-                        archives" soit distinct de celui de la section "Identification" par exemple
-                      </li>
-                      <li>afficher un toast quand enregistrement</li>
-                      <li>En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
-                      <li>En-tête de l'exemplaire: tester le bouton changer</li>
-                      <li>Repères dans l’exemplaire issus du registre</li>
-                      <li>virer les textes tels que "Auto : Position = numéro, Début = Fin = numéro."</li>
-                      <li>Champ work_note</li>
+                      <li>[UX] En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
+                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
+                      
+                      <li>[MODEL] Champ work_note</li>
+                      
+                      <li>[LABEL] revoir les titres des headers des sections</li>
+                      <li>[LABEL] virer les textes tels que "Auto : Position = numéro, Début = Fin = numéro."</li>
                     </ol>
                   </div>
                 </div>
@@ -2194,8 +2306,7 @@ export function SectionSources(props: SectionSourcesProps) {
               Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
               exemplaire) puis renseigne ce qui est spécifique au registre :{' '}
               <span className='font-medium'>is_missing</span>,{' '}
-              <span className='font-medium'>locating</span>, lacunes, observations (état, repro,
-              marginalia, écriture…).
+              lacunes, observations (état, repro, marques, écriture…).
             </p>
 
             <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
@@ -2204,15 +2315,13 @@ export function SectionSources(props: SectionSourcesProps) {
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>En-tête de l'exemplaire: tester le bouton changer</li>
-                      <li>Enregistrement du formulaire quand changement d'exemplaire</li>
-                      <li>
-                        Dissocier les formulaire pour que l'enregistrement des "Occurrences dans les
-                        archives" soit distinct de celui de la section "Identification" par exemple
-                      </li>
-                      <li>(repérées de ? à ?)</li>
-                      <li>Champ work_note</li>
+                    <ol>                      
+                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
+
+                      <li>[MODEL] (repérées de ? à ?)</li>
+                      <li>[MODEL] Champ work_note</li>
+                      
+                      <li>[LABEL] revoir les titres des headers des sections</li>
                     </ol>
                   </div>
                 </div>
@@ -2275,7 +2384,7 @@ export function SectionSources(props: SectionSourcesProps) {
           selectedMeta={selectedMeta as any}
           idx={selectedIdx}
           hasExemplaireId={(c) => Boolean((c as any)?.exemplaire_id)}
-          onOpenPickerForIdx={isEdit ? openPickerForIdx : () => {}} // 👈 pas d’action en view
+          onOpenPickerForIdx={isEdit ? openPickerForIdx : () => { }} // 👈 pas d’action en view
           renderActe={({ c, idx, draftKey, globalNo }) => (
             <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0'>
               {renderActeHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}

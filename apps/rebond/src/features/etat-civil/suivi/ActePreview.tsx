@@ -350,11 +350,10 @@ export default function ActeLayout() {
             <button
               key={label}
               onClick={() => setActiveSection(label)}
-              className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${
-                activeSection === label
+              className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
                   ? 'border-blue-600 text-blue-600 font-medium'
                   : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
-              }`}
+                }`}
             >
               <Icon className='w-4 h-4' />
               {label}
@@ -537,10 +536,11 @@ export default function ActeLayout() {
             </div>
           </>
         )}
-        
+
         {activeSection === 'Référence archive' && (
           <div className='p-1'>
             <ReferenceArchiveTab
+              type={'acte'}
               acte={acte}
               mode={'view'}
               bureauLabel={bureau?.nom ?? ''}

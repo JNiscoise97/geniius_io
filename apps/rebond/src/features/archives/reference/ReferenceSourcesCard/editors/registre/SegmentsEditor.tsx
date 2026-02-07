@@ -21,6 +21,7 @@ import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
 
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
 import { toIntOrNull } from '../../helpers/utils';
+import type { TypeDocument } from '../../../types';
 
 type SegmentScope = 'full' | 'interest' | 'unknown';
 
@@ -52,6 +53,7 @@ type Props = {
   segments: RegistreSegmentDraft[];
   onChange?: (next: RegistreSegmentDraft[]) => void;
   readonly?: boolean;
+  type: TypeDocument;
 };
 
 // ------------------------------------------------------------
@@ -77,6 +79,17 @@ function formatCoverage(s: RegistreSegmentDraft) {
   if (datePart && yearPart) return `${datePart} · ${yearPart}`;
   return datePart || yearPart || '';
 }
+
+function formatRange(s: RegistreSegmentDraft) {
+  const a = s.range_start;
+  const b = s.range_end;
+
+  if (a == null && b == null) return '';
+  if (a != null && (b == null || b === a)) return String(a);
+  if (a == null && b != null) return String(b);
+  return `${a} → ${b}`;
+}
+
 
 function emptySegment(seed?: Partial<RegistreSegmentDraft>): RegistreSegmentDraft {
   return {
@@ -163,7 +176,7 @@ function useKindLabels(table: string, ids: (string | null | undefined)[]) {
 // Component
 // ------------------------------------------------------------
 export function SegmentsEditor(props: Props) {
-  const { ex, segments, onChange, readonly = false } = props;
+  const { ex, segments, onChange, readonly = false, type } = props;
 
   const canEdit = !readonly && typeof onChange === 'function';
 
@@ -273,6 +286,7 @@ export function SegmentsEditor(props: Props) {
       type: getKindLabel(s.kind_ref) ?? s.kind_label ?? '',
       libelle: s.label_override ?? '',
       scope: s.scope,
+      range: formatRange(s),
       coverage: formatCoverage(s),
       note: s.note ?? '',
     }));
@@ -284,6 +298,11 @@ export function SegmentsEditor(props: Props) {
       { key: 'type', label: 'Type', render: (row) => row.type || '—' },
       { key: 'libelle', label: 'Libellé', render: (row) => row.libelle || '—' },
       {
+    key: 'range',
+    label: `${unitLabelCap} début/fin`,
+    render: (row) => row.range || '—',
+  },
+  {
         key: 'scope',
         label: 'Scope',
         render: (row) => scopeLabel(row.scope as SegmentScope),
@@ -354,286 +373,290 @@ export function SegmentsEditor(props: Props) {
   const openedByDefault = (segments?.length ?? 0) > 0 ? true : undefined;
 
   return (
-    <details className='group rounded-xl border border-slate-200 bg-white' open={openedByDefault}>
-      <summary className='list-none cursor-pointer select-none'>
-        <div className='flex items-start justify-between gap-3 rounded-xl border-b border-slate-200 bg-slate-50 px-4 py-3'>
-          <div className='min-w-0'>
-            <div className='flex items-center gap-2'>
-              <ChevronDown className='h-4 w-4 text-slate-500 transition-transform group-open:rotate-180' />
-              <div className='text-sm font-semibold text-slate-900'>
-                Repères dans l’exemplaire
-                <span className='ml-2 text-xs font-normal text-slate-500'>
-                  ({segments?.length ?? 0})
-                </span>
+    (canEdit || (!canEdit && (segments?.length ?? 0) > 0)) && (
+      <details className='group rounded-xl border border-slate-200 bg-white' open={openedByDefault}>
+        <summary className='list-none cursor-pointer select-none'>
+          <div className='flex items-start justify-between gap-3 rounded-xl border-b border-slate-200 bg-slate-50 px-4 py-3'>
+            <div className='min-w-0'>
+              <div className='flex items-center gap-2'>
+                <ChevronDown className='h-4 w-4 text-slate-500 transition-transform group-open:rotate-180' />
+                <div className='text-sm font-semibold text-slate-900'>
+                  {type ==='registre'? "Repères dans l’exemplaire":"Repères identifiés dans l’exemplaire du registre"}
+                  <span className='ml-2 text-xs font-normal text-slate-500'>
+                    ({segments?.length ?? 0})
+                  </span>
+                </div>
+
+                {readonly ? (
+                  <span className='ml-2 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600'>
+                    Lecture seule
+                  </span>
+                ) : null}
               </div>
 
-              {readonly ? (
-                <span className='ml-2 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600'>
-                  Lecture seule
-                </span>
-              ) : null}
-            </div>
-
-            <div className='mt-1 text-xs text-slate-600'>
-              <div>
-                Cet exemplaire contient{' '}
-                <span className='font-medium text-slate-800'>
-                  {ex?.nb_pages} {String(ex?.pagination_type_label ?? '').toLowerCase()}
-                </span>
-                .
-              </div>
-              {canEdit ? (
-                <div className='mt-1'>
-                  Ajoute des repères : <span className='font-medium'>naissances</span>,{' '}
-                  <span className='font-medium'>mariages</span>,{' '}
-                  <span className='font-medium'>décès</span>, tables…
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className='shrink-0 text-xs text-slate-500'>
-            {(segments?.length ?? 0) === 0 ? 'Replié' : 'Déplié'}
-          </div>
-        </div>
-      </summary>
-
-      <div className='p-4'>
-        {canEdit ? (
-          <div className='flex flex-wrap items-center justify-end gap-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button type='button' variant='outline' size='sm' onClick={startCreate}>
-                  <Plus className='h-4 w-4 mr-2' />
-                  Ajouter un repère
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Créer un repère</TooltipContent>
-            </Tooltip>
-
-            <Button type='button' variant='outline' size='sm' onClick={prefillNMD}>
-              Ajouter Naissances / Mariages / Décès
-            </Button>
-          </div>
-        ) : null}
-
-        {(!rows || rows.length === 0) && (
-          <div className='mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
-            Aucun repère.
-            {canEdit ? (
-              <div className='mt-2 text-xs text-slate-600'>
-                Exemple : “Naissances”, “Tables”, “Année 1905 (zone utile)”.
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {rows && rows.length > 0 && (
-          <div className='mt-3'>
-            <DataTable
-              title=''
-              data={rows}
-              columns={columns}
-              defaultVisibleColumns={[
-                'numero',
-                'type',
-                'libelle',
-                'scope',
-                'coverage',
-                'note',
-                ...(canEdit ? ['actions'] : []),
-              ]}
-            />
-          </div>
-        )}
-
-        {/* MODAL (edit-only) */}
-        <Dialog
-          open={open}
-          onOpenChange={(v) => {
-            if (!canEdit) {
-              setOpen(false);
-              return;
-            }
-            setOpen(v);
-          }}
-        >
-          <DialogContent className='sm:max-w-[820px]'>
-            <DialogHeader>
-              <DialogTitle>
-                {editingIndex == null
-                  ? 'Ajouter un repère'
-                  : `Modifier le repère #${(editingIndex ?? 0) + 1}`}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className='space-y-4'>
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-6'>
-                  <div className='text-xs font-medium text-slate-700'>Type de repère</div>
-                  <RefSinglePickerSmart
-                    table={KIND_TABLE}
-                    mode={readonly ? 'view' : 'edit'}
-                    actionsInvisible={readonly ? true : false}
-                    value={(draft.kind_ref ?? null) as any}
-                    onChange={(next) => {
-                      if (readonly) return;
-                      setDraft((p) => ({
-                        ...p,
-                        kind_ref: next,
-                        kind_label: next ? getKindLabel(next) : null,
-                      }));
-                    }}
-                  />
-                  <div className='mt-1 text-[11px] text-slate-500'>Obligatoire</div>
-                </div>
-
-                <div className='md:col-span-6'>
-                  <div className='text-xs font-medium text-slate-700'>
-                    Libellé (optionnel) <span className='text-slate-500'>· utile si “Autre”</span>
+              <div className='mt-1 text-xs text-slate-600'>
+                {ex?.nb_pages && (<div>
+                  Cet exemplaire contient{' '}
+                  <span className='font-medium text-slate-800'>
+                    {ex?.nb_pages} {String(ex?.pagination_type_label ?? '').toLowerCase()}
+                  </span>
+                  .
+                </div>)}
+                {canEdit ? (
+                  <div className='mt-1'>
+                    Ajoute des repères : <span className='font-medium'>naissances</span>,{' '}
+                    <span className='font-medium'>mariages</span>,{' '}
+                    <span className='font-medium'>décès</span>, tables…
                   </div>
-                  <Input
-                    className='mt-1'
-                    value={String(draft.label_override ?? '')}
-                    onChange={(e) =>
-                      setDraft((p) => ({ ...p, label_override: e.target.value || null }))
-                    }
-                    placeholder='Ex. Tables, Annexes, Année 1905…'
-                    disabled={readonly}
-                  />
-                </div>
-              </div>
-
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-3'>
-                  <div className='text-xs font-medium text-slate-700'>{unitLabelCap} début</div>
-                  <Input
-                    className='mt-1'
-                    value={draft.range_start ?? ''}
-                    onChange={(e) =>
-                      setDraft((p) => ({ ...p, range_start: toIntOrNull(e.target.value) }))
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-
-                <div className='md:col-span-3'>
-                  <div className='text-xs font-medium text-slate-700'>{unitLabelCap} fin</div>
-                  <Input
-                    className='mt-1'
-                    value={draft.range_end ?? ''}
-                    onChange={(e) =>
-                      setDraft((p) => ({ ...p, range_end: toIntOrNull(e.target.value) }))
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-
-                <div className='md:col-span-6'>
-                  <div className='text-xs font-medium text-slate-700'>Scope</div>
-                  <select
-                    className='mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm disabled:opacity-60'
-                    value={draft.scope ?? 'full'}
-                    onChange={(e) =>
-                      setDraft((p) => ({ ...p, scope: e.target.value as SegmentScope }))
-                    }
-                    disabled={readonly}
-                  >
-                    <option value='full'>Complet</option>
-                    <option value='interest'>Zone utile</option>
-                    <option value='unknown'>À vérifier</option>
-                  </select>
-                  <div className='mt-1 text-[11px] text-slate-500'>
-                    Complet = segment complet · Zone utile = portion pertinente · À vérifier =
-                    incertain
-                  </div>
-                </div>
-              </div>
-
-              <div className='rounded-lg border border-slate-200 bg-slate-50 p-4'>
-                <div className='text-sm font-semibold text-slate-900'>Période couverte</div>
-                <div className='mt-1 text-xs text-slate-600'>Années ou dates (au choix).</div>
-
-                <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
-                  <div className='md:col-span-3'>
-                    <div className='text-xs font-medium text-slate-700'>Année début</div>
-                    <Input
-                      className='mt-1'
-                      value={draft.year_from ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, year_from: toIntOrNull(e.target.value) }))
-                      }
-                      placeholder='1905'
-                      disabled={readonly}
-                    />
-                  </div>
-
-                  <div className='md:col-span-3'>
-                    <div className='text-xs font-medium text-slate-700'>Année fin</div>
-                    <Input
-                      className='mt-1'
-                      value={draft.year_to ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, year_to: toIntOrNull(e.target.value) }))
-                      }
-                      placeholder='1905'
-                      disabled={readonly}
-                    />
-                  </div>
-
-                  <div className='md:col-span-3'>
-                    <div className='text-xs font-medium text-slate-700'>Date début</div>
-                    <Input
-                      className='mt-1'
-                      type='date'
-                      value={draft.date_from ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, date_from: e.target.value || null }))
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-
-                  <div className='md:col-span-3'>
-                    <div className='text-xs font-medium text-slate-700'>Date fin</div>
-                    <Input
-                      className='mt-1'
-                      type='date'
-                      value={draft.date_to ?? ''}
-                      onChange={(e) =>
-                        setDraft((p) => ({ ...p, date_to: e.target.value || null }))
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className='text-xs font-medium text-slate-700'>Note</div>
-                <Textarea
-                  className='mt-1 min-h-[90px]'
-                  value={String(draft.note ?? '')}
-                  onChange={(e) => setDraft((p) => ({ ...p, note: e.target.value || null }))}
-                  placeholder='Ex. pagination irrégulière / tables incluses / bornes approximatives…'
-                  disabled={readonly}
-                />
+                ) : null}
               </div>
             </div>
 
-            <DialogFooter className='gap-2'>
-              <Button type='button' variant='outline' onClick={() => setOpen(false)}>
-                {canEdit ? 'Annuler' : 'Fermer'}
+            <div className="shrink-0 text-xs text-slate-500">
+              <span className="group-open:hidden">Replié</span>
+              <span className="hidden group-open:inline">Déplié</span>
+            </div>
+
+          </div>
+        </summary>
+
+        <div className='p-4'>
+          {canEdit ? (
+            <div className='flex flex-wrap items-center justify-end gap-2'>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type='button' variant='outline' size='sm' onClick={startCreate}>
+                    <Plus className='h-4 w-4 mr-2' />
+                    Ajouter un repère
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Créer un repère</TooltipContent>
+              </Tooltip>
+
+              <Button type='button' variant='outline' size='sm' onClick={prefillNMD}>
+                Ajouter Naissances / Mariages / Décès
               </Button>
+            </div>
+          ) : null}
+
+          {(!rows || rows.length === 0) && (
+            <div className='mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
+              Aucun repère.
               {canEdit ? (
-                <Button type='button' onClick={saveDraft}>
-                  Enregistrer
-                </Button>
+                <div className='mt-2 text-xs text-slate-600'>
+                  Exemple : “Naissances”, “Tables”, “Année 1905 (zone utile)”.
+                </div>
               ) : null}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </details>
+            </div>
+          )}
+
+          {rows && rows.length > 0 && (
+            <div className='mt-3'>
+              <DataTable
+                title=''
+                data={rows}
+                columns={columns}
+                defaultVisibleColumns={[
+                  'numero',
+                  'type',
+                  'libelle',
+                  'range',
+                  'scope',
+                  'coverage',
+                  'note',
+                  ...(canEdit ? ['actions'] : []),
+                ]}
+              />
+            </div>
+          )}
+
+          {/* MODAL (edit-only) */}
+          <Dialog
+            open={open}
+            onOpenChange={(v) => {
+              if (!canEdit) {
+                setOpen(false);
+                return;
+              }
+              setOpen(v);
+            }}
+          >
+            <DialogContent className='sm:max-w-[820px]'>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingIndex == null
+                    ? 'Ajouter un repère'
+                    : `Modifier le repère #${(editingIndex ?? 0) + 1}`}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className='space-y-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-6'>
+                    <div className='text-xs font-medium text-slate-700'>Type de repère</div>
+                    <RefSinglePickerSmart
+                      table={KIND_TABLE}
+                      mode={readonly ? 'view' : 'edit'}
+                      actionsInvisible={readonly ? true : false}
+                      value={(draft.kind_ref ?? null) as any}
+                      onChange={(next) => {
+                        if (readonly) return;
+                        setDraft((p) => ({
+                          ...p,
+                          kind_ref: next,
+                          kind_label: next ? getKindLabel(next) : null,
+                        }));
+                      }}
+                    />
+                    <div className='mt-1 text-[11px] text-slate-500'>Obligatoire</div>
+                  </div>
+
+                  <div className='md:col-span-6'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Libellé (optionnel) <span className='text-slate-500'>· utile si “Autre”</span>
+                    </div>
+                    <Input
+                      className='mt-1'
+                      value={String(draft.label_override ?? '')}
+                      onChange={(e) =>
+                        setDraft((p) => ({ ...p, label_override: e.target.value || null }))
+                      }
+                      placeholder='Ex. Tables, Annexes, Année 1905…'
+                      disabled={readonly}
+                    />
+                  </div>
+                </div>
+
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>{unitLabelCap} début</div>
+                    <Input
+                      className='mt-1'
+                      value={draft.range_start ?? ''}
+                      onChange={(e) =>
+                        setDraft((p) => ({ ...p, range_start: toIntOrNull(e.target.value) }))
+                      }
+                      disabled={readonly}
+                    />
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>{unitLabelCap} fin</div>
+                    <Input
+                      className='mt-1'
+                      value={draft.range_end ?? ''}
+                      onChange={(e) =>
+                        setDraft((p) => ({ ...p, range_end: toIntOrNull(e.target.value) }))
+                      }
+                      disabled={readonly}
+                    />
+                  </div>
+
+                  <div className='md:col-span-6'>
+                    <div className='text-xs font-medium text-slate-700'>Scope</div>
+                    <select
+                      className='mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm disabled:opacity-60'
+                      value={draft.scope ?? 'full'}
+                      onChange={(e) =>
+                        setDraft((p) => ({ ...p, scope: e.target.value as SegmentScope }))
+                      }
+                      disabled={readonly}
+                    >
+                      <option value='full'>Complet</option>
+                      <option value='interest'>Zone utile</option>
+                      <option value='unknown'>À vérifier</option>
+                    </select>
+                    <div className='mt-1 text-[11px] text-slate-500'>
+                      Complet = segment complet · Zone utile = portion pertinente · À vérifier =
+                      incertain
+                    </div>
+                  </div>
+                </div>
+
+                <div className='rounded-lg border border-slate-200 bg-slate-50 p-4'>
+                  <div className='text-sm font-semibold text-slate-900'>Période couverte</div>
+                  <div className='mt-1 text-xs text-slate-600'>Années ou dates (au choix).</div>
+
+                  <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                    <div className='md:col-span-3'>
+                      <div className='text-xs font-medium text-slate-700'>Année début</div>
+                      <Input
+                        className='mt-1'
+                        value={draft.year_from ?? ''}
+                        onChange={(e) =>
+                          setDraft((p) => ({ ...p, year_from: toIntOrNull(e.target.value) }))
+                        }
+                        placeholder='1905'
+                        disabled={readonly}
+                      />
+                    </div>
+
+                    <div className='md:col-span-3'>
+                      <div className='text-xs font-medium text-slate-700'>Année fin</div>
+                      <Input
+                        className='mt-1'
+                        value={draft.year_to ?? ''}
+                        onChange={(e) =>
+                          setDraft((p) => ({ ...p, year_to: toIntOrNull(e.target.value) }))
+                        }
+                        placeholder='1905'
+                        disabled={readonly}
+                      />
+                    </div>
+
+                    <div className='md:col-span-3'>
+                      <div className='text-xs font-medium text-slate-700'>Date début</div>
+                      <Input
+                        className='mt-1'
+                        type='date'
+                        value={draft.date_from ?? ''}
+                        onChange={(e) =>
+                          setDraft((p) => ({ ...p, date_from: e.target.value || null }))
+                        }
+                        disabled={readonly}
+                      />
+                    </div>
+
+                    <div className='md:col-span-3'>
+                      <div className='text-xs font-medium text-slate-700'>Date fin</div>
+                      <Input
+                        className='mt-1'
+                        type='date'
+                        value={draft.date_to ?? ''}
+                        onChange={(e) =>
+                          setDraft((p) => ({ ...p, date_to: e.target.value || null }))
+                        }
+                        disabled={readonly}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className='text-xs font-medium text-slate-700'>Note</div>
+                  <Textarea
+                    className='mt-1 min-h-[90px]'
+                    value={String(draft.note ?? '')}
+                    onChange={(e) => setDraft((p) => ({ ...p, note: e.target.value || null }))}
+                    placeholder='Ex. pagination irrégulière / tables incluses / bornes approximatives…'
+                    disabled={readonly}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className='gap-2'>
+                <Button type='button' variant='outline' onClick={() => setOpen(false)}>
+                  {canEdit ? 'Annuler' : 'Fermer'}
+                </Button>
+                {canEdit ? (
+                  <Button type='button' onClick={saveDraft}>
+                    Enregistrer
+                  </Button>
+                ) : null}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </details>)
   );
 }

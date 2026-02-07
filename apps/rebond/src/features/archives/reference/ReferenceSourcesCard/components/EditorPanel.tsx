@@ -3,9 +3,10 @@ import type { JSX } from 'react';
 import type { DraftKey, SelectedMeta } from '../model/types';
 
 import { Button } from '@/components/ui/button';
+import type { TypeDocument } from '../../types';
 
 type Props<TDraft> = {
-  type: 'acte' | 'registre';
+  type: TypeDocument;
   selectedMeta: SelectedMeta<TDraft> | null;
 
   idx: number;
