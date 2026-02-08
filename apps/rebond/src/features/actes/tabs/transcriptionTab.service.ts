@@ -223,7 +223,7 @@ export type CitationDraft = {
   loc_end: number | null;
   loc_raw: string | null;
 
-  is_missing: boolean;
+  is_missing: boolean | null;
   note: string | null;
   sort_order: number | null;
 

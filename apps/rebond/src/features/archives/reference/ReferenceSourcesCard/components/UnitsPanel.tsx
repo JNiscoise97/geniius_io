@@ -17,7 +17,7 @@ export function UnitsPanel<TDraft>(props: Props<TDraft>) {
         <div className='mt-1 text-xs text-slate-600'>Sélectionne une unité</div>
       </div>
 
-      <div className='flex-1 min-h-0 overflow-y-auto p-3 space-y-2'>
+      <div className='flex-1 min-h-0 overflow-y-auto p-3 space-y-2' id="debug-scroll-4">
         {units.length === 0 ? (
           <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
             Aucune unité (sélectionne un exemplaire pour commencer).

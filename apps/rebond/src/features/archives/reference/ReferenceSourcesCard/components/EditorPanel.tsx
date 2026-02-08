@@ -37,7 +37,7 @@ function EmptyShell(props: { title?: string; subtitle?: string; children: JSX.El
   const { title = 'Édition', subtitle, children } = props;
 
   return (
-    <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
+      <div className='h-full rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
       <div className='shrink-0 border-b border-slate-200 bg-slate-50 p-4'>
         <div className='min-w-0'>
           <div className='text-sm font-semibold text-slate-900'>{title}</div>
@@ -46,7 +46,7 @@ function EmptyShell(props: { title?: string; subtitle?: string; children: JSX.El
       </div>
 
       {/* scroll autorisé uniquement sur les empty states */}
-      <div className='flex-1 min-h-0 overflow-y-auto'>{children}</div>
+      <div className='flex-1 min-h-0 overflow-y-auto' id="debug-scroll-1">{children}</div>
     </div>
   );
 }
@@ -116,6 +116,12 @@ export function EditorPanel<TDraft>(props: Props<TDraft>) {
       : renderRegistre({ c, idx, draftKey, globalNo });
 
   return (
-      <div className='flex-1 min-h-0 min-w-0 overflow-hidden flex flex-col'>{content}</div>
-  );
+  <div
+    className='h-full min-h-0 min-w-0 overflow-hidden flex flex-col'
+    id='debug-scroll-2'
+  >
+    {content}
+  </div>
+);
+
 }

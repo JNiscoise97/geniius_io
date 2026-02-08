@@ -226,7 +226,7 @@ export function ExemplairesStep({
           </div>
         </div>
 
-        <div className='flex-1 min-h-0 overflow-y-auto p-3'>
+        <div className='flex-1 min-h-0 overflow-y-auto p-3'  id="debug-scroll-7">
           <div className='space-y-2'>
             {exemplaires.map((e, idx) => {
               const active = e.id === selectedExId;
@@ -274,7 +274,7 @@ export function ExemplairesStep({
             </div>
 
             {/* contenu scrollable */}
-            <div className='flex-1 min-h-0 overflow-y-auto p-4'>
+            <div className='flex-1 min-h-0 overflow-y-auto p-4' id="debug-scroll-8">
               <div className='space-y-4'>
                 {/* 0) Identité */}
                 <Section

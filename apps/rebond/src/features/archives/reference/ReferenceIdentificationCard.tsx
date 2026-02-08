@@ -5,9 +5,10 @@ import { supabase } from '@/lib/supabase';
 import type { Mode } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Check, Copy } from 'lucide-react';
+import { AlertTriangle, Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Field } from '@/components/shared/fields';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
@@ -37,7 +38,7 @@ export type RegistreReferenceIdentificationFormState = {
 
   // registre spécifique
   bureau_id: string | null;
-    bureau_enregistrement_label: string;
+  bureau_enregistrement_label: string;
 
   annee: string; // string pour Input
   mode_registre: 'par_type' | 'chronologique_mixte' | '';
@@ -156,12 +157,29 @@ export function SectionIdentification(props: Props) {
 
   return (
     <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+      <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+        <div className='flex items-start gap-3'>
+          <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+          <div className='min-w-0'>
+            <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+            <div className='mt-0.5 text-xs text-amber-800'>
+              <ol>
+                <li>[UX] Modifier le titre du registre à la volée</li>
+                
+                <li>[MODEL] transformer les champs mode_registre, ordre numérotation et statut juridique en ref</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
       <h3 className='text-sm font-semibold text-slate-900'>Identification</h3>
 
       <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
         {/* UUID */}
         <div className='md:col-span-12'>
-          <label className='block text-xs font-medium text-slate-700'>Identifiant administratif</label>
+          <label className='block text-xs font-medium text-slate-700'>
+            Identifiant administratif
+          </label>
           <div className='flex w-fit gap-2'>
             <Input value={props.id} disabled className='font-mono' />
             {isEdit && (
@@ -210,133 +228,131 @@ export function SectionIdentification(props: Props) {
         </div>
 
         {/* === Registre spécifique === */}
-        {props.type === 'registre' ? (
-          <>
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Année</label>
-              <Input
-                value={props.form.annee}
-                disabled={!isEdit}
-                inputMode='numeric'
-                onChange={(e) => {
-                  if (props.type !== 'registre') return;
-                  props.setField('annee', e.target.value);
-                }}
-                placeholder='Ex. 1898'
-              />
-            </div>
-
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Mode registre</label>
-              <select
-                className='mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
-                disabled={!isEdit}
-                value={props.form.mode_registre}
-                onChange={(e) => {
-                  if (props.type !== 'registre') return;
-                  props.setField('mode_registre', e.target.value as any);
-                }}
-              >
-                <option value=''>—</option>
-                <option value='par_type'>par_type</option>
-                <option value='chronologique_mixte'>chronologique_mixte</option>
-              </select>
-            </div>
-
-            {/* === Registre spécifique === */}
         {type === 'registre' ? (
           <>
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Année</label>
-              <Input
-                value={form.annee}
-                disabled={!isEdit}
-                inputMode='numeric'
-                onChange={(e) => props.setField('annee', e.target.value as any)}
-                placeholder='Ex. 1898'
-              />
+            {/* ───────────── */}
+            <div className='md:col-span-12 mt-2'>
+              <h4 className='text-sm font-semibold text-slate-900'>Périmètre temporel</h4>
             </div>
 
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Mode registre</label>
-              <select
-                className='mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
-                disabled={!isEdit}
-                value={form.mode_registre}
-                onChange={(e) => props.setField('mode_registre', e.target.value as any)}
+            <div className='md:col-span-2'>
+              <Field label='Année' readonly={!isEdit} value={form.annee}>
+                <Input
+                  value={form.annee}
+                  inputMode='numeric'
+                  onChange={(e) => props.setField('annee', e.target.value as any)}
+                  placeholder='Ex. 1898'
+                />
+              </Field>
+            </div>
+
+            {/* ───────────── */}
+            <div className='md:col-span-12 mt-4'>
+              <h4 className='text-sm font-semibold text-slate-900'>Organisation du registre</h4>
+            </div>
+
+            <div className='md:col-span-3'>
+              <Field label='Mode registre' readonly={!isEdit} value={form.mode_registre || '—'}>
+                <select
+                  className='h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
+                  disabled={!isEdit}
+                  value={form.mode_registre}
+                  onChange={(e) => props.setField('mode_registre', e.target.value as any)}
+                >
+                  <option value=''>—</option>
+                  <option value='par_type'>par_type</option>
+                  <option value='chronologique_mixte'>chronologique_mixte</option>
+                </select>
+              </Field>
+            </div>
+
+            <div className='md:col-span-3'>
+              <Field
+                label='Ordre de numérotation'
+                readonly={!isEdit}
+                value={form.ordre_numerotation || '—'}
               >
-                <option value=''>—</option>
-                <option value='par_type'>par_type</option>
-                <option value='chronologique_mixte'>chronologique_mixte</option>
-              </select>
+                <select
+                  className='h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
+                  disabled={!isEdit}
+                  value={form.ordre_numerotation}
+                  onChange={(e) => props.setField('ordre_numerotation', e.target.value as any)}
+                >
+                  <option value=''>—</option>
+                  <option value='par_type'>par_type</option>
+                  <option value='globale'>globale</option>
+                </select>
+              </Field>
             </div>
 
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Ordre numérotation</label>
-              <select
-                className='mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
-                disabled={!isEdit}
-                value={form.ordre_numerotation}
-                onChange={(e) => props.setField('ordre_numerotation', e.target.value as any)}
-              >
-                <option value=''>—</option>
-                <option value='par_type'>par_type</option>
-                <option value='globale'>globale</option>
-              </select>
+            {/* ───────────── */}
+            <div className='md:col-span-12 mt-4'>
+              <h4 className='text-sm font-semibold text-slate-900'>Volumétrie et numérotation</h4>
             </div>
 
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Nb actes estimé</label>
-              <Input
+            <div className='md:col-span-3'>
+              <Field
+                label='Nombre d’actes estimé'
+                readonly={!isEdit}
                 value={form.nombre_actes_estime}
-                disabled={!isEdit}
-                inputMode='numeric'
-                onChange={(e) => props.setField('nombre_actes_estime', e.target.value as any)}
-                placeholder='Ex. 120'
-              />
-            </div>
-
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>N° acte min</label>
-              <Input
-                value={form.numero_acte_min}
-                disabled={!isEdit}
-                inputMode='numeric'
-                onChange={(e) => props.setField('numero_acte_min', e.target.value as any)}
-                placeholder='Ex. 1'
-              />
-            </div>
-
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>N° acte max</label>
-              <Input
-                value={form.numero_acte_max}
-                disabled={!isEdit}
-                inputMode='numeric'
-                onChange={(e) => props.setField('numero_acte_max', e.target.value as any)}
-                placeholder='Ex. 240'
-              />
-            </div>
-
-            <div className='md:col-span-4'>
-              <label className='block text-xs font-medium text-slate-700'>Statut juridique</label>
-              <select
-                className='mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
-                disabled={!isEdit}
-                value={form.statut_juridique}
-                onChange={(e) => props.setField('statut_juridique', e.target.value as any)}
               >
-                <option value=''>—</option>
-                <option value='esclave'>esclave</option>
-                <option value='nouveau_libre'>nouveau_libre</option>
-              </select>
+                <Input
+                  value={form.nombre_actes_estime}
+                  inputMode='numeric'
+                  onChange={(e) => props.setField('nombre_actes_estime', e.target.value as any)}
+                  placeholder='Ex. 120'
+                />
+              </Field>
             </div>
-          </>
-        ) : null}
+
+            <div className='md:col-span-3'>
+              <Field label='N° acte minimum' readonly={!isEdit} value={form.numero_acte_min}>
+                <Input
+                  value={form.numero_acte_min}
+                  inputMode='numeric'
+                  onChange={(e) => props.setField('numero_acte_min', e.target.value as any)}
+                  placeholder='Ex. 1'
+                />
+              </Field>
+            </div>
+
+            <div className='md:col-span-3'>
+              <Field label='N° acte maximum' readonly={!isEdit} value={form.numero_acte_max}>
+                <Input
+                  value={form.numero_acte_max}
+                  inputMode='numeric'
+                  onChange={(e) => props.setField('numero_acte_max', e.target.value as any)}
+                  placeholder='Ex. 240'
+                />
+              </Field>
+            </div>
+
+            {/* ───────────── */}
+            <div className='md:col-span-12 mt-4'>
+              <h4 className='text-sm font-semibold text-slate-900'>Contexte juridique</h4>
+            </div>
+
+            <div className='md:col-span-3'>
+              <Field
+                label='Statut juridique'
+                readonly={!isEdit}
+                value={form.statut_juridique || '—'}
+              >
+                <select
+                  className='h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:bg-slate-50'
+                  disabled={!isEdit}
+                  value={form.statut_juridique}
+                  onChange={(e) => props.setField('statut_juridique', e.target.value as any)}
+                >
+                  <option value=''>—</option>
+                  <option value='esclave'>esclave</option>
+                  <option value='nouveau_libre'>nouveau_libre</option>
+                </select>
+              </Field>
+            </div>
           </>
         ) : null}
       </div>
     </section>
   );
 }
-

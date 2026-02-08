@@ -70,7 +70,7 @@ export function ExemplairesPanel<TDraft>(props: Props<TDraft>) {
         </div>
       </div>
 
-      <div className='flex-1 min-h-0 overflow-y-auto p-3'>
+      <div className='flex-1 min-h-0 overflow-y-auto p-3' id="debug-scroll-3">
         {loading ? (
           <div className='text-sm text-slate-600'>Chargement…</div>
         ) : !hasAnySelected ? (

@@ -97,7 +97,7 @@ function emptyCitation(acteId: string): CitationDraft {
     loc_start: null,
     loc_end: null,
     loc_raw: null,
-    is_missing: false,
+    is_missing: null,
     note: null,
     sort_order: 0,
     marginal_mentions_present: null,

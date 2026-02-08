@@ -8,14 +8,17 @@ import type {
   Mode,
 } from '@/features/archives/reference/types';
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
 import { ExemplairePickerDialog } from './ExemplairePickerDialog';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+import { useDebouncedCallback } from 'use-debounce';
 
 import {
   ExternalLink,
@@ -48,6 +51,7 @@ import { EditorPanel } from './ReferenceSourcesCard/components/EditorPanel';
 import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/SegmentsEditor';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/lib/supabase';
+import { Field, TextAreaField } from '@/components/shared/fields';
 
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
@@ -61,6 +65,13 @@ type CompletenessResult = {
 
 type LocMode = 'raw' | 'num' | 'range';
 
+type LocUiState = {
+  loc_mode: LocMode;
+  loc_raw: string; // texte UI
+  loc_start: string; // texte UI (input numeric)
+  loc_end: string; // texte UI
+};
+
 function normalizeDash(s: string) {
   return String(s ?? '')
     .trim()
@@ -68,7 +79,11 @@ function normalizeDash(s: string) {
     .replace(/\s+/g, ' ');
 }
 
-function parseRawToRange(raw: string): { start: number | null; end: number | null; isSingle: boolean } {
+function parseRawToRange(raw: string): {
+  start: number | null;
+  end: number | null;
+  isSingle: boolean;
+} {
   const s = normalizeDash(raw);
 
   // exact "x-y" (with optional spaces)
@@ -108,7 +123,6 @@ function detectModeFromState(c: any): LocMode {
 
   return 'raw';
 }
-
 
 function hasText(v: any) {
   return String(v ?? '').trim().length > 0;
@@ -221,17 +235,17 @@ export function getRegistreCompleteness(c: any): CompletenessResult {
 
 type EditCallbacks =
   | {
-    mode: 'edit';
-    onAdd: () => void;
-    onRemove: (idx: number) => void;
-    onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
-  }
+      mode: 'edit';
+      onAdd: () => void;
+      onRemove: (idx: number) => void;
+      onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
+    }
   | {
-    mode: 'edit';
-    onAdd: () => void;
-    onRemove: (idx: number) => void;
-    onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
-  };
+      mode: 'edit';
+      onAdd: () => void;
+      onRemove: (idx: number) => void;
+      onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
+    };
 
 type ViewCallbacks =
   | { mode: 'view'; onAdd?: never; onRemove?: never; onChange?: never }
@@ -258,17 +272,17 @@ function Chip({
 
 type SectionSourcesProps =
   | ({
-    type: 'acte';
-    registreId?: string | null;
-    sources: ActeCitationDraft[];
-    loading: boolean;
-  } & (EditCallbacks | ViewCallbacks))
+      type: 'acte';
+      registreId?: string | null;
+      sources: ActeCitationDraft[];
+      loading: boolean;
+    } & (EditCallbacks | ViewCallbacks))
   | ({
-    type: 'registre';
-    registreId?: string | null;
-    sources: RegistreCitationDraft[];
-    loading: boolean;
-  } & (EditCallbacks | ViewCallbacks));
+      type: 'registre';
+      registreId?: string | null;
+      sources: RegistreCitationDraft[];
+      loading: boolean;
+    } & (EditCallbacks | ViewCallbacks));
 
 type SectionSourcesEditProps = Extract<SectionSourcesProps, { mode: 'edit' }>;
 
@@ -337,6 +351,20 @@ export function SectionSources(props: SectionSourcesProps) {
     (props.onChange as any)(idx, patch);
   };
 
+  const [locUi, setLocUi] = useState<LocUiState>({
+    loc_mode: 'raw',
+    loc_raw: '',
+    loc_start: '',
+    loc_end: '',
+  });
+
+  const commitLocDebounced = useDebouncedCallback((args: { idx: number; patch: any }) => {
+    const { idx, patch } = args;
+    if (!isEdit) return;
+    if (idx < 0) return;
+    onChange(idx, patch);
+  }, 800);
+
   // ---------------------------------------------------------------------------
   // Draft keys (no module-global Map)
   // ---------------------------------------------------------------------------
@@ -344,7 +372,7 @@ export function SectionSources(props: SectionSourcesProps) {
 
   const getKey = (c: AnyDraft, idx?: number) => {
     const exId = (c as any)?.exemplaire_id ?? null;
-    if (exId) return `ex:${exId}`;               // ✅ stable et cohérent avec setSelectedKey
+    if (exId) return `ex:${exId}`; // ✅ stable et cohérent avec setSelectedKey
     return getDraftKeyHelper(c as any, idx, tmpKeyByIndexRef.current);
   };
 
@@ -354,6 +382,9 @@ export function SectionSources(props: SectionSourcesProps) {
   const [activeUniteKey, setActiveUniteKey] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<DraftKey | null>(null);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [acteFormVariant, setActeFormVariant] = useState<'short' | 'full'>(() =>
+    mode === 'view' ? 'full' : 'short',
+  );
 
   const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
   const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
@@ -383,7 +414,6 @@ export function SectionSources(props: SectionSourcesProps) {
   const [segmentsByCitId, setSegmentsByCitId] = useState<Record<string, RegistreSegmentRow[]>>({});
   const [citationIdByExId, setCitationIdByExId] = useState<Record<string, string>>({});
   const [loadingSegments, setLoadingSegments] = useState(false);
-
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -500,11 +530,13 @@ export function SectionSources(props: SectionSourcesProps) {
         loc_end: null,
         loc_raw: '',
         is_missing: null,
+        lacune: null,
       });
     } else {
       patchRegistre(pickerTargetIdx, {
         ...(base as any),
         is_missing: null,
+        lacune: null,
       } as any);
     }
 
@@ -676,20 +708,25 @@ export function SectionSources(props: SectionSourcesProps) {
   }, [sources]);
 
   useEffect(() => {
-    if (!activeUniteKey) {
-      const firstUnit = units[0] ?? null;
-      if (firstUnit) setActiveUniteKey(firstUnit.key);
+    // 1) activeUniteKey doit rester explicite
+    if (activeUniteKey) {
+      const unitStillExists = units.some((u) => u.key === activeUniteKey);
+      if (!unitStillExists) {
+        setActiveUniteKey(null);
+        setSelectedKey(null);
+        return;
+      }
     }
 
-    if (selectedKey == null) {
-      const first = pickedKeys[0] ?? null;
-      if (first) setSelectedKey(first);
-    } else {
+    // 2) selectedKey doit rester explicite
+    if (selectedKey) {
       const still = sources.find((c, i) => getKey(c, i) === selectedKey) ?? null;
-      if (!still || !still.exemplaire_id) setSelectedKey(pickedKeys[0] ?? null);
+      if (!still || !still.exemplaire_id) {
+        setSelectedKey(null);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, pickedKeys.join('|'), sources]);
+  }, [units, pickedKeys.join('|'), sources, activeUniteKey, selectedKey]);
 
   useEffect(() => {
     const rid = registreId ?? null;
@@ -740,13 +777,15 @@ export function SectionSources(props: SectionSourcesProps) {
       // 2) segments depuis etat_civil_registre_exemplaire_segments par registre_citation_id
       const { data: segRows, error: segErr } = await supabase
         .from(TABLE_REGISTRE_SEGMENTS)
-        .select(`
+        .select(
+          `
         id, registre_citation_id,
         kind_ref, label_override, scope,
         range_start, range_end,
         date_from, date_to, year_from, year_to,
         note, sort_order
-      `)
+      `,
+        )
         .in('registre_citation_id', citIds)
         .order('sort_order', { ascending: true });
 
@@ -785,8 +824,6 @@ export function SectionSources(props: SectionSourcesProps) {
       cancelled = true;
     };
   }, [registreId]);
-
-
 
   // ---------------------------------------------------------------------------
   // Middle panel: exemplaires for active unite
@@ -884,11 +921,7 @@ export function SectionSources(props: SectionSourcesProps) {
 
   const selectUnit = (unitKey: string) => {
     setActiveUniteKey(unitKey);
-
-    const unit = units.find((u) => u.key === unitKey) ?? null;
-    const firstDraftKey = unit?.children?.[0]?.draftKey ?? null;
-
-    setSelectedKey(firstDraftKey);
+    setSelectedKey(null); // obligatoire : l’exemplaire doit être choisi explicitement
   };
 
   // ---------------------------------------------------------------------------
@@ -942,10 +975,9 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const showNatureOrCopy = natureLabel && hasSource ? copyOf : natureLabel ? natureLabel : '';
 
-    const paginationLabelBase =
-      (ex.pagination_type_label ?? ex.pagination_type ?? 'vue')
-        .toString()
-        .toLowerCase();
+    const paginationLabelBase = (ex.pagination_type_label ?? ex.pagination_type ?? 'vue')
+      .toString()
+      .toLowerCase();
 
     function labelForRaw(label: string, raw: string) {
       // raw = nombre unique → singulier
@@ -975,12 +1007,12 @@ export function SectionSources(props: SectionSourcesProps) {
 
       const label =
         start != null && end != null && start !== end
-          ? (paginationLabelBase.endsWith('s')
+          ? paginationLabelBase.endsWith('s')
             ? paginationLabelBase
-            : `${paginationLabelBase}s`)
-          : (paginationLabelBase.endsWith('s')
+            : `${paginationLabelBase}s`
+          : paginationLabelBase.endsWith('s')
             ? paginationLabelBase.slice(0, -1)
-            : paginationLabelBase);
+            : paginationLabelBase;
 
       return `${label} ${formatRangeLabel(start, end, '')}`;
     })();
@@ -1069,6 +1101,532 @@ export function SectionSources(props: SectionSourcesProps) {
                 Ouvrir
               </a>
             ) : null}
+
+            {!readonly && (
+              <Tabs value={acteFormVariant} onValueChange={(v) => setActeFormVariant(v as any)}>
+                <TabsList>
+                  <TabsTrigger value='short' className='text-xs'>
+                    Formulaire court
+                  </TabsTrigger>
+                  <TabsTrigger value='full' className='text-xs'>
+                    Formulaire complet
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function uiToIntOrNull(s: string): number | null {
+    const v = (s ?? '').trim();
+    if (!v) return null;
+    if (!/^\d+$/.test(v)) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function computeLocPatchFromUi(next: LocUiState): any {
+    const mode = next.loc_mode;
+
+    if (mode === 'raw') {
+      const raw = next.loc_raw;
+      const parsed = parseRawToRange(raw);
+      return {
+        loc_mode: 'raw',
+        loc_raw: raw,
+        // on sync start/end seulement si parseable strict
+        loc_start: parsed.start != null && parsed.end != null ? parsed.start : null,
+        loc_end: parsed.start != null && parsed.end != null ? parsed.end : null,
+      };
+    }
+
+    if (mode === 'num') {
+      const n = uiToIntOrNull(next.loc_start);
+      return {
+        loc_mode: 'num',
+        loc_start: n,
+        loc_end: n,
+        loc_raw: n == null ? '' : String(n),
+      };
+    }
+
+    // mode === 'range'
+    const start = uiToIntOrNull(next.loc_start);
+    const end = uiToIntOrNull(next.loc_end);
+    return {
+      loc_mode: 'range',
+      loc_start: start,
+      loc_end: end,
+      loc_raw: formatRangeToRaw(start, end),
+    };
+  }
+
+  function scheduleCommitLoc(next: LocUiState) {
+    setLocUi(next);
+    if (!isEdit) return;
+    if (selectedIdx < 0) return;
+
+    const patch = computeLocPatchFromUi(next);
+    commitLocDebounced({ idx: selectedIdx, patch });
+  }
+
+  function flushCommitLoc() {
+    commitLocDebounced.flush();
+  }
+
+  function ActeFormShort(props: {
+    c: AnyDraft;
+    idx: number;
+    mode: Mode;
+    isRO: boolean;
+    ex: any;
+
+    // loc ui helpers
+    locUi: LocUiState;
+    locMode: LocMode;
+    setLocMode: (m: LocMode) => void;
+    scheduleCommitLoc: (next: LocUiState) => void;
+    flushCommitLoc: () => void;
+    computeLocPatchFromUi: (next: LocUiState) => any;
+
+    // patch helpers
+    onChange: (idx: number, patch: Partial<AnyDraft>) => void;
+    patchActe: (idx: number, patch: Partial<ActeCitationDraft>) => void;
+    toIntOrNull: (v: string) => number | null;
+  }) {
+    const {
+      c,
+      idx,
+      mode,
+      isRO,
+      ex,
+      locUi,
+      locMode,
+      setLocMode,
+      scheduleCommitLoc,
+      flushCommitLoc,
+      computeLocPatchFromUi,
+      onChange,
+      patchActe,
+      toIntOrNull,
+    } = props;
+
+    const isMissing = (c as ActeCitationDraft).is_missing;
+    const isLacune = (c as any).lacune;
+
+    const mmPresent = (c as any).marginal_mentions_present ?? null;
+    const mmCount = (c as any).marginal_mentions_count ?? null;
+    const sigPresent = (c as any).signatures_present ?? null;
+    const sigCount = (c as any).signatures_count ?? null;
+    const mcPresent = (c as any).marginal_crossouts_present ?? null;
+    const mcCount = (c as any).marginal_crossouts_count ?? null;
+
+    const missingRanges: any[] = Array.isArray((c as any).missing_ranges)
+      ? (c as any).missing_ranges
+      : [];
+    const patchMissingRanges = (next: any[]) => onChange(idx, { missing_ranges: next } as any);
+    const addMissingRange = () =>
+      patchMissingRanges([...missingRanges, { kind: 'vue', start: null, end: null, note: '' }]);
+    const updateMissingRange = (i: number, patch: Partial<any>) =>
+      patchMissingRanges(missingRanges.map((r, k) => (k === i ? { ...r, ...patch } : r)));
+    const removeMissingRange = (i: number) =>
+      patchMissingRanges(missingRanges.filter((_, k) => k !== i));
+
+    const hasMissingRanges = missingRanges.length > 0;
+
+    return (
+      <div className='space-y-6'>
+        {/* 1) Statut (requis) */}
+        <div className='rounded-xl border border-slate-200 bg-white'>
+          <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+            <div className='text-sm font-semibold text-slate-900'>Statut</div>
+            <div className='mt-1 text-xs text-slate-600'>
+              Champs minimum requis pour valider l’occurrence.
+            </div>
+          </div>
+          <div className='p-4 space-y-4'>
+            <div className='flex flex-wrap items-center gap-4'>
+              <TriStateButton
+                label='Acte manquant *'
+                yesLabel='Oui'
+                noLabel='Non'
+                value={isMissing}
+                mode={mode}
+                onChange={(v) => patchActe(idx, { is_missing: v } as any)}
+              />
+              <TriStateButton
+                label='Lacune *'
+                value={isLacune}
+                yesLabel='Oui'
+                noLabel='Non'
+                mode={mode}
+                onChange={(v) => onChange(idx, { lacune: v } as any)}
+              />
+            </div>
+
+            {isMissing === true ? (
+              <div className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
+                Acte déclaré manquant : la localisation peut rester vide.
+              </div>
+            ) : null}
+
+            {isLacune ? (
+              <>
+                <TextAreaField
+                  label='Détail lacune'
+                  readonly={isRO}
+                  value={String((c as any).lacune_note ?? '')}
+                  onChange={(next) => onChange(idx, { lacune_note: next } as any)}
+                  placeholder='Ex. vues 120–140 absentes…'
+                  minHeightClassName='min-h-[70px]'
+                />
+
+                <div className='mt-2'>
+                  <div className='flex items-center justify-between gap-3'>
+                    <div>
+                      <div className='text-sm font-semibold text-slate-900'>Plages manquantes</div>
+                      <div className='mt-1 text-xs text-slate-600'>
+                        Option alternative au texte : utile si tu veux du structuré.
+                      </div>
+                    </div>
+                    {!isRO ? (
+                      <Button type='button' variant='outline' onClick={addMissingRange}>
+                        Ajouter…
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {hasMissingRanges ? (
+                    <div className='mt-3 space-y-2'>
+                      {missingRanges.map((r, i) => (
+                        <div key={i} className='rounded-xl border border-slate-200 bg-white p-3'>
+                          <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Type
+                              </label>
+                              <select
+                                className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
+                                value={String(r.kind ?? 'vue')}
+                                onChange={(e) => updateMissingRange(i, { kind: e.target.value })}
+                                disabled={isRO}
+                              >
+                                <option value='vue'>Vues</option>
+                                <option value='page'>Pages</option>
+                              </select>
+                            </div>
+
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Début
+                              </label>
+                              <Input
+                                inputMode='numeric'
+                                className='mt-1'
+                                value={r.start ?? ''}
+                                onChange={(e) =>
+                                  updateMissingRange(i, { start: toIntOrNull(e.target.value) })
+                                }
+                                disabled={isRO}
+                                placeholder='ex. 120'
+                              />
+                            </div>
+
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Fin
+                              </label>
+                              <Input
+                                inputMode='numeric'
+                                className='mt-1'
+                                value={r.end ?? ''}
+                                onChange={(e) =>
+                                  updateMissingRange(i, { end: toIntOrNull(e.target.value) })
+                                }
+                                disabled={isRO}
+                                placeholder='ex. 140'
+                              />
+                            </div>
+
+                            <div className='md:col-span-3 flex items-end justify-end'>
+                              {!isRO ? (
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  onClick={() => removeMissingRange(i)}
+                                >
+                                  Supprimer
+                                </Button>
+                              ) : null}
+                            </div>
+
+                            <div className='md:col-span-12'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Note
+                              </label>
+                              <Input
+                                className='mt-1'
+                                value={String(r.note ?? '')}
+                                onChange={(e) => updateMissingRange(i, { note: e.target.value })}
+                                disabled={isRO}
+                                placeholder='ex. scan manquant…'
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                      Aucune plage renseignée.
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        {/* 2) Localisation (requis si pas manquant) */}
+        <div className='rounded-xl border border-slate-200 bg-white'>
+          <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+            <div className='text-sm font-semibold text-slate-900'>Localisation</div>
+            <div className='mt-1 text-xs text-slate-600'>
+              Requis si l’acte n’est pas déclaré manquant.
+            </div>
+          </div>
+
+          <div className='p-4 space-y-4'>
+            {!isRO ? (
+              <Field label='Mode de saisie' readonly={isRO} value={null}>
+                <RadioGroup
+                  value={locMode}
+                  onValueChange={(v) => setLocMode(v as LocMode)}
+                  className='flex flex-col gap-2 md:flex-row md:items-center md:gap-6'
+                >
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem value='num' id={`loc-mode-num-short-${idx}`} disabled={isRO} />
+                    <label htmlFor={`loc-mode-num-short-${idx}`} className='text-sm text-slate-700'>
+                      Numéro
+                    </label>
+                  </div>
+
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem
+                      value='range'
+                      id={`loc-mode-range-short-${idx}`}
+                      disabled={isRO}
+                    />
+                    <label
+                      htmlFor={`loc-mode-range-short-${idx}`}
+                      className='text-sm text-slate-700'
+                    >
+                      Plage
+                    </label>
+                  </div>
+
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem value='raw' id={`loc-mode-raw-short-${idx}`} disabled={isRO} />
+                    <label htmlFor={`loc-mode-raw-short-${idx}`} className='text-sm text-slate-700'>
+                      Texte libre
+                    </label>
+                  </div>
+                </RadioGroup>
+              </Field>
+            ) : null}
+
+            {isMissing === true ? (
+              <div className='rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                Localisation non requise car “acte manquant”.
+              </div>
+            ) : (
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                {locMode === 'raw' ? (
+                  <div className='md:col-span-12'>
+                    <Field
+                      label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')}) *`}
+                      readonly={isRO}
+                      value={locUi.loc_raw.trim() || null}
+                    >
+                      <Input
+                        disabled={isRO}
+                        value={locUi.loc_raw}
+                        onChange={(e) => scheduleCommitLoc({ ...locUi, loc_raw: e.target.value })}
+                        onBlur={flushCommitLoc}
+                        placeholder='Ex. vue 23 ; f°12r–13v ; page 120'
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {locMode === 'num' ? (
+                  <div className='md:col-span-4'>
+                    <Field label='Numéro *' readonly={isRO} value={locUi.loc_start.trim() || null}>
+                      <Input
+                        disabled={isRO}
+                        inputMode='numeric'
+                        value={locUi.loc_start}
+                        onChange={(e) =>
+                          scheduleCommitLoc({
+                            ...locUi,
+                            loc_start: e.target.value,
+                            loc_end: e.target.value,
+                          })
+                        }
+                        onBlur={flushCommitLoc}
+                        placeholder='ex. 120'
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {locMode === 'range' ? (
+                  <>
+                    <div className='md:col-span-3'>
+                      <Field label='Début *' readonly={isRO} value={locUi.loc_start.trim() || null}>
+                        <Input
+                          disabled={isRO}
+                          inputMode='numeric'
+                          value={locUi.loc_start}
+                          onChange={(e) =>
+                            scheduleCommitLoc({ ...locUi, loc_start: e.target.value })
+                          }
+                          onBlur={flushCommitLoc}
+                          placeholder='ex. 23'
+                        />
+                      </Field>
+                    </div>
+
+                    <div className='md:col-span-3'>
+                      <Field label='Fin *' readonly={isRO} value={locUi.loc_end.trim() || null}>
+                        <Input
+                          disabled={isRO}
+                          inputMode='numeric'
+                          value={locUi.loc_end}
+                          onChange={(e) => scheduleCommitLoc({ ...locUi, loc_end: e.target.value })}
+                          onBlur={flushCommitLoc}
+                          placeholder='ex. 24'
+                        />
+                      </Field>
+                    </div>
+
+                    <div className='md:col-span-6'>
+                      <Field
+                        label='Position (auto)'
+                        readonly
+                        value={(computeLocPatchFromUi(locUi).loc_raw ?? '').trim() || null}
+                      >
+                        <Input value={computeLocPatchFromUi(locUi).loc_raw ?? ''} readOnly />
+                      </Field>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3) Marques & signes (requis + counts conditionnels) */}
+        <div className='rounded-xl border border-slate-200 bg-white'>
+          <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+            <div className='text-sm font-semibold text-slate-900'>Marques & signes</div>
+            <div className='mt-1 text-xs text-slate-600'>Tri-state requis + nombre si “Oui”.</div>
+          </div>
+
+          <div className='p-4 space-y-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+              <div className='md:col-span-6'>
+                <TriStateButton
+                  label='Mentions marginales *'
+                  mode={mode}
+                  value={mmPresent}
+                  onChange={(v) =>
+                    onChange(idx, {
+                      marginal_mentions_present: v,
+                      marginal_mentions_count: v === true ? (mmCount ?? null) : null,
+                    } as any)
+                  }
+                />
+              </div>
+              <div className='md:col-span-6'>
+                <label className='block text-xs font-medium text-slate-700'>
+                  Nombre (si “Oui”) *
+                </label>
+                <Input
+                  inputMode='numeric'
+                  value={mmCount ?? ''}
+                  onChange={(e) =>
+                    onChange(idx, { marginal_mentions_count: toIntOrNull(e.target.value) } as any)
+                  }
+                  disabled={mmPresent !== true}
+                  placeholder='ex. 3'
+                  className='mt-1'
+                />
+              </div>
+
+              <div className='md:col-span-6'>
+                <TriStateButton
+                  label='Signatures *'
+                  mode={mode}
+                  value={sigPresent}
+                  onChange={(v) =>
+                    onChange(idx, {
+                      signatures_present: v,
+                      signatures_count: v === true ? (sigCount ?? null) : null,
+                    } as any)
+                  }
+                />
+              </div>
+              <div className='md:col-span-6'>
+                <label className='block text-xs font-medium text-slate-700'>
+                  Nombre (si “Oui”) *
+                </label>
+                <Input
+                  inputMode='numeric'
+                  value={sigCount ?? ''}
+                  onChange={(e) =>
+                    onChange(idx, { signatures_count: toIntOrNull(e.target.value) } as any)
+                  }
+                  disabled={sigPresent !== true}
+                  placeholder='ex. 2'
+                  className='mt-1'
+                />
+              </div>
+
+              <div className='md:col-span-6'>
+                <TriStateButton
+                  label='Ratures en marge *'
+                  mode={mode}
+                  value={mcPresent}
+                  onChange={(v) =>
+                    onChange(idx, {
+                      marginal_crossouts_present: v,
+                      marginal_crossouts_count: v === true ? (mcCount ?? null) : null,
+                    } as any)
+                  }
+                />
+              </div>
+              <div className='md:col-span-6'>
+                <label className='block text-xs font-medium text-slate-700'>
+                  Nombre (si “Oui”) *
+                </label>
+                <Input
+                  inputMode='numeric'
+                  value={mcCount ?? ''}
+                  onChange={(e) =>
+                    onChange(idx, {
+                      marginal_crossouts_count: toIntOrNull(e.target.value),
+                    } as any)
+                  }
+                  disabled={mcPresent !== true}
+                  placeholder='ex. 1'
+                  className='mt-1'
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1082,7 +1640,7 @@ export function SectionSources(props: SectionSourcesProps) {
     const url = (ex.url_base ?? '').trim();
 
     const isMissing = (c as ActeCitationDraft).is_missing;
-    const isLacune = (c as any).lacune === true;
+    const isLacune = (c as any).lacune;
 
     // ✅ plus de marginalia jsonb : on utilise les colonnes atomiques
     const mmPresent = (c as any).marginal_mentions_present ?? null;
@@ -1117,32 +1675,9 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const hasMissingRanges = missingRanges.length > 0;
 
-    const locMode: LocMode = ((c as any).loc_mode ?? 'raw') as LocMode;
-
+    const locMode: LocMode = locUi.loc_mode;
     const setLocMode = (mode: LocMode) => {
-      // Optionnel : stocker le mode (UI-only) pour ne pas “sauter” quand raw change
-      onChange(idx, { loc_mode: mode } as any);
-
-      // Optionnel : quand on change de mode, on normalise un minimum
-      if (mode === 'raw') {
-        // on garde tout tel quel
-        return;
-      }
-
-      if (mode === 'num') {
-        const raw = String((c as any).loc_raw ?? '').trim();
-        const parsed = parseRawToRange(raw);
-        const n = parsed.start ?? (c as any).loc_start ?? (c as any).loc_end ?? null;
-        if (n != null) onChange(idx, { loc_start: n, loc_end: n, loc_raw: String(n) } as any);
-        return;
-      }
-
-      if (mode === 'range') {
-        const start = (c as any).loc_start ?? null;
-        const end = (c as any).loc_end ?? null;
-        const raw = formatRangeToRaw(start, end);
-        if (raw) onChange(idx, { loc_raw: raw } as any);
-      }
+      scheduleCommitLoc({ ...locUi, loc_mode: mode });
     };
 
     const exId = String((ex as any)?.exemplaire_id ?? (c as any)?.exemplaire_id ?? '');
@@ -1150,739 +1685,731 @@ export function SectionSources(props: SectionSourcesProps) {
 
     const estManuscrit = (c as any).ecriture_ref == '6d2f68c7-bce6-411e-a4d1-00b1e535c219';
     return (
-      <div className='flex-1 min-h-0 overflow-y-auto p-4'>
-        <div className='space-y-6'>
-          {/* Bloc 1 — Référence & localisation */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>Référence & localisation</div>
-              <div className='mt-1 text-xs text-slate-600'>
-                {safeLabel(ex.institution_nom)} · {safeLabel(ex.depot_nom)} ·{' '}
-                <span className='font-medium text-slate-800'>{safeLabel(ex.unite_titre)}</span>
+      <Tabs
+        value={acteFormVariant}
+        onValueChange={(v) => setActeFormVariant(v as any)}
+        className='flex-1 min-h-0 overflow-y-auto p-4'
+      >
+        <TabsContent value='short'>
+          <ActeFormShort
+            c={c}
+            idx={idx}
+            mode={mode}
+            isRO={isRO}
+            ex={ex}
+            locUi={locUi}
+            locMode={locMode}
+            setLocMode={setLocMode}
+            scheduleCommitLoc={scheduleCommitLoc}
+            flushCommitLoc={flushCommitLoc}
+            computeLocPatchFromUi={computeLocPatchFromUi}
+            onChange={onChange as any}
+            patchActe={patchActe as any}
+            toIntOrNull={toIntOrNull}
+          />
+        </TabsContent>
+
+        <TabsContent value='full'>
+          <div className='space-y-6'>
+            {/* Bloc 1 — Référence & localisation */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>Référence & localisation</div>
+                <div className='mt-1 text-xs text-slate-600'>
+                  {safeLabel(ex.institution_nom)} · {safeLabel(ex.depot_nom)} ·{' '}
+                  <span className='font-medium text-slate-800'>{safeLabel(ex.unite_titre)}</span>
+                </div>
+              </div>
+
+              <div className='p-4 space-y-4'>
+                {url ? (
+                  <div className='rounded-lg border border-slate-200 bg-slate-50 p-3'>
+                    <div className='text-[11px] font-medium text-slate-700'>URL</div>
+                    <div className='mt-1 break-all font-mono text-xs text-slate-700'>{url}</div>
+                  </div>
+                ) : null}
+
+                <Separator />
+
+                {/* Statut */}
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>Statut</div>
+
+                  <div className='mt-2 flex flex-wrap items-center gap-4'>
+                    <TriStateButton
+                      label='Acte manquant *'
+                      yesLabel='Oui'
+                      noLabel='Non'
+                      value={isMissing}
+                      mode={mode}
+                      onChange={(v) => patchActe(idx, { is_missing: v } as any)}
+                    />
+
+                    <TriStateButton
+                      label='Lacune *'
+                      value={(c as any).lacune}
+                      yesLabel='Oui'
+                      noLabel='Non'
+                      mode={mode}
+                      onChange={(v) => onChange(idx, { lacune: v } as any)}
+                    />
+                  </div>
+
+                  {isMissing === true ? (
+                    <div className='mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
+                      Acte déclaré manquant : la localisation (vues/pages) peut rester vide. Tu peux
+                      aussi renseigner une lacune si l’absence est partielle.
+                    </div>
+                  ) : null}
+
+                  {isLacune ? (
+                    <div className='mt-3'>
+                      <TextAreaField
+                        label='Détail lacune'
+                        readonly={isRO}
+                        value={String((c as any).lacune_note ?? '')}
+                        onChange={(next) => onChange(idx, { lacune_note: next } as any)}
+                        placeholder='Ex. vues 120–140 absentes, pages déchirées, etc.'
+                        minHeightClassName='min-h-[70px]'
+                      />
+                    </div>
+                  ) : null}
+
+                  {/* missing_ranges */}
+                  {isLacune ? (
+                    <div className='mt-4'>
+                      <div className='flex items-center justify-between gap-3'>
+                        <div>
+                          <div className='text-sm font-semibold text-slate-900'>
+                            Plages manquantes
+                          </div>
+                          <div className='mt-1 text-xs text-slate-600'>
+                            Détaille précisément les vues/pages absentes (utile si « lacune »).
+                          </div>
+                        </div>
+
+                        {!isRO && (
+                          <Button
+                            type='button'
+                            variant='outline'
+                            onClick={addMissingRange}
+                            disabled={!isLacune}
+                            title={
+                              !isLacune
+                                ? 'Active “Lacune” pour ajouter des plages manquantes.'
+                                : undefined
+                            }
+                          >
+                            Ajouter…
+                          </Button>
+                        )}
+                      </div>
+
+                      {!isLacune ? (
+                        <div className='mt-2 text-xs text-slate-500'>
+                          Active <span className='font-medium'>Lacune</span> pour renseigner des
+                          plages manquantes.
+                        </div>
+                      ) : null}
+
+                      {isLacune && !hasMissingRanges ? (
+                        <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                          Aucune plage renseignée.
+                        </div>
+                      ) : null}
+
+                      {isLacune && hasMissingRanges ? (
+                        <div className='mt-3 space-y-2'>
+                          {missingRanges.map((r, i) => (
+                            <div
+                              key={i}
+                              className='rounded-xl border border-slate-200 bg-white p-3'
+                            >
+                              <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Type
+                                  </label>
+                                  <select
+                                    className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
+                                    value={String(r.kind ?? 'vue')}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { kind: e.target.value })
+                                    }
+                                  >
+                                    <option value='vue'>Vues</option>
+                                    <option value='page'>Pages</option>
+                                  </select>
+                                </div>
+
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Début
+                                  </label>
+                                  <Input
+                                    inputMode='numeric'
+                                    className='mt-1'
+                                    value={r.start ?? ''}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { start: toIntOrNull(e.target.value) })
+                                    }
+                                    placeholder='ex. 120'
+                                  />
+                                </div>
+
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Fin
+                                  </label>
+                                  <Input
+                                    inputMode='numeric'
+                                    className='mt-1'
+                                    value={r.end ?? ''}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { end: toIntOrNull(e.target.value) })
+                                    }
+                                    placeholder='ex. 140'
+                                  />
+                                </div>
+
+                                <div className='md:col-span-3 flex items-end justify-end'>
+                                  <Button
+                                    type='button'
+                                    variant='ghost'
+                                    onClick={() => removeMissingRange(i)}
+                                  >
+                                    Supprimer
+                                  </Button>
+                                </div>
+
+                                <div className='md:col-span-12'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Note
+                                  </label>
+                                  <Input
+                                    className='mt-1'
+                                    value={String(r.note ?? '')}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { note: e.target.value })
+                                    }
+                                    placeholder='ex. pages arrachées, reliure masquée, scan manquant…'
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+
+                <Separator />
+
+                <SegmentsEditor
+                  ex={ex}
+                  segments={Array.isArray(registreSegments) ? registreSegments : []}
+                  readonly={true}
+                  type={'acte'}
+                />
+
+                <Separator />
+
+                {/* Localisation acte */}
+                <div>
+                  <div className='flex items-start justify-between gap-3'>
+                    <div>
+                      <div className='text-sm font-semibold text-slate-900'>
+                        Statut & localisation
+                      </div>
+                      <div className='mt-1 text-xs text-slate-600'>
+                        Renseigne la position dans l’exemplaire selon sa pagination (vues / pages /
+                        folios…).
+                      </div>
+                    </div>
+
+                    <Chip variant='secondary' className='shrink-0'>
+                      Pagination :{' '}
+                      {safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? '—')}
+                    </Chip>
+                  </div>
+                  <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                    {!isRO && (
+                      <div className='md:col-span-12'>
+                        <Field label='Mode de saisie' readonly={isRO} value={null}>
+                          <RadioGroup
+                            value={locMode}
+                            onValueChange={(v) => setLocMode(v as LocMode)}
+                            className='flex flex-col gap-2 md:flex-row md:items-center md:gap-6'
+                          >
+                            <div className='flex items-center gap-2'>
+                              <RadioGroupItem
+                                value='num'
+                                id={`loc-mode-num-${idx}`}
+                                disabled={isRO}
+                              />
+                              <label
+                                htmlFor={`loc-mode-num-${idx}`}
+                                className='text-sm text-slate-700'
+                              >
+                                Numéro
+                              </label>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                              <RadioGroupItem
+                                value='range'
+                                id={`loc-mode-range-${idx}`}
+                                disabled={isRO}
+                              />
+                              <label
+                                htmlFor={`loc-mode-range-${idx}`}
+                                className='text-sm text-slate-700'
+                              >
+                                Plage (début/fin)
+                              </label>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                              <RadioGroupItem
+                                value='raw'
+                                id={`loc-mode-raw-${idx}`}
+                                disabled={isRO}
+                              />
+                              <label
+                                htmlFor={`loc-mode-raw-${idx}`}
+                                className='text-sm text-slate-700'
+                              >
+                                Texte libre
+                              </label>
+                            </div>
+                          </RadioGroup>
+                        </Field>
+                      </div>
+                    )}
+
+                    {/* --- MODE TEXTE LIBRE --- */}
+                    {locMode === 'raw' && (
+                      <div className='md:col-span-12'>
+                        <Field
+                          label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
+                          readonly={isRO}
+                          value={locUi.loc_raw.trim() || null}
+                        >
+                          <Input
+                            disabled={isRO}
+                            value={locUi.loc_raw}
+                            onChange={(e) =>
+                              scheduleCommitLoc({ ...locUi, loc_raw: e.target.value })
+                            }
+                            onBlur={flushCommitLoc}
+                            placeholder='Ex. f°12r–f°13v ; vue 23 ; page 120'
+                          />
+                        </Field>
+                      </div>
+                    )}
+
+                    {/* --- MODE NUMÉRO --- */}
+                    {locMode === 'num' && (
+                      <>
+                        <div className='md:col-span-4'>
+                          <Field
+                            label='Numéro'
+                            readonly={isRO}
+                            value={locUi.loc_start.trim() || null}
+                          >
+                            <Input
+                              disabled={isRO}
+                              inputMode='numeric'
+                              value={locUi.loc_start}
+                              onChange={(e) =>
+                                scheduleCommitLoc({
+                                  ...locUi,
+                                  loc_start: e.target.value,
+                                  loc_end: e.target.value,
+                                })
+                              }
+                              onBlur={flushCommitLoc}
+                              placeholder='ex. 120'
+                            />
+                          </Field>
+                        </div>
+                      </>
+                    )}
+
+                    {/* --- MODE PLAGE --- */}
+                    {locMode === 'range' && (
+                      <>
+                        <div className='md:col-span-3'>
+                          <Field
+                            label='Début'
+                            readonly={isRO}
+                            value={locUi.loc_start.trim() || null}
+                          >
+                            <Input
+                              disabled={isRO}
+                              inputMode='numeric'
+                              value={locUi.loc_start}
+                              onChange={(e) =>
+                                scheduleCommitLoc({ ...locUi, loc_start: e.target.value })
+                              }
+                              onBlur={flushCommitLoc}
+                              placeholder='ex. 23'
+                            />
+                          </Field>
+                        </div>
+
+                        <div className='md:col-span-3'>
+                          <Field label='Fin' readonly={isRO} value={locUi.loc_end.trim() || null}>
+                            <Input
+                              disabled={isRO}
+                              inputMode='numeric'
+                              value={locUi.loc_end}
+                              onChange={(e) =>
+                                scheduleCommitLoc({ ...locUi, loc_end: e.target.value })
+                              }
+                              onBlur={flushCommitLoc}
+                              placeholder='ex. 24'
+                            />
+                          </Field>
+                        </div>
+
+                        <div className='md:col-span-6'>
+                          <Field
+                            label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
+                            readonly
+                            value={(computeLocPatchFromUi(locUi).loc_raw ?? '').trim() || null}
+                          >
+                            <Input value={computeLocPatchFromUi(locUi).loc_raw ?? ''} readOnly />
+                          </Field>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className='p-4 space-y-4'>
-              {url ? (
-                <div className='rounded-lg border border-slate-200 bg-slate-50 p-3'>
-                  <div className='text-[11px] font-medium text-slate-700'>URL</div>
-                  <div className='mt-1 break-all font-mono text-xs text-slate-700'>{url}</div>
+            {/* Bloc 2 — Observations sur l’exemplaire */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>
+                  Observations sur l’exemplaire
                 </div>
-              ) : null}
-
-              <Separator />
-
-              {/* Statut */}
-              <div>
-                <div className='text-sm font-semibold text-slate-900'>Statut</div>
-
-                <div className='mt-2 flex flex-wrap items-center gap-4'>
-                  <TriStateButton
-                    label='Acte manquant *'
-                    yesLabel='Oui'
-                    noLabel='Non'
-                    value={isMissing}
-                    mode={mode}
-                    onChange={(v) => patchActe(idx, { is_missing: v } as any)}
-                  />
-
-                  <TriStateButton
-                    label='Lacune *'
-                    value={(c as any).lacune}
-                    yesLabel='Oui'
-                    noLabel='Non'
-                    mode={mode}
-                    onChange={(v) => onChange(idx, { lacune: v } as any)}
-                  />
+                <div className='mt-1 text-xs text-slate-600'>
+                  État, repro, dommages, écriture & lisibilité.
                 </div>
-
-                {isMissing === true ? (
-                  <div className='mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
-                    Acte déclaré manquant : la localisation (vues/pages) peut rester vide. Tu peux
-                    aussi renseigner une lacune si l’absence est partielle.
-                  </div>
-                ) : null}
-
-                {isLacune ? (
-                  <div className='mt-3'>
-                    <TextAreaField
-                      label='Détail lacune'
-                      readonly={isRO}
-                      value={String((c as any).lacune_note ?? '')}
-                      onChange={(next) => onChange(idx, { lacune_note: next } as any)}
-                      placeholder='Ex. vues 120–140 absentes, pages déchirées, etc.'
-                      minHeightClassName='min-h-[70px]'
-                    />
-                  </div>
-                ) : null}
-
-                {/* missing_ranges */}
-                {isLacune ? (
-                  <div className='mt-4'>
-                    <div className='flex items-center justify-between gap-3'>
-                      <div>
-                        <div className='text-sm font-semibold text-slate-900'>
-                          Plages manquantes
-                        </div>
-                        <div className='mt-1 text-xs text-slate-600'>
-                          Détaille précisément les vues/pages absentes (utile si « lacune »).
-                        </div>
-                      </div>
-
-                      {!isRO && (
-                        <Button
-                          type='button'
-                          variant='outline'
-                          onClick={addMissingRange}
-                          disabled={!isLacune}
-                          title={
-                            !isLacune
-                              ? 'Active “Lacune” pour ajouter des plages manquantes.'
-                              : undefined
-                          }
-                        >
-                          Ajouter…
-                        </Button>
-                      )}
-                    </div>
-
-                    {!isLacune ? (
-                      <div className='mt-2 text-xs text-slate-500'>
-                        Active <span className='font-medium'>Lacune</span> pour renseigner des
-                        plages manquantes.
-                      </div>
-                    ) : null}
-
-                    {isLacune && !hasMissingRanges ? (
-                      <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
-                        Aucune plage renseignée.
-                      </div>
-                    ) : null}
-
-                    {isLacune && hasMissingRanges ? (
-                      <div className='mt-3 space-y-2'>
-                        {missingRanges.map((r, i) => (
-                          <div key={i} className='rounded-xl border border-slate-200 bg-white p-3'>
-                            <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
-                              <div className='md:col-span-3'>
-                                <label className='block text-xs font-medium text-slate-700'>
-                                  Type
-                                </label>
-                                <select
-                                  className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
-                                  value={String(r.kind ?? 'vue')}
-                                  onChange={(e) => updateMissingRange(i, { kind: e.target.value })}
-                                >
-                                  <option value='vue'>Vues</option>
-                                  <option value='page'>Pages</option>
-                                </select>
-                              </div>
-
-                              <div className='md:col-span-3'>
-                                <label className='block text-xs font-medium text-slate-700'>
-                                  Début
-                                </label>
-                                <Input
-                                  inputMode='numeric'
-                                  className='mt-1'
-                                  value={r.start ?? ''}
-                                  onChange={(e) =>
-                                    updateMissingRange(i, { start: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='ex. 120'
-                                />
-                              </div>
-
-                              <div className='md:col-span-3'>
-                                <label className='block text-xs font-medium text-slate-700'>
-                                  Fin
-                                </label>
-                                <Input
-                                  inputMode='numeric'
-                                  className='mt-1'
-                                  value={r.end ?? ''}
-                                  onChange={(e) =>
-                                    updateMissingRange(i, { end: toIntOrNull(e.target.value) })
-                                  }
-                                  placeholder='ex. 140'
-                                />
-                              </div>
-
-                              <div className='md:col-span-3 flex items-end justify-end'>
-                                <Button
-                                  type='button'
-                                  variant='ghost'
-                                  onClick={() => removeMissingRange(i)}
-                                >
-                                  Supprimer
-                                </Button>
-                              </div>
-
-                              <div className='md:col-span-12'>
-                                <label className='block text-xs font-medium text-slate-700'>
-                                  Note
-                                </label>
-                                <Input
-                                  className='mt-1'
-                                  value={String(r.note ?? '')}
-                                  onChange={(e) => updateMissingRange(i, { note: e.target.value })}
-                                  placeholder='ex. pages arrachées, reliure masquée, scan manquant…'
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
               </div>
 
-              <Separator />
-
-              <SegmentsEditor
-                ex={ex}
-                segments={Array.isArray(registreSegments) ? registreSegments : []}
-                readonly={true}
-                type={'acte'}
-              />
-
-              <Separator />
-
-              {/* Localisation acte */}
-              <div>
-                <div className='flex items-start justify-between gap-3'>
-                  <div>
-                    <div className='text-sm font-semibold text-slate-900'>
-                      Statut & localisation
-                    </div>
-                    <div className='mt-1 text-xs text-slate-600'>
-                      Renseigne la position dans l’exemplaire selon sa pagination (vues / pages /
-                      folios…).
-                    </div>
+              <div className='p-4 space-y-5'>
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>
+                    État, reproduction & dommages
+                  </div>
+                  <div className='mt-1 text-xs text-slate-600'>
+                    Décris l’état du support et les dommages observés.
                   </div>
 
-                  <Chip variant='secondary' className='shrink-0'>
-                    Pagination : {safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? '—')}
-                  </Chip>
-                </div>
-                <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-12'>
-                  <div className='md:col-span-12'>
-                    <Field label='Mode de saisie' readonly={isRO} value={null}>
-                      <RadioGroup
-                        value={locMode}
-                        onValueChange={(v) => setLocMode(v as LocMode)}
-                        className='flex flex-col gap-2 md:flex-row md:items-center md:gap-6'
-                      >
-                        <div className='flex items-center gap-2'>
-                          <RadioGroupItem value='num' id={`loc-mode-num-${idx}`} disabled={isRO} />
-                          <label htmlFor={`loc-mode-num-${idx}`} className='text-sm text-slate-700'>
-                            Numéro
-                          </label>
-                        </div>
-
-                        <div className='flex items-center gap-2'>
-                          <RadioGroupItem
-                            value='range'
-                            id={`loc-mode-range-${idx}`}
-                            disabled={isRO}
-                          />
-                          <label
-                            htmlFor={`loc-mode-range-${idx}`}
-                            className='text-sm text-slate-700'
-                          >
-                            Plage (début/fin)
-                          </label>
-                        </div>
-
-                        <div className='flex items-center gap-2'>
-                          <RadioGroupItem value='raw' id={`loc-mode-raw-${idx}`} disabled={isRO} />
-                          <label htmlFor={`loc-mode-raw-${idx}`} className='text-sm text-slate-700'>
-                            Texte libre
-                          </label>
-                        </div>
-                      </RadioGroup>
-                    </Field>
-
-                    <div className='mt-1 text-[11px] text-slate-500'>
-                      Choisis <span className='font-medium'>un seul</span> mode. Les champs non
-                      nécessaires sont masqués.
-                    </div>
-                  </div>
-
-                  {/* --- MODE TEXTE LIBRE --- */}
-                  {locMode === 'raw' && (
-                    <div className='md:col-span-12'>
-                      <Field
-                        label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
-                        readonly={isRO}
-                        value={String((c as any).loc_raw ?? '').trim() || null}
-                      >
-                        <Input
-                          value={String((c as any).loc_raw ?? '')}
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            // ✅ ne pas remplir loc_start/loc_end ici
-                            onChange(idx, { loc_raw: raw } as any);
-                          }}
-                          onBlur={() => {
-                            const raw = String((c as any).loc_raw ?? '').trim();
-                            const parsed = parseRawToRange(raw);
-                            // ✅ sync structuré uniquement à la fin (si c'est exactement "x" ou "x-y")
-                            if (parsed.start != null && parsed.end != null) {
-                              onChange(idx, { loc_start: parsed.start, loc_end: parsed.end } as any);
-                            } else {
-                              // optionnel : si raw non parseable, on remet le structuré à null
-                              onChange(idx, { loc_start: null, loc_end: null } as any);
-                            }
-                          }}
-                          placeholder='Ex. f°12r–f°13v ; vue 23 ; page 120'
+                  <div className='p-4 space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                      <div className='md:col-span-6'>
+                        <div className='text-xs font-medium text-slate-700'>Condition physique</div>
+                        <RefSinglePickerSmart
+                          table='ref_physical_condition'
+                          mode={mode}
+                          actionsInvisible={false}
+                          value={((c as any).physical_condition_ref ?? null) as any}
+                          onChange={(next) =>
+                            onChange(idx, { physical_condition_ref: next } as any)
+                          }
+                          titleOverride='État physique'
                         />
-                      </Field>
+                      </div>
+
+                      <div className='md:col-span-12'>
+                        <div className='text-xs font-medium text-slate-700'>
+                          Qualité de reproduction
+                        </div>
+                        <RefSinglePickerSmart
+                          table='ref_repro_quality'
+                          mode={mode}
+                          actionsInvisible={false}
+                          value={((c as any).repro_quality_ref ?? null) as any}
+                          onChange={(next) => onChange(idx, { repro_quality_ref: next } as any)}
+                        />
+                      </div>
+
+                      <div className='md:col-span-12'>
+                        <TextAreaField
+                          label='Notes sur la qualité de reproduction'
+                          readonly={isRO}
+                          value={String((c as any).repro_notes ?? '')}
+                          onChange={(next) => onChange(idx, { repro_notes: next } as any)}
+                          placeholder='Ex. scan flou, contraste insuffisant, bord coupé, page inclinée, zones surexposées, microfilm sombre…'
+                          minHeightClassName='min-h-[90px]'
+                        />
+                      </div>
+
+                      <div className='md:col-span-12'>
+                        <div className='text-xs font-medium text-slate-700'>Dommages</div>
+                        <RefSinglePickerSmart
+                          table='ref_document_damage_kinds'
+                          mode={mode}
+                          actionsInvisible={false}
+                          multi={true}
+                          value={((c as any).document_damage_kinds_ids ?? null) as any}
+                          onChange={(next) =>
+                            onChange(idx, { document_damage_kinds_ids: next } as any)
+                          }
+                        />
+                      </div>
+
+                      <div className='md:col-span-12'>
+                        <TextAreaField
+                          label='Notes sur les dommages'
+                          readonly={isRO}
+                          value={String((c as any).damage_notes ?? '')}
+                          onChange={(next) => onChange(idx, { damage_notes: next } as any)}
+                          placeholder='Ex. coin inférieur droit déchiré, encre passée, taches d’humidité…'
+                          minHeightClassName='min-h-[90px]'
+                        />
+                      </div>
                     </div>
-                  )}
+                  </div>
+                </div>
 
-                  {/* --- MODE NUMÉRO --- */}
-                  {locMode === 'num' && (
-                    <>
+                <Separator />
+
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>
+                    Écriture, langue & lisibilité
+                  </div>
+                  <div className='mt-1 text-xs text-slate-600'>
+                    Aide à estimer l’effort de transcription et les difficultés récurrentes.
+                  </div>
+
+                  <div className='p-4 space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                       <div className='md:col-span-4'>
-                        <Field
-                          label='Numéro'
-                          readonly={isRO}
-                          value={String((c as any).loc_start ?? '')}
-                        >
-                          <Input
-                            inputMode='numeric'
-                            value={String((c as any).loc_start ?? '')}
-                            onChange={(e) => {
-                              const n = toIntOrNull(e.target.value);
-                              onChange(idx, {
-                                loc_start: n,
-                                loc_end: n,
-                                loc_raw: n == null ? '' : String(n),
-                              } as any);
-                            }}
-                            placeholder='ex. 120'
-                          />
-                        </Field>
+                        <div className='text-xs font-medium text-slate-700'>Langue</div>
+                        <RefSinglePickerSmart
+                          table='ref_langues'
+                          mode={mode}
+                          actionsInvisible={false}
+                          value={((c as any).langue_ref ?? null) as any}
+                          onChange={(next) => onChange(idx, { langue_ref: next } as any)}
+                        />
                       </div>
 
-                      <div className='md:col-span-8 flex items-center text-[11px] text-slate-500'>
-                        Auto : Position = numéro, Début = Fin = numéro.
-                      </div>
-                    </>
-                  )}
-
-                  {/* --- MODE PLAGE --- */}
-                  {locMode === 'range' && (
-                    <>
-                      <div className='md:col-span-3'>
-                        <Field
-                          label='Début'
-                          readonly={isRO}
-                          value={String((c as any).loc_start ?? '')}
-                        >
-                          <Input
-                            inputMode='numeric'
-                            value={String((c as any).loc_start ?? '')}
-                            onChange={(e) => {
-                              const start = toIntOrNull(e.target.value);
-                              const end = (c as any).loc_end ?? null;
-                              onChange(idx, {
-                                loc_start: start,
-                                loc_raw: formatRangeToRaw(start, end),
-                              } as any);
-                            }}
-                            placeholder='ex. 23'
-                          />
-                        </Field>
+                      <div className='md:col-span-4'>
+                        <div className='text-xs font-medium text-slate-700'>Écriture</div>
+                        <RefSinglePickerSmart
+                          table='ref_ecritures'
+                          mode={mode}
+                          actionsInvisible={false}
+                          value={((c as any).ecriture_ref ?? null) as any}
+                          onChange={(next) => onChange(idx, { ecriture_ref: next } as any)}
+                        />
                       </div>
 
-                      <div className='md:col-span-3'>
-                        <Field label='Fin' readonly={isRO} value={String((c as any).loc_end ?? '')}>
-                          <Input
-                            inputMode='numeric'
-                            value={String((c as any).loc_end ?? '')}
-                            onChange={(e) => {
-                              const end = toIntOrNull(e.target.value);
-                              const start = (c as any).loc_start ?? null;
-                              onChange(idx, {
-                                loc_end: end,
-                                loc_raw: formatRangeToRaw(start, end),
-                              } as any);
-                            }}
-                            placeholder='ex. 24'
-                          />
-                        </Field>
+                      {estManuscrit && (
+                        <>
+                          <div className='md:col-span-4'>
+                            <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
+                            <RefSinglePickerSmart
+                              table='ref_handwriting_legibility'
+                              mode={mode}
+                              actionsInvisible={false}
+                              value={((c as any).handwriting_legibility_ref ?? null) as any}
+                              onChange={(next) =>
+                                onChange(idx, { handwriting_legibility_ref: next } as any)
+                              }
+                            />
+                          </div>
+                          <div className='md:col-span-12'>
+                            <div className='text-xs font-medium text-slate-700'>
+                              Caractéristiques de lisibilité du document
+                            </div>
+                            <RefSinglePickerSmart
+                              table='ref_document_readability_features'
+                              mode={mode}
+                              multi={true}
+                              actionsInvisible={false}
+                              value={((c as any).document_readability_features_ids ?? null) as any}
+                              onChange={(next) =>
+                                onChange(idx, { document_readability_features_ids: next } as any)
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* ✅ plus de marginalia jsonb : colonnes atomiques */}
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>Marques & signes</div>
+
+                  <div className='p-4 space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                      <div className='md:col-span-6'>
+                        <TriStateButton
+                          label='Mentions marginales'
+                          mode={mode}
+                          value={mmPresent}
+                          onChange={(v) =>
+                            onChange(idx, {
+                              marginal_mentions_present: v,
+                              marginal_mentions_count: v === true ? (mmCount ?? null) : null,
+                            } as any)
+                          }
+                          helpText=''
+                        />
                       </div>
 
                       <div className='md:col-span-6'>
-                        <Field
-                          label={`Position (${safeLabel(ex.pagination_type_label ?? ex.pagination_type ?? 'pagination')})`}
-                          readonly
-                          value={String((c as any).loc_raw ?? '').trim() || null}
-                        >
-                          <Input value={String((c as any).loc_raw ?? '')} readOnly />
-                        </Field>
-
-                        <div className='mt-1 text-[11px] text-slate-500'>
-                          Auto : Position = “début-fin”.
-                        </div>
+                        <label className='block text-xs font-medium text-slate-700'>
+                          Nombre de mentions marginales
+                        </label>
+                        <Input
+                          inputMode='numeric'
+                          value={mmCount ?? ''}
+                          onChange={(e) =>
+                            onChange(idx, {
+                              marginal_mentions_count: toIntOrNull(e.target.value),
+                            } as any)
+                          }
+                          disabled={mmPresent !== true}
+                          placeholder='ex. 3'
+                          className='mt-1'
+                        />
                       </div>
-                    </>
-                  )}
-                </div>
 
-
-                <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
-                  {(() => {
-                    const pt = String(ex.pagination_type ?? '').toLowerCase();
-                    if (pt.includes('folio') || pt.includes('f°')) {
-                      return (
-                        <>
-                          Conseil : pour des <span className='font-medium'>folios</span>, utilise la
-                          notation <span className='font-medium'>r/v</span> (ex. f°12r–f°13v) dans
-                          “Position”, et mets des nombres dans Début/Fin si tu veux un tri
-                          numérique.
-                        </>
-                      );
-                    }
-                    if (pt.includes('page')) {
-                      return (
-                        <>
-                          Conseil : pour des <span className='font-medium'>pages</span>, indique un
-                          intervalle si l’acte déborde (ex. 12–13).
-                        </>
-                      );
-                    }
-                    if (pt.includes('vue') || pt.includes('image')) {
-                      return (
-                        <>
-                          Conseil : pour des <span className='font-medium'>vues</span>, la position
-                          correspond souvent à la numérotation du viewer (ex. 23–24).
-                        </>
-                      );
-                    }
-                    return (
-                      <>
-                        Astuce : si tu hésites, commence par “Position” en texte libre, puis
-                        complète Début/Fin.
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bloc 2 — Observations sur l’exemplaire */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>
-                Observations sur l’exemplaire
-              </div>
-              <div className='mt-1 text-xs text-slate-600'>
-                État, repro, dommages, écriture & lisibilité.
-              </div>
-            </div>
-
-            <div className='p-4 space-y-5'>
-              <div>
-                <div className='text-sm font-semibold text-slate-900'>
-                  État, reproduction & dommages
-                </div>
-                <div className='mt-1 text-xs text-slate-600'>
-                  Décris l’état du support et les dommages observés.
-                </div>
-
-                <div className='p-4 space-y-4'>
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-6'>
-                      <div className='text-xs font-medium text-slate-700'>Condition physique</div>
-                      <RefSinglePickerSmart
-                        table='ref_physical_condition'
-                        mode={mode}
-                        actionsInvisible={false}
-                        value={((c as any).physical_condition_ref ?? null) as any}
-                        onChange={(next) => onChange(idx, { physical_condition_ref: next } as any)}
-                        titleOverride='État physique'
-                      />
-                    </div>
-
-                    <div className='md:col-span-12'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Qualité de reproduction
+                      <div className='md:col-span-6'>
+                        <TriStateButton
+                          label='Signatures'
+                          mode={mode}
+                          value={sigPresent}
+                          onChange={(v) =>
+                            onChange(idx, {
+                              signatures_present: v,
+                              signatures_count: v === true ? (sigCount ?? null) : null,
+                            } as any)
+                          }
+                          helpText=''
+                        />
                       </div>
-                      <RefSinglePickerSmart
-                        table='ref_repro_quality'
-                        mode={mode}
-                        actionsInvisible={false}
-                        value={((c as any).repro_quality_ref ?? null) as any}
-                        onChange={(next) => onChange(idx, { repro_quality_ref: next } as any)}
-                      />
+
+                      <div className='md:col-span-6'>
+                        <label className='block text-xs font-medium text-slate-700'>
+                          Nombre de signatures
+                        </label>
+                        <Input
+                          inputMode='numeric'
+                          value={sigCount ?? ''}
+                          onChange={(e) =>
+                            onChange(idx, { signatures_count: toIntOrNull(e.target.value) } as any)
+                          }
+                          disabled={sigPresent !== true}
+                          placeholder='ex. 2'
+                          className='mt-1'
+                        />
+                      </div>
+
+                      <div className='md:col-span-6'>
+                        <TriStateButton
+                          label='Ratures indiquées en marge'
+                          mode={mode}
+                          value={mcPresent}
+                          onChange={(v) =>
+                            onChange(idx, {
+                              marginal_crossouts_present: v,
+                              marginal_crossouts_count: v === true ? (mcCount ?? null) : null,
+                            } as any)
+                          }
+                          helpText=''
+                        />
+                      </div>
+
+                      <div className='md:col-span-6'>
+                        <label className='block text-xs font-medium text-slate-700'>
+                          Nombre de ratures (en marge)
+                        </label>
+                        <Input
+                          inputMode='numeric'
+                          value={mcCount ?? ''}
+                          onChange={(e) =>
+                            onChange(idx, {
+                              marginal_crossouts_count: toIntOrNull(e.target.value),
+                            } as any)
+                          }
+                          disabled={mcPresent !== true}
+                          placeholder='ex. 1'
+                          className='mt-1'
+                        />
+                      </div>
                     </div>
 
-                    <div className='md:col-span-12'>
-                      <TextAreaField
-                        label='Notes sur la qualité de reproduction'
-                        readonly={isRO}
-                        value={String((c as any).repro_notes ?? '')}
-                        onChange={(next) => onChange(idx, { repro_notes: next } as any)}
-                        placeholder='Ex. scan flou, contraste insuffisant, bord coupé, page inclinée, zones surexposées, microfilm sombre…'
-                        minHeightClassName='min-h-[90px]'
-                      />
-                    </div>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                      <div className='md:col-span-6'>
+                        <div className='text-xs font-medium text-slate-700'>Marques / signes</div>
+                        <TextAreaField
+                          label=''
+                          readonly={isRO}
+                          value={String((c as any).marks ?? '')}
+                          onChange={(next) => onChange(idx, { marks: next } as any)}
+                          placeholder='Ex. graphie difficile, index absent, remarque…'
+                          minHeightClassName='min-h-[90px]'
+                        />
+                      </div>
 
-                    <div className='md:col-span-12'>
-                      <div className='text-xs font-medium text-slate-700'>Dommages</div>
-                      <RefSinglePickerSmart
-                        table='ref_document_damage_kinds'
-                        mode={mode}
-                        actionsInvisible={false}
-                        multi={true}
-                        value={((c as any).document_damage_kinds_ids ?? null) as any}
-                        onChange={(next) =>
-                          onChange(idx, { document_damage_kinds_ids: next } as any)
-                        }
-                      />
-                    </div>
-
-                    <div className='md:col-span-12'>
-                      <TextAreaField
-                        label='Notes sur les dommages'
-                        readonly={isRO}
-                        value={String((c as any).damage_notes ?? '')}
-                        onChange={(next) => onChange(idx, { damage_notes: next } as any)}
-                        placeholder='Ex. coin inférieur droit déchiré, encre passée, taches d’humidité…'
-                        minHeightClassName='min-h-[90px]'
-                      />
+                      <div className='md:col-span-6'>
+                        <div className='text-xs font-medium text-slate-700'>Note courte</div>
+                        <TextAreaField
+                          label=''
+                          readonly={isRO}
+                          value={String((c as any).note ?? '')}
+                          onChange={(next) => onChange(idx, { note: next } as any)}
+                          placeholder='Ex. graphie difficile, coin déchiré, index absent…'
+                          minHeightClassName='min-h-[90px]'
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <Separator />
-
-              <div>
-                <div className='text-sm font-semibold text-slate-900'>
-                  Écriture, langue & lisibilité
-                </div>
+            {/* Bloc 3 — Notes de travail */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>Notes de travail</div>
                 <div className='mt-1 text-xs text-slate-600'>
-                  Aide à estimer l’effort de transcription et les difficultés récurrentes.
-                </div>
-
-                <div className='p-4 space-y-4'>
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-4'>
-                      <div className='text-xs font-medium text-slate-700'>Langue</div>
-                      <RefSinglePickerSmart
-                        table='ref_langues'
-                        mode={mode}
-                        actionsInvisible={false}
-                        value={((c as any).langue_ref ?? null) as any}
-                        onChange={(next) => onChange(idx, { langue_ref: next } as any)}
-                      />
-                    </div>
-
-                    <div className='md:col-span-4'>
-                      <div className='text-xs font-medium text-slate-700'>Écriture</div>
-                      <RefSinglePickerSmart
-                        table='ref_ecritures'
-                        mode={mode}
-                        actionsInvisible={false}
-                        value={((c as any).ecriture_ref ?? null) as any}
-                        onChange={(next) => onChange(idx, { ecriture_ref: next } as any)}
-                      />
-                    </div>
-
-                    {estManuscrit && (
-                      <>
-                        <div className='md:col-span-4'>
-                          <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
-                          <RefSinglePickerSmart
-                            table='ref_handwriting_legibility'
-                            mode={mode}
-                            actionsInvisible={false}
-                            value={((c as any).handwriting_legibility_ref ?? null) as any}
-                            onChange={(next) => onChange(idx, { handwriting_legibility_ref: next } as any)} />
-                        </div>
-                        <div className='md:col-span-12'>
-                          <div className='text-xs font-medium text-slate-700'>
-                            Caractéristiques de lisibilité du document
-                          </div>
-                          <RefSinglePickerSmart
-                            table='ref_document_readability_features'
-                            mode={mode}
-                            multi={true}
-                            actionsInvisible={false}
-                            value={((c as any).document_readability_features_ids ?? null) as any}
-                            onChange={(next) => onChange(idx, { document_readability_features_ids: next } as any)} />
-                        </div>
-                      </>)}
-                  </div>
+                  Commentaires longs / pistes / TODO.
                 </div>
               </div>
 
-              <Separator />
-
-              {/* ✅ plus de marginalia jsonb : colonnes atomiques */}
-              <div>
-                <div className='text-sm font-semibold text-slate-900'>Marques & signes</div>
-
-                <div className='p-4 space-y-4'>
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-6'>
-                      <TriStateButton
-                        label='Mentions marginales'
-                        mode={mode}
-                        value={mmPresent}
-                        onChange={(v) =>
-                          onChange(idx, {
-                            marginal_mentions_present: v,
-                            marginal_mentions_count: v === true ? (mmCount ?? null) : null,
-                          } as any)
-                        }
-                        helpText=''
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Nombre de mentions marginales
-                      </label>
-                      <Input
-                        inputMode='numeric'
-                        value={mmCount ?? ''}
-                        onChange={(e) =>
-                          onChange(idx, {
-                            marginal_mentions_count: toIntOrNull(e.target.value),
-                          } as any)
-                        }
-                        disabled={mmPresent !== true}
-                        placeholder='ex. 3'
-                        className='mt-1'
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <TriStateButton
-                        label='Signatures'
-                        mode={mode}
-                        value={sigPresent}
-                        onChange={(v) =>
-                          onChange(idx, {
-                            signatures_present: v,
-                            signatures_count: v === true ? (sigCount ?? null) : null,
-                          } as any)
-                        }
-                        helpText=''
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Nombre de signatures
-                      </label>
-                      <Input
-                        inputMode='numeric'
-                        value={sigCount ?? ''}
-                        onChange={(e) =>
-                          onChange(idx, { signatures_count: toIntOrNull(e.target.value) } as any)
-                        }
-                        disabled={sigPresent !== true}
-                        placeholder='ex. 2'
-                        className='mt-1'
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <TriStateButton
-                        label='Ratures indiquées en marge'
-                        mode={mode}
-                        value={mcPresent}
-                        onChange={(v) =>
-                          onChange(idx, {
-                            marginal_crossouts_present: v,
-                            marginal_crossouts_count: v === true ? (mcCount ?? null) : null,
-                          } as any)
-                        }
-                        helpText=''
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <label className='block text-xs font-medium text-slate-700'>
-                        Nombre de ratures (en marge)
-                      </label>
-                      <Input
-                        inputMode='numeric'
-                        value={mcCount ?? ''}
-                        onChange={(e) =>
-                          onChange(idx, {
-                            marginal_crossouts_count: toIntOrNull(e.target.value),
-                          } as any)
-                        }
-                        disabled={mcPresent !== true}
-                        placeholder='ex. 1'
-                        className='mt-1'
-                      />
-                    </div>
-                  </div>
-
-                  <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                    <div className='md:col-span-6'>
-                      <div className='text-xs font-medium text-slate-700'>Marques / signes</div>
-                      <TextAreaField
-                        label=''
-                        readonly={isRO}
-                        value={String((c as any).marks ?? '')}
-                        onChange={(next) => onChange(idx, { marks: next } as any)}
-                        placeholder='Ex. graphie difficile, index absent, remarque…'
-                        minHeightClassName='min-h-[90px]'
-                      />
-                    </div>
-
-                    <div className='md:col-span-6'>
-                      <div className='text-xs font-medium text-slate-700'>Note courte</div>
-                      <TextAreaField
-                        label=''
-                        readonly={isRO}
-                        value={String((c as any).note ?? '')}
-                        onChange={(next) => onChange(idx, { note: next } as any)}
-                        placeholder='Ex. graphie difficile, coin déchiré, index absent…'
-                        minHeightClassName='min-h-[90px]'
-                      />
-                    </div>
-                  </div>
+              <div className='p-4'>
+                <TextAreaField
+                  label=''
+                  readonly={isRO}
+                  value={String((c as any).work_note ?? '')}
+                  onChange={(next) => onChange(idx, { work_note: next } as any)}
+                  placeholder='Ex. vérifier la pagination, comparer avec microfilm, anomalie sur les vues…'
+                  minHeightClassName='min-h-[140px]'
+                />
+                <div className='mt-2 text-xs text-slate-500'>
+                  Champ facultatif (si tu n’as pas encore <code>work_note</code> en DB, garde-le en
+                  draft ou remplace par <code>note</code>).
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Bloc 3 — Notes de travail */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>Notes de travail</div>
-              <div className='mt-1 text-xs text-slate-600'>Commentaires longs / pistes / TODO.</div>
-            </div>
-
-            <div className='p-4'>
-              <TextAreaField
-                label=''
-                readonly={isRO}
-                value={String((c as any).work_note ?? '')}
-                onChange={(next) => onChange(idx, { work_note: next } as any)}
-                placeholder='Ex. vérifier la pagination, comparer avec microfilm, anomalie sur les vues…'
-                minHeightClassName='min-h-[140px]'
-              />
-              <div className='mt-2 text-xs text-slate-500'>
-                Champ facultatif (si tu n’as pas encore <code>work_note</code> en DB, garde-le en
-                draft ou remplace par <code>note</code>).
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     );
   }
 
@@ -2017,7 +2544,7 @@ export function SectionSources(props: SectionSourcesProps) {
     const lacune = (c as any).lacune;
 
     return (
-      <div className='flex-1 min-h-0 overflow-y-auto p-4'>
+      <div className='flex-1 min-h-0 overflow-y-auto p-4' id='debug-scroll-6'>
         <div className='space-y-6'>
           {/* Bloc 1 — Statut & locating */}
           <div className='rounded-xl border border-slate-200 bg-white'>
@@ -2186,111 +2713,36 @@ export function SectionSources(props: SectionSourcesProps) {
   // Selected meta
   // ---------------------------------------------------------------------------
   const selectedMeta = useMemo(() => {
-    if (!exemplairesForActiveUnite.length) return null;
-    return (
-      exemplairesForActiveUnite.find((x) => x.draftKey === selectedKey) ??
-      exemplairesForActiveUnite[0]
-    );
-  }, [exemplairesForActiveUnite, selectedKey]);
+    if (!activeUniteKey) return null;
+    if (!selectedKey) return null;
+    return exemplairesForActiveUnite.find((x) => x.draftKey === selectedKey) ?? null;
+  }, [activeUniteKey, selectedKey, exemplairesForActiveUnite]);
 
   const selectedIdx = useMemo(() => {
     if (!selectedMeta) return -1;
     return sources.findIndex((x, i) => getKey(x, i) === selectedMeta.draftKey);
   }, [sources, selectedMeta]);
 
-  function Field(props: {
-    label: string;
-    value?: ReactNode;
-    children?: ReactNode;
-    readonly?: boolean;
-    empty?: ReactNode;
-  }) {
-    const {
-      label,
-      value,
-      children,
-      readonly,
-      empty = <span className='text-xs text-muted-foreground italic'>Non renseigné</span>,
-    } = props;
+  useEffect(() => {
+    commitLocDebounced.cancel();
 
-    return (
-      <div>
-        <div className='text-xs font-medium text-slate-700'>{label}</div>
-        <div className='mt-1'>
-          {readonly ? (
-            <div className='min-h-[36px] rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800'>
-              {value ?? empty}
-            </div>
-          ) : (
-            children
-          )}
-        </div>
-      </div>
-    );
-  }
+    const csel: any = selectedMeta?.c ?? null;
+    if (!csel) {
+      setLocUi({ loc_mode: 'raw', loc_raw: '', loc_start: '', loc_end: '' });
+      return;
+    }
 
-  function ReadonlyBlock(props: { value?: ReactNode; empty?: ReactNode; className?: string }) {
-    const {
-      value,
-      empty = <span className='text-xs text-muted-foreground italic'>Non renseigné</span>,
-      className,
-    } = props;
-    const v = value == null || value === '' ? null : value;
+    const mode: LocMode = (csel.loc_mode ?? detectModeFromState(csel)) as LocMode;
+    setLocUi({
+      loc_mode: mode,
+      loc_raw: String(csel.loc_raw ?? ''),
+      loc_start: csel.loc_start == null ? '' : String(csel.loc_start),
+      loc_end: csel.loc_end == null ? '' : String(csel.loc_end),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey, selectedIdx, selectedMeta]);
 
-    return (
-      <div
-        className={[
-          'min-h-[36px] rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-800',
-          'whitespace-pre-wrap break-words',
-          className ?? '',
-        ].join(' ')}
-      >
-        {v ?? empty}
-      </div>
-    );
-  }
-
-  function TextAreaField(props: {
-    label: string;
-    readonly?: boolean;
-    value: string;
-    onChange?: (next: string) => void;
-    placeholder?: string;
-    minHeightClassName?: string; // ex. "min-h-[90px]"
-    empty?: ReactNode;
-  }) {
-    const {
-      label,
-      readonly,
-      value,
-      onChange,
-      placeholder,
-      minHeightClassName = 'min-h-[90px]',
-      empty,
-    } = props;
-
-    return (
-      <div>
-        <div className='text-xs font-medium text-slate-700'>{label}</div>
-        <div className='mt-1'>
-          {readonly ? (
-            <ReadonlyBlock
-              value={value}
-              empty={empty}
-              className={['py-2', minHeightClassName].join(' ')}
-            />
-          ) : (
-            <Textarea
-              className={minHeightClassName}
-              value={value}
-              onChange={(e) => onChange?.(e.target.value)}
-              placeholder={placeholder}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
+  const canShowEditor = Boolean(activeUniteKey && selectedKey && selectedMeta);
 
   // ---------------------------------------------------------------------------
   // UI
@@ -2325,9 +2777,6 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[BUG] le numéro de vue se met à jour trop vite, je perds le focus pour écrire par exemple 14</li>
-                      <li>[BUG] occurrence à 1 par défaut</li>
-                      <li>[BUG] lacune à false par défaut</li>
                       <li>[BUG] lisibilité manuscrite</li>
 
                       <li>[UX] En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
@@ -2336,7 +2785,6 @@ export function SectionSources(props: SectionSourcesProps) {
                       <li>[MODEL] Champ work_note</li>
 
                       <li>[LABEL] revoir les titres des headers des sections</li>
-                      <li>[LABEL] virer les textes tels que "Auto : Position = numéro, Début = Fin = numéro."</li>
                     </ol>
                   </div>
                 </div>
@@ -2348,8 +2796,8 @@ export function SectionSources(props: SectionSourcesProps) {
             <p className='mt-1 text-sm text-slate-600'>
               Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
               exemplaire) puis renseigne ce qui est spécifique au registre :{' '}
-              <span className='font-medium'>is_missing</span>,{' '}
-              lacunes, observations (état, repro, marques, écriture…).
+              <span className='font-medium'>is_missing</span>, lacunes, observations (état, repro,
+              marques, écriture…).
             </p>
 
             <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
@@ -2359,8 +2807,7 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[BUG] lacune à false par défaut</li>
-
+                      <li>[UX] Faire un formulaire minimal</li>
                       <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
 
                       <li>[MODEL] (repérées de ? à ?)</li>
@@ -2379,88 +2826,96 @@ export function SectionSources(props: SectionSourcesProps) {
       {isEmpty ? (
         <div className='rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6'>
           <div className='text-sm font-semibold text-slate-900'>Aucune occurrence</div>
-          <div className='mt-1 text-sm text-slate-600'>
-            Ajoute un exemplaire pour créer une occurrence {type === 'acte' ? "d'acte" : 'de registre'}.
-          </div>
 
           {isEdit ? (
             <div className='mt-4'>
               <Button type='button' onClick={openPickerForNew}>
-                Ajouter une occurrence…
+                Ajouter une occurrence
               </Button>
             </div>
           ) : null}
         </div>
       ) : null}
 
-      {!isEmpty ? (<div
-        className={[
-          'grid gap-4 h-[72vh] min-h-0',
-          leftCollapsed ? 'md:grid-cols-[1fr]' : 'md:grid-cols-[340px_340px_1fr]',
-        ].join(' ')}
-      >
-        {!leftCollapsed ? (
-          <UnitsPanel
-            units={units as any}
-            activeUniteKey={activeUniteKey}
-            onSelectUnit={selectUnit}
-          />
-        ) : null}
+      {!isEmpty ? (
+        <div
+          className={[
+            'grid gap-4 h-[72vh] min-h-0',
+            leftCollapsed ? 'md:grid-cols-[1fr]' : 'md:grid-cols-[340px_340px_1fr]',
+          ].join(' ')}
+        >
+          {!leftCollapsed ? (
+            <UnitsPanel
+              units={units as any}
+              activeUniteKey={activeUniteKey}
+              onSelectUnit={selectUnit}
+            />
+          ) : null}
 
-        {!leftCollapsed ? (
-          <ExemplairesPanel
-            loading={loading}
-            hasAnySelected={hasAnySelected}
-            activeUniteKey={activeUniteKey}
-            items={exemplairesForActiveUnite as any}
-            selectedKey={selectedKey}
-            getTitle={getExemplaireTitle}
-            getStatus={(c) => getExemplaireStatus(c as any) as any}
-            getInstDepotOnline={(c) => {
-              const ex: any = (c as any).exemplaire ?? {};
-              const inst = safeLabel(ex.institution_sigle || ex.institution_nom, 'Institution ?');
-              const depot = safeLabel(ex.depot_nom, 'Dépôt ?');
-              const online = isOnlineEx(c as any);
-              return { inst, depot, online };
-            }}
-            renderChipOnline={(online) =>
-              online ? (
-                <Chip className='border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
-                  En ligne
-                </Chip>
-              ) : (
-                <Chip className='border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
-                  Sur place
-                </Chip>
-              )
-            }
-            renderStatusIcon={(status) => <StatusIcon status={status} />}
-            onSelect={setSelectedKey}
-            onAdd={isEdit ? openPickerForNew : undefined}
-            readonly={isRO}
-          />
-        ) : null}
+          {!leftCollapsed ? (
+            <ExemplairesPanel
+              loading={loading}
+              hasAnySelected={hasAnySelected}
+              activeUniteKey={activeUniteKey}
+              items={exemplairesForActiveUnite as any}
+              selectedKey={selectedKey}
+              getTitle={getExemplaireTitle}
+              getStatus={(c) => getExemplaireStatus(c as any) as any}
+              getInstDepotOnline={(c) => {
+                const ex: any = (c as any).exemplaire ?? {};
+                const inst = safeLabel(ex.institution_sigle || ex.institution_nom, 'Institution ?');
+                const depot = safeLabel(ex.depot_nom, 'Dépôt ?');
+                const online = isOnlineEx(c as any);
+                return { inst, depot, online };
+              }}
+              renderChipOnline={(online) =>
+                online ? (
+                  <Chip className='border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50'>
+                    En ligne
+                  </Chip>
+                ) : (
+                  <Chip className='border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50'>
+                    Sur place
+                  </Chip>
+                )
+              }
+              renderStatusIcon={(status) => <StatusIcon status={status} />}
+              onSelect={(k) => {
+                flushCommitLoc();
+                setSelectedKey(k);
+              }}
+              onAdd={isEdit ? openPickerForNew : undefined}
+              readonly={isRO}
+            />
+          ) : null}
 
-        <EditorPanel
-          type={type}
-          selectedMeta={selectedMeta as any}
-          idx={selectedIdx}
-          hasExemplaireId={(c) => Boolean((c as any)?.exemplaire_id)}
-          onOpenPickerForIdx={isEdit ? openPickerForIdx : () => { }} // 👈 pas d’action en view
-          renderActe={({ c, idx, draftKey, globalNo }) => (
-            <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0'>
-              {renderActeHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
-              {renderActeForm({ c: c as any, idx, mode: mode })}
+          {canShowEditor ? (
+            <EditorPanel
+              type={type}
+              selectedMeta={selectedMeta as any}
+              idx={selectedIdx}
+              hasExemplaireId={(c) => Boolean((c as any)?.exemplaire_id)}
+              onOpenPickerForIdx={isEdit ? openPickerForIdx : () => {}}
+              renderActe={({ c, idx, draftKey, globalNo }) => (
+                <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
+                  {renderActeHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
+                  {renderActeForm({ c: c as any, idx, mode: mode })}
+                </div>
+              )}
+              renderRegistre={({ c, idx, draftKey, globalNo }) => (
+                <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
+                  {renderRegistreHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
+                  {renderRegistreForm({ c: c as any, idx, mode: mode })}
+                </div>
+              )}
+            />
+          ) : (
+            <div className='rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600'>
+              Sélectionne une <span className='font-medium'>unité</span> puis un{' '}
+              <span className='font-medium'>exemplaire</span> pour afficher l’éditeur.
             </div>
           )}
-          renderRegistre={({ c, idx, draftKey, globalNo }) => (
-            <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
-              {renderRegistreHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
-              {renderRegistreForm({ c: c as any, idx, mode: mode })}
-            </div>
-          )}
-        />
-      </div>
+        </div>
       ) : null}
 
       <ExemplairePickerDialog

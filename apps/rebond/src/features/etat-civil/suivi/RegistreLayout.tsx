@@ -98,22 +98,7 @@ export default function RegistreLayout() {
         </div>
       )}
       {!isLoading && bureau && registre ? (
-        <><div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-          <div className='flex items-start gap-3'>
-            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-            <div className='min-w-0'>
-              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-              <div className='mt-0.5 text-xs text-amber-800'>
-                <ol>
-                  <li>[BUG] après création d'un registre, Liste des actes vides comme si nombre total d'acte non renseigné (cas TB N 1891, pas de nombre d'actes estimés)</li>
-                  <li>[BUG] champs texte de la section Identification à mettre comme il faut</li>
-                  <li>[BUG] transformer les champs mode_registre et ordre numérotation en ref</li>
-                  <li>[BUG] champ type d'acte à lier à la table etat_civil_registres_type_acte</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div><div className='flex max-h-auto flex-col'>
+        <div className='flex max-h-auto flex-col'>
             <div className='sticky top-0 z-10 bg-white'>
               <div className='flex items-center justify-between px-6 py-3 border-b bg-white'>
                 <div className='flex items-center gap-3'>
@@ -208,7 +193,7 @@ export default function RegistreLayout() {
               }}
               numeroParDefaut={numeroActeACreer}
               onActeCreated={handleNewActe} />
-          </div></>
+          </div>
       ) : null}
     </>
   );

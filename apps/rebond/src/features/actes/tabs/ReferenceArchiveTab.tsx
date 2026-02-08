@@ -161,7 +161,7 @@ type ActeCitationRow = {
   loc_end: number | null;
   loc_raw: string | null;
 
-  is_missing: boolean;
+  is_missing: boolean | null;
   note: string | null;
   sort_order: number;
 
@@ -207,7 +207,7 @@ function emptyActeCitation(): ActeCitationDraft {
     loc_end: null,
     loc_raw: '',
 
-    is_missing: false,
+    is_missing: null,
     note: '',
     sort_order: 0,
 
@@ -232,6 +232,9 @@ function emptyActeCitation(): ActeCitationDraft {
 
     document_damage_kinds_ids: [],
     document_readability_features_ids: [],
+
+    lacune: null,
+    lacune_note: null,
   } as any;
 }
 
@@ -246,7 +249,7 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     loc_end: r?.loc_end ?? null,
     loc_raw: r?.loc_raw ?? '',
 
-    is_missing: r?.is_missing ?? false,
+    is_missing: r?.is_missing,
     note: r?.note ?? '',
     sort_order: typeof r?.sort_order === 'number' ? r.sort_order : 0,
 
@@ -753,7 +756,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           loc_end: c.loc_end ?? null,
           loc_raw: (c.loc_raw ?? '').trim() || null,
 
-          is_missing: c.is_missing,
+          is_missing: toBoolOrNull(c.is_missing),
           note: (c.note ?? '').trim() || null,
 
           sort_order: idx,
@@ -953,20 +956,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               <p>
                 <span className='font-semibold text-sm text-slate-700'>Il sert à retrouver et citer précisément l’acte.</span>
               </p>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-            <div className='flex items-start gap-3'>
-              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-              <div className='min-w-0'>
-                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                <div className='mt-0.5 text-xs text-amber-800'>
-                  <ol>
-                    <li>[UX] acte-view: deux scrolls en parallèle</li>
-                  </ol>
-                </div>
-              </div>
             </div>
           </div>
 
