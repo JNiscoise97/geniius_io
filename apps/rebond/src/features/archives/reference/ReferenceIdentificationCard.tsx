@@ -164,9 +164,9 @@ export function SectionIdentification(props: Props) {
             <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
             <div className='mt-0.5 text-xs text-amber-800'>
               <ol>
-                <li>[UX] Modifier le titre du registre à la volée</li>
-                
                 <li>[MODEL] transformer les champs mode_registre, ordre numérotation et statut juridique en ref</li>
+                
+                <li>[UX] Modifier le titre du registre à la volée</li>
               </ol>
             </div>
           </div>

@@ -386,6 +386,14 @@ export function SectionSources(props: SectionSourcesProps) {
     mode === 'view' ? 'full' : 'short',
   );
 
+  const [registreFormVariant, setRegistreFormVariant] = useState<'short' | 'full'>(() =>
+    mode === 'view' ? 'full' : 'short',
+  );
+
+  // évite de forcer "full" à chaque re-render : une seule fois par sélection
+  const autoOpenedFullActeByKeyRef = useRef(new Set<string>());
+  const autoOpenedFullRegistreByKeyRef = useRef(new Set<string>());
+
   const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
   const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
 
@@ -853,28 +861,6 @@ export function SectionSources(props: SectionSourcesProps) {
     return /^\d+$/.test(s);
   }
 
-  function parseRawToRange(raw: string): { start: number | null; end: number | null } {
-    const s = (raw ?? '').trim();
-    if (!s) return { start: null, end: null };
-
-    // "x"
-    if (isIntString(s)) {
-      const n = Number(s);
-      return { start: n, end: n };
-    }
-
-    // "x-y" EXACT (espaces autorisés autour du tiret)
-    const m = s.match(/^(\d+)\s*-\s*(\d+)$/);
-    if (m) {
-      const a = Number(m[1]);
-      const b = Number(m[2]);
-      return { start: a, end: b };
-    }
-
-    // sinon : pas de parsing auto
-    return { start: null, end: null };
-  }
-
   function formatRangeToRaw(start: number | null, end: number | null): string {
     if (start == null && end == null) return '';
     if (start != null && end == null) return String(start);
@@ -952,8 +938,9 @@ export function SectionSources(props: SectionSourcesProps) {
     idx: number;
     draftKey: DraftKey;
     readonly: boolean;
+    status: CompletenessStatus;
   }) {
-    const { c, globalNo, idx, draftKey, readonly } = args;
+    const { c, globalNo, idx, draftKey, readonly, status } = args;
 
     const ex: any = c.exemplaire ?? {};
     const online = isOnlineEx(c);
@@ -1106,7 +1093,7 @@ export function SectionSources(props: SectionSourcesProps) {
               <Tabs value={acteFormVariant} onValueChange={(v) => setActeFormVariant(v as any)}>
                 <TabsList>
                   <TabsTrigger value='short' className='text-xs'>
-                    Formulaire court
+                    <StatusIcon status={status} /> Formulaire court
                   </TabsTrigger>
                   <TabsTrigger value='full' className='text-xs'>
                     Formulaire complet
@@ -1687,7 +1674,10 @@ export function SectionSources(props: SectionSourcesProps) {
     return (
       <Tabs
         value={acteFormVariant}
-        onValueChange={(v) => setActeFormVariant(v as any)}
+        onValueChange={(v) => {
+          if (isRO) return;
+          setActeFormVariant(v as any);
+        }}
         className='flex-1 min-h-0 overflow-y-auto p-4'
       >
         <TabsContent value='short'>
@@ -2422,8 +2412,9 @@ export function SectionSources(props: SectionSourcesProps) {
     idx: number;
     draftKey: DraftKey;
     readonly: boolean;
+    status: CompletenessStatus;
   }) {
-    const { c, globalNo, idx, draftKey, readonly } = args;
+    const { c, globalNo, idx, draftKey, readonly, status } = args;
 
     const ex: any = c.exemplaire ?? {};
     const online = isOnlineEx(c);
@@ -2530,6 +2521,207 @@ export function SectionSources(props: SectionSourcesProps) {
                 Ouvrir
               </a>
             ) : null}
+
+            {!readonly && (
+              <Tabs
+                value={registreFormVariant}
+                onValueChange={(v) => setRegistreFormVariant(v as any)}
+              >
+                <TabsList>
+                  <TabsTrigger value='short' className='text-xs'>
+                    <StatusIcon status={status} /> Formulaire court
+                  </TabsTrigger>
+                  <TabsTrigger value='full' className='text-xs'>
+                    Formulaire complet
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function RegistreFormShort(props: {
+    c: AnyDraft;
+    idx: number;
+    mode: Mode;
+    isRO: boolean;
+    onChange: (idx: number, patch: Partial<AnyDraft>) => void;
+    toIntOrNull: (v: string) => number | null;
+  }) {
+    const { c, idx, mode, isRO, onChange, toIntOrNull } = props;
+
+    const isMissing = (c as any).is_missing ?? null;
+    const lacune = (c as any).lacune ?? null;
+
+    const missingRanges: any[] = Array.isArray((c as any).missing_ranges)
+      ? (c as any).missing_ranges
+      : [];
+    const patchMissingRanges = (next: any[]) => onChange(idx, { missing_ranges: next } as any);
+
+    const addMissingRange = () =>
+      patchMissingRanges([...missingRanges, { kind: 'vue', start: null, end: null, note: '' }]);
+
+    const updateMissingRange = (i: number, patch: Partial<any>) =>
+      patchMissingRanges(missingRanges.map((r, k) => (k === i ? { ...r, ...patch } : r)));
+
+    const removeMissingRange = (i: number) =>
+      patchMissingRanges(missingRanges.filter((_, k) => k !== i));
+
+    return (
+      <div className='space-y-6'>
+        {/* 1) Statut (requis) */}
+        <div className='rounded-xl border border-slate-200 bg-white'>
+          <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+            <div className='text-sm font-semibold text-slate-900'>Statut</div>
+            <div className='mt-1 text-xs text-slate-600'>
+              Champs minimum requis pour valider l’occurrence.
+            </div>
+          </div>
+
+          <div className='p-4 space-y-4'>
+            <div className='flex flex-wrap items-center gap-4'>
+              <TriStateButton
+                label='Registre manquant *'
+                mode={mode}
+                value={isMissing}
+                yesLabel='Oui'
+                noLabel='Non'
+                onChange={(v) => onChange(idx, { is_missing: v } as any)}
+              />
+
+              <TriStateButton
+                label='Lacune *'
+                mode={mode}
+                value={lacune}
+                yesLabel='Oui'
+                noLabel='Non'
+                onChange={(v) => onChange(idx, { lacune: v } as any)}
+              />
+            </div>
+
+            {isMissing === true ? (
+              <div className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
+                Registre déclaré manquant : pas besoin de renseigner des segments.
+              </div>
+            ) : null}
+
+            {lacune === true ? (
+              <>
+                <TextAreaField
+                  label='Détail lacune'
+                  readonly={isRO}
+                  value={String((c as any).lacune_note ?? '')}
+                  onChange={(next) => onChange(idx, { lacune_note: next } as any)}
+                  placeholder='Ex. feuillets manquants, vues 120–140 absentes…'
+                  minHeightClassName='min-h-[70px]'
+                />
+
+                <div className='mt-2'>
+                  <div className='flex items-center justify-between gap-3'>
+                    <div>
+                      <div className='text-sm font-semibold text-slate-900'>Plages manquantes</div>
+                      <div className='mt-1 text-xs text-slate-600'>
+                        Alternative structurée à la note.
+                      </div>
+                    </div>
+                    {!isRO ? (
+                      <Button type='button' variant='outline' onClick={addMissingRange}>
+                        Ajouter…
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {missingRanges.length ? (
+                    <div className='mt-3 space-y-2'>
+                      {missingRanges.map((r, i) => (
+                        <div key={i} className='rounded-xl border border-slate-200 bg-white p-3'>
+                          <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Type
+                              </label>
+                              <select
+                                className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
+                                value={String(r.kind ?? 'vue')}
+                                onChange={(e) => updateMissingRange(i, { kind: e.target.value })}
+                                disabled={isRO}
+                              >
+                                <option value='vue'>Vues</option>
+                                <option value='page'>Pages</option>
+                              </select>
+                            </div>
+
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Début
+                              </label>
+                              <Input
+                                inputMode='numeric'
+                                className='mt-1'
+                                value={r.start ?? ''}
+                                onChange={(e) =>
+                                  updateMissingRange(i, { start: toIntOrNull(e.target.value) })
+                                }
+                                disabled={isRO}
+                                placeholder='ex. 120'
+                              />
+                            </div>
+
+                            <div className='md:col-span-3'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Fin
+                              </label>
+                              <Input
+                                inputMode='numeric'
+                                className='mt-1'
+                                value={r.end ?? ''}
+                                onChange={(e) =>
+                                  updateMissingRange(i, { end: toIntOrNull(e.target.value) })
+                                }
+                                disabled={isRO}
+                                placeholder='ex. 140'
+                              />
+                            </div>
+
+                            <div className='md:col-span-3 flex items-end justify-end'>
+                              {!isRO ? (
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  onClick={() => removeMissingRange(i)}
+                                >
+                                  Supprimer
+                                </Button>
+                              ) : null}
+                            </div>
+
+                            <div className='md:col-span-12'>
+                              <label className='block text-xs font-medium text-slate-700'>
+                                Note
+                              </label>
+                              <Input
+                                className='mt-1'
+                                value={String(r.note ?? '')}
+                                onChange={(e) => updateMissingRange(i, { note: e.target.value })}
+                                disabled={isRO}
+                                placeholder='ex. scan manquant…'
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                      Aucune plage renseignée.
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -2544,168 +2736,194 @@ export function SectionSources(props: SectionSourcesProps) {
     const lacune = (c as any).lacune;
 
     return (
-      <div className='flex-1 min-h-0 overflow-y-auto p-4' id='debug-scroll-6'>
-        <div className='space-y-6'>
-          {/* Bloc 1 — Statut & locating */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>Statut & localisation</div>
-              <div className='mt-1 text-xs text-slate-600'>
-                {safeLabel(ex.institution_nom)} · {safeLabel(ex.depot_nom)} ·{' '}
-                <span className='font-medium text-slate-800'>{safeLabel(ex.unite_titre)}</span>
-              </div>
-            </div>
+      <Tabs
+        value={registreFormVariant}
+        onValueChange={(v) => {
+          if (isRO) return;
+          setRegistreFormVariant(v as any);
+        }}
+        className='flex-1 min-h-0 overflow-y-auto p-4'
+      >
+        <TabsContent value='short'>
+          <RegistreFormShort
+            c={c}
+            idx={idx}
+            mode={mode}
+            isRO={isRO}
+            onChange={onChange as any}
+            toIntOrNull={toIntOrNull}
+          />
+        </TabsContent>
 
-            <div className='p-4 space-y-5'>
-              <div>
-                <div className='text-sm font-semibold text-slate-900'>Statut</div>
-
-                <div className='mt-2 flex flex-wrap items-center gap-4'>
-                  <TriStateButton
-                    label='Registre manquant *'
-                    mode={mode}
-                    value={isMissing}
-                    yesLabel='Oui'
-                    noLabel='Non'
-                    onChange={(v) => onChange(idx, { is_missing: v } as any)}
-                  />
-
-                  <TriStateButton
-                    label='Lacune *'
-                    mode={mode}
-                    value={lacune}
-                    yesLabel='Oui'
-                    noLabel='Non'
-                    onChange={(v) => onChange(idx, { lacune: v } as any)}
-                  />
+        <TabsContent value='full'>
+          <div className='space-y-6'>
+            {/* Bloc 1 — Statut & locating */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>Statut & localisation</div>
+                <div className='mt-1 text-xs text-slate-600'>
+                  {safeLabel(ex.institution_nom)} · {safeLabel(ex.depot_nom)} ·{' '}
+                  <span className='font-medium text-slate-800'>{safeLabel(ex.unite_titre)}</span>
                 </div>
+              </div>
 
-                {lacune ? (
-                  <div className='mt-3'>
-                    <TextAreaField
-                      label='Détail lacune'
-                      readonly={isRO}
-                      value={String((c as any).lacune_note ?? '')}
-                      onChange={(next) => onChange(idx, { lacune_note: next } as any)}
-                      placeholder='Ex. vues 120–140 absentes, feuillets manquants…'
-                      minHeightClassName='min-h-[70px]'
+              <div className='p-4 space-y-5'>
+                <div>
+                  <div className='text-sm font-semibold text-slate-900'>Statut</div>
+
+                  <div className='mt-2 flex flex-wrap items-center gap-4'>
+                    <TriStateButton
+                      label='Registre manquant *'
+                      mode={mode}
+                      value={isMissing}
+                      yesLabel='Oui'
+                      noLabel='Non'
+                      onChange={(v) => onChange(idx, { is_missing: v } as any)}
+                    />
+
+                    <TriStateButton
+                      label='Lacune *'
+                      mode={mode}
+                      value={lacune}
+                      yesLabel='Oui'
+                      noLabel='Non'
+                      onChange={(v) => onChange(idx, { lacune: v } as any)}
                     />
                   </div>
-                ) : null}
+
+                  {lacune ? (
+                    <div className='mt-3'>
+                      <TextAreaField
+                        label='Détail lacune'
+                        readonly={isRO}
+                        value={String((c as any).lacune_note ?? '')}
+                        onChange={(next) => onChange(idx, { lacune_note: next } as any)}
+                        placeholder='Ex. vues 120–140 absentes, feuillets manquants…'
+                        minHeightClassName='min-h-[70px]'
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
+                <Separator />
+
+                {/* SegmentsEditor (extrait) */}
+                <SegmentsEditor
+                  ex={ex}
+                  segments={Array.isArray((c as any).segments) ? (c as any).segments : []}
+                  onChange={
+                    !isEdit ? undefined : (next) => onChange(idx, { segments: next } as any)
+                  }
+                  readonly={!isEdit}
+                  type={'registre'}
+                />
+              </div>
+            </div>
+
+            {/* Bloc 2 — Observations */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>Observations</div>
+                <div className='mt-1 text-xs text-slate-600'>
+                  État, repro, dommages, lisibilité, marques.
+                </div>
               </div>
 
-              <Separator />
+              <div className='p-4 space-y-5'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-6'>
+                    <div className='text-xs font-medium text-slate-700'>Condition physique</div>
+                    <RefSinglePickerSmart
+                      table='ref_physical_condition'
+                      mode={mode}
+                      actionsInvisible={false}
+                      value={((c as any).physical_condition_ref ?? null) as any}
+                      onChange={(next) => onChange(idx, { physical_condition_ref: next } as any)}
+                      titleOverride='État physique'
+                    />
+                  </div>
 
-              {/* SegmentsEditor (extrait) */}
-              <SegmentsEditor
-                ex={ex}
-                segments={Array.isArray((c as any).segments) ? (c as any).segments : []}
-                onChange={!isEdit ? undefined : (next) => onChange(idx, { segments: next } as any)}
-                readonly={!isEdit}
-                type={'registre'}
-              />
+                  <div className='md:col-span-6'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Qualité de reproduction
+                    </div>
+                    <RefSinglePickerSmart
+                      table='ref_repro_quality'
+                      mode={mode}
+                      actionsInvisible={false}
+                      value={((c as any).repro_quality_ref ?? null) as any}
+                      onChange={(next) => onChange(idx, { repro_quality_ref: next } as any)}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-12'>
+                    <div className='text-xs font-medium text-slate-700'>Dommages</div>
+                    <RefSinglePickerSmart
+                      table='ref_document_damage_kinds'
+                      mode={mode}
+                      actionsInvisible={false}
+                      multi={true}
+                      value={((c as any).document_damage_kinds_ids ?? null) as any}
+                      onChange={(next) => onChange(idx, { document_damage_kinds_ids: next } as any)}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-6'>
+                    <TextAreaField
+                      label='Marques / signes'
+                      readonly={isRO}
+                      value={String((c as any).marks ?? '')}
+                      onChange={(next) => onChange(idx, { marks: next } as any)}
+                      placeholder='Ex. graphie difficile, index absent, remarque…'
+                      minHeightClassName='min-h-[90px]'
+                    />
+                  </div>
+
+                  <div className='md:col-span-6'>
+                    <TextAreaField
+                      label='Note'
+                      readonly={isRO}
+                      value={String((c as any).note ?? '')}
+                      onChange={(next) => onChange(idx, { note: next } as any)}
+                      placeholder='Ex. graphie difficile, index absent, remarque…'
+                      minHeightClassName='min-h-[90px]'
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bloc 3 — Note de travail */}
+            <div className='rounded-xl border border-slate-200 bg-white'>
+              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
+                <div className='text-sm font-semibold text-slate-900'>Note de travail</div>
+                <div className='mt-1 text-xs text-slate-600'>
+                  Commentaires longs / pistes / TODO.
+                </div>
+              </div>
+
+              <div className='p-4'>
+                <TextAreaField
+                  label=''
+                  readonly={isRO}
+                  value={String((c as any).work_note ?? '')}
+                  onChange={(next) => onChange(idx, { work_note: next } as any)}
+                  placeholder='Ex. vérifier cohérence locating, comparer avec une copie, etc.'
+                  minHeightClassName='min-h-[140px]'
+                />
+              </div>
             </div>
           </div>
-
-          {/* Bloc 2 — Observations */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>Observations</div>
-              <div className='mt-1 text-xs text-slate-600'>
-                État, repro, dommages, lisibilité, marques.
-              </div>
-            </div>
-
-            <div className='p-4 space-y-5'>
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-6'>
-                  <div className='text-xs font-medium text-slate-700'>Condition physique</div>
-                  <RefSinglePickerSmart
-                    table='ref_physical_condition'
-                    mode={mode}
-                    actionsInvisible={false}
-                    value={((c as any).physical_condition_ref ?? null) as any}
-                    onChange={(next) => onChange(idx, { physical_condition_ref: next } as any)}
-                    titleOverride='État physique'
-                  />
-                </div>
-
-                <div className='md:col-span-6'>
-                  <div className='text-xs font-medium text-slate-700'>Qualité de reproduction</div>
-                  <RefSinglePickerSmart
-                    table='ref_repro_quality'
-                    mode={mode}
-                    actionsInvisible={false}
-                    value={((c as any).repro_quality_ref ?? null) as any}
-                    onChange={(next) => onChange(idx, { repro_quality_ref: next } as any)}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-12'>
-                  <div className='text-xs font-medium text-slate-700'>Dommages</div>
-                  <RefSinglePickerSmart
-                    table='ref_document_damage_kinds'
-                    mode={mode}
-                    actionsInvisible={false}
-                    multi={true}
-                    value={((c as any).document_damage_kinds_ids ?? null) as any}
-                    onChange={(next) => onChange(idx, { document_damage_kinds_ids: next } as any)}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-6'>
-                  <TextAreaField
-                    label='Marques / signes'
-                    readonly={isRO}
-                    value={String((c as any).marks ?? '')}
-                    onChange={(next) => onChange(idx, { marks: next } as any)}
-                    placeholder='Ex. graphie difficile, index absent, remarque…'
-                    minHeightClassName='min-h-[90px]'
-                  />
-                </div>
-
-                <div className='md:col-span-6'>
-                  <TextAreaField
-                    label='Note'
-                    readonly={isRO}
-                    value={String((c as any).note ?? '')}
-                    onChange={(next) => onChange(idx, { note: next } as any)}
-                    placeholder='Ex. graphie difficile, index absent, remarque…'
-                    minHeightClassName='min-h-[90px]'
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bloc 3 — Note de travail */}
-          <div className='rounded-xl border border-slate-200 bg-white'>
-            <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-sm font-semibold text-slate-900'>Note de travail</div>
-              <div className='mt-1 text-xs text-slate-600'>Commentaires longs / pistes / TODO.</div>
-            </div>
-
-            <div className='p-4'>
-              <TextAreaField
-                label=''
-                readonly={isRO}
-                value={String((c as any).work_note ?? '')}
-                onChange={(next) => onChange(idx, { work_note: next } as any)}
-                placeholder='Ex. vérifier cohérence locating, comparer avec une copie, etc.'
-                minHeightClassName='min-h-[140px]'
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     );
   }
 
@@ -2744,6 +2962,37 @@ export function SectionSources(props: SectionSourcesProps) {
 
   const canShowEditor = Boolean(activeUniteKey && selectedKey && selectedMeta);
 
+  useEffect(() => {
+    if (type !== 'acte') return;
+    if (!isEdit) return; // en view tu es déjà en full par défaut
+    if (!selectedMeta || !selectedKey) return;
+
+    // déjà appliqué pour cet exemplaire ? => ne pas écraser le choix user
+    if (autoOpenedFullActeByKeyRef.current.has(selectedKey)) return;
+
+    const status = getActeCompleteness(selectedMeta.c as any).status;
+    if (status === 'ok') {
+      setActeFormVariant('full');
+    }
+
+    autoOpenedFullActeByKeyRef.current.add(selectedKey);
+  }, [type, isEdit, selectedMeta, selectedKey]);
+
+  useEffect(() => {
+    if (type !== 'registre') return;
+    if (!isEdit) return; // en view tu es déjà en full par défaut
+    if (!selectedMeta || !selectedKey) return;
+
+    if (autoOpenedFullRegistreByKeyRef.current.has(selectedKey)) return;
+
+    const status = getRegistreCompleteness(selectedMeta.c as any).status;
+    if (status === 'ok') {
+      setRegistreFormVariant('full');
+    }
+
+    autoOpenedFullRegistreByKeyRef.current.add(selectedKey);
+  }, [type, isEdit, selectedMeta, selectedKey]);
+
   // ---------------------------------------------------------------------------
   // UI
   // ---------------------------------------------------------------------------
@@ -2777,14 +3026,12 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[BUG] lisibilité manuscrite</li>
-
-                      <li>[UX] En-tête de l'exemplaire: choisir les champs pertinents à afficher</li>
-                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
-
-                      <li>[MODEL] Champ work_note</li>
+                      <li>[MODEL] lisibilité manuscrite (ref_document_readability_features.applicable_to)</li>
 
                       <li>[LABEL] revoir les titres des headers des sections</li>
+                      
+                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
+                      <li>[MODEL] Champ work_note</li>
                     </ol>
                   </div>
                 </div>
@@ -2807,13 +3054,14 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[UX] Faire un formulaire minimal</li>
-                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
-
+                      <li>[MODEL] Ajouter la prop missing_range au registre et le brancher sur getRegistreCompleteness</li>
                       <li>[MODEL] (repérées de ? à ?)</li>
-                      <li>[MODEL] Champ work_note</li>
+                      
 
                       <li>[LABEL] revoir les titres des headers des sections</li>
+
+                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
+                      <li>[MODEL] Champ work_note</li>
                     </ol>
                   </div>
                 </div>
@@ -2898,13 +3146,27 @@ export function SectionSources(props: SectionSourcesProps) {
               onOpenPickerForIdx={isEdit ? openPickerForIdx : () => {}}
               renderActe={({ c, idx, draftKey, globalNo }) => (
                 <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
-                  {renderActeHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
+                  {renderActeHeader({
+                    c: c as any,
+                    globalNo,
+                    idx,
+                    draftKey,
+                    readonly: isRO,
+                    status: getExemplaireStatus(c as any) as any,
+                  })}
                   {renderActeForm({ c: c as any, idx, mode: mode })}
                 </div>
               )}
               renderRegistre={({ c, idx, draftKey, globalNo }) => (
                 <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
-                  {renderRegistreHeader({ c: c as any, globalNo, idx, draftKey, readonly: isRO })}
+                  {renderRegistreHeader({
+                    c: c as any,
+                    globalNo,
+                    idx,
+                    draftKey,
+                    readonly: isRO,
+                    status: getExemplaireStatus(c as any) as any,
+                  })}
                   {renderRegistreForm({ c: c as any, idx, mode: mode })}
                 </div>
               )}
