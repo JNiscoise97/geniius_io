@@ -13,7 +13,9 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilRegistre } from '@/types/etatcivil';
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
-import { Field } from '@/components/shared/fields';
+import { Field } from '@/components/shared/Fields';
+import { AlertTriangle } from 'lucide-react';
+
 
 type TypeActeMultiRef = { ids: string[] } | null;
 
@@ -41,11 +43,8 @@ export function RegistreCreateModal({
     useState<string | null>(null);
   const [registreStatutJuridiqueRef, setRegistreStatutJuridiqueRef] =
     useState<string | null>(null);
-
-  // legacy / encore utilisé dans tes conflits + insert
-  const [statutJuridique, setStatutJuridique] = useState<
-    null | 'esclave' | 'nouveau_libre'
-  >(null);
+  const [registreRegimeFiscalSupportRef, setRegistreRegimeFiscalSupportRef] =
+    useState<string | null>(null);
 
   const [nombreActesEstime, setNombreActesEstime] = useState<number | null>(
     null,
@@ -70,8 +69,8 @@ export function RegistreCreateModal({
     setRegistreModeRef(null);
     setRegistreOrdreNumerotationRef(null);
     setRegistreStatutJuridiqueRef(null);
+    setRegistreRegimeFiscalSupportRef(null);
 
-    setStatutJuridique(null);
 
     setNombreActesEstime(null);
     setNumeroActeMin(1);
@@ -128,7 +127,6 @@ export function RegistreCreateModal({
 
       const conflit = registresExistants?.some((r) => {
         if (r.annee !== anneeInt) return false;
-        if (r.statut_juridique !== statutJuridique) return false;
 
         const existingTypes = (r.type_acte ?? '').split('|').filter(Boolean);
         return existingTypes.some((type) => selectedSet.has(type));
@@ -153,10 +151,10 @@ export function RegistreCreateModal({
             type_acte: selectedTypeLabels.join('|'),
 
             registre_mode_ref: registreModeRef,
-            statut_juridique: statutJuridique,
 
             registre_ordre_numerotation_ref: registreOrdreNumerotationRef,
             registre_statut_juridique_ref: registreStatutJuridiqueRef,
+            registre_regime_fiscal_support_ref: registreRegimeFiscalSupportRef,
 
             nombre_actes_estime: nombreActesEstime,
             numero_acte_min: numeroActeMin,
@@ -194,6 +192,31 @@ export function RegistreCreateModal({
         }
       }
 
+      // 5) calcul + update label (après pivot, sinon create_registre_label ne "voit" pas les types)
+      if (data?.id) {
+        try {
+          const { data: def, error: defErr } = await supabase.rpc('create_registre_label', {
+            p_registre_id: data.id,
+          });
+          if (defErr) throw defErr;
+
+          const nextLabel = String(def ?? '').trim();
+
+          const { error: labErr } = await supabase
+            .from('etat_civil_registres')
+            .update({ label: nextLabel || null })
+            .eq('id', data.id);
+
+          if (labErr) throw labErr;
+
+          // important : si tu relies `registre.label` dans l'UI, renvoie le registre MAJ
+          data.label = nextLabel || null;
+        } catch (e: any) {
+          console.warn('[RegistreCreateModal] init label failed', e);
+          // tu peux décider : non-bloquant (souvent ok) ou bloquant selon ton besoin
+        }
+      }
+
       toast.success('Registre ajouté avec succès');
       if (onRegistreCreated && data) onRegistreCreated(data);
       handleClose();
@@ -221,6 +244,21 @@ export function RegistreCreateModal({
           <DialogTitle>Ajouter un registre</DialogTitle>
         </DialogHeader>
 
+        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+          <div className='flex items-start gap-3'>
+            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+            <div className='min-w-0'>
+              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+              <div className='mt-0.5 text-xs text-amber-800'>
+                <ol>
+                  <li>[MODEL] remplissage auto de "Cadre juridique et population concernée" en fonction du type d'acte</li>
+                  <li>[MODEL] multi select du "Cadre juridique et population concernée"</li>
+                  <li>[MODEL] corrélation entre "Cadre juridique et population concernée" et "Types d’actes"</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Body */}
         <div className='flex-1 overflow-hidden'>
           <div className='h-full overflow-y-auto px-6 py-5'>
@@ -232,7 +270,7 @@ export function RegistreCreateModal({
 
               <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
                 <div className='md:col-span-3'>
-                  <Field label='Année' readonly={false} value={annee}>
+                  <Field label='Année *' readonly={false} value={annee}>
                     <Input
                       inputMode='numeric'
                       value={annee}
@@ -244,7 +282,7 @@ export function RegistreCreateModal({
 
                 <div className='md:col-span-9'>
                   <div className='text-xs font-medium text-slate-700'>
-                    Types d’actes
+                    Types d’actes *
                   </div>
 
                   <div className='mt-1'>
@@ -257,18 +295,14 @@ export function RegistreCreateModal({
                       onChange={(next) => {
                         const ids = Array.isArray(next)
                           ? Array.from(
-                              new Set((next as any[]).map(String).filter(Boolean)),
-                            )
+                            new Set((next as any[]).map(String).filter(Boolean)),
+                          )
                           : [];
                         setTypeActeRef(ids.length ? { ids } : null);
                       }}
                       titleOverride='Types d’actes'
                     />
                   </div>
-
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    Champ requis.
-                  </p>
                 </div>
               </div>
             </section>
@@ -282,7 +316,7 @@ export function RegistreCreateModal({
               <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
                 <div className='md:col-span-12'>
                   <div className='text-xs font-medium text-slate-700'>
-                    Mode de constitution du registre
+                    Mode de constitution du registre *
                   </div>
                   <div className='mt-1'>
                     <RefSinglePickerSmart
@@ -299,7 +333,7 @@ export function RegistreCreateModal({
 
                 <div className='md:col-span-12'>
                   <div className='text-xs font-medium text-slate-700'>
-                    Règle d’attribution des numéros d’actes
+                    Règle d’attribution des numéros d’actes *
                   </div>
                   <div className='mt-1'>
                     <RefSinglePickerSmart
@@ -329,9 +363,23 @@ export function RegistreCreateModal({
                       }
                     />
                   </div>
+                </div>
 
-                  {/* NOTE: "statutJuridique" (esclave/nouveau_libre) est encore utilisé pour les conflits + insert.
-                      Si tu veux le piloter ici, réactive un select explicite ou fais un mapping ref->enum. */}
+                <div className='md:col-span-12'>
+                  <div className='text-xs font-medium text-slate-700'>
+                    Régime fiscal et probatoire du support
+                  </div>
+                  <div className='mt-1'>
+                    <RefSinglePickerSmart
+                      table='ref_registre_regime_fiscal_support'
+                      mode='edit'
+                      actionsInvisible={false}
+                      value={registreRegimeFiscalSupportRef}
+                      onChange={(next) =>
+                        setRegistreRegimeFiscalSupportRef(next ? String(next) : null)
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </section>

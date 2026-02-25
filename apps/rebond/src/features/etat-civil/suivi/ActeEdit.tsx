@@ -1,5 +1,5 @@
 // ActeEdit.tsx
-import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users, InfoIcon, Pickaxe, PickaxeIcon } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users, InfoIcon, Pickaxe, PickaxeIcon, LayoutDashboard } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEtatCivilActesStore } from '@/store/useEtatCivilActesStore';
@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/accordion';
 import type { EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 import { useEtatCivilStore } from '@/store/etatcivil';
-import { getRegistreLabel } from './BureauRegistres';
 import { ActeCoherence, getErrorsForActe, type Incoherence } from '../ActeCoherence-complet';
 import { getIconForStatut } from '@/features/actes/transcription/constants/statutConfig';
 import { Badge } from '@/components/ui/badge';
@@ -31,9 +30,11 @@ import {
 import ReferenceArchiveTab from '@/features/actes/tabs/ReferenceArchiveTab';
 import TranscriptionTab from '@/features/actes/tabs/TranscriptionTab';
 import ExtractionTab from '@/features/actes/tabs/ExtractionTab';
+import OverviewActeTab from '@/features/actes/tabs/OverviewActeTab';
 
 const tabs = [
   { label: 'Acte', icon: FileText },
+  { label: 'Overview', icon: LayoutDashboard  },
   { label: 'Référence archive', icon: Archive },
   { label: 'Transcription', icon: FileText },
   { label: 'Extraction', icon: Pickaxe },
@@ -262,7 +263,7 @@ export default function ActeEdit() {
                 {registre && (
                   <>
                     <span className='text-gray-800'>
-                      {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
+                      {registre.label}
                     </span>
                     <span className='text-gray-500'>{registre.annee}</span>
                     <span className='text-gray-500'>acte n°{acte.numero_acte}</span>
@@ -292,7 +293,7 @@ export default function ActeEdit() {
           </div>
         </div>
 
-        <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+        <div className='flex items-center gap-8 px-6 text-sm border-b bg-white'>
           {tabs.map(({ label, icon: Icon }) => {
             const isActive = activeSection === label;
             return (
@@ -410,6 +411,14 @@ export default function ActeEdit() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+        )}
+        {activeSection === 'Overview' && (
+          <div className="p-1">
+            <OverviewActeTab
+              mode={'edit'}
+              acteId={acteId!}
+            />
+          </div>
         )}
         {activeSection === 'Référence archive' && (
           <div className="p-1">

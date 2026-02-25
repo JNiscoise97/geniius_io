@@ -25,7 +25,7 @@ export function BureauRegistres({
         label: "Type d'acte",
         render: (row) => (
             <Link to={`/ec-registre/${bureauId}/${row.id}`} className='font-medium hover:text-indigo-600'>
-                      {getRegistreLabel(row.type_acte, row.statut_juridique)}
+                      {row.label}
                     </Link>
         ),
       },
@@ -118,45 +118,4 @@ export function BureauRegistres({
     </>
   );
 }
-  
-  export function getRegistreLabel(typeActe: string, statut_juridique?: string): string {
-  const types = typeActe.split('|');
-  const baseTypes = ['naissance', 'reconnaissance', 'affranchissement', 'jugement'];
-
-  const joinAvecEt = (items: string[]) => {
-    if (items.length === 0) return '';
-    if (items.length === 1) return items[0];
-    if (items.length === 2) return `${items[0]} et ${items[1]}`;
-    return `${items.slice(0, -1).join(', ')} et ${items[items.length - 1]}`;
-  };
-
-  const suffixeStatut =
-    statut_juridique === 'esclave'
-      ? ' des esclaves'
-      : statut_juridique === 'nouveau_libre'
-      ? ' des nouveaux libres'
-      : '';
-
-  if (types.length > 1) {
-    const uniquementBase = types.every((t) => baseTypes.includes(t));
-
-    if (uniquementBase) {
-      const autres = types.filter((t) => t !== 'naissance');
-      const labelAutres =
-        autres.length > 0
-          ? ` incluant ${joinAvecEt(
-              autres.map((t) => `les ${t}${t.endsWith('s') || t.endsWith('x') ? '' : 's'}`)
-            )}`
-          : '';
-      return `Registre des naissances${labelAutres}${suffixeStatut}`;
-    } else {
-      const labels = types.map((t) => `les ${t}${t.endsWith('s') || t.endsWith('x') ? '' : 's'}`);
-      return `Registre incluant ${joinAvecEt(labels)}${suffixeStatut}`;
-    }
-  } else {
-    const t = types[0];
-    return `Registre des ${t}${t.endsWith('s') || t.endsWith('x') ? '' : 's'}${suffixeStatut}`;
-  }
-}
-
   

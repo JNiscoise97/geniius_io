@@ -6,9 +6,11 @@ import type { Mode } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Check, Copy } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Field } from '@/components/shared/fields';
+import { Field } from '@/components/shared/Fields';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { StatusIcon, type CompletenessResult } from './ReferenceSourcesCard';
 
 type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
@@ -46,8 +48,8 @@ export type RegistreReferenceIdentificationFormState = {
   nombre_actes_estime: string; // string pour Input
   numero_acte_min: string; // string pour Input
   numero_acte_max: string; // string pour Input
-  statut_juridique: 'esclave' | 'nouveau_libre' | '';
   registre_statut_juridique_ref: string | null;
+  registre_regime_fiscal_support_ref: string | null;
   registre_support_ref: string | null;
   registre_pagination_ref: string | null;
   registre_langue_ref: string | null;
@@ -55,34 +57,126 @@ export type RegistreReferenceIdentificationFormState = {
   registre_norme_ref: string | null;
 };
 
+export function getRegistreShortCompleteness(
+  f: RegistreReferenceIdentificationFormState,
+): CompletenessResult {
+  const missing: string[] = [];
+
+  // ---- TYPE(S) D’ACTE ----
+  const typeIds = toIds(f.type_acte_ref) ?? [];
+  if (typeIds.length === 0) {
+    missing.push('type_acte_ref (au moins un type)');
+  }
+
+  // ---- ANNÉE ----
+  const year = String(f.annee ?? '').trim();
+  if (!year) {
+    missing.push('annee');
+  }
+
+  // ---- MODE DE CONSTITUTION ----
+  if (!f.registre_mode_ref) {
+    missing.push('registre_mode_ref');
+  }
+
+  // ---- ORDRE DE NUMÉROTATION ----
+  if (!f.registre_ordre_numerotation_ref) {
+    missing.push('registre_ordre_numerotation_ref');
+  }
+
+  // ---- STATUS LOGIC ----
+  // (si un jour tu ajoutes un champ type "is_missing" pour registre,
+  // tu pourras ici renvoyer status: 'missing')
+
+  return {
+    status: missing.length ? 'todo' : 'ok',
+    missing,
+  };
+}
+
 type Props =
   | {
-      id: string;
-      type: 'acte';
-      mode?: Mode;
-      form: ActeReferenceIdentificationFormState;
-      setField: <K extends keyof ActeReferenceIdentificationFormState>(
-        key: K,
-        value: ActeReferenceIdentificationFormState[K],
-      ) => void;
-    }
+    id: string;
+    type: 'acte';
+    mode?: Mode;
+    form: ActeReferenceIdentificationFormState;
+    setField: <K extends keyof ActeReferenceIdentificationFormState>(
+      key: K,
+      value: ActeReferenceIdentificationFormState[K],
+    ) => void;
+  }
   | {
-      id: string;
-      type: 'registre';
-      mode?: Mode;
-      form: RegistreReferenceIdentificationFormState;
-      setField: <K extends keyof RegistreReferenceIdentificationFormState>(
-        key: K,
-        value: RegistreReferenceIdentificationFormState[K],
-      ) => void;
-    };
+    id: string;
+    type: 'registre';
+    mode?: Mode;
+    form: RegistreReferenceIdentificationFormState;
+    setField: <K extends keyof RegistreReferenceIdentificationFormState>(
+      key: K,
+      value: RegistreReferenceIdentificationFormState[K],
+    ) => void;
+  };
 
 export function SectionIdentification(props: Props) {
-  const { id, type, form } = props;
+  const { type, form } = props;
   const isEdit = props.mode === 'edit';
+
+  const [registreFormVariant, setRegistreFormVariant] = useState<'short' | 'full'>(() =>
+    isEdit ? 'short' : 'full',
+  );
+
+  // auto-open full (une fois) quand le short est complet
+  const autoOpenedFullByIdRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    // reset quand on change d'objet
+    if (props.type !== 'registre') return;
+    setRegistreFormVariant(isEdit ? 'short' : 'full');
+    autoOpenedFullByIdRef.current.delete(props.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.type, props.id, isEdit]);
 
   const currentTypeActeIds = toIds(props.form.type_acte_ref);
   const currentTypeActeId = currentTypeActeIds?.[0] ?? null;
+
+  const normalizeIdSet = (ids: (string | null | undefined)[]) =>
+    Array.from(new Set((ids ?? []).map(String).filter(Boolean))).sort();
+
+  const isSameIdSet = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  };
+
+  const [typeActeChanged, setTypeActeChanged] = useState(false);
+  const initialTypeActeIdsRef = useRef<string[] | null>(null);
+
+
+
+  const shortCompleteness: CompletenessResult | null =
+    props.type === 'registre' ? getRegistreShortCompleteness(props.form) : null;
+
+
+  useEffect(() => {
+  if (props.type !== 'registre') return;
+  if (!isEdit) return;
+  if (autoOpenedFullByIdRef.current.has(props.id)) return;
+  if (!shortCompleteness) return;
+
+  if (shortCompleteness.status === 'ok') {
+    setRegistreFormVariant('full');
+    autoOpenedFullByIdRef.current.add(props.id);
+  }
+}, [props.type, isEdit, props.id, shortCompleteness]);
+
+
+
+  // reset snapshot quand on change d’objet (registreId / props.id)
+  useEffect(() => {
+    if (props.type !== 'registre') return;
+    initialTypeActeIdsRef.current = normalizeIdSet(toIds(props.form.type_acte_ref) ?? []);
+    setTypeActeChanged(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.type, props.id]);
 
   const [copied, setCopied] = useState(false);
 
@@ -146,10 +240,8 @@ export function SectionIdentification(props: Props) {
       return;
     }
 
-    const { data, error } = await supabase
-      .from('ref_ec_type_acte')
-      .select('id,label')
-      .in('id', clean);
+    const { data } = await supabase
+      .from('ref_ec_type_acte').select('id,label').in('id', clean);
 
     const byId = new Map((data ?? []).map((r: any) => [r.id, String(r.label ?? '')]));
     const labels = clean.map((id) => byId.get(id) ?? '');
@@ -164,6 +256,11 @@ export function SectionIdentification(props: Props) {
   const setRegistreOrdreNumerotationRef = async (nextId: string | null) => {
     if (props.type !== 'registre') return;
     props.setField('registre_ordre_numerotation_ref', nextId);
+  };
+
+  const setRegistreRegimeFiscalSupportRef = async (nextId: string | null) => {
+    if (props.type !== 'registre') return;
+    props.setField('registre_regime_fiscal_support_ref', nextId);
   };
 
   const setRegistreModeRef = async (nextId: string | null) => {
@@ -203,46 +300,25 @@ export function SectionIdentification(props: Props) {
 
   return (
     <section>
-      <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-        <div className='flex items-start gap-3'>
-          <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-          <div className='min-w-0'>
-            <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-            <div className='mt-0.5 text-xs text-amber-800'>
-              <ol>
-                <li>
-                  [MODEL] supprimer les champs les champs ordre_numérotation et statut juridique en BD
-                </li>
-                <li>[MODEL] Créer un champ nom pour le nom du registre</li>
-
-                <li>[UX] Faire un formulaire court/complet pour les registres</li>
-                <li>[UX] Modifier le titre du registre à la volée</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
         {/* UUID */}
         <div className='md:col-span-12'>
-          <label className='block text-xs font-medium text-slate-700'>
-            Identifiant administratif
-          </label>
+          <label className='block text-xs font-medium text-slate-700'>Identifiant administratif</label>
           <div className='flex w-fit gap-2'>
             <Input value={props.id} disabled className='font-mono' />
-            {isEdit && (
-              <Button
-                type='button'
-                size='icon'
-                variant='secondary'
-                onClick={() => copyToClipboard(props.id)}
-                title='Copier l’id'
-                aria-label='Copier l’id'
-              >
-                {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
-              </Button>
-            )}
+
+            <Button
+              type='button'
+              size='icon'
+              variant='secondary'
+              onClick={() => copyToClipboard(props.id)}
+              title='Copier l’id'
+              aria-label='Copier l’id'
+            >
+              {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+            </Button>
+
           </div>
         </div>
 
@@ -257,7 +333,7 @@ export function SectionIdentification(props: Props) {
               actionsInvisible={false}
               value={currentTypeActeId}
               onChange={async (next) => setTypeActeRef(next ? String(next) : null)}
-              titleOverride='Types d’actes'
+              titleOverride='Type d’acte *'
             />
           ) : (
             <RefSinglePickerSmart
@@ -267,194 +343,288 @@ export function SectionIdentification(props: Props) {
               multi={true}
               value={(toIds(props.form.type_acte_ref) ?? []) as any}
               onChange={async (next) => {
-                // narrow ici aussi (callback)
                 if (props.type !== 'registre') return;
-                await setTypeActeRefs(Array.isArray(next) ? (next as any[]).map(String) : []);
+
+                const nextIds = Array.isArray(next) ? (next as any[]).map(String).filter(Boolean) : [];
+                await setTypeActeRefs(nextIds);
+
+                const a = initialTypeActeIdsRef.current ?? [];
+                const b = normalizeIdSet(nextIds);
+
+                const changed = !isSameIdSet(a, b);
+                setTypeActeChanged(changed);
+
+                if (changed) {
+                  toast.message("Type(s) d’acte modifié(s)", {
+                    description:
+                      'À l’enregistrement, le label du registre sera recalculé (valeur par défaut).',
+                  });
+                }
               }}
-              titleOverride='Types d’actes'
+              titleOverride='Types d’actes *'
             />
           )}
         </div>
 
         {/* === Registre spécifique === */}
         {type === 'registre' ? (
-          <>
-            {/* ───────────── */}
-            <div className='md:col-span-12 mt-2'>
-              <h4 className='text-sm font-semibold text-slate-900'>Périmètre temporel</h4>
-            </div>
-
-            <div className='md:col-span-2'>
-              <Field label='Année' readonly={!isEdit} value={form.annee}>
-                <Input
-                  value={form.annee}
-                  inputMode='numeric'
-                  onChange={(e) => props.setField('annee', e.target.value as any)}
-                  placeholder='Ex. 1898'
-                />
-              </Field>
-            </div>
-
-            {/* ───────────── */}
-            <div className='md:col-span-12 mt-4'>
-              <h4 className='text-sm font-semibold text-slate-900'>
-                Logique administrative et juridique du registre
-              </h4>
-            </div>
-
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Mode de constitution du registre
+          <div className='md:col-span-12'>
+            {isEdit ? (
+              <div className='flex items-center justify-end mb-2'>
+                <Tabs value={registreFormVariant} onValueChange={(v) => setRegistreFormVariant(v as any)}>
+                  <TabsList>
+                    <TabsTrigger value='short' className='text-xs flex items-center gap-2'>
+                      {shortCompleteness ? (
+                        <div
+                          title={
+                            shortCompleteness.status !== 'ok'
+                              ? shortCompleteness.missing.join('\n')
+                              : undefined
+                          }
+                        >
+                          <StatusIcon status={shortCompleteness.status} />
+                        </div>
+                      ) : null}
+                      Formulaire court
+                    </TabsTrigger>
+                    <TabsTrigger value='full' className='text-xs'>
+                      Formulaire complet
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
-              <RefSinglePickerSmart
-                table='ref_registre_mode'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_mode_ref}
-                onChange={(next) => setRegistreModeRef(next ? String(next) : null)}
-              />
-            </div>
+            ) : null}
 
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Règle d’attribution des numéros d’actes
-              </div>
-              <RefSinglePickerSmart
-                table='ref_registre_ordre_numerotation'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_ordre_numerotation_ref}
-                onChange={(next) => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
-              />
-            </div>
+            <Tabs value={registreFormVariant} onValueChange={(v) => setRegistreFormVariant(v as any)}>
+              <TabsContent value='short'>
+                {/* ✅ Ton registre “short” ici */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  {/* Périmètre temporel */}
+                  <div className='md:col-span-12 mt-2'>
+                    <h4 className='text-sm font-semibold text-slate-900'>Périmètre temporel</h4>
+                  </div>
 
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Cadre juridique et population concernée
-              </div>
+                  <div className='md:col-span-2'>
+                    <Field label='Année *' readonly={!isEdit} value={form.annee}>
+                      <Input
+                        value={form.annee}
+                        inputMode='numeric'
+                        onChange={(e) => props.setField('annee', e.target.value as any)}
+                        placeholder='Ex. 1898'
+                      />
+                    </Field>
+                  </div>
 
-              <RefSinglePickerSmart
-                table='ref_registre_statut_juridique'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_statut_juridique_ref}
-                onChange={(next) => setRegistreStatutJuridiqueRef(next ? String(next) : null)}
-              />
-            </div>
+                  <div className='md:col-span-12 mt-4'>
+                    <h4 className='text-sm font-semibold text-slate-900'>
+                      Logique administrative (minimum)
+                    </h4>
+                  </div>
 
-            <div className='md:col-span-12 mt-4'>
-              <h4 className='text-sm font-semibold text-slate-900'>Volumétrie et numérotation</h4>
-            </div>
+                  <div className='md:col-span-4'>
+                    <div className='text-xs font-medium text-slate-700'>Mode de constitution *</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_mode'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_mode_ref}
+                      onChange={(next) => setRegistreModeRef(next ? String(next) : null)}
+                    />
+                  </div>
 
-            <div className='md:col-span-3'>
-              <Field
-                label='Nombre d’actes estimé'
-                readonly={!isEdit}
-                value={form.nombre_actes_estime}
-              >
-                <Input
-                  value={form.nombre_actes_estime}
-                  inputMode='numeric'
-                  onChange={(e) => props.setField('nombre_actes_estime', e.target.value as any)}
-                  placeholder='Ex. 120'
-                />
-              </Field>
-            </div>
+                  <div className='md:col-span-4'>
+                    <div className='text-xs font-medium text-slate-700'>Ordre de numérotation *</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_ordre_numerotation'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_ordre_numerotation_ref}
+                      onChange={(next) => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
 
-            <div className='md:col-span-3'>
-              <Field label='N° acte minimum' readonly={!isEdit} value={form.numero_acte_min}>
-                <Input
-                  value={form.numero_acte_min}
-                  inputMode='numeric'
-                  onChange={(e) => props.setField('numero_acte_min', e.target.value as any)}
-                  placeholder='Ex. 1'
-                />
-              </Field>
-            </div>
+              <TabsContent value='full'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='md:col-span-12 mt-2'>
+                    <h4 className='text-sm font-semibold text-slate-900'>Périmètre temporel</h4>
+                  </div>
 
-            <div className='md:col-span-3'>
-              <Field label='N° acte maximum' readonly={!isEdit} value={form.numero_acte_max}>
-                <Input
-                  value={form.numero_acte_max}
-                  inputMode='numeric'
-                  onChange={(e) => props.setField('numero_acte_max', e.target.value as any)}
-                  placeholder='Ex. 240'
-                />
-              </Field>
-            </div>
+                  <div className='md:col-span-2'>
+                    <Field label='Année *' readonly={!isEdit} value={form.annee}>
+                      <Input
+                        value={form.annee}
+                        inputMode='numeric'
+                        onChange={(e) => props.setField('annee', e.target.value as any)}
+                        placeholder='Ex. 1898'
+                      />
+                    </Field>
+                  </div>
 
-            <div className='md:col-span-12 mt-4'>
-              <h4 className='text-sm font-semibold text-slate-900'>
-                Matérialité et tenue du registre
-              </h4>
-            </div>
+                  <div className='md:col-span-12 mt-4'>
+                    <h4 className='text-sm font-semibold text-slate-900'>
+                      Logique administrative et juridique du registre
+                    </h4>
+                  </div>
 
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>Forme matérielle du registre</div>
-              <RefSinglePickerSmart
-                table='ref_registre_support'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_support_ref}
-                onChange={(next) => setRegistreSupportRef(next ? String(next) : null)}
-              />
-            </div>
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>Mode de constitution du registre *</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_mode'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_mode_ref}
+                      onChange={(next) => setRegistreModeRef(next ? String(next) : null)}
+                    />
+                  </div>
 
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>Système de repérage interne</div>
-              <RefSinglePickerSmart
-                table='ref_registre_pagination'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_pagination_ref}
-                onChange={(next) => setRegistrePaginationRef(next ? String(next) : null)}
-              />
-            </div>
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Règle d’attribution des numéros d’actes *
+                    </div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_ordre_numerotation'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_ordre_numerotation_ref}
+                      onChange={(next) => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
+                    />
+                  </div>
 
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Langue administrative principale du registre
-              </div>
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Cadre juridique et population concernée
+                    </div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_statut_juridique'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_statut_juridique_ref}
+                      onChange={(next) => setRegistreStatutJuridiqueRef(next ? String(next) : null)}
+                    />
+                  </div>
 
-              <RefSinglePickerSmart
-                table='ref_langues'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_langue_ref}
-                onChange={(next) => setRegistreLangueRef(next ? String(next) : null)}
-              />
-            </div>
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Régime fiscal et probatoire du support
+                    </div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_regime_fiscal_support'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_regime_fiscal_support_ref}
+                      onChange={(next) => setRegistreRegimeFiscalSupportRef(next ? String(next) : null)}
+                    />
+                  </div>
 
-            <div className='md:col-span-12 mt-4'>
-              <h4 className='text-sm font-semibold text-slate-900'>
-                Cadre administratif et archivistique
-              </h4>
-            </div>
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Rôle administratif du registre
-              </div>
-              <RefSinglePickerSmart
-                table='ref_registre_fonction'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_fonction_ref}
-                onChange={(next) => setRegistreFonctionRef(next ? String(next) : null)}
-              />
-            </div>
-            <div className='md:col-span-3'>
-              <div className='text-xs font-medium text-slate-700'>
-                Degré de conformité aux normes légales
-              </div>
-              <RefSinglePickerSmart
-                table='ref_registre_norme'
-                mode={isEdit ? 'edit' : 'view'}
-                actionsInvisible={false}
-                value={form.registre_norme_ref}
-                onChange={(next) => setRegistreNormeRef(next ? String(next) : null)}
-              />
-            </div>
-          </>
+                  <div className='md:col-span-12 mt-4'>
+                    <h4 className='text-sm font-semibold text-slate-900'>Volumétrie et numérotation</h4>
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <Field label='Nombre d’actes estimé' readonly={!isEdit} value={form.nombre_actes_estime}>
+                      <Input
+                        value={form.nombre_actes_estime}
+                        inputMode='numeric'
+                        onChange={(e) => props.setField('nombre_actes_estime', e.target.value as any)}
+                        placeholder='Ex. 120'
+                      />
+                    </Field>
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <Field label='N° acte minimum' readonly={!isEdit} value={form.numero_acte_min}>
+                      <Input
+                        value={form.numero_acte_min}
+                        inputMode='numeric'
+                        onChange={(e) => props.setField('numero_acte_min', e.target.value as any)}
+                        placeholder='Ex. 1'
+                      />
+                    </Field>
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <Field label='N° acte maximum' readonly={!isEdit} value={form.numero_acte_max}>
+                      <Input
+                        value={form.numero_acte_max}
+                        inputMode='numeric'
+                        onChange={(e) => props.setField('numero_acte_max', e.target.value as any)}
+                        placeholder='Ex. 240'
+                      />
+                    </Field>
+                  </div>
+
+                  <div className='md:col-span-12 mt-4'>
+                    <h4 className='text-sm font-semibold text-slate-900'>Matérialité et tenue du registre</h4>
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>Forme matérielle du registre</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_support'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_support_ref}
+                      onChange={(next) => setRegistreSupportRef(next ? String(next) : null)}
+                    />
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>Système de repérage interne</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_pagination'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_pagination_ref}
+                      onChange={(next) => setRegistrePaginationRef(next ? String(next) : null)}
+                    />
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>
+                      Langue administrative principale du registre
+                    </div>
+                    <RefSinglePickerSmart
+                      table='ref_langues'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_langue_ref}
+                      onChange={(next) => setRegistreLangueRef(next ? String(next) : null)}
+                    />
+                  </div>
+
+                  <div className='md:col-span-12 mt-4'>
+                    <h4 className='text-sm font-semibold text-slate-900'>
+                      Cadre administratif et archivistique
+                    </h4>
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>Rôle administratif du registre</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_fonction'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_fonction_ref}
+                      onChange={(next) => setRegistreFonctionRef(next ? String(next) : null)}
+                    />
+                  </div>
+
+                  <div className='md:col-span-3'>
+                    <div className='text-xs font-medium text-slate-700'>Degré de conformité aux normes légales</div>
+                    <RefSinglePickerSmart
+                      table='ref_registre_norme'
+                      mode={isEdit ? 'edit' : 'view'}
+                      actionsInvisible={false}
+                      value={form.registre_norme_ref}
+                      onChange={(next) => setRegistreNormeRef(next ? String(next) : null)}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         ) : null}
       </div>
     </section>

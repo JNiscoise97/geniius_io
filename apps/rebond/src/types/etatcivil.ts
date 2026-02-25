@@ -18,16 +18,17 @@ export interface EtatCivilBureau {
   export interface EtatCivilRegistre {
     id: string;
     annee: number;
+    label: number;
     type_acte: string;
     registre_mode_ref: string | null;
     registre_ordre_numerotation_ref: string | null;
     registre_statut_juridique_ref: string | null;
+    registre_regime_fiscal_support_ref: string | null;
     registre_support_ref: string | null;
     registre_pagination_ref: string | null;
     registre_langue_ref: string | null;
     registre_fonction_ref: string | null;
     registre_norme_ref: string | null;
-    statut_juridique?: string;
     actes_estimes: number;
     actes_transcrits: number;
     actes_a_transcrire: number;

@@ -31,8 +31,8 @@ import { getIconForStatutFromStats } from '@/features/actes/transcription/consta
 import { RadialActesChart } from '@/components/stats/RadialActesChart';
 
 const tabs: { label: string; icon: React.ElementType }[] = [
-  { label: 'Statistiques', icon: BarChart2 },
   { label: 'Registres', icon: FileText },
+  { label: 'Statistiques', icon: BarChart2 },
   { label: 'Officiers', icon: User },
   { label: 'Sources', icon: BookOpen },
   { label: 'Qualité des données', icon: AlertCircle },
@@ -121,7 +121,7 @@ export default function BureauLayout() {
               </div>
             </div>
 
-            <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+            <div className='flex items-center gap-8 px-6 text-sm border-b bg-white'>
               {tabs.map(({ label, icon: Icon }) => (
                 <button
                   key={label}

@@ -1,48 +1,41 @@
 create table public.etat_civil_registres (
-  id uuid primary key default gen_random_uuid(),
-
-  -- Lien avec le bureau d'état civil
-  bureau_id uuid not null references etat_civil_bureaux(id) on delete cascade,
-
-  -- Année du registre
+  id uuid not null default gen_random_uuid (),
+  bureau_id uuid not null,
   annee integer not null,
-
-  -- Mode d'organisation du registre
-  mode_registre text not null check (mode_registre in ('par_type', 'chronologique_mixte')),
-
-  -- Type d’acte (nullable si mode_registre = 'chronologique_mixte')
   type_acte text null,
-
-  -- Statut juridique du registre
-  statut_juridique text check (statut_juridique in ('esclave', 'nouveau_libre')),
-
-  -- Ordre de numérotation des actes
-  ordre_numerotation text null check (ordre_numerotation in ('par_type', 'globale')),
-
-  -- Métadonnées archivistiques
-  cote text null,
-  source text null,
   nombre_actes_estime integer null,
   numero_acte_min integer null,
   numero_acte_max integer null,
-  complet boolean null,
   lacunes_connues text null,
-
-  -- Transcription
   transcription_terminee boolean null,
-  transcription_progression integer null,
-  transcription_par text null,
-  transcription_commentaire text null,
-
-  -- Consultation
-  consultable_en_ligne boolean null,
-  lien_consultation text null,
   notes_archivistiques text null,
-
-  -- Timestamps
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now(),
-
-  -- Contrainte d’unicité logique
-  unique (bureau_id, annee, type_acte, mode_registre, statut_juridique)
-);
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  statut_juridique text null,
+  registre_mode_ref uuid null,
+  registre_ordre_numerotation_ref uuid null,
+  registre_statut_juridique_ref uuid null,
+  registre_support_ref uuid null,
+  registre_pagination_ref uuid null,
+  registre_fonction_ref uuid null,
+  registre_norme_ref uuid null,
+  registre_langue_ref uuid null,
+  label text not null,
+  constraint etat_civil_registres_pkey primary key (id),
+  constraint etat_civil_registres_bureau_annee_type_acte_mode_ref_uniq unique (
+    bureau_id,
+    annee,
+    type_acte,
+    registre_mode_ref,
+    registre_statut_juridique_ref
+  ),
+  constraint etat_civil_registres_registre_fonction_fk foreign KEY (registre_fonction_ref) references ref_registre_fonction (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_langue_fk foreign KEY (registre_langue_ref) references ref_langues (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_mode_fk foreign KEY (registre_mode_ref) references ref_registre_mode (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_norme_fk foreign KEY (registre_norme_ref) references ref_registre_norme (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_ordre_numerotation_fk foreign KEY (registre_ordre_numerotation_ref) references ref_registre_ordre_numerotation (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_pagination_fk foreign KEY (registre_pagination_ref) references ref_registre_pagination (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_statut_juridique_fk foreign KEY (registre_statut_juridique_ref) references ref_registre_statut_juridique (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_registre_support_fk foreign KEY (registre_support_ref) references ref_registre_support (id) on update CASCADE on delete set null,
+  constraint etat_civil_registres_bureau_id_fkey foreign KEY (bureau_id) references etat_civil_bureaux (id) on delete CASCADE
+)

@@ -8,7 +8,6 @@ import { supabase } from '@/lib/supabase';
 import { useEtatCivilStore } from '@/store/etatcivil';
 import type { EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 
-import { getRegistreLabel } from './BureauRegistres';
 import { getIconForStatutFromStats } from '@/features/actes/transcription/constants/statutConfig';
 
 import {
@@ -65,7 +64,6 @@ function emptyCitation(sort_order: number): RegistreCitationDraft {
     note: '',
     sort_order,
     segments: [],
-    work_note: '',
     missing_ranges: [],
   };
 }
@@ -110,14 +108,14 @@ function makeInitialForm(args: {
     bureau_enregistrement_label: bureauLabel,
 
     annee: '',
-   registre_ordre_numerotation_ref: null,
+    registre_ordre_numerotation_ref: null,
     registre_mode_ref: null,
     nombre_actes_estime: '',
     numero_acte_min: '',
     numero_acte_max: '',
-    statut_juridique: '',
 
     registre_statut_juridique_ref: null,
+    registre_regime_fiscal_support_ref:null,
     registre_support_ref: null,
     registre_pagination_ref: null,
     registre_langue_ref: null,
@@ -458,7 +456,7 @@ export default function RegistreEdit() {
             <div>
               <div className='flex items-center gap-x-2'>
                 <h1 className='text-base font-semibold text-gray-800'>
-                  {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
+                  {registre.label}
                 </h1>
                 <Badge className='m-0 bg-yellow-600 text-white shadow'>Mode édition</Badge>
                 {errorMsg && (
@@ -506,9 +504,14 @@ export default function RegistreEdit() {
           registreId && (<div className='p-1'>
             <ReferenceArchiveTab
               registreId={registreId}
-              type={'registre'}
-              mode={'edit'}
-              bureauLabel={bureau?.nom ?? ''} />
+              type="registre"
+              mode="edit"
+              bureauLabel={bureau?.nom ?? ''}
+              onUpdated={async () => {
+                const next = await fetchRegistre(registreId);
+                setRegistre(next ?? null);
+              }}
+            />
           </div>))}
       </section>
     </div>

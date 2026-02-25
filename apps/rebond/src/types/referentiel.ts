@@ -48,6 +48,7 @@ export const REF_TABLES: {
   { value: 'ref_handwriting_legibility', label: 'Niveau de lisibilité (manuscrit)', columns: { position: true } },
   { value: 'ref_registre_norme', label: 'Degré de conformité aux normes légales' },
   { value: 'ref_registre_ordre_numerotation', label: 'Règle de numérotation' },
+  { value: 'ref_registre_regime_fiscal_support', label: 'Régime fiscal et probatoire du support' },
   { value: 'ref_profession', label: 'Professions' },
   { value: 'ref_qualite', label: 'Qualités (appellations)' },
   { value: 'ref_series_documentaires', label: 'Séries documentaires' },

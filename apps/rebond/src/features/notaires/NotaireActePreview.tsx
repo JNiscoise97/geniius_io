@@ -177,7 +177,7 @@ export default function NotaireActePreview() {
         </div>
 
 
-        <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+        <div className='flex items-center gap-8 px-6 text-sm border-b bg-white'>
           {tabs.map(({ label, icon: Icon }) => (
             <button
               key={label}

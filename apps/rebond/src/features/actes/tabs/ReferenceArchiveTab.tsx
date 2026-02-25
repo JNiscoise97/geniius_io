@@ -23,7 +23,7 @@ import {
   type EtatCivilBureau,
 } from '@/components/shared/EtatCivilBureauPickerPanel';
 
-import { AlertTriangle, CheckCircle2, Loader2, Lock, Save, Unlock } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2, Lock, RotateCcw, Save, Unlock } from 'lucide-react';
 
 import type {
   ActeCitationDraft,
@@ -39,21 +39,21 @@ type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
 type ReferenceArchiveTabProps =
   | {
-      type: 'acte';
-      acte: EtatCivilActe;
-      registreId?: string;
-      mode?: Mode;
-      bureauLabel?: string;
-      onUpdated?: () => Promise<void> | void;
-    }
+    type: 'acte';
+    acte: EtatCivilActe;
+    registreId?: string;
+    mode?: Mode;
+    bureauLabel?: string;
+    onUpdated?: () => Promise<void> | void;
+  }
   | {
-      type: 'registre';
-      acte?: never;
-      registreId: string;
-      mode?: Mode;
-      bureauLabel?: string;
-      onUpdated?: () => Promise<void> | void;
-    };
+    type: 'registre';
+    acte?: never;
+    registreId: string;
+    mode?: Mode;
+    bureauLabel?: string;
+    onUpdated?: () => Promise<void> | void;
+  };
 
 /**
  * =========================================================================
@@ -205,7 +205,6 @@ type ActeCitationRow = {
   lacune_note?: string | null;
 
   marks?: string | null;
-  work_note?: string | null;
 };
 
 function emptyActeCitation(): ActeCitationDraft {
@@ -299,7 +298,6 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     lacune_note: (r as any)?.lacune_note ?? '',
 
     marks: (r as any)?.marks ?? '',
-    work_note: (r as any)?.work_note ?? '',
   } as any;
 }
 
@@ -353,7 +351,6 @@ function emptyRegistreCitation(sort_order: number): RegistreCitationDraft {
     note: '',
     sort_order,
     segments: [],
-    work_note: '',
     missing_ranges: [],
   };
 }
@@ -381,7 +378,6 @@ function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
     missing_ranges: Array.isArray(r?.missing_ranges)
       ? (r!.missing_ranges as any[]).filter(Boolean)
       : [],
-    work_note: '',
   };
 }
 
@@ -575,10 +571,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         .from('etat_civil_acte_citations')
         .select(
           'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
-            'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
-            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
-            'anchor_hint, acte_no, lacune, lacune_note, marks,' +
-            'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
+          'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
+          'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
+          'anchor_hint, acte_no, lacune, lacune_note, marks,' +
+          'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -1104,6 +1100,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               </div>
             </div>
           ) : null}
+
         </div>
 
         {/* 2) Identification — type == 'acte' && mode == 'edit' */}
@@ -1327,14 +1324,15 @@ function ReferenceArchiveTabRegistre(
 ) {
   const { type, registreId, mode = 'edit', onUpdated } = props;
 
-  type DirtyKeyReg = 'identification' | 'sources';
+  type DirtyKeyReg = 'label' | 'identification' | 'sources';
 
-  type StatutJuridique = 'esclave' | 'nouveau_libre' | '';
 
   type FormStateRegistre = {
     bureau_id: string | null;
     bureau_enregistrement_label: string; // affichage (si tu l’utilises plus tard)
     annee: string; // string pour inputs
+
+    label: string | null;
 
     type_acte: string;
     type_acte_ref: { ids: string[]; labels: string[] } | null;
@@ -1345,8 +1343,8 @@ function ReferenceArchiveTabRegistre(
     numero_acte_min: string;
     numero_acte_max: string;
 
-    statut_juridique: StatutJuridique;
     registre_statut_juridique_ref: string | null;
+    registre_regime_fiscal_support_ref: string | null;
     registre_support_ref: string | null;
     registre_pagination_ref: string | null;
     registre_langue_ref: string | null;
@@ -1366,6 +1364,8 @@ function ReferenceArchiveTabRegistre(
     bureau_enregistrement_label: '',
     annee: '',
 
+    label: '',
+
     type_acte: '',
     type_acte_ref: null,
 
@@ -1375,8 +1375,8 @@ function ReferenceArchiveTabRegistre(
     numero_acte_min: '',
     numero_acte_max: '',
 
-    statut_juridique: '',
     registre_statut_juridique_ref: null,
+    registre_regime_fiscal_support_ref: null,
     registre_support_ref: null,
     registre_pagination_ref: null,
     registre_langue_ref: null,
@@ -1387,25 +1387,43 @@ function ReferenceArchiveTabRegistre(
   const [registresSources, setRegistresSources] = useState<RegistreCitationDraft[]>([]);
   const [loadingRegistresSources, setLoadingRegistresSources] = useState(false);
 
+  // Label (registre edit only)
+  const [labelLocked, setLabelLocked] = useState(true);
+  const [labelDraft, setLabelDraft] = useState('');
+  const [labelDefault, setLabelDefault] = useState<string>(''); // valeur calculée par défaut
+  const [loadingLabelDefault, setLoadingLabelDefault] = useState(false);
+  const labelRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!labelLocked) labelRef.current?.focus();
+  }, [labelLocked]);
+
   const [dirty, setDirty] = useState<Record<DirtyKeyReg, boolean>>({
+    label: false,
     identification: false,
     sources: false,
   });
 
   const [savingBy, setSavingBy] = useState<Record<DirtyKeyReg, boolean>>({
+    label: false,
     identification: false,
     sources: false,
   });
 
   const [errorBy, setErrorBy] = useState<Record<DirtyKeyReg, string | null>>({
+    label: null,
     identification: null,
     sources: null,
   });
 
   const [savedAtBy, setSavedAtBy] = useState<Record<DirtyKeyReg, number | null>>({
+    label: null,
     identification: null,
     sources: null,
   });
+
+  // snapshot initial (DB) des type_acte du registre
+  const [initialTypeActeIds, setInitialTypeActeIds] = useState<string[]>([]);
 
   const isAnyDirty = Object.values(dirty).some(Boolean);
 
@@ -1432,6 +1450,47 @@ function ReferenceArchiveTabRegistre(
     if (mode === 'edit') markDirty('identification');
   };
 
+  const fetchDefaultLabel = async (): Promise<string | null> => {
+    if (!registreId) return null;
+
+    const { data, error } = await supabase.rpc('create_registre_label', {
+      p_registre_id: registreId,
+    });
+
+    if (error) throw error;
+
+    // supabase renvoie directement le texte (si RETURNS text)
+    return (data ?? null) as string | null;
+  };
+
+  const resetLabelToDefault = async () => {
+    if (!registreId) return;
+
+    try {
+      setLoadingLabelDefault(true);
+      setSectionError('label', null);
+
+      const def = await fetchDefaultLabel();
+      const next = (def ?? '').trim();
+
+      setLabelDraft(next);
+      setLabelDefault(next);
+      markDirty('label'); // important : l’utilisateur a changé le draft
+    } catch (e: any) {
+      setSectionError('label', e?.message ?? 'Impossible de recalculer le label par défaut.');
+    } finally {
+      setLoadingLabelDefault(false);
+    }
+  };
+
+  const normalizeIdSet = (ids: (string | null | undefined)[]) =>
+    Array.from(new Set((ids ?? []).map(String).filter(Boolean))).sort();
+
+  const isSameIdSet = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  };
   // guard navigateur (registre) si dirty
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -1447,75 +1506,107 @@ function ReferenceArchiveTabRegistre(
    * LOAD registre row -> hydrate identification form
    */
   useEffect(() => {
-    if (!registreId) return;
-    let cancelled = false;
+  if (!registreId) return;
+  let cancelled = false;
 
-    (async () => {
-      setSectionError('identification', null);
+  (async () => {
+    setSectionError('identification', null);
 
-      const { data, error } = await supabase
-        .from('etat_civil_registres')
-        .select(
-          'id,bureau_id,annee,registre_ordre_numerotation_ref,registre_mode_ref,registre_statut_juridique_ref,registre_support_ref,registre_pagination_ref,registre_langue_ref,registre_fonction_ref,registre_norme_ref,nombre_actes_estime,numero_acte_min,numero_acte_max,statut_juridique',
-        )
-        .eq('id', registreId)
-        .maybeSingle();
+    // 1) registre (row)
+    const { data, error } = await supabase
+      .from('etat_civil_registres')
+      .select(
+        'id,label,bureau_id,annee,registre_ordre_numerotation_ref,registre_mode_ref,registre_statut_juridique_ref,registre_regime_fiscal_support_ref,registre_support_ref,registre_pagination_ref,registre_langue_ref,registre_fonction_ref,registre_norme_ref,nombre_actes_estime,numero_acte_min,numero_acte_max',
+      )
+      .eq('id', registreId)
+      .maybeSingle();
 
-      // type_acte via table de jointure
-      const { data: taRows, error: taErr } = await supabase
-        .from('etat_civil_registres_type_acte')
-        .select('type_acte_id, ref_ec_type_acte:ref_ec_type_acte(id,label)')
-        .eq('registre_id', registreId);
+    if (cancelled) return;
 
-      if (taErr) {
-        // tu peux choisir de "throw" ou juste log
-        console.warn('load registre type_acte failed', taErr);
-      }
+    if (error) {
+      setSectionError('identification', error.message);
+      return;
+    }
 
-      const typeActeId = (taRows?.[0] as any)?.type_acte_id ?? null;
-      const typeActeLabel = (taRows?.[0] as any)?.ref_ec_type_acte?.label ?? '';
+    const r: any = data ?? {};
 
-      if (cancelled) return;
+    // 2) type_acte via table de jointure
+    const { data: taRows, error: taErr } = await supabase
+      .from('etat_civil_registres_type_acte')
+      .select('type_acte_id, ref_ec_type_acte:ref_ec_type_acte(id,label)')
+      .eq('registre_id', registreId);
 
-      if (error) {
-        setSectionError('identification', error.message);
-        return;
-      }
+    if (taErr) {
+      // non bloquant : on log, mais on continue
+      console.warn('load registre type_acte failed', taErr);
+    }
 
-      const r: any = data ?? {};
-      setForm({
-        bureau_id: r.bureau_id ?? null,
-        bureau_enregistrement_label: '',
+    if (cancelled) return;
 
-        annee: r.annee != null ? String(r.annee) : '',
+    const loadedTypeActeIds = normalizeIdSet((taRows ?? []).map((row: any) => row.type_acte_id));
 
-        type_acte: typeActeLabel || '',
-        type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : null,
+    const loadedTypeActeLabelsById = new Map<string, string>(
+      (taRows ?? []).map((row: any) => [
+        String(row.type_acte_id),
+        String(row?.ref_ec_type_acte?.label ?? ''),
+      ]),
+    );
 
-        registre_ordre_numerotation_ref: r.registre_ordre_numerotation_ref,
-        registre_mode_ref: r.registre_mode_ref,
-        nombre_actes_estime: r.nombre_actes_estime != null ? String(r.nombre_actes_estime) : '',
-        numero_acte_min: r.numero_acte_min != null ? String(r.numero_acte_min) : '',
-        numero_acte_max: r.numero_acte_max != null ? String(r.numero_acte_max) : '',
+    const loadedTypeActeLabels = loadedTypeActeIds.map(
+      (id) => loadedTypeActeLabelsById.get(id) ?? '',
+    );
 
-        statut_juridique: (r.statut_juridique ?? '') as StatutJuridique,
-        registre_statut_juridique_ref: r.registre_statut_juridique_ref,
-        registre_support_ref: r.registre_support_ref,
-        registre_pagination_ref: r.registre_pagination_ref,
-        registre_langue_ref: r.registre_langue_ref,
-        registre_fonction_ref: r.registre_fonction_ref,
-        registre_norme_ref: r.registre_norme_ref,
-      });
+    // 3) snapshot initial (DB) des types d'acte (sert au "changed")
+    setInitialTypeActeIds(loadedTypeActeIds);
 
-      setDirty((prev) => ({ ...prev, identification: false }));
-      setSavedAtBy((prev) => ({ ...prev, identification: null }));
-      setSectionError('identification', null);
-    })();
+    // 4) hydrate label : DB est source de vérité, et default sera calculé à la demande (reset)
+    const dbLabel = String(r.label ?? ''); // si label NOT NULL, c'est toujours une string
 
-    return () => {
-      cancelled = true;
-    };
-  }, [registreId]);
+    setLabelDraft(dbLabel);
+    setLabelDefault(dbLabel); // fallback immédiat (pas de RPC ici)
+    setLabelLocked(true);
+
+    // reset des états UI
+    setDirty((prev) => ({ ...prev, label: false, identification: false }));
+    setErrorBy((prev) => ({ ...prev, label: null, identification: null }));
+    setSavedAtBy((prev) => ({ ...prev, label: null, identification: null }));
+
+    // 5) hydrate form identification
+    setForm({
+      bureau_id: r.bureau_id ?? null,
+      bureau_enregistrement_label: '',
+
+      annee: r.annee != null ? String(r.annee) : '',
+
+      label: r.label ?? null,
+
+      type_acte: loadedTypeActeLabels.filter(Boolean).join(' · '),
+      type_acte_ref: loadedTypeActeIds.length
+        ? { ids: loadedTypeActeIds, labels: loadedTypeActeLabels }
+        : null,
+
+      registre_ordre_numerotation_ref: r.registre_ordre_numerotation_ref ?? null,
+      registre_mode_ref: r.registre_mode_ref ?? null,
+      nombre_actes_estime: r.nombre_actes_estime != null ? String(r.nombre_actes_estime) : '',
+      numero_acte_min: r.numero_acte_min != null ? String(r.numero_acte_min) : '',
+      numero_acte_max: r.numero_acte_max != null ? String(r.numero_acte_max) : '',
+
+      registre_statut_juridique_ref: r.registre_statut_juridique_ref ?? null,
+      registre_regime_fiscal_support_ref: r.registre_regime_fiscal_support_ref ?? null,
+      registre_support_ref: r.registre_support_ref ?? null,
+      registre_pagination_ref: r.registre_pagination_ref ?? null,
+      registre_langue_ref: r.registre_langue_ref ?? null,
+      registre_fonction_ref: r.registre_fonction_ref ?? null,
+      registre_norme_ref: r.registre_norme_ref ?? null,
+    });
+
+    setSectionError('identification', null);
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [registreId]);
 
   /**
    * LOAD registre citations + segments + enrich exemplaires
@@ -1719,80 +1810,130 @@ function ReferenceArchiveTabRegistre(
     if (mode === 'edit') markDirty('sources');
   };
 
+
   /**
    * SAVE - identification (registre)
    */
   // dans ReferenceArchiveTabRegistre
 
-const saveIdentification = async () => {
-  if (mode !== 'edit') return;
-  if (!dirty.identification) return;
+  const saveLabel = async () => {
+    if (mode !== 'edit') return;
+    if (!dirty.label) return;
 
-  setSectionSaving('identification', true);
-  setSectionError('identification', null);
+    setSectionSaving('label', true);
+    setSectionError('label', null);
 
-  const nextTypeActeId = form.type_acte_ref?.ids?.[0] ?? null;
+    const patch: Record<string, any> = { label: (labelDraft ?? '').trim() || null };
 
-  // NB: bureau_id + annee sont NOT NULL en DB -> idéalement valider côté UI aussi
-  const patch: Record<string, any> = {
-    bureau_id: form.bureau_id ?? null,
-    annee: toIntOrNull(form.annee),
-    registre_ordre_numerotation_ref: form.registre_ordre_numerotation_ref,
-    registre_mode_ref: form.registre_mode_ref,
-    nombre_actes_estime: toIntOrNull(form.nombre_actes_estime),
-    numero_acte_min: toIntOrNull(form.numero_acte_min),
-    numero_acte_max: toIntOrNull(form.numero_acte_max),
-    statut_juridique: form.statut_juridique || null,
-    registre_statut_juridique_ref: form.registre_statut_juridique_ref || null,
-    registre_support_ref: form.registre_support_ref || null,
-    registre_pagination_ref: form.registre_pagination_ref || null,
-    registre_langue_ref: form.registre_langue_ref || null,
-    registre_fonction_ref: form.registre_fonction_ref || null,
-    registre_norme_ref: form.registre_norme_ref || null,
-  };
-
-  try {
-    // 1) update registre (SI ça échoue, on ne touche PAS au type d’acte)
-    const { error: updErr } = await supabase
+    const { error } = await supabase
       .from('etat_civil_registres')
       .update(patch)
       .eq('id', registreId);
 
-    if (updErr) {
-      setSectionError('identification', updErr.message);
+    setSectionSaving('label', false);
+
+    if (error) {
+      setSectionError('label', error.message);
       return;
     }
 
-    // 2) sync type_acte (UI single => on purge puis on recrée si besoin)
-    const { error: delErr } = await supabase
-      .from('etat_civil_registres_type_acte')
-      .delete()
-      .eq('registre_id', registreId);
+    clearDirty('label');
+    await onUpdated?.();
+  };
 
-    if (delErr) {
-      setSectionError('identification', delErr.message);
-      return;
-    }
+  const saveIdentification = async () => {
+    if (mode !== 'edit') return;
+    if (!dirty.identification) return;
+    if (!registreId) return;
 
-    if (nextTypeActeId) {
-      const { error: insErr } = await supabase
-        .from('etat_civil_registres_type_acte')
-        .insert({ registre_id: registreId, type_acte_id: nextTypeActeId });
+    setSectionSaving('identification', true);
+    setSectionError('identification', null);
 
-      if (insErr) {
-        setSectionError('identification', insErr.message);
+    const nextTypeActeIds = normalizeIdSet(form.type_acte_ref?.ids ?? []);
+    const typeActeChanged = !isSameIdSet(normalizeIdSet(initialTypeActeIds), nextTypeActeIds);
+
+    const patch: Record<string, any> = {
+      bureau_id: form.bureau_id ?? null,
+      annee: toIntOrNull(form.annee),
+      registre_ordre_numerotation_ref: form.registre_ordre_numerotation_ref,
+      registre_mode_ref: form.registre_mode_ref,
+      nombre_actes_estime: toIntOrNull(form.nombre_actes_estime),
+      numero_acte_min: toIntOrNull(form.numero_acte_min),
+      numero_acte_max: toIntOrNull(form.numero_acte_max),
+      registre_statut_juridique_ref: form.registre_statut_juridique_ref || null,
+      registre_support_ref: form.registre_support_ref || null,
+      registre_regime_fiscal_support_ref: form.registre_regime_fiscal_support_ref || null,
+      registre_pagination_ref: form.registre_pagination_ref || null,
+      registre_langue_ref: form.registre_langue_ref || null,
+      registre_fonction_ref: form.registre_fonction_ref || null,
+      registre_norme_ref: form.registre_norme_ref || null,
+    };
+
+    try {
+      const { error: updErr } = await supabase
+        .from('etat_civil_registres')
+        .update(patch)
+        .eq('id', registreId);
+
+      if (updErr) {
+        setSectionError('identification', updErr.message);
         return;
       }
-    }
 
-    clearDirty('identification');
-    await onUpdated?.();
-  } catch (err: any) {
-    setSectionError('identification', err?.message ?? 'Erreur lors de l’enregistrement.');
-  } finally {
-    setSectionSaving('identification', false);
-  }
-};
+      const { error: delErr } = await supabase
+        .from('etat_civil_registres_type_acte')
+        .delete()
+        .eq('registre_id', registreId);
+
+      if (delErr) {
+        setSectionError('identification', delErr.message);
+        return;
+      }
+
+      if (nextTypeActeIds.length) {
+        const rows = nextTypeActeIds.map((id) => ({ registre_id: registreId, type_acte_id: id }));
+        const { error: insErr } = await supabase
+          .from('etat_civil_registres_type_acte')
+          .insert(rows);
+
+        if (insErr) {
+          setSectionError('identification', insErr.message);
+          return;
+        }
+      }
+
+      if (typeActeChanged) {
+        // snapshot initial mis à jour même si le label fail
+        setInitialTypeActeIds(nextTypeActeIds);
+
+        try {
+          const def = await fetchDefaultLabel();
+          const nextLabel = (def ?? '').trim() || null;
+
+          const { error: labErr } = await supabase
+            .from('etat_civil_registres')
+            .update({ label: nextLabel })
+            .eq('id', registreId);
+
+          if (labErr) console.warn('update default label failed', labErr);
+
+          setLabelDraft(nextLabel ?? '');
+          setLabelDefault(nextLabel ?? '');
+          setDirty((prev) => ({ ...prev, label: false }));
+          setSavedAtBy((prev) => ({ ...prev, label: Date.now() }));
+        } catch (e) {
+          console.warn('fetch default label failed', e);
+        }
+      }
+
+      clearDirty('identification');
+      await onUpdated?.();
+    } catch (err: any) {
+      setSectionError('identification', err?.message ?? 'Erreur lors de l’enregistrement.');
+    } finally {
+      setSectionSaving('identification', false);
+    }
+  };
 
 
   /**
@@ -1800,50 +1941,50 @@ const saveIdentification = async () => {
    * (ta version, ré-branchée sur dirty/saving/errorBy.sources)
    */
   type RegistreCitationUpsertRow = {
-  id?: string;
-  registre_id: string;
-  exemplaire_id: string;
-  is_missing: boolean | null;
-  lacune: boolean | null;
-  lacune_note: string | null;
-  locating: any;
-  physical_condition_ref: string | null;
-  repro_quality_ref: string | null;
-  marks: string | null;
-  document_damage_kinds_ids: string[];
-  note: string | null;
-  sort_order: number;
-  missing_ranges: any[];
-};
+    id?: string;
+    registre_id: string;
+    exemplaire_id: string;
+    is_missing: boolean | null;
+    lacune: boolean | null;
+    lacune_note: string | null;
+    locating: any;
+    physical_condition_ref: string | null;
+    repro_quality_ref: string | null;
+    marks: string | null;
+    document_damage_kinds_ids: string[];
+    note: string | null;
+    sort_order: number;
+    missing_ranges: any[];
+  };
 
-type RegistreSegmentUpsertRow = {
-  id?: string;
-  registre_citation_id: string;
-  kind_ref: string | null;
-  label_override: string | null;
-  scope: string | null;
-  range_start: number | null;
-  range_end: number | null;
-  date_from: string | null;
-  date_to: string | null;
-  year_from: number | null;
-  year_to: number | null;
-  note: string | null;
-  sort_order: number;
-};
+  type RegistreSegmentUpsertRow = {
+    id?: string;
+    registre_citation_id: string;
+    kind_ref: string | null;
+    label_override: string | null;
+    scope: string | null;
+    range_start: number | null;
+    range_end: number | null;
+    date_from: string | null;
+    date_to: string | null;
+    year_from: number | null;
+    year_to: number | null;
+    note: string | null;
+    sort_order: number;
+  };
 
-const normalizeTextOrNull = (v: any) => {
-  const s = String(v ?? '').trim();
-  return s ? s : null;
-};
+  const normalizeTextOrNull = (v: any) => {
+    const s = String(v ?? '').trim();
+    return s ? s : null;
+  };
 
-const normalizeArray = <T,>(v: any): T[] => (Array.isArray(v) ? (v as T[]).filter(Boolean) : []);
+  const normalizeArray = <T,>(v: any): T[] => (Array.isArray(v) ? (v as T[]).filter(Boolean) : []);
 
-const isMeaningfulSegment = (s: any) => {
-  if (!s) return false;
-  // garde la logique permissive : un segment sans range mais avec kind/label/note existe.
-  return Boolean(
-    s.kind_ref ||
+  const isMeaningfulSegment = (s: any) => {
+    if (!s) return false;
+    // garde la logique permissive : un segment sans range mais avec kind/label/note existe.
+    return Boolean(
+      s.kind_ref ||
       (String(s.label_override ?? '').trim() !== '') ||
       s.range_start != null ||
       s.range_end != null ||
@@ -1852,258 +1993,259 @@ const isMeaningfulSegment = (s: any) => {
       s.year_from != null ||
       s.year_to != null ||
       (String(s.note ?? '').trim() !== ''),
-  );
-};
+    );
+  };
 
-/**
- * clé stable pour backfill id citation : exemplaire_id + sort_order
- * (si tu autorises plusieurs citations avec même exemplaire + même sort_order, il faudra enrichir la clé)
- */
-const citKey = (exemplaireId: string, sortOrder: number) => `${exemplaireId}__${sortOrder}`;
+  /**
+   * clé stable pour backfill id citation : exemplaire_id + sort_order
+   * (si tu autorises plusieurs citations avec même exemplaire + même sort_order, il faudra enrichir la clé)
+   */
+  const citKey = (exemplaireId: string, sortOrder: number) => `${exemplaireId}__${sortOrder}`;
 
-/**
- * clé stable pour backfill id segment : citationId + sort_order (+ kind_ref optionnel)
- * (si tu permets plusieurs segments même sort_order sous une citation, enrichir)
- */
-const segKey = (citationId: string, sortOrder: number) => `${citationId}__${sortOrder}`;
+  /**
+   * clé stable pour backfill id segment : citationId + sort_order (+ kind_ref optionnel)
+   * (si tu permets plusieurs segments même sort_order sous une citation, enrichir)
+   */
+  const segKey = (citationId: string, sortOrder: number) => `${citationId}__${sortOrder}`;
 
 
-const saveRegistreSources = async () => {
-  if (mode !== 'edit') return;
-  if (!dirty.sources) return;
+  const saveRegistreSources = async () => {
+    if (mode !== 'edit') return;
+    if (!dirty.sources) return;
 
-  setSectionSaving('sources', true);
-  setSectionError('sources', null);
+    setSectionSaving('sources', true);
+    setSectionError('sources', null);
 
-  try {
-    // -------------------------------------------------------------------------
-    // 0) raccourcis
-    // -------------------------------------------------------------------------
-    const uiCitations = registresSources;
+    try {
+      // -------------------------------------------------------------------------
+      // 0) raccourcis
+      // -------------------------------------------------------------------------
+      const uiCitations = registresSources;
 
-    // -------------------------------------------------------------------------
-    // 1) supprimer les citations supprimées côté UI (+ segments cascade manuelle)
-    // -------------------------------------------------------------------------
-    const uiExistingCitIds = uiCitations.map((c) => c.id).filter(Boolean) as string[];
+      // -------------------------------------------------------------------------
+      // 1) supprimer les citations supprimées côté UI (+ segments cascade manuelle)
+      // -------------------------------------------------------------------------
+      const uiExistingCitIds = uiCitations.map((c) => c.id).filter(Boolean) as string[];
 
-    const { data: dbCitIdsRows, error: dbCitIdsErr } = await supabase
-      .from(TABLE_REGISTRE_CITATIONS)
-      .select('id')
-      .eq('registre_id', registreId);
-
-    if (dbCitIdsErr) throw dbCitIdsErr;
-
-    const dbCitIds = (dbCitIdsRows ?? []).map((r: any) => r.id as string);
-    const citIdsToDelete = dbCitIds.filter((id) => !uiExistingCitIds.includes(id));
-
-    if (citIdsToDelete.length) {
-      // segments d’abord
-      const { error: delSegErr } = await supabase
-        .from(TABLE_REGISTRE_SEGMENTS)
-        .delete()
-        .in('registre_citation_id', citIdsToDelete);
-      if (delSegErr) throw delSegErr;
-
-      // citations ensuite
-      const { error: delCitErr } = await supabase
+      const { data: dbCitIdsRows, error: dbCitIdsErr } = await supabase
         .from(TABLE_REGISTRE_CITATIONS)
-        .delete()
-        .in('id', citIdsToDelete);
-      if (delCitErr) throw delCitErr;
-    }
+        .select('id')
+        .eq('registre_id', registreId);
 
-    // -------------------------------------------------------------------------
-    // 2) upsert citations (payload peut être vide)
-    // -------------------------------------------------------------------------
-    const citPayload: RegistreCitationUpsertRow[] = uiCitations
-      .map((c, idx) => {
-        const exemplaire_id = c.exemplaire_id ?? null;
-        if (!exemplaire_id) return null;
+      if (dbCitIdsErr) throw dbCitIdsErr;
 
-        const row: RegistreCitationUpsertRow = {
-          ...(c.id ? { id: c.id } : {}),
-          registre_id: registreId,
-          exemplaire_id,
-          is_missing: toBoolOrNull((c as any).is_missing),
-          lacune: toBoolOrNull((c as any).lacune),
-          lacune_note: normalizeTextOrNull((c as any).lacune_note),
-          locating: (c as any).locating ?? { systems: [{}] },
-          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
-          repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
-          marks: normalizeTextOrNull((c as any).marks),
-          document_damage_kinds_ids: normalizeArray<string>((c as any).document_damage_kinds_ids),
-          note: normalizeTextOrNull((c as any).note),
-          sort_order: idx,
-          missing_ranges: normalizeArray<any>((c as any).missing_ranges),
-        };
+      const dbCitIds = (dbCitIdsRows ?? []).map((r: any) => r.id as string);
+      const citIdsToDelete = dbCitIds.filter((id) => !uiExistingCitIds.includes(id));
 
-        return row;
-      })
-      .filter(Boolean) as RegistreCitationUpsertRow[];
-
-    // si rien à upsert : on a quand même supprimé ce qu’il fallait, puis on passe aux segments
-    let upsertedCits:
-      | { id: string; exemplaire_id: string; sort_order: number }[]
-      | null = null;
-
-    if (citPayload.length) {
-      const { data, error } = await supabase
-        .from(TABLE_REGISTRE_CITATIONS)
-        .upsert(citPayload, { onConflict: 'id' })
-        .select('id, exemplaire_id, sort_order');
-
-      if (error) throw error;
-      upsertedCits = (data ?? []) as any[];
-    }
-
-    // -------------------------------------------------------------------------
-    // 3) backfill IDs citations dans le state (et reconstituer un snapshot "avec ids")
-    // -------------------------------------------------------------------------
-    let citationsWithIds = uiCitations;
-
-    if (upsertedCits?.length) {
-      const mapByKey = new Map<string, string>(
-        upsertedCits.map((r) => [citKey(r.exemplaire_id, r.sort_order), r.id]),
-      );
-
-      citationsWithIds = citationsWithIds.map((c, idx) => {
-        if (c.id) return { ...c, sort_order: idx };
-        if (!c.exemplaire_id) return { ...c, sort_order: idx };
-        const id = mapByKey.get(citKey(c.exemplaire_id, idx));
-        return id ? ({ ...c, id, sort_order: idx } as any) : ({ ...c, sort_order: idx } as any);
-      });
-
-      // commit state une fois (évite les "setState puis relire" incohérents)
-      setRegistresSources(citationsWithIds);
-    } else {
-      // au minimum, on synchronise sort_order en state
-      const normalized = citationsWithIds.map((c, idx) => ({ ...c, sort_order: idx } as any));
-      citationsWithIds = normalized;
-      setRegistresSources(normalized);
-    }
-
-    // ids de citations utilisables pour les segments
-    const allCitIds = citationsWithIds.map((c) => c.id).filter(Boolean) as string[];
-
-    // -------------------------------------------------------------------------
-    // 4) segments : delete ceux retirés + upsert ceux présents + backfill ids segments
-    // -------------------------------------------------------------------------
-    if (allCitIds.length) {
-      // 4.1 récupérer tous les segments existants en DB
-      const { data: dbSegsRows, error: dbSegsErr } = await supabase
-        .from(TABLE_REGISTRE_SEGMENTS)
-        .select('id, registre_citation_id, sort_order')
-        .in('registre_citation_id', allCitIds);
-
-      if (dbSegsErr) throw dbSegsErr;
-
-      const dbSegs = (dbSegsRows ?? []) as any[];
-
-      // 4.2 calculer les ids segments présents en UI
-      const uiSegIdsByCit = new Map<string, string[]>();
-      for (const c of citationsWithIds) {
-        if (!c.id) continue;
-        const ids = (c.segments ?? []).map((s: any) => s.id).filter(Boolean) as string[];
-        uiSegIdsByCit.set(c.id, ids);
-      }
-
-      // 4.3 delete segments supprimés
-      const segIdsToDelete: string[] = [];
-      for (const row of dbSegs) {
-        const citId = row.registre_citation_id as string;
-        const uiIds = uiSegIdsByCit.get(citId) ?? [];
-        if (!uiIds.includes(row.id as string)) segIdsToDelete.push(row.id as string);
-      }
-
-      if (segIdsToDelete.length) {
-        const { error: delErr } = await supabase
+      if (citIdsToDelete.length) {
+        // segments d’abord
+        const { error: delSegErr } = await supabase
           .from(TABLE_REGISTRE_SEGMENTS)
           .delete()
-          .in('id', segIdsToDelete);
-        if (delErr) throw delErr;
+          .in('registre_citation_id', citIdsToDelete);
+        if (delSegErr) throw delSegErr;
+
+        // citations ensuite
+        const { error: delCitErr } = await supabase
+          .from(TABLE_REGISTRE_CITATIONS)
+          .delete()
+          .in('id', citIdsToDelete);
+        if (delCitErr) throw delCitErr;
       }
 
-      // 4.4 construire payload segments
-      const segPayload: RegistreSegmentUpsertRow[] = [];
-      for (const c of citationsWithIds) {
-        const citationId = c.id;
-        if (!citationId) continue;
+      // -------------------------------------------------------------------------
+      // 2) upsert citations (payload peut être vide)
+      // -------------------------------------------------------------------------
+      const citPayload: RegistreCitationUpsertRow[] = uiCitations
+        .map((c, idx) => {
+          const exemplaire_id = c.exemplaire_id ?? null;
+          if (!exemplaire_id) return null;
 
-        const segs = normalizeArray<any>(c.segments).filter(isMeaningfulSegment);
-
-        segs.forEach((s, i) => {
-          const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
-
-          const row: RegistreSegmentUpsertRow = {
-            ...(s.id ? { id: s.id } : {}),
-            registre_citation_id: citationId,
-            kind_ref: s.kind_ref ?? null,
-            label_override: normalizeTextOrNull(s.label_override),
-            scope: s.scope ?? null,
-            range_start: s.range_start ?? null,
-            range_end: s.range_end ?? null,
-            date_from: s.date_from ?? null,
-            date_to: s.date_to ?? null,
-            year_from: s.year_from ?? null,
-            year_to: s.year_to ?? null,
-            note: normalizeTextOrNull(s.note),
-            sort_order: sortOrder,
+          const row: RegistreCitationUpsertRow = {
+            ...(c.id ? { id: c.id } : {}),
+            registre_id: registreId,
+            exemplaire_id,
+            is_missing: toBoolOrNull((c as any).is_missing),
+            lacune: toBoolOrNull((c as any).lacune),
+            lacune_note: normalizeTextOrNull((c as any).lacune_note),
+            locating: (c as any).locating ?? { systems: [{}] },
+            physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
+            repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
+            marks: normalizeTextOrNull((c as any).marks),
+            document_damage_kinds_ids: normalizeArray<string>((c as any).document_damage_kinds_ids),
+            note: normalizeTextOrNull((c as any).note),
+            sort_order: idx,
+            missing_ranges: normalizeArray<any>((c as any).missing_ranges),
           };
 
-          segPayload.push(row);
+          return row;
+        })
+        .filter(Boolean) as RegistreCitationUpsertRow[];
+
+      // si rien à upsert : on a quand même supprimé ce qu’il fallait, puis on passe aux segments
+      let upsertedCits:
+        | { id: string; exemplaire_id: string; sort_order: number }[]
+        | null = null;
+
+      if (citPayload.length) {
+        const { data, error } = await supabase
+          .from(TABLE_REGISTRE_CITATIONS)
+          .upsert(citPayload, { onConflict: 'id' })
+          .select('id, exemplaire_id, sort_order');
+
+        if (error) throw error;
+        upsertedCits = (data ?? []) as any[];
+      }
+
+      // -------------------------------------------------------------------------
+      // 3) backfill IDs citations dans le state (et reconstituer un snapshot "avec ids")
+      // -------------------------------------------------------------------------
+      let citationsWithIds = uiCitations;
+
+      if (upsertedCits?.length) {
+        const mapByKey = new Map<string, string>(
+          upsertedCits.map((r) => [citKey(r.exemplaire_id, r.sort_order), r.id]),
+        );
+
+        citationsWithIds = citationsWithIds.map((c, idx) => {
+          if (c.id) return { ...c, sort_order: idx };
+          if (!c.exemplaire_id) return { ...c, sort_order: idx };
+          const id = mapByKey.get(citKey(c.exemplaire_id, idx));
+          return id ? ({ ...c, id, sort_order: idx } as any) : ({ ...c, sort_order: idx } as any);
         });
+
+        // commit state une fois (évite les "setState puis relire" incohérents)
+        setRegistresSources(citationsWithIds);
+      } else {
+        // au minimum, on synchronise sort_order en state
+        const normalized = citationsWithIds.map((c, idx) => ({ ...c, sort_order: idx } as any));
+        citationsWithIds = normalized;
+        setRegistresSources(normalized);
       }
 
-      // 4.5 upsert segments + backfill ids
-      if (segPayload.length) {
-        const { data: upSegs, error: upSegErr } = await supabase
+      // ids de citations utilisables pour les segments
+      const allCitIds = citationsWithIds.map((c) => c.id).filter(Boolean) as string[];
+
+      // -------------------------------------------------------------------------
+      // 4) segments : delete ceux retirés + upsert ceux présents + backfill ids segments
+      // -------------------------------------------------------------------------
+      if (allCitIds.length) {
+        // 4.1 récupérer tous les segments existants en DB
+        const { data: dbSegsRows, error: dbSegsErr } = await supabase
           .from(TABLE_REGISTRE_SEGMENTS)
-          .upsert(segPayload, { onConflict: 'id' })
-          .select('id, registre_citation_id, sort_order');
+          .select('id, registre_citation_id, sort_order')
+          .in('registre_citation_id', allCitIds);
 
-        if (upSegErr) throw upSegErr;
+        if (dbSegsErr) throw dbSegsErr;
 
-        const segMap = new Map<string, string>(
-          ((upSegs ?? []) as any[]).map((r) => [
-            segKey(r.registre_citation_id as string, r.sort_order as number),
-            r.id as string,
-          ]),
-        );
+        const dbSegs = (dbSegsRows ?? []) as any[];
 
-        setRegistresSources((prev) =>
-          prev.map((c) => {
-            if (!c.id) return c;
-            const citationId = c.id;
+        // 4.2 calculer les ids segments présents en UI
+        const uiSegIdsByCit = new Map<string, string[]>();
+        for (const c of citationsWithIds) {
+          if (!c.id) continue;
+          const ids = (c.segments ?? []).map((s: any) => s.id).filter(Boolean) as string[];
+          uiSegIdsByCit.set(c.id, ids);
+        }
 
-            const nextSegs = normalizeArray<any>(c.segments)
-              .filter(isMeaningfulSegment)
-              .map((s, i) => {
-                if (s.id) return s;
-                const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
-                const id = segMap.get(segKey(citationId, sortOrder));
-                return id ? { ...s, id, sort_order: sortOrder } : { ...s, sort_order: sortOrder };
-              });
+        // 4.3 delete segments supprimés
+        const segIdsToDelete: string[] = [];
+        for (const row of dbSegs) {
+          const citId = row.registre_citation_id as string;
+          const uiIds = uiSegIdsByCit.get(citId) ?? [];
+          if (!uiIds.includes(row.id as string)) segIdsToDelete.push(row.id as string);
+        }
 
-            return { ...c, segments: nextSegs } as any;
-          }),
-        );
+        if (segIdsToDelete.length) {
+          const { error: delErr } = await supabase
+            .from(TABLE_REGISTRE_SEGMENTS)
+            .delete()
+            .in('id', segIdsToDelete);
+          if (delErr) throw delErr;
+        }
+
+        // 4.4 construire payload segments
+        const segPayload: RegistreSegmentUpsertRow[] = [];
+        for (const c of citationsWithIds) {
+          const citationId = c.id;
+          if (!citationId) continue;
+
+          const segs = normalizeArray<any>(c.segments).filter(isMeaningfulSegment);
+
+          segs.forEach((s, i) => {
+            const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
+
+            const row: RegistreSegmentUpsertRow = {
+              ...(s.id ? { id: s.id } : {}),
+              registre_citation_id: citationId,
+              kind_ref: s.kind_ref ?? null,
+              label_override: normalizeTextOrNull(s.label_override),
+              scope: s.scope ?? null,
+              range_start: s.range_start ?? null,
+              range_end: s.range_end ?? null,
+              date_from: s.date_from ?? null,
+              date_to: s.date_to ?? null,
+              year_from: s.year_from ?? null,
+              year_to: s.year_to ?? null,
+              note: normalizeTextOrNull(s.note),
+              sort_order: sortOrder,
+            };
+
+            segPayload.push(row);
+          });
+        }
+
+        // 4.5 upsert segments + backfill ids
+        if (segPayload.length) {
+          const { data: upSegs, error: upSegErr } = await supabase
+            .from(TABLE_REGISTRE_SEGMENTS)
+            .upsert(segPayload, { onConflict: 'id' })
+            .select('id, registre_citation_id, sort_order');
+
+          if (upSegErr) throw upSegErr;
+
+          const segMap = new Map<string, string>(
+            ((upSegs ?? []) as any[]).map((r) => [
+              segKey(r.registre_citation_id as string, r.sort_order as number),
+              r.id as string,
+            ]),
+          );
+
+          setRegistresSources((prev) =>
+            prev.map((c) => {
+              if (!c.id) return c;
+              const citationId = c.id;
+
+              const nextSegs = normalizeArray<any>(c.segments)
+                .filter(isMeaningfulSegment)
+                .map((s, i) => {
+                  if (s.id) return s;
+                  const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
+                  const id = segMap.get(segKey(citationId, sortOrder));
+                  return id ? { ...s, id, sort_order: sortOrder } : { ...s, sort_order: sortOrder };
+                });
+
+              return { ...c, segments: nextSegs } as any;
+            }),
+          );
+        }
       }
-    }
 
-    clearDirty('sources');
-    await onUpdated?.();
-  } catch (err: any) {
-    setSectionError('sources', err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
-  } finally {
-    setSectionSaving('sources', false);
-  }
-};
+      clearDirty('sources');
+      await onUpdated?.();
+    } catch (err: any) {
+      setSectionError('sources', err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
+    } finally {
+      setSectionSaving('sources', false);
+    }
+  };
 
 
 
 
   const saveAll = async () => {
     if (mode !== 'edit') return;
+    if (dirty.label) await saveLabel();
     if (dirty.identification) await saveIdentification();
     if (dirty.sources) await saveRegistreSources();
   };
@@ -2162,6 +2304,96 @@ const saveRegistreSources = async () => {
                   )}
                   Tout enregistrer
                 </button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 1) Label — type == 'registre' && mode == 'edit' */}
+          {type === 'registre' && mode === 'edit' ? (
+            <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-3'>
+              <SectionHeaderRow
+                title='Label'
+                subtitle='Titre court pour identifier le registre rapidement.'
+                dirty={dirty.label}
+                saving={savingBy.label}
+                savedAt={savedAtBy.label}
+                onSave={saveLabel}
+                disabled={labelLocked}
+              />
+
+              <div className='w-full md:max-w-xl'>
+                <label className='block text-xs font-medium text-slate-700'>Label</label>
+
+                <div className='mt-1 flex items-center gap-2 w-full'>
+                  <input
+                    ref={labelRef}
+                    value={labelDraft}
+                    onChange={(e) => {
+                      setLabelDraft(e.target.value);
+                      markDirty('label');
+                    }}
+                    readOnly={labelLocked}
+                    className={[
+                      'w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none',
+                      labelLocked
+                        ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
+                        : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
+                    ].join(' ')}
+                    placeholder='Label…'
+                  />
+
+                  {/* Bouton reset défaut (visible seulement quand déverrouillé) */}
+                  {!labelLocked ? (
+                    <button
+                      type='button'
+                      onClick={resetLabelToDefault}
+                      disabled={loadingLabelDefault || !registreId}
+                      className='inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60'
+                      title='Revenir au label par défaut (calculé automatiquement)'
+                      aria-label='Revenir au label par défaut'
+                    >
+                      {loadingLabelDefault ? (
+                        <Loader2 className='h-4 w-4 animate-spin text-slate-700' />
+                      ) : (
+                        <RotateCcw className='h-4 w-4 text-slate-700' />
+                      )}
+                    </button>
+                  ) : null}
+
+                  {/* Lock/unlock */}
+                  <button
+                    type='button'
+                    onClick={() => setLabelLocked((v: boolean) => !v)}
+                    className={[
+                      'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
+                      labelLocked ? 'border-slate-200 bg-white hover:bg-slate-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
+                    ].join(' ')}
+                    title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                    aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                  >
+                    {labelLocked ? (
+                      <Lock className='h-4 w-4 text-slate-700' />
+                    ) : (
+                      <Unlock className='h-4 w-4 text-slate-800' />
+                    )}
+                  </button>
+                </div>
+
+                {labelLocked ? (
+                  <p className='mt-1 text-xs text-slate-500'>
+                    Le label est verrouillé. Déverrouille-le pour le modifier.
+                  </p>
+                ) : (
+                  <p className='mt-1 text-xs text-amber-700'>
+                    Label déverrouillé : toute modification sera enregistrée.
+                  </p>
+                )}
+
+                {errorBy.label ? (
+                  <div className='mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                    {errorBy.label}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

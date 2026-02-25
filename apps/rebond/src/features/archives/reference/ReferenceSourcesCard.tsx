@@ -51,16 +51,22 @@ import { EditorPanel } from './ReferenceSourcesCard/components/EditorPanel';
 import { SegmentsEditor } from './ReferenceSourcesCard/editors/registre/SegmentsEditor';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/lib/supabase';
-import { Field, TextAreaField } from '@/components/shared/fields';
+import { Field, TextAreaField } from '@/components/shared/Fields';
 
 type AnyDraft = ActeCitationDraft | RegistreCitationDraft;
 type DraftKey = string;
 
-type CompletenessStatus = 'ok' | 'todo' | 'missing';
+export type CompletenessStatus = 'ok' | 'todo' | 'missing';
 
-type CompletenessResult = {
+export type CompletenessResult = {
   status: CompletenessStatus;
   missing: string[]; // liste de "champs/attendus" manquants (lisible humain)
+};
+
+export const StatusIcon = ({ status }: { status: 'ok' | 'todo' | 'missing' }) => {
+  if (status === 'ok') return <CheckCircle2 className='h-4 w-4 text-emerald-600' />;
+  if (status === 'missing') return <AlertTriangle className='h-4 w-4 text-red-600' />;
+  return <Circle className='h-4 w-4 text-amber-600' />;
 };
 
 type LocMode = 'raw' | 'num' | 'range';
@@ -159,7 +165,9 @@ export function getActeCompleteness(c: any): CompletenessResult {
   if (!hasText(c.exemplaire_id)) missing.push('exemplaire_id');
 
   // 2) statut acte manquant (tri-state attendu)
-  if (!isTriStateSet(c.is_missing)) missing.push('is_missing (true/false/null)');
+  if (typeof c.is_missing !== 'boolean') {
+    missing.push('is_missing (true/false)');
+  }
 
   // 3) localisation si pas manquant
   const isMissing = c.is_missing === true;
@@ -170,6 +178,9 @@ export function getActeCompleteness(c: any): CompletenessResult {
   }
 
   // 4) lacune: note OU plages
+  if (typeof c.lacune !== 'boolean') {
+    missing.push('lacune (true/false)');
+  }
   const lacune = c.lacune === true;
   if (lacune) {
     const hasNote = hasText(c.lacune_note);
@@ -214,10 +225,16 @@ export function getRegistreCompleteness(c: any): CompletenessResult {
 
   if (!hasText(c.exemplaire_id)) missing.push('exemplaire_id');
 
-  if (!isTriStateSet(c.is_missing)) missing.push('is_missing (true/false/null)');
+
+  if (typeof c.is_missing !== 'boolean') {
+    missing.push('is_missing (true/false)');
+  }
 
   const isMissing = c.is_missing === true;
 
+  if (typeof c.lacune !== 'boolean') {
+    missing.push('lacune (true/false)');
+  }
   const lacune = c.lacune === true;
   if (lacune) {
     const hasNote = hasText(c.lacune_note);
@@ -231,17 +248,17 @@ export function getRegistreCompleteness(c: any): CompletenessResult {
 
 type EditCallbacks =
   | {
-      mode: 'edit';
-      onAdd: () => void;
-      onRemove: (idx: number) => void;
-      onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
-    }
+    mode: 'edit';
+    onAdd: () => void;
+    onRemove: (idx: number) => void;
+    onChange: (idx: number, patch: Partial<ActeCitationDraft>) => void;
+  }
   | {
-      mode: 'edit';
-      onAdd: () => void;
-      onRemove: (idx: number) => void;
-      onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
-    };
+    mode: 'edit';
+    onAdd: () => void;
+    onRemove: (idx: number) => void;
+    onChange: (idx: number, patch: Partial<RegistreCitationDraft>) => void;
+  };
 
 type ViewCallbacks =
   | { mode: 'view'; onAdd?: never; onRemove?: never; onChange?: never }
@@ -268,17 +285,17 @@ function Chip({
 
 type SectionSourcesProps =
   | ({
-      type: 'acte';
-      registreId?: string | null;
-      sources: ActeCitationDraft[];
-      loading: boolean;
-    } & (EditCallbacks | ViewCallbacks))
+    type: 'acte';
+    registreId?: string | null;
+    sources: ActeCitationDraft[];
+    loading: boolean;
+  } & (EditCallbacks | ViewCallbacks))
   | ({
-      type: 'registre';
-      registreId?: string | null;
-      sources: RegistreCitationDraft[];
-      loading: boolean;
-    } & (EditCallbacks | ViewCallbacks));
+    type: 'registre';
+    registreId?: string | null;
+    sources: RegistreCitationDraft[];
+    loading: boolean;
+  } & (EditCallbacks | ViewCallbacks));
 
 type SectionSourcesEditProps = Extract<SectionSourcesProps, { mode: 'edit' }>;
 
@@ -895,11 +912,7 @@ export function SectionSources(props: SectionSourcesProps) {
     return r.status; // 'ok' | 'todo' | 'missing'
   };
 
-  const StatusIcon = ({ status }: { status: 'ok' | 'todo' | 'missing' }) => {
-    if (status === 'ok') return <CheckCircle2 className='h-4 w-4 text-emerald-600' />;
-    if (status === 'missing') return <AlertTriangle className='h-4 w-4 text-red-600' />;
-    return <Circle className='h-4 w-4 text-amber-600' />;
-  };
+
 
   const selectUnit = (unitKey: string) => {
     setActiveUniteKey(unitKey);
@@ -1048,14 +1061,6 @@ export function SectionSources(props: SectionSourcesProps) {
           <div className='flex basis-1/4 flex-wrap items-center justify-end gap-2'>
             {!readonly && (
               <>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  onClick={() => openPickerForIdx(idx)}
-                >
-                  Changer
-                </Button>
 
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1679,7 +1684,58 @@ export function SectionSources(props: SectionSourcesProps) {
     const exId = String((ex as any)?.exemplaire_id ?? (c as any)?.exemplaire_id ?? '');
     const registreSegments = exId ? (segmentsByExId[exId] ?? []) : [];
 
-    const estManuscrit = (c as any).ecriture_ref == '6d2f68c7-bce6-411e-a4d1-00b1e535c219';
+    type EcritureCode = 'MANUSCRITE' | 'IMPRIMEE' | 'MIXTE';
+
+    function useEcrituresById() {
+      const [byId, setById] = useState<Record<string, EcritureCode>>({} as any);
+
+      useEffect(() => {
+        let mounted = true;
+        (async () => {
+          const { data, error } = await supabase
+            .from('ref_ecritures')
+            .select('id, code');
+
+          if (!mounted) return;
+          if (error) return;
+
+          const map: Record<string, EcritureCode> = {};
+          (data ?? []).forEach((r: any) => {
+            map[r.id] = r.code as EcritureCode;
+          });
+          setById(map);
+        })();
+
+        return () => {
+          mounted = false;
+        };
+      }, []);
+
+      return byId;
+    }
+
+    const ecrituresById = useEcrituresById();
+
+    const ecritureCode = useMemo(() => {
+      const id = (c as any).ecriture_ref as string | null;
+      return id ? (ecrituresById[id] ?? null) : null;
+    }, [(c as any).ecriture_ref, ecrituresById]);
+
+    const hasManuscriptPart = ecritureCode === 'MANUSCRITE' || ecritureCode === 'MIXTE';
+
+    type ApplicableTo = 'BOTH' | 'MANUSCRITE' | 'IMPRIMEE';
+
+    function applicableToAllowed(ecritureCode: EcritureCode | null): ApplicableTo[] | null {
+      if (!ecritureCode) return null;
+
+      if (ecritureCode === 'MANUSCRITE') return ['BOTH', 'MANUSCRITE'];
+      if (ecritureCode === 'IMPRIMEE') return ['BOTH', 'IMPRIMEE'];
+      // MIXTE
+      return ['BOTH', 'MANUSCRITE', 'IMPRIMEE'];
+    }
+
+    const allowed = applicableToAllowed(ecritureCode);
+
     return (
       <Tabs
         value={acteFormVariant}
@@ -2224,36 +2280,38 @@ export function SectionSources(props: SectionSourcesProps) {
                         />
                       </div>
 
-                      {estManuscrit && (
-                        <>
-                          <div className='md:col-span-4'>
-                            <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
-                            <RefSinglePickerSmart
-                              table='ref_handwriting_legibility'
-                              mode={mode}
-                              actionsInvisible={false}
-                              value={((c as any).handwriting_legibility_ref ?? null) as any}
-                              onChange={(next) =>
-                                onChange(idx, { handwriting_legibility_ref: next } as any)
-                              }
-                            />
-                          </div>
-                          <div className='md:col-span-12'>
-                            <div className='text-xs font-medium text-slate-700'>
-                              Caractéristiques de lisibilité du document
-                            </div>
-                            <RefSinglePickerSmart
-                              table='ref_document_readability_features'
-                              mode={mode}
-                              multi={true}
-                              actionsInvisible={false}
-                              value={((c as any).document_readability_features_ids ?? null) as any}
-                              onChange={(next) =>
-                                onChange(idx, { document_readability_features_ids: next } as any)
-                              }
-                            />
-                          </div>
-                        </>
+                      {hasManuscriptPart && (
+                        <div className='md:col-span-4'>
+                          <div className='text-xs font-medium text-slate-700'>Lisibilité</div>
+                          <RefSinglePickerSmart
+                            table='ref_handwriting_legibility'
+                            mode={mode}
+                            actionsInvisible={false}
+                            value={((c as any).handwriting_legibility_ref ?? null) as any}
+                            onChange={(next) => onChange(idx, { handwriting_legibility_ref: next } as any)}
+                          />
+                        </div>
+                      )}
+
+                      {(c as any).ecriture_ref && (
+                      <div className='md:col-span-12'>
+                        <div className='text-xs font-medium text-slate-700'>
+                          Caractéristiques de lisibilité du document
+                        </div>
+                        <RefSinglePickerSmart
+                          table='ref_document_readability_features'
+                          mode={mode}
+                          multi={true}
+                          actionsInvisible={false}
+                          value={((c as any).document_readability_features_ids ?? null) as any}
+                          onChange={(next) => onChange(idx, { document_readability_features_ids: next } as any)}
+                          queryTransform={(q) => {
+                            if (!allowed) return q;
+                            return q.in('applicable_to', allowed);
+                          }}
+                        />
+
+                      </div>
                       )}
                     </div>
                   </div>
@@ -2394,31 +2452,6 @@ export function SectionSources(props: SectionSourcesProps) {
                 </div>
               </div>
             </div>
-
-            {/* Bloc 3 — Notes de travail */}
-            <div className='rounded-xl border border-slate-200 bg-white'>
-              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-                <div className='text-sm font-semibold text-slate-900'>Notes de travail</div>
-                <div className='mt-1 text-xs text-slate-600'>
-                  Commentaires longs / pistes / TODO.
-                </div>
-              </div>
-
-              <div className='p-4'>
-                <TextAreaField
-                  label=''
-                  readonly={isRO}
-                  value={String((c as any).work_note ?? '')}
-                  onChange={(next) => onChange(idx, { work_note: next } as any)}
-                  placeholder='Ex. vérifier la pagination, comparer avec microfilm, anomalie sur les vues…'
-                  minHeightClassName='min-h-[140px]'
-                />
-                <div className='mt-2 text-xs text-slate-500'>
-                  Champ facultatif (si tu n’as pas encore <code>work_note</code> en DB, garde-le en
-                  draft ou remplace par <code>note</code>).
-                </div>
-              </div>
-            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -2508,14 +2541,6 @@ export function SectionSources(props: SectionSourcesProps) {
           <div className='flex basis-1/4 flex-wrap items-center justify-end gap-2'>
             {!readonly && (
               <>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  onClick={() => openPickerForIdx(idx)}
-                >
-                  Changer
-                </Button>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -3093,27 +3118,6 @@ export function SectionSources(props: SectionSourcesProps) {
                 </div>
               </div>
             </div>
-
-            {/* Bloc 3 — Note de travail */}
-            <div className='rounded-xl border border-slate-200 bg-white'>
-              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-                <div className='text-sm font-semibold text-slate-900'>Note de travail</div>
-                <div className='mt-1 text-xs text-slate-600'>
-                  Commentaires longs / pistes / TODO.
-                </div>
-              </div>
-
-              <div className='p-4'>
-                <TextAreaField
-                  label=''
-                  readonly={isRO}
-                  value={String((c as any).work_note ?? '')}
-                  onChange={(next) => onChange(idx, { work_note: next } as any)}
-                  placeholder='Ex. vérifier cohérence locating, comparer avec une copie, etc.'
-                  minHeightClassName='min-h-[140px]'
-                />
-              </div>
-            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -3211,50 +3215,14 @@ export function SectionSources(props: SectionSourcesProps) {
               exemplaire) puis renseigne ce qui est spécifique à l’acte :{' '}
               <span className='font-medium'>vues/pages</span>, lacunes, notes.
             </p>
-
-            <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-              <div className='flex items-start gap-3'>
-                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                  <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>
-                        [MODEL] lisibilité manuscrite
-                        (ref_document_readability_features.applicable_to)
-                      </li>
-
-                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
-                      <li>[MODEL] Champ work_note</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
           </>
         ) : isEdit ? (
-          <>
-            <p className='mt-1 text-sm text-slate-600'>
-              Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
-              exemplaire) puis renseigne ce qui est spécifique au registre :{' '}
-              <span className='font-medium'>is_missing</span>, lacunes, observations (état, repro,
-              marques, écriture…).
-            </p>
-
-            <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-              <div className='flex items-start gap-3'>
-                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                  <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
-                      <li>[MODEL] Champ work_note</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <><p className='mt-1 text-sm text-slate-600'>
+            Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
+            exemplaire) puis renseigne ce qui est spécifique au registre :{' '}
+            <span className='font-medium'>is_missing</span>, lacunes, observations (état, repro,
+            marques, écriture…).
+          </p>
           </>
         ) : null}
       </div>
@@ -3331,7 +3299,7 @@ export function SectionSources(props: SectionSourcesProps) {
               selectedMeta={selectedMeta as any}
               idx={selectedIdx}
               hasExemplaireId={(c) => Boolean((c as any)?.exemplaire_id)}
-              onOpenPickerForIdx={isEdit ? openPickerForIdx : () => {}}
+              onOpenPickerForIdx={isEdit ? openPickerForIdx : () => { }}
               renderActe={({ c, idx, draftKey, globalNo }) => (
                 <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0 overflow-hidden'>
                   {renderActeHeader({

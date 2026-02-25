@@ -37,7 +37,6 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 import { useEtatCivilStore } from '@/store/etatcivil';
-import { getRegistreLabel } from './BureauRegistres';
 import { ActeCoherence } from '../ActeCoherence-complet';
 import { getIconForStatut } from '@/features/actes/transcription/constants/statutConfig';
 import { ActeursAccordion } from '@/features/notaires/ActeursAccordion';
@@ -288,7 +287,7 @@ export default function ActeLayout() {
                 {registre && (
                   <>
                     <span className='text-gray-800'>
-                      {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
+                      {registre.label}
                     </span>
                     <span className='text-gray-500'>{registre.annee}</span>
                     <span className='text-gray-500'>acte n°{acte.numero_acte}</span>
@@ -345,14 +344,14 @@ export default function ActeLayout() {
           </div>
         </div>
 
-        <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+        <div className='flex items-center gap-8 px-6 text-sm border-b bg-white'>
           {tabs.map(({ label, icon: Icon }) => (
             <button
               key={label}
               onClick={() => setActiveSection(label)}
               className={`py-3 -mb-px border-b-2 flex items-center gap-2 transition-all ${activeSection === label
-                  ? 'border-blue-600 text-blue-600 font-medium'
-                  : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
+                ? 'border-blue-600 text-blue-600 font-medium'
+                : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300'
                 }`}
             >
               <Icon className='w-4 h-4' />
@@ -370,28 +369,8 @@ export default function ActeLayout() {
         {acte && acte?.status != 'TRANSCRIBED' && <ActeCoherence acteId={acte.id} />}
         {activeSection === 'Résumé' && (
           <>
-            <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
 
-            {/* Bloc transcription + timeline côte à côte */}
-            <div className='grid grid-cols-3 gap-6 mb-8'>
-              {/* 2/3 : transcription */}
-              <div className='col-span-2'>
-                <h2 className='text-lg font-semibold mb-4'>Transcription (générée)</h2>
-                <article className='whitespace-pre-wrap leading-relaxed text-[15px] text-gray-800'>
-                  {buildTranscriptionNarrative({
-                    acte,
-                    entites,
-                    registre,
-                    bureau,
-                  })}
-                </article>
-              </div>
-
-              {/* 1/3 : timeline */}
-              <div className='col-span-1'>
-                <TimelineWithIcons steps={steps} />
-              </div>
-            </div>
+            <TimelineWithIcons steps={steps} />
 
             <h2 className='text-lg font-semibold mb-4'>Résumé structuré de l’acte</h2>
 
@@ -415,7 +394,7 @@ export default function ActeLayout() {
                 )}
                 {registre && (
                   <li>
-                    Registre : {getRegistreLabel(registre.type_acte, registre.statut_juridique)},{' '}
+                    Registre : {registre.label},{' '}
                     {registre.annee}
                   </li>
                 )}

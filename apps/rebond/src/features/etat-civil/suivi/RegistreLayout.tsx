@@ -10,13 +10,11 @@ import {
   Pen,
   Plus,
   Pencil,
-  AlertTriangle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useEtatCivilStore } from '@/store/etatcivil';
 import type { EtatCivilActe, EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
-import { getRegistreLabel } from './BureauRegistres';
 import { ActeCreateModal } from './ActeCreateModal';
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -109,7 +107,7 @@ export default function RegistreLayout() {
                   </Link>
                   {getIconForStatutFromStats(registre.actes_estimes, registre.actes_transcrits)}
                   <span className='text-base font-semibold text-gray-800'>
-                    {getRegistreLabel(registre.type_acte, registre.statut_juridique)}
+                    {registre.label}
                   </span>
                   <span className='text-sm text-gray-500'>{registre.annee}</span>
                   <span className='text-sm text-gray-500'>
@@ -130,7 +128,7 @@ export default function RegistreLayout() {
                 </div>
               </div>
 
-              <div className='flex items-center gap-8 px-6 text-sm border-b overflow-x-auto bg-white'>
+              <div className='flex items-center gap-8 px-6 text-sm border-b bg-white'>
                 {tabs.map(({ label, icon: Icon }) => (
                   <button
                     key={label}

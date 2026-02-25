@@ -17,8 +17,7 @@ returns table (
   notaire_prenom text,
   notaire_titre text,
   notaire_lieu_exercice text,
-  registre_type_acte text,
-  registre_statut_juridique text,
+  registre_label text,
   created_at timestamp
 ) as $$
 begin
@@ -44,8 +43,7 @@ begin
       null::text as notaire_prenom,
       null::text as notaire_titre,
       null::text as notaire_lieu_exercice,
-      r.type_acte::text as registre_type_acte,
-      r.statut_juridique::text as registre_statut_juridique,
+      r.type_acte::text as registre_label,
       ac.created_at::timestamp
     from etat_civil_actes ac
     left join etat_civil_bureaux b on b.id = ac.bureau_id
@@ -79,8 +77,7 @@ begin
       n.prenom::text as notaire_prenom,
       n.titre::text as notaire_titre,
       n.lieu_exercice::text as notaire_lieu_exercice,
-      null::text as registre_type_acte,
-      null::text as registre_statut_juridique,
+      null::text as registre_label,
       ac2.created_at::timestamp
     from actes ac2
     left join actes_notaires an on an.acte_id = ac2.id and an.role = 'principal'

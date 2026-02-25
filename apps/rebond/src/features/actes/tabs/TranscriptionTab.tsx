@@ -370,6 +370,20 @@ export default function TranscriptionTab({ acteId }: Props) {
   return (
     <div className='p-4 space-y-4'>
       <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+          <div className='flex items-start gap-3'>
+            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+            <div className='min-w-0'>
+              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+              <div className='mt-0.5 text-xs text-amber-800'>
+                <ol>
+                  <li>[UX] les ronds autour des icones s'écrasent</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className='flex items-start justify-between gap-4'>
           {/* Stepper */}
           <div className='min-w-0 flex-1'>
@@ -1269,8 +1283,8 @@ export default function TranscriptionTab({ acteId }: Props) {
                     {notes.filter(
                       (n) => !n.content?.startsWith('[META]') && !n.content?.startsWith('[DIFF '),
                     ).length === 0 && (
-                      <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
-                    )}
+                        <div className='text-sm text-slate-600'>Aucune note (hors méta/diff).</div>
+                      )}
 
                     {notes
                       .filter(

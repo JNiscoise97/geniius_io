@@ -29,6 +29,8 @@ type BaseProps = {
 
   columns?: Partial<Record<RefColumnKey, boolean>>;
   showDescriptionUnderRadio?: boolean;
+
+  queryTransform?: (q: any) => any;
 };
 
 type SingleProps = {
@@ -179,6 +181,7 @@ export function RefSinglePickerSmart(props: Props) {
     orderBy = { column: 'label', ascending: true },
     columns: columnsOverride,
     showDescriptionUnderRadio = true,
+    queryTransform,
   } = props;
 
   const canEdit = mode === 'edit' && !readonly && !!props.onChange;
@@ -326,6 +329,10 @@ export function RefSinglePickerSmart(props: Props) {
         else if (resolvedColumns.code) query = query.ilike('code', `%${qq}%`);
       }
 
+      if (queryTransform) {
+        query = queryTransform(query);
+      }
+
       const { data, error } = await query;
 
       if (cancelled) return;
@@ -351,6 +358,7 @@ export function RefSinglePickerSmart(props: Props) {
     resolvedColumns.label,
     resolvedColumns.code,
     resolvedColumns.position,
+    queryTransform,
   ]);
 
   const chipValues = useMemo(() => {
@@ -464,16 +472,16 @@ export function RefSinglePickerSmart(props: Props) {
         onEdit={
           canEdit
             ? () => {
-                setQ('');
-                setOpen(true);
-              }
+              setQ('');
+              setOpen(true);
+            }
             : undefined
         }
         onDelete={
           canEdit
             ? () => {
-                props.onChange?.(null);
-              }
+              props.onChange?.(null);
+            }
             : undefined
         }
       />

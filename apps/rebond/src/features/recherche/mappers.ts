@@ -1,7 +1,6 @@
 // mappers.ts
 import { displayRole } from '@/lib/role';
 import { displayNotaireNom } from '@/lib/nom';
-import { getRegistreLabel } from '@/features/etat-civil/suivi/BureauRegistres';
 import { getIconForLieuType, getLieuTypeFeminin } from '@/features/recherche/searchLieuxIcons';
 
 export const mapIndividu = (x: any) => ({
@@ -28,7 +27,7 @@ export const mapDocument = (x: any) => ({
     ? null
     : `conservé par ${displayNotaireNom(x.notaire_titre, x.notaire_nom, x.notaire_prenom)}`,
   registreLabel: x.source_table === 'etat_civil_actes'
-    ? getRegistreLabel(x.registre_type_acte, x.registre_statut_juridique)
+    ? x.registre_label
     : null,
   bureauLabel: x.source_table === 'etat_civil_actes'
     ? `enregistré à la ${x.bureau_nom} (${x.bureau_departement})`
