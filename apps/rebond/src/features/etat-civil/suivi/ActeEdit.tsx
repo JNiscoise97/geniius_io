@@ -1,5 +1,5 @@
 // ActeEdit.tsx
-import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users, InfoIcon } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, FileText, Link as LinkIcon, Lightbulb, Network, NotepadText, Save, Users, InfoIcon, Pickaxe, PickaxeIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEtatCivilActesStore } from '@/store/useEtatCivilActesStore';
@@ -30,11 +30,13 @@ import {
 } from '@/services/acte.api';
 import ReferenceArchiveTab from '@/features/actes/tabs/ReferenceArchiveTab';
 import TranscriptionTab from '@/features/actes/tabs/TranscriptionTab';
+import ExtractionTab from '@/features/actes/tabs/ExtractionTab';
 
 const tabs = [
   { label: 'Acte', icon: FileText },
   { label: 'Référence archive', icon: Archive },
   { label: 'Transcription', icon: FileText },
+  { label: 'Extraction', icon: Pickaxe },
   { label: 'Acteurs & rôles', icon: Users },
   { label: 'Informations', icon: InfoIcon },
   { label: 'Mentions complémentaires', icon: NotepadText },
@@ -434,6 +436,14 @@ export default function ActeEdit() {
             <div className='p-4'>
                 <TranscriptionTab acteId={acteId!} />
             </div>
+          </div>
+        )}
+        {activeSection === 'Extraction' && (
+          <div className="p-1">
+            <ExtractionTab
+              mode={'edit'}
+              acteId={acteId!}
+            />
           </div>
         )}
         {activeSection === 'Acteurs & rôles' && (

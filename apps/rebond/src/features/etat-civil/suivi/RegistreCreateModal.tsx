@@ -7,15 +7,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilRegistre } from '@/types/etatcivil';
-import { DictionnaireEditorPanel, type DictionnaireKind } from '@/components/shared/DictionnaireEditorPanel';
-import { ListeChipsViewSmart } from '@/components/shared/ListeChipsViewSmart';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
+import { Field } from '@/components/shared/fields';
+
+type TypeActeMultiRef = { ids: string[] } | null;
 
 export function RegistreCreateModal({
   open,
@@ -31,394 +31,396 @@ export function RegistreCreateModal({
   onRegistreCreated?: (registre: EtatCivilRegistre) => void;
 }) {
   const [registreCreateLoading, setRegistreCreateLoading] = useState(false);
+
+  // --- Form state ---
   const [annee, setAnnee] = useState('');
-  const [modeRegistre, setModeRegistre] = useState<'par_type' | 'chronologique_mixte'>('par_type');
-  const [statutJuridique, setStatutJuridique] = useState<null | 'esclave' | 'nouveau_libre'>(null);
-  const [ordreNumerotation, setOrdreNumerotation] = useState<'par_type' | 'globale'>('par_type');
-  const [nombreActesEstime, setNombreActesEstime] = useState<number | null>(null);
+  const [typeActeRef, setTypeActeRef] = useState<TypeActeMultiRef>(null);
+
+  const [registreModeRef, setRegistreModeRef] = useState<string | null>(null);
+  const [registreOrdreNumerotationRef, setRegistreOrdreNumerotationRef] =
+    useState<string | null>(null);
+  const [registreStatutJuridiqueRef, setRegistreStatutJuridiqueRef] =
+    useState<string | null>(null);
+
+  // legacy / encore utilisé dans tes conflits + insert
+  const [statutJuridique, setStatutJuridique] = useState<
+    null | 'esclave' | 'nouveau_libre'
+  >(null);
+
+  const [nombreActesEstime, setNombreActesEstime] = useState<number | null>(
+    null,
+  );
   const [numeroActeMin, setNumeroActeMin] = useState<number | null>(1);
   const [numeroActeMax, setNumeroActeMax] = useState<number | null>(null);
 
+  // --- Derived ---
+  const currentTypeIds = useMemo(() => typeActeRef?.ids ?? [], [typeActeRef]);
 
-  type MultiRef = { ids: string[]; labels: string[]; colors?: string[] } | null;
+  const isValid =
+    Boolean(annee) &&
+    currentTypeIds.length > 0 &&
+    Boolean(registreModeRef) &&
+    Boolean(registreOrdreNumerotationRef);
 
-  const [typeActeRef, setTypeActeRef] = useState<MultiRef>(null);
-  const [dictOpen, setDictOpen] = useState(false);
-  const [dictArgs, setDictArgs] = useState<null | {
-    kind: DictionnaireKind;
-    title: string;
-    multi: boolean;
-    defaultSelectedIds: string[];
-    onValidate: (items: Array<{ id: string; label: string, color?: string | undefined }>) => Promise<void> | void;
-  }>(null);
-
-
-  const currentTypeIds = typeActeRef?.ids ?? [];
-  const currentTypeColors = typeActeRef?.colors ?? [];
-  const currentTypeLabels = typeActeRef?.labels ?? [];
-
-  // On garde “selectedTypes” comme alias logique, parce que tu l’utilises plus bas (conflit/insert/disable)
-  const selectedTypes = currentTypeLabels;
-
+  // --- Helpers ---
   function resetForm() {
     setAnnee('');
     setTypeActeRef(null);
-    setModeRegistre('par_type');
+
+    setRegistreModeRef(null);
+    setRegistreOrdreNumerotationRef(null);
+    setRegistreStatutJuridiqueRef(null);
+
     setStatutJuridique(null);
-    setOrdreNumerotation('par_type');
+
     setNombreActesEstime(null);
     setNumeroActeMin(1);
     setNumeroActeMax(null);
+
     setRegistreCreateLoading(false);
   }
-
-  useEffect(() => {
-    if (selectedTypes.length > 1) {
-      setOrdreNumerotation('globale');
-      setModeRegistre('chronologique_mixte');
-    }
-  }, [selectedTypes.length]);
 
   function handleClose() {
     resetForm();
     onClose();
   }
 
-  function openTypeActeDictionnaire() {
-    setDictArgs({
-      kind: 'type_acte_ref',
-      title: 'Sélectionner le type d’acte',
-      multi: true,
-      defaultSelectedIds: currentTypeIds,
-      onValidate: async (items) => {
-        const ids = items.map((i) => i.id);
-        const labels = items.map((i) => i.label);
-        const colors = items.map((i) => i.color ?? '');
-        setTypeActeRef({ ids, labels, colors });
+  const hydrateTypeLabels = async (typeIds: string[]) => {
+    const clean = Array.from(new Set((typeIds ?? []).map(String).filter(Boolean)));
+    if (!clean.length) return [];
 
-        setDictOpen(false);
-      },
-    });
-    setDictOpen(true);
-  }
+    const { data, error } = await supabase
+      .from('ref_ec_type_acte')
+      .select('id,label')
+      .in('id', clean);
 
-  function clearTypeActe() {
-    setTypeActeRef(null);
-  }
+    if (error) throw error;
 
+    const byId = new Map(
+      (data ?? []).map((r: any) => [String(r.id), String(r.label ?? '')]),
+    );
 
+    return clean.map((id) => byId.get(id) ?? '').filter(Boolean);
+  };
+
+  const handleSubmit = async () => {
+    if (registreCreateLoading) return;
+    if (!isValid) return;
+
+    setRegistreCreateLoading(true);
+
+    try {
+      const anneeInt = parseInt(annee, 10);
+      if (!Number.isFinite(anneeInt)) {
+        toast.error('Année invalide');
+        return;
+      }
+
+      // 1) labels à partir des ids (pour type_acte legacy + conflit)
+      const selectedTypeLabels = await hydrateTypeLabels(currentTypeIds);
+      if (!selectedTypeLabels.length) {
+        toast.error("Aucun type d’acte sélectionné");
+        return;
+      }
+
+      // 2) conflit (comme avant, sur labels)
+      const selectedSet = new Set(selectedTypeLabels);
+
+      const conflit = registresExistants?.some((r) => {
+        if (r.annee !== anneeInt) return false;
+        if (r.statut_juridique !== statutJuridique) return false;
+
+        const existingTypes = (r.type_acte ?? '').split('|').filter(Boolean);
+        return existingTypes.some((type) => selectedSet.has(type));
+      });
+
+      if (conflit) {
+        toast.error(
+          'Un registre de cette année existe déjà pour le type d’acte et le statut juridique sélectionnés.',
+        );
+        return;
+      }
+
+      // 3) insert registre
+      const { data, error } = await supabase
+        .from('etat_civil_registres')
+        .insert([
+          {
+            bureau_id: bureauId,
+            annee: anneeInt,
+
+            // legacy string (pour compat)
+            type_acte: selectedTypeLabels.join('|'),
+
+            registre_mode_ref: registreModeRef,
+            statut_juridique: statutJuridique,
+
+            registre_ordre_numerotation_ref: registreOrdreNumerotationRef,
+            registre_statut_juridique_ref: registreStatutJuridiqueRef,
+
+            nombre_actes_estime: nombreActesEstime,
+            numero_acte_min: numeroActeMin,
+            numero_acte_max: numeroActeMax,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[RegistreCreateModal] Erreur supabase :', error.message);
+        toast.error("Erreur lors de l'ajout du registre");
+        return;
+      }
+
+      // 4) liaison types d’actes (table pivot)
+      if (data?.id && currentTypeIds.length) {
+        const rows = currentTypeIds.map((typeId) => ({
+          registre_id: data.id,
+          type_acte_id: typeId,
+        }));
+
+        const { error: linkErr } = await supabase
+          .from('etat_civil_registres_type_acte')
+          .insert(rows);
+
+        if (linkErr) {
+          console.error(
+            '[RegistreCreateModal] Erreur liaison types actes:',
+            linkErr.message,
+          );
+          toast.error(
+            "Registre créé, mais erreur lors de l'association des types d'actes",
+          );
+        }
+      }
+
+      toast.success('Registre ajouté avec succès');
+      if (onRegistreCreated && data) onRegistreCreated(data);
+      handleClose();
+    } catch (e: any) {
+      console.error('[RegistreCreateModal] Erreur JS :', e);
+      toast.error('Une erreur est survenue');
+    } finally {
+      setRegistreCreateLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className='flex flex-col p-0'
-        style={{ width: '50vw', height: '95vh', maxWidth: 'none', maxHeight: 'none' }}
-      >        {' '}
-        <DialogHeader className='px-6 py-4 border-b shrink-0 sticky top-0 z-10'>
+        style={{
+          width: '50vw',
+          height: '95vh',
+          maxWidth: 'none',
+          maxHeight: 'none',
+        }}
+      >
+        {/* Header */}
+        <DialogHeader className='px-6 py-4 border-b shrink-0 sticky top-0 z-10 bg-white'>
           <DialogTitle>Ajouter un registre</DialogTitle>
         </DialogHeader>
-        <div className='flex-1 flex overflow-hidden py-4 px-10 '>
-          <div className='overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4 w-full'>
-            <div>
-              <Label htmlFor='annee'>Année</Label>
-              <Input
-                id='annee'
-                type='number'
-                value={annee}
-                onChange={(e) => setAnnee(e.target.value)}
-              />
-            </div>
-            <div className='sm:col-span-2'>
-              <Label>Type d’acte</Label>
-              <ListeChipsViewSmart
-                titre="Type d'acte"
-                values={currentTypeLabels}
-                colors={currentTypeColors}
-                dense
-                actionsInvisible={false}
-                onEdit={openTypeActeDictionnaire}
-                onDelete={clearTypeActe}
-              />
-              <p className='mt-1 text-xs text-muted-foreground'>Ce champ est requis.</p>
-            </div>
 
-            <div className='col-span-2'>
-              <Label className='block mb-2 text-sm font-medium text-gray-700'>
-                Mode du registre
-              </Label>
-              <div className='space-y-3'>
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='mode_registre'
-                    value='par_type'
-                    checked={modeRegistre === 'par_type'}
-                    onChange={() => setModeRegistre('par_type')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Par type</div>
-                    <div className='text-gray-600'>
-                      Le registre contient un seul type d’acte (naissance, mariage ou décès).
-                    </div>
-                  </div>
-                </label>
+        {/* Body */}
+        <div className='flex-1 overflow-hidden'>
+          <div className='h-full overflow-y-auto px-6 py-5'>
+            {/* Bloc 1 — Identification */}
+            <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+              <h3 className='text-sm font-semibold text-slate-900'>
+                Identification
+              </h3>
 
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='mode_registre'
-                    value='chronologique_mixte'
-                    checked={modeRegistre === 'chronologique_mixte'}
-                    onChange={() => setModeRegistre('chronologique_mixte')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Chronologique mixte</div>
-                    <div className='text-gray-600'>
-                      Le registre contient plusieurs types d’actes mélangés, numérotés de manière
-                      unique.
-                    </div>
+              <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                <div className='md:col-span-3'>
+                  <Field label='Année' readonly={false} value={annee}>
+                    <Input
+                      inputMode='numeric'
+                      value={annee}
+                      onChange={(e) => setAnnee(e.target.value)}
+                      placeholder='Ex. 1898'
+                    />
+                  </Field>
+                </div>
+
+                <div className='md:col-span-9'>
+                  <div className='text-xs font-medium text-slate-700'>
+                    Types d’actes
                   </div>
-                </label>
+
+                  <div className='mt-1'>
+                    <RefSinglePickerSmart
+                      table='ref_ec_type_acte'
+                      mode='edit'
+                      actionsInvisible={false}
+                      multi={true}
+                      value={(currentTypeIds ?? []) as any}
+                      onChange={(next) => {
+                        const ids = Array.isArray(next)
+                          ? Array.from(
+                              new Set((next as any[]).map(String).filter(Boolean)),
+                            )
+                          : [];
+                        setTypeActeRef(ids.length ? { ids } : null);
+                      }}
+                      titleOverride='Types d’actes'
+                    />
+                  </div>
+
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    Champ requis.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className='col-span-2'>
-              <Label className='block mb-2 text-sm font-medium text-gray-700'>
-                Ordre de numérotation des actes
-              </Label>
-              <div className='space-y-3'>
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='ordre_numerotation'
-                    value='par_type'
-                    checked={ordreNumerotation === 'par_type'}
-                    onChange={() => setOrdreNumerotation('par_type')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Par type</div>
-                    <div className='text-gray-600'>
-                      Les numéros d’actes recommencent à 1 pour chaque type d’acte.
-                    </div>
-                  </div>
-                </label>
+            </section>
 
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='ordre_numerotation'
-                    value='globale'
-                    checked={ordreNumerotation === 'globale'}
-                    onChange={() => setOrdreNumerotation('globale')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Globale</div>
-                    <div className='text-gray-600'>
-                      Les actes sont numérotés de manière continue, tous types confondus.
-                    </div>
+            {/* Bloc 2 — Logique administrative & juridique */}
+            <section className='mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+              <h3 className='text-sm font-semibold text-slate-900'>
+                Cadre administratif et juridique
+              </h3>
+
+              <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                <div className='md:col-span-12'>
+                  <div className='text-xs font-medium text-slate-700'>
+                    Mode de constitution du registre
                   </div>
-                </label>
+                  <div className='mt-1'>
+                    <RefSinglePickerSmart
+                      table='ref_registre_mode'
+                      mode='edit'
+                      actionsInvisible={false}
+                      value={registreModeRef}
+                      onChange={(next) =>
+                        setRegistreModeRef(next ? String(next) : null)
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className='md:col-span-12'>
+                  <div className='text-xs font-medium text-slate-700'>
+                    Règle d’attribution des numéros d’actes
+                  </div>
+                  <div className='mt-1'>
+                    <RefSinglePickerSmart
+                      table='ref_registre_ordre_numerotation'
+                      mode='edit'
+                      actionsInvisible={false}
+                      value={registreOrdreNumerotationRef}
+                      onChange={(next) =>
+                        setRegistreOrdreNumerotationRef(next ? String(next) : null)
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className='md:col-span-12'>
+                  <div className='text-xs font-medium text-slate-700'>
+                    Cadre juridique et population concernée
+                  </div>
+                  <div className='mt-1'>
+                    <RefSinglePickerSmart
+                      table='ref_registre_statut_juridique'
+                      mode='edit'
+                      actionsInvisible={false}
+                      value={registreStatutJuridiqueRef}
+                      onChange={(next) =>
+                        setRegistreStatutJuridiqueRef(next ? String(next) : null)
+                      }
+                    />
+                  </div>
+
+                  {/* NOTE: "statutJuridique" (esclave/nouveau_libre) est encore utilisé pour les conflits + insert.
+                      Si tu veux le piloter ici, réactive un select explicite ou fais un mapping ref->enum. */}
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div className='col-span-2'>
-              <Label className='block mb-2 text-sm font-medium text-gray-700'>
-                Statut juridique
-              </Label>
-              <div className='space-y-3'>
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='statut_juridique'
-                    value=''
-                    checked={statutJuridique === null}
-                    onChange={() => setStatutJuridique(null)}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Libres</div>
-                    <div className='text-gray-600'>
-                      Le registre concerne des personnes libres.
-                    </div>
-                  </div>
-                </label>
+            {/* Bloc 3 — Volumétrie & numérotation */}
+            <section className='mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+              <h3 className='text-sm font-semibold text-slate-900'>
+                Volumétrie et numérotation
+              </h3>
 
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='statut_juridique'
-                    value='esclave'
-                    checked={statutJuridique === 'esclave'}
-                    onChange={() => setStatutJuridique('esclave')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Esclaves</div>
-                    <div className='text-gray-600'>
-                      Le registre concerne des personnes esclaves.
-                    </div>
-                  </div>
-                </label>
+              <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
+                <div className='md:col-span-4'>
+                  <Field
+                    label="Nombre d'actes estimé"
+                    readonly={false}
+                    value={nombreActesEstime ?? ''}
+                  >
+                    <Input
+                      inputMode='numeric'
+                      value={nombreActesEstime ?? ''}
+                      onChange={(e) =>
+                        setNombreActesEstime(
+                          e.target.value ? parseInt(e.target.value, 10) : null,
+                        )
+                      }
+                      placeholder='Ex. 120'
+                    />
+                  </Field>
+                </div>
 
-                <label className='flex items-start space-x-3 p-3 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='statut_juridique'
-                    value='nouveau_libre'
-                    checked={statutJuridique === 'nouveau_libre'}
-                    onChange={() => setStatutJuridique('nouveau_libre')}
-                    className='mt-1 h-4 w-4 text-blue-600 border-gray-300'
-                  />
-                  <div className='text-sm text-gray-800'>
-                    <div className='font-medium'>Nouveaux libres</div>
-                    <div className='text-gray-600'>
-                      Le registre concerne des personnes émancipées par le décret d'abolition de l'esclavage de 1848.
-                    </div>
-                  </div>
-                </label>
+                <div className='md:col-span-4'>
+                  <Field
+                    label='Numéro d’acte min.'
+                    readonly={false}
+                    value={numeroActeMin ?? ''}
+                  >
+                    <Input
+                      inputMode='numeric'
+                      value={numeroActeMin ?? ''}
+                      onChange={(e) =>
+                        setNumeroActeMin(
+                          e.target.value ? parseInt(e.target.value, 10) : null,
+                        )
+                      }
+                      placeholder='Ex. 1'
+                    />
+                  </Field>
+                </div>
+
+                <div className='md:col-span-4'>
+                  <Field
+                    label='Numéro d’acte max.'
+                    readonly={false}
+                    value={numeroActeMax ?? ''}
+                  >
+                    <Input
+                      inputMode='numeric'
+                      value={numeroActeMax ?? ''}
+                      onChange={(e) =>
+                        setNumeroActeMax(
+                          e.target.value ? parseInt(e.target.value, 10) : null,
+                        )
+                      }
+                      placeholder='Ex. 128'
+                    />
+                  </Field>
+                </div>
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor='nombreActesEstime'>Nombre d'actes estimé</Label>
-              <Input
-                id='nombreActesEstime'
-                type='number'
-                value={nombreActesEstime ?? ''}
-                onChange={(e) =>
-                  setNombreActesEstime(e.target.value ? parseInt(e.target.value) : null)
-                }
-              />
-            </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-              <div>
-                <Label htmlFor='numero_acte_min'>Numéro d’acte min.</Label>
-                <Input
-                  id='numero_acte_min'
-                  type='number'
-                  value={numeroActeMin ?? ''}
-                  onChange={(e) =>
-                    setNumeroActeMin(e.target.value ? parseInt(e.target.value) : null)
-                  }
-                  placeholder='ex : 1'
-                />
-              </div>
-              <div>
-                <Label htmlFor='numero_acte_max'>Numéro d’acte max.</Label>
-                <Input
-                  id='numero_acte_max'
-                  type='number'
-                  value={numeroActeMax ?? ''}
-                  onChange={(e) =>
-                    setNumeroActeMax(e.target.value ? parseInt(e.target.value) : null)
-                  }
-                  placeholder='ex : 128'
-                />
-              </div>
-            </div>
+            </section>
           </div>
         </div>
-        <DialogFooter className='px-6 py-4 border-t shrink-0 flex justify-end gap-2'>
-          <Button variant='ghost' onClick={handleClose} disabled={registreCreateLoading}>
+
+        {/* Footer */}
+        <DialogFooter className='px-6 py-4 border-t shrink-0 flex justify-end gap-2 bg-white'>
+          <Button
+            variant='ghost'
+            onClick={handleClose}
+            disabled={registreCreateLoading}
+          >
             Annuler
           </Button>
+
           <Button
-            onClick={async () => {
-              setRegistreCreateLoading(true);
-              const anneeInt = parseInt(annee);
-              const selectedSet = new Set(selectedTypes);
-
-              // vérifier s'il y a un chevauchement pour cette année et ce bureau
-              const conflit = registresExistants?.some((r) => {
-                if (r.annee !== anneeInt) return false;
-                if (r.statut_juridique !== statutJuridique) return false;
-
-                const existingTypes = (r.type_acte ?? '').split('|').filter(Boolean);
-                return existingTypes.some((type) => selectedSet.has(type));
-
-              });
-
-              if (conflit) {
-                toast.error(
-                  'Un registre de cette année existe déjà pour le types d’acte et le statut juridique sélectionnés.',
-                );
-                setRegistreCreateLoading(false);
-                return;
-              }
-
-              try {
-                const { data, error } = await supabase.from('etat_civil_registres').insert([
-                  {
-                    bureau_id: bureauId,
-                    annee: parseInt(annee),
-                    type_acte: selectedTypes.join('|'),
-                    mode_registre: modeRegistre,
-                    statut_juridique: statutJuridique,
-                    ordre_numerotation: ordreNumerotation,
-                    nombre_actes_estime: nombreActesEstime,
-                    numero_acte_min: numeroActeMin,
-                    numero_acte_max: numeroActeMax,
-                  },
-                ]).select()
-                  .single();
-
-                if (!error && data && currentTypeIds.length) {
-                  const rows = currentTypeIds.map((typeId) => ({
-                    registre_id: data.id,
-                    type_acte_id: typeId,
-                  }));
-
-                  const { error: linkErr } = await supabase
-                    .from('etat_civil_registres_type_acte')
-                    .insert(rows);
-
-                  if (linkErr) {
-                    console.error('[RegistreCreateModal] Erreur liaison types actes:', linkErr.message);
-                    toast.error("Registre créé, mais erreur lors de l'association des types d'actes");
-                  }
-                }
-
-                if (error) {
-                  console.error('[RegistreCreateModal] Erreur supabase :', error.message);
-                  toast.error("Erreur lors de l'ajout du registre");
-                } else {
-                  toast.success('Registre ajouté avec succès');
-                  if (onRegistreCreated && data) {
-                    onRegistreCreated(data);
-                  }
-                  handleClose();
-                }
-              } catch (error) {
-                console.error('[RegistreCreateModal] Erreur JS :', error);
-                toast.error('Une erreur est survenue');
-              } finally {
-                setRegistreCreateLoading(false);
-              }
-            }}
-            disabled={registreCreateLoading || !annee || selectedTypes.length === 0}
+            disabled={registreCreateLoading || !isValid}
+            onClick={handleSubmit}
           >
             {registreCreateLoading ? 'Ajout en cours...' : 'Ajouter le registre'}
           </Button>
         </DialogFooter>
-        {/* Dictionnaire */}
-        <Sheet open={dictOpen} onOpenChange={setDictOpen}>
-          <SheetContent side='right' className='w-[520px] sm:w-[640px] p-0'>
-            {dictArgs && (
-              <DictionnaireEditorPanel
-                kind={dictArgs.kind}
-                title={dictArgs.title}
-                multi={dictArgs.multi}
-                defaultSelectedIds={dictArgs.defaultSelectedIds}
-                onValidate={dictArgs.onValidate}
-                onCancel={() => setDictOpen(false)}
-              />
-            )}
-          </SheetContent>
-        </Sheet>
-
       </DialogContent>
     </Dialog>
   );

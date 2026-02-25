@@ -217,10 +217,6 @@ export function getRegistreCompleteness(c: any): CompletenessResult {
   if (!isTriStateSet(c.is_missing)) missing.push('is_missing (true/false/null)');
 
   const isMissing = c.is_missing === true;
-  if (!isMissing) {
-    const segs = Array.isArray(c.segments) ? c.segments : [];
-    if (segs.length === 0) missing.push('segments (au moins 1 si pas manquant)');
-  }
 
   const lacune = c.lacune === true;
   if (lacune) {
@@ -1250,7 +1246,20 @@ export function SectionSources(props: SectionSourcesProps) {
                 yesLabel='Oui'
                 noLabel='Non'
                 mode={mode}
-                onChange={(v) => onChange(idx, { lacune: v } as any)}
+                onChange={(v) => {
+                  // v: true | false | null
+                  if (v === true) {
+                    onChange(idx, { lacune: true } as any);
+                    return;
+                  }
+
+                  // v === false || v === null => reset champs associés
+                  onChange(idx, {
+                    lacune: v,
+                    lacune_note: null,
+                    missing_ranges: [],
+                  } as any);
+                }}
               />
             </div>
 
@@ -1741,7 +1750,20 @@ export function SectionSources(props: SectionSourcesProps) {
                       yesLabel='Oui'
                       noLabel='Non'
                       mode={mode}
-                      onChange={(v) => onChange(idx, { lacune: v } as any)}
+                      onChange={(v) => {
+                        // v: true | false | null
+                        if (v === true) {
+                          onChange(idx, { lacune: true } as any);
+                          return;
+                        }
+
+                        // v === false || v === null => reset champs associés
+                        onChange(idx, {
+                          lacune: v,
+                          lacune_note: null,
+                          missing_ranges: [],
+                        } as any);
+                      }}
                     />
                   </div>
 
@@ -2598,7 +2620,20 @@ export function SectionSources(props: SectionSourcesProps) {
                 value={lacune}
                 yesLabel='Oui'
                 noLabel='Non'
-                onChange={(v) => onChange(idx, { lacune: v } as any)}
+                onChange={(v) => {
+                  // v: true | false | null
+                  if (v === true) {
+                    onChange(idx, { lacune: true } as any);
+                    return;
+                  }
+
+                  // v === false || v === null => reset champs associés
+                  onChange(idx, {
+                    lacune: v,
+                    lacune_note: null,
+                    missing_ranges: [],
+                  } as any);
+                }}
               />
             </div>
 
@@ -2735,6 +2770,23 @@ export function SectionSources(props: SectionSourcesProps) {
     const isMissing = (c as any).is_missing;
     const lacune = (c as any).lacune;
 
+    const missingRanges: any[] = Array.isArray((c as any).missing_ranges)
+      ? (c as any).missing_ranges
+      : [];
+
+    const patchMissingRanges = (next: any[]) => onChange(idx, { missing_ranges: next } as any);
+
+    const addMissingRange = () =>
+      patchMissingRanges([...missingRanges, { kind: 'vue', start: null, end: null, note: '' }]);
+
+    const updateMissingRange = (i: number, patch: Partial<any>) =>
+      patchMissingRanges(missingRanges.map((r, k) => (k === i ? { ...r, ...patch } : r)));
+
+    const removeMissingRange = (i: number) =>
+      patchMissingRanges(missingRanges.filter((_, k) => k !== i));
+
+    const hasMissingRanges = missingRanges.length > 0;
+
     return (
       <Tabs
         value={registreFormVariant}
@@ -2787,7 +2839,20 @@ export function SectionSources(props: SectionSourcesProps) {
                       value={lacune}
                       yesLabel='Oui'
                       noLabel='Non'
-                      onChange={(v) => onChange(idx, { lacune: v } as any)}
+                      onChange={(v) => {
+                        // v: true | false | null
+                        if (v === true) {
+                          onChange(idx, { lacune: true } as any);
+                          return;
+                        }
+
+                        // v === false || v === null => reset champs associés
+                        onChange(idx, {
+                          lacune: v,
+                          lacune_note: null,
+                          missing_ranges: [],
+                        } as any);
+                      }}
                     />
                   </div>
 
@@ -2801,6 +2866,134 @@ export function SectionSources(props: SectionSourcesProps) {
                         placeholder='Ex. vues 120–140 absentes, feuillets manquants…'
                         minHeightClassName='min-h-[70px]'
                       />
+                    </div>
+                  ) : null}
+
+                  {/* missing_ranges */}
+                  {lacune ? (
+                    <div className='mt-4'>
+                      <div className='flex items-center justify-between gap-3'>
+                        <div>
+                          <div className='text-sm font-semibold text-slate-900'>
+                            Plages manquantes
+                          </div>
+                          <div className='mt-1 text-xs text-slate-600'>
+                            Détaille précisément les vues/pages absentes (utile si « lacune »).
+                          </div>
+                        </div>
+
+                        {!isRO && (
+                          <Button
+                            type='button'
+                            variant='outline'
+                            onClick={addMissingRange}
+                            disabled={!lacune}
+                            title={
+                              !lacune
+                                ? 'Active “Lacune” pour ajouter des plages manquantes.'
+                                : undefined
+                            }
+                          >
+                            Ajouter…
+                          </Button>
+                        )}
+                      </div>
+
+                      {!lacune ? (
+                        <div className='mt-2 text-xs text-slate-500'>
+                          Active <span className='font-medium'>Lacune</span> pour renseigner des
+                          plages manquantes.
+                        </div>
+                      ) : null}
+
+                      {lacune && !hasMissingRanges ? (
+                        <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+                          Aucune plage renseignée.
+                        </div>
+                      ) : null}
+
+                      {lacune && hasMissingRanges ? (
+                        <div className='mt-3 space-y-2'>
+                          {missingRanges.map((r, i) => (
+                            <div
+                              key={i}
+                              className='rounded-xl border border-slate-200 bg-white p-3'
+                            >
+                              <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Type
+                                  </label>
+                                  <select
+                                    className='mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-sm'
+                                    value={String(r.kind ?? 'vue')}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { kind: e.target.value })
+                                    }
+                                  >
+                                    <option value='vue'>Vues</option>
+                                    <option value='page'>Pages</option>
+                                  </select>
+                                </div>
+
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Début
+                                  </label>
+                                  <Input
+                                    inputMode='numeric'
+                                    className='mt-1'
+                                    value={r.start ?? ''}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { start: toIntOrNull(e.target.value) })
+                                    }
+                                    placeholder='ex. 120'
+                                  />
+                                </div>
+
+                                <div className='md:col-span-3'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Fin
+                                  </label>
+                                  <Input
+                                    inputMode='numeric'
+                                    className='mt-1'
+                                    value={r.end ?? ''}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { end: toIntOrNull(e.target.value) })
+                                    }
+                                    placeholder='ex. 140'
+                                  />
+                                </div>
+
+                                <div className='md:col-span-3 flex items-end justify-end'>
+                                  <Button
+                                    type='button'
+                                    variant='ghost'
+                                    onClick={() => removeMissingRange(i)}
+                                  >
+                                    Supprimer
+                                  </Button>
+                                </div>
+
+                                <div className='md:col-span-12'>
+                                  <label className='block text-xs font-medium text-slate-700'>
+                                    Note
+                                  </label>
+                                  <Input
+                                    className='mt-1'
+                                    value={String(r.note ?? '')}
+                                    onChange={(e) =>
+                                      updateMissingRange(i, { note: e.target.value })
+                                    }
+                                    placeholder='ex. pages arrachées, reliure masquée, scan manquant…'
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -2997,7 +3190,7 @@ export function SectionSources(props: SectionSourcesProps) {
   // UI
   // ---------------------------------------------------------------------------
   return (
-    <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+    <section>
       <div className='mb-4'>
         <div className='flex items-start gap-3'>
           <h3 className='min-w-0 flex-1 text-sm font-semibold text-slate-900'>
@@ -3026,10 +3219,11 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[MODEL] lisibilité manuscrite (ref_document_readability_features.applicable_to)</li>
+                      <li>
+                        [MODEL] lisibilité manuscrite
+                        (ref_document_readability_features.applicable_to)
+                      </li>
 
-                      <li>[LABEL] revoir les titres des headers des sections</li>
-                      
                       <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
                       <li>[MODEL] Champ work_note</li>
                     </ol>
@@ -3054,12 +3248,6 @@ export function SectionSources(props: SectionSourcesProps) {
                   <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                   <div className='mt-0.5 text-xs text-amber-800'>
                     <ol>
-                      <li>[MODEL] Ajouter la prop missing_range au registre et le brancher sur getRegistreCompleteness</li>
-                      <li>[MODEL] (repérées de ? à ?)</li>
-                      
-
-                      <li>[LABEL] revoir les titres des headers des sections</li>
-
                       <li>[UX] En-tête de l'exemplaire: tester le bouton changer</li>
                       <li>[MODEL] Champ work_note</li>
                     </ol>

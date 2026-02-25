@@ -4,7 +4,13 @@ import type { FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { EtatCivilActe } from '@/types/etatcivil';
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 
 import {
   DictionnaireEditorPanel,
@@ -33,21 +39,21 @@ type LieuSituation = 'bureau_courant' | 'autre_bureau' | 'transporte';
 
 type ReferenceArchiveTabProps =
   | {
-    type: 'acte';
-    acte: EtatCivilActe;
-    registreId?: string;
-    mode?: Mode;
-    bureauLabel?: string;
-    onUpdated?: () => Promise<void> | void;
-  }
+      type: 'acte';
+      acte: EtatCivilActe;
+      registreId?: string;
+      mode?: Mode;
+      bureauLabel?: string;
+      onUpdated?: () => Promise<void> | void;
+    }
   | {
-    type: 'registre';
-    acte?: never;
-    registreId: string;
-    mode?: Mode;
-    bureauLabel?: string;
-    onUpdated?: () => Promise<void> | void;
-  };
+      type: 'registre';
+      acte?: never;
+      registreId: string;
+      mode?: Mode;
+      bureauLabel?: string;
+      onUpdated?: () => Promise<void> | void;
+    };
 
 /**
  * =========================================================================
@@ -97,8 +103,13 @@ function SectionHeaderRow(props: {
   const { title, subtitle, dirty, saving, savedAt, disabled, readonly = false, onSave } = props;
 
   const status = (() => {
-    if (saving) return { label: 'Enregistrement…', icon: <Loader2 className='h-4 w-4 animate-spin' /> };
-    if (dirty) return { label: 'Modifications non enregistrées', icon: <AlertTriangle className='h-4 w-4' /> };
+    if (saving)
+      return { label: 'Enregistrement…', icon: <Loader2 className='h-4 w-4 animate-spin' /> };
+    if (dirty)
+      return {
+        label: 'Modifications non enregistrées',
+        icon: <AlertTriangle className='h-4 w-4' />,
+      };
     if (savedAt) return { label: 'Enregistré', icon: <CheckCircle2 className='h-4 w-4' /> };
     return { label: 'À jour', icon: <CheckCircle2 className='h-4 w-4 opacity-60' /> };
   })();
@@ -259,16 +270,20 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     damage_notes: r?.damage_notes ?? '',
     repro_notes: r?.repro_notes ?? '',
 
-    missing_ranges: Array.isArray(r?.missing_ranges) ? (r!.missing_ranges as any[]).filter(Boolean) : [],
+    missing_ranges: Array.isArray(r?.missing_ranges)
+      ? (r!.missing_ranges as any[]).filter(Boolean)
+      : [],
 
     marginal_mentions_present: r?.marginal_mentions_present ?? null,
-    marginal_mentions_count: typeof r?.marginal_mentions_count === 'number' ? r.marginal_mentions_count : null,
+    marginal_mentions_count:
+      typeof r?.marginal_mentions_count === 'number' ? r.marginal_mentions_count : null,
 
     signatures_present: r?.signatures_present ?? null,
     signatures_count: typeof r?.signatures_count === 'number' ? r.signatures_count : null,
 
     marginal_crossouts_present: r?.marginal_crossouts_present ?? null,
-    marginal_crossouts_count: typeof r?.marginal_crossouts_count === 'number' ? r.marginal_crossouts_count : null,
+    marginal_crossouts_count:
+      typeof r?.marginal_crossouts_count === 'number' ? r.marginal_crossouts_count : null,
 
     langue_ref: (r as any)?.langue_ref ?? null,
     ecriture_ref: (r as any)?.ecriture_ref ?? null,
@@ -315,6 +330,8 @@ type RegistreCitationRow = {
 
   note: string | null;
   sort_order: number | null;
+
+  missing_ranges: any;
 };
 
 function emptyRegistreCitation(sort_order: number): RegistreCitationDraft {
@@ -337,6 +354,7 @@ function emptyRegistreCitation(sort_order: number): RegistreCitationDraft {
     sort_order,
     segments: [],
     work_note: '',
+    missing_ranges: [],
   };
 }
 
@@ -360,6 +378,9 @@ function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
     sort_order: r.sort_order ?? 0,
 
     segments: [],
+    missing_ranges: Array.isArray(r?.missing_ranges)
+      ? (r!.missing_ranges as any[]).filter(Boolean)
+      : [],
     work_note: '',
   };
 }
@@ -554,10 +575,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         .from('etat_civil_acte_citations')
         .select(
           'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
-          'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
-          'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
-          'anchor_hint, acte_no, lacune, lacune_note, marks,' +
-          'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
+            'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
+            'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
+            'anchor_hint, acte_no, lacune, lacune_note, marks,' +
+            'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
         )
         .eq('acte_id', acteId)
         .order('sort_order', { ascending: true })
@@ -582,7 +603,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         return;
       }
 
-      const exIds = Array.from(new Set(drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[]));
+      const exIds = Array.from(
+        new Set(drafts.map((d) => d.exemplaire_id).filter(Boolean) as string[]),
+      );
       if (!exIds.length) {
         setActesSources(drafts);
         setLoadingActesSources(false);
@@ -701,7 +724,11 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const setFieldIn = <K extends keyof FormStateActe>(section: DirtyKey, key: K, value: FormStateActe[K]) => {
+  const setFieldIn = <K extends keyof FormStateActe>(
+    section: DirtyKey,
+    key: K,
+    value: FormStateActe[K],
+  ) => {
     setField(key, value);
     if (mode === 'edit') {
       if (section !== 'label' && section !== 'sources') markDirty(section);
@@ -740,7 +767,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
     const toDelete = existingIds.filter((id) => !uiExistingIds.includes(id));
 
     if (toDelete.length) {
-      const { error } = await supabase.from('etat_civil_acte_citations').delete().in('id', toDelete);
+      const { error } = await supabase
+        .from('etat_civil_acte_citations')
+        .delete()
+        .in('id', toDelete);
       if (error) throw error;
     }
 
@@ -770,20 +800,26 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           missing_ranges: Array.isArray(c.missing_ranges) ? c.missing_ranges : [],
 
           marginal_mentions_present: toBoolOrNull(c.marginal_mentions_present),
-          marginal_mentions_count: c.marginal_mentions_present === true ? (c.marginal_mentions_count ?? null) : null,
+          marginal_mentions_count:
+            c.marginal_mentions_present === true ? (c.marginal_mentions_count ?? null) : null,
 
           signatures_present: toBoolOrNull(c.signatures_present),
           signatures_count: c.signatures_present === true ? (c.signatures_count ?? null) : null,
 
           marginal_crossouts_present: toBoolOrNull(c.marginal_crossouts_present),
-          marginal_crossouts_count: c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
+          marginal_crossouts_count:
+            c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
 
           langue_ref: (c as any).langue_ref ?? null,
           ecriture_ref: (c as any).ecriture_ref ?? null,
           handwriting_legibility_ref: (c as any).handwriting_legibility_ref ?? null,
 
-          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids) ? (c as any).document_damage_kinds_ids : [],
-          document_readability_features_ids: Array.isArray((c as any).document_readability_features_ids)
+          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
+            ? (c as any).document_damage_kinds_ids
+            : [],
+          document_readability_features_ids: Array.isArray(
+            (c as any).document_readability_features_ids,
+          )
             ? (c as any).document_readability_features_ids
             : [],
 
@@ -811,7 +847,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
 
     // backfill IDs for newly created citations
     if (upserted?.length) {
-      const byKey = new Map(upserted.map((r: any) => [`${r.exemplaire_id}__${r.sort_order}`, r.id as string]));
+      const byKey = new Map(
+        upserted.map((r: any) => [`${r.exemplaire_id}__${r.sort_order}`, r.id as string]),
+      );
       setActesSources((prev) =>
         prev.map((c, idx) => {
           if (c.id) return c;
@@ -950,11 +988,13 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
             {/* intro acte */}
             <div className='mt-1 space-y-1'>
               <p className='text-sm leading-relaxed text-slate-700'>
-                Cet onglet vous permet de décrire l’acte en tant que document d’archive : registre, date, lieu de
-                rédaction, dépôts de conservation et état du document.
+                Cet onglet vous permet de décrire l’acte en tant que document d’archive : registre,
+                date, lieu de rédaction, dépôts de conservation et état du document.
               </p>
               <p>
-                <span className='font-semibold text-sm text-slate-700'>Il sert à retrouver et citer précisément l’acte.</span>
+                <span className='font-semibold text-sm text-slate-700'>
+                  Il sert à retrouver et citer précisément l’acte.
+                </span>
               </p>
             </div>
           </div>
@@ -966,7 +1006,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-slate-900'>État des modifications</div>
                   <div className='mt-0.5 text-xs text-slate-600'>
-                    {isAnyDirty ? 'Certaines sections ont des modifications non enregistrées.' : 'Tout est à jour.'}
+                    {isAnyDirty
+                      ? 'Certaines sections ont des modifications non enregistrées.'
+                      : 'Tout est à jour.'}
                   </div>
                 </div>
 
@@ -975,9 +1017,15 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                   onClick={saveAll}
                   disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
                   className='inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-                  title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
+                  title={
+                    isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
+                  }
                 >
-                  {Object.values(savingBy).some(Boolean) ? <Loader2 className='h-4 w-4 animate-spin' /> : <Save className='h-4 w-4' />}
+                  {Object.values(savingBy).some(Boolean) ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <Save className='h-4 w-4' />
+                  )}
                   Tout enregistrer
                 </button>
               </div>
@@ -1011,7 +1059,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                     readOnly={labelLocked}
                     className={[
                       'w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none',
-                      labelLocked ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
+                      labelLocked
+                        ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
+                        : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
                     ].join(' ')}
                     placeholder='Label…'
                   />
@@ -1021,23 +1071,35 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                     onClick={() => setLabelLocked((v) => !v)}
                     className={[
                       'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
-                      labelLocked ? 'border-slate-200 bg-white hover:bg-slate-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
+                      labelLocked
+                        ? 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
                     ].join(' ')}
                     title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
                     aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
                   >
-                    {labelLocked ? <Lock className='h-4 w-4 text-slate-700' /> : <Unlock className='h-4 w-4 text-slate-800' />}
+                    {labelLocked ? (
+                      <Lock className='h-4 w-4 text-slate-700' />
+                    ) : (
+                      <Unlock className='h-4 w-4 text-slate-800' />
+                    )}
                   </button>
                 </div>
 
                 {labelLocked ? (
-                  <p className='mt-1 text-xs text-slate-500'>Le label est verrouillé. Déverrouille-le pour le modifier.</p>
+                  <p className='mt-1 text-xs text-slate-500'>
+                    Le label est verrouillé. Déverrouille-le pour le modifier.
+                  </p>
                 ) : (
-                  <p className='mt-1 text-xs text-amber-700'>Label déverrouillé : toute modification sera enregistrée.</p>
+                  <p className='mt-1 text-xs text-amber-700'>
+                    Label déverrouillé : toute modification sera enregistrée.
+                  </p>
                 )}
 
                 {errorBy.label ? (
-                  <div className='mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>{errorBy.label}</div>
+                  <div className='mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                    {errorBy.label}
+                  </div>
                 ) : null}
               </div>
             </div>
@@ -1049,7 +1111,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
               title='Identification'
-              subtitle='Type d’acte, date/heure, numéro, auteur.'
+              subtitle=''
               dirty={dirty.identification}
               saving={savingBy.identification}
               savedAt={savedAtBy.identification}
@@ -1062,11 +1124,16 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               form={form as any}
               type='acte'
               mode={mode}
-              setField={((key: keyof FormStateActe, value: any) => setFieldIn('identification', key as any, value)) as any}
+              setField={
+                ((key: keyof FormStateActe, value: any) =>
+                  setFieldIn('identification', key as any, value)) as any
+              }
             />
 
             {errorBy.identification ? (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>{errorBy.identification}</div>
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                {errorBy.identification}
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -1075,8 +1142,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         {type === 'acte' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title='Enregistrement et lieu'
-              subtitle='Bureau d’enregistrement, lieu de rédaction, transport.'
+              title='Enregistrement de l’acte'
+              subtitle=''
               dirty={dirty.enregistrement}
               saving={savingBy.enregistrement}
               savedAt={savedAtBy.enregistrement}
@@ -1087,7 +1154,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
             <SectionEnregistrementActe
               mode={mode}
               form={form as any}
-              setField={((key: keyof FormStateActe, value: any) => setFieldIn('enregistrement', key as any, value)) as any}
+              setField={
+                ((key: keyof FormStateActe, value: any) =>
+                  setFieldIn('enregistrement', key as any, value)) as any
+              }
               onEditBureauEnregistrement={() => {
                 if (mode !== 'edit') return;
                 setBureauArgs({
@@ -1095,7 +1165,11 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                   defaultSelectedId: form.bureau_id,
                   onValidate: async (bureau) => {
                     setFieldIn('enregistrement', 'bureau_id', bureau.id);
-                    setFieldIn('enregistrement', 'bureau_enregistrement_label', formatBureauLabel(bureau));
+                    setFieldIn(
+                      'enregistrement',
+                      'bureau_enregistrement_label',
+                      formatBureauLabel(bureau),
+                    );
                     setBureauOpen(false);
                   },
                 });
@@ -1113,7 +1187,11 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                   defaultSelectedId: form.redaction_bureau_id,
                   onValidate: async (bureau) => {
                     setFieldIn('enregistrement', 'redaction_bureau_id', bureau.id);
-                    setFieldIn('enregistrement', 'redaction_bureau_label', formatBureauLabel(bureau));
+                    setFieldIn(
+                      'enregistrement',
+                      'redaction_bureau_label',
+                      formatBureauLabel(bureau),
+                    );
                     setBureauOpen(false);
                   },
                 });
@@ -1127,7 +1205,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
             />
 
             {errorBy.enregistrement ? (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>{errorBy.enregistrement}</div>
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                {errorBy.enregistrement}
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -1136,8 +1216,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         {type === 'acte' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title='Sources'
-              subtitle='Citations par exemplaire + localisation + état du document.'
+              title=''
+              subtitle=''
               dirty={dirty.sources}
               saving={savingBy.sources}
               savedAt={savedAtBy.sources}
@@ -1168,7 +1248,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
             )}
 
             {errorBy.sources ? (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>{errorBy.sources}</div>
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800'>
+                {errorBy.sources}
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -1181,7 +1263,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               onClick={saveAll}
               disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
               className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-              title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
+              title={
+                isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
+              }
             >
               {Object.values(savingBy).some(Boolean) ? 'Enregistrement…' : 'Tout enregistrer'}
             </button>
@@ -1237,45 +1321,37 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
  * =========================================================================
  */
 
-type FormStateRegistre = {
-  // champs affichés dans SectionIdentification (registre)
-  bureau_id: string | null;
-  annee: string;
-  mode_registre: 'par_type' | 'chronologique_mixte' | '';
-  type_acte: string;
-  type_acte_ref: { ids: string[]; labels: string[] } | null;
-  ordre_numerotation: 'par_type' | 'globale' | '';
-  nombre_actes_estime: string;
-  numero_acte_min: string;
-  numero_acte_max: string;
-  statut_juridique: 'esclave' | 'nouveau_libre' | '';
-};
 
-
-function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { type: 'registre' }>) {
+function ReferenceArchiveTabRegistre(
+  props: Extract<ReferenceArchiveTabProps, { type: 'registre' }>,
+) {
   const { type, registreId, mode = 'edit', onUpdated } = props;
 
   type DirtyKeyReg = 'identification' | 'sources';
 
-  type ModeRegistre = 'par_type' | 'chronologique_mixte' | '';
-  type OrdreNumerotation = 'par_type' | 'globale' | '';
   type StatutJuridique = 'esclave' | 'nouveau_libre' | '';
 
   type FormStateRegistre = {
     bureau_id: string | null;
     bureau_enregistrement_label: string; // affichage (si tu l’utilises plus tard)
     annee: string; // string pour inputs
-    mode_registre: ModeRegistre;
 
     type_acte: string;
     type_acte_ref: { ids: string[]; labels: string[] } | null;
 
-    ordre_numerotation: OrdreNumerotation;
+    registre_ordre_numerotation_ref: string | null;
+    registre_mode_ref: string | null;
     nombre_actes_estime: string;
     numero_acte_min: string;
     numero_acte_max: string;
 
     statut_juridique: StatutJuridique;
+    registre_statut_juridique_ref: string | null;
+    registre_support_ref: string | null;
+    registre_pagination_ref: string | null;
+    registre_langue_ref: string | null;
+    registre_fonction_ref: string | null;
+    registre_norme_ref: string | null;
   };
 
   const toIntOrNull = (v: any): number | null => {
@@ -1289,17 +1365,23 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
     bureau_id: null,
     bureau_enregistrement_label: '',
     annee: '',
-    mode_registre: '',
 
     type_acte: '',
     type_acte_ref: null,
 
-    ordre_numerotation: '',
+    registre_ordre_numerotation_ref: null,
+    registre_mode_ref: null,
     nombre_actes_estime: '',
     numero_acte_min: '',
     numero_acte_max: '',
 
     statut_juridique: '',
+    registre_statut_juridique_ref: null,
+    registre_support_ref: null,
+    registre_pagination_ref: null,
+    registre_langue_ref: null,
+    registre_fonction_ref: null,
+    registre_norme_ref: null,
   });
 
   const [registresSources, setRegistresSources] = useState<RegistreCitationDraft[]>([]);
@@ -1372,28 +1454,26 @@ function ReferenceArchiveTabRegistre(props: Extract<ReferenceArchiveTabProps, { 
       setSectionError('identification', null);
 
       const { data, error } = await supabase
-  .from('etat_civil_registres')
-  .select(
-    'id,bureau_id,annee,mode_registre,ordre_numerotation,nombre_actes_estime,numero_acte_min,numero_acte_max,statut_juridique',
-  )
-  .eq('id', registreId)
-  .maybeSingle();
+        .from('etat_civil_registres')
+        .select(
+          'id,bureau_id,annee,registre_ordre_numerotation_ref,registre_mode_ref,registre_statut_juridique_ref,registre_support_ref,registre_pagination_ref,registre_langue_ref,registre_fonction_ref,registre_norme_ref,nombre_actes_estime,numero_acte_min,numero_acte_max,statut_juridique',
+        )
+        .eq('id', registreId)
+        .maybeSingle();
 
-  // type_acte via table de jointure
-const { data: taRows, error: taErr } = await supabase
-  .from('etat_civil_registres_type_acte')
-  .select('type_acte_id, ref_ec_type_acte:ref_ec_type_acte(id,label)')
-  .eq('registre_id', registreId);
+      // type_acte via table de jointure
+      const { data: taRows, error: taErr } = await supabase
+        .from('etat_civil_registres_type_acte')
+        .select('type_acte_id, ref_ec_type_acte:ref_ec_type_acte(id,label)')
+        .eq('registre_id', registreId);
 
-if (taErr) {
-  // tu peux choisir de "throw" ou juste log
-  console.warn('load registre type_acte failed', taErr);
-}
+      if (taErr) {
+        // tu peux choisir de "throw" ou juste log
+        console.warn('load registre type_acte failed', taErr);
+      }
 
-const typeActeId = (taRows?.[0] as any)?.type_acte_id ?? null;
-const typeActeLabel = (taRows?.[0] as any)?.ref_ec_type_acte?.label ?? '';
-
-
+      const typeActeId = (taRows?.[0] as any)?.type_acte_id ?? null;
+      const typeActeLabel = (taRows?.[0] as any)?.ref_ec_type_acte?.label ?? '';
 
       if (cancelled) return;
 
@@ -1408,18 +1488,23 @@ const typeActeLabel = (taRows?.[0] as any)?.ref_ec_type_acte?.label ?? '';
         bureau_enregistrement_label: '',
 
         annee: r.annee != null ? String(r.annee) : '',
-        mode_registre: (r.mode_registre ?? '') as ModeRegistre,
 
         type_acte: typeActeLabel || '',
-type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : null,
+        type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : null,
 
-
-        ordre_numerotation: (r.ordre_numerotation ?? '') as OrdreNumerotation,
+        registre_ordre_numerotation_ref: r.registre_ordre_numerotation_ref,
+        registre_mode_ref: r.registre_mode_ref,
         nombre_actes_estime: r.nombre_actes_estime != null ? String(r.nombre_actes_estime) : '',
         numero_acte_min: r.numero_acte_min != null ? String(r.numero_acte_min) : '',
         numero_acte_max: r.numero_acte_max != null ? String(r.numero_acte_max) : '',
 
         statut_juridique: (r.statut_juridique ?? '') as StatutJuridique,
+        registre_statut_juridique_ref: r.registre_statut_juridique_ref,
+        registre_support_ref: r.registre_support_ref,
+        registre_pagination_ref: r.registre_pagination_ref,
+        registre_langue_ref: r.registre_langue_ref,
+        registre_fonction_ref: r.registre_fonction_ref,
+        registre_norme_ref: r.registre_norme_ref,
       });
 
       setDirty((prev) => ({ ...prev, identification: false }));
@@ -1454,7 +1539,8 @@ type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : nul
               is_missing, lacune, lacune_note, locating,
               physical_condition_ref, repro_quality_ref,
               marks, document_damage_kinds_ids,
-              note, sort_order
+              note, sort_order,
+              missing_ranges
             `,
           )
           .eq('registre_id', registreId)
@@ -1627,235 +1713,394 @@ type_acte_ref: typeActeId ? { ids: [typeActeId], labels: [typeActeLabel] } : nul
   };
 
   const removeRegSource = (idx: number) => {
-    setRegistresSources((prev) => prev.filter((_, i) => i !== idx).map((c, i) => ({ ...c, sort_order: i })));
+    setRegistresSources((prev) =>
+      prev.filter((_, i) => i !== idx).map((c, i) => ({ ...c, sort_order: i })),
+    );
     if (mode === 'edit') markDirty('sources');
   };
 
   /**
    * SAVE - identification (registre)
    */
-  const saveIdentification = async () => {
-    if (mode !== 'edit') return;
-    if (!dirty.identification) return;
+  // dans ReferenceArchiveTabRegistre
 
-    setSectionSaving('identification', true);
-    setSectionError('identification', null);
+const saveIdentification = async () => {
+  if (mode !== 'edit') return;
+  if (!dirty.identification) return;
 
-    // NB: bureau_id + annee sont NOT NULL en DB -> à sécuriser via UI/validation si besoin
-    const patch: Record<string, any> = {
-      bureau_id: form.bureau_id ?? null,
-      annee: toIntOrNull(form.annee),
-      mode_registre: form.mode_registre || null,
+  setSectionSaving('identification', true);
+  setSectionError('identification', null);
 
-      ordre_numerotation: form.ordre_numerotation || null,
-      nombre_actes_estime: toIntOrNull(form.nombre_actes_estime),
-      numero_acte_min: toIntOrNull(form.numero_acte_min),
-      numero_acte_max: toIntOrNull(form.numero_acte_max),
+  const nextTypeActeId = form.type_acte_ref?.ids?.[0] ?? null;
 
-      statut_juridique: form.statut_juridique || null,
-    };
+  // NB: bureau_id + annee sont NOT NULL en DB -> idéalement valider côté UI aussi
+  const patch: Record<string, any> = {
+    bureau_id: form.bureau_id ?? null,
+    annee: toIntOrNull(form.annee),
+    registre_ordre_numerotation_ref: form.registre_ordre_numerotation_ref,
+    registre_mode_ref: form.registre_mode_ref,
+    nombre_actes_estime: toIntOrNull(form.nombre_actes_estime),
+    numero_acte_min: toIntOrNull(form.numero_acte_min),
+    numero_acte_max: toIntOrNull(form.numero_acte_max),
+    statut_juridique: form.statut_juridique || null,
+    registre_statut_juridique_ref: form.registre_statut_juridique_ref || null,
+    registre_support_ref: form.registre_support_ref || null,
+    registre_pagination_ref: form.registre_pagination_ref || null,
+    registre_langue_ref: form.registre_langue_ref || null,
+    registre_fonction_ref: form.registre_fonction_ref || null,
+    registre_norme_ref: form.registre_norme_ref || null,
+  };
 
-    const { error } = await supabase.from('etat_civil_registres').update(patch).eq('id', registreId);
+  try {
+    // 1) update registre (SI ça échoue, on ne touche PAS au type d’acte)
+    const { error: updErr } = await supabase
+      .from('etat_civil_registres')
+      .update(patch)
+      .eq('id', registreId);
 
-    const nextTypeActeId = form.type_acte_ref?.ids?.[0] ?? null;
-
-// 1) on purge les liens existants (vu que ton UI est single)
-{
-  const { error: delErr } = await supabase
-    .from('etat_civil_registres_type_acte')
-    .delete()
-    .eq('registre_id', registreId);
-
-  if (delErr) {
-    setSectionError('identification', delErr.message);
-    return;
-  }
-}
-
-// 2) si un type est choisi, on (re)crée le lien
-if (nextTypeActeId) {
-  const { error: insErr } = await supabase
-    .from('etat_civil_registres_type_acte')
-    .insert({ registre_id: registreId, type_acte_id: nextTypeActeId });
-
-  if (insErr) {
-    setSectionError('identification', insErr.message);
-    return;
-  }
-}
-
-    setSectionSaving('identification', false);
-
-    if (error) {
-      setSectionError('identification', error.message);
+    if (updErr) {
+      setSectionError('identification', updErr.message);
       return;
+    }
+
+    // 2) sync type_acte (UI single => on purge puis on recrée si besoin)
+    const { error: delErr } = await supabase
+      .from('etat_civil_registres_type_acte')
+      .delete()
+      .eq('registre_id', registreId);
+
+    if (delErr) {
+      setSectionError('identification', delErr.message);
+      return;
+    }
+
+    if (nextTypeActeId) {
+      const { error: insErr } = await supabase
+        .from('etat_civil_registres_type_acte')
+        .insert({ registre_id: registreId, type_acte_id: nextTypeActeId });
+
+      if (insErr) {
+        setSectionError('identification', insErr.message);
+        return;
+      }
     }
 
     clearDirty('identification');
     await onUpdated?.();
-  };
+  } catch (err: any) {
+    setSectionError('identification', err?.message ?? 'Erreur lors de l’enregistrement.');
+  } finally {
+    setSectionSaving('identification', false);
+  }
+};
+
 
   /**
    * SAVE - sources (citations + segments)
    * (ta version, ré-branchée sur dirty/saving/errorBy.sources)
    */
-  const saveRegistreSources = async () => {
-    if (mode !== 'edit') return;
-    if (!dirty.sources) return;
+  type RegistreCitationUpsertRow = {
+  id?: string;
+  registre_id: string;
+  exemplaire_id: string;
+  is_missing: boolean | null;
+  lacune: boolean | null;
+  lacune_note: string | null;
+  locating: any;
+  physical_condition_ref: string | null;
+  repro_quality_ref: string | null;
+  marks: string | null;
+  document_damage_kinds_ids: string[];
+  note: string | null;
+  sort_order: number;
+  missing_ranges: any[];
+};
 
-    setSectionSaving('sources', true);
-    setSectionError('sources', null);
+type RegistreSegmentUpsertRow = {
+  id?: string;
+  registre_citation_id: string;
+  kind_ref: string | null;
+  label_override: string | null;
+  scope: string | null;
+  range_start: number | null;
+  range_end: number | null;
+  date_from: string | null;
+  date_to: string | null;
+  year_from: number | null;
+  year_to: number | null;
+  note: string | null;
+  sort_order: number;
+};
 
-    try {
-      // --- 1) delete removed citations
-      const uiExistingIds = registresSources.map((s) => s.id).filter(Boolean) as string[];
-      const { data: existing, error: errExisting } = await supabase
+const normalizeTextOrNull = (v: any) => {
+  const s = String(v ?? '').trim();
+  return s ? s : null;
+};
+
+const normalizeArray = <T,>(v: any): T[] => (Array.isArray(v) ? (v as T[]).filter(Boolean) : []);
+
+const isMeaningfulSegment = (s: any) => {
+  if (!s) return false;
+  // garde la logique permissive : un segment sans range mais avec kind/label/note existe.
+  return Boolean(
+    s.kind_ref ||
+      (String(s.label_override ?? '').trim() !== '') ||
+      s.range_start != null ||
+      s.range_end != null ||
+      s.date_from ||
+      s.date_to ||
+      s.year_from != null ||
+      s.year_to != null ||
+      (String(s.note ?? '').trim() !== ''),
+  );
+};
+
+/**
+ * clé stable pour backfill id citation : exemplaire_id + sort_order
+ * (si tu autorises plusieurs citations avec même exemplaire + même sort_order, il faudra enrichir la clé)
+ */
+const citKey = (exemplaireId: string, sortOrder: number) => `${exemplaireId}__${sortOrder}`;
+
+/**
+ * clé stable pour backfill id segment : citationId + sort_order (+ kind_ref optionnel)
+ * (si tu permets plusieurs segments même sort_order sous une citation, enrichir)
+ */
+const segKey = (citationId: string, sortOrder: number) => `${citationId}__${sortOrder}`;
+
+
+const saveRegistreSources = async () => {
+  if (mode !== 'edit') return;
+  if (!dirty.sources) return;
+
+  setSectionSaving('sources', true);
+  setSectionError('sources', null);
+
+  try {
+    // -------------------------------------------------------------------------
+    // 0) raccourcis
+    // -------------------------------------------------------------------------
+    const uiCitations = registresSources;
+
+    // -------------------------------------------------------------------------
+    // 1) supprimer les citations supprimées côté UI (+ segments cascade manuelle)
+    // -------------------------------------------------------------------------
+    const uiExistingCitIds = uiCitations.map((c) => c.id).filter(Boolean) as string[];
+
+    const { data: dbCitIdsRows, error: dbCitIdsErr } = await supabase
+      .from(TABLE_REGISTRE_CITATIONS)
+      .select('id')
+      .eq('registre_id', registreId);
+
+    if (dbCitIdsErr) throw dbCitIdsErr;
+
+    const dbCitIds = (dbCitIdsRows ?? []).map((r: any) => r.id as string);
+    const citIdsToDelete = dbCitIds.filter((id) => !uiExistingCitIds.includes(id));
+
+    if (citIdsToDelete.length) {
+      // segments d’abord
+      const { error: delSegErr } = await supabase
+        .from(TABLE_REGISTRE_SEGMENTS)
+        .delete()
+        .in('registre_citation_id', citIdsToDelete);
+      if (delSegErr) throw delSegErr;
+
+      // citations ensuite
+      const { error: delCitErr } = await supabase
         .from(TABLE_REGISTRE_CITATIONS)
-        .select('id')
-        .eq('registre_id', registreId);
+        .delete()
+        .in('id', citIdsToDelete);
+      if (delCitErr) throw delCitErr;
+    }
 
-      if (errExisting) throw errExisting;
+    // -------------------------------------------------------------------------
+    // 2) upsert citations (payload peut être vide)
+    // -------------------------------------------------------------------------
+    const citPayload: RegistreCitationUpsertRow[] = uiCitations
+      .map((c, idx) => {
+        const exemplaire_id = c.exemplaire_id ?? null;
+        if (!exemplaire_id) return null;
 
-      const existingIds = (existing ?? []).map((r: any) => r.id as string);
-      const toDelete = existingIds.filter((id) => !uiExistingIds.includes(id));
+        const row: RegistreCitationUpsertRow = {
+          ...(c.id ? { id: c.id } : {}),
+          registre_id: registreId,
+          exemplaire_id,
+          is_missing: toBoolOrNull((c as any).is_missing),
+          lacune: toBoolOrNull((c as any).lacune),
+          lacune_note: normalizeTextOrNull((c as any).lacune_note),
+          locating: (c as any).locating ?? { systems: [{}] },
+          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
+          repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
+          marks: normalizeTextOrNull((c as any).marks),
+          document_damage_kinds_ids: normalizeArray<string>((c as any).document_damage_kinds_ids),
+          note: normalizeTextOrNull((c as any).note),
+          sort_order: idx,
+          missing_ranges: normalizeArray<any>((c as any).missing_ranges),
+        };
 
-      if (toDelete.length) {
-        await supabase.from(TABLE_REGISTRE_SEGMENTS).delete().in('registre_citation_id', toDelete);
-        const { error: delErr } = await supabase.from(TABLE_REGISTRE_CITATIONS).delete().in('id', toDelete);
-        if (delErr) throw delErr;
-      }
+        return row;
+      })
+      .filter(Boolean) as RegistreCitationUpsertRow[];
 
-      // --- 2) upsert citations
-      const citPayload = registresSources
-        .map((c, idx) => {
-          if (!c.exemplaire_id) return null;
+    // si rien à upsert : on a quand même supprimé ce qu’il fallait, puis on passe aux segments
+    let upsertedCits:
+      | { id: string; exemplaire_id: string; sort_order: number }[]
+      | null = null;
 
-          const base = {
-            registre_id: registreId,
-            exemplaire_id: c.exemplaire_id,
-
-            is_missing: toBoolOrNull((c as any).is_missing),
-            lacune: toBoolOrNull((c as any).lacune),
-            lacune_note: ((c as any).lacune_note ?? null)
-              ? String((c as any).lacune_note).trim() || null
-              : null,
-            locating: (c as any).locating ?? { systems: [{}] },
-
-            physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
-            repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
-
-            marks: ((c as any).marks ?? '').trim() || null,
-            document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
-              ? (c as any).document_damage_kinds_ids
-              : [],
-
-            note: ((c as any).note ?? '').trim() || null,
-            sort_order: idx,
-          };
-
-          return c.id ? { id: c.id, ...base } : base;
-        })
-        .filter(Boolean) as any[];
-
-      const { data: upserted, error: upErr } = await supabase
+    if (citPayload.length) {
+      const { data, error } = await supabase
         .from(TABLE_REGISTRE_CITATIONS)
         .upsert(citPayload, { onConflict: 'id' })
         .select('id, exemplaire_id, sort_order');
 
-      if (upErr) throw upErr;
+      if (error) throw error;
+      upsertedCits = (data ?? []) as any[];
+    }
 
-      // backfill ids
-      if (upserted?.length) {
-        const byKey = new Map(upserted.map((r: any) => [`${r.exemplaire_id}__${r.sort_order}`, r.id as string]));
+    // -------------------------------------------------------------------------
+    // 3) backfill IDs citations dans le state (et reconstituer un snapshot "avec ids")
+    // -------------------------------------------------------------------------
+    let citationsWithIds = uiCitations;
+
+    if (upsertedCits?.length) {
+      const mapByKey = new Map<string, string>(
+        upsertedCits.map((r) => [citKey(r.exemplaire_id, r.sort_order), r.id]),
+      );
+
+      citationsWithIds = citationsWithIds.map((c, idx) => {
+        if (c.id) return { ...c, sort_order: idx };
+        if (!c.exemplaire_id) return { ...c, sort_order: idx };
+        const id = mapByKey.get(citKey(c.exemplaire_id, idx));
+        return id ? ({ ...c, id, sort_order: idx } as any) : ({ ...c, sort_order: idx } as any);
+      });
+
+      // commit state une fois (évite les "setState puis relire" incohérents)
+      setRegistresSources(citationsWithIds);
+    } else {
+      // au minimum, on synchronise sort_order en state
+      const normalized = citationsWithIds.map((c, idx) => ({ ...c, sort_order: idx } as any));
+      citationsWithIds = normalized;
+      setRegistresSources(normalized);
+    }
+
+    // ids de citations utilisables pour les segments
+    const allCitIds = citationsWithIds.map((c) => c.id).filter(Boolean) as string[];
+
+    // -------------------------------------------------------------------------
+    // 4) segments : delete ceux retirés + upsert ceux présents + backfill ids segments
+    // -------------------------------------------------------------------------
+    if (allCitIds.length) {
+      // 4.1 récupérer tous les segments existants en DB
+      const { data: dbSegsRows, error: dbSegsErr } = await supabase
+        .from(TABLE_REGISTRE_SEGMENTS)
+        .select('id, registre_citation_id, sort_order')
+        .in('registre_citation_id', allCitIds);
+
+      if (dbSegsErr) throw dbSegsErr;
+
+      const dbSegs = (dbSegsRows ?? []) as any[];
+
+      // 4.2 calculer les ids segments présents en UI
+      const uiSegIdsByCit = new Map<string, string[]>();
+      for (const c of citationsWithIds) {
+        if (!c.id) continue;
+        const ids = (c.segments ?? []).map((s: any) => s.id).filter(Boolean) as string[];
+        uiSegIdsByCit.set(c.id, ids);
+      }
+
+      // 4.3 delete segments supprimés
+      const segIdsToDelete: string[] = [];
+      for (const row of dbSegs) {
+        const citId = row.registre_citation_id as string;
+        const uiIds = uiSegIdsByCit.get(citId) ?? [];
+        if (!uiIds.includes(row.id as string)) segIdsToDelete.push(row.id as string);
+      }
+
+      if (segIdsToDelete.length) {
+        const { error: delErr } = await supabase
+          .from(TABLE_REGISTRE_SEGMENTS)
+          .delete()
+          .in('id', segIdsToDelete);
+        if (delErr) throw delErr;
+      }
+
+      // 4.4 construire payload segments
+      const segPayload: RegistreSegmentUpsertRow[] = [];
+      for (const c of citationsWithIds) {
+        const citationId = c.id;
+        if (!citationId) continue;
+
+        const segs = normalizeArray<any>(c.segments).filter(isMeaningfulSegment);
+
+        segs.forEach((s, i) => {
+          const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
+
+          const row: RegistreSegmentUpsertRow = {
+            ...(s.id ? { id: s.id } : {}),
+            registre_citation_id: citationId,
+            kind_ref: s.kind_ref ?? null,
+            label_override: normalizeTextOrNull(s.label_override),
+            scope: s.scope ?? null,
+            range_start: s.range_start ?? null,
+            range_end: s.range_end ?? null,
+            date_from: s.date_from ?? null,
+            date_to: s.date_to ?? null,
+            year_from: s.year_from ?? null,
+            year_to: s.year_to ?? null,
+            note: normalizeTextOrNull(s.note),
+            sort_order: sortOrder,
+          };
+
+          segPayload.push(row);
+        });
+      }
+
+      // 4.5 upsert segments + backfill ids
+      if (segPayload.length) {
+        const { data: upSegs, error: upSegErr } = await supabase
+          .from(TABLE_REGISTRE_SEGMENTS)
+          .upsert(segPayload, { onConflict: 'id' })
+          .select('id, registre_citation_id, sort_order');
+
+        if (upSegErr) throw upSegErr;
+
+        const segMap = new Map<string, string>(
+          ((upSegs ?? []) as any[]).map((r) => [
+            segKey(r.registre_citation_id as string, r.sort_order as number),
+            r.id as string,
+          ]),
+        );
+
         setRegistresSources((prev) =>
-          prev.map((c, idx) => {
-            if (c.id) return c;
-            const key = `${c.exemplaire_id}__${idx}`;
-            const newId = byKey.get(key);
-            return newId ? { ...c, id: newId } : c;
+          prev.map((c) => {
+            if (!c.id) return c;
+            const citationId = c.id;
+
+            const nextSegs = normalizeArray<any>(c.segments)
+              .filter(isMeaningfulSegment)
+              .map((s, i) => {
+                if (s.id) return s;
+                const sortOrder = typeof s.sort_order === 'number' ? s.sort_order : i;
+                const id = segMap.get(segKey(citationId, sortOrder));
+                return id ? { ...s, id, sort_order: sortOrder } : { ...s, sort_order: sortOrder };
+              });
+
+            return { ...c, segments: nextSegs } as any;
           }),
         );
       }
-
-      // --- 3) segments sync (delete missing + upsert)
-      const citIdsFromUpsert = (upserted ?? []).map((r: any) => r.id as string).filter(Boolean);
-      const allCitIds = citIdsFromUpsert.length
-        ? citIdsFromUpsert
-        : (registresSources.map((c) => c.id).filter(Boolean) as string[]);
-
-      if (allCitIds.length) {
-        const { data: existingSegs, error: segListErr } = await supabase
-          .from(TABLE_REGISTRE_SEGMENTS)
-          .select('id, registre_citation_id')
-          .in('registre_citation_id', allCitIds);
-
-        if (segListErr) throw segListErr;
-
-        const existingSegIds = new Map<string, string[]>();
-        for (const s of (existingSegs ?? []) as any[]) {
-          const k = s.registre_citation_id as string;
-          existingSegIds.set(k, [...(existingSegIds.get(k) ?? []), s.id as string]);
-        }
-
-        const uiSegIdsByCit = new Map<string, string[]>();
-        for (const c of registresSources) {
-          if (!c.id) continue;
-          const ids = (c.segments ?? []).map((s: any) => s.id).filter(Boolean) as string[];
-          uiSegIdsByCit.set(c.id, ids);
-        }
-
-        const toDeleteSeg: string[] = [];
-        for (const [citId, segIds] of existingSegIds.entries()) {
-          const uiIds = uiSegIdsByCit.get(citId) ?? [];
-          for (const id of segIds) if (!uiIds.includes(id)) toDeleteSeg.push(id);
-        }
-
-        if (toDeleteSeg.length) {
-          const { error: delSegErr } = await supabase.from(TABLE_REGISTRE_SEGMENTS).delete().in('id', toDeleteSeg);
-          if (delSegErr) throw delSegErr;
-        }
-
-        const segPayload: any[] = [];
-        for (const c of registresSources) {
-          if (!c.id) continue;
-          const segs = (c.segments ?? []) as any[];
-          segs
-            .filter((s) => s && (s.kind_ref || s.label_override || s.range_start || s.range_end))
-            .forEach((s, i) => {
-              const base = {
-                registre_citation_id: c.id,
-                kind_ref: s.kind_ref ?? null,
-                label_override: (s.label_override ?? '').trim() || null,
-                scope: s.scope ?? null,
-                range_start: s.range_start ?? null,
-                range_end: s.range_end ?? null,
-                date_from: s.date_from ?? null,
-                date_to: s.date_to ?? null,
-                year_from: s.year_from ?? null,
-                year_to: s.year_to ?? null,
-                note: (s.note ?? '').trim() || null,
-                sort_order: typeof s.sort_order === 'number' ? s.sort_order : i,
-              };
-              segPayload.push(s.id ? { id: s.id, ...base } : base);
-            });
-        }
-
-        if (segPayload.length) {
-          const { error: segUpErr } = await supabase
-            .from(TABLE_REGISTRE_SEGMENTS)
-            .upsert(segPayload, { onConflict: 'id' });
-          if (segUpErr) throw segUpErr;
-        }
-      }
-
-      clearDirty('sources');
-      await onUpdated?.();
-    } catch (err: any) {
-      setSectionError('sources', err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
-    } finally {
-      setSectionSaving('sources', false);
     }
-  };
+
+    clearDirty('sources');
+    await onUpdated?.();
+  } catch (err: any) {
+    setSectionError('sources', err?.message ?? 'Erreur lors de l’enregistrement des sources registre.');
+  } finally {
+    setSectionSaving('sources', false);
+  }
+};
+
+
+
 
   const saveAll = async () => {
     if (mode !== 'edit') return;
@@ -1877,10 +2122,13 @@ if (nextTypeActeId) {
 
             <div className='mt-1 space-y-1'>
               <p className='text-sm leading-relaxed text-slate-700'>
-                Cet onglet vous permet de décrire le registre en tant que document d’archive : identification, dépôts de conservation.
+                Cet onglet vous permet de décrire le registre en tant que document d’archive :
+                identification, dépôts de conservation.
               </p>
               <p>
-                <span className='font-semibold text-sm text-slate-700'>Il sert à retrouver et citer précisément le registre.</span>
+                <span className='font-semibold text-sm text-slate-700'>
+                  Il sert à retrouver et citer précisément le registre.
+                </span>
               </p>
             </div>
           </div>
@@ -1892,7 +2140,9 @@ if (nextTypeActeId) {
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-slate-900'>État des modifications</div>
                   <div className='mt-0.5 text-xs text-slate-600'>
-                    {isAnyDirty ? 'Certaines sections ont des modifications non enregistrées.' : 'Tout est à jour.'}
+                    {isAnyDirty
+                      ? 'Certaines sections ont des modifications non enregistrées.'
+                      : 'Tout est à jour.'}
                   </div>
                 </div>
 
@@ -1901,7 +2151,9 @@ if (nextTypeActeId) {
                   onClick={saveAll}
                   disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
                   className='inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-                  title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
+                  title={
+                    isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
+                  }
                 >
                   {Object.values(savingBy).some(Boolean) ? (
                     <Loader2 className='h-4 w-4 animate-spin' />
@@ -1948,7 +2200,7 @@ if (nextTypeActeId) {
         {type === 'registre' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title='Sources'
+              title=''
               subtitle='Citations par exemplaire + segments.'
               dirty={mode === 'edit' ? dirty.sources : false}
               saving={mode === 'edit' ? savingBy.sources : false}
@@ -1995,7 +2247,9 @@ if (nextTypeActeId) {
               onClick={saveAll}
               disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
               className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-              title={isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'}
+              title={
+                isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
+              }
             >
               {Object.values(savingBy).some(Boolean) ? 'Enregistrement…' : 'Tout enregistrer'}
             </button>

@@ -66,6 +66,7 @@ function emptyCitation(sort_order: number): RegistreCitationDraft {
     sort_order,
     segments: [],
     work_note: '',
+    missing_ranges: [],
   };
 }
 
@@ -109,12 +110,19 @@ function makeInitialForm(args: {
     bureau_enregistrement_label: bureauLabel,
 
     annee: '',
-    mode_registre: '',
-    ordre_numerotation: '',
+   registre_ordre_numerotation_ref: null,
+    registre_mode_ref: null,
     nombre_actes_estime: '',
     numero_acte_min: '',
     numero_acte_max: '',
     statut_juridique: '',
+
+    registre_statut_juridique_ref: null,
+    registre_support_ref: null,
+    registre_pagination_ref: null,
+    registre_langue_ref: null,
+    registre_fonction_ref: null,
+    registre_norme_ref: null,
   };
 }
 

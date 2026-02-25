@@ -148,6 +148,7 @@ export type RegistreCitationDraft = CitationDraftBase & {
   document_damage_kinds_ids?: string[] | null; // uuid[]
   segments?: RegistreSegmentDraft[];
   work_note?: string | null;
+  missing_ranges?: any[]; // jsonb array in DB (structured ranges)
   writing?: any;
 };
 

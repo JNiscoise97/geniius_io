@@ -82,8 +82,7 @@ export function SectionEnregistrementActe({
   const currentAuteurId = form.auteur_institutionnel_ref?.ids?.[0] ?? null;
 
   return (
-    <section className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-      <h3 className='text-sm font-semibold text-slate-900'>Enregistrement de l’acte</h3>
+    <section className='bg-white'>
       <div className='space-y-6'>
         <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-12'>
           <div className='md:col-span-4'>

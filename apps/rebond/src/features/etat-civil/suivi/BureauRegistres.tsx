@@ -1,7 +1,7 @@
 // BureauRegistresSection.tsx
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { AlertTriangle, Plus } from 'lucide-react';
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable';
 import { RegistreCreateModal } from './RegistreCreateModal';
 import type { EtatCivilRegistre } from '@/types/etatcivil';
@@ -29,7 +29,6 @@ export function BureauRegistres({
                     </Link>
         ),
       },
-      { key: 'mode_registre', label: 'Mode' },
       { key: 'actes_estimes', label: 'Actes estimés' },
       { key: 'actes_releves', label: 'Actes relevés' },
       { key: 'actes_a_relever', label: 'Actes à relever' },

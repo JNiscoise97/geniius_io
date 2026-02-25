@@ -9,6 +9,7 @@ import {
   AlertCircle,
   BarChart2,
   Pen,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Accordion,

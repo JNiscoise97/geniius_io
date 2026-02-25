@@ -19,7 +19,14 @@ export interface EtatCivilBureau {
     id: string;
     annee: number;
     type_acte: string;
-    mode_registre: string;
+    registre_mode_ref: string | null;
+    registre_ordre_numerotation_ref: string | null;
+    registre_statut_juridique_ref: string | null;
+    registre_support_ref: string | null;
+    registre_pagination_ref: string | null;
+    registre_langue_ref: string | null;
+    registre_fonction_ref: string | null;
+    registre_norme_ref: string | null;
     statut_juridique?: string;
     actes_estimes: number;
     actes_transcrits: number;
