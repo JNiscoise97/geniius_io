@@ -18,7 +18,7 @@ export interface EtatCivilBureau {
   export interface EtatCivilRegistre {
     id: string;
     annee: number;
-    label: number;
+    label: string;
     type_acte: string;
     registre_mode_ref: string | null;
     registre_ordre_numerotation_ref: string | null;

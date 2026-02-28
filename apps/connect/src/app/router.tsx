@@ -13,6 +13,7 @@ import { AdminHomePage } from "../features/admin/pages/AdminHomePage";
 import { AdminLoginPage } from "../features/admin/pages/AdminLoginPage";
 import { AdminGuard } from "../features/admin/AdminGuard";
 import { AdminEventDashboardPage } from "../features/admin/pages/AdminEventDashboardPage";
+import { QuestionScreenMock } from "../features/player/game/QuestionScreenMock";
 
 export const router = createBrowserRouter([
   // PLAYER (mobile)
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
 
       { path: "e/:eventSlug/standby", element: <StandbyPage /> },
       { path: "e/:eventSlug/z/:zoneId/play", element: <ZonePlayPage /> },
+      { path: "mock", element: <QuestionScreenMock /> },
     ],
   },
 

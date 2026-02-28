@@ -103,7 +103,7 @@ export function BureauRegistres({
           data={registresLocal}
           defaultVisibleColumns={defaultVisibleColumns}
           columns={columnsRegistres}
-          defaultSort={['annee']}
+          defaultSort={['annee', 'type']}
           pageSize={-1}
         />
       </div>

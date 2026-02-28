@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Link, useParams } from 'react-router-dom';
 import { useEtatCivilStore } from '@/store/etatcivil';
-import type { EtatCivilBureau } from '@/types/etatcivil';
+import type { EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 import { DataTable } from '@/components/shared/DataTable';
 import { useFonctionsTimeline } from '@/hooks/useOfficiersParBureau';
 import { capitalize } from '@/lib/enrichirNarration';
@@ -84,6 +84,14 @@ export default function BureauLayout() {
     });
 
   const [createRegistreModalOpen, setCreateRegistreModalOpen] = useState(false);
+
+  function bureauSortedByLabel(registres?: EtatCivilRegistre[]): EtatCivilRegistre[] {
+  if (!registres) return [];
+
+  return [...registres].sort((a, b) =>
+    (a.label ?? '').localeCompare(b.label ?? '', 'fr', { sensitivity: 'base' })
+  );
+}
 
   return (
     <>
@@ -161,7 +169,7 @@ export default function BureauLayout() {
                 </>
               ) : activeSection === 'Registres' ? (
                 <>
-                  <BureauRegistres bureauId={bureau.id} registres={bureau.registres ?? []} />
+                  <BureauRegistres bureauId={bureau.id} registres={bureauSortedByLabel(bureau.registres)} />
                 </>
               ) : activeSection === 'Officiers' ? (
                 <>
