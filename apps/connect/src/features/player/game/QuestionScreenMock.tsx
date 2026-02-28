@@ -1,5 +1,5 @@
 // src/components/QuestionScreenMock.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Wifi,
   WifiOff,

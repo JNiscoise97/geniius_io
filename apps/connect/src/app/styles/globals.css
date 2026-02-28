@@ -1,80 +1,9 @@
-:root {
-  --bg: #0b0c10;
-  --card: #12141b;
-  --text: #e9edf1;
-  --muted: #a5afbd;
-  --border: rgba(255,255,255,0.08);
-  --primary: #4ea1ff;
+/* src/globals.css
+   =========================================================
+   CONNECT — keep minimal (Tailwind handles layout)
+   ========================================================= */
 
-  --radius: 16px;
+/* Optional: safe-area helper if you need it */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
-
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  background: var(--bg);
-  color: var(--text);
-}
-
-.app {
-  min-height: 100dvh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-}
-
-.topbar, .bottombar {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
-}
-
-.bottombar {
-  border-bottom: none;
-  border-top: 1px solid var(--border);
-}
-
-.topbar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.topbar__title { font-weight: 700; letter-spacing: 0.2px; }
-.topbar__meta { font-size: 12px; color: var(--muted); }
-
-.content { padding: 14px; }
-
-.screen {
-  max-width: 560px;
-  margin: 0 auto;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-}
-
-.h1 { font-size: 22px; margin: 0 0 10px; }
-.muted { color: var(--muted); font-size: 14px; line-height: 1.4; }
-
-.stack { display: grid; gap: 10px; margin-top: 14px; }
-
-.btn {
-  width: 100%;
-  padding: 14px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04);
-  color: var(--text);
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.btn--primary {
-  border-color: rgba(78,161,255,0.35);
-  background: rgba(78,161,255,0.18);
-}
-
-.bottombar__hint { font-size: 12px; color: var(--muted); }

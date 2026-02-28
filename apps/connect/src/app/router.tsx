@@ -3,8 +3,6 @@ import { MobileScaffold } from "../ui/layout/MobileScaffold";
 import { AdminScaffold } from "../ui/layout/AdminScaffold";
 
 import { EventLandingPage } from "../features/player/pages/EventLandingPage";
-import { CreateTeamPage } from "../features/player/pages/CreateTeamPage";
-import { StandbyPage } from "../features/player/pages/StandbyPage";
 import { ResumeTeamPage } from "../features/player/pages/ResumeTeamPage";
 import { TeamSelfiePage } from "../features/player/pages/TeamSelfiePage";
 import { ZonePlayPage } from "../features/player/game/pages/ZonePlayPage";
@@ -14,6 +12,9 @@ import { AdminLoginPage } from "../features/admin/pages/AdminLoginPage";
 import { AdminGuard } from "../features/admin/AdminGuard";
 import { AdminEventDashboardPage } from "../features/admin/pages/AdminEventDashboardPage";
 import { QuestionScreenMock } from "../features/player/game/QuestionScreenMock";
+import { CreateOrJoinTeamPage } from "../features/player/pages/CreateOrJoinTeamPage";
+import { TeamDashboardPage } from "../features/player/pages/TeamDashboardPage";
+import { TeamZonesPage } from "../features/player/pages/TeamZonesPage";
 
 export const router = createBrowserRouter([
   // PLAYER (mobile)
@@ -24,13 +25,14 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/e/demo" replace /> },
 
       { path: "e/:eventSlug", element: <EventLandingPage /> },
-      { path: "e/:eventSlug/team/create", element: <CreateTeamPage /> },
+      { path: "e/:eventSlug/team/create", element: <CreateOrJoinTeamPage /> },
       { path: "e/:eventSlug/team/resume", element: <ResumeTeamPage /> },
       { path: "e/:eventSlug/team/selfie", element: <TeamSelfiePage /> },
 
-      { path: "e/:eventSlug/standby", element: <StandbyPage /> },
+      { path: "e/:eventSlug/team-dashboard", element: <TeamDashboardPage/> },
+      { path: "e/:eventSlug/zones", element: <TeamZonesPage/> },
       { path: "e/:eventSlug/z/:zoneId/play", element: <ZonePlayPage /> },
-      { path: "mock", element: <QuestionScreenMock /> },
+      { path: "question-mock", element: <QuestionScreenMock /> },
     ],
   },
 

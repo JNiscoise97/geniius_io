@@ -1,4 +1,4 @@
-//ZinePlayPage.tsx
+//ZonePlayPage.tsx
 
 import { useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";

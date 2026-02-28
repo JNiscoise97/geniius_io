@@ -1,0 +1,341 @@
+/* src/features/player/team/team-selfie.css
+   Inspiré de la charte QuestionScreenMock (cards / footer sticky / pills),
+   mais adapté au flux selfie (preview + consent + CTA unique).
+*/
+
+.ts-root {
+  min-height: 100vh;
+  background: var(--bg, #f6f7fb);
+  color: var(--text, #0f172a);
+}
+
+.ts-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px 14px 120px;
+}
+
+/* Header */
+.ts-header {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ts-header__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ts-titleblock {
+  min-width: 0;
+}
+
+.ts-title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #0b1220;
+}
+
+.ts-subtitle {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.ts-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+  white-space: nowrap;
+}
+
+.ts-header__bottom {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ts-hintline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.72);
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* Card */
+.ts-card {
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.ts-preview {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.ts-preview__placeholder {
+  width: 100%;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ts-preview__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(59, 130, 246, 0.10);
+  color: var(--blue, #2563eb);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.ts-preview__title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0b1220;
+}
+
+.ts-preview__sub {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.70);
+  text-align: center;
+}
+
+.ts-preview__chip {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.70);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.85);
+}
+
+.ts-preview__imageWrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.ts-preview__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Consent */
+.ts-consent {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.ts-consent input {
+  margin-top: 4px;
+}
+
+.ts-consent.is-disabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.ts-consent__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.ts-consent__body {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.70);
+  line-height: 1.35;
+}
+
+/* Error */
+.ts-error {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.ts-error__icon {
+  color: var(--bad, #dc2626);
+  margin-top: 2px;
+}
+
+.ts-error__title {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.ts-error__msg {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+/* Secondary actions */
+.ts-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ts-btn {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.9);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* Empty state */
+.ts-empty {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.ts-empty__icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(59, 130, 246, 0.10);
+  color: var(--blue, #2563eb);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.ts-empty__title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0b1220;
+}
+
+.ts-empty__text {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.70);
+}
+
+/* Sticky footer CTA */
+.ts-spacer {
+  height: 10px;
+}
+
+.ts-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+  background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0));
+  z-index: 40;
+}
+
+.ts-footer__wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.ts-cta {
+  width: 100%;
+  height: 52px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  background: var(--blue, #2563eb);
+  color: white;
+  font-size: 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ts-cta.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ts-footer__sub {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.70);
+  padding: 0 4px;
+}

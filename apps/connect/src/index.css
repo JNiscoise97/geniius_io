@@ -1,68 +1,161 @@
+/* src/index.css
+   =========================================================
+   CONNECT — Tailwind base + tokens + global polish (mobile)
+   ========================================================= */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Tokens ---------- */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  color-scheme: light;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Outdoor-friendly colors (higher contrast) */
+  --blue: #4f46e5;
+  /* indigo-600 */
+  --blue-2: #4338ca;
+  /* indigo-700 */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  --ok: #16a34a;
+  --ok-2: #15803d;
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+  --bad: #dc2626;
+  --bad-2: #b91c1c;
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  --warn: #ea580c;
+  --warn-2: #c2410c;
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  --text: #0f172a;
+  --muted: rgba(15, 23, 42, 0.78);
+  /* au lieu de 0.72 */
+  --border: rgba(15, 23, 42, 0.16);
+  /* au lieu de 0.12 */
+
+  --shadow: 0 16px 38px rgba(15, 23, 42, 0.10);
+  --bg: #f8fafc;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+
+  /* Unified radiuses for coherence */
+  --r-card: 18px;
+  --r-btn: 16px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* ---------- Base ---------- */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
   }
-  a:hover {
-    color: #747bff;
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
-  button {
-    background-color: #f9f9f9;
+
+  #root {
+    min-height: 100vh;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  /* Restore list defaults (Tailwind preflight removes them) */
+  ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+
+  ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+  }
+
+  ul ul {
+    list-style: circle;
+  }
+
+  ol ol {
+    list-style: lower-alpha;
+  }
+
+  /* Focus ring (mobile friendly) */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.18);
+    border-radius: 12px;
+  }
+
+  ::placeholder {
+    color: rgba(15, 23, 42, 0.42);
+    font-weight: 800;
+  }
+}
+
+/* ---------- Components ---------- */
+@layer components {
+  .c-container {
+    @apply mx-auto w-full max-w-[520px] px-3;
+  }
+
+  .c-card {
+    @apply bg-white border border-[color:var(--border)] shadow-[0_14px_32px_rgba(15, 23, 42, 0.07)];
+    border-radius: var(--r-card);
+  }
+
+  .c-pill {
+    @apply inline-flex items-center gap-2 px-3 py-1 text-xs font-extrabold;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.12);
+    border: 1px solid rgba(79, 70, 229, 0.22);
+    color: rgba(15, 23, 42, 0.95);
+  }
+
+  .c-btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 text-base font-extrabold;
+    border-radius: var(--r-btn);
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    background: #fff;
+    color: var(--text);
+    user-select: none;
+    transition: transform 0.05s ease, opacity 0.2s ease, background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .c-btn:active {
+    transform: translateY(1px);
+  }
+
+  .c-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .c-btn-primary {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .c-muted {
+    color: var(--muted);
   }
 }
