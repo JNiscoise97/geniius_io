@@ -1,33 +1,29 @@
-import { useState } from "react";
+// src/features/player/game/questions/fill/QuestionFill.tsx
 import type { FillQuestion } from "../../engine/types";
+import "../../question-screen.css";
 
 export function QuestionFill({
   question,
-  onSubmit,
+  draft,
+  onDraftChange,
   disabled,
 }: {
   question: FillQuestion;
-  onSubmit: (answer: string) => void;
+  draft: string;
+  onDraftChange: (next: string) => void;
   disabled?: boolean;
 }) {
-  const [value, setValue] = useState("");
-
-  const canSubmit = value.trim().length > 0;
-
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
+    <div className="qs-field">
+      <label className="qs-label">Complète la phrase</label>
       <input
-        className="btn"
-        style={{ textAlign: "left" }}
-        placeholder="Complète la phrase"
-        value={value}
+        className="qs-input"
+        value={typeof draft === "string" ? draft : ""}
+        onChange={(e) => onDraftChange(e.target.value)}
+        placeholder="Ex: téléphone"
         disabled={disabled}
-        onChange={(e) => setValue(e.target.value)}
       />
-
-      <button className="btn btn--primary" disabled={!canSubmit || disabled} onClick={() => onSubmit(value)}>
-        Valider
-      </button>
+      <div className="qs-hint">Réponse normalisée</div>
     </div>
   );
 }

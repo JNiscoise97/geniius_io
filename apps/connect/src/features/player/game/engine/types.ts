@@ -83,7 +83,6 @@ export type AnyQuestion =
 export type ZoneContent = {
   id: string;
   title: string;
-  theme?: string;
   introText?: string; // from body markdown (optional)
   questions: AnyQuestion[];
 };

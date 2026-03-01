@@ -1,3 +1,5 @@
+//registry.tsx
+
 import type { QuestionType } from "../engine/types";
 import { QuestionFill } from "./fill/QuestionFill";
 import { QuestionNumeric } from "./numeric/QuestionNumeric";

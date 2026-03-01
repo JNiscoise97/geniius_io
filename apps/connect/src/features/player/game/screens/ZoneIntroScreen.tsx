@@ -1,3 +1,4 @@
+// src/features/player/game/screens/ZoneIntroScreen.tsx
 export function ZoneIntroScreen({
   title,
   introText,
@@ -8,12 +9,22 @@ export function ZoneIntroScreen({
   onStart: () => void;
 }) {
   return (
-    <div className="screen">
-      <h1 className="h1">{title}</h1>
-      {introText ? <p className="muted">{introText}</p> : null}
-      <button className="btn btn--primary" onClick={onStart}>
-        Commencer la zone
-      </button>
+    <div>
+      <h1 className="qs-question">{title}</h1>
+
+      {introText ? (
+        <div className="qs-body">
+          <p className="qs-hint" style={{ whiteSpace: "pre-wrap" }}>
+            {introText}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="qs-body">
+        <button className="qs-primary" onClick={onStart}>
+          Commencer la zone
+        </button>
+      </div>
     </div>
   );
 }

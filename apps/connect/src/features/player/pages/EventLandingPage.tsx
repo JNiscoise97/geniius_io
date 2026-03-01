@@ -61,14 +61,19 @@ export function EventLandingPage() {
                                                 <li>Liste simple, 8–12 max</li>
                                                 <li>Badges : Non répondu / Répondu / Validé</li>
                                                 <li>CTA “Répondre”</li>
+                                                <li>zone_presence</li>
+                                                <li>écran zone terminée et après</li>
                                             </ul>
                                         </li>
 
                                         <li>Question (1 écran = 1 question)
                                             <ul>
-                                                <li>En-tête : Zone + numéro question</li>
-                                                <li>Corps : question + input (QCM / texte / code)</li>
-                                                <li>Boutons : “Valider” + “Question suivante”</li>
+                                                <li>[OK] En-tête</li>
+                                                <li>[OK] Corps</li>
+                                                <li>[OK] Feedback</li>
+                                                <li>[OK] Boutons : “Valider” + “Question suivante”</li>
+                                                <li>Possibilité de passer</li>
+                                                <li>Nombre de tentatives à respecter</li>
                                                 <li>Auto-save + état “enregistré”</li>
                                             </ul>
                                         </li>
@@ -112,11 +117,13 @@ export function EventLandingPage() {
 
                                 <li>Micro-détails mobile
                                     <ul>
-                                        <li>1 question = 1 écran</li>
-                                        <li>CTA sticky en bas</li>
-                                        <li>Gros champs + clavier adapté</li>
+                                        <li>[OK] 1 question = 1 écran</li>
+                                        <li>[OK] CTA sticky en bas</li>
+                                        <li>[OK] Gros champs + clavier adapté</li>
                                         <li>Auto-save à chaque action</li>
                                         <li>Reprise automatique via token</li>
+                                        <li>Scrollup à chaque page</li>
+                                        <li>CTA disabled quand isSaving notamment photo</li>
                                     </ul>
                                 </li>
                             </ul>
@@ -130,9 +137,6 @@ export function EventLandingPage() {
             <div className="stack">
                 <Link className="btn btn--primary" to={`/e/${event.slug}/team/create`}>
                     Créer une équipe
-                </Link>
-                <Link className="btn" to={`/e/${event.slug}/team/resume`}>
-                    Reprendre une équipe
                 </Link>
             </div>
 

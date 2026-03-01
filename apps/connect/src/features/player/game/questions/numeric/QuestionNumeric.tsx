@@ -1,35 +1,30 @@
-import { useState } from "react";
+// src/features/player/game/questions/numeric/QuestionNumeric.tsx
 import type { NumericQuestion } from "../../engine/types";
+import "../../question-screen.css";
 
 export function QuestionNumeric({
   question,
-  onSubmit,
+  draft,
+  onDraftChange,
   disabled,
 }: {
   question: NumericQuestion;
-  onSubmit: (answer: number) => void;
+  draft: string;
+  onDraftChange: (next: string) => void;
   disabled?: boolean;
 }) {
-  const [raw, setRaw] = useState<string>("");
-
-  const num = Number(raw);
-  const valid = raw.trim().length > 0 && Number.isFinite(num);
-
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
+    <div className="qs-field">
+      <label className="qs-label">Ta réponse (nombre)</label>
       <input
-        className="btn"
-        style={{ textAlign: "left" }}
+        className="qs-input"
+        value={typeof draft === "string" ? draft : String(draft ?? "")}
+        onChange={(e) => onDraftChange(e.target.value)}
         inputMode="numeric"
-        placeholder="Ta réponse (nombre)"
-        value={raw}
+        placeholder="Ex: 3"
         disabled={disabled}
-        onChange={(e) => setRaw(e.target.value)}
       />
-
-      <button className="btn btn--primary" disabled={!valid || disabled} onClick={() => onSubmit(num)}>
-        Valider
-      </button>
+      <div className="qs-hint">Clavier numérique</div>
     </div>
   );
 }

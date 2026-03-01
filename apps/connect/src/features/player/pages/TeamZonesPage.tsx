@@ -170,61 +170,85 @@ export function TeamZonesPage() {
   }, []);
 
   function parseEventYaml(raw: string): EventYaml | null {
-    const lines = raw.split("\n");
-    let slugVal = "";
-    let titleVal = "";
-    const zones: Array<{ file: string; title: string }> = [];
+  const lines = raw.split("\n");
 
-    let i = 0;
-    while (i < lines.length) {
-      const t = lines[i].trim();
+  let slugVal = "";
+  let titleVal = "";
+  const zones: Array<{ file: string; title: string }> = [];
 
-      if (t.startsWith("slug:")) {
-        slugVal = t.replace("slug:", "").trim().replace(/^"|"$/g, "");
-      } else if (t.startsWith("title:")) {
-        titleVal = t.replace("title:", "").trim().replace(/^"|"$/g, "");
-      } else if (t.startsWith("zones:")) {
-        i += 1;
-        while (i < lines.length) {
-          const tt = lines[i].trim();
-          if (!tt) {
-            i += 1;
-            continue;
-          }
-          if (tt.startsWith("- file:")) {
-            const file = tt.replace("- file:", "").trim().replace(/^"|"$/g, "");
-            let zTitle = file;
+  // helpers
+  const stripQuotes = (s: string) => s.trim().replace(/^["']|["']$/g, "");
+  const indentOf = (line: string) => line.match(/^\s*/)?.[0].length ?? 0;
 
-            let j = i + 1;
-            while (j < lines.length) {
-              const ttt = lines[j].trim();
-              if (ttt.startsWith("- file:")) break;
-              if (ttt.startsWith("title:")) {
-                zTitle = ttt.replace("title:", "").trim().replace(/^"|"$/g, "");
-                break;
-              }
-              j += 1;
-            }
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
 
-            zones.push({ file, title: zTitle });
-            i += 1;
-            continue;
-          }
-
-          // sortie permissive si on retombe sur une clef top-level
-          if (/^\w+:\s*/.test(tt) && !tt.startsWith("-")) break;
-
-          i += 1;
-        }
-        continue;
-      }
-
+    if (t.startsWith("slug:")) {
+      slugVal = stripQuotes(t.replace("slug:", ""));
       i += 1;
+      continue;
     }
 
-    if (!slugVal) return null;
-    return { slug: slugVal, title: titleVal, zones };
+    if (t.startsWith("title:")) {
+      titleVal = stripQuotes(t.replace("title:", ""));
+      i += 1;
+      continue;
+    }
+
+    if (t === "zones:" || t.startsWith("zones:")) {
+      const zonesIndent = indentOf(line);
+      i += 1;
+
+      // parse list items under zones:
+      while (i < lines.length) {
+        const l = lines[i];
+        const tt = l.trim();
+
+        // stop if we outdent back to zonesIndent or less (top-level or sibling key)
+        if (tt && indentOf(l) <= zonesIndent) break;
+
+        // new item
+        const mFile = tt.match(/^-+\s*file:\s*(.+)$/);
+        if (mFile) {
+          const file = stripQuotes(mFile[1]);
+          let zTitle = file;
+
+          const itemIndent = indentOf(l);
+          i += 1;
+
+          // read properties of this item until next "- file:" at same indent, or outdent
+          while (i < lines.length) {
+            const l2 = lines[i];
+            const t2 = l2.trim();
+
+            if (t2 && indentOf(l2) <= zonesIndent) break; // out of zones
+            const maybeNextItem = t2.match(/^-+\s*file:\s*/);
+            if (maybeNextItem && indentOf(l2) === itemIndent) break;
+
+            const mTitle = t2.match(/^title:\s*(.+)$/);
+            if (mTitle) zTitle = stripQuotes(mTitle[1]);
+
+            i += 1;
+          }
+
+          zones.push({ file, title: zTitle });
+          continue; // IMPORTANT: don't i++ here, inner loop already positioned correctly
+        }
+
+        i += 1;
+      }
+
+      continue;
+    }
+
+    i += 1;
   }
+
+  if (!slugVal) return null;
+  return { slug: slugVal, title: titleVal, zones };
+}
 
   const eventDef = useMemo(() => {
     const needle = `/content/events/${slug}/event.yaml`;

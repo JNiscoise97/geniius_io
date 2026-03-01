@@ -1,48 +1,36 @@
-import { useState } from "react";
+// src/features/player/game/questions/truefalse/QuestionTrueFalse.tsx
 import type { TrueFalseQuestion } from "../../engine/types";
+import "../../question-screen.css";
 
 export function QuestionTrueFalse({
   question,
-  onSubmit,
+  draft,
+  onDraftChange,
   disabled,
 }: {
   question: TrueFalseQuestion;
-  onSubmit: (answer: boolean) => void;
+  draft: boolean | null;
+  onDraftChange: (next: boolean | null) => void;
   disabled?: boolean;
 }) {
-  const [value, setValue] = useState<boolean | null>(null);
-
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          className={`btn ${value === true ? "btn--primary" : ""}`}
-          type="button"
-          disabled={disabled}
-          onClick={() => setValue(true)}
-          style={{ flex: 1 }}
-        >
-          Vrai
-        </button>
-
-        <button
-          className={`btn ${value === false ? "btn--primary" : ""}`}
-          type="button"
-          disabled={disabled}
-          onClick={() => setValue(false)}
-          style={{ flex: 1 }}
-        >
-          Faux
-        </button>
-      </div>
+    <div className="qs-grid-2">
+      <button
+        type="button"
+        className={`qs-bigbtn ${draft === true ? "is-active-green" : ""}`}
+        onClick={() => onDraftChange(true)}
+        disabled={disabled}
+      >
+        Vrai
+      </button>
 
       <button
-        className="btn btn--primary"
         type="button"
-        disabled={value === null || disabled}
-        onClick={() => onSubmit(Boolean(value))}
+        className={`qs-bigbtn ${draft === false ? "is-active-red" : ""}`}
+        onClick={() => onDraftChange(false)}
+        disabled={disabled}
       >
-        Valider
+        Faux
       </button>
     </div>
   );

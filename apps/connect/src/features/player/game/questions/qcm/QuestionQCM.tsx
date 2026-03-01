@@ -1,55 +1,67 @@
-import { useMemo, useState } from "react";
+// src/features/player/game/questions/qcm/QuestionQCM.tsx
+import { useMemo } from "react";
 import type { QCMQuestion } from "../../engine/types";
+import "../../question-screen.css";
+import { shuffleStable, getSession, slugFromUrl } from "../shuffle"; // adapte le chemin si besoin
 
 export function QuestionQCM({
   question,
-  onSubmit,
+  draft,
+  onDraftChange,
   disabled,
 }: {
   question: QCMQuestion;
-  onSubmit: (answer: string[]) => void;
+  draft: string[];
+  onDraftChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  const canSubmit = selected.length > 0;
-
+  const selected = Array.isArray(draft) ? draft : [];
   const selectedSet = useMemo(() => new Set(selected), [selected]);
 
+  const slug = useMemo(() => slugFromUrl(), []);
+  const s = useMemo(() => getSession(slug), [slug]);
+
+  // ✅ même équipe => même ordre ; autre équipe => ordre différent
+  const seed = useMemo(
+    () => `qcm:${question.id}:${s?.teamId ?? "no-team"}`,
+    [question.id, s?.teamId]
+  );
+
+  const options = useMemo(
+    () => shuffleStable(question.options ?? [], seed),
+    [question.options, seed]
+  );
+
   function toggle(opt: string) {
-    setSelected((prev) => {
-      const s = new Set(prev);
-      if (s.has(opt)) s.delete(opt);
-      else s.add(opt);
-      return Array.from(s);
-    });
+    const next = new Set(selected);
+    if (next.has(opt)) next.delete(opt);
+    else next.add(opt);
+    onDraftChange(Array.from(next));
   }
 
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
-      <p className="muted" style={{ margin: 0 }}>
-        Plusieurs réponses possibles.
-      </p>
+    <>
+      <div className="qs-options">
+        {options.map((opt) => {
+          const active = selectedSet.has(opt);
+          return (
+            <button
+              key={opt}
+              type="button"
+              className={`qs-option ${active ? "is-active" : ""}`}
+              onClick={() => toggle(opt)}
+              disabled={disabled}
+            >
+              <div className="qs-option__left">
+                <div className="qs-option__value">{opt}</div>
+              </div>
+              <div className={`qs-box ${active ? "is-on" : ""}`} aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
 
-      {question.options.map((opt) => (
-        <label
-          key={opt}
-          className="btn"
-          style={{ textAlign: "left", display: "flex", gap: 10, alignItems: "center" }}
-        >
-          <input
-            type="checkbox"
-            checked={selectedSet.has(opt)}
-            disabled={disabled}
-            onChange={() => toggle(opt)}
-          />
-          <span>{opt}</span>
-        </label>
-      ))}
-
-      <button className="btn btn--primary" disabled={!canSubmit || disabled} onClick={() => onSubmit(selected)}>
-        Valider
-      </button>
-    </div>
+      <div className="qs-hint">Sélection : {selected.length}</div>
+    </>
   );
 }

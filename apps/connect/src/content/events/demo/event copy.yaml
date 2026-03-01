@@ -1,0 +1,9 @@
+slug: demo
+title: "Événement Démo"
+zones:
+  - file: "01-histoire.md"
+    title: "Zone 1 — Histoire"
+  - file: "02-lieu.md"
+    title: "Zone 2 — Lieu"
+  - file: "03-famille.md"
+    title: "Zone 3 — Famille"

@@ -1,3 +1,6 @@
+// src/features/player/game/screens/ZoneEndScreen.tsx
+import { ArrowRight, Trophy } from "lucide-react";
+
 export function ZoneEndScreen({
   score,
   durationSec,
@@ -8,13 +11,26 @@ export function ZoneEndScreen({
   onBack: () => void;
 }) {
   return (
-    <div className="screen">
-      <h1 className="h1">Zone terminée 🎉</h1>
-      <p className="muted">Score : <strong>{score}</strong></p>
-      <p className="muted">Temps : <strong>{durationSec}s</strong></p>
-      <button className="btn btn--primary" onClick={onBack}>
-        Revenir
-      </button>
+    <div>
+      <h1 className="qs-question">Zone terminée 🎉</h1>
+
+      <div className="qs-body">
+        <div className="qs-topmeta">
+          <Trophy size={18} />
+          <span className="qs-topmeta__item">
+            Score : <b>{score}</b>
+          </span>
+          <span className="qs-topmeta__sep">•</span>
+          <span className="qs-topmeta__item">
+            Temps : <b>{durationSec}s</b>
+          </span>
+        </div>
+
+        <button className="qs-primary" onClick={onBack}>
+          <ArrowRight size={18} />
+          Continuer
+        </button>
+      </div>
     </div>
   );
 }

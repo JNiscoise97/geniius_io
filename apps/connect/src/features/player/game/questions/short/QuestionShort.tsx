@@ -1,33 +1,29 @@
-import { useState } from "react";
+// src/features/player/game/questions/short/QuestionShort.tsx
 import type { ShortQuestion } from "../../engine/types";
+import "../../question-screen.css";
 
 export function QuestionShort({
   question,
-  onSubmit,
+  draft,
+  onDraftChange,
   disabled,
 }: {
   question: ShortQuestion;
-  onSubmit: (answer: string) => void;
+  draft: string;
+  onDraftChange: (next: string) => void;
   disabled?: boolean;
 }) {
-  const [value, setValue] = useState("");
-
-  const canSubmit = value.trim().length > 0;
-
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
+    <div className="qs-field">
+      <label className="qs-label">Ta réponse</label>
       <input
-        className="btn"
-        style={{ textAlign: "left" }}
-        placeholder="Ta réponse"
-        value={value}
+        className="qs-input"
+        value={typeof draft === "string" ? draft : ""}
+        onChange={(e) => onDraftChange(e.target.value)}
+        placeholder="Tape ta réponse…"
         disabled={disabled}
-        onChange={(e) => setValue(e.target.value)}
       />
-
-      <button className="btn btn--primary" disabled={!canSubmit || disabled} onClick={() => onSubmit(value)}>
-        Valider
-      </button>
+      <div className="qs-hint">Réponse {question.mode === "exact" ? "exacte" : "normalisée"}</div>
     </div>
   );
 }

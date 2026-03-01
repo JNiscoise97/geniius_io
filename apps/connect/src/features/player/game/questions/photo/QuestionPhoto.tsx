@@ -1,8 +1,15 @@
-//QuestionPhoto.tsx
-
-import { useMemo, useRef, useState } from "react";
+// src/features/player/game/questions/photo/QuestionPhoto.tsx
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { PhotoQuestion } from "../../engine/types";
 import { supabase } from "../../../../../lib/supabase/client";
+import "../../question-screen.css";
 
 type SessionCtx = {
   eventSlug: string;
@@ -22,15 +29,16 @@ function slugFromUrl(): string {
   return m?.[1] ?? "demo";
 }
 
+// ⚠️ adapte si ta route est /zone/:zoneId (dans ton TeamZonesPage c'est /zone/:id)
+// Ici on accepte /z/:id OU /zone/:id
 function zoneIdFromUrl(): string {
-  const m = window.location.pathname.match(/\/z\/([^/]+)/);
-  return m?.[1] ?? "z01";
+  const m1 = window.location.pathname.match(/\/z\/([^/]+)/);
+  if (m1?.[1]) return m1[1];
+  const m2 = window.location.pathname.match(/\/zone\/([^/]+)/);
+  return m2?.[1] ?? "z01";
 }
 
-function computePoints(
-  question: PhotoQuestion,
-  tierValue: number | null
-): number {
+function computePoints(question: PhotoQuestion, tierValue: number | null): number {
   if (question.tier?.options?.length && tierValue != null) {
     const opt = question.tier.options.find((o) => o.value === tierValue);
     return opt?.points ?? 0;
@@ -38,32 +46,44 @@ function computePoints(
   return question.points ?? 0;
 }
 
-export function QuestionPhoto({
-  question,
-  onSubmit,
-  disabled,
-}: {
-  question: PhotoQuestion;
-  onSubmit: (answer: any) => void;
-  disabled?: boolean;
-}) {
+/**
+ * Draft piloté par QuestionRenderer (remonté au parent)
+ * - doit contenir tout ce qui conditionne canSubmit
+ * - on évite d'y mettre previewUrl (détail UI local)
+ */
+export type PhotoDraft = {
+  consent: boolean;
+  tierValue: number | null;
+  note: string;
+  file: File | null;
+};
+
+export type QuestionPhotoHandle = {
+  canSubmit: () => boolean;
+  submit: () => Promise<void>;
+};
+
+export const QuestionPhoto = forwardRef<
+  QuestionPhotoHandle,
+  {
+    question: PhotoQuestion;
+    draft: PhotoDraft;
+    onDraftChange: (next: PhotoDraft) => void;
+    onSubmit: (answer: any) => void; // payload pour ton moteur
+    disabled?: boolean;
+  }
+>(function QuestionPhoto(
+  { question, draft, onDraftChange, onSubmit, disabled },
+  ref
+) {
   const slug = slugFromUrl();
   const zoneId = zoneIdFromUrl();
   const s = useMemo(() => getSession(slug), [slug]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [consent, setConsent] = useState(false);
-  const [tierValue, setTierValue] = useState<number | null>(
-    question.tier?.options?.length
-      ? (question.tier.options[0]?.value ?? null)
-      : null
-  );
-  const [note, setNote] = useState("");
-
-  const [file, setFile] = useState<File | null>(null);
+  // UI local (pas dans le draft)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,7 +92,14 @@ export function QuestionPhoto({
   const bucket = question.upload?.bucket ?? "connect-public";
   const folder = question.upload?.folder ?? "answers";
 
-  const points = computePoints(question, tierValue);
+  const hasTier = !!question.tier?.options?.length;
+  const hasNote = question.note?.enabled === true;
+
+  const points = computePoints(question, draft.tierValue);
+
+  function setDraft(patch: Partial<PhotoDraft>) {
+    onDraftChange({ ...draft, ...patch });
+  }
 
   function onPickFile(f: File | null) {
     setError(null);
@@ -83,7 +110,8 @@ export function QuestionPhoto({
       return;
     }
 
-    setFile(f);
+    setDraft({ file: f });
+
     const url = URL.createObjectURL(f);
     setPreviewUrl((old) => {
       if (old) URL.revokeObjectURL(old);
@@ -92,32 +120,57 @@ export function QuestionPhoto({
   }
 
   function retake() {
-    setFile(null);
     setError(null);
+    setDraft({ file: null });
+
     setPreviewUrl((old) => {
       if (old) URL.revokeObjectURL(old);
       return null;
     });
+
     fileInputRef.current?.click();
+  }
+
+  function internalCanSubmit(): boolean {
+    if (isDisabled) return false;
+    if (!s) return false;
+
+    if (!draft.consent) return false;
+    if (!draft.file) return false;
+
+    if (hasTier && typeof draft.tierValue !== "number") return false;
+
+    return true;
   }
 
   async function uploadAndSubmit() {
     setError(null);
 
-    if (!s) return setError("Session introuvable. Reviens sur standby.");
-    if (!consent) return setError("Consentement requis pour envoyer la photo.");
-    if (!file) return setError("Prends une photo d’abord.");
+    if (!s) {
+      setError("Session introuvable. Reviens sur standby.");
+      return;
+    }
+    if (!draft.consent) {
+      setError("Consentement requis pour envoyer la photo.");
+      return;
+    }
+    if (!draft.file) {
+      setError("Prends une photo d’abord.");
+      return;
+    }
+    if (hasTier && typeof draft.tierValue !== "number") {
+      setError("Choisis un palier avant d’envoyer.");
+      return;
+    }
 
     setBusy(true);
     try {
-      // ✅ Qualité: on envoie tel quel (pas de compression) pour v1.
-      // Attention: en 4G, des images très lourdes peuvent échouer.
+      // v1: pas de compression
+      const file = draft.file;
       const blob: Blob = file;
 
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext)
-        ? ext
-        : "jpg";
+      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
 
       const filename = `${question.id}-${Date.now()}.${safeExt}`;
       const storagePath = `events/${s.eventId}/teams/${s.teamId}/${folder}/${filename}`;
@@ -129,8 +182,7 @@ export function QuestionPhoto({
       });
       if (up.error) throw new Error(up.error.message);
 
-      // 2) Insert answer row (si table answers existe)
-      // Si tu n'as pas encore la table, commente ce bloc et garde juste onSubmit(...)
+      // 2) Insert answer row
       const ins = await supabase.from("answers").insert({
         event_id: s.eventId,
         team_id: s.teamId,
@@ -143,89 +195,132 @@ export function QuestionPhoto({
         storage_path: storagePath,
         mime_type: file.type || "image/jpeg",
         size_bytes: blob.size,
-        tier_value: tierValue,
-        note: question.note?.enabled ? note.trim() || null : null,
+        tier_value: draft.tierValue,
+        note: hasNote ? draft.note.trim() || null : null,
       });
       if (ins.error) throw new Error(ins.error.message);
 
-      // 3) Return payload au moteur
+      // 3) payload moteur
       onSubmit({
         kind: "photo",
         storage_bucket: bucket,
         storage_path: storagePath,
         status: "pending",
-        tier_value: tierValue ?? undefined,
-        note: question.note?.enabled ? note.trim() || undefined : undefined,
+        tier_value: draft.tierValue ?? undefined,
+        note: hasNote ? draft.note.trim() || undefined : undefined,
       });
     } catch (e: any) {
       setError(e?.message ?? "Erreur upload");
+      throw e; // utile si le renderer veut savoir que ça a échoué
     } finally {
       setBusy(false);
     }
   }
 
+  // Exposition à QuestionRenderer (CTA footer)
+  useImperativeHandle(
+    ref,
+    () => ({
+      canSubmit: () => internalCanSubmit(),
+      submit: async () => {
+        await uploadAndSubmit();
+      },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [draft, disabled, busy, s, hasTier, hasNote, bucket, folder, zoneId]
+  );
+
+  // Cleanup preview URL
+  useEffect(() => {
+    return () => {
+      setPreviewUrl((old) => {
+        if (old) URL.revokeObjectURL(old);
+        return null;
+      });
+    };
+  }, []);
+
+  // Si draft.file change depuis l'extérieur, sync preview
+  useEffect(() => {
+    if (!draft.file) {
+      setPreviewUrl((old) => {
+        if (old) URL.revokeObjectURL(old);
+        return null;
+      });
+      return;
+    }
+    // si on a déjà un preview, on garde (évite recréer URL à chaque render)
+    // sinon on crée
+    setPreviewUrl((old) => old ?? URL.createObjectURL(draft.file as File));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.file]);
+
   return (
-    <div className="stack" style={{ marginTop: 12 }}>
+    <div className="qs-body">
+      {/* Hint */}
+      <div className="qs-hint" style={{ marginTop: 0 }}>
+        {hasTier ? "Choisis un palier, puis prends la photo." : <>Valeur : <b>{points} pts</b></>}
+      </div>
+
       {/* Consent */}
-      <label style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+      <label className={`qs-consent ${isDisabled ? "is-disabled" : ""}`} style={{ marginTop: 10 }}>
         <input
           type="checkbox"
-          checked={consent}
+          checked={!!draft.consent}
           disabled={isDisabled}
-          onChange={(e) => setConsent(e.target.checked)}
-          style={{ marginTop: 4 }}
+          onChange={(e) => setDraft({ consent: e.target.checked })}
         />
-        <span className="muted">
-          {question.consentText ??
-            "Nous acceptons que cette photo soit utilisée par l’organisateur."}
-        </span>
+        <div className="qs-consent__text">
+          <div className="qs-consent__title">Consentement</div>
+          <div className="qs-consent__body">
+            {question.consentText ?? "Nous acceptons que cette photo soit utilisée par l’organisateur."}
+          </div>
+        </div>
       </label>
 
       {/* Tier */}
-      {question.tier?.options?.length ? (
-        <div
-          style={{
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 14,
-            padding: 12,
-          }}
-        >
-          <div className="muted" style={{ marginBottom: 8 }}>
-            {question.tier.label ?? "Choisis un palier"}
-          </div>
-          <div className="stack">
-            {question.tier.options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`btn ${tierValue === opt.value ? "btn--primary" : ""}`}
-                disabled={isDisabled}
-                onClick={() => setTierValue(opt.value)}
-              >
-                {opt.label} — <strong>{opt.points} pts</strong>
-              </button>
-            ))}
+      {hasTier ? (
+        <div style={{ marginTop: 12 }}>
+          <div className="qs-label">{question.tier?.label ?? "Choisis un palier"}</div>
+          <div className="qs-options" style={{ marginTop: 10 }}>
+            {question.tier!.options.map((opt) => {
+              const active = draft.tierValue === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`qs-option ${active ? "is-active" : ""}`}
+                  disabled={isDisabled}
+                  onClick={() => setDraft({ tierValue: opt.value })}
+                >
+                  <div className="qs-option__left">
+                    <div className="qs-option__value">{opt.label}</div>
+                    <div className="qs-option__sub">+{opt.points} pts</div>
+                  </div>
+                  <div className={`qs-dot ${active ? "is-on" : ""}`} aria-hidden="true" />
+                </button>
+              );
+            })}
           </div>
         </div>
-      ) : (
-        <div className="muted" style={{ fontSize: 12, opacity: 0.9 }}>
-          Valeur : <strong>{points} pts</strong>
-        </div>
-      )}
-
-      {/* Note */}
-      {question.note?.enabled ? (
-        <textarea
-          className="btn"
-          style={{ textAlign: "left", minHeight: 90, resize: "vertical" }}
-          placeholder={question.note.placeholder ?? "Note (optionnel)"}
-          value={note}
-          disabled={isDisabled}
-          onChange={(e) => setNote(e.target.value)}
-        />
       ) : null}
 
-      {/* File input */}
+      {/* Note */}
+      {hasNote ? (
+        <div className="qs-field" style={{ marginTop: 12 }}>
+          <label className="qs-label">Note (optionnel)</label>
+          <textarea
+            className="qs-textarea"
+            value={draft.note ?? ""}
+            disabled={isDisabled}
+            onChange={(e) => setDraft({ note: e.target.value })}
+            placeholder={question.note?.placeholder ?? "Optionnel : prénoms / lien…"}
+            rows={3}
+          />
+        </div>
+      ) : null}
+
+      {/* File input (hidden) */}
       <input
         ref={fileInputRef}
         type="file"
@@ -235,66 +330,87 @@ export function QuestionPhoto({
         style={{ display: "none" }}
       />
 
-      {!file ? (
-        <button
-          className="btn btn--primary"
-          type="button"
-          disabled={isDisabled}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Prendre la photo
-        </button>
-      ) : (
-        <>
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="Aperçu"
-              style={{
-                width: "100%",
-                borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            />
-          ) : null}
-
+      {/* Capture / preview (NO submit button here) */}
+      <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+        {!draft.file ? (
           <button
-            className="btn"
+            className="qs-primary"
             type="button"
             disabled={isDisabled}
-            onClick={retake}
+            onClick={() => fileInputRef.current?.click()}
           >
-            Reprendre la photo
+            Prendre la photo
           </button>
+        ) : (
+          <>
+            {previewUrl ? (
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "1 / 1",          // carré parfait
+                  borderRadius: 16,
+                  border: "1px solid rgba(15, 23, 42, 0.18)",
+                  background: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={previewUrl}
+                  alt="Aperçu"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",        // respecte totalement le ratio
+                  }}
+                />
+              </div>
+            ) : null}
 
-          <button
-            className="btn btn--primary"
-            type="button"
-            disabled={isDisabled || !consent}
-            onClick={uploadAndSubmit}
-          >
-            {busy ? "Envoi..." : "Envoyer"}
-          </button>
-        </>
-      )}
+            <button className="qs-option" type="button" disabled={isDisabled} onClick={retake}>
+              <div className="qs-option__left">
+                <div className="qs-option__value">Reprendre la photo</div>
+                <div className="qs-option__sub">Nouvelle prise</div>
+              </div>
+              <div className="qs-dot" aria-hidden="true" />
+            </button>
 
+            {!draft.consent ? (
+              <div className="qs-hint">Coche le consentement pour pouvoir envoyer.</div>
+            ) : null}
+          </>
+        )}
+      </div>
+
+      {/* Meta */}
+      <div className="qs-hint" style={{ marginTop: 10 }}>
+        Upload : <b>{bucket}</b> / {folder}
+      </div>
+
+      {/* Errors */}
       {error ? (
         <div
           style={{
-            border: "1px solid rgba(255,0,0,0.35)",
+            marginTop: 12,
+            border: "1px solid rgba(220, 38, 38, 0.35)",
+            background: "rgba(220, 38, 38, 0.06)",
             padding: 12,
-            borderRadius: 12,
+            borderRadius: 16,
+            fontWeight: 900,
           }}
         >
-          <strong>Erreur :</strong> <span className="muted">{error}</span>
+          <div style={{ fontWeight: 1000 }}>Erreur</div>
+          <div style={{ marginTop: 4, color: "rgba(15, 23, 42, 0.85)" }}>{error}</div>
         </div>
       ) : null}
 
       {!s ? (
-        <div className="muted" style={{ fontSize: 12 }}>
+        <div className="qs-hint" style={{ marginTop: 10 }}>
           ⚠️ Session non trouvée (localStorage).
         </div>
       ) : null}
     </div>
   );
-}
+});

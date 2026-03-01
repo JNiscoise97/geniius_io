@@ -1,16 +1,21 @@
-import { useMemo, type ReactNode } from "react";
+// src/features/player/game/ui/GameHUD.tsx
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Wifi, WifiOff, Trophy, Timer } from "lucide-react";
+import "../question-screen.css";
 
 type GameHUDProps = {
   zoneId: string;
   zoneTitle: string;
-  theme?: string;
 
-  stepLabel?: string; // ex: "Intro", "Question 2/10", "Feedback", "Fin"
+  stepLabel?: string;
   score: number;
   durationSec: number;
 
-  rightHint?: ReactNode; // ex: points à gagner, retry, etc.
+  // ⬇️ NEW : meta “question” façon mock (pill + pts + essais + pénalité + attemptsLeft)
+  topmeta?: ReactNode;
+
   children: ReactNode;
+  footer?: ReactNode;
 };
 
 function zoneLabelFromId(id: string) {
@@ -24,60 +29,107 @@ function formatDuration(s: number) {
   if (s < 60) return `${s}s`;
   const mm = Math.floor(s / 60);
   const ss = s % 60;
-  return `${mm}m${String(ss).padStart(2, "0")}s`;
+  return `${mm} m ${String(ss).padStart(2, "0")} s`;
 }
 
 export function GameHUD({
   zoneId,
   zoneTitle,
-  theme,
   stepLabel,
   score,
   durationSec,
-  rightHint,
+  topmeta,
   children,
+  footer,
 }: GameHUDProps) {
   const zLabel = useMemo(() => zoneLabelFromId(zoneId), [zoneId]);
   const dur = useMemo(() => formatDuration(durationSec), [durationSec]);
 
+  const [elapsed, setElapsed] = useState<number>(() =>
+    Number.isFinite(durationSec) && durationSec >= 0 ? durationSec : 0
+  );
+
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== "undefined" ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
+  // Quand la base change (ex: reset zone / nouvelle zone), on resynchronise.
+  useEffect(() => {
+    setElapsed(Number.isFinite(durationSec) && durationSec >= 0 ? durationSec : 0);
+  }, [durationSec]);
+
+  // Tick
+  useEffect(() => {
+    const t = window.setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+
+  const durLabel = useMemo(() => formatDuration(elapsed), [elapsed]);
   return (
-    <div className="screen">
-      {/* Header / HUD */}
-      <div
-        className="muted"
-        style={{
-          display: "grid",
-          gap: 6,
-          padding: "10px 12px",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 14,
-          background: "rgba(255,255,255,0.02)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-          <div style={{ display: "grid", gap: 2 }}>
-            <span style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-              {zLabel} • {zoneTitle}
-            </span>
-            <span style={{ fontSize: 12, opacity: 0.9 }}>
-              {theme ? `Thème : ${theme}` : " "}
-            </span>
+    <div className="qs-root">
+      <div className="qs-container">
+        <header className="qs-header">
+          <div className="qs-header__top">
+            <div className="qs-titleblock">
+              <div className="qs-zone">
+                {zoneTitle}
+              </div>
+              <div className="qs-progress">
+                {stepLabel ?? ""}
+              </div>
+            </div>
+
+            <div className={`qs-online ${isOnline ? "is-online" : "is-offline"}`}>
+              {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+              {isOnline ? "En ligne" : "Hors-ligne"}
+            </div>
           </div>
 
-          <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-            <div style={{ fontSize: 12, opacity: 0.9 }}>{dur}</div>
-            <div style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>Score {score}</div>
-          </div>
-        </div>
+          <div className="qs-header__bottom">
+            <div className="qs-temps" aria-label="Temps écoulé">
+              <Timer size={16} />
+              <span>
+                Temps :{" "}
+                <b className="qs-time" aria-live="off">
+                  {durLabel}
+                </b>
+              </span>
+            </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>{stepLabel ?? ""}</span>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>{rightHint ?? null}</span>
-        </div>
+            <div className="qs-score">
+              <Trophy size={16} />
+              <span>
+                Score : <b>{score}</b>
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* ✅ Meta sous le header, au-dessus de la question (comme le mock) */}
+        {topmeta ? <div style={{ marginTop: 10 }}>{topmeta}</div> : null}
+
+        <main className="qs-card">{children}</main>
+
+        {footer ? <div className="qs-spacer" /> : null}
+        {footer ? (
+          <footer className="qs-footer">
+            <div className="qs-footer__wrap">
+              <div className="qs-footer__inner">{footer}</div>
+            </div>
+          </footer>
+        ) : null}
       </div>
-
-      {/* Body */}
-      <div style={{ marginTop: 12 }}>{children}</div>
     </div>
   );
 }
