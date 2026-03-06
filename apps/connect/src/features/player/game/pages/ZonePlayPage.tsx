@@ -20,6 +20,7 @@ import { ZoneEndScreen } from "../screens/ZoneEndScreen";
 import { createInitialState, gameReducer } from "../engine/reducer";
 import type { ZoneContent, AnyQuestion } from "../engine/types";
 import { getLocalEvent } from "../../../../lib/content/contentLoader";
+import { supabase } from "../../../../lib/supabase/client";
 
 function toZoneContent(eventSlug: string, zoneId: string): ZoneContent {
   const data = getLocalEvent(eventSlug);
@@ -42,7 +43,10 @@ function getTypePill(type: AnyQuestion["type"]) {
     case "qcu":
       return { label: "Question à choix unique", icon: <ScanLine size={14} /> };
     case "qcm":
-      return { label: "Question à choix multiple", icon: <ScanLine size={14} /> };
+      return {
+        label: "Question à choix multiple",
+        icon: <ScanLine size={14} />,
+      };
     case "truefalse":
       return { label: "Vrai/Faux", icon: <CheckCircle2 size={14} /> };
     case "numeric":
@@ -58,15 +62,31 @@ function getTypePill(type: AnyQuestion["type"]) {
   }
 }
 
-/**
- * IMPORTANT
- * ----------
- * Le bouton footer ne doit PAS dépendre de `qRef.current?.canSubmit()`
- * dans le render: React ne rerender pas quand la ref change.
- *
- * 👉 On pilote `disabled` via un state `canSubmit`, mis à jour
- * par `QuestionRenderer` (via `onCanSubmitChange`).
- */
+type SessionCtx = { eventId: string; teamId: string };
+
+function getSession(slug: string): SessionCtx {
+  const raw = localStorage.getItem(`connect:${slug}:session`);
+  if (!raw) throw new Error("Session missing");
+  const s = JSON.parse(raw);
+
+  const eventId = s.eventId ?? s.event_id;
+  const teamId = s.teamId ?? s.team_id;
+
+  if (!eventId || !teamId) throw new Error("Session invalid");
+  return { eventId, teamId };
+}
+
+function toAnswerJson(q: AnyQuestion, answer: any) {
+  switch (q.type) {
+    case "qcm":
+      return { values: answer };
+    case "photo":
+      return { ...answer };
+    default:
+      return { value: answer };
+  }
+}
+
 export function ZonePlayPage() {
   const { eventSlug, zoneId } = useParams();
   const slug = eventSlug ?? "demo";
@@ -77,31 +97,39 @@ export function ZonePlayPage() {
   const [state, dispatch] = useReducer(gameReducer, zone, createInitialState);
 
   const q = state.zone.questions[state.qIndex] ?? null;
-
-  // durée (simple)
   const durationSec = Math.floor((Date.now() - state.startedAt) / 1000);
 
-  // ref vers le renderer (pour submit() imperatif)
   const qRef = useRef<QuestionHandle | null>(null);
 
-  // ✅ état reactif pour activer/désactiver le CTA unique
   const [canSubmit, setCanSubmit] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // reset du canSubmit à chaque nouvelle question
+  // si la DB dit "max attempts", on lock l’UI localement tout de suite
+  const [forceLocked, setForceLocked] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [state.step, q?.id]);
+
   useEffect(() => {
     setCanSubmit(false);
+    setForceLocked(false);
   }, [q?.id]);
+
+  // Tentatives: source de vérité = reducer si exposé, sinon fallback
+  const maxAttempts = q?.retry ? 2 : 1;
+  const triesLeft = q ? state.triesLeft : 0;
+  const attemptsLocked = state.step === "question" && !!q && triesLeft <= 0;
 
   const stepLabel =
     state.step === "intro"
       ? "Intro"
       : state.step === "question"
-      ? `Question ${Math.min(state.qIndex + 1, state.zone.questions.length)}/${state.zone.questions.length}`
-      : state.step === "feedback"
-      ? "Feedback"
-      : "Fin";
+        ? `Question ${Math.min(state.qIndex + 1, state.zone.questions.length)}/${state.zone.questions.length}`
+        : state.step === "feedback"
+          ? "Feedback"
+          : "Fin";
 
-  // Top meta — uniquement sur l’écran question
   const topmeta =
     state.step === "question" && q ? (
       <div className="qs-topmeta">
@@ -114,7 +142,16 @@ export function ZonePlayPage() {
         <span className="qs-topmeta__item">{q.points ?? 10} pts</span>
 
         <span className="qs-topmeta__sep">•</span>
-        <span className="qs-topmeta__item">{q.retry ? "2 essais max" : "1 essai"}</span>
+        <span className="qs-topmeta__item">
+          {q.retry ? "2 essais max" : "1 essai"}
+        </span>
+
+        {q.retry ? (
+          <>
+            <span className="qs-topmeta__sep">•</span>
+            <span className="qs-topmeta__item">restant: {state.triesLeft}</span>
+          </>
+        ) : null}
 
         {q.penaltyEnabled ? (
           <>
@@ -125,23 +162,25 @@ export function ZonePlayPage() {
       </div>
     ) : undefined;
 
-  // Footer CTA unique — uniquement sur l’écran question
   const footer =
     state.step === "question" && q ? (
       <button
         className="qs-primary"
         type="button"
         onClick={() => qRef.current?.submit()}
-        disabled={!canSubmit}
+        disabled={!canSubmit || isSubmitting || attemptsLocked}
+        title={attemptsLocked ? "Nombre d’essais atteint" : undefined}
       >
         <CheckCircle2 size={18} />
-        <span>Valider</span>
+        <span>
+          {attemptsLocked
+            ? "Essais épuisés"
+            : isSubmitting
+              ? "Enregistrement..."
+              : "Valider"}
+        </span>
       </button>
     ) : undefined;
-
-  // -------------------------
-  // RENDERS PAR STEP
-  // -------------------------
 
   if (state.step === "intro") {
     return (
@@ -176,11 +215,65 @@ export function ZonePlayPage() {
           {q.prompt}
         </h1>
 
+        {attemptsLocked ? (
+          <div className="qs-hint" style={{ marginTop: -10, marginBottom: 12 }}>
+            Nombre d’essais atteint. Passe à la suite via l’écran de feedback.
+          </div>
+        ) : null}
+
         <QuestionRenderer
           ref={qRef}
           question={q}
-          onSubmit={(answer) => dispatch({ type: "ANSWER", answer })}
-          // ✅ rend le footer réactif
+          disabled={isSubmitting || attemptsLocked}
+          onSubmit={async (answer) => {
+            if (!q) return;
+
+            // PHOTO => déjà persistée en pending dans QuestionPhoto, on avance juste le moteur
+            if (q.type === "photo") {
+              dispatch({ type: "ANSWER", answer });
+              return;
+            }
+
+            if (isSubmitting) return;
+
+            let session: SessionCtx;
+            try {
+              session = getSession(slug);
+            } catch (e) {
+              console.error(e);
+              return;
+            }
+
+            setIsSubmitting(true);
+            try {
+              const payload: any = {
+                p_event_id: session.eventId,
+                p_team_id: session.teamId,
+                p_zone_id: zid,
+                p_question_id: q.id,
+                p_question_type: q.type,
+                p_answer_json: toAnswerJson(q, answer),
+                p_status: "submitted",
+                p_max_attempts: maxAttempts,
+              };
+
+              const { error } = await supabase.rpc("submit_answer", payload);
+              if (error) throw error;
+
+              dispatch({ type: "ANSWER", answer });
+            } catch (e: any) {
+              const msg = String(e?.message ?? "");
+              if (msg.includes("MAX_ATTEMPTS_REACHED")) {
+                setForceLocked(true);
+                // Option: basculer direct en feedback si tu veux
+                // dispatch({ type: "FORCE_FEEDBACK_MAX_ATTEMPTS" } as any);
+                return;
+              }
+              console.error("submit_answer failed", e);
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
           onCanSubmitChange={setCanSubmit}
         />
       </GameHUD>
@@ -188,7 +281,6 @@ export function ZonePlayPage() {
   }
 
   if (state.step === "feedback" && state.feedback) {
-    // ici, on laisse encore le composant actuel (overlay viendra ensuite)
     return (
       <GameHUD
         zoneId={state.zone.id}
@@ -203,6 +295,8 @@ export function ZonePlayPage() {
           totalScore={state.score}
           onRetry={() => dispatch({ type: "RETRY" })}
           onNext={() => dispatch({ type: "NEXT" })}
+          triesLeft={state.triesLeft}
+          maxAttempts={state.maxAttempts}
         />
       </GameHUD>
     );

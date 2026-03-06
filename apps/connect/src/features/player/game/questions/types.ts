@@ -16,7 +16,6 @@ export type PhotoDraft = {
   tierValue: number | null;
   note: string;
   file: File | null;
-  previewUrl: string | null;
 };
 
 export type QuestionHandle = {

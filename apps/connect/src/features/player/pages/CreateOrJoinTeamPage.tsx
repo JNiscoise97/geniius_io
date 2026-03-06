@@ -1,5 +1,5 @@
 // src/features/player/team/CreateOrJoinTeamPage.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabase/client";
 import {
@@ -90,15 +90,30 @@ export function CreateOrJoinTeamPage() {
   const sizeOk = members.length >= minMembers && members.length <= maxMembers;
   const accessOk = /^\d{4}$/.test(accessCode.trim());
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
   function setMember(i: number, patch: Partial<MemberDraft>) {
-    setMembers((prev) => prev.map((m, idx) => (idx === i ? { ...m, ...patch } : m)));
+    setMembers((prev) =>
+      prev.map((m, idx) => (idx === i ? { ...m, ...patch } : m)),
+    );
   }
 
   function addMember() {
     if (!canAddMember) return;
     setMembers((prev) => [
       ...prev,
-      { first_name: "", last_name: "", color: "jaune", isCaptain: false, age: "" },
+      {
+        first_name: "",
+        last_name: "",
+        color: "jaune",
+        isCaptain: false,
+        age: "",
+      },
     ]);
   }
 
@@ -115,19 +130,26 @@ export function CreateOrJoinTeamPage() {
   }
 
   function setCaptain(i: number) {
-    setMembers((prev) => prev.map((m, idx) => ({ ...m, isCaptain: idx === i })));
+    setMembers((prev) =>
+      prev.map((m, idx) => ({ ...m, isCaptain: idx === i })),
+    );
   }
 
   function validateCreate(): string | null {
     if (!teamName.trim()) return "Nom d’équipe requis.";
-    if (!/^\d{4}$/.test(accessCode.trim())) return "Code d’accès requis : 4 chiffres exactement.";
-    if (members.length < minMembers) return "Minimum 3 participants par équipe.";
-    if (members.length > maxMembers) return "Maximum 6 participants par équipe.";
-    if (colorsCount < 3) return "Au moins 3 couleurs différentes sont requises.";
+    if (!/^\d{4}$/.test(accessCode.trim()))
+      return "Code d’accès requis : 4 chiffres exactement.";
+    if (members.length < minMembers)
+      return "Minimum 3 participants par équipe.";
+    if (members.length > maxMembers)
+      return "Maximum 6 participants par équipe.";
+    if (colorsCount < 3)
+      return "Au moins 3 couleurs différentes sont requises.";
     if (!hasCaptain) return "Choisis un capitaine.";
 
     for (const [idx, m] of members.entries()) {
-      if (!m.first_name.trim() || !m.last_name.trim()) return `Membre #${idx + 1} incomplet.`;
+      if (!m.first_name.trim() || !m.last_name.trim())
+        return `Membre #${idx + 1} incomplet.`;
 
       // âge optionnel, mais si rempli il doit être valide
       if (m.age.trim() && toAgeOrNull(m.age) === null) {
@@ -145,7 +167,11 @@ export function CreateOrJoinTeamPage() {
     setLoading(true);
     try {
       // 1) event
-      const ev = await supabase.from("events").select("id, slug").eq("slug", slug).single();
+      const ev = await supabase
+        .from("events")
+        .select("id, slug")
+        .eq("slug", slug)
+        .single();
       if (ev.error) throw new Error(ev.error.message);
       const eventId = ev.data.id as string;
 
@@ -193,7 +219,7 @@ export function CreateOrJoinTeamPage() {
           teamId,
           teamName: teamName.trim(),
           session_token,
-        })
+        }),
       );
 
       // 6) nav
@@ -213,7 +239,11 @@ export function CreateOrJoinTeamPage() {
 
     setLoading(true);
     try {
-      const ev = await supabase.from("events").select("id, slug").eq("slug", slug).single();
+      const ev = await supabase
+        .from("events")
+        .select("id, slug")
+        .eq("slug", slug)
+        .single();
       if (ev.error) throw new Error(ev.error.message);
       const eventId = ev.data.id as string;
 
@@ -225,7 +255,8 @@ export function CreateOrJoinTeamPage() {
         .eq("access_code", joinAccessCode.trim())
         .single();
 
-      if (teamFind.error) throw new Error("Équipe introuvable (nom/code incorrect).");
+      if (teamFind.error)
+        throw new Error("Équipe introuvable (nom/code incorrect).");
       const teamId = teamFind.data.id as string;
       const teamNameResolved = teamFind.data.team_name as string;
 
@@ -245,7 +276,7 @@ export function CreateOrJoinTeamPage() {
           teamId,
           teamName: teamNameResolved,
           session_token,
-        })
+        }),
       );
 
       nav(`/e/${slug}/team-dashboard`, { replace: true });
@@ -335,7 +366,9 @@ export function CreateOrJoinTeamPage() {
               <div className="p-4">
                 <div className="mt-4 grid gap-3">
                   <label className="grid gap-1">
-                    <span className="text-xs font-extrabold text-slate-800">Nom d’équipe</span>
+                    <span className="text-xs font-extrabold text-slate-800">
+                      Nom d’équipe
+                    </span>
                     <input
                       className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                       value={teamName}
@@ -359,7 +392,9 @@ export function CreateOrJoinTeamPage() {
                         className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                         value={accessCode}
                         onChange={(e) => {
-                          const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          const onlyDigits = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 4);
                           setAccessCode(onlyDigits);
                         }}
                         placeholder="Ex: 1234"
@@ -372,37 +407,72 @@ export function CreateOrJoinTeamPage() {
                     </div>
 
                     <div className="mt-1 text-[11px] font-bold text-slate-600">
-                      Ce code à 4 chiffres te servira si tu souhaites te reconnecter à ton équipe.
+                      Ce code à 4 chiffres te servira si tu souhaites te
+                      reconnecter à ton équipe.
                     </div>
                   </label>
 
                   {/* Règles explicites */}
                   <div className="mt-1 grid gap-2">
                     <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3">
-                      <div className="text-xs font-black text-slate-900">Règles d’équipe</div>
+                      <div className="text-xs font-black text-slate-900">
+                        Règles d’équipe
+                      </div>
 
                       <ul className="mt-2 grid gap-1.5 text-xs font-extrabold">
                         <li className="flex items-start justify-between gap-3">
-                          <span className="text-slate-800">Taille : 3–6 membres</span>
-                          <span className={sizeOk ? "text-[color:var(--ok)]" : "text-[color:var(--bad)]"}>
+                          <span className="text-slate-800">
+                            Taille : 3–6 membres
+                          </span>
+                          <span
+                            className={
+                              sizeOk
+                                ? "text-[color:var(--ok)]"
+                                : "text-[color:var(--bad)]"
+                            }
+                          >
                             {members.length}/{maxMembers}
                           </span>
                         </li>
                         <li className="flex items-start justify-between gap-3">
-                          <span className="text-slate-800">Couleurs : min 3 uniques</span>
-                          <span className={colorsOk ? "text-[color:var(--ok)]" : "text-[color:var(--bad)]"}>
+                          <span className="text-slate-800">
+                            Couleurs : min 3 uniques
+                          </span>
+                          <span
+                            className={
+                              colorsOk
+                                ? "text-[color:var(--ok)]"
+                                : "text-[color:var(--bad)]"
+                            }
+                          >
                             {colorsCount}/5
                           </span>
                         </li>
                         <li className="flex items-start justify-between gap-3">
-                          <span className="text-slate-800">Capitaine : 1 obligatoire</span>
-                          <span className={hasCaptain ? "text-[color:var(--ok)]" : "text-[color:var(--bad)]"}>
+                          <span className="text-slate-800">
+                            Capitaine : 1 obligatoire
+                          </span>
+                          <span
+                            className={
+                              hasCaptain
+                                ? "text-[color:var(--ok)]"
+                                : "text-[color:var(--bad)]"
+                            }
+                          >
                             {hasCaptain ? "OK" : "À choisir"}
                           </span>
                         </li>
                         <li className="flex items-start justify-between gap-3">
-                          <span className="text-slate-800">Code d’accès : 4 chiffres</span>
-                          <span className={accessOk ? "text-[color:var(--ok)]" : "text-[color:var(--bad)]"}>
+                          <span className="text-slate-800">
+                            Code d’accès : 4 chiffres
+                          </span>
+                          <span
+                            className={
+                              accessOk
+                                ? "text-[color:var(--ok)]"
+                                : "text-[color:var(--bad)]"
+                            }
+                          >
                             {accessOk ? "OK" : "Requis"}
                           </span>
                         </li>
@@ -417,7 +487,9 @@ export function CreateOrJoinTeamPage() {
             <section className="mt-3 rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
               <div className="p-4 flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[16px] font-black text-slate-900">Membres</div>
+                  <div className="text-[16px] font-black text-slate-900">
+                    Membres
+                  </div>
                   <div className="text-xs font-bold text-slate-700">
                     Un capitaine obligatoire (choisir sur une carte).
                   </div>
@@ -434,7 +506,10 @@ export function CreateOrJoinTeamPage() {
                   disabled={!canAddMember || loading}
                   title={!canAddMember ? "Maximum 6 membres" : undefined}
                 >
-                  <Plus size={16} className={canAddMember ? "text-[color:var(--blue)]" : ""} />
+                  <Plus
+                    size={16}
+                    className={canAddMember ? "text-[color:var(--blue)]" : ""}
+                  />
                   Ajouter
                 </button>
               </div>
@@ -444,9 +519,14 @@ export function CreateOrJoinTeamPage() {
                   const isCaptain = m.isCaptain;
 
                   return (
-                    <div key={i} className="rounded-3xl p-3 bg-slate-50 border border-slate-200">
+                    <div
+                      key={i}
+                      className="rounded-3xl p-3 bg-slate-50 border border-slate-200"
+                    >
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs font-extrabold text-slate-800">Membre #{i + 1}</div>
+                        <div className="text-xs font-extrabold text-slate-800">
+                          Membre #{i + 1}
+                        </div>
 
                         <div className="flex items-center gap-2">
                           <button
@@ -461,7 +541,12 @@ export function CreateOrJoinTeamPage() {
                             title="Définir comme capitaine"
                             disabled={loading}
                           >
-                            <Crown size={16} className={isCaptain ? "text-amber-700" : "text-slate-700"} />
+                            <Crown
+                              size={16}
+                              className={
+                                isCaptain ? "text-amber-700" : "text-slate-700"
+                              }
+                            />
                             {isCaptain ? "Capitaine" : "Définir capitaine"}
                           </button>
 
@@ -475,7 +560,9 @@ export function CreateOrJoinTeamPage() {
                             onClick={() => removeMember(i)}
                             disabled={!canRemoveMember || loading}
                             type="button"
-                            title={!canRemoveMember ? "Minimum 1 membre" : "Retirer"}
+                            title={
+                              !canRemoveMember ? "Minimum 1 membre" : "Retirer"
+                            }
                           >
                             <Trash2 size={16} />
                           </button>
@@ -487,14 +574,18 @@ export function CreateOrJoinTeamPage() {
                           <input
                             className="h-12 rounded-2xl border border-slate-200 bg-white px-3 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                             value={m.first_name}
-                            onChange={(e) => setMember(i, { first_name: e.target.value })}
+                            onChange={(e) =>
+                              setMember(i, { first_name: e.target.value })
+                            }
                             placeholder="Prénom"
                             disabled={loading}
                           />
                           <input
                             className="h-12 rounded-2xl border border-slate-200 bg-white px-3 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                             value={m.last_name}
-                            onChange={(e) => setMember(i, { last_name: e.target.value })}
+                            onChange={(e) =>
+                              setMember(i, { last_name: e.target.value })
+                            }
                             placeholder="Nom"
                             disabled={loading}
                           />
@@ -506,7 +597,9 @@ export function CreateOrJoinTeamPage() {
                             className="h-12 rounded-2xl border border-slate-200 bg-white px-3 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                             value={m.age}
                             onChange={(e) => {
-                              const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              const digits = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 3);
                               setMember(i, { age: digits });
                             }}
                             placeholder="Âge (optionnel)"
@@ -519,7 +612,9 @@ export function CreateOrJoinTeamPage() {
                           <select
                             className="h-12 rounded-2xl border border-slate-200 bg-white px-3 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                             value={m.color}
-                            onChange={(e) => setMember(i, { color: e.target.value as Color })}
+                            onChange={(e) =>
+                              setMember(i, { color: e.target.value as Color })
+                            }
                             disabled={loading}
                           >
                             {COLORS.map((c) => (
@@ -565,14 +660,18 @@ export function CreateOrJoinTeamPage() {
           // JOIN
           <section className="mt-3 rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
             <div className="p-4">
-              <div className="text-[16px] font-black text-slate-900">Rejoindre une équipe</div>
+              <div className="text-[16px] font-black text-slate-900">
+                Rejoindre une équipe
+              </div>
               <div className="mt-1 text-sm font-bold text-slate-700">
                 Saisis le nom et le code de l’équipe.
               </div>
 
               <div className="mt-4 grid gap-2">
                 <label className="grid gap-1">
-                  <span className="text-xs font-extrabold text-slate-800">Nom d’équipe</span>
+                  <span className="text-xs font-extrabold text-slate-800">
+                    Nom d’équipe
+                  </span>
                   <input
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                     value={joinTeamName}
@@ -583,12 +682,16 @@ export function CreateOrJoinTeamPage() {
                 </label>
 
                 <label className="grid gap-1">
-                  <span className="text-xs font-extrabold text-slate-800">Code d’accès (4 chiffres)</span>
+                  <span className="text-xs font-extrabold text-slate-800">
+                    Code d’accès (4 chiffres)
+                  </span>
                   <input
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                     value={joinAccessCode}
                     onChange={(e) => {
-                      const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      const onlyDigits = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 4);
                       setJoinAccessCode(onlyDigits);
                     }}
                     placeholder="Ex: 1234"
@@ -598,7 +701,8 @@ export function CreateOrJoinTeamPage() {
                     disabled={loading}
                   />
                   <div className="mt-1 text-[11px] font-bold text-slate-600">
-                    Ce code à 4 chiffres te servira si tu souhaites te reconnecter à ton équipe.
+                    Ce code à 4 chiffres te servira si tu souhaites te
+                    reconnecter à ton équipe.
                   </div>
                 </label>
 
@@ -608,9 +712,12 @@ export function CreateOrJoinTeamPage() {
                       <Sparkles size={18} />
                     </div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">1 équipe = 1 téléphone</div>
+                      <div className="text-sm font-black text-slate-900">
+                        1 équipe = 1 téléphone
+                      </div>
                       <div className="text-xs font-bold text-slate-700">
-                        Tu rejoins l’équipe, puis tu joues sur le téléphone du capitaine.
+                        Tu rejoins l’équipe, puis tu joues sur le téléphone du
+                        capitaine.
                       </div>
                     </div>
                   </div>
@@ -660,15 +767,29 @@ export function CreateOrJoinTeamPage() {
                 {tab === "create" ? (
                   <>
                     Équipe :{" "}
-                    <span className={sizeOk ? "text-slate-900" : "text-[color:var(--bad)]"}>
+                    <span
+                      className={
+                        sizeOk ? "text-slate-900" : "text-[color:var(--bad)]"
+                      }
+                    >
                       {members.length}/6
                     </span>{" "}
                     •{" "}
-                    <span className={colorsOk ? "text-slate-900" : "text-[color:var(--bad)]"}>
+                    <span
+                      className={
+                        colorsOk ? "text-slate-900" : "text-[color:var(--bad)]"
+                      }
+                    >
                       {colorsCount} couleurs
                     </span>{" "}
                     •{" "}
-                    <span className={hasCaptain ? "text-slate-900" : "text-[color:var(--bad)]"}>
+                    <span
+                      className={
+                        hasCaptain
+                          ? "text-slate-900"
+                          : "text-[color:var(--bad)]"
+                      }
+                    >
                       {hasCaptain ? "capitaine OK" : "capitaine ?"}
                     </span>
                   </>

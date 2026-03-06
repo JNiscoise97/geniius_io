@@ -48,6 +48,13 @@ export function TeamSelfiePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, []);
+
   // cleanup preview url
   useEffect(() => {
     return () => {

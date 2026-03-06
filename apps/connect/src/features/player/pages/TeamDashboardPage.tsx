@@ -136,13 +136,16 @@ export function TeamDashboardPage() {
       .filter(([path]) => path.includes(needle))
       .map(([, raw]) => raw);
 
-    return raws.reduce((acc, raw) => acc + countQuestionsFromZoneMarkdown(raw), 0);
+    return raws.reduce(
+      (acc, raw) => acc + countQuestionsFromZoneMarkdown(raw),
+      0,
+    );
   }, [zoneMdMap, slug]);
 
   // ---------- DB data ----------
   const [team, setTeam] = useState<TeamRow | null>(null);
   const [membersCount, setMembersCount] = useState<number>(0);
-  const [answersDistinctCount, setAnswersDistinctCount] = useState<number>(0);
+  const [answeredCount, setAnsweredCount] = useState<number>(0);
   const [eventGame, setEventGame] = useState<EventGameStateRow | null>(null);
 
   // ---------- UI state ----------
@@ -151,12 +154,19 @@ export function TeamDashboardPage() {
 
   // network indicator (pas de toggle)
   const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
 
   const pollRef = useRef<number | null>(null);
   const tickRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
 
   useEffect(() => {
     function on() {
@@ -191,7 +201,7 @@ export function TeamDashboardPage() {
     const teamReq = supabase
       .from("teams")
       .select(
-        "id, team_name, status, score, elapsed_seconds, started_at, finished_at, selfie_path, selfie_path_preview"
+        "id, team_name, status, score, elapsed_seconds, started_at, finished_at, selfie_path, selfie_path_preview",
       )
       .eq("id", ctx.teamId)
       .single();
@@ -201,10 +211,10 @@ export function TeamDashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("team_id", ctx.teamId);
 
-    // distinct question_id (simple côté front)
-    const answersReq = supabase
-      .from("answers")
-      .select("question_id")
+    // ✅ Progression depuis answers_current (via view)
+    const progressReq = supabase
+      .from("v_answers_progress")
+      .select("zone_id, answered_count")
       .eq("event_id", ctx.eventId)
       .eq("team_id", ctx.teamId);
 
@@ -214,7 +224,12 @@ export function TeamDashboardPage() {
       .eq("event_id", ctx.eventId)
       .single();
 
-    const [t, m, a, eg] = await Promise.all([teamReq, membersReq, answersReq, eventGameReq]);
+    const [t, m, p, eg] = await Promise.all([
+      teamReq,
+      membersReq,
+      progressReq,
+      eventGameReq,
+    ]);
 
     if (t.error) throw new Error(t.error.message);
 
@@ -225,17 +240,25 @@ export function TeamDashboardPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const code = (eg.error as any).code;
       if (code !== "PGRST116") throw new Error(eg.error.message);
-      egRow = { event_id: ctx.eventId, state: "standby", started_at: null, ended_at: null };
+      egRow = {
+        event_id: ctx.eventId,
+        state: "standby",
+        started_at: null,
+        ended_at: null,
+      };
     } else {
       egRow = eg.data as EventGameStateRow;
     }
 
-    const questionIds = (a.data ?? []).map((x) => x.question_id).filter(Boolean);
-    const distinct = new Set(questionIds).size;
+    const answeredSum = (p.data ?? []).reduce((acc: number, row: any) => {
+      const n = Number(row.answered_count ?? 0);
+      return acc + (Number.isFinite(n) ? n : 0);
+    }, 0);
+
+    setAnsweredCount(answeredSum);
 
     setTeam(t.data as TeamRow);
     setMembersCount(m.count ?? 0);
-    setAnswersDistinctCount(distinct);
     setEventGame(egRow);
     setLastFetchAt(Date.now());
 
@@ -293,8 +316,13 @@ export function TeamDashboardPage() {
     return isResume ? "resume" : "ready";
   }, [team, eventGame]);
 
-  const headerBadge = useMemo((): { label: string; icon: React.ReactNode; tone: Tone } => {
-    if (!isOnline) return { label: "Hors-ligne", icon: <WifiOff size={16} />, tone: "warn" };
+  const headerBadge = useMemo((): {
+    label: string;
+    icon: React.ReactNode;
+    tone: Tone;
+  } => {
+    if (!isOnline)
+      return { label: "Hors-ligne", icon: <WifiOff size={16} />, tone: "warn" };
     return { label: "En ligne", icon: <Wifi size={16} />, tone: "ok" };
   }, [isOnline]);
 
@@ -303,9 +331,12 @@ export function TeamDashboardPage() {
       case "waiting":
         return {
           title: "En attente du lancement",
-          desc:
-            "L’organisateur n’a pas encore lancé le jeu. Le bouton s’activera automatiquement.",
-          pill: { label: "Waiting", icon: <Clock size={16} />, tone: "neutral" as Tone },
+          desc: "L’organisateur n’a pas encore lancé le jeu. Le bouton s’activera automatiquement.",
+          pill: {
+            label: "Waiting",
+            icon: <Clock size={16} />,
+            tone: "neutral" as Tone,
+          },
           ctaLabel: "Commencer",
           ctaDisabled: true,
         };
@@ -313,7 +344,11 @@ export function TeamDashboardPage() {
         return {
           title: "Le jeu est lancé",
           desc: "Vous pouvez démarrer quand vous êtes prêts.",
-          pill: { label: "Prêt", icon: <CheckCircle2 size={16} />, tone: "ok" as Tone },
+          pill: {
+            label: "Prêt",
+            icon: <CheckCircle2 size={16} />,
+            tone: "ok" as Tone,
+          },
           ctaLabel: "Commencer",
           ctaDisabled: false,
         };
@@ -321,7 +356,11 @@ export function TeamDashboardPage() {
         return {
           title: "Partie en cours",
           desc: "Reprenez là où vous vous étiez arrêtés.",
-          pill: { label: "Resume", icon: <ArrowRight size={16} />, tone: "ok" as Tone },
+          pill: {
+            label: "Resume",
+            icon: <ArrowRight size={16} />,
+            tone: "ok" as Tone,
+          },
           ctaLabel: "Continuer",
           ctaDisabled: false,
         };
@@ -329,7 +368,11 @@ export function TeamDashboardPage() {
         return {
           title: "Partie terminée",
           desc: "Bravo ! Voici votre score final.",
-          pill: { label: "Finished", icon: <Flag size={16} />, tone: "ok" as Tone },
+          pill: {
+            label: "Finished",
+            icon: <Flag size={16} />,
+            tone: "ok" as Tone,
+          },
           ctaLabel: "Revoir",
           ctaDisabled: false,
         };
@@ -419,7 +462,9 @@ export function TeamDashboardPage() {
       <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
         <main className="c-container pt-6 pb-10">
           <div className="rounded-3xl bg-white border border-slate-200 p-4">
-            <div className="text-[18px] font-black text-slate-900">Aucune équipe</div>
+            <div className="text-[18px] font-black text-slate-900">
+              Aucune équipe
+            </div>
             <div className="mt-1 text-sm font-bold text-slate-700">
               Crée ou rejoins une équipe avant d’accéder au tableau de bord.
             </div>
@@ -441,7 +486,9 @@ export function TeamDashboardPage() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="text-[18px] font-black tracking-tight text-slate-900">Tableau de bord</div>
+            <div className="text-[18px] font-black tracking-tight text-slate-900">
+              Tableau de bord
+            </div>
             <div className="mt-0.5 text-xs font-extrabold text-slate-700">
               Équipe : <span className="text-slate-900">{teamName}</span>
               <span className="mx-1.5 text-slate-400">•</span>
@@ -483,7 +530,9 @@ export function TeamDashboardPage() {
           <div className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[18px] font-black text-slate-900">{stateMeta.title}</div>
+                <div className="text-[18px] font-black text-slate-900">
+                  {stateMeta.title}
+                </div>
               </div>
 
               <div
@@ -497,7 +546,9 @@ export function TeamDashboardPage() {
               </div>
             </div>
 
-            <div className="mt-1 text-sm font-bold text-slate-700">{stateMeta.desc}</div>
+            <div className="mt-1 text-sm font-bold text-slate-700">
+              {stateMeta.desc}
+            </div>
 
             {/* Selfie card */}
             <div className="mt-4 rounded-3xl bg-slate-50 border border-slate-200 p-3">
@@ -508,7 +559,9 @@ export function TeamDashboardPage() {
                   </div>
 
                   <div className="min-w-0">
-                    <div className="text-sm font-black text-slate-900">Selfie d’équipe</div>
+                    <div className="text-sm font-black text-slate-900">
+                      Selfie d’équipe
+                    </div>
 
                     {!team?.selfie_path && (
                       <div className="text-xs font-extrabold text-slate-700">
@@ -516,7 +569,6 @@ export function TeamDashboardPage() {
                         <span className="text-[color:var(--bad)]">À faire</span>
                       </div>
                     )}
-
                   </div>
                 </div>
 
@@ -539,7 +591,9 @@ export function TeamDashboardPage() {
 
                   <button
                     className="h-10 px-3 rounded-2xl border font-extrabold text-sm inline-flex items-center gap-2 transition bg-white border-slate-200 text-slate-900"
-                    onClick={() => nav(`/e/${slug}/team/selfie`, { replace: false })}
+                    onClick={() =>
+                      nav(`/e/${slug}/team/selfie`, { replace: false })
+                    }
                     title="Reprendre le selfie"
                   >
                     <RotateCcw size={18} />
@@ -557,18 +611,22 @@ export function TeamDashboardPage() {
             <div className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[16px] font-black text-slate-900">Progression</div>
+                  <div className="text-[16px] font-black text-slate-900">
+                    Progression
+                  </div>
                   <div className="mt-1 text-sm font-bold text-slate-700">
                     Questions :{" "}
                     <span className="text-slate-900">
-                      {answersDistinctCount}/{totalQuestions || "—"}
+                      {answeredCount}/{totalQuestions || "—"}
                     </span>
                   </div>
                 </div>
 
                 <div className="h-10 px-3 rounded-2xl bg-slate-50 border border-slate-200 inline-flex items-center gap-2">
                   <Trophy size={18} className="text-slate-800" />
-                  <span className="text-sm font-black text-slate-900">{team?.score ?? 0}</span>
+                  <span className="text-sm font-black text-slate-900">
+                    {team?.score ?? 0}
+                  </span>
                 </div>
               </div>
 
@@ -576,16 +634,13 @@ export function TeamDashboardPage() {
                 <div
                   className="h-full bg-[color:var(--blue)]"
                   style={{
-                    width: `${totalQuestions > 0
-                      ? Math.round((answersDistinctCount / totalQuestions) * 100)
-                      : 0
-                      }%`,
+                    width: `${
+                      totalQuestions > 0
+                        ? Math.round((answeredCount / totalQuestions) * 100)
+                        : 0
+                    }%`,
                   }}
                 />
-              </div>
-
-              <div className="mt-2 text-[11px] font-extrabold text-slate-600">
-                Progression basée sur les réponses enregistrées (question_id distinct).
               </div>
             </div>
           </section>
@@ -595,8 +650,12 @@ export function TeamDashboardPage() {
         {showFinishedCard ? (
           <section className="mt-3 rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
             <div className="p-4">
-              <div className="text-[16px] font-black text-slate-900">Selfie d’équipe</div>
-              <div className="mt-1 text-sm font-bold text-slate-700">Souvenir de la partie ✨</div>
+              <div className="text-[16px] font-black text-slate-900">
+                Selfie d’équipe
+              </div>
+              <div className="mt-1 text-sm font-bold text-slate-700">
+                Souvenir de la partie ✨
+              </div>
 
               <div className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
                 {selfieUrl ? (
@@ -618,8 +677,12 @@ export function TeamDashboardPage() {
                     <Trophy size={18} className="text-slate-800" />
                   </div>
                   <div>
-                    <div className="text-sm font-black text-slate-900">Score final</div>
-                    <div className="text-xs font-extrabold text-slate-700">Merci d’avoir joué !</div>
+                    <div className="text-sm font-black text-slate-900">
+                      Score final
+                    </div>
+                    <div className="text-xs font-extrabold text-slate-700">
+                      Merci d’avoir joué !
+                    </div>
                   </div>
                 </div>
 
@@ -627,7 +690,9 @@ export function TeamDashboardPage() {
                   <div className="text-[20px] leading-none font-black text-slate-900">
                     {team?.score ?? 0}
                   </div>
-                  <div className="text-[11px] font-extrabold text-slate-600">points</div>
+                  <div className="text-[11px] font-extrabold text-slate-600">
+                    points
+                  </div>
                 </div>
               </div>
             </div>
@@ -640,7 +705,10 @@ export function TeamDashboardPage() {
             Maj :{" "}
             <span className="text-slate-900">
               {lastFetchAt
-                ? new Date(lastFetchAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                ? new Date(lastFetchAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                 : "—"}
             </span>
           </span>
@@ -655,7 +723,9 @@ export function TeamDashboardPage() {
             <button
               className={[
                 "w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 transition",
-                ctaDisabled ? "bg-slate-200 text-slate-500 cursor-not-allowed" : "bg-[color:var(--blue)] text-white",
+                ctaDisabled
+                  ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                  : "bg-[color:var(--blue)] text-white",
               ].join(" ")}
               onClick={onPrimaryCta}
               disabled={ctaDisabled}

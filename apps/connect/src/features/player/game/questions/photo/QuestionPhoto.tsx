@@ -38,7 +38,10 @@ function zoneIdFromUrl(): string {
   return m2?.[1] ?? "z01";
 }
 
-function computePoints(question: PhotoQuestion, tierValue: number | null): number {
+function computePoints(
+  question: PhotoQuestion,
+  tierValue: number | null,
+): number {
   if (question.tier?.options?.length && tierValue != null) {
     const opt = question.tier.options.find((o) => o.value === tierValue);
     return opt?.points ?? 0;
@@ -74,7 +77,7 @@ export const QuestionPhoto = forwardRef<
   }
 >(function QuestionPhoto(
   { question, draft, onDraftChange, onSubmit, disabled },
-  ref
+  ref,
 ) {
   const slug = slugFromUrl();
   const zoneId = zoneIdFromUrl();
@@ -95,7 +98,8 @@ export const QuestionPhoto = forwardRef<
   const hasTier = !!question.tier?.options?.length;
   const hasNote = question.note?.enabled === true;
 
-  const points = computePoints(question, draft.tierValue);
+  // ⚠️ affichage uniquement : les points ne sont PAS attribués tant que l’admin n’a pas validé
+  const pointsPreview = computePoints(question, draft.tierValue);
 
   function setDraft(patch: Partial<PhotoDraft>) {
     onDraftChange({ ...draft, ...patch });
@@ -170,7 +174,9 @@ export const QuestionPhoto = forwardRef<
       const blob: Blob = file;
 
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
+      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext)
+        ? ext
+        : "jpg";
 
       const filename = `${question.id}-${Date.now()}.${safeExt}`;
       const storagePath = `events/${s.eventId}/teams/${s.teamId}/${folder}/${filename}`;
@@ -182,36 +188,62 @@ export const QuestionPhoto = forwardRef<
       });
       if (up.error) throw new Error(up.error.message);
 
-      // 2) Insert answer row
-      const ins = await supabase.from("answers").insert({
-        event_id: s.eventId,
-        team_id: s.teamId,
-        zone_id: zoneId,
-        question_id: question.id,
-        question_type: "photo",
-        status: "pending",
-        points_awarded: null,
+      // 2) Enqueue via RPC submit_answer (PHOTO => pending, points attribués plus tard par l’admin)
+      const mime = file.type || "image/jpeg";
+      const note = hasNote ? draft.note.trim() || null : null;
+
+      const answerJson = {
+        kind: "photo",
+        consent: true,
+        tier_value: draft.tierValue,
+        note,
         storage_bucket: bucket,
         storage_path: storagePath,
-        mime_type: file.type || "image/jpeg",
+        mime_type: mime,
         size_bytes: blob.size,
-        tier_value: draft.tierValue,
-        note: hasNote ? draft.note.trim() || null : null,
-      });
-      if (ins.error) throw new Error(ins.error.message);
+      };
 
-      // 3) payload moteur
+      const rpc = await supabase.rpc("submit_answer", {
+        p_event_id: s.eventId,
+        p_team_id: s.teamId,
+        p_zone_id: zoneId,
+        p_question_id: question.id,
+        p_question_type: "photo",
+        p_answer_json: answerJson,
+
+        // 🔥 photo => queue "pending"
+        p_status: "pending",
+
+        // ✅ si ta fonction SQL supporte ces paramètres, on les passe
+        p_storage_bucket: bucket,
+        p_storage_path: storagePath,
+        p_mime_type: mime,
+        p_size_bytes: blob.size,
+        p_tier_value: draft.tierValue,
+        p_note: note,
+        p_max_attempts: question.retry ? 2 : 1,
+      });
+
+      if (rpc.error) throw new Error(rpc.error.message);
+
+      // 3) payload moteur (après persistance OK)
       onSubmit({
         kind: "photo",
         storage_bucket: bucket,
         storage_path: storagePath,
+        mime_type: mime,
+        size_bytes: blob.size,
         status: "pending",
-        tier_value: draft.tierValue ?? undefined,
-        note: hasNote ? draft.note.trim() || undefined : undefined,
+        tier_value: draft.tierValue ?? null,
+        note,
+        consent: true,
       });
     } catch (e: any) {
-      setError(e?.message ?? "Erreur upload");
-      throw e; // utile si le renderer veut savoir que ça a échoué
+      const msg = e?.message ?? "Erreur upload";
+      setError(
+        msg.includes("MAX_ATTEMPTS_REACHED") ? "Nombre d’essais atteint." : msg,
+      );
+      throw e;
     } finally {
       setBusy(false);
     }
@@ -227,7 +259,7 @@ export const QuestionPhoto = forwardRef<
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [draft, disabled, busy, s, hasTier, hasNote, bucket, folder, zoneId]
+    [draft, disabled, busy, s, hasTier, hasNote, bucket, folder, zoneId],
   );
 
   // Cleanup preview URL
@@ -259,11 +291,20 @@ export const QuestionPhoto = forwardRef<
     <div className="qs-body">
       {/* Hint */}
       <div className="qs-hint" style={{ marginTop: 0 }}>
-        {hasTier ? "Choisis un palier, puis prends la photo." : <>Valeur : <b>{points} pts</b></>}
+        {hasTier ? (
+          "Choisis un palier, puis prends la photo."
+        ) : (
+          <>
+            Valeur : <b>{pointsPreview} pts</b> (après validation)
+          </>
+        )}
       </div>
 
       {/* Consent */}
-      <label className={`qs-consent ${isDisabled ? "is-disabled" : ""}`} style={{ marginTop: 10 }}>
+      <label
+        className={`qs-consent ${isDisabled ? "is-disabled" : ""}`}
+        style={{ marginTop: 10 }}
+      >
         <input
           type="checkbox"
           checked={!!draft.consent}
@@ -273,7 +314,8 @@ export const QuestionPhoto = forwardRef<
         <div className="qs-consent__text">
           <div className="qs-consent__title">Consentement</div>
           <div className="qs-consent__body">
-            {question.consentText ?? "Nous acceptons que cette photo soit utilisée par l’organisateur."}
+            {question.consentText ??
+              "Nous acceptons que cette photo soit utilisée par l’organisateur."}
           </div>
         </div>
       </label>
@@ -281,7 +323,9 @@ export const QuestionPhoto = forwardRef<
       {/* Tier */}
       {hasTier ? (
         <div style={{ marginTop: 12 }}>
-          <div className="qs-label">{question.tier?.label ?? "Choisis un palier"}</div>
+          <div className="qs-label">
+            {question.tier?.label ?? "Choisis un palier"}
+          </div>
           <div className="qs-options" style={{ marginTop: 10 }}>
             {question.tier!.options.map((opt) => {
               const active = draft.tierValue === opt.value;
@@ -297,7 +341,10 @@ export const QuestionPhoto = forwardRef<
                     <div className="qs-option__value">{opt.label}</div>
                     <div className="qs-option__sub">+{opt.points} pts</div>
                   </div>
-                  <div className={`qs-dot ${active ? "is-on" : ""}`} aria-hidden="true" />
+                  <div
+                    className={`qs-dot ${active ? "is-on" : ""}`}
+                    aria-hidden="true"
+                  />
                 </button>
               );
             })}
@@ -314,7 +361,9 @@ export const QuestionPhoto = forwardRef<
             value={draft.note ?? ""}
             disabled={isDisabled}
             onChange={(e) => setDraft({ note: e.target.value })}
-            placeholder={question.note?.placeholder ?? "Optionnel : prénoms / lien…"}
+            placeholder={
+              question.note?.placeholder ?? "Optionnel : prénoms / lien…"
+            }
             rows={3}
           />
         </div>
@@ -347,7 +396,7 @@ export const QuestionPhoto = forwardRef<
               <div
                 style={{
                   width: "100%",
-                  aspectRatio: "1 / 1",          // carré parfait
+                  aspectRatio: "1 / 1",
                   borderRadius: 16,
                   border: "1px solid rgba(15, 23, 42, 0.18)",
                   background: "#ffffff",
@@ -363,13 +412,18 @@ export const QuestionPhoto = forwardRef<
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",
-                    objectFit: "contain",        // respecte totalement le ratio
+                    objectFit: "contain",
                   }}
                 />
               </div>
             ) : null}
 
-            <button className="qs-option" type="button" disabled={isDisabled} onClick={retake}>
+            <button
+              className="qs-option"
+              type="button"
+              disabled={isDisabled}
+              onClick={retake}
+            >
               <div className="qs-option__left">
                 <div className="qs-option__value">Reprendre la photo</div>
                 <div className="qs-option__sub">Nouvelle prise</div>
@@ -378,7 +432,9 @@ export const QuestionPhoto = forwardRef<
             </button>
 
             {!draft.consent ? (
-              <div className="qs-hint">Coche le consentement pour pouvoir envoyer.</div>
+              <div className="qs-hint">
+                Coche le consentement pour pouvoir envoyer.
+              </div>
             ) : null}
           </>
         )}
@@ -402,7 +458,9 @@ export const QuestionPhoto = forwardRef<
           }}
         >
           <div style={{ fontWeight: 1000 }}>Erreur</div>
-          <div style={{ marginTop: 4, color: "rgba(15, 23, 42, 0.85)" }}>{error}</div>
+          <div style={{ marginTop: 4, color: "rgba(15, 23, 42, 0.85)" }}>
+            {error}
+          </div>
         </div>
       ) : null}
 

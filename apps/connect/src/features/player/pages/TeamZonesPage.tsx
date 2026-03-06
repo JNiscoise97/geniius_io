@@ -26,8 +26,9 @@ import {
  *   -> calculée selon l'affluence (zone_presence ACTIVE) + règle de reprise
  * - Poll toutes les 10s
  *
- * zone_presence: on ne garde PAS l'historique "visited" ici (NON).
- * -> uniquement présence "active" (avec TTL) pour l'affluence / reprise.
+ * Notes:
+ * - L'avancement (answeredQuestions) vient de answers_current (pas answers)
+ * - Une photo "pending" compte comme "répondue" (soumise) pour l'avancement.
  */
 
 type ZoneStatus = "todo" | "in_progress" | "done";
@@ -170,85 +171,80 @@ export function TeamZonesPage() {
   }, []);
 
   function parseEventYaml(raw: string): EventYaml | null {
-  const lines = raw.split("\n");
+    const lines = raw.split("\n");
 
-  let slugVal = "";
-  let titleVal = "";
-  const zones: Array<{ file: string; title: string }> = [];
+    let slugVal = "";
+    let titleVal = "";
+    const zones: Array<{ file: string; title: string }> = [];
 
-  // helpers
-  const stripQuotes = (s: string) => s.trim().replace(/^["']|["']$/g, "");
-  const indentOf = (line: string) => line.match(/^\s*/)?.[0].length ?? 0;
+    const stripQuotes = (s: string) => s.trim().replace(/^["']|["']$/g, "");
+    const indentOf = (line: string) => line.match(/^\s*/)?.[0].length ?? 0;
 
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    const t = line.trim();
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const t = line.trim();
 
-    if (t.startsWith("slug:")) {
-      slugVal = stripQuotes(t.replace("slug:", ""));
-      i += 1;
-      continue;
-    }
-
-    if (t.startsWith("title:")) {
-      titleVal = stripQuotes(t.replace("title:", ""));
-      i += 1;
-      continue;
-    }
-
-    if (t === "zones:" || t.startsWith("zones:")) {
-      const zonesIndent = indentOf(line);
-      i += 1;
-
-      // parse list items under zones:
-      while (i < lines.length) {
-        const l = lines[i];
-        const tt = l.trim();
-
-        // stop if we outdent back to zonesIndent or less (top-level or sibling key)
-        if (tt && indentOf(l) <= zonesIndent) break;
-
-        // new item
-        const mFile = tt.match(/^-+\s*file:\s*(.+)$/);
-        if (mFile) {
-          const file = stripQuotes(mFile[1]);
-          let zTitle = file;
-
-          const itemIndent = indentOf(l);
-          i += 1;
-
-          // read properties of this item until next "- file:" at same indent, or outdent
-          while (i < lines.length) {
-            const l2 = lines[i];
-            const t2 = l2.trim();
-
-            if (t2 && indentOf(l2) <= zonesIndent) break; // out of zones
-            const maybeNextItem = t2.match(/^-+\s*file:\s*/);
-            if (maybeNextItem && indentOf(l2) === itemIndent) break;
-
-            const mTitle = t2.match(/^title:\s*(.+)$/);
-            if (mTitle) zTitle = stripQuotes(mTitle[1]);
-
-            i += 1;
-          }
-
-          zones.push({ file, title: zTitle });
-          continue; // IMPORTANT: don't i++ here, inner loop already positioned correctly
-        }
-
+      if (t.startsWith("slug:")) {
+        slugVal = stripQuotes(t.replace("slug:", ""));
         i += 1;
+        continue;
       }
 
-      continue;
+      if (t.startsWith("title:")) {
+        titleVal = stripQuotes(t.replace("title:", ""));
+        i += 1;
+        continue;
+      }
+
+      if (t === "zones:" || t.startsWith("zones:")) {
+        const zonesIndent = indentOf(line);
+        i += 1;
+
+        while (i < lines.length) {
+          const l = lines[i];
+          const tt = l.trim();
+
+          if (tt && indentOf(l) <= zonesIndent) break;
+
+          const mFile = tt.match(/^-+\s*file:\s*(.+)$/);
+          if (mFile) {
+            const file = stripQuotes(mFile[1]);
+            let zTitle = file;
+
+            const itemIndent = indentOf(l);
+            i += 1;
+
+            while (i < lines.length) {
+              const l2 = lines[i];
+              const t2 = l2.trim();
+
+              if (t2 && indentOf(l2) <= zonesIndent) break;
+              const maybeNextItem = t2.match(/^-+\s*file:\s*/);
+              if (maybeNextItem && indentOf(l2) === itemIndent) break;
+
+              const mTitle = t2.match(/^title:\s*(.+)$/);
+              if (mTitle) zTitle = stripQuotes(mTitle[1]);
+
+              i += 1;
+            }
+
+            zones.push({ file, title: zTitle });
+            continue;
+          }
+
+          i += 1;
+        }
+
+        continue;
+      }
+
+      i += 1;
     }
 
-    i += 1;
+    if (!slugVal) return null;
+    return { slug: slugVal, title: titleVal, zones };
   }
-
-  if (!slugVal) return null;
-  return { slug: slugVal, title: titleVal, zones };
-}
 
   const eventDef = useMemo(() => {
     const needle = `/content/events/${slug}/event.yaml`;
@@ -262,10 +258,10 @@ export function TeamZonesPage() {
 
     return eventDef.zones.map((z) => {
       const mdNeedle = `/content/events/${slug}/zones/${z.file}`;
-      const raw = Object.entries(zoneMdMap).find(([p]) => p.includes(mdNeedle))?.[1] ?? "";
+      const raw =
+        Object.entries(zoneMdMap).find(([p]) => p.includes(mdNeedle))?.[1] ?? "";
       const totalQuestions = raw ? countQuestionsFromZoneMarkdown(raw) : 0;
 
-      // zone_id depuis frontmatter id: z01
       let zoneId = z.file.replace(/\.md$/i, "");
       let theme: string | undefined = undefined;
 
@@ -273,10 +269,20 @@ export function TeamZonesPage() {
       if (fmMatch) {
         const fm = fmMatch[1];
         const idLine = fm.split("\n").find((l) => l.trim().startsWith("id:"));
-        if (idLine) zoneId = idLine.trim().replace("id:", "").trim().replace(/^"|"$/g, "");
+        if (idLine)
+          zoneId = idLine
+            .trim()
+            .replace("id:", "")
+            .trim()
+            .replace(/^"|"$/g, "");
 
         const themeLine = fm.split("\n").find((l) => l.trim().startsWith("theme:"));
-        if (themeLine) theme = themeLine.trim().replace("theme:", "").trim().replace(/^"|"$/g, "");
+        if (themeLine)
+          theme = themeLine
+            .trim()
+            .replace("theme:", "")
+            .trim()
+            .replace(/^"|"$/g, "");
       }
 
       return {
@@ -297,19 +303,24 @@ export function TeamZonesPage() {
   const pollRef = useRef<number | null>(null);
   const tickRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   async function fetchAnsweredByZone(eventId: string, teamId: string) {
     const { data, error } = await supabase
-      .from("answers")
-      .select("zone_id, question_id")
+      .from("answers_current")
+      .select("zone_id, question_id, status")
       .eq("event_id", eventId)
-      .eq("team_id", teamId);
+      .eq("team_id", teamId)
+      .in("status", ["submitted", "pending", "graded", "rejected"]);
 
     if (error) throw new Error(error.message);
 
     const map = new globalThis.Map<string, Set<string>>();
     for (const row of data ?? []) {
-      const z = row.zone_id as string | null;
-      const q = row.question_id as string | null;
+      const z = (row as any).zone_id as string | null;
+      const q = (row as any).question_id as string | null;
       if (!z || !q) continue;
       if (!map.has(z)) map.set(z, new Set());
       map.get(z)!.add(q);
@@ -317,7 +328,7 @@ export function TeamZonesPage() {
 
     const out = new globalThis.Map<string, number>();
     for (const [z, set] of map.entries()) out.set(z, set.size);
-    return out; // zone_id -> distinct question count
+    return out;
   }
 
   async function fetchMyActiveZone(eventId: string, teamId: string) {
@@ -336,7 +347,6 @@ export function TeamZonesPage() {
   }
 
   async function fetchCrowdByZone(eventId: string) {
-    // TTL: ne compter que les équipes "vivantes" récemment
     const activeSince = new Date(Date.now() - 90_000).toISOString();
 
     const { data, error } = await supabase
@@ -351,8 +361,8 @@ export function TeamZonesPage() {
 
     const map = new globalThis.Map<string, Set<string>>();
     for (const r of data ?? []) {
-      const z = r.zone_id as string | null;
-      const t = r.team_id as string | null;
+      const z = (r as any).zone_id as string | null;
+      const t = (r as any).team_id as string | null;
       if (!z || !t) continue;
       if (!map.has(z)) map.set(z, new Set());
       map.get(z)!.add(t);
@@ -360,7 +370,7 @@ export function TeamZonesPage() {
 
     const out = new globalThis.Map<string, number>();
     for (const [z, set] of map.entries()) out.set(z, set.size);
-    return out; // zone_id -> crowd
+    return out;
   }
 
   async function hydrate(ctx: SessionCtx) {
@@ -382,7 +392,6 @@ export function TeamZonesPage() {
       const total = z.totalQuestions ?? 0;
 
       let status: ZoneStatus = "todo";
-
       if (total > 0 && answered >= total) {
         status = "done";
       } else if (myActiveZoneId === z.id) {
@@ -451,19 +460,22 @@ export function TeamZonesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.teamId, session?.eventId, session?.session_token, zonesFromContent.length]);
 
+  // ✅ UNE SEULE DÉCLARATION
   const recommended = useMemo(() => pickRecommendedZone(zones), [zones]);
 
+  // ✅ UNE SEULE DÉCLARATION
   const primaryCta = useMemo(() => {
     if (!recommended) return { label: "Commencer", mode: "start" as const, disabled: true };
-    if (recommended.status === "in_progress") return { label: "Reprendre", mode: "resume" as const, disabled: false };
-    if (recommended.status === "done") return { label: "Revoir", mode: "review" as const, disabled: false };
+    if (recommended.status === "in_progress")
+      return { label: "Reprendre", mode: "resume" as const, disabled: false };
+    if (recommended.status === "done")
+      return { label: "Revoir", mode: "review" as const, disabled: false };
     return { label: "Commencer", mode: "start" as const, disabled: false };
   }, [recommended]);
 
   function onEnterZone() {
     if (!recommended) return;
-    
-      nav(`/e/${slug}/z/${recommended.id}/play`, { replace: true });
+    nav(`/e/${slug}/z/${recommended.id}/play`, { replace: true });
   }
 
   async function manualRecheck() {
@@ -522,7 +534,13 @@ export function TeamZonesPage() {
               ].join(" ")}
               title={`Statut: ${statusLabel(recommended.status)}`}
             >
-              {isDone ? <CheckCircle2 size={16} /> : isResume ? <Clock size={16} /> : <Sparkles size={16} />}
+              {isDone ? (
+                <CheckCircle2 size={16} />
+              ) : isResume ? (
+                <Clock size={16} />
+              ) : (
+                <Sparkles size={16} />
+              )}
               {statusLabel(recommended.status)}
             </div>
           </div>
@@ -557,7 +575,9 @@ export function TeamZonesPage() {
             <div className="mt-3 h-3 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
               <div
                 className="h-full bg-[color:var(--blue)]"
-                style={{ width: `${pct(recommended.answeredQuestions, recommended.totalQuestions)}%` }}
+                style={{
+                  width: `${pct(recommended.answeredQuestions, recommended.totalQuestions)}%`,
+                }}
               />
             </div>
 
@@ -740,9 +760,12 @@ export function TeamZonesPage() {
 
             <div className="mt-2 px-1 flex items-center justify-between text-[11px] font-extrabold text-slate-700">
               <span className="truncate">
-                Zone recommandée : <span className="text-slate-900">{recommended ? recommended.id : "—"}</span>
+                Zone recommandée :{" "}
+                <span className="text-slate-900">{recommended ? recommended.id : "—"}</span>
               </span>
-              <span className="text-slate-900">{recommended ? statusLabel(recommended.status) : "—"}</span>
+              <span className="text-slate-900">
+                {recommended ? statusLabel(recommended.status) : "—"}
+              </span>
             </div>
           </div>
         </div>

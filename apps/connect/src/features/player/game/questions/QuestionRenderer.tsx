@@ -27,13 +27,11 @@ function defaultDraft(q: AnyQuestion): DraftByType[AnyQuestion["type"]] {
     case "fill":
       return "";
     case "photo":
-      // ⚠️ enlève previewUrl du draft (état UI interne du composant photo)
       return {
         consent: false,
         tierValue: q.tier?.options?.[0]?.value ?? null,
         note: "",
         file: null,
-        previewUrl: null
       } satisfies PhotoDraft;
     default:
       return "" as any;
@@ -79,7 +77,7 @@ export const QuestionRenderer = forwardRef<
     question: AnyQuestion;
     disabled?: boolean;
     onSubmit: (answer: any) => void;
-    onCanSubmitChange?: (v: boolean) => void; // ✅ NEW
+    onCanSubmitChange?: (v: boolean) => void;
   }
 >(({ question, disabled, onSubmit, onCanSubmitChange }, ref) => {
   const Comp: any = registry[question.type];
@@ -94,12 +92,12 @@ export const QuestionRenderer = forwardRef<
 
   const canSubmit = useMemo(() => canSubmitFor(question, draft), [question, draft]);
 
-  // ✅ Notifie le parent (ZonePlayPage) à chaque changement
   useEffect(() => {
     onCanSubmitChange?.(canSubmit);
   }, [canSubmit, onCanSubmitChange]);
 
   function submit() {
+    if (disabled) return;
     if (!canSubmitFor(question, draft)) return;
 
     if (question.type === "photo") {
@@ -117,7 +115,7 @@ export const QuestionRenderer = forwardRef<
       submit,
       reset: () => setDraft(defaultDraft(question)),
     }),
-    [question, draft]
+    [question, draft, disabled]
   );
 
   return (

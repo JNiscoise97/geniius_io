@@ -73,7 +73,7 @@ export function EventLandingPage() {
                                                 <li>[OK] Feedback</li>
                                                 <li>[OK] Boutons : “Valider” + “Question suivante”</li>
                                                 <li>Possibilité de passer</li>
-                                                <li>Nombre de tentatives à respecter</li>
+                                                <li>[OK] Nombre de tentatives à respecter</li>
                                                 <li>Auto-save + état “enregistré”</li>
                                             </ul>
                                         </li>
@@ -122,7 +122,7 @@ export function EventLandingPage() {
                                         <li>[OK] Gros champs + clavier adapté</li>
                                         <li>Auto-save à chaque action</li>
                                         <li>Reprise automatique via token</li>
-                                        <li>Scrollup à chaque page</li>
+                                        <li>[OK] Scrollup à chaque page</li>
                                         <li>CTA disabled quand isSaving notamment photo</li>
                                     </ul>
                                 </li>
