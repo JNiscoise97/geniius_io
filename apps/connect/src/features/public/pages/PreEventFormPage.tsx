@@ -1,12 +1,12 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, Users } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabase/client";
-import { PUBLIC_EVENT_SLUG } from "../../../config/publicEvent";
 
 export function PreEventFormPage() {
   const nav = useNavigate();
-  const slug = PUBLIC_EVENT_SLUG;
+  const { eventSlug } = useParams();
+  const slug = eventSlug ?? "demo";
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

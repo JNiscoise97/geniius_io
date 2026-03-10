@@ -1,10 +1,10 @@
 import { ArrowRight, CalendarDays, MapPin, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { PUBLIC_EVENT_SLUG } from "../../../config/publicEvent";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function LandingPage() {
   const nav = useNavigate();
-  const slug = PUBLIC_EVENT_SLUG;
+  const { eventSlug } = useParams();
+  const slug = eventSlug ?? "demo";
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">

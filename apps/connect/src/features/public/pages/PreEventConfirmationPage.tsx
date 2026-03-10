@@ -1,10 +1,10 @@
 import { CheckCircle2, Home, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { PUBLIC_EVENT_SLUG } from "../../../config/publicEvent";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function PreEventConfirmationPage() {
   const nav = useNavigate();
-  const slug = PUBLIC_EVENT_SLUG;
+  const { eventSlug } = useParams();
+  const slug = eventSlug ?? "demo";
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -53,7 +53,7 @@ export function PreEventConfirmationPage() {
           <div className="rounded-3xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_16px_38px_rgba(15,23,42,0.10)] p-2">
             <button
               className="w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 bg-[color:var(--blue)] text-white"
-              onClick={() => nav(`/e/${slug}`, { replace: true })}
+              onClick={() => nav(`/e/${slug}/welcome`, { replace: true })}
             >
               <Home size={18} />
               Retour à l’accueil

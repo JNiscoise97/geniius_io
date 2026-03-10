@@ -19,21 +19,23 @@ import { TeamZonesPage } from "../features/player/pages/TeamZonesPage";
 import { LandingPage } from "../features/public/pages/LandingPage";
 import { PreEventFormPage } from "../features/public/pages/PreEventFormPage";
 import { PreEventConfirmationPage } from "../features/public/pages/PreEventConfirmationPage";
+import { PUBLIC_EVENT_SLUG } from "../config/publicEvent";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MobileScaffold />,
     children: [
-      { index: true, element: <Navigate to="/welcome" replace /> },
+      { index: true, element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}/welcome`} replace /> },
 
-      // URLs publiques simples
-      { path: "welcome", element: <LandingPage /> },
-      { path: "welcome/form", element: <PreEventFormPage /> },
+      // Pré-événement
+      { path: "e/:eventSlug/welcome", element: <LandingPage /> },
+      { path: "e/:eventSlug/welcome/form", element: <PreEventFormPage /> },
       {
-        path: "welcome/confirmation",
+        path: "e/:eventSlug/welcome/confirmation",
         element: <PreEventConfirmationPage />,
       },
+
 
       // Routes existantes multi-event
       { path: "e/:eventSlug", element: <EventLandingPage /> },
@@ -63,5 +65,5 @@ export const router = createBrowserRouter([
     ],
   },
 
-  { path: "*", element: <Navigate to="/welcome" replace /> },
+  { path: "*", element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}/welcome`} replace /> }
 ]);
