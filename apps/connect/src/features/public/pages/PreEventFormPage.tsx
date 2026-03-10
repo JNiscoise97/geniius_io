@@ -113,7 +113,7 @@ export function PreEventFormPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <label className="grid gap-1">
                     <span className="text-xs font-extrabold text-slate-800">
-                      Prénom
+                      Prénom*
                     </span>
                     <input
                       className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
@@ -126,7 +126,7 @@ export function PreEventFormPage() {
 
                   <label className="grid gap-1">
                     <span className="text-xs font-extrabold text-slate-800">
-                      Nom
+                      Nom*
                     </span>
                     <input
                       className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
