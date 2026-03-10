@@ -18,12 +18,6 @@ type GameHUDProps = {
   footer?: ReactNode;
 };
 
-function zoneLabelFromId(id: string) {
-  const m = /^z(\d+)$/i.exec(id.trim());
-  if (!m) return `Zone ${id}`;
-  return `Zone ${Number(m[1])}`;
-}
-
 function formatDuration(s: number) {
   if (!Number.isFinite(s) || s < 0) return "0s";
   if (s < 60) return `${s}s`;
@@ -42,8 +36,8 @@ export function GameHUD({
   children,
   footer,
 }: GameHUDProps) {
-  const zLabel = useMemo(() => zoneLabelFromId(zoneId), [zoneId]);
-  const dur = useMemo(() => formatDuration(durationSec), [durationSec]);
+
+  console.log("zoneId", zoneId)
 
   const [elapsed, setElapsed] = useState<number>(() =>
     Number.isFinite(durationSec) && durationSec >= 0 ? durationSec : 0

@@ -13,6 +13,7 @@ export function QuestionNumeric({
   onDraftChange: (next: string) => void;
   disabled?: boolean;
 }) {
+  console.log("QuestionNumeric", question)
   return (
     <div className="qs-field">
       <label className="qs-label">Ta réponse (nombre)</label>

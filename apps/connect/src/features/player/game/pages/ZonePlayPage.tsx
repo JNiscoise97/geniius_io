@@ -105,7 +105,7 @@ export function ZonePlayPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // si la DB dit "max attempts", on lock l’UI localement tout de suite
-  const [forceLocked, setForceLocked] = useState(false);
+  const [, setForceLocked] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });

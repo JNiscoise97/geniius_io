@@ -15,6 +15,9 @@ import { QuestionScreenMock } from "../features/player/game/QuestionScreenMock";
 import { CreateOrJoinTeamPage } from "../features/player/pages/CreateOrJoinTeamPage";
 import { TeamDashboardPage } from "../features/player/pages/TeamDashboardPage";
 import { TeamZonesPage } from "../features/player/pages/TeamZonesPage";
+import { LandingPage } from "../features/public/pages/LandingPage";
+import { PreEventFormPage } from "../features/public/pages/PreEventFormPage";
+import { PreEventConfirmationPage } from "../features/public/pages/PreEventConfirmationPage";
 
 export const router = createBrowserRouter([
   // PLAYER (mobile)
@@ -24,6 +27,14 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/e/demo" replace /> },
 
+      // LOT 1 - pré-événement
+      { path: "e/:eventSlug/welcome", element: <LandingPage /> },
+      { path: "e/:eventSlug/welcome/form", element: <PreEventFormPage /> },
+      {
+        path: "e/:eventSlug/welcome/confirmation",
+        element: <PreEventConfirmationPage />,
+      },
+      
       { path: "e/:eventSlug", element: <EventLandingPage /> },
       { path: "e/:eventSlug/team/create", element: <CreateOrJoinTeamPage /> },
       { path: "e/:eventSlug/team/resume", element: <ResumeTeamPage /> },

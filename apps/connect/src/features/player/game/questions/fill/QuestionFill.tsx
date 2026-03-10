@@ -13,6 +13,7 @@ export function QuestionFill({
   onDraftChange: (next: string) => void;
   disabled?: boolean;
 }) {
+  console.log("QuestionFill", question)
   return (
     <div className="qs-field">
       <label className="qs-label">Complète la phrase</label>

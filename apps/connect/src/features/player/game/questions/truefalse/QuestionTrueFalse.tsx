@@ -13,6 +13,7 @@ export function QuestionTrueFalse({
   onDraftChange: (next: boolean | null) => void;
   disabled?: boolean;
 }) {
+  console.log("QuestionTrueFalse", question)
   return (
     <div className="qs-grid-2">
       <button

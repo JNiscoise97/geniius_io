@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { getLocalEvent } from "../../../lib/content/contentLoader";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export function EventLandingPage() {
     const { eventSlug } = useParams();
