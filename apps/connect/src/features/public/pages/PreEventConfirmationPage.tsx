@@ -1,10 +1,10 @@
 import { CheckCircle2, Home, Sparkles } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { PUBLIC_EVENT_SLUG } from "../../../config/publicEvent";
 
 export function PreEventConfirmationPage() {
   const nav = useNavigate();
-  const { eventSlug } = useParams();
-  const slug = eventSlug ?? "demo";
+  const slug = PUBLIC_EVENT_SLUG;
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
