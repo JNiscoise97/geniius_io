@@ -9,7 +9,7 @@ export function OnboardingConfirmationPage() {
   const [searchParams] = useSearchParams();
 
   const step = searchParams.get("step");
-
+  let url = step == "attendance"?`/e/${slug}`:`/e/${slug}/welcome`;
   const content = useMemo(() => {
     switch (step) {
       case "identity":
@@ -31,6 +31,11 @@ export function OnboardingConfirmationPage() {
         return {
           title: "Merci, tes préférences ont bien été enregistrées",
           text: "Tes choix concernant les autorisations, l’arbre familial et les usages de tes informations ont bien été pris en compte.",
+        };
+      case "attendance":
+        return {
+          title: "Merci, ta participation a bien été enregistrée",
+          text: "Ta réponse nous aidera à mieux préparer la journée et à accueillir chacun dans les meilleures conditions.",
         };
       default:
         return {
@@ -81,7 +86,7 @@ export function OnboardingConfirmationPage() {
           <div className="rounded-3xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_16px_38px_rgba(15,23,42,0.10)] p-2">
             <button
               className="w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 bg-[color:var(--blue)] text-white"
-              onClick={() => nav(`/e/${slug}/welcome`, { replace: true })}
+              onClick={() => nav(url, { replace: true })}
             >
               <Home size={18} />
               Retour à mon espace
