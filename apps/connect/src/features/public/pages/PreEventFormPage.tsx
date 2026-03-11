@@ -1,37 +1,67 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, Users } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabase/client";
+
+type PresentFormConfig = {
+  title: string;
+  subtitle: string;
+  branches: string[];
+  previousEditions: string[];
+};
+
+const PRESENT_FORM_CONFIG: PresentFormConfig = {
+  title: "Fais connaissance avec la famille",
+  subtitle:
+    "Présente-toi en quelques secondes pour que tout le monde sache qui tu es et d’où tu viens dans la famille.",
+  branches: [
+    "Branche TANJAMA",
+    "Branche MAMMOSA",
+    "Branche ITALIE",
+    "Branche CHARBONNÉ",
+  ],
+  previousEditions: ["2022", "2023", "2024"],
+};
 
 export function PreEventFormPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
+  const config = PRESENT_FORM_CONFIG;
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [partySize, setPartySize] = useState("1");
-  const [familyBranch, setFamilyBranch] = useState("");
-  const [hasAttendedBefore, setHasAttendedBefore] = useState<"" | "yes" | "no">(
-    "",
-  );
+  const [nickname, setNickname] = useState("");
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
+  const [selectedPreviousEditions, setSelectedPreviousEditions] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasBranches = useMemo(() => config.branches.length > 0, [config.branches]);
+  const hasPreviousEditions = useMemo(
+    () => config.previousEditions.length > 0,
+    [config.previousEditions],
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  function toggleArrayValue(
+    value: string,
+    current: string[],
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+  ) {
+    setter((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  }
+
   function validate(): string | null {
     if (!firstName.trim()) return "Prénom requis.";
     if (!lastName.trim()) return "Nom requis.";
-    if (!/^\d{1,2}$/.test(partySize.trim())) return "Nombre invalide.";
-    const n = Number(partySize);
-    if (!Number.isFinite(n) || n < 1 || n > 20) {
-      return "Le nombre doit être compris entre 1 et 20.";
-    }
-    if (!hasAttendedBefore) return "Merci d’indiquer si tu es déjà venu(e).";
     return null;
   }
 
@@ -51,9 +81,9 @@ export function PreEventFormPage() {
         event_slug: slug,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        party_size: Number(partySize),
-        family_branch: familyBranch.trim() || null,
-        has_attended_before: hasAttendedBefore === "yes",
+        nickname: nickname.trim() || null,
+        family_branches: hasBranches ? selectedBranches : [],
+        attended_editions: hasPreviousEditions ? selectedPreviousEditions : [],
       });
 
       if (insertRes.error) {
@@ -77,11 +107,9 @@ export function PreEventFormPage() {
           </div>
           <div className="min-w-0">
             <div className="text-[18px] font-black tracking-tight text-slate-900">
-              Fais connaissance avec Connect
+              {config.title}
             </div>
-            <div className="text-xs font-bold text-slate-700">
-              Quelques infos simples avant l’événement
-            </div>
+            <div className="text-xs font-bold text-slate-700">{config.subtitle}</div>
           </div>
         </div>
 
@@ -99,22 +127,18 @@ export function PreEventFormPage() {
           </div>
         ) : null}
 
-        <form onSubmit={onSubmit} className="mt-3">
+        <form id="present-form" onSubmit={onSubmit} className="mt-3">
           <section className="rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
             <div className="p-4">
-              <div className="text-[16px] font-black text-slate-900">
-                Identification
-              </div>
+              <div className="text-[16px] font-black text-slate-900">Présentation</div>
               <div className="mt-1 text-sm font-bold text-slate-700">
-                Merci de renseigner les informations ci-dessous.
+                Renseigne les informations suivantes pour te présenter à la famille.
               </div>
 
               <div className="mt-4 grid gap-3">
                 <div className="grid grid-cols-2 gap-2">
                   <label className="grid gap-1">
-                    <span className="text-xs font-extrabold text-slate-800">
-                      Prénom*
-                    </span>
+                    <span className="text-xs font-extrabold text-slate-800">Prénom*</span>
                     <input
                       className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                       value={firstName}
@@ -125,9 +149,7 @@ export function PreEventFormPage() {
                   </label>
 
                   <label className="grid gap-1">
-                    <span className="text-xs font-extrabold text-slate-800">
-                      Nom*
-                    </span>
+                    <span className="text-xs font-extrabold text-slate-800">Nom*</span>
                     <input
                       className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                       value={lastName}
@@ -139,56 +161,105 @@ export function PreEventFormPage() {
                 </div>
 
                 <label className="grid gap-1">
-                  <span className="text-xs font-extrabold text-slate-800">
-                    Nombre de personnes
-                  </span>
+                  <span className="text-xs font-extrabold text-slate-800">Surnom</span>
                   <input
                     className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                    value={partySize}
-                    onChange={(e) => {
-                      const digits = e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 2);
-                      setPartySize(digits);
-                    }}
-                    inputMode="numeric"
-                    pattern="\d*"
-                    maxLength={2}
-                    placeholder="Ex : 1"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="Surnom"
                     disabled={loading}
                   />
                 </label>
 
-                <label className="grid gap-1">
-                  <span className="text-xs font-extrabold text-slate-800">
-                    Branche familiale (si connue)
-                  </span>
-                  <input
-                    className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                    value={familyBranch}
-                    onChange={(e) => setFamilyBranch(e.target.value)}
-                    placeholder="Ex : branche de ..."
-                    disabled={loading}
-                  />
-                </label>
+                {hasBranches ? (
+                  <div className="grid gap-2">
+                    <div className="text-xs font-extrabold text-slate-800">
+                      Branche si connue
+                    </div>
 
-                <label className="grid gap-1">
-                  <span className="text-xs font-extrabold text-slate-800">
-                    Déjà venu(e) à une précédente édition ?
-                  </span>
-                  <select
-                    className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                    value={hasAttendedBefore}
-                    onChange={(e) =>
-                      setHasAttendedBefore(e.target.value as "" | "yes" | "no")
-                    }
-                    disabled={loading}
-                  >
-                    <option value="">Choisir</option>
-                    <option value="yes">Oui</option>
-                    <option value="no">Non</option>
-                  </select>
-                </label>
+                    <div className="grid gap-2">
+                      {config.branches.map((branch) => {
+                        const checked = selectedBranches.includes(branch);
+
+                        return (
+                          <label
+                            key={branch}
+                            className={[
+                              "flex items-start gap-3 rounded-2xl border p-3 transition",
+                              checked
+                                ? "border-indigo-200 bg-indigo-50"
+                                : "border-slate-200 bg-white",
+                            ].join(" ")}
+                          >
+                            <input
+                              type="checkbox"
+                              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={checked}
+                              onChange={() =>
+                                toggleArrayValue(
+                                  branch,
+                                  selectedBranches,
+                                  setSelectedBranches,
+                                )
+                              }
+                              disabled={loading}
+                            />
+                            <div className="min-w-0">
+                              <div className="text-sm font-black text-slate-900">
+                                {branch}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {hasPreviousEditions ? (
+                  <div className="grid gap-2">
+                    <div className="text-xs font-extrabold text-slate-800">
+                      Déjà venu ? Coche les précédentes éditions
+                    </div>
+
+                    <div className="grid gap-2">
+                      {config.previousEditions.map((edition) => {
+                        const checked = selectedPreviousEditions.includes(edition);
+
+                        return (
+                          <label
+                            key={edition}
+                            className={[
+                              "flex items-start gap-3 rounded-2xl border p-3 transition",
+                              checked
+                                ? "border-indigo-200 bg-indigo-50"
+                                : "border-slate-200 bg-white",
+                            ].join(" ")}
+                          >
+                            <input
+                              type="checkbox"
+                              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={checked}
+                              onChange={() =>
+                                toggleArrayValue(
+                                  edition,
+                                  selectedPreviousEditions,
+                                  setSelectedPreviousEditions,
+                                )
+                              }
+                              disabled={loading}
+                            />
+                            <div className="min-w-0">
+                              <div className="text-sm font-black text-slate-900">
+                                Édition {edition}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3">
                   <div className="flex items-start gap-2">
@@ -197,11 +268,11 @@ export function PreEventFormPage() {
                     </div>
                     <div>
                       <div className="text-sm font-black text-slate-900">
-                        Formulaire très simple
+                        Présentation rapide
                       </div>
                       <div className="text-xs font-bold text-slate-700">
-                        Cette première version sert surtout à te faire entrer
-                        dans l’application et à mieux préparer la cousinade.
+                        Cette première étape permet simplement de te présenter à la
+                        famille dans l’application.
                       </div>
                     </div>
                   </div>
@@ -216,16 +287,14 @@ export function PreEventFormPage() {
         <div className="c-container">
           <div className="rounded-3xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_16px_38px_rgba(15,23,42,0.10)] p-2">
             <button
+              type="submit"
+              form="present-form"
               className={[
                 "w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 transition",
                 loading
                   ? "bg-[color:var(--blue)] text-white opacity-70 cursor-wait"
                   : "bg-[color:var(--blue)] text-white",
               ].join(" ")}
-              onClick={(e) => {
-                e.preventDefault();
-                void onSubmit(e as any);
-              }}
               disabled={loading}
             >
               <ArrowRight size={18} />

@@ -21,10 +21,13 @@ import {
   Sparkles,
   CheckCircle2,
   Lock,
+  Hammer,
 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
+
+type HubActionStatus = "enabled" | "dev" | "disabled";
 
 type HubAction = {
   key: string;
@@ -34,6 +37,7 @@ type HubAction = {
   to?: string;
   externalHref?: string;
   enabled: boolean;
+  status?: HubActionStatus;
   badge?: string;
 };
 
@@ -100,8 +104,9 @@ export function LandingPage() {
             description:
               "Présente-toi en quelques secondes pour que tout le monde sache qui tu es et d’où tu viens dans la famille.",
             icon: UserCircle2,
-            to: `/e/${slug}/welcome/form`,
+            to: `/e/${slug}/welcome`,
             enabled: features.before.presentYourself,
+            status: "enabled",
             badge: "Essentiel",
           },
           {
@@ -112,6 +117,7 @@ export function LandingPage() {
             icon: ClipboardList,
             to: `/e/${slug}/questionnaire`,
             enabled: features.before.familyQuestionnaire,
+            status: "dev",
           },
           {
             key: "rsvp",
@@ -121,6 +127,7 @@ export function LandingPage() {
             icon: CalendarCheck,
             to: `/e/${slug}/rsvp`,
             enabled: features.before.rsvp,
+            status: "dev",
             badge: "RSVP",
           },
           {
@@ -131,6 +138,7 @@ export function LandingPage() {
             icon: TreePine,
             to: `/e/${slug}/tree/contribute`,
             enabled: features.before.enrichTree,
+            status: "disabled",
           },
           {
             key: "quiz",
@@ -140,6 +148,7 @@ export function LandingPage() {
             icon: Sparkles,
             to: `/e/${slug}/quiz/warmup`,
             enabled: features.before.warmupQuiz,
+            status: "disabled",
           },
           {
             key: "challenges",
@@ -149,6 +158,7 @@ export function LandingPage() {
             icon: Gift,
             to: `/e/${slug}/defis`,
             enabled: features.before.familyChallenges,
+            status: "disabled",
             badge: "Points",
           },
           {
@@ -159,6 +169,7 @@ export function LandingPage() {
             icon: Info,
             to: `/e/${slug}/programme`,
             enabled: features.before.dayProgram,
+            status: "disabled",
           },
           {
             key: "contact",
@@ -168,6 +179,7 @@ export function LandingPage() {
             icon: Mail,
             to: `/e/${slug}/contact`,
             enabled: features.before.contactOrganizer,
+            status: "disabled",
           },
           {
             key: "testimony-before",
@@ -177,6 +189,7 @@ export function LandingPage() {
             icon: MessageCircle,
             to: `/e/${slug}/temoignage`,
             enabled: features.before.testimonyBefore,
+            status: "disabled",
           },
         ],
       },
@@ -196,6 +209,7 @@ export function LandingPage() {
             icon: Gamepad2,
             to: `/e/${slug}/team`,
             enabled: features.during.teamGame,
+            status: "disabled",
             badge: "Jour J",
           },
           {
@@ -206,6 +220,7 @@ export function LandingPage() {
             icon: Trophy,
             to: `/e/${slug}/classement`,
             enabled: features.during.leaderboard,
+            status: "disabled",
           },
           {
             key: "family-tree",
@@ -215,6 +230,7 @@ export function LandingPage() {
             icon: Map,
             to: `/e/${slug}/arbre`,
             enabled: features.during.familyTree,
+            status: "disabled",
           },
           {
             key: "swap-contacts",
@@ -224,6 +240,7 @@ export function LandingPage() {
             icon: Contact,
             to: `/e/${slug}/contacts/exchange`,
             enabled: features.during.swapContacts,
+            status: "disabled",
           },
           {
             key: "testimony-during",
@@ -233,6 +250,7 @@ export function LandingPage() {
             icon: MessageCircle,
             to: `/e/${slug}/temoignage`,
             enabled: features.during.testimonyDuring,
+            status: "disabled",
           },
         ],
       },
@@ -252,6 +270,7 @@ export function LandingPage() {
             icon: MessageCircle,
             to: `/e/${slug}/temoignage`,
             enabled: features.after.testimonyAfter,
+            status: "disabled",
           },
           {
             key: "feedback",
@@ -261,6 +280,7 @@ export function LandingPage() {
             icon: Star,
             to: `/e/${slug}/avis`,
             enabled: features.after.eventFeedback,
+            status: "disabled",
           },
           {
             key: "photos",
@@ -270,6 +290,7 @@ export function LandingPage() {
             icon: Camera,
             to: `/e/${slug}/medias`,
             enabled: features.after.photosVideos,
+            status: "disabled",
           },
           {
             key: "library",
@@ -279,6 +300,7 @@ export function LandingPage() {
             icon: Library,
             to: `/e/${slug}/bibliotheque`,
             enabled: features.after.familyLibrary,
+            status: "disabled",
           },
         ],
       },
@@ -341,7 +363,7 @@ export function LandingPage() {
                 Première visite ?
               </div>
               <p className="mt-1 text-sm font-bold leading-6 text-slate-700">
-                Commence simplement par :<br/>
+                Commence simplement par :<br />
                 <span className="text-slate-900">Te présenter</span> →{" "}
                 <span className="text-slate-900">Questionnaire famille</span> →{" "}
                 <span className="text-slate-900">Confirmer ta présence</span>
@@ -367,7 +389,7 @@ export function LandingPage() {
                     key={item.key}
                     item={item}
                     onClick={() => {
-                      if (!item.enabled) return;
+                      if (!item.enabled || item.status !== "enabled") return;
                       if (item.externalHref) {
                         window.location.href = item.externalHref;
                         return;
@@ -417,7 +439,8 @@ function HubActionCard({
   onClick: () => void;
 }) {
   const Icon = item.icon;
-  const disabled = !item.enabled;
+  const status = item.status ?? (item.enabled ? "enabled" : "disabled");
+  const disabled = status !== "enabled";
 
   return (
     <button
@@ -487,14 +510,25 @@ function HubActionCard({
               : "bg-slate-100 text-slate-900",
           ].join(" ")}
         >
-          {disabled ? <Lock size={18} /> : <ArrowRight size={18} />}
+          {status === "enabled" ? (
+            <ArrowRight size={18} />
+          ) : status === "dev" ? (
+            <Hammer size={18} />
+          ) : (
+            <Lock size={18} />
+          )}
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between">
         <div className="text-[11px] font-extrabold">
-          {disabled ? (
+          {status === "disabled" ? (
             <span className="text-slate-500">Bientôt disponible</span>
+          ) : status === "dev" ? (
+            <span className="inline-flex items-center gap-1 text-amber-700">
+              <Hammer size={14} />
+              En cours de dev
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-emerald-700">
               <CheckCircle2 size={14} />
@@ -503,7 +537,7 @@ function HubActionCard({
           )}
         </div>
 
-        {!disabled && (
+        {status === "enabled" && (
           <div className="text-[11px] font-black text-slate-500">Ouvrir</div>
         )}
       </div>

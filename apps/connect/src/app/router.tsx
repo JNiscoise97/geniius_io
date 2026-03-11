@@ -18,27 +18,33 @@ import { TeamZonesPage } from "../features/player/pages/TeamZonesPage";
 
 import { LandingPage } from "../features/public/pages/LandingPage";
 import { PreEventFormPage } from "../features/public/pages/PreEventFormPage";
-import { PreEventConfirmationPage } from "../features/public/pages/PreEventConfirmationPage";
 import { PUBLIC_EVENT_SLUG } from "../config/publicEvent";
+import { OnboardingHubPage } from "../features/onboarding/pages/OnboardingHubPage";
+import { ParticipantIdentityPage } from "../features/participant-identity/pages/ParticipantIdentityPage";
+import { ParticipantProfilePage } from "../features/participant-profile/pages/ParticipantProfilePage";
+import { ParticipantContactPage } from "../features/participant-contact/pages/ParticipantContactPage";
+import { OnboardingConfirmationPage } from "../features/onboarding/pages/OnboardingConfirmationPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MobileScaffold />,
     children: [
-      { index: true, element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}/welcome`} replace /> },
+      { index: true, element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}`} replace /> },
 
       // Pré-événement
-      { path: "e/:eventSlug/welcome", element: <LandingPage /> },
+      { path: "e/:eventSlug", element: <LandingPage /> },
       { path: "e/:eventSlug/welcome/form", element: <PreEventFormPage /> },
-      {
-        path: "e/:eventSlug/welcome/confirmation",
-        element: <PreEventConfirmationPage />,
-      },
+
+      { path: "e/:eventSlug/welcome", element: <OnboardingHubPage /> },
+      { path: "e/:eventSlug/welcome/identity", element: <ParticipantIdentityPage /> },
+      { path: "e/:eventSlug/welcome/profile", element: <ParticipantProfilePage /> },
+      { path: "e/:eventSlug/welcome/contact", element: <ParticipantContactPage /> },
+      { path: "e/:eventSlug/welcome/confirmation", element: <OnboardingConfirmationPage /> },
 
 
       // Routes existantes multi-event
-      { path: "e/:eventSlug", element: <EventLandingPage /> },
+      { path: "e/:eventSlug/deprec-landing", element: <EventLandingPage /> },
       { path: "e/:eventSlug/team/create", element: <CreateOrJoinTeamPage /> },
       { path: "e/:eventSlug/team/resume", element: <ResumeTeamPage /> },
       { path: "e/:eventSlug/team/selfie", element: <TeamSelfiePage /> },
@@ -65,5 +71,5 @@ export const router = createBrowserRouter([
     ],
   },
 
-  { path: "*", element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}/welcome`} replace /> }
+  { path: "*", element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}`} replace /> }
 ]);
