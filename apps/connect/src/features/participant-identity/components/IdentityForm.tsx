@@ -32,31 +32,9 @@ export function IdentityForm({
     <form id="identity-form" onSubmit={onSubmit} className="mt-3">
       <section className="rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
         <div className="p-4">
-          <div className="text-[16px] font-black text-slate-900">
-            {config.title}
-          </div>
-          <div className="mt-1 text-sm font-bold text-slate-700">
-            {config.subtitle}
-          </div>
-
-          <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-3">
-            <div className="flex items-start gap-2">
-              <div className="mt-0.5 text-[color:var(--ok)]">
-                <CheckCircle2 size={18} />
-              </div>
-              <div>
-                <div className="text-sm font-black text-slate-900">
-                  {config.introTitle}
-                </div>
-                <div className="text-xs font-bold leading-5 text-slate-700">
-                  {config.introText}
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div className="mt-4 grid gap-3">
-            <div className="grid grid-cols-2 gap-2">
+            
               <label className="grid gap-1">
                 <span className="text-xs font-extrabold text-slate-800">
                   {config.fields.firstName.label}
@@ -70,9 +48,10 @@ export function IdentityForm({
                   disabled={loading}
                 />
               </label>
+            
 
-              <label className="grid gap-1">
-                <span className="text-xs font-extrabold text-slate-800">
+            <label className="grid gap-1">
+              <span className="text-xs font-extrabold text-slate-800">
                   {config.fields.lastName.label}
                   {config.fields.lastName.required ? "*" : ""}
                 </span>
@@ -83,9 +62,8 @@ export function IdentityForm({
                   placeholder={config.fields.lastName.placeholder}
                   disabled={loading}
                 />
-              </label>
-            </div>
-
+            </label>
+            
             <label className="grid gap-1">
               <span className="text-xs font-extrabold text-slate-800">
                 {config.fields.nickname.label}

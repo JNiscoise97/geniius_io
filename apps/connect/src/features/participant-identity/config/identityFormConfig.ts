@@ -67,13 +67,13 @@ export const identityFormConfig: IdentityFormConfig = {
       placeholder: "Ex : Mimi",
       required: false,
       helpText:
-        "Si certains cousins te connaissent sous un surnom ou un prénom familial, tu peux l’indiquer ici.",
+        "",
     },
     birthYear: {
       label: "Année de naissance",
       placeholder: "Ex : 1987",
       required: false,
-      helpText: "Pour mieux situer les générations dans la famille.",
+      helpText: "",
     },
     branches: {
       label: "Branche familiale (si tu la connais)",
