@@ -54,6 +54,7 @@ export function PreEventFormPage() {
     current: string[],
     setter: React.Dispatch<React.SetStateAction<string[]>>,
   ) {
+    console.log(current)
     setter((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
     );
