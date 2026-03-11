@@ -45,9 +45,9 @@ export type AttendanceFormConfig = {
 export const attendanceFormConfig: AttendanceFormConfig = {
   title: "Ma participation",
   subtitle: "Dis-nous simplement si tu prévois de venir à la cousinade.",
-  introTitle: "Une réponse simple suffit",
+  introTitle: "Répondre ne t’engage pas",
   introText:
-    "Ta réponse nous aide à mieux préparer la journée et à accueillir chacun dans les meilleures conditions.",
+    "Ta réponse nous aide à mieux préparer la journée.",
   attendanceOptions: [
     { key: "yes", label: "Oui, je serai présent" },
     { key: "no", label: "Non, je ne pourrai pas venir" },
