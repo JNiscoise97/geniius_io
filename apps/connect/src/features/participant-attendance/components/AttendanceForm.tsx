@@ -49,13 +49,6 @@ export function AttendanceForm({
     <form id="attendance-form" onSubmit={onSubmit} className="mt-3">
       <section className="rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
         <div className="p-4">
-          <div className="text-[16px] font-black text-slate-900">
-            {config.title}
-          </div>
-          <div className="mt-1 text-sm font-bold text-slate-700">
-            {config.subtitle}
-          </div>
-
           <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-3">
             <div className="flex items-start gap-2">
               <div className="mt-0.5 text-[color:var(--ok)]">

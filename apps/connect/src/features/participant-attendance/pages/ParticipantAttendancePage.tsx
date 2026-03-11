@@ -152,9 +152,6 @@ export function ParticipantAttendancePage() {
             <div className="text-[18px] font-black tracking-tight text-slate-900">
               {attendanceFormConfig.title}
             </div>
-            <div className="text-xs font-bold text-slate-700">
-              Une réponse simple nous aide déjà beaucoup
-            </div>
           </div>
         </div>
 
