@@ -26,6 +26,11 @@ import { ParticipantContactPage } from "../features/participant-contact/pages/Pa
 import { OnboardingConfirmationPage } from "../features/onboarding/pages/OnboardingConfirmationPage";
 import { ParticipantPreferencesPage } from "../features/participant-preferences/pages/ParticipantPreferencesPage";
 import { ParticipantAttendancePage } from "../features/participant-attendance/pages/ParticipantAttendancePage";
+import { BranchesPage } from "../features/family-tree/pages/BranchesPage";
+import { FamiliesPage } from "../features/family-tree/pages/FamiliesPage";
+import { SiblingsPage } from "../features/family-tree/pages/SiblingsPage";
+import { PersonPage } from "../features/family-tree/pages/PersonPage";
+import { LineagePage } from "../features/family-tree/pages/LineagePage";
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +50,13 @@ export const router = createBrowserRouter([
       { path: "e/:eventSlug/welcome/preferences", element: <ParticipantPreferencesPage /> },
       { path: "e/:eventSlug/attendance", element: <ParticipantAttendancePage /> },
       { path: "e/:eventSlug/welcome/confirmation", element: <OnboardingConfirmationPage /> },
+
+
+      { path: "e/:eventSlug/arbre", element: <BranchesPage /> },
+      { path: "e/:eventSlug/arbre/branches/:branchId/families", element: <FamiliesPage /> },
+      { path: "e/:eventSlug/arbre/families/:familyId/siblings", element: <SiblingsPage /> },
+      { path: "e/:eventSlug/arbre/persons/:personId", element: <PersonPage /> },
+      { path: "e/:eventSlug/arbre/persons/:personId/lineage", element: <LineagePage /> },
 
 
       // Routes existantes multi-event

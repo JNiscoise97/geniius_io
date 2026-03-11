@@ -159,7 +159,7 @@ export function LandingPage() {
         },
         {
           key: "questionnaire",
-          label: "Partager ce que tu sais sur la famille",
+          label: "Partager ce que tu sais sur ta famille",
           description: "Ajoute ce que tu sais pour enrichir l’histoire familiale.",
           icon: ClipboardList,
           to: `/e/${slug}/questionnaire`,
@@ -244,7 +244,7 @@ export function LandingPage() {
           icon: Map,
           to: `/e/${slug}/arbre`,
           enabled: features.core.familyTree,
-          status: "disabled",
+          status: "enabled",
         },
         {
           key: "library",
