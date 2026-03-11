@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { BranchesField } from "./BranchesField";
 import { PreviousEditionsField } from "./PreviousEditionsField";
 import type { IdentityFormConfig } from "../config/identityFormConfig";
