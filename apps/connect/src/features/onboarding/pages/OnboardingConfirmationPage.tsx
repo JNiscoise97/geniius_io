@@ -24,8 +24,13 @@ export function OnboardingConfirmationPage() {
         };
       case "contact":
         return {
+          title: "Merci, tes coordonnées ont bien été enregistrées",
+          text: "Tes informations de contact ont bien été prises en compte.",
+        };
+      case "preferences":
+        return {
           title: "Merci, tes préférences ont bien été enregistrées",
-          text: "Tes coordonnées et autorisations ont bien été prises en compte.",
+          text: "Tes choix concernant les autorisations, l’arbre familial et les usages de tes informations ont bien été pris en compte.",
         };
       default:
         return {

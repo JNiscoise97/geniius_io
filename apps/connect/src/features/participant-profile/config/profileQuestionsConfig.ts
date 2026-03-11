@@ -34,8 +34,8 @@ export const profileQuestionsConfig: ProfileFormConfig = {
       key: "city",
       label: "Où vis-tu aujourd’hui ?",
       helpText:
-        "Cette information permet aux cousins de mieux situer d’où tu viens aujourd’hui.",
-      type: "text",
+        "",
+      type: "textarea",
       placeholder: "Ex : Montpellier",
       maxLength: 120,
     },
@@ -44,18 +44,18 @@ export const profileQuestionsConfig: ProfileFormConfig = {
       label: "Que fais-tu dans la vie ?",
       helpText:
         "Travail, études, activité du moment… en quelques mots seulement.",
-      type: "text",
+      type: "textarea",
       placeholder: "Ex : infirmière, étudiant, artisan…",
-      maxLength: 160,
+      maxLength: 600,
     },
     {
       key: "interests",
       label: "Qu’aimes-tu particulièrement ?",
       helpText:
         "Tes centres d’intérêt, passions ou petits plaisirs du quotidien.",
-      type: "text",
+      type: "textarea",
       placeholder: "Ex : cuisine, randonnée, musique, généalogie…",
-      maxLength: 200,
+      maxLength: 600,
     },
     {
       key: "personality_word",
@@ -90,7 +90,7 @@ export const profileQuestionsConfig: ProfileFormConfig = {
       helpText:
         "Quelques mots si tu souhaites ajouter une information qui te ressemble.",
       type: "textarea",
-      placeholder: "Facultatif",
+      placeholder: "",
       maxLength: 600,
     },
   ],

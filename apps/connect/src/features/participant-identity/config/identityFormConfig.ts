@@ -73,12 +73,12 @@ export const identityFormConfig: IdentityFormConfig = {
       label: "Année de naissance",
       placeholder: "Ex : 1987",
       required: false,
-      helpText: "Cela aide à mieux situer les générations dans la famille.",
+      helpText: "Pour mieux situer les générations dans la famille.",
     },
     branches: {
       label: "Branche familiale (si tu la connais)",
       helpText:
-        "Cela aide à comprendre plus facilement les liens entre les différentes branches.",
+        "Pour comprendre plus facilement les liens entre les différentes branches.",
       options: [
         { key: "candassamy", label: "Branche Candassamy" },
         { key: "manicon", label: "Branche Manicon" },

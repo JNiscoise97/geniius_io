@@ -2,13 +2,14 @@ import {
   Contact,
   MessageCircleHeart,
   UserCircle2,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
 export type OnboardingStepStatus = "todo" | "in_progress" | "done";
 
 export type OnboardingStepConfig = {
-  key: "identity" | "profile" | "contact";
+  key: "identity" | "profile" | "contact" | "preferences";
   title: string;
   subtitle: string;
   why: string;
@@ -22,11 +23,21 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
     key: "identity",
     title: "Se présenter à la famille",
     subtitle:
-      "Quelques informations simples pour que chacun puisse mieux savoir qui tu es.",
+      "Quelques informations simples pour que chacun puisse savoir qui tu es.",
     why: "C’est la meilleure manière d’aider les cousins à te reconnaître et à situer ta place dans la famille.",
     ctaLabel: "Me présenter",
     icon: UserCircle2,
     routeSuffix: "identity",
+  },
+  {
+    key: "preferences",
+    title: "Préférences de communication",
+    subtitle:
+      "Choisis ce que la famille peut afficher ou partager à ton sujet.",
+    why: "Tu peux décider ce que tu autorises : photos, informations dans l’arbre familial ou diffusion de certains éléments.",
+    ctaLabel: "Gérer mes préférences",
+    icon: Settings,
+    routeSuffix: "preferences",
   },
   {
     key: "profile",
@@ -42,8 +53,8 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
     key: "contact",
     title: "Rester en contact si tu le souhaites",
     subtitle:
-      "Tu peux laisser un moyen de te joindre et indiquer ce que tu acceptes ou non.",
-    why: "Cela permet par exemple de recevoir les photos ou de garder le contact après la rencontre, seulement si tu en as envie.",
+      "Tu peux laisser un moyen de te joindre pour rester en lien avec la famille.",
+    why: "Cela permet par exemple de recevoir les photos ou de garder le contact après la rencontre.",
     ctaLabel: "Gérer mes coordonnées",
     icon: Contact,
     routeSuffix: "contact",

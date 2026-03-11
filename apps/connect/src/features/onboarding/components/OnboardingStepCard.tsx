@@ -11,11 +11,11 @@ import type { OnboardingStepStatus } from "../config/onboardingConfig";
 type OnboardingStepCardProps = {
   title: string;
   subtitle: string;
-  why: string;
   icon: LucideIcon;
   ctaLabel: string;
   status?: OnboardingStepStatus;
   disabled?: boolean;
+  highlight?: boolean;
   onClick?: () => void;
 };
 
@@ -36,7 +36,7 @@ function getStatusUi(status: OnboardingStepStatus) {
     case "todo":
     default:
       return {
-        label: "À compléter",
+        label: "À faire",
         textClass: "text-slate-500",
         icon: CircleDashed,
       };
@@ -46,11 +46,11 @@ function getStatusUi(status: OnboardingStepStatus) {
 export function OnboardingStepCard({
   title,
   subtitle,
-  why,
   icon: Icon,
   ctaLabel,
   status = "todo",
   disabled = false,
+  highlight = false,
   onClick,
 }: OnboardingStepCardProps) {
   const statusUi = getStatusUi(status);
@@ -62,10 +62,12 @@ export function OnboardingStepCard({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       className={[
-        "w-full rounded-[26px] border bg-white p-4 text-left transition-all shadow-sm",
+        "w-full rounded-[26px] border p-4 text-left transition-all shadow-sm",
         disabled
           ? "border-slate-200 bg-slate-50 opacity-75"
-          : "border-slate-200 active:scale-[0.995] active:shadow-none",
+          : highlight
+          ? "border-indigo-200 bg-indigo-50"
+          : "border-slate-200 bg-white active:scale-[0.995] active:shadow-none",
       ].join(" ")}
     >
       <div className="flex items-start gap-3">
@@ -82,7 +84,9 @@ export function OnboardingStepCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-[17px] font-black text-slate-900">{title}</div>
+            <div className="text-[17px] font-black text-slate-900">
+              {title}
+            </div>
 
             <div className="shrink-0">
               {disabled ? (
@@ -100,15 +104,6 @@ export function OnboardingStepCard({
           <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
             {subtitle}
           </p>
-
-          <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <div className="text-[11px] font-black uppercase tracking-wide text-slate-500">
-              Pourquoi c’est utile
-            </div>
-            <div className="mt-1 text-xs font-bold leading-5 text-slate-700">
-              {why}
-            </div>
-          </div>
         </div>
       </div>
 

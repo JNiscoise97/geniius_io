@@ -5,7 +5,6 @@ import {
   Contact,
   Gamepad2,
   Gift,
-  Image as ImageIcon,
   Info,
   Library,
   Mail,
@@ -22,12 +21,15 @@ import {
   CheckCircle2,
   Lock,
   Hammer,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 
 type HubActionStatus = "enabled" | "dev" | "disabled";
+type HubAvailabilityMode = "available" | "launch";
 
 type HubAction = {
   key: string;
@@ -39,6 +41,8 @@ type HubAction = {
   enabled: boolean;
   status?: HubActionStatus;
   badge?: string;
+  availableAt?: string;
+  availabilityMode?: HubAvailabilityMode;
 };
 
 type HubSection = {
@@ -50,18 +54,52 @@ type HubSection = {
   items: HubAction[];
 };
 
+function getAvailabilityLabel(
+  dateString?: string,
+  mode: HubAvailabilityMode = "available",
+) {
+  if (!dateString) return "Bientôt disponible";
+
+  const target = new Date(dateString);
+  const now = new Date();
+
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  const startOfTarget = new Date(
+    target.getFullYear(),
+    target.getMonth(),
+    target.getDate(),
+  );
+
+  const diffMs = startOfTarget.getTime() - startOfToday.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  const prefix = mode === "launch" ? "Lancement" : "Disponible";
+
+  if (diffDays <= 0) return `${prefix} aujourd’hui`;
+  if (diffDays === 1) return `${prefix} demain`;
+  return `${prefix} dans ${diffDays} jours`;
+}
+
 export function LandingPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
-  /**
-   * Tout est piloté ici.
-   * Tu peux brancher ça plus tard sur des flags venant de Supabase, d’un YAML,
-   * d’une config d’événement ou d’un back-office.
-   */
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+  identity: true,
+  prepare: true,
+  discover: false,
+  contribute: false,
+  dayof: false,
+  after: false,
+});
+
   const features = {
-    before: {
+    preEvent: {
       presentYourself: true,
       familyQuestionnaire: true,
       rsvp: true,
@@ -72,247 +110,278 @@ export function LandingPage() {
       contactOrganizer: true,
       testimonyBefore: true,
     },
-    during: {
+    duringEvent: {
       teamGame: false,
       leaderboard: false,
-      familyTree: true,
       swapContacts: false,
       testimonyDuring: true,
     },
-    after: {
+    postEvent: {
       testimonyAfter: true,
       eventFeedback: false,
       photosVideos: false,
+    },
+    core: {
+      familyTree: true,
       familyLibrary: false,
     },
   };
 
+  const timeline = {
+    warmupQuizAt: "2026-03-20",
+    familyChallengesAt: "2026-03-24",
+    programAt: "2026-03-28",
+    teamGameAt: "2026-04-11",
+    leaderboardAt: "2026-04-11",
+    photosAt: "2026-04-13",
+    feedbackAt: "2026-04-13",
+  };
+
   const sections = useMemo<HubSection[]>(
-    () => [
-      {
-        key: "before",
-        title: "Avant la cousinade",
-        subtitle:
-          "Prépare ta venue et aide à faire vivre l’histoire familiale.",
-        accentClass:
-          "bg-gradient-to-br from-indigo-600 to-violet-600 text-white",
-        ringClass: "ring-indigo-200",
-        items: [
-          {
-            key: "present",
-            label: "Fais connaissance avec la famille",
-            description:
-              "Présente-toi en quelques secondes pour que tout le monde sache qui tu es et d’où tu viens dans la famille.",
-            icon: UserCircle2,
-            to: `/e/${slug}/welcome`,
-            enabled: features.before.presentYourself,
-            status: "enabled",
-            badge: "Essentiel",
-          },
-          {
-            key: "questionnaire",
-            label: "Ce que tu sais sur la famille",
-            description:
-              "Tes parents, tes grands-parents, ta branche… quelques réponses pour enrichir l’histoire familiale.",
-            icon: ClipboardList,
-            to: `/e/${slug}/questionnaire`,
-            enabled: features.before.familyQuestionnaire,
-            status: "dev",
-          },
-          {
-            key: "rsvp",
-            label: "Je viens à la cousinade",
-            description:
-              "Confirme ta présence pour nous aider à préparer au mieux la journée.",
-            icon: CalendarCheck,
-            to: `/e/${slug}/rsvp`,
-            enabled: features.before.rsvp,
-            status: "dev",
-            badge: "RSVP",
-          },
-          {
-            key: "tree-contrib",
-            label: "Aide à compléter l’arbre familial",
-            description:
-              "Ajoute une info, un nom ou un souvenir pour enrichir l’arbre de la famille.",
-            icon: TreePine,
-            to: `/e/${slug}/tree/contribute`,
-            enabled: features.before.enrichTree,
-            status: "disabled",
-          },
-          {
-            key: "quiz",
-            label: "Teste ta mémoire familiale",
-            description:
-              "Un petit quiz rapide pour réveiller tes souvenirs et redécouvrir la famille.",
-            icon: Sparkles,
-            to: `/e/${slug}/quiz/warmup`,
-            enabled: features.before.warmupQuiz,
-            status: "disabled",
-          },
-          {
-            key: "challenges",
-            label: "Relève les défis de la famille",
-            description:
-              "5 défis, 3 niveaux, des points à gagner… et peut-être un cadeau le jour J.",
-            icon: Gift,
-            to: `/e/${slug}/defis`,
-            enabled: features.before.familyChallenges,
-            status: "disabled",
-            badge: "Points",
-          },
-          {
-            key: "program",
-            label: "Découvre le programme",
-            description:
-              "Toutes les infos utiles pour profiter au maximum de la cousinade.",
-            icon: Info,
-            to: `/e/${slug}/programme`,
-            enabled: features.before.dayProgram,
-            status: "disabled",
-          },
-          {
-            key: "contact",
-            label: "Une question ? Contacte-moi",
-            description:
-              "Besoin d’une info pratique ou d’un renseignement ? Écris directement à l’organisateur.",
-            icon: Mail,
-            to: `/e/${slug}/contact`,
-            enabled: features.before.contactOrganizer,
-            status: "disabled",
-          },
-          {
-            key: "testimony-before",
-            label: "Partage un souvenir de famille",
-            description:
-              "Une anecdote, une histoire ou un souvenir que tu aimerais transmettre.",
-            icon: MessageCircle,
-            to: `/e/${slug}/temoignage`,
-            enabled: features.before.testimonyBefore,
-            status: "disabled",
-          },
-        ],
-      },
-      {
-        key: "during",
-        title: "Pendant la cousinade",
-        subtitle: "Participe, joue et découvre la famille autrement.",
-        accentClass:
-          "bg-gradient-to-br from-emerald-600 to-teal-600 text-white",
-        ringClass: "ring-emerald-200",
-        items: [
-          {
-            key: "team-game",
-            label: "Jouer au grand jeu de la cousinade",
-            description:
-              "Forme une équipe, relève les missions et affronte les autres branches de la famille.",
-            icon: Gamepad2,
-            to: `/e/${slug}/team`,
-            enabled: features.during.teamGame,
-            status: "disabled",
-            badge: "Jour J",
-          },
-          {
-            key: "leaderboard",
-            label: "Voir le classement",
-            description:
-              "Qui mène la course ? Suis les scores des équipes en direct.",
-            icon: Trophy,
-            to: `/e/${slug}/classement`,
-            enabled: features.during.leaderboard,
-            status: "disabled",
-          },
-          {
-            key: "family-tree",
-            label: "Explorer l’arbre familial",
-            description:
-              "Découvre les liens entre les branches et retrouve les membres de la famille.",
-            icon: Map,
-            to: `/e/${slug}/arbre`,
-            enabled: features.during.familyTree,
-            status: "disabled",
-          },
-          {
-            key: "swap-contacts",
-            label: "Échanger ses contacts",
-            description:
-              "Garde le contact avec les cousins que tu rencontres aujourd’hui.",
-            icon: Contact,
-            to: `/e/${slug}/contacts/exchange`,
-            enabled: features.during.swapContacts,
-            status: "disabled",
-          },
-          {
-            key: "testimony-during",
-            label: "Raconte ta cousinade",
-            description:
-              "Un moment marquant, une rencontre, une émotion… partage ton souvenir.",
-            icon: MessageCircle,
-            to: `/e/${slug}/temoignage`,
-            enabled: features.during.testimonyDuring,
-            status: "disabled",
-          },
-        ],
-      },
-      {
-        key: "after",
-        title: "Après la cousinade",
-        subtitle: "Prolonge la rencontre et garde une trace de cette journée.",
-        accentClass:
-          "bg-gradient-to-br from-amber-500 to-orange-500 text-white",
-        ringClass: "ring-amber-200",
-        items: [
-          {
-            key: "testimony-after",
-            label: "Partager ton souvenir",
-            description:
-              "Qu’est-ce qui t’a marqué pendant cette journée familiale ?",
-            icon: MessageCircle,
-            to: `/e/${slug}/temoignage`,
-            enabled: features.after.testimonyAfter,
-            status: "disabled",
-          },
-          {
-            key: "feedback",
-            label: "Donner ton avis",
-            description:
-              "Ton retour nous aidera à organiser les prochaines cousinades.",
-            icon: Star,
-            to: `/e/${slug}/avis`,
-            enabled: features.after.eventFeedback,
-            status: "disabled",
-          },
-          {
-            key: "photos",
-            label: "Voir les photos de la cousinade",
-            description:
-              "Retrouve les meilleurs moments de la journée en images.",
-            icon: Camera,
-            to: `/e/${slug}/medias`,
-            enabled: features.after.photosVideos,
-            status: "disabled",
-          },
-          {
-            key: "library",
-            label: "Explorer les archives familiales",
-            description:
-              "Photos anciennes, documents et histoires de famille à découvrir.",
-            icon: Library,
-            to: `/e/${slug}/bibliotheque`,
-            enabled: features.after.familyLibrary,
-            status: "disabled",
-          },
-        ],
-      },
-    ],
-    [slug],
-  );
-  let slugName = slug.toUpperCase();
+  () => [
+    {
+      key: "identity",
+      title: "Me présenter",
+      subtitle: "Dire qui je suis et annoncer ma venue.",
+      accentClass:
+        "bg-gradient-to-br from-indigo-600 to-violet-600 text-white",
+      ringClass: "ring-indigo-200",
+      items: [
+        {
+          key: "present",
+          label: "Se présenter à la famille",
+          description: "Présente-toi pour aider les cousins à mieux te situer.",
+          icon: UserCircle2,
+          to: `/e/${slug}/welcome`,
+          enabled: features.preEvent.presentYourself,
+          status: "enabled",
+          badge: "Essentiel",
+        },
+        {
+          key: "questionnaire",
+          label: "Partager ce que tu sais sur la famille",
+          description: "Ajoute ce que tu sais pour enrichir l’histoire familiale.",
+          icon: ClipboardList,
+          to: `/e/${slug}/questionnaire`,
+          enabled: features.preEvent.familyQuestionnaire,
+          status: "dev",
+        },
+        {
+          key: "rsvp",
+          label: "Confirmer sa présence",
+          description: "Annonce ta venue pour aider à préparer la journée.",
+          icon: CalendarCheck,
+          to: `/e/${slug}/rsvp`,
+          enabled: features.preEvent.rsvp,
+          status: "dev",
+          badge: "RSVP",
+        },
+      ],
+    },
+    {
+      key: "prepare",
+      title: "Préparer la rencontre",
+      subtitle: "S’informer et se projeter avant le jour J.",
+      accentClass: "bg-gradient-to-br from-sky-600 to-cyan-600 text-white",
+      ringClass: "ring-sky-200",
+      items: [
+        {
+          key: "program",
+          label: "Découvrir le programme",
+          description: "Retrouve l’essentiel pour profiter pleinement de la journée.",
+          icon: Info,
+          to: `/e/${slug}/programme`,
+          enabled: features.preEvent.dayProgram,
+          status: "disabled",
+          availableAt: timeline.programAt,
+          availabilityMode: "available",
+        },
+        {
+          key: "contact",
+          label: "Contacter l’organisateur",
+          description: "Pose une question pratique ou demande une précision.",
+          icon: Mail,
+          to: `/e/${slug}/contact`,
+          enabled: features.preEvent.contactOrganizer,
+          status: "disabled",
+        },
+        {
+          key: "quiz",
+          label: "Tester sa mémoire familiale",
+          description: "Réveille tes souvenirs avec un quiz rapide.",
+          icon: Sparkles,
+          to: `/e/${slug}/quiz/warmup`,
+          enabled: features.preEvent.warmupQuiz,
+          status: "disabled",
+          availableAt: timeline.warmupQuizAt,
+          availabilityMode: "available",
+        },
+        {
+          key: "challenges",
+          label: "Relever les défis de la famille",
+          description: "Entre dans l’ambiance avec quelques défis à relever.",
+          icon: Gift,
+          to: `/e/${slug}/defis`,
+          enabled: features.preEvent.familyChallenges,
+          status: "disabled",
+          badge: "Points",
+          availableAt: timeline.familyChallengesAt,
+          availabilityMode: "launch",
+        },
+      ],
+    },
+    {
+      key: "discover",
+      title: "Découvrir la famille",
+      subtitle: "Explorer les liens, les histoires et les archives.",
+      accentClass:
+        "bg-gradient-to-br from-amber-500 to-orange-500 text-white",
+      ringClass: "ring-amber-200",
+      items: [
+        {
+          key: "family-tree",
+          label: "Explorer l’arbre familial",
+          description: "Retrouve les liens entre les branches de la famille.",
+          icon: Map,
+          to: `/e/${slug}/arbre`,
+          enabled: features.core.familyTree,
+          status: "disabled",
+        },
+        {
+          key: "library",
+          label: "Explorer les archives familiales",
+          description: "Découvre photos, documents et histoires de famille.",
+          icon: Library,
+          to: `/e/${slug}/bibliotheque`,
+          enabled: features.core.familyLibrary,
+          status: "disabled",
+        },
+      ],
+    },
+    {
+      key: "contribute",
+      title: "Contribuer à la mémoire familiale",
+      subtitle: "Partager, transmettre et laisser une trace.",
+      accentClass:
+        "bg-gradient-to-br from-green-600 to-emerald-600 text-white",
+      ringClass: "ring-green-200",
+      items: [
+        {
+          key: "tree-contrib",
+          label: "Aider à compléter l’arbre familial",
+          description: "Ajoute une information utile à l’arbre de la famille.",
+          icon: TreePine,
+          to: `/e/${slug}/tree/contribute`,
+          enabled: features.preEvent.enrichTree,
+          status: "disabled",
+        },
+        {
+          key: "testimony-before",
+          label: "Partager un souvenir de famille",
+          description: "Transmets une anecdote ou un souvenir qui compte pour toi.",
+          icon: MessageCircle,
+          to: `/e/${slug}/temoignage`,
+          enabled: features.preEvent.testimonyBefore,
+          status: "disabled",
+        },
+        {
+          key: "testimony-after",
+          label: "Partager son souvenir de la cousinade",
+          description: "Raconte ce qui t’a marqué pendant la journée.",
+          icon: MessageCircle,
+          to: `/e/${slug}/temoignage`,
+          enabled: features.postEvent.testimonyAfter,
+          status: "disabled",
+          availableAt: timeline.photosAt,
+          availabilityMode: "available",
+        },
+        {
+          key: "feedback",
+          label: "Donner son avis",
+          description: "Partage ton retour pour aider à préparer la suite.",
+          icon: Star,
+          to: `/e/${slug}/avis`,
+          enabled: features.postEvent.eventFeedback,
+          status: "disabled",
+          availableAt: timeline.feedbackAt,
+          availabilityMode: "available",
+        },
+      ],
+    },
+    {
+      key: "dayof",
+      title: "Le jour J",
+      subtitle: "Participer, jouer et garder le lien sur place.",
+      accentClass:
+        "bg-gradient-to-br from-fuchsia-600 to-pink-600 text-white",
+      ringClass: "ring-fuchsia-200",
+      items: [
+        {
+          key: "team-game",
+          label: "Jouer au grand jeu de la cousinade",
+          description: "Forme une équipe et lance-toi dans l’aventure.",
+          icon: Gamepad2,
+          to: `/e/${slug}/team`,
+          enabled: features.duringEvent.teamGame,
+          status: "disabled",
+          badge: "Jour J",
+          availableAt: timeline.teamGameAt,
+          availabilityMode: "launch",
+        },
+        {
+          key: "leaderboard",
+          label: "Voir le classement",
+          description: "Suis les scores et vois qui mène la course.",
+          icon: Trophy,
+          to: `/e/${slug}/classement`,
+          enabled: features.duringEvent.leaderboard,
+          status: "disabled",
+          availableAt: timeline.leaderboardAt,
+          availabilityMode: "launch",
+        },
+        {
+          key: "swap-contacts",
+          label: "Échanger ses contacts",
+          description: "Garde le lien avec les cousins rencontrés sur place.",
+          icon: Contact,
+          to: `/e/${slug}/contacts/exchange`,
+          enabled: features.duringEvent.swapContacts,
+          status: "disabled",
+          availableAt: timeline.teamGameAt,
+          availabilityMode: "available",
+        },
+      ],
+    },
+    {
+      key: "after",
+      title: "Après la rencontre",
+      subtitle: "Retrouver les souvenirs et prolonger le lien.",
+      accentClass:
+        "bg-gradient-to-br from-emerald-600 to-teal-600 text-white",
+      ringClass: "ring-emerald-200",
+      items: [
+        {
+          key: "photos",
+          label: "Voir les photos de la cousinade",
+          description: "Retrouve les plus beaux moments en images.",
+          icon: Camera,
+          to: `/e/${slug}/medias`,
+          enabled: features.postEvent.photosVideos,
+          status: "disabled",
+          availableAt: timeline.photosAt,
+          availabilityMode: "available",
+        },
+      ],
+    },
+  ],
+  [slug],
+);
+
+  const slugName = slug.toUpperCase();
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pb-24 pt-4">
-        {/* HERO */}
         <section className="overflow-hidden rounded-[32px] bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_45%,#312e81_100%)] text-white shadow-[0_24px_60px_rgba(15,23,42,0.28)]">
           <div className="p-5">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold">
@@ -327,32 +396,12 @@ export function LandingPage() {
             </h1>
 
             <p className="mt-3 max-w-[38rem] text-sm font-bold leading-6 text-white/88">
-              Avant, pendant et après l’événement, cette application te permet
-              de participer facilement, retrouver les informations utiles et
-              contribuer à la mémoire familiale.
+              Prépare la rencontre, participe plus facilement et garde une trace
+              de cette journée en famille.
             </p>
-
-            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <HeroMiniCard
-                icon={CalendarCheck}
-                title="Avant"
-                text="Se présenter, répondre, confirmer sa venue."
-              />
-              <HeroMiniCard
-                icon={Gamepad2}
-                title="Pendant"
-                text="Jouer, consulter le classement, explorer l’arbre."
-              />
-              <HeroMiniCard
-                icon={ImageIcon}
-                title="Après"
-                text="Témoignages, souvenirs, photos et documents."
-              />
-            </div>
           </div>
         </section>
 
-        {/* MESSAGE D’ORIENTATION */}
         <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 rounded-2xl bg-slate-100 p-2 text-slate-700">
@@ -363,70 +412,67 @@ export function LandingPage() {
                 Première visite ?
               </div>
               <p className="mt-1 text-sm font-bold leading-6 text-slate-700">
-                Commence simplement par :<br />
-                <span className="text-slate-900">Te présenter</span> →{" "}
-                <span className="text-slate-900">Questionnaire famille</span> →{" "}
-                <span className="text-slate-900">Confirmer ta présence</span>
+                Commence par te présenter, puis confirme ta présence.
               </p>
             </div>
           </div>
         </section>
 
-        {/* SECTIONS */}
-        <div className="mt-5 space-y-5">
-          {sections.map((section) => (
-            <section key={section.key} className="space-y-3">
-              <div className={`rounded-[26px] p-4 ${section.accentClass}`}>
-                <div className="text-[20px] font-black">{section.title}</div>
-                <p className="mt-1 text-sm font-bold leading-6 text-white/90">
-                  {section.subtitle}
-                </p>
-              </div>
+        <div className="mt-5 space-y-4">
+          {sections.map((section) => {
+            const isOpen = openSections[section.key];
 
-              <div className="grid gap-3">
-                {section.items.map((item) => (
-                  <HubActionCard
-                    key={item.key}
-                    item={item}
-                    onClick={() => {
-                      if (!item.enabled || item.status !== "enabled") return;
-                      if (item.externalHref) {
-                        window.location.href = item.externalHref;
-                        return;
-                      }
-                      if (item.to) nav(item.to);
-                    }}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+            return (
+              <section key={section.key} className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenSections((prev) => ({
+                      ...prev,
+                      [section.key]: !prev[section.key],
+                    }))
+                  }
+                  className={`w-full rounded-[26px] p-4 text-left ${section.accentClass}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[20px] font-black">
+                        {section.title}
+                      </div>
+                      <p className="mt-1 text-sm font-bold leading-6 text-white/90">
+                        {section.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 rounded-2xl bg-white/10 p-2 text-white">
+                      {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                    </div>
+                  </div>
+                </button>
+
+                {isOpen ? (
+                  <div className="grid gap-3">
+                    {section.items.map((item) => (
+                      <HubActionCard
+                        key={item.key}
+                        item={item}
+                        onClick={() => {
+                          if (!item.enabled || item.status !== "enabled") return;
+                          if (item.externalHref) {
+                            window.location.href = item.externalHref;
+                            return;
+                          }
+                          if (item.to) nav(item.to);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })}
         </div>
       </main>
-    </div>
-  );
-}
-
-function HeroMiniCard({
-  icon: Icon,
-  title,
-  text,
-}: {
-  icon: LucideIcon;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/12 bg-white/10 p-3 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <div className="rounded-xl bg-white/15 p-2">
-          <Icon size={16} />
-        </div>
-        <div className="text-sm font-black">{title}</div>
-      </div>
-      <div className="mt-2 text-xs font-bold leading-5 text-white/85">
-        {text}
-      </div>
     </div>
   );
 }
@@ -441,6 +487,10 @@ function HubActionCard({
   const Icon = item.icon;
   const status = item.status ?? (item.enabled ? "enabled" : "disabled");
   const disabled = status !== "enabled";
+  const availabilityLabel =
+    status === "disabled"
+      ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
+      : null;
 
   return (
     <button
@@ -523,7 +573,7 @@ function HubActionCard({
       <div className="mt-3 flex items-center justify-between">
         <div className="text-[11px] font-extrabold">
           {status === "disabled" ? (
-            <span className="text-slate-500">Bientôt disponible</span>
+            <span className="text-slate-500">{availabilityLabel}</span>
           ) : status === "dev" ? (
             <span className="inline-flex items-center gap-1 text-amber-700">
               <Hammer size={14} />

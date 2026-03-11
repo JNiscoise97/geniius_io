@@ -24,6 +24,7 @@ import { ParticipantIdentityPage } from "../features/participant-identity/pages/
 import { ParticipantProfilePage } from "../features/participant-profile/pages/ParticipantProfilePage";
 import { ParticipantContactPage } from "../features/participant-contact/pages/ParticipantContactPage";
 import { OnboardingConfirmationPage } from "../features/onboarding/pages/OnboardingConfirmationPage";
+import { ParticipantPreferencesPage } from "../features/participant-preferences/pages/ParticipantPreferencesPage";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: "e/:eventSlug/welcome/identity", element: <ParticipantIdentityPage /> },
       { path: "e/:eventSlug/welcome/profile", element: <ParticipantProfilePage /> },
       { path: "e/:eventSlug/welcome/contact", element: <ParticipantContactPage /> },
+      { path: "e/:eventSlug/welcome/preferences", element: <ParticipantPreferencesPage /> },
       { path: "e/:eventSlug/welcome/confirmation", element: <OnboardingConfirmationPage /> },
 
 
