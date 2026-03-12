@@ -43,6 +43,14 @@ import { FamilyKnowledgeGodparentsPage } from "../features/family-knowledge/page
 import { FamilyKnowledgeCurrentLinksPage } from "../features/family-knowledge/pages/FamilyKnowledgeCurrentLinksPage";
 import { FamilyKnowledgeMemoryPage } from "../features/family-knowledge/pages/FamilyKnowledgeMemoryPage";
 
+import { ParticipantRecoverConfirmPage } from "../features/participant-access/pages/ParticipantRecoverConfirmPage";
+import { ParticipantRecoverPage } from "../features/participant-access/pages/ParticipantRecoverPage";
+import { ParticipantAccessPage } from "../features/participant-access/pages/ParticipantAccessPage";
+
+import { DeviceProfilesPage } from "../features/device-profiles/pages/DeviceProfilesPage";
+import { ManagedProfilesPage } from "../features/participant-delegations/pages/ManagedProfilesPage";
+import { ParticipantGuard } from "../features/guard/ParticipantGuard";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -50,47 +58,80 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}`} replace /> },
 
-      // Landing publique
+      // Public
       { path: "e/:eventSlug", element: <LandingPage /> },
 
-      // Ancien écran pré-événement
+      // Legacy pre-event screen
       { path: "e/:eventSlug/welcome/form", element: <PreEventFormPage /> },
 
-      // Onboarding participant
-      { path: "e/:eventSlug/welcome", element: <OnboardingHubPage /> },
+      // Access flow
+      { path: "e/:eventSlug/access", element: <ParticipantAccessPage /> },
+      { path: "e/:eventSlug/access/recover", element: <ParticipantRecoverPage /> },
+      {
+        path: "e/:eventSlug/access/recover/confirm",
+        element: <ParticipantRecoverConfirmPage />,
+      },
+      { path: "e/:eventSlug/device-profiles", element: <DeviceProfilesPage /> },
+
+      // Public onboarding entry points
       { path: "e/:eventSlug/welcome/identity", element: <ParticipantIdentityPage /> },
-      { path: "e/:eventSlug/welcome/profile", element: <ParticipantProfilePage /> },
-      { path: "e/:eventSlug/welcome/contact", element: <ParticipantContactPage /> },
-      { path: "e/:eventSlug/welcome/preferences", element: <ParticipantPreferencesPage /> },
       { path: "e/:eventSlug/welcome/confirmation", element: <OnboardingConfirmationPage /> },
 
-      // Attendance
-      { path: "e/:eventSlug/attendance", element: <ParticipantAttendancePage /> },
+      // Participant protected area
+      {
+        path: "e/:eventSlug",
+        element: <ParticipantGuard />,
+        children: [
+          // Onboarding participant
+          { path: "welcome", element: <OnboardingHubPage /> },
+          { path: "welcome/profile", element: <ParticipantProfilePage /> },
+          { path: "welcome/contact", element: <ParticipantContactPage /> },
+          { path: "welcome/preferences", element: <ParticipantPreferencesPage /> },
 
-      // Family knowledge
-      { path: "e/:eventSlug/family-knowledge", element: <FamilyKnowledgeHubPage /> },
-      { path: "e/:eventSlug/family-knowledge/intro", element: <FamilyKnowledgeIntroPage /> },
-      { path: "e/:eventSlug/family-knowledge/close-family", element: <FamilyKnowledgeCloseFamilyPage /> },
-      { path: "e/:eventSlug/family-knowledge/grandparents", element: <FamilyKnowledgeGrandparentsPage /> },
-      { path: "e/:eventSlug/family-knowledge/godparents", element: <FamilyKnowledgeGodparentsPage /> },
-      { path: "e/:eventSlug/family-knowledge/current-links", element: <FamilyKnowledgeCurrentLinksPage /> },
-      { path: "e/:eventSlug/family-knowledge/memory", element: <FamilyKnowledgeMemoryPage /> },
+          // Attendance
+          { path: "attendance", element: <ParticipantAttendancePage /> },
 
-      // Arbre familial
-      { path: "e/:eventSlug/arbre", element: <BranchesPage /> },
-      { path: "e/:eventSlug/arbre/branches/:branchId/families", element: <FamiliesPage /> },
-      { path: "e/:eventSlug/arbre/families/:familyId/siblings", element: <SiblingsPage /> },
-      { path: "e/:eventSlug/arbre/persons/:personId", element: <PersonPage /> },
-      { path: "e/:eventSlug/arbre/persons/:personId/lineage", element: <LineagePage /> },
+          // Family knowledge
+          { path: "family-knowledge", element: <FamilyKnowledgeHubPage /> },
+          { path: "family-knowledge/intro", element: <FamilyKnowledgeIntroPage /> },
+          {
+            path: "family-knowledge/close-family",
+            element: <FamilyKnowledgeCloseFamilyPage />,
+          },
+          {
+            path: "family-knowledge/grandparents",
+            element: <FamilyKnowledgeGrandparentsPage />,
+          },
+          {
+            path: "family-knowledge/godparents",
+            element: <FamilyKnowledgeGodparentsPage />,
+          },
+          {
+            path: "family-knowledge/current-links",
+            element: <FamilyKnowledgeCurrentLinksPage />,
+          },
+          { path: "family-knowledge/memory", element: <FamilyKnowledgeMemoryPage /> },
 
-      // Routes jeu / existantes
-      { path: "e/:eventSlug/deprec-landing", element: <EventLandingPage /> },
-      { path: "e/:eventSlug/team/create", element: <CreateOrJoinTeamPage /> },
-      { path: "e/:eventSlug/team/resume", element: <ResumeTeamPage /> },
-      { path: "e/:eventSlug/team/selfie", element: <TeamSelfiePage /> },
-      { path: "e/:eventSlug/team-dashboard", element: <TeamDashboardPage /> },
-      { path: "e/:eventSlug/zones", element: <TeamZonesPage /> },
-      { path: "e/:eventSlug/z/:zoneId/play", element: <ZonePlayPage /> },
+          // Family tree
+          { path: "arbre", element: <BranchesPage /> },
+          { path: "arbre/branches/:branchId/families", element: <FamiliesPage /> },
+          { path: "arbre/families/:familyId/siblings", element: <SiblingsPage /> },
+          { path: "arbre/persons/:personId", element: <PersonPage /> },
+          { path: "arbre/persons/:personId/lineage", element: <LineagePage /> },
+
+          // Managed profiles
+          { path: "managed-profiles", element: <ManagedProfilesPage /> },
+
+          // Existing / game routes
+          { path: "deprec-landing", element: <EventLandingPage /> },
+          { path: "team/create", element: <CreateOrJoinTeamPage /> },
+          { path: "team/resume", element: <ResumeTeamPage /> },
+          { path: "team/selfie", element: <TeamSelfiePage /> },
+          { path: "team-dashboard", element: <TeamDashboardPage /> },
+          { path: "zones", element: <TeamZonesPage /> },
+          { path: "z/:zoneId/play", element: <ZonePlayPage /> },
+        ],
+      },
 
       { path: "question-mock", element: <QuestionScreenMock /> },
     ],
