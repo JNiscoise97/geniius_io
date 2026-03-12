@@ -6,8 +6,8 @@ export const closeFamilyFormConfig = {
       title: "Qui sont tes parents ?",
       subtitle:
         "Même un prénom, un surnom ou une photo peuvent déjà aider.",
-      parent1Label: "Parent 1",
-      parent2Label: "Parent 2",
+      parent1Label: "Père",
+      parent2Label: "Mère",
     },
     siblings: {
       title: "As-tu des frères et sœurs ?",
@@ -59,8 +59,8 @@ export const closeFamilyFormConfig = {
     readyLabel: "Prêt",
   },
   validation: {
-    parent1Label: "le parent 1",
-    parent2Label: "le parent 2",
+    parent1Label: "le père",
+    parent2Label: "la mère",
     siblingLabel: "le frère ou la sœur",
     childLabel: "l’enfant",
     partnerLabel: "le conjoint",
