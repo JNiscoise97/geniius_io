@@ -101,7 +101,7 @@ export function LandingPage() {
   const features = {
     preEvent: {
       presentYourself: true,
-      familyQuestionnaire: true,
+      familyKnowledge: true,
       attendance: true,
       enrichTree: true,
       warmupQuiz: true,
@@ -162,9 +162,9 @@ export function LandingPage() {
           label: "Partager ce que tu sais sur ta famille",
           description: "Ajoute ce que tu sais pour enrichir l’histoire familiale.",
           icon: ClipboardList,
-          to: `/e/${slug}/questionnaire`,
-          enabled: features.preEvent.familyQuestionnaire,
-          status: "dev",
+          to: `/e/${slug}/family-knowledge`,
+          enabled: features.preEvent.familyKnowledge,
+          status: "enabled",
         },
         {
           key: "attendance",
