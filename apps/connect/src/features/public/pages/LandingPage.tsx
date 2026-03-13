@@ -93,7 +93,7 @@ export function LandingPage() {
   identity: true,
   prepare: true,
   discover: true,
-  contribute: false,
+  contribute: true,
   dayof: false,
   after: false,
 });
@@ -128,13 +128,13 @@ export function LandingPage() {
   };
 
   const timeline = {
-    warmupQuizAt: "2026-03-20",
+    warmupQuizAt: "2026-04-12",
     familyChallengesAt: "2026-03-24",
-    programAt: "2026-03-28",
-    teamGameAt: "2026-04-11",
-    leaderboardAt: "2026-04-11",
-    photosAt: "2026-04-13",
-    feedbackAt: "2026-04-13",
+    programAt: "2026-04-01",
+    teamGameAt: "2026-04-12",
+    leaderboardAt: "2026-04-12",
+    photosAt: "2026-04-12",
+    feedbackAt: "2026-04-12",
   };
 
   const sections = useMemo<HubSection[]>(
@@ -202,7 +202,7 @@ export function LandingPage() {
           icon: Mail,
           to: `/e/${slug}/contact`,
           enabled: features.preEvent.contactOrganizer,
-          status: "disabled",
+          status: "enabled",
         },
         {
           key: "quiz",
@@ -283,28 +283,6 @@ export function LandingPage() {
           enabled: features.preEvent.testimonyBefore,
           status: "disabled",
         },
-        {
-          key: "testimony-after",
-          label: "Partager son souvenir de la cousinade",
-          description: "Raconte ce qui t’a marqué pendant la journée.",
-          icon: MessageCircle,
-          to: `/e/${slug}/temoignage`,
-          enabled: features.postEvent.testimonyAfter,
-          status: "disabled",
-          availableAt: timeline.photosAt,
-          availabilityMode: "available",
-        },
-        {
-          key: "feedback",
-          label: "Donner son avis",
-          description: "Partage ton retour pour aider à préparer la suite.",
-          icon: Star,
-          to: `/e/${slug}/avis`,
-          enabled: features.postEvent.eventFeedback,
-          status: "disabled",
-          availableAt: timeline.feedbackAt,
-          availabilityMode: "available",
-        },
       ],
     },
     {
@@ -360,12 +338,34 @@ export function LandingPage() {
       ringClass: "ring-emerald-200",
       items: [
         {
+          key: "feedback",
+          label: "Donner son avis",
+          description: "Partage ton retour pour aider à préparer la suite.",
+          icon: Star,
+          to: `/e/${slug}/avis`,
+          enabled: features.postEvent.eventFeedback,
+          status: "disabled",
+          availableAt: timeline.feedbackAt,
+          availabilityMode: "available",
+        },
+        {
           key: "photos",
           label: "Voir les photos de la cousinade",
           description: "Retrouve les plus beaux moments en images.",
           icon: Camera,
           to: `/e/${slug}/medias`,
           enabled: features.postEvent.photosVideos,
+          status: "disabled",
+          availableAt: timeline.photosAt,
+          availabilityMode: "available",
+        },
+        {
+          key: "testimony-after",
+          label: "Partager son souvenir de la cousinade",
+          description: "Raconte ce qui t’a marqué pendant la journée.",
+          icon: MessageCircle,
+          to: `/e/${slug}/temoignage`,
+          enabled: features.postEvent.testimonyAfter,
           status: "disabled",
           availableAt: timeline.photosAt,
           availabilityMode: "available",
