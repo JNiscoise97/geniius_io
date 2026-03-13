@@ -1,10 +1,17 @@
-import { Check, ChevronDown, Smartphone, UserRoundCog, UserCircle2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  Check,
+  ChevronDown,
+  Smartphone,
+  UserRoundCog,
+  UserCircle2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getActiveParticipant } from "../../lib/participant-session/getActiveParticipant";
 import { getStoredParticipantProfiles } from "../../lib/participant-session/getStoredParticipantProfiles";
 import { setActiveStoredProfile } from "../../features/device-profiles/api/setActiveStoredProfile";
 import { getManagedProfiles } from "../../features/participant-delegations/api/getManagedProfiles";
+import { PARTICIPANT_SESSION_CHANGED_EVENT } from "../../lib/participant-session/sessionEvents";
 
 function getProfileDisplayName(profile: {
   label?: string;
@@ -25,10 +32,31 @@ export function ProfileSwitcher() {
   const slug = eventSlug ?? "demo";
 
   const [open, setOpen] = useState(false);
+  const [activeProfile, setActiveProfile] = useState(() => getActiveParticipant(slug));
+  const [storedProfilesState, setStoredProfilesState] = useState(() =>
+    getStoredParticipantProfiles(slug),
+  );
+  const [managedProfilesState, setManagedProfilesState] = useState(() =>
+    getManagedProfiles(slug),
+  );
 
-  const activeProfile = useMemo(() => getActiveParticipant(slug), [slug]);
-  const storedProfilesState = useMemo(() => getStoredParticipantProfiles(slug), [slug]);
-  const managedProfilesState = useMemo(() => getManagedProfiles(slug), [slug]);
+  useEffect(() => {
+    function refresh() {
+      setActiveProfile(getActiveParticipant(slug));
+      setStoredProfilesState(getStoredParticipantProfiles(slug));
+      setManagedProfilesState(getManagedProfiles(slug));
+    }
+
+    refresh();
+
+    window.addEventListener(PARTICIPANT_SESSION_CHANGED_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+
+    return () => {
+      window.removeEventListener(PARTICIPANT_SESSION_CHANGED_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [slug]);
 
   const activeDisplayName = activeProfile
     ? getProfileDisplayName(activeProfile)

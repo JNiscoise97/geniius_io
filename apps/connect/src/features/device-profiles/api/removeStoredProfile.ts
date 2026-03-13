@@ -2,6 +2,7 @@ import {
   getStoredParticipantProfiles,
   type StoredParticipantProfilesState,
 } from "../../../lib/participant-session/getStoredParticipantProfiles";
+import { notifyParticipantSessionChanged } from "../../../lib/participant-session/sessionEvents";
 
 function getStorageKey(slug: string): string {
   return `connect:${slug}:device-profiles`;
@@ -58,6 +59,6 @@ export function removeStoredProfile(
   } else {
     localStorage.removeItem(`connect:${slug}:participant`);
   }
-
+notifyParticipantSessionChanged();
   return nextState;
 }

@@ -2,6 +2,7 @@ import {
   getStoredParticipantProfiles,
   type StoredParticipantProfilesState,
 } from "./getStoredParticipantProfiles";
+import { notifyParticipantSessionChanged } from "./sessionEvents";
 
 function getStorageKey(slug: string): string {
   return `connect:${slug}:device-profiles`;
@@ -30,5 +31,6 @@ export function setActiveParticipant(
     activeParticipantId: normalizedParticipantId,
   });
 
+  notifyParticipantSessionChanged();
   return true;
 }
