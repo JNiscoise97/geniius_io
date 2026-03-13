@@ -28,6 +28,7 @@ import { ParticipantPreferencesPage } from "../features/participant-preferences/
 import { OnboardingConfirmationPage } from "../features/onboarding/pages/OnboardingConfirmationPage";
 
 import { ParticipantAttendancePage } from "../features/participant-attendance/pages/ParticipantAttendancePage";
+import { ParticipantContactOrganizerPage } from "../features/participant-organizer-messages/pages/ParticipantContactOrganizerPage";
 
 import { BranchesPage } from "../features/family-tree/pages/BranchesPage";
 import { FamiliesPage } from "../features/family-tree/pages/FamiliesPage";
@@ -90,6 +91,9 @@ export const router = createBrowserRouter([
 
           // Attendance
           { path: "attendance", element: <ParticipantAttendancePage /> },
+
+          // Contact organizer
+          { path: "contact", element: <ParticipantContactOrganizerPage /> },
 
           // Family knowledge
           { path: "family-knowledge", element: <FamilyKnowledgeHubPage /> },

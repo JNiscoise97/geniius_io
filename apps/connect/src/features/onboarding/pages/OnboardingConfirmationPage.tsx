@@ -9,7 +9,11 @@ export function OnboardingConfirmationPage() {
   const [searchParams] = useSearchParams();
 
   const step = searchParams.get("step");
-  let url = step == "attendance"?`/e/${slug}`:`/e/${slug}/welcome`;
+  const url =
+    step === "attendance" || step === "organizer-message"
+      ? `/e/${slug}`
+      : `/e/${slug}/welcome`;
+
   const content = useMemo(() => {
     switch (step) {
       case "identity":
@@ -36,6 +40,11 @@ export function OnboardingConfirmationPage() {
         return {
           title: "Merci, ta participation a bien été enregistrée",
           text: "Ta réponse nous aidera à mieux préparer la journée et à accueillir chacun dans les meilleures conditions.",
+        };
+      case "organizer-message":
+        return {
+          title: "Merci, ton message a bien été transmis",
+          text: "L’organisateur a bien reçu ton message. S’il est nécessaire de te répondre, il utilisera le moyen de contact que tu as indiqué.",
         };
       default:
         return {
