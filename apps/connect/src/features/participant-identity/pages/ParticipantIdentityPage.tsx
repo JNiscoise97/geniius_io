@@ -8,6 +8,7 @@ import {
 import { identityFormConfig } from "../config/identityFormConfig";
 import { saveIdentity } from "../api/saveIdentity";
 import { getIdentity } from "../api/getIdentity";
+import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 
 type LocalParticipantSession = {
   participantId: string;
@@ -130,12 +131,23 @@ export function ParticipantIdentityPage() {
         values,
       });
 
+      addStoredParticipantProfile(slug, {
+        participantId: result.participantId,
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        birthYear: values.birthYear,
+        recoveryToken: result.recoveryToken ?? undefined,
+        setAsActive: true,
+      })
+
       localStorage.setItem(
         `connect:${slug}:participant`,
         JSON.stringify({
           participantId: result.participantId,
           firstName: values.firstName.trim(),
           lastName: values.lastName.trim(),
+          birthYear: values.birthYear,
+          recoveryToken: result.recoveryToken ?? undefined,
         }),
       );
 

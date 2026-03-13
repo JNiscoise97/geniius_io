@@ -9,6 +9,7 @@ type SaveIdentityInput = {
 
 type SaveIdentityResult = {
   participantId: string;
+  recoveryToken: string | null;
 };
 
 function toBirthYearOrNull(raw: string): number | null {
@@ -23,12 +24,22 @@ function toBirthYearOrNull(raw: string): number | null {
   return year;
 }
 
+function generateRecoveryToken(length = 48): string {
+  const alphabet =
+    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+}
+
 export async function saveIdentity({
   eventSlug,
   participantId,
   values,
 }: SaveIdentityInput): Promise<SaveIdentityResult> {
   let finalParticipantId = participantId ?? null;
+  let recoveryToken: string | null = null;
 
   if (finalParticipantId) {
     const updateParticipant = await supabase
@@ -41,7 +52,7 @@ export async function saveIdentity({
         updated_at: new Date().toISOString(),
       })
       .eq("id", finalParticipantId)
-      .select("id")
+      .select("id, recovery_token")
       .single();
 
     if (updateParticipant.error) {
@@ -49,7 +60,10 @@ export async function saveIdentity({
     }
 
     finalParticipantId = updateParticipant.data.id as string;
+    recoveryToken = (updateParticipant.data.recovery_token as string | null) ?? null;
   } else {
+    const newRecoveryToken = generateRecoveryToken(48);
+
     const insertParticipant = await supabase
       .from("participants")
       .insert({
@@ -58,8 +72,10 @@ export async function saveIdentity({
         last_name: values.lastName.trim(),
         nickname: values.nickname.trim() || null,
         birth_year: toBirthYearOrNull(values.birthYear),
+        recovery_token: newRecoveryToken,
+        recovery_token_created_at: new Date().toISOString(),
       })
-      .select("id")
+      .select("id, recovery_token")
       .single();
 
     if (insertParticipant.error) {
@@ -67,6 +83,7 @@ export async function saveIdentity({
     }
 
     finalParticipantId = insertParticipant.data.id as string;
+    recoveryToken = (insertParticipant.data.recovery_token as string | null) ?? null;
   }
 
   const upsertIdentity = await supabase.from("participant_identity").upsert(
@@ -84,5 +101,8 @@ export async function saveIdentity({
     throw new Error(upsertIdentity.error.message);
   }
 
-  return { participantId: finalParticipantId };
+  return {
+    participantId: finalParticipantId,
+    recoveryToken,
+  };
 }
