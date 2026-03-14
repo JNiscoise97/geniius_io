@@ -53,10 +53,8 @@ export const closeFamilyFormConfig = {
     chooseLabel: "Choisir",
   },
   footer: {
-    stepLabel: "Étape 2 sur 6",
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
-    readyLabel: "Prêt",
   },
   validation: {
     parent1Label: "le père",

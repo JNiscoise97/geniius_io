@@ -53,6 +53,68 @@ function getEnabledChannels(
   return channels;
 }
 
+function isEmailValid(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function hasAnyReplyContact(values: ContactOrganizerFormValues): boolean {
+  return Boolean(
+    values.phone.trim() || values.email.trim() || values.messenger.trim(),
+  );
+}
+
+function isFormIncomplete(values: ContactOrganizerFormValues): boolean {
+  if (!values.topic) {
+    return true;
+  }
+
+  if (!values.message.trim() || values.message.trim().length < 5) {
+    return true;
+  }
+
+  if (!values.wantsReply) {
+    return false;
+  }
+
+  if (!hasAnyReplyContact(values)) {
+    return true;
+  }
+
+  if (values.preferredContactChannels.length === 0) {
+    return true;
+  }
+
+  if (
+    values.preferredContactChannels.includes("sms") &&
+    !values.phone.trim()
+  ) {
+    return true;
+  }
+
+  if (
+    values.preferredContactChannels.includes("whatsapp") &&
+    (!values.phone.trim() || !values.hasWhatsapp)
+  ) {
+    return true;
+  }
+
+  if (
+    values.preferredContactChannels.includes("email") &&
+    (!values.email.trim() || !isEmailValid(values.email))
+  ) {
+    return true;
+  }
+
+  if (
+    values.preferredContactChannels.includes("messenger") &&
+    !values.messenger.trim()
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function ContactOrganizerForm({
   config,
   value,
@@ -62,6 +124,7 @@ export function ContactOrganizerForm({
   onSubmit,
 }: ContactOrganizerFormProps) {
   const enabledChannels = getEnabledChannels(value);
+  const submitDisabled = loading || isFormIncomplete(value);
 
   return (
     <form id="contact-organizer-form" onSubmit={onSubmit} className="mt-3">
@@ -287,11 +350,11 @@ export function ContactOrganizerForm({
               form="contact-organizer-form"
               className={[
                 "w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 transition",
-                loading
-                  ? "bg-[color:var(--blue)] text-white opacity-70 cursor-wait"
+                submitDisabled
+                  ? "bg-[color:var(--blue)] text-white opacity-50 cursor-not-allowed"
                   : "bg-[color:var(--blue)] text-white",
               ].join(" ")}
-              disabled={loading}
+              disabled={submitDisabled}
             >
               <ArrowRight size={18} />
               {loading ? "Envoi..." : "Envoyer le message"}

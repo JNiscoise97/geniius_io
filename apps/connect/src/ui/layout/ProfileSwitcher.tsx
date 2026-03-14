@@ -93,6 +93,7 @@ export function ProfileSwitcher() {
     (profile) => profile.participantId !== activeProfile.participantId,
   );
 
+  let displayCompleteName = false;
   return (
     <div className="relative">
       <button
@@ -101,7 +102,7 @@ export function ProfileSwitcher() {
         className="inline-flex max-w-[180px] items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-900"
       >
         <UserCircle2 size={16} className="shrink-0" />
-        <span className="truncate">{activeDisplayName}</span>
+        {displayCompleteName && <span className="truncate">{activeDisplayName}</span>}
         <ChevronDown size={16} className="shrink-0" />
       </button>
 

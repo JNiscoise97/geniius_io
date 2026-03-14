@@ -9,8 +9,6 @@ export const familyKnowledgeIntroConfig = {
   hideNextTimeHelp:
     "Tu pourras toujours revenir plus tard sur cet écran si besoin.",
   footer: {
-    stepLabel: "Étape 1 sur 6",
     submitLabel: "Continuer",
-    readyLabel: "Prêt",
   },
 } as const;

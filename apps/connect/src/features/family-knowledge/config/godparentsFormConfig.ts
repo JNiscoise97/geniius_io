@@ -39,10 +39,8 @@ export const godparentsFormConfig = {
     chooseLabel: "Choisir",
   },
   footer: {
-    stepLabel: "Étape 4 sur 6",
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
-    readyLabel: "Prêt",
   },
   validation: {
     missingParticipant:

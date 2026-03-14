@@ -45,10 +45,8 @@ export const familyMemoryFormConfig = {
     noLabel: "Non",
   },
   footer: {
-    stepLabel: "Étape 6 sur 6",
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
-    readyLabel: "Prêt",
   },
   validation: {
     missingParticipant:

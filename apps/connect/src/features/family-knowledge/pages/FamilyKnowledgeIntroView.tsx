@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpenText } from "lucide-react";
+import { AlertTriangle, ArrowRight, BookOpenText } from "lucide-react";
 import { IntroQuoteCard } from "../components/IntroQuoteCard";
 import { KnownToggleField } from "../components/KnownToggleField";
 import { familyKnowledgeIntroConfig } from "../config/familyKnowledgeIntroConfig";
@@ -34,6 +34,21 @@ export function FamilyKnowledgeIntroView({
             {config.pageSubtitle}
           </p>
 
+          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+            <div className='flex items-start gap-3'>
+              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                <div className='mt-0.5 text-xs text-amber-800'>
+                  <ol>
+                    <li>Ajouter un bouton retour</li>
+                    <li>Enregistrer en bd la volonté de l'utilisateur</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-5">
             <IntroQuoteCard quote={config.quote} text={config.text} />
           </div>
@@ -65,11 +80,6 @@ export function FamilyKnowledgeIntroView({
               <ArrowRight size={18} />
               {config.footer.submitLabel}
             </button>
-
-            <div className="mt-2 flex items-center justify-between px-1 text-[11px] font-extrabold text-slate-700">
-              <span>{config.footer.stepLabel}</span>
-              <span className="text-slate-900">{config.footer.readyLabel}</span>
-            </div>
           </div>
         </div>
       </footer>

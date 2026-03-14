@@ -343,6 +343,27 @@ export function FamilyKnowledgeGrandparentsPage() {
                     </div>
                 </div>
 
+                <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+                    <div className='flex items-start gap-3'>
+                        <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+                        <div className='min-w-0'>
+                            <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                            <div className='mt-0.5 text-xs text-amber-800'>
+                                <ol>
+                                    <li>Ajouter un bouton "retour"</li>
+                                    <li>Revoir l'en-tête</li>
+                                    <li>Ajouter un bouton "il n'a pas de frères et  soeurs"</li>
+                                    <li>Si parent non connu pas la section</li>
+                                    <li>Ordonner la fratrie avec des boutons up down, mettre le parent en lecture seule pour avoir son ordre aussi</li>
+                                    <li>Mettre le bouton ajouter en bas sinon on est obligé de scroller pour le retrouver</li>
+                                    <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
+                                    <li>revoir les labels des cartes</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {error ? (
                     <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
                         <div className="flex items-start gap-2">
@@ -596,13 +617,6 @@ export function FamilyKnowledgeGrandparentsPage() {
                             <ArrowRight size={18} />
                             {loading ? config.footer.loadingLabel : config.footer.submitLabel}
                         </button>
-
-                        <div className="mt-2 px-1 text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
-                            <span>{config.footer.stepLabel}</span>
-                            <span className="text-slate-900">
-                                {loading ? "…" : config.footer.readyLabel}
-                            </span>
-                        </div>
                     </div>
                 </div>
             </footer>

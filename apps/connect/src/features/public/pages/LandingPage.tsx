@@ -1,8 +1,8 @@
 import {
+  AlertTriangle,
   ArrowRight,
   CalendarCheck,
   Camera,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
   ClipboardList,
@@ -20,6 +20,7 @@ import {
   Star,
   TreePine,
   Trophy,
+  User,
   UserCircle2,
   Users,
 } from "lucide-react";
@@ -89,11 +90,50 @@ function getAvailabilityLabel(
   const diffMs = startOfTarget.getTime() - startOfToday.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
+  if (diffDays <= 0 && diffDays >= -5) {
+    return "Nouveau";
+  }
+
   const prefix = mode === "launch" ? "Lancement" : "Disponible";
 
   if (diffDays <= 0) return `${prefix} aujourd’hui`;
   if (diffDays === 1) return `${prefix} demain`;
   return `${prefix} dans ${diffDays} jours`;
+}
+
+function renderStatus(status: HubActionStatus, availabilityLabel?: string) {
+  if (status === "disabled") {
+    if (availabilityLabel === "Nouveau") {
+      return (
+        <span className="inline-flex items-center gap-1 text-emerald-700">
+          <Sparkles size={14} />
+          Nouveau
+        </span>
+      );
+    }
+
+    return <span className="text-slate-500">{availabilityLabel}</span>;
+  }
+
+  if (status === "dev") {
+    return (
+      <span className="inline-flex items-center gap-1 text-amber-700">
+        <Hammer size={14} />
+        En cours de dev
+      </span>
+    );
+  }
+
+  if (availabilityLabel === "Nouveau") {
+    return (
+      <span className="inline-flex items-center gap-1 text-emerald-700">
+        <Sparkles size={14} />
+        Nouveau
+      </span>
+    );
+  }
+
+  return null;
 }
 
 function getActionStatus(item: HubAction): HubActionStatus {
@@ -110,7 +150,7 @@ export function LandingPage() {
     identity: true,
     prepare: true,
     discover: true,
-    contribute: true,
+    contribute: false,
     dayof: false,
     after: false,
   });
@@ -139,15 +179,25 @@ export function LandingPage() {
       photosVideos: false,
     },
     core: {
-      familyTree: true,
+      familyTree: false,
       familyLibrary: false,
+      familyTreePerson:true,
     },
   };
 
   const timeline = {
-    warmupQuizAt: "2026-04-12",
-    familyChallengesAt: "2026-03-24",
-    programAt: "2026-04-01",
+    present: "2026-03-14",
+    familyKnowledge: "2026-03-14",
+    attendance: "2026-03-14",
+    contact: "2026-03-14",
+    familyTree: "2026-03-22",
+    familyTreePerson: "2026-03-14",
+    familyLibrary: "2026-03-25",
+    testimonyBefore: "2026-03-22",
+    contribute: "2026-03-22",
+    warmupQuizAt: "2026-03-22",
+    familyChallengesAt: "2026-03-29",
+    programAt: "2026-04-05",
     teamGameAt: "2026-04-12",
     leaderboardAt: "2026-04-12",
     photosAt: "2026-04-12",
@@ -171,6 +221,7 @@ export function LandingPage() {
             enabled: features.preEvent.presentYourself,
             status: "enabled",
             badge: "Essentiel",
+            availableAt: timeline.present,
           },
           {
             key: "questionnaire",
@@ -181,6 +232,7 @@ export function LandingPage() {
             to: `/e/${slug}/family-knowledge`,
             enabled: features.preEvent.familyKnowledge,
             status: "enabled",
+            availableAt: timeline.familyKnowledge,
           },
           {
             key: "attendance",
@@ -190,6 +242,7 @@ export function LandingPage() {
             to: `/e/${slug}/attendance`,
             enabled: features.preEvent.attendance,
             status: "enabled",
+            availableAt: timeline.attendance,
           },
         ],
       },
@@ -218,6 +271,7 @@ export function LandingPage() {
             to: `/e/${slug}/contact`,
             enabled: features.preEvent.contactOrganizer,
             status: "enabled",
+            availableAt: timeline.contact,
           },
           {
             key: "quiz",
@@ -250,13 +304,24 @@ export function LandingPage() {
         subtitle: "Explorer les liens, les histoires et les archives.",
         items: [
           {
+            key: "family-tree-person",
+            label: "Gromèr Covindou",
+            description: "Découvre l'histoire et la généalogie de notre aïeule.",
+            icon: User,
+            to: `/e/${slug}/fiche?id=@7398@`,
+            enabled: features.core.familyTreePerson,
+            availableAt: timeline.familyTreePerson,
+            status: "enabled",
+          },
+          {
             key: "family-tree",
             label: "Explorer l’arbre familial",
             description: "Retrouve les liens entre les branches de la famille.",
             icon: MapIcon,
             to: `/e/${slug}/arbre`,
             enabled: features.core.familyTree,
-            status: "enabled",
+            availableAt: timeline.familyTree,
+            status: "disabled",
           },
           {
             key: "library",
@@ -265,6 +330,7 @@ export function LandingPage() {
             icon: Library,
             to: `/e/${slug}/bibliotheque`,
             enabled: features.core.familyLibrary,
+            availableAt: timeline.familyLibrary,
             status: "disabled",
           },
         ],
@@ -282,6 +348,7 @@ export function LandingPage() {
             to: `/e/${slug}/tree/contribute`,
             enabled: features.preEvent.enrichTree,
             status: "disabled",
+            availableAt: timeline.contribute,
           },
           {
             key: "testimony-before",
@@ -292,6 +359,7 @@ export function LandingPage() {
             to: `/e/${slug}/temoignage`,
             enabled: features.preEvent.testimonyBefore,
             status: "disabled",
+            availableAt: timeline.testimonyBefore,
           },
         ],
       },
@@ -528,6 +596,22 @@ export function LandingPage() {
 
         {mode === "guided" ? (
           <section className="mt-5 space-y-4">
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-amber-900">
+                    Chantiers en cours
+                  </div>
+                  <div className="mt-0.5 text-xs text-amber-800">
+                    <ol>
+                      <li>construire les actions rapides guidées</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {guidedPrompts.map((prompt) => {
               const item = actionMap.get(prompt.actionKey);
               if (!item) return null;
@@ -612,10 +696,9 @@ function GuidedPromptCard({
   const Icon = item.icon;
   const status = getActionStatus(item);
   const disabled = status !== "enabled";
-  const availabilityLabel =
-    status === "disabled"
-      ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
-      : null;
+  const availabilityLabel = item.availableAt
+    ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
+    : undefined;
 
   return (
     <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
@@ -692,10 +775,9 @@ function HubActionCard({
   const Icon = item.icon;
   const status = getActionStatus(item);
   const disabled = status !== "enabled";
-  const availabilityLabel =
-    status === "disabled"
-      ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
-      : null;
+  const availabilityLabel = item.availableAt
+    ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
+    : undefined;
 
   return (
     <button
@@ -776,24 +858,8 @@ function HubActionCard({
 
       <div className="mt-3 flex items-center justify-between">
         <div className="text-[11px] font-extrabold">
-          {status === "disabled" ? (
-            <span className="text-slate-500">{availabilityLabel}</span>
-          ) : status === "dev" ? (
-            <span className="inline-flex items-center gap-1 text-amber-700">
-              <Hammer size={14} />
-              En cours de dev
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
-              <CheckCircle2 size={14} />
-              Disponible
-            </span>
-          )}
+          {renderStatus(status, availabilityLabel)}
         </div>
-
-        {status === "enabled" ? (
-          <div className="text-[11px] font-black text-slate-500">Ouvrir</div>
-        ) : null}
       </div>
     </button>
   );

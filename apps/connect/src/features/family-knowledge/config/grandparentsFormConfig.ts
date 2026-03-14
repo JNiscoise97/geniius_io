@@ -54,10 +54,8 @@ export const grandparentsFormConfig = {
     chooseLabel: "Choisir",
   },
   footer: {
-    stepLabel: "Étape 3 sur 6",
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
-    readyLabel: "Prêt",
   },
   validation: {
     missingParticipant:

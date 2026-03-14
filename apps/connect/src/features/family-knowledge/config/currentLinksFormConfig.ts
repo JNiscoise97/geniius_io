@@ -26,10 +26,8 @@ export const currentLinksFormConfig = {
       "Même quelques contacts actuels peuvent aider à mieux comprendre comment la famille est reliée aujourd’hui.",
   },
   footer: {
-    stepLabel: "Étape 5 sur 6",
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
-    readyLabel: "Prêt",
   },
   validation: {
     missingParticipant:

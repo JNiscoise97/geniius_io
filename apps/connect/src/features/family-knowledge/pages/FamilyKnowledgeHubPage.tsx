@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpenText } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BookOpenText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -128,6 +128,23 @@ export function FamilyKnowledgeHubPage() {
         </section>
 
         <div className="mt-5 space-y-3">
+          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
+              <div className='flex items-start gap-3'>
+                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+                <div className='min-w-0'>
+                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                  <div className='mt-0.5 text-xs text-amber-800'>
+                    <ol>
+                      <li>Revoir le titre</li>
+                      <li>Revoir la barre de progression pour qu'elle se base sur la base de données</li>
+                      <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
+                      <li>revoir les labels des cartes</li>
+                      <li>créer une carte pour savoir uploader les photos</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
           {familyKnowledgeStepsConfig.map((step) => (
             <OnboardingStepCard
               key={step.key}

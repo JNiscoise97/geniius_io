@@ -53,6 +53,7 @@ import { ManagedProfilesPage } from "../features/participant-delegations/pages/M
 import { ParticipantGuard } from "../features/guard/ParticipantGuard";
 import { FamilyKnowledgeEntryPage } from "../features/family-knowledge/pages/FamilyKnowledgeEntryPage";
 import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPage";
+import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
 
 export const router = createBrowserRouter([
   {
@@ -127,6 +128,8 @@ export const router = createBrowserRouter([
               { path: "arbre/families/:familyId/siblings", element: <SiblingsPage /> },
               { path: "arbre/persons/:personId", element: <PersonPage /> },
               { path: "arbre/persons/:personId/lineage", element: <LineagePage /> },
+
+              { path: "fiche", element: <PersonSheetPage /> },
 
               // Managed profiles
               { path: "managed-profiles", element: <ManagedProfilesPage /> },
