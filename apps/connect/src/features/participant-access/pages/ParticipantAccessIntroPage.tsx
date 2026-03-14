@@ -1,16 +1,12 @@
 import { ArrowRight, ShieldCheck, TreePine, Users } from "lucide-react";
-import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParticipantAccessCreatePath } from "../config/participantAccessRoutes";
+import cousinade from "../../../assets/images/cousinade.jpg";
 
 export function ParticipantAccessIntroPage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
-
-  const heroImageSrc = useMemo(() => {
-    return "/images/cousinade.jpg";
-  }, []);
 
   function handleStart() {
     navigate(getParticipantAccessCreatePath(slug));
@@ -22,7 +18,7 @@ export function ParticipantAccessIntroPage() {
         <section className="animate-[fadeInUp_500ms_ease-out] overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm">
           <div className="relative h-[240px] w-full overflow-hidden">
             <img
-              src={heroImageSrc}
+              src={cousinade}
               alt="Famille réunie lors de la cousinade"
               className="h-full w-full scale-105 object-cover blur-[1px]"
             />
@@ -31,7 +27,6 @@ export function ParticipantAccessIntroPage() {
 
             <div className="absolute inset-x-0 bottom-0 p-5 text-white">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-extrabold backdrop-blur-sm">
-                <ShieldCheck size={14} />
                 Cousinade TANJAMA 2026
               </div>
 
@@ -40,7 +35,9 @@ export function ParticipantAccessIntroPage() {
               </h1>
 
               <p className="mt-3 max-w-[28ch] text-sm font-bold leading-6 text-white/90">
-                Une même racine. Plusieurs générations. Un seul rendez-vous.
+                Une même racine.
+                <br/>Plusieurs générations.
+                <br/>Un seul rendez-vous.
               </p>
             </div>
           </div>
