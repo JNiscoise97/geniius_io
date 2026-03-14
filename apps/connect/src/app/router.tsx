@@ -36,8 +36,6 @@ import { SiblingsPage } from "../features/family-tree/pages/SiblingsPage";
 import { PersonPage } from "../features/family-tree/pages/PersonPage";
 import { LineagePage } from "../features/family-tree/pages/LineagePage";
 
-import { FamilyKnowledgeHubPage } from "../features/family-knowledge/pages/FamilyKnowledgeHubPage";
-import { FamilyKnowledgeIntroPage } from "../features/family-knowledge/pages/FamilyKnowledgeIntroPage";
 import { FamilyKnowledgeCloseFamilyPage } from "../features/family-knowledge/pages/FamilyKnowledgeCloseFamilyPage";
 import { FamilyKnowledgeGrandparentsPage } from "../features/family-knowledge/pages/FamilyKnowledgeGrandparentsPage";
 import { FamilyKnowledgeGodparentsPage } from "../features/family-knowledge/pages/FamilyKnowledgeGodparentsPage";
@@ -51,6 +49,8 @@ import { ParticipantAccessPage } from "../features/participant-access/pages/Part
 import { DeviceProfilesPage } from "../features/device-profiles/pages/DeviceProfilesPage";
 import { ManagedProfilesPage } from "../features/participant-delegations/pages/ManagedProfilesPage";
 import { ParticipantGuard } from "../features/guard/ParticipantGuard";
+import { FamilyKnowledgeEntryPage } from "../features/family-knowledge/pages/FamilyKnowledgeEntryPage";
+import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPage";
 
 export const router = createBrowserRouter([
   {
@@ -96,8 +96,7 @@ export const router = createBrowserRouter([
           { path: "contact", element: <ParticipantContactOrganizerPage /> },
 
           // Family knowledge
-          { path: "family-knowledge", element: <FamilyKnowledgeHubPage /> },
-          { path: "family-knowledge/intro", element: <FamilyKnowledgeIntroPage /> },
+          { path: "family-knowledge", element: <FamilyKnowledgeEntryPage /> },
           {
             path: "family-knowledge/close-family",
             element: <FamilyKnowledgeCloseFamilyPage />,
@@ -117,7 +116,7 @@ export const router = createBrowserRouter([
           { path: "family-knowledge/memory", element: <FamilyKnowledgeMemoryPage /> },
 
           // Family tree
-          { path: "arbre", element: <BranchesPage /> },
+          { path: "arbre", element: <FamilyTreeHubPage /> },
           { path: "arbre/branches/:branchId/families", element: <FamiliesPage /> },
           { path: "arbre/families/:familyId/siblings", element: <SiblingsPage /> },
           { path: "arbre/persons/:personId", element: <PersonPage /> },

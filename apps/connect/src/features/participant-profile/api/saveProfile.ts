@@ -22,7 +22,6 @@ export async function saveProfile({
       occupation: cleanText(values.occupation),
       interests: cleanText(values.interests),
       personality_word: cleanText(values.personalityWord),
-      family_memory: cleanText(values.familyMemory),
       cousinade_expectation: cleanText(values.cousinadeExpectation),
       free_share: cleanText(values.freeShare),
       completed: true,

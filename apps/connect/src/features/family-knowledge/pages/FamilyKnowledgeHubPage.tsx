@@ -29,10 +29,6 @@ function getLocalParticipantSession(slug: string): LocalParticipantSession | nul
 
 function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
   return {
-    intro:
-      localStorage.getItem(`connect:${slug}:family-knowledge:intro`) === "done"
-        ? "done"
-        : "todo",
     close_family:
       localStorage.getItem(`connect:${slug}:family-knowledge:close_family`) ===
       "done"
@@ -66,7 +62,6 @@ export function FamilyKnowledgeHubPage() {
   const slug = eventSlug ?? "demo";
 
   const [progress, setProgress] = useState<StepProgressByKey>({
-    intro: "todo",
     close_family: "todo",
     grandparents: "todo",
     godparents: "todo",
@@ -158,7 +153,7 @@ export function FamilyKnowledgeHubPage() {
               ctaLabel={step.ctaLabel}
               status={progress[step.key]}
               highlight={
-                (step.key === "intro" || step.key === "close_family") &&
+                (step.key === "close_family") &&
                 progress[step.key] !== "done"
               }
               onClick={() =>

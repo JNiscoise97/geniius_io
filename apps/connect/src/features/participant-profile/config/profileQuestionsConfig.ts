@@ -67,15 +67,6 @@ export const profileQuestionsConfig: ProfileFormConfig = {
       maxLength: 80,
     },
     {
-      key: "family_memory",
-      label: "Quel souvenir ou quelle image te vient quand tu penses à la famille ?",
-      helpText:
-        "Une ambiance, un moment, une personne, un lieu… ce qui te vient spontanément.",
-      type: "textarea",
-      placeholder: "Quelques lignes si tu le souhaites…",
-      maxLength: 600,
-    },
-    {
       key: "cousinade_expectation",
       label: "Qu’aimerais-tu retrouver ou découvrir pendant la cousinade ?",
       helpText:

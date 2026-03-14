@@ -1,1 +1,1 @@
-export const PUBLIC_EVENT_SLUG = "tanjama-2026";
+export const PUBLIC_EVENT_SLUG = "tanjama-test";

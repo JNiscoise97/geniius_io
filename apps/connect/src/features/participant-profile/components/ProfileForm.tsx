@@ -7,7 +7,6 @@ export type ProfileFormValues = {
   occupation: string;
   interests: string;
   personalityWord: string;
-  familyMemory: string;
   cousinadeExpectation: string;
   freeShare: string;
 };
@@ -37,8 +36,6 @@ export function ProfileForm({
         return value.interests;
       case "personality_word":
         return value.personalityWord;
-      case "family_memory":
-        return value.familyMemory;
       case "cousinade_expectation":
         return value.cousinadeExpectation;
       case "free_share":
@@ -61,9 +58,6 @@ export function ProfileForm({
         break;
       case "personality_word":
         onChange({ personalityWord: next });
-        break;
-      case "family_memory":
-        onChange({ familyMemory: next });
         break;
       case "cousinade_expectation":
         onChange({ cousinadeExpectation: next });

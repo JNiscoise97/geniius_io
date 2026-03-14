@@ -4,14 +4,12 @@ import {
   Network,
   ScrollText,
   Users,
-  WandSparkles,
   type LucideIcon,
 } from "lucide-react";
 
 export type FamilyKnowledgeStepStatus = "todo" | "in_progress" | "done";
 
 export type FamilyKnowledgeStepKey =
-  | "intro"
   | "close_family"
   | "grandparents"
   | "godparents"
@@ -28,15 +26,6 @@ export type FamilyKnowledgeStepConfig = {
 };
 
 export const familyKnowledgeStepsConfig: FamilyKnowledgeStepConfig[] = [
-  {
-    key: "intro",
-    title: "Un petit mot avant de commencer",
-    subtitle:
-      "Une courte introduction pour entrer dans cette démarche de transmission familiale.",
-    ctaLabel: "Lire et continuer",
-    icon: WandSparkles,
-    routeSuffix: "intro",
-  },
   {
     key: "close_family",
     title: "Ta famille proche",

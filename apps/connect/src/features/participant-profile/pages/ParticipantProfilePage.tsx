@@ -25,7 +25,6 @@ export function ParticipantProfilePage() {
     occupation: "",
     interests: "",
     personalityWord: "",
-    familyMemory: "",
     cousinadeExpectation: "",
     freeShare: "",
   });
