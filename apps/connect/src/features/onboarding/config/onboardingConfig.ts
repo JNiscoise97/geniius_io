@@ -1,5 +1,4 @@
 import {
-  Contact,
   MessageCircleHeart,
   UserCircle2,
   Settings,
@@ -9,7 +8,7 @@ import {
 export type OnboardingStepStatus = "todo" | "in_progress" | "done";
 
 export type OnboardingStepConfig = {
-  key: "identity" | "profile" | "contact" | "preferences";
+  key: "identity" | "profile" | "preferences";
   title: string;
   subtitle: string;
   why: string;
@@ -48,15 +47,5 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
     ctaLabel: "Partager quelques infos",
     icon: MessageCircleHeart,
     routeSuffix: "profile",
-  },
-  {
-    key: "contact",
-    title: "Rester en contact si tu le souhaites",
-    subtitle:
-      "Tu peux laisser un moyen de te joindre pour rester en lien avec la famille.",
-    why: "Cela permet par exemple de recevoir les photos ou de garder le contact après la rencontre.",
-    ctaLabel: "Gérer mes coordonnées",
-    icon: Contact,
-    routeSuffix: "contact",
-  },
+  }
 ];

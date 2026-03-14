@@ -13,7 +13,7 @@ import { supabase } from "../../../lib/supabase/client";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type StepProgressByKey = Record<
-  "identity" | "profile" | "contact" | "preferences",
+  "identity" | "profile" | "preferences",
   OnboardingStepStatus
 >;
 
@@ -25,10 +25,6 @@ function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
         : "todo",
     profile:
       localStorage.getItem(`connect:${slug}:onboarding:profile`) === "done"
-        ? "done"
-        : "todo",
-    contact:
-      localStorage.getItem(`connect:${slug}:onboarding:contact`) === "done"
         ? "done"
         : "todo",
     preferences:
@@ -46,7 +42,6 @@ export function OnboardingHubPage() {
   const [progress, setProgress] = useState<StepProgressByKey>({
     identity: "todo",
     profile: "todo",
-    contact: "todo",
     preferences: "todo",
   });
 
@@ -66,7 +61,7 @@ export function OnboardingHubPage() {
       try {
         const participantId = participantSession.participantId;
 
-        const [identityRes, profileRes, contactRes, preferencesRes] = await Promise.all([
+        const [identityRes, profileRes, preferencesRes] = await Promise.all([
           supabase
             .from("participant_identity")
             .select("completed")
@@ -75,12 +70,6 @@ export function OnboardingHubPage() {
 
           supabase
             .from("participant_profile")
-            .select("completed")
-            .eq("participant_id", participantId)
-            .maybeSingle(),
-
-          supabase
-            .from("participant_contact")
             .select("completed")
             .eq("participant_id", participantId)
             .maybeSingle(),
@@ -97,7 +86,6 @@ export function OnboardingHubPage() {
         const nextProgress: StepProgressByKey = {
           identity: identityRes.data?.completed ? "done" : "todo",
           profile: profileRes.data?.completed ? "done" : "todo",
-          contact: contactRes.data?.completed ? "done" : "todo",
           preferences: preferencesRes.data?.completed ? "done" : "todo",
         };
 

@@ -82,7 +82,7 @@ export function DeviceProfilesPage() {
         {/* ACTIONS */}
         <section className="mt-6 space-y-3">
           <button
-            onClick={() => nav(`/e/${slug}/welcome/identity`)}
+            onClick={() => nav(`/e/${slug}/home`)}
             className="w-full rounded-[26px] border border-slate-200 bg-white p-4 text-left shadow-sm"
           >
             <div className="flex items-center gap-3">

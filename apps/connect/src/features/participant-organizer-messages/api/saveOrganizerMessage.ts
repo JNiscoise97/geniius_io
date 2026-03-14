@@ -30,10 +30,12 @@ export async function saveOrganizerMessage({
       topic: values.topic,
       message: values.message.trim(),
       wantsReply: values.wantsReply,
-      replyPreference: values.wantsReply ? values.replyPreference || null : null,
+      preferredContactChannels: values.wantsReply
+        ? values.preferredContactChannels
+        : [],
       email: values.wantsReply ? cleanText(values.email) : null,
       phone: values.wantsReply ? cleanText(values.phone) : null,
-      whatsapp: values.wantsReply ? cleanText(values.whatsapp) : null,
+      hasWhatsapp: values.wantsReply ? values.hasWhatsapp === true : false,
       messenger: values.wantsReply ? cleanText(values.messenger) : null,
     },
   };

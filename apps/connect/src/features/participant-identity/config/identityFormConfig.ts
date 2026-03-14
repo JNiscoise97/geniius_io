@@ -1,3 +1,5 @@
+import type { ContactChannel } from "../../participant-access/components/ContactChannelCheckboxGroup";
+
 export type IdentityOption = {
   key: string;
   label: string;
@@ -31,6 +33,26 @@ export type IdentityFormConfig = {
       required: boolean;
       helpText?: string;
     };
+    phone: {
+      label: string;
+      placeholder: string;
+    };
+    email: {
+      label: string;
+      placeholder: string;
+    };
+    messenger: {
+      label: string;
+      placeholder: string;
+    };
+    hasWhatsapp: {
+      label: string;
+      helpText?: string;
+    };
+    preferredContactChannels: {
+      label: string;
+      helpText?: string;
+    };
     branches: {
       label: string;
       helpText?: string;
@@ -59,21 +81,42 @@ export const identityFormConfig: IdentityFormConfig = {
     },
     lastName: {
       label: "Nom",
-      placeholder: "Nom de famille",
+      placeholder: "TANJAMA",
       required: true,
     },
     nickname: {
       label: "Surnom",
       placeholder: "Ex : Mimi",
       required: false,
-      helpText:
-        "",
+      helpText: "",
     },
     birthYear: {
       label: "Année de naissance",
       placeholder: "Ex : 1987",
       required: false,
       helpText: "",
+    },
+    phone: {
+      label: "Téléphone",
+      placeholder: "Ex : 0692...",
+    },
+    email: {
+      label: "Email",
+      placeholder: "Ex : toi@email.com",
+    },
+    messenger: {
+      label: "Messenger",
+      placeholder: "Lien ou identifiant",
+    },
+    hasWhatsapp: {
+      label: "Ce numéro a aussi WhatsApp",
+      helpText:
+        "Active cette option seulement si le numéro indiqué pour le téléphone peut aussi être utilisé sur WhatsApp.",
+    },
+    preferredContactChannels: {
+      label: "Moyen de contact à privilégier",
+      helpText:
+        "Choisis au moins un moyen si tu veux être recontacté facilement.",
     },
     branches: {
       label: "Branche familiale (si tu la connais)",
@@ -98,3 +141,5 @@ export const identityFormConfig: IdentityFormConfig = {
     },
   },
 };
+
+export type { ContactChannel };

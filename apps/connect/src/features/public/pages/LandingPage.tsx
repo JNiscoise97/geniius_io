@@ -1,28 +1,27 @@
 import {
   ArrowRight,
   CalendarCheck,
+  Camera,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   ClipboardList,
   Contact,
   Gamepad2,
   Gift,
+  Hammer,
   Info,
   Library,
+  Lock,
   Mail,
-  Map,
+  Map as MapIcon,
   MessageCircle,
-  ShieldCheck,
+  Sparkles,
   Star,
   TreePine,
   Trophy,
   UserCircle2,
   Users,
-  Camera,
-  Sparkles,
-  CheckCircle2,
-  Lock,
-  Hammer,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,6 +31,7 @@ import { getParticipantSession } from "../../../lib/participant-session/getActiv
 
 type HubActionStatus = "enabled" | "dev" | "disabled";
 type HubAvailabilityMode = "available" | "launch";
+type LandingMode = "guided" | "all";
 
 type HubAction = {
   key: string;
@@ -51,10 +51,20 @@ type HubSection = {
   key: string;
   title: string;
   subtitle: string;
-  accentClass: string;
-  ringClass: string;
   items: HubAction[];
 };
+
+type GuidedPrompt = {
+  key: string;
+  eyebrow?: string;
+  title: string;
+  text: string;
+  cta: string;
+  actionKey: string;
+};
+
+const SECTION_HEADER_CLASS =
+  "bg-[linear-gradient(135deg,#3b4274_0%,#4b53a6_100%)] text-white shadow-[0_10px_24px_rgba(59,66,116,0.18)]";
 
 function getAvailabilityLabel(
   dateString?: string,
@@ -86,17 +96,16 @@ function getAvailabilityLabel(
   return `${prefix} dans ${diffDays} jours`;
 }
 
+function getActionStatus(item: HubAction): HubActionStatus {
+  return item.status ?? (item.enabled ? "enabled" : "disabled");
+}
+
 export function LandingPage() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
-  Object.keys(localStorage)
-    .filter(key => key.startsWith("connect:"))
-    .forEach(key => {
-      console.log(key, localStorage.getItem(key));
-    });
-
+  const [mode, setMode] = useState<LandingMode>("guided");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     identity: true,
     prepare: true,
@@ -151,14 +160,12 @@ export function LandingPage() {
         key: "identity",
         title: "Me présenter",
         subtitle: "Dire qui je suis et annoncer ma venue.",
-        accentClass:
-          "bg-gradient-to-br from-indigo-600 to-violet-600 text-white",
-        ringClass: "ring-indigo-200",
         items: [
           {
             key: "present",
             label: "Se présenter à la famille",
-            description: "Présente-toi pour aider les cousins à mieux te situer.",
+            description:
+              "Présente-toi pour aider les cousins à mieux te situer.",
             icon: UserCircle2,
             to: `/e/${slug}/welcome`,
             enabled: features.preEvent.presentYourself,
@@ -168,7 +175,8 @@ export function LandingPage() {
           {
             key: "questionnaire",
             label: "Partager ce que tu sais sur ta famille",
-            description: "Ajoute ce que tu sais pour enrichir l’histoire familiale.",
+            description:
+              "Ajoute ce que tu sais pour enrichir l’histoire familiale.",
             icon: ClipboardList,
             to: `/e/${slug}/family-knowledge`,
             enabled: features.preEvent.familyKnowledge,
@@ -189,13 +197,12 @@ export function LandingPage() {
         key: "prepare",
         title: "Préparer la rencontre",
         subtitle: "S’informer et se projeter avant le jour J.",
-        accentClass: "bg-gradient-to-br from-sky-600 to-cyan-600 text-white",
-        ringClass: "ring-sky-200",
         items: [
           {
             key: "program",
             label: "Découvrir le programme",
-            description: "Retrouve l’essentiel pour profiter pleinement de la journée.",
+            description:
+              "Retrouve l’essentiel pour profiter pleinement de la journée.",
             icon: Info,
             to: `/e/${slug}/programme`,
             enabled: features.preEvent.dayProgram,
@@ -241,15 +248,12 @@ export function LandingPage() {
         key: "discover",
         title: "Découvrir la famille",
         subtitle: "Explorer les liens, les histoires et les archives.",
-        accentClass:
-          "bg-gradient-to-br from-amber-500 to-orange-500 text-white",
-        ringClass: "ring-amber-200",
         items: [
           {
             key: "family-tree",
             label: "Explorer l’arbre familial",
             description: "Retrouve les liens entre les branches de la famille.",
-            icon: Map,
+            icon: MapIcon,
             to: `/e/${slug}/arbre`,
             enabled: features.core.familyTree,
             status: "enabled",
@@ -269,9 +273,6 @@ export function LandingPage() {
         key: "contribute",
         title: "Contribuer à la mémoire familiale",
         subtitle: "Partager, transmettre et laisser une trace.",
-        accentClass:
-          "bg-gradient-to-br from-green-600 to-emerald-600 text-white",
-        ringClass: "ring-green-200",
         items: [
           {
             key: "tree-contrib",
@@ -285,7 +286,8 @@ export function LandingPage() {
           {
             key: "testimony-before",
             label: "Partager un souvenir de famille",
-            description: "Transmets une anecdote ou un souvenir qui compte pour toi.",
+            description:
+              "Transmets une anecdote ou un souvenir qui compte pour toi.",
             icon: MessageCircle,
             to: `/e/${slug}/temoignage`,
             enabled: features.preEvent.testimonyBefore,
@@ -297,9 +299,6 @@ export function LandingPage() {
         key: "dayof",
         title: "Le jour J",
         subtitle: "Participer, jouer et garder le lien sur place.",
-        accentClass:
-          "bg-gradient-to-br from-fuchsia-600 to-pink-600 text-white",
-        ringClass: "ring-fuchsia-200",
         items: [
           {
             key: "team-game",
@@ -341,9 +340,6 @@ export function LandingPage() {
         key: "after",
         title: "Après la rencontre",
         subtitle: "Retrouver les souvenirs et prolonger le lien.",
-        accentClass:
-          "bg-gradient-to-br from-emerald-600 to-teal-600 text-white",
-        ringClass: "ring-emerald-200",
         items: [
           {
             key: "feedback",
@@ -384,10 +380,82 @@ export function LandingPage() {
     [slug],
   );
 
-  const slugName = slug.toUpperCase();
+  const actionMap = useMemo(() => {
+    const entries = sections.flatMap((section) =>
+      section.items.map((item) => [item.key, item] as const),
+    );
+    return new Map(entries);
+  }, [sections]);
 
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
+  const firstName = participantSession?.firstName?.trim();
+
+  const guidedPrompts = useMemo<GuidedPrompt[]>(() => {
+    const prompts: GuidedPrompt[] = [];
+
+    if (actionMap.has("attendance")) {
+      prompts.push({
+        key: "attendance-first",
+        eyebrow: "Pour bien commencer",
+        title: "As-tu déjà confirmé ta présence ?",
+        text: "Aide-nous à préparer la journée en annonçant ta venue.",
+        cta: "Confirmer ma présence",
+        actionKey: "attendance",
+      });
+    }
+
+    if (actionMap.has("questionnaire")) {
+      prompts.push({
+        key: "grandparents",
+        eyebrow: "Mémoire familiale",
+        title: "As-tu connu tes grands-parents ?",
+        text: "Partage ce que tu sais pour aider à préserver l’histoire familiale.",
+        cta: "Partager ce que je sais",
+        actionKey: "questionnaire",
+      });
+    }
+
+    if (actionMap.has("family-tree")) {
+      prompts.push({
+        key: "lineage",
+        eyebrow: "Arbre familial",
+        title: "Connais-tu ton lien exact avec Gromèr Covindou ?",
+        text: "Retrouve ta place dans l’arbre et explore les liens entre les branches.",
+        cta: "Voir mon lien dans l’arbre",
+        actionKey: "family-tree",
+      });
+    }
+
+    if (actionMap.has("present")) {
+      prompts.unshift({
+        key: "present-first",
+        eyebrow: "Profil",
+        title: firstName
+          ? `${firstName}, veux-tu te présenter à la famille ?`
+          : "Veux-tu te présenter à la famille ?",
+        text: "Quelques informations aident les cousins à mieux te situer.",
+        cta: "Compléter mon profil",
+        actionKey: "present",
+      });
+    }
+
+    return prompts.slice(0, 4);
+  }, [actionMap, firstName]);
+
+  function openAction(item: HubAction) {
+    const status = getActionStatus(item);
+    if (status !== "enabled") return;
+
+    if (item.externalHref) {
+      window.location.href = item.externalHref;
+      return;
+    }
+
+    if (item.to) {
+      navigate(item.to);
+    }
+  }
 
   useEffect(() => {
     if (!participantId) return;
@@ -395,7 +463,7 @@ export function LandingPage() {
     const tracker = createPageTimeTracker({
       participantId,
       eventSlug: slug,
-      pageKey: `/e/${slug}`,
+      pageKey: `/e/${slug}/home`,
     });
 
     tracker.start();
@@ -412,94 +480,205 @@ export function LandingPage() {
           <div className="p-5">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold">
               <Users size={14} />
-              Cousinade {slugName}
+              Cousinade {slug.toUpperCase()}
             </div>
 
             <h1 className="mt-4 text-[30px] leading-[1.02] font-black tracking-tight">
-              Un seul endroit
-              <br />
-              pour toute la cousinade
+              {firstName
+                ? `Bienvenue ${firstName}`
+                : "Bienvenue dans l’espace famille"}
             </h1>
 
             <p className="mt-3 max-w-[38rem] text-sm font-bold leading-6 text-white/88">
-              Prépare la rencontre, participe plus facilement et garde une trace
-              de cette journée en famille.
+              Commence simplement avec quelques actions utiles, puis explore tout
+              l’espace famille à ton rythme.
             </p>
           </div>
         </section>
 
-        <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-2xl bg-slate-100 p-2 text-slate-700">
-              <ShieldCheck size={18} />
-            </div>
-            <div>
-              <div className="text-[16px] font-black text-slate-900">
-                Première visite ?
-              </div>
-              <p className="mt-1 text-sm font-bold leading-6 text-slate-700">
-                Commence par te présenter, puis confirme ta présence.
-              </p>
-            </div>
+        <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-2 shadow-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("guided")}
+              className={[
+                "rounded-2xl px-4 py-3 text-sm font-black transition",
+                mode === "guided"
+                  ? "bg-[color:var(--blue)] text-white"
+                  : "bg-slate-50 text-slate-700",
+              ].join(" ")}
+            >
+              Actions rapides
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode("all")}
+              className={[
+                "rounded-2xl px-4 py-3 text-sm font-black transition",
+                mode === "all"
+                  ? "bg-[color:var(--blue)] text-white"
+                  : "bg-slate-50 text-slate-700",
+              ].join(" ")}
+            >
+              Tout explorer
+            </button>
           </div>
         </section>
 
-        <div className="mt-5 space-y-4">
-          {sections.map((section) => {
-            const isOpen = openSections[section.key];
+        {mode === "guided" ? (
+          <section className="mt-5 space-y-4">
+            {guidedPrompts.map((prompt) => {
+              const item = actionMap.get(prompt.actionKey);
+              if (!item) return null;
 
-            return (
-              <section key={section.key} className="space-y-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenSections((prev) => ({
-                      ...prev,
-                      [section.key]: !prev[section.key],
-                    }))
-                  }
-                  className={`w-full rounded-[26px] p-4 text-left ${section.accentClass}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[20px] font-black">
-                        {section.title}
+              return (
+                <GuidedPromptCard
+                  key={prompt.key}
+                  prompt={prompt}
+                  item={item}
+                  onClick={() => openAction(item)}
+                />
+              );
+            })}
+          </section>
+        ) : (
+          <div className="mt-5 space-y-4">
+            {sections.map((section) => {
+              const isOpen = openSections[section.key];
+
+              return (
+                <section key={section.key} className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenSections((prev) => ({
+                        ...prev,
+                        [section.key]: !prev[section.key],
+                      }))
+                    }
+                    className={`w-full rounded-[26px] p-4 text-left ${SECTION_HEADER_CLASS}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[20px] font-black">
+                          {section.title}
+                        </div>
+                        <p className="mt-1 text-sm font-bold leading-6 text-white/90">
+                          {section.subtitle}
+                        </p>
                       </div>
-                      <p className="mt-1 text-sm font-bold leading-6 text-white/90">
-                        {section.subtitle}
-                      </p>
-                    </div>
 
-                    <div className="shrink-0 rounded-2xl bg-white/10 p-2 text-white">
-                      {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      <div className="shrink-0 rounded-2xl bg-white/10 p-2 text-white">
+                        {isOpen ? (
+                          <ChevronDown size={18} />
+                        ) : (
+                          <ChevronRight size={18} />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
 
-                {isOpen ? (
-                  <div className="grid gap-3">
-                    {section.items.map((item) => (
-                      <HubActionCard
-                        key={item.key}
-                        item={item}
-                        onClick={() => {
-                          if (!item.enabled || item.status !== "enabled") return;
-                          if (item.externalHref) {
-                            window.location.href = item.externalHref;
-                            return;
-                          }
-                          if (item.to) nav(item.to);
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </section>
-            );
-          })}
-        </div>
+                  {isOpen ? (
+                    <div className="grid gap-3">
+                      {section.items.map((item) => (
+                        <HubActionCard
+                          key={item.key}
+                          item={item}
+                          onClick={() => openAction(item)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
+  );
+}
+
+function GuidedPromptCard({
+  prompt,
+  item,
+  onClick,
+}: {
+  prompt: GuidedPrompt;
+  item: HubAction;
+  onClick: () => void;
+}) {
+  const Icon = item.icon;
+  const status = getActionStatus(item);
+  const disabled = status !== "enabled";
+  const availabilityLabel =
+    status === "disabled"
+      ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
+      : null;
+
+  return (
+    <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+      {prompt.eyebrow ? (
+        <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+          {prompt.eyebrow}
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex items-start gap-4">
+        <div
+          className={[
+            "mt-0.5 rounded-2xl p-3",
+            disabled
+              ? "bg-slate-200 text-slate-500"
+              : "bg-indigo-50 text-indigo-700",
+          ].join(" ")}
+        >
+          <Icon size={20} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h2
+            className={[
+              "text-lg font-black leading-6",
+              disabled ? "text-slate-500" : "text-slate-900",
+            ].join(" ")}
+          >
+            {prompt.title}
+          </h2>
+
+          <p
+            className={[
+              "mt-2 text-sm font-bold leading-6",
+              disabled ? "text-slate-500" : "text-slate-700",
+            ].join(" ")}
+          >
+            {prompt.text}
+          </p>
+
+          {disabled ? (
+            <div className="mt-3 text-[11px] font-extrabold text-slate-500">
+              {availabilityLabel}
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className={[
+              "mt-4 inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition",
+              disabled
+                ? "bg-slate-100 text-slate-400"
+                : "bg-[color:var(--blue)] text-white active:scale-[0.99]",
+            ].join(" ")}
+          >
+            {prompt.cta}
+            {!disabled ? <ArrowRight size={16} /> : null}
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -511,7 +690,7 @@ function HubActionCard({
   onClick: () => void;
 }) {
   const Icon = item.icon;
-  const status = item.status ?? (item.enabled ? "enabled" : "disabled");
+  const status = getActionStatus(item);
   const disabled = status !== "enabled";
   const availabilityLabel =
     status === "disabled"
@@ -524,8 +703,7 @@ function HubActionCard({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "w-full rounded-[24px] border p-4 text-left transition-all",
-        "shadow-sm",
+        "w-full rounded-[24px] border p-4 text-left shadow-sm transition-all",
         disabled
           ? "border-slate-200 bg-slate-50 opacity-80"
           : "border-slate-200 bg-white active:scale-[0.99] active:shadow-none",
@@ -537,14 +715,14 @@ function HubActionCard({
             "mt-0.5 rounded-2xl p-3",
             disabled
               ? "bg-slate-200 text-slate-500"
-              : "bg-slate-100 text-slate-900",
+              : "bg-indigo-50 text-indigo-700",
           ].join(" ")}
         >
           <Icon size={20} />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <div
               className={[
                 "text-[15px] font-black",
@@ -554,7 +732,7 @@ function HubActionCard({
               {item.label}
             </div>
 
-            {item.badge && (
+            {item.badge ? (
               <span
                 className={[
                   "rounded-full px-2 py-1 text-[10px] font-black",
@@ -565,7 +743,7 @@ function HubActionCard({
               >
                 {item.badge}
               </span>
-            )}
+            ) : null}
           </div>
 
           <p
@@ -613,9 +791,9 @@ function HubActionCard({
           )}
         </div>
 
-        {status === "enabled" && (
+        {status === "enabled" ? (
           <div className="text-[11px] font-black text-slate-500">Ouvrir</div>
-        )}
+        ) : null}
       </div>
     </button>
   );

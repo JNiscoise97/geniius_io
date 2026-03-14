@@ -1,7 +1,11 @@
 export const createProfileConfig = {
+  badge: "Profil famille",
   title: "Créer ton profil",
   subtitle:
-    "Nous allons enregistrer ton profil sur cet appareil et t’envoyer aussi un lien personnel pour le retrouver plus tard.",
+    "Quelques informations suffisent pour entrer dans l’espace famille.",
   helper:
-    "Tu peux indiquer plusieurs moyens de contact. Nous utiliserons en priorité ceux que tu sélectionnes.",
+    "Ton profil restera sur ce téléphone. Un lien personnel te sera aussi envoyé.",
+  contactTitle: "Contact",
+  contactHelper:
+    "Indique au moins un contact et choisis ton moyen préféré.",
 };

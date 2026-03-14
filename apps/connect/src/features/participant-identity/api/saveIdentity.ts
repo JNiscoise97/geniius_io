@@ -24,6 +24,15 @@ function toBirthYearOrNull(raw: string): number | null {
   return year;
 }
 
+function cleanText(value: string): string | null {
+  const s = value.trim();
+  return s ? s : null;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+}
+
 function generateRecoveryToken(length = 48): string {
   const alphabet =
     "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
@@ -41,16 +50,23 @@ export async function saveIdentity({
   let finalParticipantId = participantId ?? null;
   let recoveryToken: string | null = null;
 
+  const payload = {
+    first_name: values.firstName.trim(),
+    last_name: values.lastName.trim(),
+    nickname: cleanText(values.nickname),
+    birth_year: toBirthYearOrNull(values.birthYear),
+    phone: cleanText(values.phone),
+    email: cleanText(values.email),
+    has_whatsapp: values.hasWhatsapp === true,
+    messenger: cleanText(values.messenger),
+    preferred_contact_channels: uniqueStrings(values.preferredContactChannels),
+    updated_at: new Date().toISOString(),
+  };
+
   if (finalParticipantId) {
     const updateParticipant = await supabase
       .from("participants")
-      .update({
-        first_name: values.firstName.trim(),
-        last_name: values.lastName.trim(),
-        nickname: values.nickname.trim() || null,
-        birth_year: toBirthYearOrNull(values.birthYear),
-        updated_at: new Date().toISOString(),
-      })
+      .update(payload)
       .eq("id", finalParticipantId)
       .select("id, recovery_token")
       .single();
@@ -60,7 +76,8 @@ export async function saveIdentity({
     }
 
     finalParticipantId = updateParticipant.data.id as string;
-    recoveryToken = (updateParticipant.data.recovery_token as string | null) ?? null;
+    recoveryToken =
+      (updateParticipant.data.recovery_token as string | null) ?? null;
   } else {
     const newRecoveryToken = generateRecoveryToken(48);
 
@@ -68,10 +85,7 @@ export async function saveIdentity({
       .from("participants")
       .insert({
         event_slug: eventSlug,
-        first_name: values.firstName.trim(),
-        last_name: values.lastName.trim(),
-        nickname: values.nickname.trim() || null,
-        birth_year: toBirthYearOrNull(values.birthYear),
+        ...payload,
         recovery_token: newRecoveryToken,
         recovery_token_created_at: new Date().toISOString(),
       })
@@ -83,7 +97,8 @@ export async function saveIdentity({
     }
 
     finalParticipantId = insertParticipant.data.id as string;
-    recoveryToken = (insertParticipant.data.recovery_token as string | null) ?? null;
+    recoveryToken =
+      (insertParticipant.data.recovery_token as string | null) ?? null;
   }
 
   const upsertIdentity = await supabase.from("participant_identity").upsert(

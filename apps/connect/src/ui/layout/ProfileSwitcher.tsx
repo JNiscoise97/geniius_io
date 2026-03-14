@@ -204,22 +204,6 @@ export function ProfileSwitcher() {
 
             <div className="p-3">
               <div className="grid gap-2">
-                <Link
-                  to={`/e/${slug}/device-profiles`}
-                  onClick={() => setOpen(false)}
-                  className="rounded-2xl bg-slate-50 px-3 py-3 text-sm font-black text-slate-900 transition hover:bg-slate-100"
-                >
-                  Gérer les profils sur cet appareil
-                </Link>
-
-                <Link
-                  to={`/e/${slug}/managed-profiles`}
-                  onClick={() => setOpen(false)}
-                  className="rounded-2xl bg-slate-50 px-3 py-3 text-sm font-black text-slate-900 transition hover:bg-slate-100"
-                >
-                  Voir les profils que je gère
-                </Link>
-
                 <button
                   type="button"
                   onClick={handleLogout}

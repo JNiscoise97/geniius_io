@@ -29,7 +29,7 @@ function hasAtLeastOneRequiredContact(
 }
 
 export function ParticipantAccessCreatePage() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
@@ -147,7 +147,7 @@ export function ParticipantAccessCreatePage() {
         }),
       );
 
-      nav(`/e/${participant.eventSlug}/home`, { replace: true });
+      navigate(`/e/${participant.eventSlug}/home`, { replace: true });
     } catch (e: any) {
       setError(e?.message ?? "Impossible de créer le profil.");
     } finally {
@@ -157,23 +157,33 @@ export function ParticipantAccessCreatePage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <main className="c-container pt-3 pb-28">
-        <section className="rounded-[28px] bg-white border border-slate-200 shadow-sm p-5">
+      <main className="c-container pt-4 pb-28">
+        <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
             <ShieldCheck size={14} />
-            Nouveau profil
+            {createProfileConfig.badge}
           </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {createProfileConfig.title}
           </h1>
 
-          <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
+          <p className="mt-2 text-sm font-bold text-slate-700">
             {createProfileConfig.subtitle}
           </p>
 
-          <p className="mt-3 text-xs font-bold leading-5 text-slate-600">
+          <p className="mt-3 text-xs font-bold leading-5 text-slate-500">
             {createProfileConfig.helper}
+          </p>
+        </section>
+
+        <section className="mt-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-black text-slate-900">
+            {createProfileConfig.contactTitle}
+          </div>
+
+          <p className="mt-1 text-xs font-bold leading-5 text-slate-600">
+            {createProfileConfig.contactHelper}
           </p>
         </section>
 

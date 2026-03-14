@@ -11,24 +11,30 @@ import { getIdentity } from "../api/getIdentity";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
+const INITIAL_VALUES: IdentityFormValues = {
+  firstName: "",
+  lastName: "",
+  nickname: "",
+  birthYear: "",
+  phone: "",
+  email: "",
+  hasWhatsapp: false,
+  messenger: "",
+  preferredContactChannels: [],
+  branchKeys: [],
+  previousEditionKeys: [],
+};
 
-
-
+function hasAtLeastOneRequiredContact(values: IdentityFormValues): boolean {
+  return Boolean(values.phone.trim() || values.email.trim());
+}
 
 export function ParticipantIdentityPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
-  const [values, setValues] = useState<IdentityFormValues>({
-    firstName: "",
-    lastName: "",
-    nickname: "",
-    birthYear: "",
-    branchKeys: [],
-    previousEditionKeys: [],
-  });
-
+  const [values, setValues] = useState<IdentityFormValues>(INITIAL_VALUES);
   const [loading, setLoading] = useState(false);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +102,42 @@ export function ParticipantIdentityPage() {
       }
     }
 
+    if (!hasAtLeastOneRequiredContact(values)) {
+      return "Merci d’indiquer au moins un contact : téléphone ou email.";
+    }
+
+    if (values.preferredContactChannels.length === 0) {
+      return "Choisis au moins un moyen de contact à privilégier.";
+    }
+
+    if (
+      values.preferredContactChannels.includes("sms") &&
+      !values.phone.trim()
+    ) {
+      return "Un numéro de téléphone est nécessaire pour le SMS.";
+    }
+
+    if (
+      values.preferredContactChannels.includes("whatsapp") &&
+      (!values.phone.trim() || !values.hasWhatsapp)
+    ) {
+      return "Pour WhatsApp, indique un téléphone et active l’option correspondante.";
+    }
+
+    if (
+      values.preferredContactChannels.includes("email") &&
+      !values.email.trim()
+    ) {
+      return "Une adresse email est nécessaire pour l’envoi par email.";
+    }
+
+    if (
+      values.preferredContactChannels.includes("messenger") &&
+      !values.messenger.trim()
+    ) {
+      return "Un identifiant Messenger est nécessaire pour ce canal.";
+    }
+
     return null;
   }
 
@@ -127,7 +169,7 @@ export function ParticipantIdentityPage() {
         recoveryToken: result.recoveryToken ?? undefined,
         remembered: true,
         setAsActive: true,
-      })
+      });
 
       localStorage.setItem(
         `connect:${slug}:participant`,
@@ -192,6 +234,7 @@ export function ParticipantIdentityPage() {
             config={identityFormConfig}
             value={values}
             loading={loading}
+            error={error}
             onChange={(patch) =>
               setValues((prev) => ({
                 ...prev,

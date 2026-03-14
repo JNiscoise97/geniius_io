@@ -9,7 +9,7 @@ export function ParticipantGuard() {
   const session = getParticipantSession(slug);
 
   if (!session?.participantId) {
-    return <Navigate to={`/e/${slug}/welcome/identity`} replace />;
+    return <Navigate to={`/e/${slug}`} replace />;
   }
 
   return <Outlet />;
