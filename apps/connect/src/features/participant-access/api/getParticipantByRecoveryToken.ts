@@ -11,10 +11,6 @@ export type RecoveryParticipantPreview = {
 type ParticipantRow = {
   id: string;
   event_slug: string;
-};
-
-type ParticipantIdentityRow = {
-  participant_id: string;
   first_name: string | null;
   last_name: string | null;
 };
@@ -32,7 +28,7 @@ export async function getParticipantByRecoveryToken(
 
   const participantRes = await supabase
     .from("participants")
-    .select("id, event_slug")
+    .select("id, event_slug, first_name, last_name")
     .eq("recovery_token", token)
     .maybeSingle<ParticipantRow>();
 
@@ -45,19 +41,8 @@ export async function getParticipantByRecoveryToken(
   }
 
   const participant = participantRes.data;
-
-  const identityRes = await supabase
-    .from("participant_identity")
-    .select("participant_id, first_name, last_name")
-    .eq("participant_id", participant.id)
-    .maybeSingle<ParticipantIdentityRow>();
-
-  if (identityRes.error) {
-    throw new Error(identityRes.error.message);
-  }
-
-  const firstName = identityRes.data?.first_name ?? undefined;
-  const lastName = identityRes.data?.last_name ?? undefined;
+  const firstName = participant.first_name ?? undefined;
+  const lastName = participant.last_name ?? undefined;
 
   return {
     participantId: participant.id,

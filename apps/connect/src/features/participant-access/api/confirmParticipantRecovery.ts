@@ -17,13 +17,9 @@ export type ConfirmParticipantRecoveryResult = {
 type ParticipantRow = {
   id: string;
   event_slug: string;
-  birth_year: number | null;
-};
-
-type ParticipantIdentityRow = {
-  participant_id: string;
   first_name: string | null;
   last_name: string | null;
+  birth_year: number | null;
 };
 
 function buildDisplayName(firstName?: string, lastName?: string): string {
@@ -44,7 +40,7 @@ export async function confirmParticipantRecovery({
 
   const participantRes = await supabase
     .from("participants")
-    .select("id, event_slug, birth_year")
+    .select("id, event_slug, first_name, last_name, birth_year")
     .eq("recovery_token", token)
     .maybeSingle<ParticipantRow>();
 
@@ -66,18 +62,8 @@ export async function confirmParticipantRecovery({
     return null;
   }
 
-  const identityRes = await supabase
-    .from("participant_identity")
-    .select("participant_id, first_name, last_name")
-    .eq("participant_id", participant.id)
-    .maybeSingle<ParticipantIdentityRow>();
-
-  if (identityRes.error) {
-    throw new Error(identityRes.error.message);
-  }
-
-  const firstName = identityRes.data?.first_name ?? undefined;
-  const lastName = identityRes.data?.last_name ?? undefined;
+  const firstName = participant.first_name ?? undefined;
+  const lastName = participant.last_name ?? undefined;
 
   return {
     participantId: participant.id,
