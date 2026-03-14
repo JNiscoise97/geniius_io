@@ -18,10 +18,6 @@ function getFallbackProgressFromLocalStorage(
   slug: string,
 ): FamilyKnowledgeProgress {
   return {
-    intro:
-      localStorage.getItem(`connect:${slug}:family-knowledge:intro`) === "done"
-        ? "done"
-        : "todo",
     close_family:
       localStorage.getItem(`connect:${slug}:family-knowledge:close_family`) ===
       "done"
@@ -97,10 +93,6 @@ export async function getFamilyKnowledgeProgress({
     ]);
 
     return {
-      intro:
-        localStorage.getItem(`connect:${slug}:family-knowledge:intro`) === "done"
-          ? "done"
-          : "todo",
       close_family: closeFamilyRes.data?.completed ? "done" : "todo",
       grandparents: grandparentsRes.data?.completed ? "done" : "todo",
       godparents: godparentsRes.data?.completed ? "done" : "todo",

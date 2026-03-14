@@ -117,6 +117,7 @@ export const router = createBrowserRouter([
 
           // Family tree
           { path: "arbre", element: <FamilyTreeHubPage /> },
+          { path: "arbre2", element: <BranchesPage /> },
           { path: "arbre/branches/:branchId/families", element: <FamiliesPage /> },
           { path: "arbre/families/:familyId/siblings", element: <SiblingsPage /> },
           { path: "arbre/persons/:personId", element: <PersonPage /> },
