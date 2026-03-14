@@ -24,9 +24,11 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type HubActionStatus = "enabled" | "dev" | "disabled";
 type HubAvailabilityMode = "available" | "launch";
@@ -94,7 +96,7 @@ export function LandingPage() {
     .forEach(key => {
       console.log(key, localStorage.getItem(key));
     });
-    
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     identity: true,
     prepare: true,
@@ -383,6 +385,25 @@ export function LandingPage() {
   );
 
   const slugName = slug.toUpperCase();
+
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
