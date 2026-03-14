@@ -7,25 +7,9 @@ import {
   type FamilyKnowledgeStepStatus,
 } from "../config/familyKnowledgeStepsConfig";
 import { OnboardingStepCard } from "../../onboarding/components/OnboardingStepCard";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type StepProgressByKey = Record<FamilyKnowledgeStepKey, FamilyKnowledgeStepStatus>;
-
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
-
-function getLocalParticipantSession(slug: string): LocalParticipantSession | null {
-  const raw = localStorage.getItem(`connect:${slug}:participant`);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as LocalParticipantSession;
-  } catch {
-    return null;
-  }
-}
 
 function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
   return {
@@ -83,7 +67,7 @@ export function FamilyKnowledgeHubPage() {
     [completedCount, totalCount],
   );
 
-  const participantSession = getLocalParticipantSession(slug);
+  const participantSession = getParticipantSession(slug);
   const firstName = participantSession?.firstName?.trim();
 
   return (
@@ -94,7 +78,7 @@ export function FamilyKnowledgeHubPage() {
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
                 <BookOpenText size={14} />
-                Ce que tu sais sur la famille
+                Ce que tu sais sur ta famille
               </div>
 
               <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
@@ -111,7 +95,7 @@ export function FamilyKnowledgeHubPage() {
 
             <button
               type="button"
-              onClick={() => nav(`/e/${slug}`)}
+              onClick={() => nav(`/e/${slug}/home`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
             >
               <span className="inline-flex items-center gap-2">

@@ -10,28 +10,12 @@ import {
 } from "../config/onboardingConfig";
 import { OnboardingStepCard } from "../components/OnboardingStepCard";
 import { supabase } from "../../../lib/supabase/client";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type StepProgressByKey = Record<
   "identity" | "profile" | "contact" | "preferences",
   OnboardingStepStatus
 >;
-
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
-
-function getLocalParticipantSession(slug: string): LocalParticipantSession | null {
-  const raw = localStorage.getItem(`connect:${slug}:participant`);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as LocalParticipantSession;
-  } catch {
-    return null;
-  }
-}
 
 function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
   return {
@@ -70,7 +54,7 @@ export function OnboardingHubPage() {
     let isMounted = true;
 
     async function loadProgress() {
-      const participantSession = getLocalParticipantSession(slug);
+      const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
         if (isMounted) {
@@ -142,7 +126,7 @@ export function OnboardingHubPage() {
     [completedCount, totalCount],
   );
 
-  const participantSession = getLocalParticipantSession(slug);
+  const participantSession = getParticipantSession(slug);
   const firstName = participantSession?.firstName?.trim();
 
   return (
@@ -168,7 +152,7 @@ export function OnboardingHubPage() {
 
             <button
               type="button"
-              onClick={() => nav(`/e/${slug}`)}
+              onClick={() => nav(`/e/${slug}/home`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
             >
               <span className="inline-flex items-center gap-2">

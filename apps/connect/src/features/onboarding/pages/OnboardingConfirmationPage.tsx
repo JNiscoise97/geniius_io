@@ -11,7 +11,7 @@ export function OnboardingConfirmationPage() {
   const step = searchParams.get("step");
   const url =
     step === "attendance" || step === "organizer-message"
-      ? `/e/${slug}`
+      ? `/e/${slug}/home`
       : `/e/${slug}/welcome`;
 
   const content = useMemo(() => {

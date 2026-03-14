@@ -21,12 +21,9 @@ import {
   type FamilyKnowledgeCurrentLinksValues,
 } from "../api/getFamilyKnowledgeCurrentLinks";
 import { saveFamilyKnowledgeCurrentLinks } from "../api/saveFamilyKnowledgeCurrentLinks";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
+
 
 function CurrentLinkCard({
   title,
@@ -139,22 +136,13 @@ export function FamilyKnowledgeCurrentLinksPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  function getParticipantSession(): LocalParticipantSession | null {
-    const raw = localStorage.getItem(`connect:${slug}:participant`);
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as LocalParticipantSession;
-    } catch {
-      return null;
-    }
-  }
+  
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {
-      const participantSession = getParticipantSession();
+      const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
         if (isMounted) {
@@ -235,7 +223,7 @@ export function FamilyKnowledgeCurrentLinksPage() {
       return;
     }
 
-    const participantSession = getParticipantSession();
+    const participantSession = getParticipantSession(slug);
     if (!participantSession?.participantId) {
       setError(config.validation.missingParticipant);
       return;

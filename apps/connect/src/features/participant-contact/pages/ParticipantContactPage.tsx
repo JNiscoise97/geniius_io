@@ -8,12 +8,9 @@ import {
 import { contactFormConfig } from "../config/contactFormConfig";
 import { saveContact } from "../api/saveContact";
 import { getContact } from "../api/getContact";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
+
 
 export function ParticipantContactPage() {
   const nav = useNavigate();
@@ -36,22 +33,13 @@ export function ParticipantContactPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  function getParticipantSession(): LocalParticipantSession | null {
-    const raw = localStorage.getItem(`connect:${slug}:participant`);
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as LocalParticipantSession;
-    } catch {
-      return null;
-    }
-  }
+  
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {
-      const participantSession = getParticipantSession();
+      const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
         if (isMounted) {
@@ -112,7 +100,7 @@ export function ParticipantContactPage() {
       return;
     }
 
-    const participantSession = getParticipantSession();
+    const participantSession = getParticipantSession(slug);
     if (!participantSession?.participantId) {
       setError(
         "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",

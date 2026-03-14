@@ -8,12 +8,9 @@ import {
 import { preferencesFormConfig } from "../config/preferencesFormConfig";
 import { savePreferences } from "../api/savePreferences";
 import { getPreferences } from "../api/getPreferences";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
+
 
 export function ParticipantPreferencesPage() {
   const nav = useNavigate();
@@ -40,22 +37,13 @@ export function ParticipantPreferencesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  function getParticipantSession(): LocalParticipantSession | null {
-    const raw = localStorage.getItem(`connect:${slug}:participant`);
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as LocalParticipantSession;
-    } catch {
-      return null;
-    }
-  }
+  
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {
-      const participantSession = getParticipantSession();
+      const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
         if (isMounted) {
@@ -107,7 +95,7 @@ export function ParticipantPreferencesPage() {
       return;
     }
 
-    const participantSession = getParticipantSession();
+    const participantSession = getParticipantSession(slug);
     if (!participantSession?.participantId) {
       setError(
         "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",

@@ -1,30 +1,8 @@
 import { useMemo } from "react";
 import { Navigate, Outlet, useParams } from "react-router-dom";
-import { getActiveParticipant } from "../../../lib/participant-session/getActiveParticipant";
+import { getActiveParticipant, getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 
-type LegacyParticipantSession = {
-  participantId?: string;
-  firstName?: string;
-  lastName?: string;
-  birthYear?: string;
-  recoveryToken?: string;
-};
-
-function getLegacyParticipantSession(slug: string): LegacyParticipantSession | null {
-  const raw = localStorage.getItem(`connect:${slug}:participant`);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw) as LegacyParticipantSession;
-    if (!parsed?.participantId || typeof parsed.participantId !== "string") {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
 export function ParticipantGuard() {
   const { eventSlug } = useParams();
@@ -36,7 +14,7 @@ export function ParticipantGuard() {
       return true;
     }
 
-    const legacy = getLegacyParticipantSession(slug);
+    const legacy = getParticipantSession(slug);
     if (legacy?.participantId) {
       addStoredParticipantProfile(slug, {
         participantId: legacy.participantId,
@@ -44,6 +22,7 @@ export function ParticipantGuard() {
         lastName: legacy.lastName,
         birthYear: legacy.birthYear,
         recoveryToken: legacy.recoveryToken,
+        remembered: true,
         setAsActive: true,
       });
 

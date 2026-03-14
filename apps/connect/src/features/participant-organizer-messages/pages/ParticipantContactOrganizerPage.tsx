@@ -7,12 +7,7 @@ import {
 } from "../components/ContactOrganizerForm";
 import { contactOrganizerFormConfig } from "../config/contactOrganizerFormConfig";
 import { saveOrganizerMessage } from "../api/saveOrganizerMessage";
-
-type LocalParticipantSession = {
-  participantId?: string;
-  firstName?: string;
-  lastName?: string;
-};
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 export function ParticipantContactOrganizerPage() {
   const nav = useNavigate();
@@ -37,16 +32,7 @@ export function ParticipantContactOrganizerPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  function getParticipantSession(): LocalParticipantSession | null {
-    const raw = localStorage.getItem(`connect:${slug}:participant`);
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as LocalParticipantSession;
-    } catch {
-      return null;
-    }
-  }
+  
 
   function validate(): string | null {
     if (!values.topic) {
@@ -97,7 +83,7 @@ export function ParticipantContactOrganizerPage() {
       return;
     }
 
-    const participantSession = getParticipantSession();
+    const participantSession = getParticipantSession(slug);
 
     setLoading(true);
     try {

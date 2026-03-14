@@ -1,19 +1,6 @@
 import { Navigate, Outlet, useParams } from "react-router-dom";
+import { getParticipantSession } from "../../lib/participant-session/getActiveParticipant";
 
-type LocalParticipantSession = {
-  participantId: string;
-};
-
-function getParticipantSession(slug: string): LocalParticipantSession | null {
-  const raw = localStorage.getItem(`connect:${slug}:participant`);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as LocalParticipantSession;
-  } catch {
-    return null;
-  }
-}
 
 export function ParticipantGuard() {
   const { eventSlug } = useParams();

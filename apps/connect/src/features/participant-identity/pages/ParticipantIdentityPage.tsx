@@ -9,23 +9,11 @@ import { identityFormConfig } from "../config/identityFormConfig";
 import { saveIdentity } from "../api/saveIdentity";
 import { getIdentity } from "../api/getIdentity";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-type LocalParticipantSession = {
-  participantId: string;
-  firstName?: string;
-  lastName?: string;
-};
 
-function getLocalParticipantSession(slug: string): LocalParticipantSession | null {
-  const raw = localStorage.getItem(`connect:${slug}:participant`);
-  if (!raw) return null;
 
-  try {
-    return JSON.parse(raw) as LocalParticipantSession;
-  } catch {
-    return null;
-  }
-}
+
 
 export function ParticipantIdentityPage() {
   const nav = useNavigate();
@@ -53,7 +41,7 @@ export function ParticipantIdentityPage() {
     let isMounted = true;
 
     async function loadExistingData() {
-      const participantSession = getLocalParticipantSession(slug);
+      const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
         if (isMounted) {
@@ -123,7 +111,7 @@ export function ParticipantIdentityPage() {
 
     setLoading(true);
     try {
-      const participantSession = getLocalParticipantSession(slug);
+      const participantSession = getParticipantSession(slug);
 
       const result = await saveIdentity({
         eventSlug: slug,
@@ -137,6 +125,7 @@ export function ParticipantIdentityPage() {
         lastName: values.lastName.trim(),
         birthYear: values.birthYear,
         recoveryToken: result.recoveryToken ?? undefined,
+        remembered: true,
         setAsActive: true,
       })
 

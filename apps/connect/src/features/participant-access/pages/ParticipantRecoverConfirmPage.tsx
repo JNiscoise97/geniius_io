@@ -109,6 +109,7 @@ export function ParticipantRecoverConfirmPage() {
         lastName: result.lastName,
         birthYear: result.birthYear,
         recoveryToken: token,
+        remembered: true,
         setAsActive: true,
       });
 

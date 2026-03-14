@@ -138,7 +138,7 @@ export function FamilyTreeHubPage() {
           },
           {
             key: "compare-two-people",
-            label: "Comparer deux personnes",
+            label: "Retrouver la relation entre deux personnes",
             description:
               "Retrouve leur ancêtre commun et leur proximité familiale.",
             icon: GitBranch,
@@ -167,7 +167,7 @@ export function FamilyTreeHubPage() {
 
           <button
             type="button"
-            onClick={() => nav(`/e/${slug}`)}
+            onClick={() => nav(`/e/${slug}/home`)}
             className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
           >
             <ArrowLeft size={14} />

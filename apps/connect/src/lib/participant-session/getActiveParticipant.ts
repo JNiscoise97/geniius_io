@@ -16,3 +16,14 @@ export function getActiveParticipant(
     ) ?? null
   );
 }
+
+export function getParticipantSession(slug: string): StoredParticipantProfile | null {
+    const raw = localStorage.getItem(`connect:${slug}:participant`);
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw) as StoredParticipantProfile;
+    } catch {
+      return null;
+    }
+  }

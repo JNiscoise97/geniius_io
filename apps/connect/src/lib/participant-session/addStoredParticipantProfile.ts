@@ -34,6 +34,7 @@ export type AddStoredParticipantProfileInput = {
   label?: string;
   recoveryToken?: string;
   managedByParticipantId?: string;
+  remembered?: boolean;
   setAsActive?: boolean;
 };
 
@@ -59,6 +60,10 @@ export function addStoredParticipantProfile(
     managedByParticipantId: input.managedByParticipantId?.trim() || undefined,
     updatedAt: now,
   };
+
+  if (typeof input.remembered === "boolean") {
+    nextProfile.remembered = input.remembered;
+  }
 
   nextProfile.label = buildProfileLabel(nextProfile);
 

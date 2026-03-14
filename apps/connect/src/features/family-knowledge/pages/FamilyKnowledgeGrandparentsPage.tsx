@@ -22,12 +22,7 @@ import {
     type FamilyKnowledgeGrandparentsValues,
 } from "../api/getFamilyKnowledgeGrandparents";
 import { saveFamilyKnowledgeGrandparents } from "../api/saveFamilyKnowledgeGrandparents";
-
-type LocalParticipantSession = {
-    participantId: string;
-    firstName?: string;
-    lastName?: string;
-};
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 function AuntUncleCard({
     title,
@@ -178,22 +173,11 @@ export function FamilyKnowledgeGrandparentsPage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
 
-    function getParticipantSession(): LocalParticipantSession | null {
-        const raw = localStorage.getItem(`connect:${slug}:participant`);
-        if (!raw) return null;
-
-        try {
-            return JSON.parse(raw) as LocalParticipantSession;
-        } catch {
-            return null;
-        }
-    }
-
     useEffect(() => {
         let isMounted = true;
 
         async function loadExistingData() {
-            const participantSession = getParticipantSession();
+            const participantSession = getParticipantSession(slug);
 
             if (!participantSession?.participantId) {
                 if (isMounted) {
@@ -320,7 +304,7 @@ export function FamilyKnowledgeGrandparentsPage() {
             return;
         }
 
-        const participantSession = getParticipantSession();
+        const participantSession = getParticipantSession(slug);
         if (!participantSession?.participantId) {
             setError(config.validation.missingParticipant);
             return;

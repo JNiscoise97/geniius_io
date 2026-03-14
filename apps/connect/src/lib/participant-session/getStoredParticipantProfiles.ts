@@ -6,6 +6,7 @@ export type StoredParticipantProfile = {
   label?: string;
   recoveryToken?: string;
   managedByParticipantId?: string;
+  remembered?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -40,6 +41,7 @@ function normalizeProfile(
     label: profile.label?.trim() || undefined,
     recoveryToken: profile.recoveryToken?.trim() || undefined,
     managedByParticipantId: profile.managedByParticipantId?.trim() || undefined,
+    remembered: profile.remembered === true,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
   };
