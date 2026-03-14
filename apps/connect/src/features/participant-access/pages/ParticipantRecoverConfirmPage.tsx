@@ -124,7 +124,7 @@ export function ParticipantRecoverConfirmPage() {
         }),
       );
 
-      nav(`/e/${result.eventSlug}/welcome`, { replace: true });
+      nav(`/e/${result.eventSlug}/home`, { replace: true });
     } catch (e: any) {
       setFormError(e?.message ?? "Impossible de confirmer l’ouverture du profil.");
     } finally {

@@ -12,6 +12,7 @@ import { getStoredParticipantProfiles } from "../../lib/participant-session/getS
 import { setActiveStoredProfile } from "../../features/device-profiles/api/setActiveStoredProfile";
 import { getManagedProfiles } from "../../features/participant-delegations/api/getManagedProfiles";
 import { PARTICIPANT_SESSION_CHANGED_EVENT } from "../../lib/participant-session/sessionEvents";
+import { clearEventSession } from "../../lib/participant-session/clearEventSession";
 
 function getProfileDisplayName(profile: {
   label?: string;
@@ -67,7 +68,13 @@ export function ProfileSwitcher() {
     if (!ok) return;
 
     setOpen(false);
-    navigate(`/e/${slug}/welcome`);
+    navigate(`/e/${slug}/home`);
+  }
+
+  function handleLogout() {
+    clearEventSession(slug);
+    setOpen(false);
+    navigate(`/e/${slug}/access`, { replace: true });
   }
 
   if (!activeProfile) {
@@ -212,6 +219,14 @@ export function ProfileSwitcher() {
                 >
                   Voir les profils que je gère
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-2xl bg-red-50 px-3 py-3 text-sm font-black text-red-700 transition hover:bg-red-100"
+                >
+                  Se déconnecter
+                </button>
               </div>
             </div>
           </div>
