@@ -21,8 +21,6 @@ export async function saveProfile({
       city: cleanText(values.city),
       occupation: cleanText(values.occupation),
       interests: cleanText(values.interests),
-      personality_word: cleanText(values.personalityWord),
-      cousinade_expectation: cleanText(values.cousinadeExpectation),
       free_share: cleanText(values.freeShare),
       completed: true,
       updated_at: new Date().toISOString(),

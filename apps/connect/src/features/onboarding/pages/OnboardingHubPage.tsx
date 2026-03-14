@@ -14,7 +14,7 @@ import { supabase } from "../../../lib/supabase/client";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type StepProgressByKey = Record<
-  "identity" | "profile" | "preferences",
+  "identity" | "profile" | "preferences" | "origins",
   OnboardingStepStatus
 >;
 
@@ -32,6 +32,10 @@ function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
       localStorage.getItem(`connect:${slug}:onboarding:preferences`) === "done"
         ? "done"
         : "todo",
+    origins:
+      localStorage.getItem(`connect:${slug}:onboarding:profile`) === "done"
+        ? "done"
+        : "todo",
   };
 }
 
@@ -44,6 +48,7 @@ export function OnboardingHubPage() {
     identity: "todo",
     profile: "todo",
     preferences: "todo",
+    origins: "todo",
   });
 
   useEffect(() => {
@@ -62,7 +67,7 @@ export function OnboardingHubPage() {
       try {
         const participantId = participantSession.participantId;
 
-        const [identityRes, profileRes, preferencesRes] = await Promise.all([
+        const [identityRes, profileRes, preferencesRes, originsRes] = await Promise.all([
           supabase
             .from("participant_identity")
             .select("completed")
@@ -80,6 +85,12 @@ export function OnboardingHubPage() {
             .select("completed")
             .eq("participant_id", participantId)
             .maybeSingle(),
+
+          supabase
+            .from("participant_origins")
+            .select("completed")
+            .eq("participant_id", participantId)
+            .maybeSingle(),
         ]);
 
         if (!isMounted) return;
@@ -88,6 +99,7 @@ export function OnboardingHubPage() {
           identity: identityRes.data?.completed ? "done" : "todo",
           profile: profileRes.data?.completed ? "done" : "todo",
           preferences: preferencesRes.data?.completed ? "done" : "todo",
+          origins: originsRes.data?.completed ? "done" : "todo",
         };
 
         setProgress(nextProgress);
@@ -185,7 +197,6 @@ export function OnboardingHubPage() {
                       <li>Revoir la barre de progression pour qu'elle se base sur la base de données</li>
                       <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
                       <li>revoir les labels des cartes</li>
-                      <li>créer une carte pour savoir comment il a entendu parler du pique nique, s'il est déjà venu, sa branche</li>
                     </ol>
                   </div>
                 </div>

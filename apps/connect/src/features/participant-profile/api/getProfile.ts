@@ -11,7 +11,7 @@ export async function getProfile({
   const res = await supabase
     .from("participant_profile")
     .select(
-      "city, occupation, interests, personality_word, cousinade_expectation, free_share",
+      "city, occupation, interests, free_share",
     )
     .eq("participant_id", participantId)
     .maybeSingle();
@@ -26,8 +26,6 @@ export async function getProfile({
     city: res.data.city ?? "",
     occupation: res.data.occupation ?? "",
     interests: res.data.interests ?? "",
-    personalityWord: res.data.personality_word ?? "",
-    cousinadeExpectation: res.data.cousinade_expectation ?? "",
     freeShare: res.data.free_share ?? "",
   };
 }

@@ -3,9 +3,7 @@ export type ProfileQuestionConfig = {
     | "city"
     | "occupation"
     | "interests"
-    | "personality_word"
     | "family_memory"
-    | "cousinade_expectation"
     | "free_share";
   label: string;
   helpText?: string;
@@ -55,24 +53,6 @@ export const profileQuestionsConfig: ProfileFormConfig = {
         "Tes centres d’intérêt, passions ou petits plaisirs du quotidien.",
       type: "textarea",
       placeholder: "Ex : cuisine, randonnée, musique, généalogie…",
-      maxLength: 600,
-    },
-    {
-      key: "personality_word",
-      label: "Quel mot te décrit le mieux ?",
-      helpText:
-        "Un mot simple pour donner une petite idée de ta personnalité.",
-      type: "text",
-      placeholder: "Ex : calme, curieux, sociable…",
-      maxLength: 80,
-    },
-    {
-      key: "cousinade_expectation",
-      label: "Qu’aimerais-tu retrouver ou découvrir pendant la cousinade ?",
-      helpText:
-        "Par exemple : rencontrer des cousins, mieux comprendre l’histoire familiale, partager un moment…",
-      type: "textarea",
-      placeholder: "Quelques lignes si tu le souhaites…",
       maxLength: 600,
     },
     {

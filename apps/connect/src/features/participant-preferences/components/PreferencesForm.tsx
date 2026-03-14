@@ -90,7 +90,6 @@ export function PreferencesForm({
           <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
           <div className='mt-0.5 text-xs text-amber-800'>
             <ol>
-              <li>Ajouter un bouton retour</li>
               <li>Revoir toutes les préférences</li>
             </ol>
           </div>

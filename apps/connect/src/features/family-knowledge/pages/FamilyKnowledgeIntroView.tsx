@@ -1,8 +1,9 @@
-import { AlertTriangle, ArrowRight, BookOpenText } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
 import { IntroQuoteCard } from "../components/IntroQuoteCard";
 import { KnownToggleField } from "../components/KnownToggleField";
 import { familyKnowledgeIntroConfig } from "../config/familyKnowledgeIntroConfig";
 import type { FamilyKnowledgeIntroPrefs } from "../api/getFamilyKnowledgeIntroPrefs";
+import { useNavigate, useParams } from "react-router-dom";
 
 type FamilyKnowledgeIntroViewProps = {
   values: FamilyKnowledgeIntroPrefs;
@@ -16,24 +17,41 @@ export function FamilyKnowledgeIntroView({
   onContinue,
 }: FamilyKnowledgeIntroViewProps) {
   const config = familyKnowledgeIntroConfig;
+  const nav = useNavigate();
+  const { eventSlug } = useParams();
+  const slug = eventSlug ?? "demo";
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-4 pb-28">
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
+          <div className="flex items-start justify-between gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
             <BookOpenText size={14} />
-            {config.pageTitle}
+            Philosophie de la démarche
           </div>
+
+          <button
+              type="button"
+              onClick={() => nav(`/e/${slug}/home`)}
+              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2">
+                <ArrowLeft size={14} />
+                Retour
+              </span>
+            </button>
+            </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {config.pageTitle}
           </h1>
 
-          <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
+          <p className="mt-2 text-sm font-bold text-slate-700">
             {config.pageSubtitle}
           </p>
-
+        </section>
+        <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm mt-3">
           <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
             <div className='flex items-start gap-3'>
               <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
@@ -41,7 +59,6 @@ export function FamilyKnowledgeIntroView({
                 <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
-                    <li>Ajouter un bouton retour</li>
                     <li>Enregistrer en bd la volonté de l'utilisateur</li>
                   </ol>
                 </div>

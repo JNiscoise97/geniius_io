@@ -101,21 +101,6 @@ export async function saveIdentity({
       (insertParticipant.data.recovery_token as string | null) ?? null;
   }
 
-  const upsertIdentity = await supabase.from("participant_identity").upsert(
-    {
-      participant_id: finalParticipantId,
-      branch_keys: values.branchKeys,
-      attended_edition_keys: values.previousEditionKeys,
-      completed: true,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "participant_id" },
-  );
-
-  if (upsertIdentity.error) {
-    throw new Error(upsertIdentity.error.message);
-  }
-
   return {
     participantId: finalParticipantId,
     recoveryToken,

@@ -35,14 +35,26 @@ export async function saveFamilyKnowledgeCloseFamily({
   values,
 }: SaveFamilyKnowledgeCloseFamilyInput): Promise<void> {
   const payload = {
-    parent1: normalizePerson(values.parent1),
-    parent2: normalizePerson(values.parent2),
-    siblings: values.siblings.map(normalizePerson),
-    knowsSiblingOrder: values.knowsSiblingOrder,
-    children: values.children.map(normalizePerson),
-    isInRelationship: values.isInRelationship,
-    partner: normalizePerson(values.partner),
-  };
+  parent1: normalizePerson(values.parent1),
+  parent2: normalizePerson(values.parent2),
+
+  hasSiblings: values.hasSiblings,
+  siblings:
+    values.hasSiblings === "yes"
+      ? values.siblings.map(normalizePerson)
+      : [],
+  knowsSiblingOrder:
+    values.hasSiblings === "yes" ? values.knowsSiblingOrder : false,
+
+  hasChildren: values.hasChildren,
+  children:
+    values.hasChildren === "yes"
+      ? values.children.map(normalizePerson)
+      : [],
+
+  isInRelationship: values.isInRelationship,
+  partner: normalizePerson(values.partner),
+};
 
   const res = await supabase
     .from("participant_family_knowledge_close_family")

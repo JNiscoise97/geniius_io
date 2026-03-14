@@ -1,7 +1,5 @@
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import type { FormEvent } from "react";
-import { BranchesField } from "./BranchesField";
-import { PreviousEditionsField } from "./PreviousEditionsField";
 import {
   ContactChannelCheckboxGroup,
   type ContactChannel,
@@ -18,8 +16,6 @@ export type IdentityFormValues = {
   hasWhatsapp: boolean;
   messenger: string;
   preferredContactChannels: ContactChannel[];
-  branchKeys: string[];
-  previousEditionKeys: string[];
 };
 
 type IdentityFormProps = {
@@ -57,7 +53,6 @@ export function IdentityForm({
   config,
   value,
   loading = false,
-  error = null,
   onChange,
   onSubmit,
 }: IdentityFormProps) {
@@ -71,9 +66,7 @@ export function IdentityForm({
           <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
           <div className='mt-0.5 text-xs text-amber-800'>
             <ol>
-              <li>Revoir le titre plutôt "Infos générales"</li>
               <li>Sortir les champs branche familiale et déjà venu</li>
-              <li>Ajouter un bouton retour permettant de revenir au hub</li>
             </ol>
           </div>
         </div>
@@ -239,30 +232,6 @@ export function IdentityForm({
               </div>
             ) : null}
           </div>
-        </section>
-
-        <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-          <BranchesField
-            label={config.fields.branches.label}
-            helpText={config.fields.branches.helpText}
-            options={config.fields.branches.options}
-            value={value.branchKeys}
-            disabled={loading}
-            onChange={(next) => onChange({ branchKeys: next })} />
-
-          <PreviousEditionsField
-            label={config.fields.previousEditions.label}
-            helpText={config.fields.previousEditions.helpText}
-            options={config.fields.previousEditions.options}
-            value={value.previousEditionKeys}
-            disabled={loading}
-            onChange={(next) => onChange({ previousEditionKeys: next })} />
-
-          {error ? (
-            <div className="text-sm font-bold text-[color:var(--bad)]">
-              {error}
-            </div>
-          ) : null}
         </section>
 
         <footer className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">

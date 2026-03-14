@@ -89,7 +89,7 @@ export function FamilyPersonForm({
       {value.known ? (
         <div className="mt-3 grid gap-3">
           
-            <label className="grid gap-1">
+            <label className="grid gap-3">
               <span className="text-xs font-extrabold text-slate-800">
                 {l.firstNameLabel}
               </span>
@@ -101,7 +101,7 @@ export function FamilyPersonForm({
               />
             </label>
 
-            <label className="grid gap-1">
+            <label className="grid gap-3">
               <span className="text-xs font-extrabold text-slate-800">
                 {l.lastNameLabel}
               </span>
@@ -114,7 +114,7 @@ export function FamilyPersonForm({
             </label>
           
 
-          <label className="grid gap-1">
+          <label className="grid gap-3">
             <span className="text-xs font-extrabold text-slate-800">
               {l.nicknameLabel}
             </span>

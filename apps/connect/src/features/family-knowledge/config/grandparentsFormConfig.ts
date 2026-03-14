@@ -11,9 +11,10 @@ export const grandparentsFormConfig = {
       maternalGrandmotherLabel: "Grand-mère maternelle",
     },
     paternalAuntsUncles: {
-      title: "Oncles et tantes paternels",
+      title: "Frères et sœurs de ton père",
       subtitle:
-        "Ajoute les frères et sœurs de ton père, même si tu n’as que peu d’informations.",
+        "Commence par indiquer si ton père avait des frères et sœurs. Tu pourras ensuite ajouter les personnes que tu connais.",
+      questionLabel: "Ton père avait-il des frères et sœurs ?",
       addLabel: "Ajouter",
       emptyText: "Aucun oncle ou tante paternel(le) ajouté(e) pour le moment.",
       itemLabel: "Oncle / tante paternel(le)",
@@ -22,9 +23,10 @@ export const grandparentsFormConfig = {
         "Si oui, tu peux préciser le rang de chaque oncle ou tante.",
     },
     maternalAuntsUncles: {
-      title: "Oncles et tantes maternels",
+      title: "Frères et sœurs de ta mère",
       subtitle:
-        "Ajoute les frères et sœurs de ta mère, même si tu n’as que peu d’informations.",
+        "Commence par indiquer si ta mère avait des frères et sœurs. Tu pourras ensuite ajouter les personnes que tu connais.",
+      questionLabel: "Ta mère avait-elle des frères et sœurs ?",
       addLabel: "Ajouter",
       emptyText: "Aucun oncle ou tante maternel(le) ajouté(e) pour le moment.",
       itemLabel: "Oncle / tante maternel(le)",
@@ -62,6 +64,10 @@ export const grandparentsFormConfig = {
       "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",
     missingGrandparentIdentity:
       "Merci de renseigner au moins un nom ou un prénom pour chaque grand-parent connu.",
+    missingPaternalAuntsUnclesAnswer:
+      "Merci d’indiquer si ton père avait des frères et sœurs.",
+    missingMaternalAuntsUnclesAnswer:
+      "Merci d’indiquer si ta mère avait des frères et sœurs.",
     missingAuntUncleIdentity:
       "Merci de renseigner au moins un nom ou un prénom pour chaque oncle ou tante ajouté(e).",
     missingAuntUncleRelationship:

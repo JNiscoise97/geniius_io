@@ -1,5 +1,6 @@
 import {
     AlertTriangle,
+    ArrowLeft,
     ArrowRight,
     CheckCircle2,
     Network,
@@ -47,7 +48,7 @@ function AuntUncleCard({
                 <button
                     type="button"
                     onClick={onRemove}
-                    className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-slate-700 inline-flex items-center justify-center"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700"
                 >
                     <span className="text-lg leading-none">×</span>
                 </button>
@@ -64,31 +65,29 @@ function AuntUncleCard({
 
             {value.known ? (
                 <div className="mt-3 grid gap-3">
-                    <div className="grid grid-cols-2 gap-2">
-                        <label className="grid gap-2">
-                            <span className="text-xs font-extrabold text-slate-800">
-                                {labels.firstNameLabel}
-                            </span>
-                            <input
-                                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                                value={value.firstName}
-                                onChange={(e) => onChange({ firstName: e.target.value })}
-                                placeholder={labels.firstNameLabel}
-                            />
-                        </label>
+                    <label className="grid gap-2">
+                        <span className="text-xs font-extrabold text-slate-800">
+                            {labels.firstNameLabel}
+                        </span>
+                        <input
+                            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                            value={value.firstName}
+                            onChange={(e) => onChange({ firstName: e.target.value })}
+                            placeholder={labels.firstNameLabel}
+                        />
+                    </label>
 
-                        <label className="grid gap-2">
-                            <span className="text-xs font-extrabold text-slate-800">
-                                {labels.lastNameLabel}
-                            </span>
-                            <input
-                                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                                value={value.lastName}
-                                onChange={(e) => onChange({ lastName: e.target.value })}
-                                placeholder={labels.lastNameLabel}
-                            />
-                        </label>
-                    </div>
+                    <label className="grid gap-2">
+                        <span className="text-xs font-extrabold text-slate-800">
+                            {labels.lastNameLabel}
+                        </span>
+                        <input
+                            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                            value={value.lastName}
+                            onChange={(e) => onChange({ lastName: e.target.value })}
+                            placeholder={labels.lastNameLabel}
+                        />
+                    </label>
 
                     <label className="grid gap-1">
                         <span className="text-xs font-extrabold text-slate-800">
@@ -115,9 +114,18 @@ function AuntUncleCard({
                             })
                         }
                         options={[
-                            { value: "both_parents", label: "Enfant de tes deux grands-parents" },
-                            { value: "father_only", label: "Enfant du grand-père seulement" },
-                            { value: "mother_only", label: "Enfant de la grand-mère seulement" },
+                            {
+                                value: "both_parents",
+                                label: "Enfant de tes deux grands-parents",
+                            },
+                            {
+                                value: "father_only",
+                                label: "Enfant du grand-père seulement",
+                            },
+                            {
+                                value: "mother_only",
+                                label: "Enfant de la grand-mère seulement",
+                            },
                         ]}
                     />
 
@@ -243,12 +251,15 @@ export function FamilyKnowledgeGrandparentsPage() {
         person: FamilyKnowledgeAuntUnclePerson,
     ): string | null {
         if (!person.known) return null;
+
         if (!person.firstName.trim() && !person.lastName.trim()) {
             return config.validation.missingAuntUncleIdentity;
         }
+
         if (!person.relationshipType) {
             return config.validation.missingAuntUncleRelationship;
         }
+
         return null;
     }
 
@@ -267,28 +278,44 @@ export function FamilyKnowledgeGrandparentsPage() {
             }
         }
 
-        for (const person of values.paternalAuntsUncles) {
-            const err = validateAuntUncle(person);
-            if (err) return err;
+        if (!values.hasPaternalAuntsUncles) {
+            return config.validation.missingPaternalAuntsUnclesAnswer;
         }
 
-        for (const person of values.maternalAuntsUncles) {
-            const err = validateAuntUncle(person);
-            if (err) return err;
+        if (values.hasPaternalAuntsUncles === "yes") {
+            for (const person of values.paternalAuntsUncles) {
+                const err = validateAuntUncle(person);
+                if (err) return err;
+            }
+
+            if (values.knowsFatherSiblingOrder) {
+                const missing = values.paternalAuntsUncles.find(
+                    (p) => p.known && !p.birthOrder.trim(),
+                );
+                if (missing) {
+                    return config.validation.missingFatherSiblingOrder;
+                }
+            }
         }
 
-        if (values.knowsFatherSiblingOrder) {
-            const missing = values.paternalAuntsUncles.find(
-                (p) => p.known && !p.birthOrder.trim(),
-            );
-            if (missing) return config.validation.missingFatherSiblingOrder;
+        if (!values.hasMaternalAuntsUncles) {
+            return config.validation.missingMaternalAuntsUnclesAnswer;
         }
 
-        if (values.knowsMotherSiblingOrder) {
-            const missing = values.maternalAuntsUncles.find(
-                (p) => p.known && !p.birthOrder.trim(),
-            );
-            if (missing) return config.validation.missingMotherSiblingOrder;
+        if (values.hasMaternalAuntsUncles === "yes") {
+            for (const person of values.maternalAuntsUncles) {
+                const err = validateAuntUncle(person);
+                if (err) return err;
+            }
+
+            if (values.knowsMotherSiblingOrder) {
+                const missing = values.maternalAuntsUncles.find(
+                    (p) => p.known && !p.birthOrder.trim(),
+                );
+                if (missing) {
+                    return config.validation.missingMotherSiblingOrder;
+                }
+            }
         }
 
         return null;
@@ -311,13 +338,17 @@ export function FamilyKnowledgeGrandparentsPage() {
         }
 
         setLoading(true);
+
         try {
             await saveFamilyKnowledgeGrandparents({
                 participantId: participantSession.participantId,
                 values,
             });
 
-            localStorage.setItem(`connect:${slug}:family-knowledge:grandparents`, "done");
+            localStorage.setItem(
+                `connect:${slug}:family-knowledge:grandparents`,
+                "done",
+            );
             nav(`/e/${slug}/family-knowledge`);
         } catch (e: any) {
             setError(e?.message ?? "Erreur inconnue.");
@@ -329,19 +360,33 @@ export function FamilyKnowledgeGrandparentsPage() {
     return (
         <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
             <main className="c-container pt-3 pb-28">
-                <div className="flex items-center gap-3 px-1">
-                    <div className="h-11 w-11 rounded-2xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
-                        <Network size={18} className="text-slate-800" />
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-[18px] font-black tracking-tight text-slate-900">
-                            {config.pageTitle}
+                <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
+                            <Network size={14} />
+                            Famille élargie
                         </div>
-                        <div className="text-xs font-bold text-slate-700">
-                            {config.pageSubtitle}
-                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => nav(`/e/${slug}/family-knowledge`)}
+                            className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+                        >
+                            <span className="inline-flex items-center gap-2">
+                                <ArrowLeft size={14} />
+                                Retour
+                            </span>
+                        </button>
                     </div>
-                </div>
+
+                    <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
+                        {config.pageTitle}
+                    </h1>
+
+                    <p className="mt-2 text-sm font-bold text-slate-700">
+                        {config.pageSubtitle}
+                    </p>
+                </section>
 
                 <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
                     <div className='flex items-start gap-3'>
@@ -350,9 +395,6 @@ export function FamilyKnowledgeGrandparentsPage() {
                             <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
                             <div className='mt-0.5 text-xs text-amber-800'>
                                 <ol>
-                                    <li>Ajouter un bouton "retour"</li>
-                                    <li>Revoir l'en-tête</li>
-                                    <li>Ajouter un bouton "il n'a pas de frères et  soeurs"</li>
                                     <li>Si parent non connu pas la section</li>
                                     <li>Ordonner la fratrie avec des boutons up down, mettre le parent en lecture seule pour avoir son ordre aussi</li>
                                     <li>Mettre le bouton ajouter en bas sinon on est obligé de scroller pour le retrouver</li>
@@ -365,7 +407,7 @@ export function FamilyKnowledgeGrandparentsPage() {
                 </div>
 
                 {error ? (
-                    <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
+                    <div className="mt-3 rounded-2xl border border-[rgba(220,38,38,0.22)] bg-white p-3 shadow-sm">
                         <div className="flex items-start gap-2">
                             <div className="mt-0.5 text-[color:var(--bad)]">
                                 <AlertTriangle size={18} />
@@ -379,14 +421,14 @@ export function FamilyKnowledgeGrandparentsPage() {
                 ) : null}
 
                 {loadingInitialData ? (
-                    <section className="mt-3 rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
+                    <section className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                         <div className="text-sm font-bold text-slate-700">
                             Chargement des informations…
                         </div>
                     </section>
                 ) : (
                     <form onSubmit={onSubmit} className="mt-3 grid gap-3">
-                        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
+                        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="text-[16px] font-black text-slate-900">
                                 {config.sections.grandparents.title}
                             </div>
@@ -401,7 +443,10 @@ export function FamilyKnowledgeGrandparentsPage() {
                                     onChange={(patch) =>
                                         setValues((prev) => ({
                                             ...prev,
-                                            paternalGrandfather: { ...prev.paternalGrandfather, ...patch },
+                                            paternalGrandfather: {
+                                                ...prev.paternalGrandfather,
+                                                ...patch,
+                                            },
                                         }))
                                     }
                                     labels={config.personFields}
@@ -413,7 +458,10 @@ export function FamilyKnowledgeGrandparentsPage() {
                                     onChange={(patch) =>
                                         setValues((prev) => ({
                                             ...prev,
-                                            paternalGrandmother: { ...prev.paternalGrandmother, ...patch },
+                                            paternalGrandmother: {
+                                                ...prev.paternalGrandmother,
+                                                ...patch,
+                                            },
                                         }))
                                     }
                                     labels={config.personFields}
@@ -425,7 +473,10 @@ export function FamilyKnowledgeGrandparentsPage() {
                                     onChange={(patch) =>
                                         setValues((prev) => ({
                                             ...prev,
-                                            maternalGrandfather: { ...prev.maternalGrandfather, ...patch },
+                                            maternalGrandfather: {
+                                                ...prev.maternalGrandfather,
+                                                ...patch,
+                                            },
                                         }))
                                     }
                                     labels={config.personFields}
@@ -437,7 +488,10 @@ export function FamilyKnowledgeGrandparentsPage() {
                                     onChange={(patch) =>
                                         setValues((prev) => ({
                                             ...prev,
-                                            maternalGrandmother: { ...prev.maternalGrandmother, ...patch },
+                                            maternalGrandmother: {
+                                                ...prev.maternalGrandmother,
+                                                ...patch,
+                                            },
                                         }))
                                     }
                                     labels={config.personFields}
@@ -445,143 +499,201 @@ export function FamilyKnowledgeGrandparentsPage() {
                             </div>
                         </section>
 
-                        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
-                            <div className="mt-0">
-                                <div className="text-[16px] font-black text-slate-900">
-                                    {config.sections.paternalAuntsUncles.title}
-                                </div>
-                                <div className="mt-1 text-sm font-bold text-slate-700">
-                                    {config.sections.paternalAuntsUncles.subtitle}
-                                </div>
+                        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <div className="text-[16px] font-black text-slate-900">
+                                {config.sections.paternalAuntsUncles.title}
+                            </div>
+                            <div className="mt-1 text-sm font-bold text-slate-700">
+                                {config.sections.paternalAuntsUncles.subtitle}
                             </div>
 
-                            <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                                <input
-                                    type="checkbox"
-                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                    checked={values.knowsFatherSiblingOrder}
-                                    onChange={(e) =>
+                            <label className="mt-4 grid gap-1">
+                                <span className="text-xs font-extrabold text-slate-800">
+                                    {config.sections.paternalAuntsUncles.questionLabel}
+                                </span>
+                                <select
+                                    className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                                    value={values.hasPaternalAuntsUncles}
+                                    onChange={(e) => {
+                                        const next = e.target.value as "" | "yes" | "no";
+
                                         setValues((prev) => ({
                                             ...prev,
-                                            knowsFatherSiblingOrder: e.target.checked,
-                                        }))
-                                    }
-                                />
-                                <div>
-                                    <div className="text-sm font-black text-slate-900">
-                                        {config.sections.paternalAuntsUncles.knowsOrderLabel}
-                                    </div>
-                                    <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                                        {config.sections.paternalAuntsUncles.knowsOrderHelp}
-                                    </div>
-                                </div>
+                                            hasPaternalAuntsUncles: next,
+                                            paternalAuntsUncles:
+                                                next === "yes" ? prev.paternalAuntsUncles : [],
+                                            knowsFatherSiblingOrder:
+                                                next === "yes" ? prev.knowsFatherSiblingOrder : false,
+                                        }));
+                                    }}
+                                >
+                                    <option value="">{config.personFields.chooseLabel}</option>
+                                    <option value="yes">{config.personFields.yesLabel}</option>
+                                    <option value="no">{config.personFields.noLabel}</option>
+                                </select>
                             </label>
 
-                            <div className="mt-4">
-                                <FamilyPeopleList
-                                    title=""
-                                    addLabel={config.sections.paternalAuntsUncles.addLabel}
-                                    emptyText={config.sections.paternalAuntsUncles.emptyText}
-                                    items={values.paternalAuntsUncles}
-                                    onAdd={() =>
-                                        setValues((prev) => ({
-                                            ...prev,
-                                            paternalAuntsUncles: [
-                                                ...prev.paternalAuntsUncles,
-                                                createEmptyFamilyKnowledgeAuntUnclePerson(true),
-                                            ],
-                                        }))
-                                    }
-                                    renderItem={(person, index) => (
-                                        <AuntUncleCard
-                                            key={index}
-                                            title={`${config.sections.paternalAuntsUncles.itemLabel} ${index + 1}`}
-                                            value={person}
-                                            showBirthOrder={values.knowsFatherSiblingOrder}
-                                            onChange={(patch) => setPaternalAuntUncle(index, patch)}
-                                            onRemove={() =>
+                            {values.hasPaternalAuntsUncles === "yes" ? (
+                                <>
+                                    <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <input
+                                            type="checkbox"
+                                            className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            checked={values.knowsFatherSiblingOrder}
+                                            onChange={(e) =>
                                                 setValues((prev) => ({
                                                     ...prev,
-                                                    paternalAuntsUncles: prev.paternalAuntsUncles.filter(
-                                                        (_, i) => i !== index,
-                                                    ),
+                                                    knowsFatherSiblingOrder: e.target.checked,
                                                 }))
                                             }
                                         />
-                                    )}
-                                />
-                            </div>
-                        </section>
+                                        <div>
+                                            <div className="text-sm font-black text-slate-900">
+                                                {config.sections.paternalAuntsUncles.knowsOrderLabel}
+                                            </div>
+                                            <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                                                {config.sections.paternalAuntsUncles.knowsOrderHelp}
+                                            </div>
+                                        </div>
+                                    </label>
 
-                        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
-                            <div className="mt-0">
-                                <div className="text-[16px] font-black text-slate-900">
-                                    {config.sections.maternalAuntsUncles.title}
-                                </div>
-                                <div className="mt-1 text-sm font-bold text-slate-700">
-                                    {config.sections.maternalAuntsUncles.subtitle}
-                                </div>
-                            </div>
-
-                            <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                                <input
-                                    type="checkbox"
-                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                    checked={values.knowsMotherSiblingOrder}
-                                    onChange={(e) =>
-                                        setValues((prev) => ({
-                                            ...prev,
-                                            knowsMotherSiblingOrder: e.target.checked,
-                                        }))
-                                    }
-                                />
-                                <div>
-                                    <div className="text-sm font-black text-slate-900">
-                                        {config.sections.maternalAuntsUncles.knowsOrderLabel}
-                                    </div>
-                                    <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                                        {config.sections.maternalAuntsUncles.knowsOrderHelp}
-                                    </div>
-                                </div>
-                            </label>
-
-                            <div className="mt-4">
-                                <FamilyPeopleList
-                                    title=""
-                                    addLabel={config.sections.maternalAuntsUncles.addLabel}
-                                    emptyText={config.sections.maternalAuntsUncles.emptyText}
-                                    items={values.maternalAuntsUncles}
-                                    onAdd={() =>
-                                        setValues((prev) => ({
-                                            ...prev,
-                                            maternalAuntsUncles: [
-                                                ...prev.maternalAuntsUncles,
-                                                createEmptyFamilyKnowledgeAuntUnclePerson(true),
-                                            ],
-                                        }))
-                                    }
-                                    renderItem={(person, index) => (
-                                        <AuntUncleCard
-                                            key={index}
-                                            title={`${config.sections.maternalAuntsUncles.itemLabel} ${index + 1}`}
-                                            value={person}
-                                            showBirthOrder={values.knowsMotherSiblingOrder}
-                                            onChange={(patch) => setMaternalAuntUncle(index, patch)}
-                                            onRemove={() =>
+                                    <div className="mt-4">
+                                        <FamilyPeopleList
+                                            title=""
+                                            addLabel={config.sections.paternalAuntsUncles.addLabel}
+                                            emptyText={config.sections.paternalAuntsUncles.emptyText}
+                                            items={values.paternalAuntsUncles}
+                                            onAdd={() =>
                                                 setValues((prev) => ({
                                                     ...prev,
-                                                    maternalAuntsUncles: prev.maternalAuntsUncles.filter(
-                                                        (_, i) => i !== index,
-                                                    ),
+                                                    paternalAuntsUncles: [
+                                                        ...prev.paternalAuntsUncles,
+                                                        createEmptyFamilyKnowledgeAuntUnclePerson(true),
+                                                    ],
+                                                }))
+                                            }
+                                            renderItem={(person, index) => (
+                                                <AuntUncleCard
+                                                    key={index}
+                                                    title={`${config.sections.paternalAuntsUncles.itemLabel} ${index + 1}`}
+                                                    value={person}
+                                                    showBirthOrder={values.knowsFatherSiblingOrder}
+                                                    onChange={(patch) => setPaternalAuntUncle(index, patch)}
+                                                    onRemove={() =>
+                                                        setValues((prev) => ({
+                                                            ...prev,
+                                                            paternalAuntsUncles:
+                                                                prev.paternalAuntsUncles.filter(
+                                                                    (_, i) => i !== index,
+                                                                ),
+                                                        }))
+                                                    }
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </>
+                            ) : null}
+                        </section>
+
+                        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <div className="text-[16px] font-black text-slate-900">
+                                {config.sections.maternalAuntsUncles.title}
+                            </div>
+                            <div className="mt-1 text-sm font-bold text-slate-700">
+                                {config.sections.maternalAuntsUncles.subtitle}
+                            </div>
+
+                            <label className="mt-4 grid gap-1">
+                                <span className="text-xs font-extrabold text-slate-800">
+                                    {config.sections.maternalAuntsUncles.questionLabel}
+                                </span>
+                                <select
+                                    className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                                    value={values.hasMaternalAuntsUncles}
+                                    onChange={(e) => {
+                                        const next = e.target.value as "" | "yes" | "no";
+
+                                        setValues((prev) => ({
+                                            ...prev,
+                                            hasMaternalAuntsUncles: next,
+                                            maternalAuntsUncles:
+                                                next === "yes" ? prev.maternalAuntsUncles : [],
+                                            knowsMotherSiblingOrder:
+                                                next === "yes" ? prev.knowsMotherSiblingOrder : false,
+                                        }));
+                                    }}
+                                >
+                                    <option value="">{config.personFields.chooseLabel}</option>
+                                    <option value="yes">{config.personFields.yesLabel}</option>
+                                    <option value="no">{config.personFields.noLabel}</option>
+                                </select>
+                            </label>
+
+                            {values.hasMaternalAuntsUncles === "yes" ? (
+                                <>
+                                    <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <input
+                                            type="checkbox"
+                                            className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            checked={values.knowsMotherSiblingOrder}
+                                            onChange={(e) =>
+                                                setValues((prev) => ({
+                                                    ...prev,
+                                                    knowsMotherSiblingOrder: e.target.checked,
                                                 }))
                                             }
                                         />
-                                    )}
-                                />
-                            </div>
+                                        <div>
+                                            <div className="text-sm font-black text-slate-900">
+                                                {config.sections.maternalAuntsUncles.knowsOrderLabel}
+                                            </div>
+                                            <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                                                {config.sections.maternalAuntsUncles.knowsOrderHelp}
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <div className="mt-4">
+                                        <FamilyPeopleList
+                                            title=""
+                                            addLabel={config.sections.maternalAuntsUncles.addLabel}
+                                            emptyText={config.sections.maternalAuntsUncles.emptyText}
+                                            items={values.maternalAuntsUncles}
+                                            onAdd={() =>
+                                                setValues((prev) => ({
+                                                    ...prev,
+                                                    maternalAuntsUncles: [
+                                                        ...prev.maternalAuntsUncles,
+                                                        createEmptyFamilyKnowledgeAuntUnclePerson(true),
+                                                    ],
+                                                }))
+                                            }
+                                            renderItem={(person, index) => (
+                                                <AuntUncleCard
+                                                    key={index}
+                                                    title={`${config.sections.maternalAuntsUncles.itemLabel} ${index + 1}`}
+                                                    value={person}
+                                                    showBirthOrder={values.knowsMotherSiblingOrder}
+                                                    onChange={(patch) => setMaternalAuntUncle(index, patch)}
+                                                    onRemove={() =>
+                                                        setValues((prev) => ({
+                                                            ...prev,
+                                                            maternalAuntsUncles:
+                                                                prev.maternalAuntsUncles.filter(
+                                                                    (_, i) => i !== index,
+                                                                ),
+                                                        }))
+                                                    }
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </>
+                            ) : null}
                         </section>
 
-                        <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
+                        <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="flex items-start gap-2">
                                 <div className="mt-0.5 text-[color:var(--ok)]">
                                     <CheckCircle2 size={18} />
@@ -600,16 +712,16 @@ export function FamilyKnowledgeGrandparentsPage() {
                 )}
             </main>
 
-            <footer className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
+            <footer className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white/95 to-white/0 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
                 <div className="c-container">
-                    <div className="rounded-3xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_16px_38px_rgba(15,23,42,0.10)] p-2">
+                    <div className="rounded-3xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_38px_rgba(15,23,42,0.10)] backdrop-blur">
                         <button
                             type="button"
                             onClick={(e) => void onSubmit(e as unknown as FormEvent)}
                             className={[
-                                "w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 transition",
+                                "inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl font-black transition",
                                 loading
-                                    ? "bg-[color:var(--blue)] text-white opacity-70 cursor-wait"
+                                    ? "cursor-wait bg-[color:var(--blue)] text-white opacity-70"
                                     : "bg-[color:var(--blue)] text-white",
                             ].join(" ")}
                             disabled={loading}

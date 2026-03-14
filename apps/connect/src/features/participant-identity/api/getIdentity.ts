@@ -14,11 +14,6 @@ type ParticipantRow = {
   preferred_contact_channels: string[] | null;
 };
 
-type IdentityRow = {
-  branch_keys: string[] | null;
-  attended_edition_keys: string[] | null;
-};
-
 function normalizeChannels(values: string[] | null | undefined): ContactChannel[] {
   const allowed = new Set<ContactChannel>([
     "sms",
@@ -39,7 +34,7 @@ type GetIdentityInput = {
 export async function getIdentity({
   participantId,
 }: GetIdentityInput): Promise<IdentityFormValues | null> {
-  const [participantRes, identityRes] = await Promise.all([
+  const [participantRes] = await Promise.all([
     supabase
       .from("participants")
       .select(
@@ -47,20 +42,10 @@ export async function getIdentity({
       )
       .eq("id", participantId)
       .maybeSingle<ParticipantRow>(),
-
-    supabase
-      .from("participant_identity")
-      .select("branch_keys, attended_edition_keys")
-      .eq("participant_id", participantId)
-      .maybeSingle<IdentityRow>(),
   ]);
 
   if (participantRes.error) {
     throw new Error(participantRes.error.message);
-  }
-
-  if (identityRes.error) {
-    throw new Error(identityRes.error.message);
   }
 
   if (!participantRes.data) return null;
@@ -79,7 +64,5 @@ export async function getIdentity({
     preferredContactChannels: normalizeChannels(
       participantRes.data.preferred_contact_channels,
     ),
-    branchKeys: identityRes.data?.branch_keys ?? [],
-    previousEditionKeys: identityRes.data?.attended_edition_keys ?? [],
   };
 }

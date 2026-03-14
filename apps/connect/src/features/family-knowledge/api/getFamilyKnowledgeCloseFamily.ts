@@ -13,9 +13,14 @@ export type FamilyKnowledgePersonEntry = {
 export type FamilyKnowledgeCloseFamilyValues = {
   parent1: FamilyKnowledgePersonEntry;
   parent2: FamilyKnowledgePersonEntry;
+
+  hasSiblings: "" | "yes" | "no";
   siblings: FamilyKnowledgePersonEntry[];
   knowsSiblingOrder: boolean;
+
+  hasChildren: "" | "yes" | "no";
   children: FamilyKnowledgePersonEntry[];
+
   isInRelationship: "" | "yes" | "no";
   partner: FamilyKnowledgePersonEntry;
 };
@@ -42,9 +47,14 @@ export function getDefaultFamilyKnowledgeCloseFamilyValues(): FamilyKnowledgeClo
   return {
     parent1: createEmptyFamilyKnowledgePerson(true),
     parent2: createEmptyFamilyKnowledgePerson(true),
+
+    hasSiblings: "",
     siblings: [],
     knowsSiblingOrder: false,
+
+    hasChildren: "",
     children: [],
+
     isInRelationship: "",
     partner: createEmptyFamilyKnowledgePerson(true),
   };
@@ -83,20 +93,31 @@ export async function getFamilyKnowledgeCloseFamily({
   const defaults = getDefaultFamilyKnowledgeCloseFamilyValues();
 
   return {
-    ...defaults,
-    parent1: normalizePerson(raw.parent1),
-    parent2: normalizePerson(raw.parent2),
-    siblings: Array.isArray(raw.siblings)
-      ? raw.siblings.map(normalizePerson)
-      : [],
-    knowsSiblingOrder: Boolean(raw.knowsSiblingOrder),
-    children: Array.isArray(raw.children)
-      ? raw.children.map(normalizePerson)
-      : [],
-    isInRelationship:
-      raw.isInRelationship === "yes" || raw.isInRelationship === "no"
-        ? raw.isInRelationship
-        : "",
-    partner: normalizePerson(raw.partner),
-  };
+  ...defaults,
+  parent1: normalizePerson(raw.parent1),
+  parent2: normalizePerson(raw.parent2),
+
+  hasSiblings:
+    raw.hasSiblings === "yes" || raw.hasSiblings === "no"
+      ? raw.hasSiblings
+      : "",
+  siblings: Array.isArray(raw.siblings)
+    ? raw.siblings.map(normalizePerson)
+    : [],
+  knowsSiblingOrder: Boolean(raw.knowsSiblingOrder),
+
+  hasChildren:
+    raw.hasChildren === "yes" || raw.hasChildren === "no"
+      ? raw.hasChildren
+      : "",
+  children: Array.isArray(raw.children)
+    ? raw.children.map(normalizePerson)
+    : [],
+
+  isInRelationship:
+    raw.isInRelationship === "yes" || raw.isInRelationship === "no"
+      ? raw.isInRelationship
+      : "",
+  partner: normalizePerson(raw.partner),
+};
 }

@@ -54,6 +54,7 @@ import { ParticipantGuard } from "../features/guard/ParticipantGuard";
 import { FamilyKnowledgeEntryPage } from "../features/family-knowledge/pages/FamilyKnowledgeEntryPage";
 import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPage";
 import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
+import { ParticipantOriginsPage } from "../features/participant-origins/pages/ParticipantOriginsPage";
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +83,7 @@ export const router = createBrowserRouter([
           // Legacy pre-event / public leftovers
           { path: "welcome/form", element: <PreEventFormPage /> },
           { path: "welcome/identity", element: <ParticipantIdentityPage /> },
+          { path: "welcome/origins", element: <ParticipantOriginsPage /> },
           { path: "welcome/confirmation", element: <OnboardingConfirmationPage /> },
 
           // Protected participant area

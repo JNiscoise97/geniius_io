@@ -3,12 +3,13 @@ import {
   UserCircle2,
   Settings,
   type LucideIcon,
+  GitBranch,
 } from "lucide-react";
 
 export type OnboardingStepStatus = "todo" | "in_progress" | "done";
 
 export type OnboardingStepConfig = {
-  key: "identity" | "profile" | "preferences";
+  key: "identity" | "profile" | "preferences" | "origins";
   title: string;
   subtitle: string;
   why: string;
@@ -20,11 +21,11 @@ export type OnboardingStepConfig = {
 export const onboardingStepsConfig: OnboardingStepConfig[] = [
   {
     key: "identity",
-    title: "Se présenter à la famille",
+    title: "Mon profil",
     subtitle:
-      "Quelques informations simples pour que chacun puisse savoir qui tu es.",
-    why: "C’est la meilleure manière d’aider les cousins à te reconnaître et à situer ta place dans la famille.",
-    ctaLabel: "Me présenter",
+      "Ajoute tes informations générales et tes coordonnées.",
+    why: "Cela permet de mieux t’identifier, de te recontacter facilement et de compléter ton profil famille.",
+    ctaLabel: "Compléter mon profil",
     icon: UserCircle2,
     routeSuffix: "identity",
   },
@@ -47,5 +48,15 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
     ctaLabel: "Partager quelques infos",
     icon: MessageCircleHeart,
     routeSuffix: "profile",
-  }
+  },
+  {
+  key: "origins",
+  title: "Ton lien avec la cousinade",
+  subtitle:
+    "Dis-nous comment tu as entendu parler du pique-nique et si tu connais ta branche familiale.",
+  why: "Ces informations nous aident à mieux comprendre les liens dans la famille et la manière dont les cousins rejoignent l’initiative.",
+  ctaLabel: "Renseigner ces informations",
+  icon: GitBranch,
+  routeSuffix: "origins",
+}
 ];

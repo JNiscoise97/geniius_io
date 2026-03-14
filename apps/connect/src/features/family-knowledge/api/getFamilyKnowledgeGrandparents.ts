@@ -26,9 +26,11 @@ export type FamilyKnowledgeGrandparentsValues = {
   maternalGrandfather: FamilyKnowledgeGrandparentPerson;
   maternalGrandmother: FamilyKnowledgeGrandparentPerson;
 
+  hasPaternalAuntsUncles: "" | "yes" | "no";
   paternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsFatherSiblingOrder: boolean;
 
+  hasMaternalAuntsUncles: "" | "yes" | "no";
   maternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsMotherSiblingOrder: boolean;
 };
@@ -72,12 +74,18 @@ export function getDefaultFamilyKnowledgeGrandparentsValues(): FamilyKnowledgeGr
     maternalGrandfather: createEmptyFamilyKnowledgeGrandparentPerson(true),
     maternalGrandmother: createEmptyFamilyKnowledgeGrandparentPerson(true),
 
+    hasPaternalAuntsUncles: "",
     paternalAuntsUncles: [],
     knowsFatherSiblingOrder: false,
 
+    hasMaternalAuntsUncles: "",
     maternalAuntsUncles: [],
     knowsMotherSiblingOrder: false,
   };
+}
+
+function normalizeYesNo(value: unknown): "" | "yes" | "no" {
+  return value === "yes" || value === "no" ? value : "";
 }
 
 function normalizeGrandparentPerson(input: any): FamilyKnowledgeGrandparentPerson {
@@ -86,10 +94,8 @@ function normalizeGrandparentPerson(input: any): FamilyKnowledgeGrandparentPerso
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
     nickname: input?.nickname ?? "",
-    isAlive:
-      input?.isAlive === "yes" || input?.isAlive === "no" ? input.isAlive : "",
-    hasPhoto:
-      input?.hasPhoto === "yes" || input?.hasPhoto === "no" ? input.hasPhoto : "",
+    isAlive: normalizeYesNo(input?.isAlive),
+    hasPhoto: normalizeYesNo(input?.hasPhoto),
   };
 }
 
@@ -99,10 +105,8 @@ function normalizeAuntUnclePerson(input: any): FamilyKnowledgeAuntUnclePerson {
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
     nickname: input?.nickname ?? "",
-    isAlive:
-      input?.isAlive === "yes" || input?.isAlive === "no" ? input.isAlive : "",
-    hasPhoto:
-      input?.hasPhoto === "yes" || input?.hasPhoto === "no" ? input.hasPhoto : "",
+    isAlive: normalizeYesNo(input?.isAlive),
+    hasPhoto: normalizeYesNo(input?.hasPhoto),
     relationshipType:
       input?.relationshipType === "both_parents" ||
       input?.relationshipType === "father_only" ||
@@ -126,21 +130,27 @@ export async function getFamilyKnowledgeGrandparents({
     throw new Error(res.error.message);
   }
 
-  if (!res.data?.data) return null;
+  if (!res.data?.data) {
+    return null;
+  }
 
   const raw = res.data.data;
+  const defaults = getDefaultFamilyKnowledgeGrandparentsValues();
 
   return {
+    ...defaults,
     paternalGrandfather: normalizeGrandparentPerson(raw.paternalGrandfather),
     paternalGrandmother: normalizeGrandparentPerson(raw.paternalGrandmother),
     maternalGrandfather: normalizeGrandparentPerson(raw.maternalGrandfather),
     maternalGrandmother: normalizeGrandparentPerson(raw.maternalGrandmother),
 
+    hasPaternalAuntsUncles: normalizeYesNo(raw.hasPaternalAuntsUncles),
     paternalAuntsUncles: Array.isArray(raw.paternalAuntsUncles)
       ? raw.paternalAuntsUncles.map(normalizeAuntUnclePerson)
       : [],
     knowsFatherSiblingOrder: Boolean(raw.knowsFatherSiblingOrder),
 
+    hasMaternalAuntsUncles: normalizeYesNo(raw.hasMaternalAuntsUncles),
     maternalAuntsUncles: Array.isArray(raw.maternalAuntsUncles)
       ? raw.maternalAuntsUncles.map(normalizeAuntUnclePerson)
       : [],

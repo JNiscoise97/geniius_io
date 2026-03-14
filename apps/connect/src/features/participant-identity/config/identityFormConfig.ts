@@ -53,21 +53,11 @@ export type IdentityFormConfig = {
       label: string;
       helpText?: string;
     };
-    branches: {
-      label: string;
-      helpText?: string;
-      options: IdentityOption[];
-    };
-    previousEditions: {
-      label: string;
-      helpText?: string;
-      options: IdentityOption[];
-    };
   };
 };
 
 export const identityFormConfig: IdentityFormConfig = {
-  title: "Se présenter à la famille",
+  title: "Informations générales",
   subtitle:
     "Quelques informations simples pour que chacun puisse mieux savoir qui tu es.",
   introTitle: "Commençons simplement",
@@ -117,27 +107,6 @@ export const identityFormConfig: IdentityFormConfig = {
       label: "Moyen de contact à privilégier",
       helpText:
         "Choisis au moins un moyen si tu veux être recontacté facilement.",
-    },
-    branches: {
-      label: "Branche familiale (si tu la connais)",
-      helpText:
-        "Pour comprendre plus facilement les liens entre les différentes branches.",
-      options: [
-        { key: "candassamy", label: "Branche Candassamy" },
-        { key: "manicon", label: "Branche Manicon" },
-        { key: "coundiaman", label: "Branche Coundiaman" },
-        { key: "canou", label: "Branche Canou" },
-        { key: "molotte", label: "Branche Molotte" },
-      ],
-    },
-    previousEditions: {
-      label: "Déjà venu ?",
-      helpText:
-        "Si tu as déjà participé, tu peux cocher les éditions auxquelles tu étais présent.",
-      options: [
-        { key: "2023", label: "Édition 2023" },
-        { key: "2024", label: "Édition 2024" },
-      ],
     },
   },
 };

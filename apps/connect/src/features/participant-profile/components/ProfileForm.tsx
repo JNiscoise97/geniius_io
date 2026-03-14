@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import type { FormEvent } from "react";
 import type { ProfileFormConfig } from "../config/profileQuestionsConfig";
 
@@ -6,8 +6,6 @@ export type ProfileFormValues = {
   city: string;
   occupation: string;
   interests: string;
-  personalityWord: string;
-  cousinadeExpectation: string;
   freeShare: string;
 };
 
@@ -15,6 +13,9 @@ type ProfileFormProps = {
   config: ProfileFormConfig;
   value: ProfileFormValues;
   loading?: boolean;
+  error?: string | null;
+  allowInfoInFamilyTree: boolean;
+  onChangeAllowInfoInFamilyTree: (next: boolean) => void;
   onChange: (patch: Partial<ProfileFormValues>) => void;
   onSubmit: (e: FormEvent) => void;
 };
@@ -23,6 +24,9 @@ export function ProfileForm({
   config,
   value,
   loading = false,
+  error = null,
+  allowInfoInFamilyTree,
+  onChangeAllowInfoInFamilyTree,
   onChange,
   onSubmit,
 }: ProfileFormProps) {
@@ -34,10 +38,6 @@ export function ProfileForm({
         return value.occupation;
       case "interests":
         return value.interests;
-      case "personality_word":
-        return value.personalityWord;
-      case "cousinade_expectation":
-        return value.cousinadeExpectation;
       case "free_share":
         return value.freeShare;
       default:
@@ -56,12 +56,6 @@ export function ProfileForm({
       case "interests":
         onChange({ interests: next });
         break;
-      case "personality_word":
-        onChange({ personalityWord: next });
-        break;
-      case "cousinade_expectation":
-        onChange({ cousinadeExpectation: next });
-        break;
       case "free_share":
         onChange({ freeShare: next });
         break;
@@ -69,48 +63,50 @@ export function ProfileForm({
   }
 
   return (
-    <><div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-      <div className='flex items-start gap-3'>
-        <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-        <div className='min-w-0'>
-          <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-          <div className='mt-0.5 text-xs text-amber-800'>
-            <ol>
-              <li>Ajouter un bouton retour</li>
-              <li>Envoi d'une notif par mail à l'organisateur</li>
-              <li>Ajouter coche pour autoriser le partage de ces infos sur l'arbre génélogique de la famille</li>
-              <li>Supprimer la question : Quel mot te décrit le mieux ?</li>
-              <li>Sortir la question "Qu’aimerais-tu retrouver ou découvrir pendant la cousinade ?"</li>
-              <li>Revoir les labels du titre</li>
-            </ol>
+    <>
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-amber-900">
+              Chantiers en cours
+            </div>
+            <div className="mt-0.5 text-xs text-amber-800">
+              <ol>
+                <li>Envoi d'une notif par mail à l'organisateur</li>
+                <li>Revoir les labels du titre</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
-    </div><form id="profile-form" onSubmit={onSubmit} className="mt-3">
+
+      <form id="profile-form" onSubmit={onSubmit} className="mt-3">
         <section className="rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
           <div className="p-4">
-            <div className="text-[16px] font-black text-slate-900">
-              {config.title}
-            </div>
-            <div className="mt-1 text-sm font-bold text-slate-700">
-              {config.subtitle}
-            </div>
+           
+           <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={allowInfoInFamilyTree}
+                onChange={(e) =>
+                  onChangeAllowInfoInFamilyTree(e.target.checked)
+                }
+                disabled={loading}
+                className="mt-1"
+              />
 
-            <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-3">
-              <div className="flex items-start gap-2">
-                <div className="mt-0.5 text-[color:var(--ok)]">
-                  <CheckCircle2 size={18} />
+              <div>
+                <div className="text-sm font-black text-slate-900">
+                  Afficher ces informations dans l’arbre généalogique
                 </div>
-                <div>
-                  <div className="text-sm font-black text-slate-900">
-                    {config.introTitle}
-                  </div>
-                  <div className="text-xs font-bold leading-5 text-slate-700">
-                    {config.introText}
-                  </div>
+                <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                  Si tu coches cette case, les informations remplies dans ce
+                  formulaire pourront apparaître dans l’arbre généalogique de la
+                  famille, si tu souhaites y figurer.
                 </div>
               </div>
-            </div>
+            </label>
 
             <div className="mt-4 grid gap-4">
               {config.questions.map((question) => (
@@ -123,26 +119,32 @@ export function ProfileForm({
                     <textarea
                       className="min-h-[120px] rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-400 outline-none resize-y focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                       value={getValue(question.key)}
-                      onChange={(e) => setValue(
-                        question.key,
-                        question.maxLength
-                          ? e.target.value.slice(0, question.maxLength)
-                          : e.target.value
-                      )}
+                      onChange={(e) =>
+                        setValue(
+                          question.key,
+                          question.maxLength
+                            ? e.target.value.slice(0, question.maxLength)
+                            : e.target.value,
+                        )
+                      }
                       placeholder={question.placeholder}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   ) : (
                     <input
                       className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
                       value={getValue(question.key)}
-                      onChange={(e) => setValue(
-                        question.key,
-                        question.maxLength
-                          ? e.target.value.slice(0, question.maxLength)
-                          : e.target.value
-                      )}
+                      onChange={(e) =>
+                        setValue(
+                          question.key,
+                          question.maxLength
+                            ? e.target.value.slice(0, question.maxLength)
+                            : e.target.value,
+                        )
+                      }
                       placeholder={question.placeholder}
-                      disabled={loading} />
+                      disabled={loading}
+                    />
                   )}
 
                   {question.helpText ? (
@@ -161,6 +163,12 @@ export function ProfileForm({
             </div>
           </div>
         </section>
+
+        {error ? (
+          <div className="mt-3 text-sm font-bold text-[color:var(--bad)]">
+            {error}
+          </div>
+        ) : null}
 
         <footer className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
           <div className="c-container">
@@ -182,6 +190,7 @@ export function ProfileForm({
             </div>
           </div>
         </footer>
-      </form></>
+      </form>
+    </>
   );
 }

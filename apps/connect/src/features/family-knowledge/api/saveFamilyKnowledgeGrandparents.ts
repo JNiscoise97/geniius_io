@@ -52,11 +52,25 @@ export async function saveFamilyKnowledgeGrandparents({
     maternalGrandfather: normalizeGrandparentPerson(values.maternalGrandfather),
     maternalGrandmother: normalizeGrandparentPerson(values.maternalGrandmother),
 
-    paternalAuntsUncles: values.paternalAuntsUncles.map(normalizeAuntUnclePerson),
-    knowsFatherSiblingOrder: values.knowsFatherSiblingOrder,
+    hasPaternalAuntsUncles: values.hasPaternalAuntsUncles,
+    paternalAuntsUncles:
+      values.hasPaternalAuntsUncles === "yes"
+        ? values.paternalAuntsUncles.map(normalizeAuntUnclePerson)
+        : [],
+    knowsFatherSiblingOrder:
+      values.hasPaternalAuntsUncles === "yes"
+        ? values.knowsFatherSiblingOrder
+        : false,
 
-    maternalAuntsUncles: values.maternalAuntsUncles.map(normalizeAuntUnclePerson),
-    knowsMotherSiblingOrder: values.knowsMotherSiblingOrder,
+    hasMaternalAuntsUncles: values.hasMaternalAuntsUncles,
+    maternalAuntsUncles:
+      values.hasMaternalAuntsUncles === "yes"
+        ? values.maternalAuntsUncles.map(normalizeAuntUnclePerson)
+        : [],
+    knowsMotherSiblingOrder:
+      values.hasMaternalAuntsUncles === "yes"
+        ? values.knowsMotherSiblingOrder
+        : false,
   };
 
   const res = await supabase

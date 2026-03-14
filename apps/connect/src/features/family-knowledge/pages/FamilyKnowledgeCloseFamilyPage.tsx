@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Plus,
@@ -20,8 +21,6 @@ import {
 import { saveFamilyKnowledgeCloseFamily } from "../api/saveFamilyKnowledgeCloseFamily";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-
-
 export function FamilyKnowledgeCloseFamilyPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
@@ -39,8 +38,6 @@ export function FamilyKnowledgeCloseFamilyPage() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
-
-  
 
   useEffect(() => {
     let isMounted = true;
@@ -89,9 +86,11 @@ export function FamilyKnowledgeCloseFamilyPage() {
     label: string,
   ): string | null {
     if (!person.known) return null;
+
     if (!person.firstName.trim() && !person.lastName.trim()) {
       return `${config.validation.missingIdentity} ${label}.`;
     }
+
     return null;
   }
 
@@ -108,29 +107,42 @@ export function FamilyKnowledgeCloseFamilyPage() {
     );
     if (parent2Error) return parent2Error;
 
-    for (let i = 0; i < values.siblings.length; i += 1) {
-      const err = validateKnownPerson(
-        values.siblings[i],
-        `${config.validation.siblingLabel} #${i + 1}`,
-      );
-      if (err) return err;
+    if (!values.hasSiblings) {
+      return "Merci d’indiquer si tu as des frères et sœurs.";
     }
 
-    if (values.knowsSiblingOrder) {
-      const siblingWithMissingOrder = values.siblings.find(
-        (s) => s.known && !s.birthOrder.trim(),
-      );
-      if (siblingWithMissingOrder) {
-        return config.validation.missingSiblingOrder;
+    if (values.hasSiblings === "yes") {
+      for (let i = 0; i < values.siblings.length; i += 1) {
+        const siblingError = validateKnownPerson(
+          values.siblings[i],
+          `${config.validation.siblingLabel} #${i + 1}`,
+        );
+        if (siblingError) return siblingError;
+      }
+
+      if (values.knowsSiblingOrder) {
+        const siblingWithMissingOrder = values.siblings.find(
+          (sibling) => sibling.known && !sibling.birthOrder.trim(),
+        );
+
+        if (siblingWithMissingOrder) {
+          return config.validation.missingSiblingOrder;
+        }
       }
     }
 
-    for (let i = 0; i < values.children.length; i += 1) {
-      const err = validateKnownPerson(
-        values.children[i],
-        `${config.validation.childLabel} #${i + 1}`,
-      );
-      if (err) return err;
+    if (!values.hasChildren) {
+      return "Merci d’indiquer si tu as des enfants.";
+    }
+
+    if (values.hasChildren === "yes") {
+      for (let i = 0; i < values.children.length; i += 1) {
+        const childError = validateKnownPerson(
+          values.children[i],
+          `${config.validation.childLabel} #${i + 1}`,
+        );
+        if (childError) return childError;
+      }
     }
 
     if (values.isInRelationship === "yes") {
@@ -144,7 +156,10 @@ export function FamilyKnowledgeCloseFamilyPage() {
     return null;
   }
 
-  function setSibling(index: number, patch: Partial<FamilyKnowledgePersonEntry>) {
+  function setSibling(
+    index: number,
+    patch: Partial<FamilyKnowledgePersonEntry>,
+  ) {
     setValues((prev) => ({
       ...prev,
       siblings: prev.siblings.map((item, i) =>
@@ -159,6 +174,39 @@ export function FamilyKnowledgeCloseFamilyPage() {
       children: prev.children.map((item, i) =>
         i === index ? { ...item, ...patch } : item,
       ),
+    }));
+  }
+
+  function addSibling() {
+    setValues((prev) => ({
+      ...prev,
+      hasSiblings: "yes",
+      siblings: [...prev.siblings, createEmptyFamilyKnowledgePerson(true)],
+    }));
+  }
+
+  function addChild() {
+    setValues((prev) => ({
+      ...prev,
+      hasChildren: "yes",
+      children: [...prev.children, createEmptyFamilyKnowledgePerson(true)],
+    }));
+  }
+
+  function setHasSiblings(next: "" | "yes" | "no") {
+    setValues((prev) => ({
+      ...prev,
+      hasSiblings: next,
+      siblings: next === "yes" ? prev.siblings : [],
+      knowsSiblingOrder: next === "yes" ? prev.knowsSiblingOrder : false,
+    }));
+  }
+
+  function setHasChildren(next: "" | "yes" | "no") {
+    setValues((prev) => ({
+      ...prev,
+      hasChildren: next,
+      children: next === "yes" ? prev.children : [],
     }));
   }
 
@@ -179,13 +227,18 @@ export function FamilyKnowledgeCloseFamilyPage() {
     }
 
     setLoading(true);
+
     try {
       await saveFamilyKnowledgeCloseFamily({
         participantId: participantSession.participantId,
         values,
       });
 
-      localStorage.setItem(`connect:${slug}:family-knowledge:close_family`, "done");
+      localStorage.setItem(
+        `connect:${slug}:family-knowledge:close_family`,
+        "done",
+      );
+
       nav(`/e/${slug}/family-knowledge`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");
@@ -197,39 +250,51 @@ export function FamilyKnowledgeCloseFamilyPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-3 pb-28">
-        <div className="flex items-center gap-3 px-1">
-          <div className="h-11 w-11 rounded-2xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
-            <Users size={18} className="text-slate-800" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[18px] font-black tracking-tight text-slate-900">
-              {config.pageTitle}
+        <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
+              <Users size={14} />
+              Famille proche
             </div>
-            <div className="text-xs font-bold text-slate-700">
-              {config.pageSubtitle}
+
+            <button
+              type="button"
+              onClick={() => nav(`/e/${slug}/family-knowledge`)}
+              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2">
+                <ArrowLeft size={14} />
+                Retour
+              </span>
+            </button>
+          </div>
+
+          <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
+            {config.pageTitle}
+          </h1>
+
+          <p className="mt-2 text-sm font-bold text-slate-700">
+            {config.pageSubtitle}
+          </p>
+        </section>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Ordonner la fratrie avec des boutons up/down</li>
+                  <li>Faire une lib de complétude par section</li>
+                  <li>Revoir les labels des cartes</li>
+                </ol>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-              <div className='flex items-start gap-3'>
-                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                  <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>Ajouter un bouton "retour"</li>
-                      <li>Revoir l'en-tête</li>
-                      <li>Ajouter un bouton "je n'ai pas de frères et  soeurs"</li>
-                      <li>Ordonner la fratrie avec des boutons up down, mettre le parent en lecture seule pour avoir son ordre aussi</li>
-                      <li>Mettre le bouton ajouter en bas sinon on est obligé de scroller pour le retrouver</li>
-                      <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
-                      <li>revoir les labels des cartes</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
 
         {error ? (
           <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
@@ -289,113 +354,163 @@ export function FamilyKnowledgeCloseFamilyPage() {
             </section>
 
             <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[16px] font-black text-slate-900">
-                    {config.sections.siblings.title}
-                  </div>
-                  <div className="mt-1 text-sm font-bold text-slate-700">
-                    {config.sections.siblings.subtitle}
-                  </div>
-                </div>
+              <div className="text-[16px] font-black text-slate-900">
+                {config.sections.siblings.title}
+              </div>
+              <div className="mt-1 text-sm font-bold text-slate-700">
+                {config.sections.siblings.subtitle}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHasSiblings("yes")}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    values.hasSiblings === "yes"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {config.personFields.yesLabel}
+                </button>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setValues((prev) => ({
-                      ...prev,
-                      siblings: [
-                        ...prev.siblings,
-                        createEmptyFamilyKnowledgePerson(true),
-                      ],
-                    }))
-                  }
-                  className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                  onClick={() => setHasSiblings("no")}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    values.hasSiblings === "no"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
                 >
-                  <Plus size={16} />
-                  {config.sections.siblings.addLabel}
+                  {config.personFields.noLabel}
                 </button>
               </div>
 
-              <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                  checked={values.knowsSiblingOrder}
-                  onChange={(e) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      knowsSiblingOrder: e.target.checked,
-                    }))
-                  }
-                />
-                <div>
-                  <div className="text-sm font-black text-slate-900">
-                    {config.sections.siblings.knowsOrderLabel}
-                  </div>
-                  <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                    {config.sections.siblings.knowsOrderHelp}
-                  </div>
-                </div>
-              </label>
+              {values.hasSiblings === "yes" ? (
+                <>
+                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={values.knowsSiblingOrder}
+                      onChange={(e) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          knowsSiblingOrder: e.target.checked,
+                        }))
+                      }
+                    />
+                    <div>
+                      <div className="text-sm font-black text-slate-900">
+                        {config.sections.siblings.knowsOrderLabel}
+                      </div>
+                      <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                        {config.sections.siblings.knowsOrderHelp}
+                      </div>
+                    </div>
+                  </label>
 
-              <div className="mt-4 grid gap-3">
-                {values.siblings.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
-                    {config.sections.siblings.emptyText}
-                  </div>
-                ) : null}
+                  <div className="mt-4 grid gap-3">
+                    {values.siblings.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
+                        {config.sections.siblings.emptyText}
+                      </div>
+                    ) : null}
 
-                {values.siblings.map((sibling, index) => (
-                  <FamilyPersonForm
-                    key={index}
-                    title={`${config.sections.siblings.itemLabel} ${index + 1}`}
-                    value={sibling}
-                    showBirthOrder={values.knowsSiblingOrder}
-                    onChange={(patch) => setSibling(index, patch)}
-                    onRemove={() =>
-                      setValues((prev) => ({
-                        ...prev,
-                        siblings: prev.siblings.filter((_, i) => i !== index),
-                      }))
-                    }
-                    labels={config.personFields}
-                  />
-                ))}
-              </div>
+                    {values.siblings.map((sibling, index) => (
+                      <FamilyPersonForm
+                        key={index}
+                        title={`${config.sections.siblings.itemLabel} ${index + 1}`}
+                        value={sibling}
+                        showBirthOrder={values.knowsSiblingOrder}
+                        onChange={(patch) => setSibling(index, patch)}
+                        onRemove={() =>
+                          setValues((prev) => ({
+                            ...prev,
+                            siblings: prev.siblings.filter((_, i) => i !== index),
+                          }))
+                        }
+                        labels={config.personFields}
+                      />
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={addSibling}
+                      className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                    >
+                      <Plus size={16} />
+                      {config.sections.siblings.addLabel}
+                    </button>
+                  </div>
+                </>
+              ) : null}
             </section>
 
-            <FamilyPeopleList
-              title={config.sections.children.title}
-              subtitle={config.sections.children.subtitle}
-              addLabel={config.sections.children.addLabel}
-              emptyText={config.sections.children.emptyText}
-              items={values.children}
-              onAdd={() =>
-                setValues((prev) => ({
-                  ...prev,
-                  children: [
-                    ...prev.children,
-                    createEmptyFamilyKnowledgePerson(true),
-                  ],
-                }))
-              }
-              renderItem={(child, index) => (
-                <FamilyPersonForm
-                  key={index}
-                  title={`${config.sections.children.itemLabel} ${index + 1}`}
-                  value={child}
-                  onChange={(patch) => setChild(index, patch)}
-                  onRemove={() =>
-                    setValues((prev) => ({
-                      ...prev,
-                      children: prev.children.filter((_, i) => i !== index),
-                    }))
-                  }
-                  labels={config.personFields}
+            <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
+              <div className="text-[16px] font-black text-slate-900">
+                {config.sections.children.title}
+              </div>
+              <div className="mt-1 text-sm font-bold text-slate-700">
+                {config.sections.children.subtitle}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHasChildren("yes")}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    values.hasChildren === "yes"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {config.personFields.yesLabel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setHasChildren("no")}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    values.hasChildren === "no"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {config.personFields.noLabel}
+                </button>
+              </div>
+
+              {values.hasChildren === "yes" ? (
+                <FamilyPeopleList
+                  title=""
+                  emptyText={config.sections.children.emptyText}
+                  addLabel={config.sections.children.addLabel}
+                  items={values.children}
+                  onAdd={addChild}
+                  renderItem={(child, index) => (
+                    <FamilyPersonForm
+                      key={index}
+                      title={`${config.sections.children.itemLabel} ${index + 1}`}
+                      value={child}
+                      onChange={(patch) => setChild(index, patch)}
+                      onRemove={() =>
+                        setValues((prev) => ({
+                          ...prev,
+                          children: prev.children.filter((_, i) => i !== index),
+                        }))
+                      }
+                      labels={config.personFields}
+                    />
+                  )}
                 />
-              )}
-            />
+              ) : null}
+            </section>
 
             <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
               <div className="text-[16px] font-black text-slate-900">

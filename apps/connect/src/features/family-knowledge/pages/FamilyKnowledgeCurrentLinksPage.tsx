@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Trash2,
@@ -53,7 +54,6 @@ function CurrentLinkCard({
       </div>
 
       <div className="mt-3 grid gap-3">
-        <div className="grid grid-cols-2 gap-2">
           <label className="grid gap-2">
             <span className="text-xs font-extrabold text-slate-800">
               {fields.firstNameLabel}
@@ -77,7 +77,6 @@ function CurrentLinkCard({
               placeholder={fields.lastNameLabel}
             />
           </label>
-        </div>
 
         <RelationshipTypeField
           label={fields.relationshipTypeLabel}
@@ -251,19 +250,34 @@ export function FamilyKnowledgeCurrentLinksPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-3 pb-28">
-        <div className="flex items-center gap-3 px-1">
-          <div className="h-11 w-11 rounded-2xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
-            <Users size={18} className="text-slate-800" />
+
+        <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
+            <Users size={14} />
+            Famille en contact
           </div>
-          <div className="min-w-0">
-            <div className="text-[18px] font-black tracking-tight text-slate-900">
-              {config.pageTitle}
+
+          <button
+              type="button"
+              onClick={() => nav(`/e/${slug}/family-knowledge`)}
+              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2">
+                <ArrowLeft size={14} />
+                Retour
+              </span>
+            </button>
             </div>
-            <div className="text-xs font-bold text-slate-700">
-              {config.pageSubtitle}
-            </div>
-          </div>
-        </div>
+
+          <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
+            {config.pageTitle}
+          </h1>
+
+          <p className="mt-2 text-sm font-bold text-slate-700">
+            {config.pageSubtitle}
+          </p>
+        </section>
 
         <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
           <div className='flex items-start gap-3'>
@@ -272,12 +286,9 @@ export function FamilyKnowledgeCurrentLinksPage() {
               <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
               <div className='mt-0.5 text-xs text-amber-800'>
                 <ol>
-                  <li>Ajouter un bouton "retour"</li>
-                  <li>Revoir l'en-tête</li>
                   <li>Si parent non connu pas la section</li>
                   <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
                   <li>revoir les labels des cartes</li>
-                  <li>Nom et prénom se chevauchent</li>
                 </ol>
               </div>
             </div>
