@@ -6,6 +6,7 @@ import { OriginsForm, type OriginsFormValues } from "../components/OriginsForm";
 import { getOrigins } from "../api/getOrigins";
 import { saveOrigins } from "../api/saveOrigins";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 const INITIAL_VALUES: OriginsFormValues = {
   heardAboutInitiative: "",
@@ -24,6 +25,25 @@ export function ParticipantOriginsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const participantSession = getParticipantSession(slug);
+    const participantId = participantSession?.participantId ?? null;
+  
+    useEffect(() => {
+      if (!participantId) return;
+  
+      const tracker = createPageTimeTracker({
+        participantId,
+        eventSlug: slug,
+        pageKey: `/e/${slug}/welcome/origins`,
+      });
+  
+      tracker.start();
+  
+      return () => {
+        void tracker.stop();
+      };
+    }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;

@@ -248,7 +248,6 @@ export function FamilyKnowledgeMemoryPage() {
               <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
               <div className='mt-0.5 text-xs text-amber-800'>
                 <ol>
-                  <li>Si parent non connu pas la section</li>
                   <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
                   <li>revoir les labels des cartes</li>
                 </ol>

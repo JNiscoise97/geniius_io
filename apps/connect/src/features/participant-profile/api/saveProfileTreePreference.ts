@@ -3,20 +3,25 @@ import type { ProfileTreePreference } from "../types/profileTreePreference";
 
 type SaveProfileTreePreferenceInput = {
   participantId: string;
+  eventSlug: string;
   allowInfoInFamilyTree: ProfileTreePreference;
 };
 
 export async function saveProfileTreePreference({
   participantId,
+  eventSlug,
   allowInfoInFamilyTree,
 }: SaveProfileTreePreferenceInput): Promise<void> {
-  const res = await supabase.from("participant_preferences").upsert(
+  const now = new Date().toISOString();
+
+  const res = await supabase.from("participant_consents").upsert(
     {
       participant_id: participantId,
+      event_slug: eventSlug,
       allow_info_in_family_tree: allowInfoInFamilyTree,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     },
-    { onConflict: "participant_id" },
+    { onConflict: "event_slug,participant_id" },
   );
 
   if (res.error) {

@@ -9,8 +9,7 @@ import { preferencesFormConfig } from "../config/preferencesFormConfig";
 import { savePreferences } from "../api/savePreferences";
 import { getPreferences } from "../api/getPreferences";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-
-
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 export function ParticipantPreferencesPage() {
   const nav = useNavigate();
@@ -18,14 +17,23 @@ export function ParticipantPreferencesPage() {
   const slug = eventSlug ?? "demo";
 
   const [values, setValues] = useState<PreferencesFormValues>({
-    allowFamilyPhotoSharing: false,
-    allowNameInFamilyTree: true,
-    allowPhotoInFamilyTree: false,
-    allowInfoInFamilyTree: false,
-    allowCousinsContact: false,
-    allowFamilyNews: false,
-    allowEventPhotosReceive: false,
-    allowFutureEvents: false,
+    allowFamilyPhotoSharing: null,
+    allowPhotoDisplayInApp: null,
+    allowEventPhotoMemory: null,
+
+    allowNameInFamilyTree: null,
+    allowPhotoInFamilyTree: null,
+    allowInfoInFamilyTree: null,
+
+    allowContactDetailsWithFamily: null,
+    allowFutureFamilyContact: null,
+
+    allowGenealogyEnrichment: null,
+    allowGenealogyContributionStorage: null,
+
+    allowNameInEventActivities: null,
+    allowParticipationInGames: null,
+
     otherPreferences: "",
   });
 
@@ -33,7 +41,24 @@ export function ParticipantPreferencesPage() {
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/welcome/preferences`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,6 +76,7 @@ export function ParticipantPreferencesPage() {
       try {
         const existing = await getPreferences({
           participantId: participantSession.participantId,
+          eventSlug: slug,
         });
 
         if (!isMounted) return;
@@ -61,7 +87,7 @@ export function ParticipantPreferencesPage() {
       } catch (e: any) {
         if (!isMounted) return;
         setError(
-          e?.message ?? "Impossible de charger les préférences existantes.",
+          e?.message ?? "Impossible de charger les consentements existants.",
         );
       } finally {
         if (isMounted) {
@@ -103,6 +129,7 @@ export function ParticipantPreferencesPage() {
     try {
       await savePreferences({
         participantId: participantSession.participantId,
+        eventSlug: slug,
         values,
       });
 
@@ -117,15 +144,14 @@ export function ParticipantPreferencesPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-3 pb-28">
-
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
-            <Settings size={14} />
-            Configuration
-          </div>
+              <Settings size={14} />
+              Configuration
+            </div>
 
-          <button
+            <button
               type="button"
               onClick={() => nav(`/e/${slug}/welcome`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
@@ -135,14 +161,14 @@ export function ParticipantPreferencesPage() {
                 Retour
               </span>
             </button>
-            </div>
+          </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {preferencesFormConfig.title}
           </h1>
 
           <p className="mt-2 text-sm font-bold text-slate-700">
-            Choisis ce que la famille peut afficher ou partager
+            Choisis ce que la famille peut voir, afficher ou réutiliser
           </p>
         </section>
 
@@ -163,7 +189,7 @@ export function ParticipantPreferencesPage() {
         {loadingInitialData ? (
           <section className="mt-3 rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
             <div className="text-sm font-bold text-slate-700">
-              Chargement de tes préférences…
+              Chargement de tes consentements…
             </div>
           </section>
         ) : (

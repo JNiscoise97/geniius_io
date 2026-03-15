@@ -131,24 +131,24 @@ export const completionRules: CompletionRule[] = [
     icon: MessageCircleHeart,
     table: null,
     fields: { and: [] },
-    dependsOnTables: ["participant_profile", "participant_preferences"],
+    dependsOnTables: ["participant_profile", "participant_consents"],
     selectFieldsByTable: {
       participant_profile: ["city", "occupation", "interests", "free_share"],
-      participant_preferences: ["allow_info_in_family_tree"],
+      participant_consents: ["allow_info_in_family_tree"],
     },
     to: "/welcome/profile",
     type: "form",
     isComplete: (rowsByTable) => {
-      const preferences = rowsByTable["participant_preferences"] as Record<string, unknown> | null;
+      const consents = rowsByTable["participant_consents"] as Record<string, unknown> | null;
       const profile = rowsByTable["participant_profile"] as Record<string, unknown> | null;
 
-      const treePreference = preferences?.allow_info_in_family_tree;
+      const treePreference = consents?.allow_info_in_family_tree;
 
-      if (treePreference !== "yes" && treePreference !== "no") {
+      if (treePreference !== true && treePreference !== false) {
         return false;
       }
 
-      if (treePreference === "no") {
+      if (treePreference === false) {
         return true;
       }
 
@@ -163,14 +163,29 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences",
     onboardingKey: "preferences",
-    eyebrow: "Préférences",
-    actionRapide: "Choisis ce que la famille peut afficher ou partager à ton sujet.",
-    text: "Tu peux définir ici ce que tu autorises pour les photos, l’arbre et certaines communications.",
-    cta: "Gérer mes préférences",
+    eyebrow: "Consentements",
+    actionRapide: "Choisis ce que la famille peut voir ou utiliser à ton sujet.",
+    text: "Tu peux définir ici les règles pour l’arbre, les photos, les contacts et certains usages dans l’application.",
+    cta: "Gérer mes consentements",
     icon: Settings,
-    table: "participant_preferences",
+    table: "participant_consents",
     participantField: "participant_id",
-    fields: "completed",
+    fields: {
+      and: [
+        "allow_name_in_family_tree",
+        "allow_photo_in_family_tree",
+        "allow_info_in_family_tree",
+        "allow_family_photo_sharing",
+        "allow_photo_display_in_app",
+        "allow_event_photo_memory",
+        "allow_contact_details_with_family",
+        "allow_future_family_contact",
+        "allow_genealogy_enrichment",
+        "allow_genealogy_contribution_storage",
+        "allow_name_in_event_activities",
+        "allow_participation_in_games",
+      ],
+    },
     to: "/welcome/preferences",
     type: "form",
   },
@@ -225,15 +240,11 @@ function evaluateCompletionCondition(
   }
 
   if ("and" in condition) {
-    return condition.and.every((item) =>
-      evaluateCompletionCondition(item, row),
-    );
+    return condition.and.every((item) => evaluateCompletionCondition(item, row));
   }
 
   if ("or" in condition) {
-    return condition.or.some((item) =>
-      evaluateCompletionCondition(item, row),
-    );
+    return condition.or.some((item) => evaluateCompletionCondition(item, row));
   }
 
   return false;
