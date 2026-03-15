@@ -55,6 +55,7 @@ import { FamilyKnowledgeEntryPage } from "../features/family-knowledge/pages/Fam
 import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPage";
 import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
 import { ParticipantOriginsPage } from "../features/participant-origins/pages/ParticipantOriginsPage";
+import { FamilyKnowledgePhotosPage } from "../features/family-knowledge/pages/FamilyKnowledgePhotosPage";
 
 export const router = createBrowserRouter([
   {
@@ -122,6 +123,8 @@ export const router = createBrowserRouter([
                 element: <FamilyKnowledgeCurrentLinksPage />,
               },
               { path: "family-knowledge/memory", element: <FamilyKnowledgeMemoryPage /> },
+
+              { path: "family-knowledge/photos", element: <FamilyKnowledgePhotosPage /> },
 
               // Family tree
               { path: "arbre", element: <FamilyTreeHubPage /> },
