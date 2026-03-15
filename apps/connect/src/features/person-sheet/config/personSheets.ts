@@ -70,35 +70,52 @@ export type PersonSheetData = {
 export const personSheets: Record<string, PersonSheetData> = {
   "@7398@": {
     id: "@7398@",
+
     displayName: "Covindou Tandiemain",
     primaryName: "COVINDOU TANDIEMAIN",
-    subtitle: "1868–1955 · Aïeule réunionnaise née d’engagés indiens",
+
+    subtitle:
+      "1868–1955 · Aïeule réunionnaise issue d’une famille d’engagés indiens",
+
     birth: "16.05.1868",
     death: "12.07.1955",
     burial: "Trois-Bassins",
-    occupation: "Cultivatrice",
+
+    occupation: "Cultivatrice · engagée à l’établissement Grande Ravine",
+
     places: {
-      birth: "Saint-Leu (97436)",
-      death: "Trois-Bassins (97426) · Route Hubert Delisle",
+      birth: "Saint-Leu (La Réunion)",
+      death: "Trois-Bassins · Route Hubert Delisle",
       burial: "Cimetière de Trois-Bassins",
     },
+
     heroImage: "/images/covindou.jpg",
+
     summary:
-      "Née à La Réunion en 1868 dans une famille issue de l’engagisme indien, Covindou Tandiemain a transmis à une très nombreuse descendance un héritage familial et culturel profondément ancré dans l’histoire réunionnaise.",
+      "Née à Saint-Leu en 1868 dans une famille issue de l’engagisme indien, Covindou Tandiemain fut mère de six enfants et cheffe de famille dans plusieurs dénombrements. Elle vécut entre Saint-Leu et Trois-Bassins dans l’univers des établissements sucriers et transmit à une très vaste descendance une mémoire familiale profondément liée à l’histoire réunionnaise.",
+
     story: [
-      "La communauté tamoule, à laquelle cette famille est liée, constitue une composante essentielle de la culture réunionnaise. L’histoire de cette lignée trouve ses racines en Inde, avec Ariapoutri Tanjama et Salléyen Vélaïdon, son compagnon, arrivés à La Réunion en 1859 sous contrat d’engagement.",
-      "Covindou TANJAMA, née à La Réunion en 1868, grandit dans une famille marquée par cette migration. Elle donne naissance à plusieurs enfants avec un jeune homme né en Inde, venu lui aussi à La Réunion sous contrat, sans que leur union ne soit officialisée à l’état civil.",
-      "L’histoire familiale rapporte que ce compagnon souhaitait retourner en Inde avec sa famille. Mais, au moment du départ, une tempête aurait effrayé Covindou, née à La Réunion et n’ayant jamais traversé les mers. Elle choisit finalement de rester sur l’île avec ses enfants, tandis que son compagnon repart seul vers l’Inde.",
-      "Covindou vécut entre Saint-Leu et Trois-Bassins, dans l’univers des établissements sucriers et des familles d’engagés. Elle fut cultivatrice, cheffe de famille dans les recensements, et demeura un point d’ancrage majeur pour sa descendance.",
-      "Très attachée à la religion tamoule et à la langue de sa mère, elle transmit à ses enfants des pratiques ancestrales, même si une partie de la génération suivante se convertit ensuite au catholicisme. Son histoire illustre à la fois l’enracinement réunionnais et la persistance d’une mémoire indienne."
+      "Covindou TANDIEMAIN est née à Saint-Leu le 16 mai 1868. Sa mère, Ariapoutri TANJAMA, était née en Inde vers 1837 et était arrivée à La Réunion en 1859 sous contrat d’engagement.",
+      "Elle grandit dans l’environnement des établissements sucriers de l’ouest de l’île, notamment autour de la Grande Ravine, où de nombreux engagés indiens furent employés après l’abolition de l’esclavage.",
+      "Entre 1885 et 1897, Covindou donne naissance à six enfants à Saint-Leu. Elle est la déclarante pour chacun de ces actes de naissance. Les actes indiquent que ces naissances ont lieu dans différentes maisons d’habitation liées aux propriétés sucrières locales.",
+      "Ses enfants naissent dans des maisons situées sur les emplacements d’anciens domaines agricoles appartenant notamment à Augustin CERVEAUX et au sieur de CHATEAUVIEUX, ce qui illustre l’organisation résidentielle des travailleurs agricoles autour des habitations sucrières.",
+      "Au dénombrement de 1907 à Saint-Leu, elle apparaît comme cheffe de famille dans le quartier des Colimaçons, Petite Ravine, sur le chemin de ligne au-dessous.",
+      "Plus tard, Covindou s’installe dans la commune voisine de Trois-Bassins, où elle est recensée à plusieurs reprises dans les quartiers liés à l’établissement de la Grande Ravine.",
+      "Dans les dénombrements de 1926 et 1931, elle vit chez sa fille Barlama, épouse d’Augustin VIRAMA, dans le quartier de Grande Ravine. Les documents indiquent qu’elle est illettrée.",
+      "Très attachée aux traditions religieuses tamoules transmises par sa mère, elle vit cependant assez longtemps pour voir une partie de la génération suivante se convertir au catholicisme.",
+      "En 1949, à l’âge de 81 ans, elle reçoit un ondoyement à l’église de Trois-Bassins.",
+      "Elle décède le 12 juillet 1955 à Trois-Bassins, sur la route Hubert Delisle."
     ],
+
     genealogyNotes: [
-      "Sa mère, Ariapoutri, était née en Inde vers 1837 et arrivée à La Réunion en 1859 à bord du navire Le Georges.",
-      "Covindou est née à Saint-Leu le 16 mai 1868.",
-      "Elle fut ondoyée le 5 juin 1949 à l’église de Trois-Bassins.",
-      "Elle est décédée le 12 juillet 1955 à Trois-Bassins et y fut inhumée.",
-      "La recherche et les échanges familiaux ont permis d’identifier à ce jour 1193 descendants de ses descendants."
+      "Elle est la déclarante pour la naissance de ses six enfants.",
+      "Les actes de naissance précisent les lieux exacts des habitations où ces enfants sont nés.",
+      "Elle apparaît comme cheffe de famille dans plusieurs dénombrements.",
+      "Les documents mentionnent qu’elle était illettrée.",
+      "Elle a travaillé dans l’environnement agricole de l’établissement Grande Ravine.",
+      "À ce jour, plus de 1 190 descendants ont été identifiés dans sa descendance."
     ],
+
     aliases: [
       {
         label: "Nom de naissance",
@@ -111,16 +128,18 @@ export const personSheets: Record<string, PersonSheetData> = {
         givenNames: "Govindama Marie",
       },
     ],
+
     keyFacts: [
       { label: "Naissance", value: "16.05.1868 · Saint-Leu" },
-      { label: "Baptême / ondoyée", value: "05.06.1949 · Église de Trois-Bassins" },
       { label: "Décès", value: "12.07.1955 · Trois-Bassins" },
       { label: "Inhumation", value: "Cimetière de Trois-Bassins" },
       { label: "Profession", value: "Cultivatrice" },
+      { label: "Instruction", value: "Illettrée" },
       { label: "Établissement lié", value: "Grande Ravine" },
       { label: "Matricule commune", value: "8537" },
       { label: "Matricule général", value: "117710" },
     ],
+
     timeline: [
       {
         key: "birth",
@@ -128,52 +147,116 @@ export const personSheets: Record<string, PersonSheetData> = {
         date: "16.05.1868",
         place: "Saint-Leu",
       },
+
       {
-        key: "domicile-1891",
-        label: "Domicile",
-        date: "24.03.1891",
+        key: "child-1885",
+        label: "Naissance de son fils Candassamy",
+        date: "1885",
         place: "Saint-Leu",
+        description:
+          "Naissance dans une des maisons d’Augustin CERVEAUX.",
       },
+
       {
-        key: "judgment",
-        label: "Acte de notoriété",
-        date: "30.11.1897",
+        key: "child-1889",
+        label: "Naissance de sa fille Barlama",
+        date: "1889",
         place: "Saint-Leu",
-        description: "Jugement pour suppléer à son acte de naissance.",
+        description:
+          "Naissance dans une des maisons de l’emplacement du sieur de CHATEAUVIEUX.",
       },
+
+      {
+        key: "child-1891",
+        label: "Naissance de sa fille Coundéaman",
+        date: "1891",
+        place: "Saint-Leu",
+        description:
+          "Naissance dans une des maisons de l’emplacement du sieur de CHATEAUVIEUX.",
+      },
+
+      {
+        key: "child-1893",
+        label: "Naissance de sa fille Tévané",
+        date: "1893",
+        place: "Saint-Leu",
+        description:
+          "Naissance dans une des maisons de l’emplacement du sieur de CHATEAUVIEUX.",
+      },
+
+      {
+        key: "child-1895",
+        label: "Naissance de sa fille Savoupaquiom",
+        date: "1895",
+        place: "Saint-Leu",
+        description:
+          "Naissance dans une des maisons de l’emplacement du sieur de CHATEAUVIEUX.",
+      },
+
+      {
+        key: "child-1897",
+        label: "Naissance et décès de Virassamy",
+        date: "1897",
+        place: "Saint-Leu",
+        description:
+          "Enfant né et décédé dans une des maisons de l’emplacement du sieur de CHATEAUVIEUX.",
+      },
+
       {
         key: "census-1907",
-        label: "Recensement",
+        label: "Dénombrement",
         date: "10.09.1907",
-        place: "Saint-Leu",
-        description: "Cheffe de famille, ménagère.",
+        place:
+          "Saint-Leu · Quartier Colimaçons · Petite Ravine · Chemin de ligne au-dessous",
+        description:
+          "Numéro d’ordre 42. Cheffe de famille, ménagère. Présente avec ses filles Coundéaman, Tévané et Savoupaquiom.",
       },
-      {
-        key: "domicile-1911",
-        label: "Domicile",
-        date: "24.10.1911",
-        place: "Trois-Bassins",
-      },
+
       {
         key: "census-1920",
-        label: "Recensement",
+        label: "Dénombrement",
         date: "27.07.1920",
-        place: "Trois-Bassins",
-        description: "Cheffe de famille, cultivatrice.",
+        place: "Trois-Bassins · Bas de la Grande Ravine",
+        description:
+          "Numéro d’ordre 9. Cheffe de famille, cultivatrice.",
       },
+
       {
         key: "census-1921",
-        label: "Recensement",
+        label: "Dénombrement",
         date: "30.07.1921",
-        place: "Trois-Bassins",
-        description: "Cheffe de famille, sans profession.",
+        place: "Trois-Bassins · Petite Ravine · établissement",
+        description:
+          "Numéro d’ordre 36. Cheffe de famille, sans profession.",
       },
+
+      {
+        key: "census-1926",
+        label: "Dénombrement",
+        date: "1926",
+        place: "Trois-Bassins · Grande Ravine",
+        description:
+          "Numéro d’ordre 21. Vit chez sa fille Barlama, épouse d’Augustin VIRAMA. Mentionnée comme illettrée.",
+      },
+
+      {
+        key: "census-1931",
+        label: "Dénombrement",
+        date: "1931",
+        place: "Trois-Bassins · Grande Ravine les Bas",
+        description:
+          "Numéro d’ordre 11. Vit toujours chez sa fille Barlama, épouse d’Augustin VIRAMA.",
+      },
+
       {
         key: "baptism",
-        label: "Ondoiement / baptême",
+        label: "Ondoiement",
         date: "05.06.1949",
         place: "Église de Trois-Bassins",
+        description:
+          "Ondoyée à l’âge de 81 ans. Parrain : Théodore LAVAL. Marraine : Marie Cécilia GRONDIN.",
       },
+
       {
         key: "death",
         label: "Décès",
@@ -181,6 +264,7 @@ export const personSheets: Record<string, PersonSheetData> = {
         place: "Trois-Bassins · Route Hubert Delisle",
       },
     ],
+
     parents: [
       {
         key: "father",
@@ -194,13 +278,15 @@ export const personSheets: Record<string, PersonSheetData> = {
         years: "1837-1901",
       },
     ],
+
     spouses: [
       {
         key: "spouse-1",
         label: "Compagnon",
-        name: "Nom inconnu",
+        name: "Nom inconnu · engagé indien",
       },
     ],
+
     children: [
       { key: "c1", label: "Enfant", name: "Candassamy TANJAMA", years: "1885-1945" },
       { key: "c2", label: "Enfant", name: "Barlama TANJAMA", years: "1889-1967" },
@@ -209,6 +295,7 @@ export const personSheets: Record<string, PersonSheetData> = {
       { key: "c5", label: "Enfant", name: "Savoupaquiom TANJAMA", years: "1895-1992" },
       { key: "c6", label: "Enfant", name: "Virassamy ARIAPOUTRY", years: "1897-1897" },
     ],
+
     stats: {
       identifiedDescendants: 1193,
       branchStats: [
@@ -220,6 +307,7 @@ export const personSheets: Record<string, PersonSheetData> = {
       ],
       note: "Quelques implexes existent dans la descendance.",
     },
+
     media: [
       {
         key: "photo",
@@ -231,7 +319,7 @@ export const personSheets: Record<string, PersonSheetData> = {
         key: "birth-record",
         type: "document",
         title: "Acte de naissance",
-        description: "Document source à consulter",
+        description: "Acte de naissance et jugement de notoriété",
         src: "/docs/covindou-acte-naissance.pdf",
       },
     ],
