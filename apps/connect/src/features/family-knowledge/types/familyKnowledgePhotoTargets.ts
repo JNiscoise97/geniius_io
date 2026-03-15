@@ -1,14 +1,18 @@
 export type FamilyKnowledgeTableName =
   | "participant_family_knowledge_close_family"
+  | "participant_family_knowledge_current_links"
   | "participant_family_knowledge_godparents"
   | "participant_family_knowledge_grandparents"
-  | "participant_family_knowledge_siblings";
+  | "participant_family_knowledge_memory";
 
 export type FamilyPhotoPersonType =
   | "parent"
-  | "godparent"
+  | "child"
+  | "partner"
+  | "current_link"
   | "grandparent"
-  | "sibling";
+  | "aunt_uncle"
+  | "story_teller";
 
 export type FamilyPhotoTarget = {
   sourceTable: FamilyKnowledgeTableName;
