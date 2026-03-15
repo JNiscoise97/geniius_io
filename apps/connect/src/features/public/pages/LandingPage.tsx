@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowRight,
   CalendarCheck,
   Camera,
@@ -213,9 +212,8 @@ export function LandingPage() {
         items: [
           {
             key: "present",
-            label: "Se présenter à la famille",
-            description:
-              "Présente-toi pour aider les cousins à mieux te situer.",
+            label: "Quelques mots sur toi",
+            description: "Aide les cousins à mieux te situer dans la famille.",
             icon: UserCircle2,
             to: `/e/${slug}/welcome`,
             enabled: features.preEvent.presentYourself,
@@ -236,7 +234,7 @@ export function LandingPage() {
           },
           {
             key: "attendance",
-            label: "Confirmer sa présence",
+            label: "Confirme ta présence",
             description: "Annonce ta venue pour aider à préparer la journée.",
             icon: CalendarCheck,
             to: `/e/${slug}/attendance`,
@@ -586,21 +584,6 @@ export function LandingPage() {
 
         {mode === "guided" ? (
           <section className="mt-5 space-y-4">
-            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-amber-900">
-                    Chantiers en cours
-                  </div>
-                  <div className="mt-0.5 text-xs text-amber-800">
-                    <ol>
-                      <li>construire les actions guidées (revoir les icones, si générique pas de spécifiques dans la liste des 5 par ex si j'ai origins pas besoin de mettre les origins-xxx)</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {loadingGuidedPrompts ? (
               <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">

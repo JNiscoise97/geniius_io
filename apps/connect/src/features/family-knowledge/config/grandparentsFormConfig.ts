@@ -1,6 +1,6 @@
 export const grandparentsFormConfig = {
   pageTitle: "Tes grands-parents",
-  pageSubtitle: "Grands-parents, oncles et tantes",
+  pageSubtitle: "Partage ce que tu sais sur tes grands-parents et sur les frères et sœurs de tes parents, du côté paternel comme maternel.",
   sections: {
     grandparents: {
       title: "Tes grands-parents",
@@ -11,10 +11,10 @@ export const grandparentsFormConfig = {
       maternalGrandmotherLabel: "Grand-mère maternelle",
     },
     paternalAuntsUncles: {
-      title: "Frères et sœurs de ton père",
+      title: "Ton père avait-il des frères et sœurs ?",
       subtitle:
-        "Commence par indiquer si ton père avait des frères et sœurs. Tu pourras ensuite ajouter les personnes que tu connais.",
-      questionLabel: "Ton père avait-il des frères et sœurs ?",
+        "",
+      questionLabel: "",
       addLabel: "Ajouter",
       emptyText: "Aucun oncle ou tante paternel(le) ajouté(e) pour le moment.",
       itemLabel: "Oncle / tante paternel(le)",
@@ -23,14 +23,14 @@ export const grandparentsFormConfig = {
         "Si oui, tu pourras réorganiser la liste avec des boutons monter / descendre. Ton père sera ajouté automatiquement en lecture seule pour le situer dans la fratrie.",
       orderLabel: "Ordre de la fratrie de ton père",
       orderHelp:
-        "Déplace les cartes pour représenter l’ordre de naissance. Ton père est inclus en lecture seule pour le situer parmi ses frères et sœurs.",
+        "",
       selfLabel: "Ton père",
     },
     maternalAuntsUncles: {
-      title: "Frères et sœurs de ta mère",
+      title: "Ta mère avait-elle des frères et sœurs ?",
       subtitle:
-        "Commence par indiquer si ta mère avait des frères et sœurs. Tu pourras ensuite ajouter les personnes que tu connais.",
-      questionLabel: "Ta mère avait-elle des frères et sœurs ?",
+        "",
+      questionLabel: "",
       addLabel: "Ajouter",
       emptyText: "Aucun oncle ou tante maternel(le) ajouté(e) pour le moment.",
       itemLabel: "Oncle / tante maternel(le)",
@@ -39,7 +39,7 @@ export const grandparentsFormConfig = {
         "Si oui, tu pourras réorganiser la liste avec des boutons monter / descendre. Ta mère sera ajoutée automatiquement en lecture seule pour la situer dans la fratrie.",
       orderLabel: "Ordre de la fratrie de ta mère",
       orderHelp:
-        "Déplace les cartes pour représenter l’ordre de naissance. Ta mère est incluse en lecture seule pour la situer parmi ses frères et sœurs.",
+        "",
       selfLabel: "Ta mère",
     },
     info: {
@@ -49,7 +49,7 @@ export const grandparentsFormConfig = {
     },
   },
   personFields: {
-    knownLabel: "Personne connue",
+    knownLabel: "Je connais son identité",
     knownHelp: "Décoche si tu ne connais pas encore cette personne.",
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",

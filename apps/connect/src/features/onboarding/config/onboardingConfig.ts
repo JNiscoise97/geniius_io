@@ -15,6 +15,7 @@ export type OnboardingStepConfig = {
   why: string;
   ctaLabel: string;
   icon: LucideIcon;
+  badge?: string;
   routeSuffix: string;
 };
 
@@ -23,26 +24,28 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
     key: "identity",
     title: "Mon profil",
     subtitle:
-      "Ajoute tes informations générales et tes coordonnées.",
+      "Présente-toi en quelques mots et ajoute tes coordonnées.",
     why: "Cela permet de mieux t’identifier, de te recontacter facilement et de compléter ton profil famille.",
     ctaLabel: "Compléter mon profil",
     icon: UserCircle2,
+    badge: "Essentiel",
     routeSuffix: "identity",
   },
   {
     key: "preferences",
-    title: "Consentements et partage",
-    subtitle: "Choisis ce que la famille peut voir, afficher ou réutiliser à ton sujet.",
+    title: "Partage et autorisations",
+    subtitle: "Décide ce que la famille peut voir ou utiliser à ton sujet.",
     why: "Tu gardes la main sur les photos, l’arbre familial, les contacts et certains usages dans l’application.",
     ctaLabel: "Gérer mes consentements",
     icon: Settings,
+    badge: "Essentiel",
     routeSuffix: "preferences",
   },
   {
     key: "profile",
-    title: "Apprendre à mieux te connaître",
+    title: "Mieux te connaître",
     subtitle:
-      "Partage quelques éléments sur toi, tes souvenirs ou ce qui te fait plaisir dans cette cousinade.",
+      "Présente-toi en quelques mots : où tu vis, ce que tu fais et ce que tu aimes.",
     why: "Ces petites informations donnent envie d’échanger et créent plus facilement du lien entre cousins.",
     ctaLabel: "Partager quelques infos",
     icon: MessageCircleHeart,
@@ -52,7 +55,7 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
   key: "origins",
   title: "Ton lien avec la cousinade",
   subtitle:
-    "Dis-nous comment tu as entendu parler du pique-nique et si tu connais ta branche familiale.",
+    "Dis-nous comment tu as connu la cousinade et ce que tu sais de ta branche familiale.",
   why: "Ces informations nous aident à mieux comprendre les liens dans la famille et la manière dont les cousins rejoignent l’initiative.",
   ctaLabel: "Renseigner ces informations",
   icon: GitBranch,

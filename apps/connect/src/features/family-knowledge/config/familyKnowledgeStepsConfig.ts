@@ -4,6 +4,7 @@ import {
   Network,
   ScrollText,
   Users,
+  Image,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,7 +15,8 @@ export type FamilyKnowledgeStepKey =
   | "grandparents"
   | "godparents"
   | "current_links"
-  | "memory";
+  | "memory"
+  | "photos";
 
 export type FamilyKnowledgeStepConfig = {
   key: FamilyKnowledgeStepKey;
@@ -48,7 +50,7 @@ export const familyKnowledgeStepsConfig: FamilyKnowledgeStepConfig[] = [
     key: "godparents",
     title: "Les liens de parrainage",
     subtitle:
-      "Parrains et marraines : des liens souvent précieux dans l’histoire familiale.",
+      "Parrains et marraines : des liens souvent importants dans l’histoire familiale.",
     ctaLabel: "Renseigner les parrainages",
     icon: HeartHandshake,
     routeSuffix: "godparents",
@@ -57,7 +59,7 @@ export const familyKnowledgeStepsConfig: FamilyKnowledgeStepConfig[] = [
     key: "current_links",
     title: "La famille aujourd’hui",
     subtitle:
-      "Identifier les personnes de la famille avec qui tu es en contact actuellement.",
+      "Les personnes de la famille avec qui tu es encore en contact aujourd’hui.",
     ctaLabel: "Renseigner mes liens actuels",
     icon: BookOpen,
     routeSuffix: "current-links",
@@ -66,9 +68,18 @@ export const familyKnowledgeStepsConfig: FamilyKnowledgeStepConfig[] = [
     key: "memory",
     title: "La mémoire familiale",
     subtitle:
-      "Souvenirs, anecdotes et photos : ce que tu aimerais transmettre à la famille.",
+      "Souvenirs et anecdotes que tu aimerais transmettre à la famille.",
     ctaLabel: "Partager mes souvenirs",
     icon: ScrollText,
     routeSuffix: "memory",
+  },
+  {
+    key: "photos",
+    title: "Tes photos de famille",
+    subtitle:
+      "Photos de famille que tu aimerais partager ou transmettre.",
+    ctaLabel: "Partager mes photos",
+    icon: Image,
+    routeSuffix: "photos",
   },
 ];

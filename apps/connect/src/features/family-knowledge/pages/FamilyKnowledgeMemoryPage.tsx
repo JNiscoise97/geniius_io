@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  Plus,
   ScrollText,
   Trash2,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
 } from "../api/getFamilyKnowledgeMemory";
 import { saveFamilyKnowledgeMemory } from "../api/saveFamilyKnowledgeMemory";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 
 
@@ -50,29 +52,29 @@ function StoryTellerCard({
       </div>
 
       <div className="mt-3 grid gap-3">
-          <label className="grid gap-2">
-            <span className="text-xs font-extrabold text-slate-800">
-              {fields.firstNameLabel}
-            </span>
-            <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-              value={value.firstName}
-              onChange={(e) => onChange({ firstName: e.target.value })}
-              placeholder={fields.firstNameLabel}
-            />
-          </label>
+        <label className="grid gap-2">
+          <span className="text-xs font-extrabold text-slate-800">
+            {fields.firstNameLabel}
+          </span>
+          <input
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            value={value.firstName}
+            onChange={(e) => onChange({ firstName: e.target.value })}
+            placeholder={fields.firstNameLabel}
+          />
+        </label>
 
-          <label className="grid gap-2">
-            <span className="text-xs font-extrabold text-slate-800">
-              {fields.lastNameLabel}
-            </span>
-            <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-              value={value.lastName}
-              onChange={(e) => onChange({ lastName: e.target.value })}
-              placeholder={fields.lastNameLabel}
-            />
-          </label>
+        <label className="grid gap-2">
+          <span className="text-xs font-extrabold text-slate-800">
+            {fields.lastNameLabel}
+          </span>
+          <input
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            value={value.lastName}
+            onChange={(e) => onChange({ lastName: e.target.value })}
+            placeholder={fields.lastNameLabel}
+          />
+        </label>
 
         <label className="grid gap-1">
           <span className="text-xs font-extrabold text-slate-800">
@@ -104,7 +106,24 @@ export function FamilyKnowledgeMemoryPage() {
 
   const config = familyMemoryFormConfig;
 
+const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+      if (!participantId) return;
   
+      const tracker = createPageTimeTracker({
+        participantId,
+        eventSlug: slug,
+        pageKey: `/e/${slug}/family-knowledge/memory`,
+      });
+  
+      tracker.start();
+  
+      return () => {
+        void tracker.stop();
+      };
+    }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -197,7 +216,6 @@ export function FamilyKnowledgeMemoryPage() {
         values,
       });
 
-      localStorage.setItem(`connect:${slug}:family-knowledge:memory`, "done");
       nav(`/e/${slug}/family-knowledge`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");
@@ -214,11 +232,11 @@ export function FamilyKnowledgeMemoryPage() {
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
-            <ScrollText size={14} />
-            Récit de famille
-          </div>
+              <ScrollText size={14} />
+              Récit de famille
+            </div>
 
-          <button
+            <button
               type="button"
               onClick={() => nav(`/e/${slug}/family-knowledge`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
@@ -228,7 +246,7 @@ export function FamilyKnowledgeMemoryPage() {
                 Retour
               </span>
             </button>
-            </div>
+          </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {config.pageTitle}
@@ -238,23 +256,6 @@ export function FamilyKnowledgeMemoryPage() {
             {config.pageSubtitle}
           </p>
         </section>
-
-
-
-        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-          <div className='flex items-start gap-3'>
-            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-            <div className='min-w-0'>
-              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-              <div className='mt-0.5 text-xs text-amber-800'>
-                <ol>
-                  <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
-                  <li>revoir les labels des cartes</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {error ? (
           <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
@@ -278,36 +279,47 @@ export function FamilyKnowledgeMemoryPage() {
           </section>
         ) : (
           <form onSubmit={onSubmit} className="mt-3 grid gap-3">
-            <FamilyPeopleList
-              title={config.sections.storyTellers.title}
-              subtitle={config.sections.storyTellers.subtitle}
-              addLabel={config.sections.storyTellers.addLabel}
-              emptyText={config.sections.storyTellers.emptyText}
-              items={values.storyTellers}
-              onAdd={() =>
-                setValues((prev) => ({
-                  ...prev,
-                  storyTellers: [
-                    ...prev.storyTellers,
-                    createEmptyFamilyKnowledgeStoryTeller(),
-                  ],
-                }))
-              }
-              renderItem={(person, index) => (
-                <StoryTellerCard
-                  key={index}
-                  title={`${config.sections.storyTellers.itemLabel} ${index + 1}`}
-                  value={person}
-                  onChange={(patch) => setStoryTeller(index, patch)}
-                  onRemove={() =>
+            <section className="mt-3 rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
+              <div className="mt-4 grid gap-3">
+                <FamilyPeopleList
+                  title={config.sections.storyTellers.title}
+                  subtitle={config.sections.storyTellers.subtitle}
+                  emptyText={config.sections.storyTellers.emptyText}
+                  items={values.storyTellers}
+                  renderItem={(person, index) => (
+                    <StoryTellerCard
+                      key={index}
+                      title={`${config.sections.storyTellers.itemLabel} ${index + 1}`}
+                      value={person}
+                      onChange={(patch) => setStoryTeller(index, patch)}
+                      onRemove={() =>
+                        setValues((prev) => ({
+                          ...prev,
+                          storyTellers: prev.storyTellers.filter((_, i) => i !== index),
+                        }))
+                      }
+                    />
+                  )}
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
                     setValues((prev) => ({
                       ...prev,
-                      storyTellers: prev.storyTellers.filter((_, i) => i !== index),
+                      storyTellers: [
+                        ...prev.storyTellers,
+                        createEmptyFamilyKnowledgeStoryTeller(),
+                      ],
                     }))
                   }
-                />
-              )}
-            />
+                  className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                >
+                  <Plus size={16} />
+                  {config.sections.storyTellers.addLabel}
+                </button>
+              </div>
+            </section>
 
             <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
               <div className="text-[16px] font-black text-slate-900">
@@ -343,31 +355,132 @@ export function FamilyKnowledgeMemoryPage() {
 
             <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
               <div className="text-[16px] font-black text-slate-900">
+                {config.sections.seenPhotos.title}
+              </div>
+              <div className="mt-1 text-sm font-bold text-slate-700">
+                {config.sections.seenPhotos.subtitle}
+              </div>
+
+              <div className="mt-4">
+                <div className="text-xs font-extrabold text-slate-800">
+                  {config.sections.seenPhotos.hasSeenLabel}
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        hasSeenFamilyPhotos: "yes",
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.hasSeenFamilyPhotos === "yes"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.fields.yesLabel}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        hasSeenFamilyPhotos: "no",
+                        seenFamilyPhotosContext: "",
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.hasSeenFamilyPhotos === "no"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.fields.noLabel}
+                  </button>
+                </div>
+              </div>
+
+              {values.hasSeenFamilyPhotos === "yes" ? (
+                <label className="grid gap-1 mt-4">
+                  <span className="text-xs font-extrabold text-slate-800">
+                    {config.sections.seenPhotos.contextLabel}
+                  </span>
+                  <textarea
+                    className="min-h-[100px] rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-400 outline-none resize-y focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                    value={values.seenFamilyPhotosContext}
+                    onChange={(e) =>
+                      setValues((prev) => ({
+                        ...prev,
+                        seenFamilyPhotosContext: e.target.value,
+                      }))
+                    }
+                    placeholder={config.sections.seenPhotos.contextPlaceholder}
+                  />
+                  <div className="text-xs font-bold leading-5 text-slate-600">
+                    {config.sections.seenPhotos.contextHelpText}
+                  </div>
+                </label>
+              ) : null}
+            </section>
+
+            <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
+              <div className="text-[16px] font-black text-slate-900">
                 {config.sections.photos.title}
               </div>
               <div className="mt-1 text-sm font-bold text-slate-700">
                 {config.sections.photos.subtitle}
               </div>
 
-              <label className="grid gap-1 mt-4">
-                <span className="text-xs font-extrabold text-slate-800">
+              <div className="mt-4">
+                <div className="text-xs font-extrabold text-slate-800">
                   {config.sections.photos.hasPhotosLabel}
-                </span>
-                <select
-                  className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                  value={values.hasFamilyPhotos}
-                  onChange={(e) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      hasFamilyPhotos: e.target.value as "" | "yes" | "no",
-                    }))
-                  }
-                >
-                  <option value="">{config.fields.hasPhotosChooseLabel}</option>
-                  <option value="yes">{config.fields.yesLabel}</option>
-                  <option value="no">{config.fields.noLabel}</option>
-                </select>
-              </label>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        hasFamilyPhotos: "yes",
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.hasFamilyPhotos === "yes"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.fields.yesLabel}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        hasFamilyPhotos: "no",
+                        familyPhotosNote: "",
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.hasFamilyPhotos === "no"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.fields.noLabel}
+                  </button>
+                </div>
+              </div>
 
               {values.hasFamilyPhotos === "yes" ? (
                 <label className="grid gap-1 mt-4">

@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
@@ -125,8 +124,6 @@ export function OnboardingHubPage() {
     [completedCount, totalCount],
   );
 
-  const firstName = participantSession?.firstName?.trim();
-
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pb-24 pt-4">
@@ -135,16 +132,15 @@ export function OnboardingHubPage() {
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
                 <ShieldCheck size={14} />
-                Ton espace personnel
+                Espace personnel
               </div>
 
               <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
-                {firstName ? `Bienvenue ${firstName}` : "Ton espace dans la cousinade"}
+                Ton espace dans la cousinade
               </h1>
 
               <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
-                Commence par l’essentiel, puis complète seulement ce que tu veux
-                partager.
+                Complète ce que tu veux partager avec la famille, à ton rythme.
               </p>
             </div>
 
@@ -183,26 +179,13 @@ export function OnboardingHubPage() {
         </section>
 
         <div className="mt-5 space-y-3">
-          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-            <div className='flex items-start gap-3'>
-              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-              <div className='min-w-0'>
-                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                <div className='mt-0.5 text-xs text-amber-800'>
-                  <ol>
-                    <li>Revoir le titre</li>
-                    <li>revoir les labels des cartes</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          </div>
           {onboardingStepsConfig.map((step) => (
             <OnboardingStepCard
               key={step.key}
               title={step.title}
               subtitle={step.subtitle}
               icon={step.icon}
+              badge={step.badge}
               ctaLabel={step.ctaLabel}
               status={progress[step.key]}
               highlight={step.key === "identity" && progress.identity !== "done"}

@@ -1,32 +1,128 @@
 export const godparentsFormConfig = {
   pageTitle: "Les liens de parrainage",
-  pageSubtitle: "Parrains, marraines et liens familiaux",
+  pageSubtitle:
+    "Parrains, marraines et filleuls peuvent révéler des liens de confiance importants dans la famille.",
   sections: {
-    personalGodparents: {
-      title: "Qui sont tes parrains et marraines ?",
-      subtitle:
-        "Ajoute les personnes que tu connais, même si tu n’as que peu d’informations.",
-      addLabel: "Ajouter",
-      emptyText: "Aucun parrain ou marraine ajouté pour le moment.",
-      itemLabel: "Parrain / marraine",
+    self: {
+      title: "Pour toi",
+      subtitle: "Tes parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Es-tu baptisé ?",
+      godfatherLabel: "Ton parrain",
+      godmotherLabel: "Ta marraine",
+      hasGodchildrenQuestion: "As-tu des filleuls ?",
+      godchildrenTitle: "Tes filleuls",
+      godchildrenSubtitle:
+        "Ajoute les filleuls que tu connais, même si tu n’as que peu d’informations.",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
     },
-    parentsGodparents: {
-      title: "Connais-tu les parrains et marraines de tes parents ?",
-      subtitle:
-        "Même un prénom ou une photo peuvent déjà être utiles.",
-      fatherGodfatherLabel: "Parrain du père",
-      fatherGodmotherLabel: "Marraine du père",
-      motherGodfatherLabel: "Parrain de la mère",
-      motherGodmotherLabel: "Marraine de la mère",
+    father: {
+      title: "Pour ton père",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ton père était-il baptisé ?",
+      godfatherLabel: "Parrain de ton père",
+      godmotherLabel: "Marraine de ton père",
+      hasGodchildrenQuestion: "Ton père avait-il des filleuls ?",
+      godchildrenTitle: "Les filleuls de ton père",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
+    },
+    mother: {
+      title: "Pour ta mère",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ta mère était-elle baptisée ?",
+      godfatherLabel: "Parrain de ta mère",
+      godmotherLabel: "Marraine de ta mère",
+      hasGodchildrenQuestion: "Ta mère avait-elle des filleuls ?",
+      godchildrenTitle: "Les filleuls de ta mère",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
+    },
+    paternalGrandfather: {
+      title: "Pour ton grand-père paternel",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ton grand-père paternel était-il baptisé ?",
+      godfatherLabel: "Parrain du grand-père paternel",
+      godmotherLabel: "Marraine du grand-père paternel",
+      hasGodchildrenQuestion: "Ton grand-père paternel avait-il des filleuls ?",
+      godchildrenTitle: "Les filleuls du grand-père paternel",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
+    },
+    paternalGrandmother: {
+      title: "Pour ta grand-mère paternelle",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ta grand-mère paternelle était-elle baptisée ?",
+      godfatherLabel: "Parrain de la grand-mère paternelle",
+      godmotherLabel: "Marraine de la grand-mère paternelle",
+      hasGodchildrenQuestion: "Ta grand-mère paternelle avait-elle des filleuls ?",
+      godchildrenTitle: "Les filleuls de la grand-mère paternelle",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
+    },
+    maternalGrandfather: {
+      title: "Pour ton grand-père maternel",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ton grand-père maternel était-il baptisé ?",
+      godfatherLabel: "Parrain du grand-père maternel",
+      godmotherLabel: "Marraine du grand-père maternel",
+      hasGodchildrenQuestion: "Ton grand-père maternel avait-il des filleuls ?",
+      godchildrenTitle: "Les filleuls du grand-père maternel",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
+    },
+    maternalGrandmother: {
+      title: "Pour ta grand-mère maternelle",
+      subtitle: "Ses parrains, marraines et éventuels filleuls.",
+      baptizedQuestion: "Ta grand-mère maternelle était-elle baptisée ?",
+      godfatherLabel: "Parrain de la grand-mère maternelle",
+      godmotherLabel: "Marraine de la grand-mère maternelle",
+      hasGodchildrenQuestion: "Ta grand-mère maternelle avait-elle des filleuls ?",
+      godchildrenTitle: "Les filleuls de la grand-mère maternelle",
+      godchildrenSubtitle: "",
+      godchildrenEmptyText: "Aucun filleul ajouté pour le moment.",
+      godchildrenItemLabel: "Filleul",
+      godchildrenAddLabel: "Ajouter un filleul",
     },
     info: {
       title: "Les liens de parrainage racontent aussi la famille",
       text:
-        "Ils peuvent révéler des proximités, des solidarités ou des liens familiaux qui comptaient beaucoup.",
+        "Ils peuvent révéler des proximités, des solidarités et des personnes qui comptaient particulièrement dans la vie familiale.",
+    },
+  },
+  familyGroups: {
+    self: {
+      title: "Pour toi",
+      subtitle: "Tes propres liens de parrainage.",
+    },
+    parents: {
+      title: "Pour tes parents",
+      subtitle: "Les parrains, marraines et filleuls de ton père et de ta mère.",
+    },
+    paternalGrandparents: {
+      title: "Du côté paternel",
+      subtitle:
+        "Les liens de parrainage de ton grand-père paternel et de ta grand-mère paternelle.",
+    },
+    maternalGrandparents: {
+      title: "Du côté maternel",
+      subtitle:
+        "Les liens de parrainage de ton grand-père maternel et de ta grand-mère maternelle.",
     },
   },
   personFields: {
-    knownLabel: "Personne connue",
+    knownLabel: "Je connais son identité",
     knownHelp: "Décoche si tu ne connais pas encore cette personne.",
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",
@@ -36,18 +132,25 @@ export const godparentsFormConfig = {
     isFamilyMemberLabel: "Est-ce quelqu’un de la famille ?",
     yesLabel: "Oui",
     noLabel: "Non",
-    chooseLabel: "Choisir",
+    familyRelationshipDetailLabel: "Quel est le lien exact ?",
+    familyRelationshipDetailPlaceholder: "Ex : cousine de sa mère, grand-oncle, tante maternelle…",
   },
   footer: {
     submitLabel: "Enregistrer",
     loadingLabel: "Enregistrement...",
   },
   validation: {
-    missingParticipant:
-      "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",
-    missingPersonalIdentity:
-      "Merci de renseigner au moins un nom ou un prénom pour chaque parrain ou marraine ajouté.",
-    missingParentGodparentIdentity:
-      "Merci de renseigner au moins un nom ou un prénom pour chaque parrain ou marraine connu(e).",
-  },
+  missingParticipant:
+    "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",
+  missingKnownPersonIdentity:
+    "Merci de renseigner au moins un prénom, un nom ou un surnom pour chaque personne connue.",
+  missingBaptizedAnswer:
+    "Merci d’indiquer si la personne était baptisée.",
+  missingGodchildrenAnswer:
+    "Merci d’indiquer si la personne avait des filleuls.",
+  missingGodchildIdentity:
+    "Merci de renseigner au moins un prénom, un nom ou un surnom pour chaque filleul connu.",
+  missingFamilyRelationshipDetail:
+    "Merci de préciser le lien exact avec la famille lorsque tu indiques qu’il s’agit d’une personne de la famille.",
+},
 } as const;

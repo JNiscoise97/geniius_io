@@ -2,10 +2,14 @@ import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
   CalendarCheck,
+  GitBranch,
+  HeartHandshake,
+  Image,
   MessageCircleHeart,
+  Network,
   Settings,
-  Sparkles,
   UserCircle2,
+  Users,
 } from "lucide-react";
 
 export type CompletionItemType = "form" | "info";
@@ -13,16 +17,33 @@ export type CompletionItemType = "form" | "info";
 export type CompletionCondition =
   | string
   | {
-    and: CompletionCondition[];
-  }
+      and: CompletionCondition[];
+    }
   | {
-    or: CompletionCondition[];
-  };
+      or: CompletionCondition[];
+    };
 
 export type CompletionRule = {
   key: string;
-  form?: string;
   onboardingKey?: "identity" | "profile" | "preferences" | "origins";
+  familyKnowledgeKey?:
+    | "close_family"
+    | "grandparents"
+    | "godparents"
+    | "current_links"
+    | "memory"
+    | "photos";
+  group?:
+    | "identity"
+    | "attendance"
+    | "preferences"
+    | "origins"
+    | "close_family"
+    | "grandparents"
+    | "godparents"
+    | "current_links"
+    | "memory"
+    | "photos";
   eyebrow: string;
   actionRapide: string;
   text: string;
@@ -40,11 +61,29 @@ export type CompletionRule = {
 
 export type CompletionRow = Record<string, unknown> | null | undefined;
 
+export function getFamilyKnowledgeCompletionRules(
+  rules: CompletionRule[] = completionRules,
+) {
+  return rules.filter(
+    (
+      rule,
+    ): rule is CompletionRule & {
+      familyKnowledgeKey:
+        | "close_family"
+        | "grandparents"
+        | "godparents"
+        | "current_links"
+        | "memory"
+        | "photos";
+    } => rule.familyKnowledgeKey !== undefined,
+  );
+}
+
 export const completionRules: CompletionRule[] = [
   {
     key: "identity",
-    form: "IdentityForm",
     onboardingKey: "identity",
+    group: "identity",
     eyebrow: "Profil",
     actionRapide: "Ajoute tes informations générales et tes coordonnées.",
     text: "Quelques informations suffisent pour que la famille puisse mieux te reconnaître et te recontacter.",
@@ -69,6 +108,7 @@ export const completionRules: CompletionRule[] = [
   {
     key: "attendance",
     eyebrow: "Présence",
+    group: "attendance",
     actionRapide: "As-tu déjà confirmé ta présence ?",
     text: "Ta réponse nous aide à préparer la journée dans les meilleures conditions.",
     cta: "Confirmer ma présence",
@@ -80,89 +120,106 @@ export const completionRules: CompletionRule[] = [
     type: "form",
   },
   {
-    key: "origins",
-    onboardingKey: "origins",
-    eyebrow: "Lien avec la cousinade",
-    actionRapide: "Comment as-tu entendu parler du pique-nique ?",
-    text: "Cela nous aide à mieux comprendre comment l’initiative circule dans la famille.",
-    cta: "Renseigner ces informations",
-    icon: Sparkles,
-    table: "participant_origins",
+    key: "preferences-app",
+    group: "preferences",
+    eyebrow: "Consentements",
+    actionRapide: "Décide si tu veux que ton nom soit affiché dans l'application notamment dans les jeux.",
+    text: "",
+    cta: "Gérer mes consentements",
+    icon: Settings,
+    table: "participant_consents",
     participantField: "participant_id",
     fields: {
-      or: ["heard_about_initiative", "cousinade_expectation"],
+      or: [
+        "allow_name_in_event_activities",
+        "allow_participation_in_games",
+      ],
     },
-    to: "/welcome/origins",
+    to: "/welcome/preferences",
     type: "form",
   },
   {
-    key: "origins-heard_about_initiative",
-    eyebrow: "Lien avec la cousinade",
-    actionRapide: "Comment as-tu entendu parler du pique-nique ?",
-    text: "Cela nous aide à mieux comprendre comment l’initiative circule dans la famille.",
-    cta: "Renseigner ces informations",
-    icon: Sparkles,
-    table: "participant_origins",
-    participantField: "participant_id",
-    fields: "heard_about_initiative",
-    to: "/welcome/origins",
-    type: "form",
-  },
-  {
-    key: "origins-cousinade_expectation",
-    eyebrow: "Lien avec la cousinade",
-    actionRapide: "Qu’aimerais-tu retrouver ou découvrir pendant la cousinade ?",
+    key: "preferences-genealogy",
+    group: "preferences",
+    eyebrow: "Consentements",
+    actionRapide: "Décide si tu veux que les informations que tu sais dans cette application enrichisse l'arbre généalogique de la famille.",
     text: "",
-    cta: "Renseigner ces informations",
-    icon: Sparkles,
-    table: "participant_origins",
+    cta: "Gérer mes consentements",
+    icon: Settings,
+    table: "participant_consents",
     participantField: "participant_id",
-    fields: "cousinade_expectation",
-    to: "/welcome/origins",
+    fields: {
+      or: [
+        "allow_genealogy_enrichment",
+        "allow_genealogy_contribution_storage",
+      ],
+    },
+    to: "/welcome/preferences",
     type: "form",
   },
   {
-    key: "profile",
-    onboardingKey: "profile",
-    eyebrow: "Quelques mots sur toi",
-    actionRapide: "Veux-tu partager quelques infos sur toi ?",
-    text: "Tes réponses donnent envie d’échanger et créent plus facilement du lien entre cousins.",
-    cta: "Partager quelques infos",
-    icon: MessageCircleHeart,
-    table: null,
-    fields: { and: [] },
-    dependsOnTables: ["participant_profile", "participant_consents"],
-    selectFieldsByTable: {
-      participant_profile: ["city", "occupation", "interests", "free_share"],
-      participant_consents: ["allow_info_in_family_tree"],
+    key: "preferences-contact",
+    group: "preferences",
+    eyebrow: "Consentements",
+    actionRapide: "Décide de tes préférences sur le fait de garder contact.",
+    text: "",
+    cta: "Gérer mes consentements",
+    icon: Settings,
+    table: "participant_consents",
+    participantField: "participant_id",
+    fields: {
+      or: [
+        "allow_contact_details_with_family",
+        "allow_future_family_contact",
+      ],
     },
-    to: "/welcome/profile",
+    to: "/welcome/preferences",
     type: "form",
-    isComplete: (rowsByTable) => {
-      const consents = rowsByTable["participant_consents"] as Record<string, unknown> | null;
-      const profile = rowsByTable["participant_profile"] as Record<string, unknown> | null;
-
-      const treePreference = consents?.allow_info_in_family_tree;
-
-      if (treePreference !== true && treePreference !== false) {
-        return false;
-      }
-
-      if (treePreference === false) {
-        return true;
-      }
-
-      return hasAnyFilledField(profile, [
-        "city",
-        "occupation",
-        "interests",
-        "free_share",
-      ]);
+  },
+  {
+    key: "preferences-image",
+    group: "preferences",
+    eyebrow: "Consentements",
+    actionRapide: "Décide de tes préférences sur les photos qui seront prises de toi.",
+    text: "",
+    cta: "Gérer mes consentements",
+    icon: Settings,
+    table: "participant_consents",
+    participantField: "participant_id",
+    fields: {
+      or: [
+        "allow_family_photo_sharing",
+        "allow_photo_display_in_app",
+        "allow_event_photo_memory",
+      ],
     },
+    to: "/welcome/preferences",
+    type: "form",
+  },
+  {
+    key: "preferences-family-tree",
+    group: "preferences",
+    eyebrow: "Consentements",
+    actionRapide: "Décide de ce que la famille peut voir dans l'arbre généalogique.",
+    text: "",
+    cta: "Gérer mes consentements",
+    icon: Settings,
+    table: "participant_consents",
+    participantField: "participant_id",
+    fields: {
+      or: [
+        "allow_name_in_family_tree",
+        "allow_photo_in_family_tree",
+        "allow_info_in_family_tree",
+      ],
+    },
+    to: "/welcome/preferences",
+    type: "form",
   },
   {
     key: "preferences",
     onboardingKey: "preferences",
+    group: "preferences",
     eyebrow: "Consentements",
     actionRapide: "Choisis ce que la famille peut voir ou utiliser à ton sujet.",
     text: "Tu peux définir ici les règles pour l’arbre, les photos, les contacts et certains usages dans l’application.",
@@ -190,6 +247,96 @@ export const completionRules: CompletionRule[] = [
     type: "form",
   },
   {
+    key: "origins-heard_about_initiative",
+    eyebrow: "Lien avec la cousinade",
+    group: "origins",
+    actionRapide: "Comment as-tu entendu parler du pique-nique ?",
+    text: "Cela nous aide à mieux comprendre comment l’initiative circule dans la famille.",
+    cta: "Renseigner ces informations",
+    icon: GitBranch,
+    table: "participant_origins",
+    participantField: "participant_id",
+    fields: "heard_about_initiative",
+    to: "/welcome/origins",
+    type: "form",
+  },
+  {
+    key: "origins-cousinade_expectation",
+    eyebrow: "Lien avec la cousinade",
+    group: "origins",
+    actionRapide: "Qu’aimerais-tu retrouver ou découvrir pendant la cousinade ?",
+    text: "",
+    cta: "Renseigner ces informations",
+    icon: GitBranch,
+    table: "participant_origins",
+    participantField: "participant_id",
+    fields: "cousinade_expectation",
+    to: "/welcome/origins",
+    type: "form",
+  },
+  {
+    key: "origins",
+    onboardingKey: "origins",
+    group: "origins",
+    eyebrow: "Lien avec la cousinade",
+    actionRapide: "Comment as-tu entendu parler du pique-nique ?",
+    text: "Cela nous aide à mieux comprendre comment l’initiative circule dans la famille.",
+    cta: "Renseigner ces informations",
+    icon: GitBranch,
+    table: "participant_origins",
+    participantField: "participant_id",
+    fields: {
+      or: ["heard_about_initiative", "cousinade_expectation"],
+    },
+    to: "/welcome/origins",
+    type: "form",
+  },
+  {
+    key: "profile",
+    onboardingKey: "profile",
+    eyebrow: "Quelques mots sur toi",
+    actionRapide: "Veux-tu partager quelques infos sur toi ?",
+    text: "Tes réponses donnent envie d’échanger et créent plus facilement du lien entre cousins.",
+    cta: "Partager quelques infos",
+    icon: MessageCircleHeart,
+    table: null,
+    fields: { and: [] },
+    dependsOnTables: ["participant_profile", "participant_consents"],
+    selectFieldsByTable: {
+      participant_profile: ["city", "occupation", "interests", "free_share"],
+      participant_consents: ["allow_info_in_family_tree"],
+    },
+    to: "/welcome/profile",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const consents = rowsByTable["participant_consents"] as Record<
+        string,
+        unknown
+      > | null;
+      const profile = rowsByTable["participant_profile"] as Record<
+        string,
+        unknown
+      > | null;
+
+      const treePreference = consents?.allow_info_in_family_tree;
+
+      if (treePreference !== true && treePreference !== false) {
+        return false;
+      }
+
+      if (treePreference === false) {
+        return true;
+      }
+
+      return hasAnyFilledField(profile, [
+        "city",
+        "occupation",
+        "interests",
+        "free_share",
+      ]);
+    },
+  },
+  {
     key: "covindou-sheet",
     eyebrow: "Histoire familiale",
     actionRapide: "Lire les informations collectées sur gromèr Covindou",
@@ -201,7 +348,923 @@ export const completionRules: CompletionRule[] = [
     to: "/fiche?id=@7398@",
     type: "info",
   },
+  {
+    key: "close_family-parent1-known",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Connais-tu ton père ?",
+    text: "Même si tu n’as qu’un souvenir partiel, cela peut déjà aider la famille.",
+    cta: "Parler de mon père",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const parent1 = getCloseFamilyPerson(data, "parent1");
+      return parent1?.known === true || parent1?.known === false;
+    },
+  },
+  {
+    key: "close_family-parent2-known",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Connais-tu ta mère ?",
+    text: "Même un prénom, un surnom ou une petite information peut être utile.",
+    cta: "Parler de ma mère",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const parent2 = getCloseFamilyPerson(data, "parent2");
+      return parent2?.known === true || parent2?.known === false;
+    },
+  },
+  {
+    key: "close_family-parent1-identity",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Peux-tu me dire au moins un élément sur ton père ?",
+    text: "Un prénom, un nom ou un surnom suffit déjà pour faire avancer la mémoire familiale.",
+    cta: "Ajouter une info sur mon père",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const parent1 = getCloseFamilyPerson(data, "parent1");
+      if (!parent1) return false;
+      if (parent1.known === false) return true;
+      if (parent1.known === true) return personHasIdentity(parent1);
+      return false;
+    },
+  },
+  {
+    key: "close_family-parent2-identity",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Peux-tu me dire au moins un élément sur ta mère ?",
+    text: "Un prénom, un nom ou un surnom peut déjà être précieux pour la famille.",
+    cta: "Ajouter une info sur ma mère",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const parent2 = getCloseFamilyPerson(data, "parent2");
+      if (!parent2) return false;
+      if (parent2.known === false) return true;
+      if (parent2.known === true) return personHasIdentity(parent2);
+      return false;
+    },
+  },
+  {
+    key: "close_family-hasSiblings",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "As-tu des frères ou des sœurs ?",
+    text: "Même si tu ne connais pas encore tous les détails, ta réponse nous aide déjà.",
+    cta: "Répondre pour ma fratrie",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      return data?.hasSiblings === "yes" || data?.hasSiblings === "no";
+    },
+  },
+  {
+    key: "close_family-siblings-list",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur ?",
+    text: "Une seule personne renseignée peut déjà aider à mieux reconstituer la fratrie.",
+    cta: "Ajouter un frère ou une sœur",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const siblings = Array.isArray(data?.siblings) ? data.siblings : [];
+      if (data?.hasSiblings === "no") return true;
+      if (data?.hasSiblings === "yes") return siblings.length > 0;
+      return false;
+    },
+  },
+  {
+    key: "close_family-hasChildren",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "As-tu des enfants ?",
+    text: "Ta réponse nous aide à mieux comprendre ta branche familiale aujourd’hui.",
+    cta: "Répondre pour mes enfants",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      return data?.hasChildren === "yes" || data?.hasChildren === "no";
+    },
+  },
+  {
+    key: "close_family-children-list",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Peux-tu ajouter au moins un enfant ?",
+    text: "Même une information simple peut déjà aider à mieux relier les générations.",
+    cta: "Ajouter un enfant",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getCloseFamilyData(rowsByTable);
+      const children = Array.isArray(data?.children) ? data.children : [];
+      if (data?.hasChildren === "no") return true;
+      if (data?.hasChildren === "yes") return children.length > 0;
+      return false;
+    },
+  },
+  {
+    key: "close_family",
+    familyKnowledgeKey: "close_family",
+    group: "close_family",
+    eyebrow: "Famille proche",
+    actionRapide: "Peux-tu me parler de ta famille proche ?",
+    text: "Parents, fratrie, enfants ou conjoint : chaque information aide la famille à mieux se relier.",
+    cta: "Compléter ma famille proche",
+    icon: Users,
+    table: "participant_family_knowledge_close_family",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_close_family: ["data"],
+    },
+    to: "/family-knowledge/close-family",
+    type: "form",
+    isComplete: (rowsByTable) =>
+      isCloseFamilyComplete(
+        rowsByTable["participant_family_knowledge_close_family"],
+      ),
+  },
+  {
+    key: "grandparents-paternal-grandfather-known",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Connais-tu ton grand-père paternel ?",
+    text: "Même un souvenir partiel peut déjà aider à relier la branche paternelle.",
+    cta: "Parler de mon grand-père paternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "paternalGrandfather");
+      return person?.known === true || person?.known === false;
+    },
+  },
+  {
+    key: "grandparents-paternal-grandfather-identity",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu me dire au moins un élément sur ton grand-père paternel ?",
+    text: "Un prénom, un nom ou un surnom peut déjà être précieux.",
+    cta: "Ajouter une info sur mon grand-père paternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "paternalGrandfather");
+      if (!person) return false;
+      if (person.known === false) return true;
+      if (person.known === true) return grandparentHasIdentity(person);
+      return false;
+    },
+  },
+  {
+    key: "grandparents-paternal-grandmother-known",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Connais-tu ta grand-mère paternelle ?",
+    text: "Même une petite information peut déjà aider la famille.",
+    cta: "Parler de ma grand-mère paternelle",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "paternalGrandmother");
+      return person?.known === true || person?.known === false;
+    },
+  },
+  {
+    key: "grandparents-paternal-grandmother-identity",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu me dire au moins un élément sur ta grand-mère paternelle ?",
+    text: "Un prénom, un nom ou un surnom peut déjà être utile.",
+    cta: "Ajouter une info sur ma grand-mère paternelle",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "paternalGrandmother");
+      if (!person) return false;
+      if (person.known === false) return true;
+      if (person.known === true) return grandparentHasIdentity(person);
+      return false;
+    },
+  },
+  {
+    key: "grandparents-maternal-grandfather-known",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Connais-tu ton grand-père maternel ?",
+    text: "Même un souvenir incomplet peut déjà aider à éclairer la branche maternelle.",
+    cta: "Parler de mon grand-père maternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "maternalGrandfather");
+      return person?.known === true || person?.known === false;
+    },
+  },
+  {
+    key: "grandparents-maternal-grandfather-identity",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu me dire au moins un élément sur ton grand-père maternel ?",
+    text: "Un prénom, un nom ou un surnom peut déjà aider à faire avancer les recherches.",
+    cta: "Ajouter une info sur mon grand-père maternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "maternalGrandfather");
+      if (!person) return false;
+      if (person.known === false) return true;
+      if (person.known === true) return grandparentHasIdentity(person);
+      return false;
+    },
+  },
+  {
+    key: "grandparents-maternal-grandmother-known",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Connais-tu ta grand-mère maternelle ?",
+    text: "Même une petite information peut déjà être précieuse pour la famille.",
+    cta: "Parler de ma grand-mère maternelle",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "maternalGrandmother");
+      return person?.known === true || person?.known === false;
+    },
+  },
+  {
+    key: "grandparents-maternal-grandmother-identity",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu me dire au moins un élément sur ta grand-mère maternelle ?",
+    text: "Un prénom, un nom ou un surnom peut déjà aider à reconstruire la branche maternelle.",
+    cta: "Ajouter une info sur ma grand-mère maternelle",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const person = getGrandparentPerson(data, "maternalGrandmother");
+      if (!person) return false;
+      if (person.known === false) return true;
+      if (person.known === true) return grandparentHasIdentity(person);
+      return false;
+    },
+  },
+  {
+    key: "grandparents-has-paternal-aunts-uncles",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Ton père avait-il des frères et sœurs ?",
+    text: "Ta réponse aide à mieux comprendre la branche paternelle.",
+    cta: "Répondre pour la fratrie de mon père",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      return (
+        data?.hasPaternalAuntsUncles === "yes" ||
+        data?.hasPaternalAuntsUncles === "no"
+      );
+    },
+  },
+  {
+    key: "grandparents-paternal-aunts-uncles-list",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur de ton père ?",
+    text: "Une seule personne ajoutée peut déjà aider à reconstituer la fratrie.",
+    cta: "Ajouter un oncle ou une tante du côté paternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const list = Array.isArray(data?.paternalAuntsUncles)
+        ? data.paternalAuntsUncles
+        : [];
+      if (data?.hasPaternalAuntsUncles === "no") return true;
+      if (data?.hasPaternalAuntsUncles === "yes") return list.length > 0;
+      return false;
+    },
+  },
+  {
+    key: "grandparents-has-maternal-aunts-uncles",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Ta mère avait-elle des frères et sœurs ?",
+    text: "Ta réponse aide à mieux comprendre la branche maternelle.",
+    cta: "Répondre pour la fratrie de ma mère",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      return (
+        data?.hasMaternalAuntsUncles === "yes" ||
+        data?.hasMaternalAuntsUncles === "no"
+      );
+    },
+  },
+  {
+    key: "grandparents-maternal-aunts-uncles-list",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur de ta mère ?",
+    text: "Même une seule personne ajoutée peut déjà aider à relier les branches.",
+    cta: "Ajouter un oncle ou une tante du côté maternel",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const list = Array.isArray(data?.maternalAuntsUncles)
+        ? data.maternalAuntsUncles
+        : [];
+      if (data?.hasMaternalAuntsUncles === "no") return true;
+      if (data?.hasMaternalAuntsUncles === "yes") return list.length > 0;
+      return false;
+    },
+  },
+  {
+    key: "grandparents",
+    familyKnowledgeKey: "grandparents",
+    group: "grandparents",
+    eyebrow: "Grands-parents",
+    actionRapide: "Peux-tu me parler de tes grands-parents et de la fratrie de tes parents ?",
+    text: "Les grands-parents et les frères et sœurs de tes parents aident souvent à mieux comprendre toute la branche familiale.",
+    cta: "Compléter cette branche familiale",
+    icon: Network,
+    table: "participant_family_knowledge_grandparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    to: "/family-knowledge/grandparents",
+    type: "form",
+    isComplete: (rowsByTable) =>
+      isFamilyKnowledgeGrandparentsComplete(
+        rowsByTable["participant_family_knowledge_grandparents"],
+      ),
+  },
+  {
+    key: "godparents-self-baptized",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "As-tu indiqué si tu es baptisé ?",
+    text: "Cette réponse permet déjà de savoir si des liens de parrainage existent pour toi.",
+    cta: "Répondre pour moi",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+    },
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+      const self = getNestedRecord(data, "self");
+      return (
+        self?.["isBaptized"] === "yes" || self?.["isBaptized"] === "no"
+      );
+    },
+  },
+  {
+    key: "godparents-self-godchildren",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "As-tu indiqué si tu as des filleuls ?",
+    text: "Même une réponse négative aide à clarifier les liens de parrainage actuels.",
+    cta: "Répondre pour mes filleuls",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+    },
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+      const self = getNestedRecord(data, "self");
+      return (
+        self?.["hasGodchildren"] === "yes" ||
+        self?.["hasGodchildren"] === "no"
+      );
+    },
+  },
+  {
+    key: "godparents-father",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "Peux-tu me parler des liens de parrainage de ton père ?",
+    text: "Ses parrains, marraines ou éventuels filleuls peuvent révéler des liens familiaux importants.",
+    cta: "Compléter pour mon père",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+      participant_family_knowledge_close_family: ["data"],
+    },
+    dependsOnTables: ["participant_family_knowledge_close_family"],
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const closeFamily = getCloseFamilyData(rowsByTable);
+      const father = getCloseFamilyPerson(closeFamily, "parent1");
+
+      if (!father?.known) return true;
+
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+      return isParrainageSectionComplete(getNestedRecord(data, "father"));
+    },
+  },
+  {
+    key: "godparents-mother",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "Peux-tu me parler des liens de parrainage de ta mère ?",
+    text: "Même un prénom ou un simple souvenir peut déjà être utile.",
+    cta: "Compléter pour ma mère",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+      participant_family_knowledge_close_family: ["data"],
+    },
+    dependsOnTables: ["participant_family_knowledge_close_family"],
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const closeFamily = getCloseFamilyData(rowsByTable);
+      const mother = getCloseFamilyPerson(closeFamily, "parent2");
+
+      if (!mother?.known) return true;
+
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+      return isParrainageSectionComplete(getNestedRecord(data, "mother"));
+    },
+  },
+  {
+    key: "godparents-paternal-grandparents",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "Peux-tu me parler des liens de parrainage du côté paternel ?",
+    text: "Ces informations peuvent aider à retrouver des proximités anciennes dans la branche paternelle.",
+    cta: "Compléter le côté paternel",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    dependsOnTables: ["participant_family_knowledge_grandparents"],
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const gp = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const paternalGrandfather = getGrandparentPerson(gp, "paternalGrandfather");
+      const paternalGrandmother = getGrandparentPerson(gp, "paternalGrandmother");
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+
+      const gfOk =
+        !paternalGrandfather?.known ||
+        isParrainageSectionComplete(getNestedRecord(data, "paternalGrandfather"));
+      const gmOk =
+        !paternalGrandmother?.known ||
+        isParrainageSectionComplete(getNestedRecord(data, "paternalGrandmother"));
+
+      return gfOk && gmOk;
+    },
+  },
+  {
+    key: "godparents-maternal-grandparents",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "Peux-tu me parler des liens de parrainage du côté maternel ?",
+    text: "Même une information partielle peut déjà aider à mieux relier la branche maternelle.",
+    cta: "Compléter le côté maternel",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    dependsOnTables: ["participant_family_knowledge_grandparents"],
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const gp = getFamilyKnowledgeGrandparentsData(rowsByTable);
+      const maternalGrandfather = getGrandparentPerson(gp, "maternalGrandfather");
+      const maternalGrandmother = getGrandparentPerson(gp, "maternalGrandmother");
+      const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+
+      const gfOk =
+        !maternalGrandfather?.known ||
+        isParrainageSectionComplete(getNestedRecord(data, "maternalGrandfather"));
+      const gmOk =
+        !maternalGrandmother?.known ||
+        isParrainageSectionComplete(getNestedRecord(data, "maternalGrandmother"));
+
+      return gfOk && gmOk;
+    },
+  },
+  {
+    key: "godparents",
+    familyKnowledgeKey: "godparents",
+    group: "godparents",
+    eyebrow: "Parrainages",
+    actionRapide: "Peux-tu partager ce que tu sais sur les parrains, marraines et filleuls de la famille ?",
+    text: "Ces liens racontent souvent des proximités familiales, affectives ou sociales très importantes.",
+    cta: "Compléter les liens de parrainage",
+    icon: HeartHandshake,
+    table: "participant_family_knowledge_godparents",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_godparents: ["data"],
+      participant_family_knowledge_close_family: ["data"],
+      participant_family_knowledge_grandparents: ["data"],
+    },
+    dependsOnTables: [
+      "participant_family_knowledge_close_family",
+      "participant_family_knowledge_grandparents",
+    ],
+    to: "/family-knowledge/godparents",
+    type: "form",
+    isComplete: (rowsByTable) => isFamilyKnowledgeGodparentsComplete(rowsByTable),
+  },
+  {
+    key: "memory-seen-photos",
+    familyKnowledgeKey: "memory",
+    group: "memory",
+    eyebrow: "Mémoire familiale",
+    actionRapide: "As-tu déjà vu des photos de la famille ?",
+    text: "Même si tu ne les as pas chez toi, ta réponse peut déjà aider à retrouver où elles circulent.",
+    cta: "Répondre pour les photos vues",
+    icon: Image,
+    table: "participant_family_knowledge_memory",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_memory: ["data"],
+    },
+    to: "/family-knowledge/memory",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeMemoryData(rowsByTable);
+      return (
+        data?.hasSeenFamilyPhotos === "yes" ||
+        data?.hasSeenFamilyPhotos === "no"
+      );
+    },
+  },
+  {
+    key: "memory-has-photos",
+    familyKnowledgeKey: "memory",
+    group: "memory",
+    eyebrow: "Mémoire familiale",
+    actionRapide: "As-tu des photos de famille chez toi ?",
+    text: "Savoir qu’elles existent peut déjà être très utile.",
+    cta: "Répondre pour mes photos",
+    icon: Image,
+    table: "participant_family_knowledge_memory",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_memory: ["data"],
+    },
+    to: "/family-knowledge/memory",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const data = getFamilyKnowledgeMemoryData(rowsByTable);
+      return (
+        data?.hasFamilyPhotos === "yes" ||
+        data?.hasFamilyPhotos === "no"
+      );
+    },
+  },
+  {
+    key: "memory",
+    familyKnowledgeKey: "memory",
+    group: "memory",
+    eyebrow: "Mémoire familiale",
+    actionRapide: "Peux-tu partager ce que tu sais sur les souvenirs et les photos de la famille ?",
+    text: "Souvenirs, personnes qui racontaient l’histoire familiale, photos vues ou conservées : tout peut aider.",
+    cta: "Compléter la mémoire familiale",
+    icon: BookOpen,
+    table: "participant_family_knowledge_memory",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_memory: ["data"],
+    },
+    to: "/family-knowledge/memory",
+    type: "form",
+    isComplete: (rowsByTable) =>
+      isFamilyKnowledgeMemoryComplete(
+        rowsByTable["participant_family_knowledge_memory"],
+      ),
+  },
+  {
+    key: "current_links",
+    familyKnowledgeKey: "current_links",
+    group: "current_links",
+    eyebrow: "Famille en contact",
+    actionRapide: "Avec quelles personnes de la famille es-tu encore en contact aujourd’hui ?",
+    text: "Même une seule personne peut déjà aider à mieux comprendre les liens actuels dans la famille.",
+    cta: "Compléter mes liens actuels",
+    icon: Users,
+    table: "participant_family_knowledge_current_links",
+    participantField: "participant_id",
+    fields: { and: [] },
+    selectFieldsByTable: {
+      participant_family_knowledge_current_links: ["data"],
+    },
+    to: "/family-knowledge/current-links",
+    type: "form",
+    isComplete: (rowsByTable) =>
+      isFamilyKnowledgeCurrentLinksComplete(
+        rowsByTable["participant_family_knowledge_current_links"],
+      ),
+  },
 ];
+
+function isCloseFamilyComplete(row: CompletionRow): boolean {
+  const data = (row as Record<string, unknown> | null)?.data as
+    | Record<string, unknown>
+    | undefined;
+
+  if (!data) return false;
+
+  const parent1 = data.parent1 as Record<string, unknown> | undefined;
+  const parent2 = data.parent2 as Record<string, unknown> | undefined;
+  const siblings = Array.isArray(data.siblings) ? data.siblings : [];
+  const children = Array.isArray(data.children) ? data.children : [];
+  const hasSiblings = data.hasSiblings;
+  const hasChildren = data.hasChildren;
+
+  function personHasIdentity(person: Record<string, unknown> | undefined) {
+    if (!person) return false;
+
+    const firstName =
+      typeof person.firstName === "string" ? person.firstName.trim() : "";
+    const lastName =
+      typeof person.lastName === "string" ? person.lastName.trim() : "";
+    const nickname =
+      typeof person.nickname === "string" ? person.nickname.trim() : "";
+
+    return Boolean(firstName || lastName || nickname);
+  }
+
+  function personIsConsistent(person: Record<string, unknown> | undefined) {
+    if (!person) return false;
+
+    if (person.known === false) {
+      return true;
+    }
+
+    if (person.known === true) {
+      return personHasIdentity(person);
+    }
+
+    return false;
+  }
+
+  const parentsOk = personIsConsistent(parent1) && personIsConsistent(parent2);
+
+  const siblingsOk =
+    hasSiblings === "no" ||
+    (hasSiblings === "yes" && siblings.length > 0);
+
+  const childrenOk =
+    hasChildren === "no" ||
+    (hasChildren === "yes" && children.length > 0);
+
+  return parentsOk && siblingsOk && childrenOk;
+}
+
+function getCloseFamilyData(rowsByTable: Record<string, CompletionRow>) {
+  const row = rowsByTable["participant_family_knowledge_close_family"] as
+    | Record<string, unknown>
+    | null;
+
+  return (row?.data as Record<string, unknown> | undefined) ?? null;
+}
+
+function getCloseFamilyPerson(
+  data: Record<string, unknown> | null,
+  key: string,
+) {
+  return (data?.[key] as Record<string, unknown> | undefined) ?? null;
+}
+
+function personHasIdentity(person: Record<string, unknown> | null) {
+  if (!person) return false;
+
+  const firstName =
+    typeof person.firstName === "string" ? person.firstName.trim() : "";
+  const lastName =
+    typeof person.lastName === "string" ? person.lastName.trim() : "";
+  const nickname =
+    typeof person.nickname === "string" ? person.nickname.trim() : "";
+
+  return Boolean(firstName || lastName || nickname);
+}
 
 function isValueFilled(value: unknown): boolean {
   if (value === null || value === undefined) {
@@ -217,7 +1280,7 @@ function isValueFilled(value: unknown): boolean {
   }
 
   if (typeof value === "boolean") {
-    return value === true;
+    return true;
   }
 
   return true;
@@ -286,6 +1349,8 @@ export function getFirstIncompleteCompletionRules(
   rowsByTable: Record<string, CompletionRow>,
   limit = 4,
 ) {
+  const firstRuleByGroup = new Set<string>();
+
   return rules
     .filter((rule) => {
       if (rule.type === "info") {
@@ -294,6 +1359,18 @@ export function getFirstIncompleteCompletionRules(
 
       const row = rule.table ? rowsByTable[rule.table] : null;
       return !isCompletionRuleComplete(rule, row, rowsByTable);
+    })
+    .filter((rule) => {
+      if (!rule.group) {
+        return true;
+      }
+
+      if (firstRuleByGroup.has(rule.group)) {
+        return false;
+      }
+
+      firstRuleByGroup.add(rule.group);
+      return true;
     })
     .slice(0, limit);
 }
@@ -307,5 +1384,312 @@ export function getOnboardingCompletionRules(
     ): rule is CompletionRule & {
       onboardingKey: "identity" | "profile" | "preferences" | "origins";
     } => rule.onboardingKey !== undefined,
+  );
+}
+
+function getFamilyKnowledgeMemoryData(
+  rowsByTable: Record<string, CompletionRow>,
+) {
+  const row = rowsByTable["participant_family_knowledge_memory"] as
+    | Record<string, unknown>
+    | null;
+
+  return (row?.data as Record<string, unknown> | undefined) ?? null;
+}
+
+function isFamilyKnowledgeMemoryComplete(row: CompletionRow): boolean {
+  const data = (row as Record<string, unknown> | null)?.data as
+    | Record<string, unknown>
+    | undefined;
+
+  if (!data) return false;
+
+  const hasSeenFamilyPhotos = data.hasSeenFamilyPhotos;
+  const hasFamilyPhotos = data.hasFamilyPhotos;
+
+  const seenPhotosOk =
+    hasSeenFamilyPhotos === "yes" || hasSeenFamilyPhotos === "no";
+
+  const hasPhotosOk = hasFamilyPhotos === "yes" || hasFamilyPhotos === "no";
+
+  return seenPhotosOk && hasPhotosOk;
+}
+
+function getFamilyKnowledgeGrandparentsData(
+  rowsByTable: Record<string, CompletionRow>,
+) {
+  const row = rowsByTable["participant_family_knowledge_grandparents"] as
+    | Record<string, unknown>
+    | null;
+
+  return (row?.data as Record<string, unknown> | undefined) ?? null;
+}
+
+function getGrandparentPerson(
+  data: Record<string, unknown> | null,
+  key:
+    | "paternalGrandfather"
+    | "paternalGrandmother"
+    | "maternalGrandfather"
+    | "maternalGrandmother",
+) {
+  return (data?.[key] as Record<string, unknown> | undefined) ?? null;
+}
+
+function grandparentHasIdentity(person: Record<string, unknown> | null) {
+  if (!person) return false;
+
+  const firstName =
+    typeof person.firstName === "string" ? person.firstName.trim() : "";
+  const lastName =
+    typeof person.lastName === "string" ? person.lastName.trim() : "";
+  const nickname =
+    typeof person.nickname === "string" ? person.nickname.trim() : "";
+
+  return Boolean(firstName || lastName || nickname);
+}
+
+function grandparentIsConsistent(person: Record<string, unknown> | null) {
+  if (!person) return false;
+
+  if (person.known === false) return true;
+  if (person.known === true) return grandparentHasIdentity(person);
+
+  return false;
+}
+
+function isFamilyKnowledgeGrandparentsComplete(row: CompletionRow): boolean {
+  const data = (row as Record<string, unknown> | null)?.data as
+    | Record<string, unknown>
+    | undefined;
+
+  if (!data) return false;
+
+  const paternalGrandfather = getGrandparentPerson(data, "paternalGrandfather");
+  const paternalGrandmother = getGrandparentPerson(data, "paternalGrandmother");
+  const maternalGrandfather = getGrandparentPerson(data, "maternalGrandfather");
+  const maternalGrandmother = getGrandparentPerson(data, "maternalGrandmother");
+
+  const paternalAuntsUncles = Array.isArray(data.paternalAuntsUncles)
+    ? data.paternalAuntsUncles
+    : [];
+  const maternalAuntsUncles = Array.isArray(data.maternalAuntsUncles)
+    ? data.maternalAuntsUncles
+    : [];
+
+  const grandparentsOk =
+    grandparentIsConsistent(paternalGrandfather) &&
+    grandparentIsConsistent(paternalGrandmother) &&
+    grandparentIsConsistent(maternalGrandfather) &&
+    grandparentIsConsistent(maternalGrandmother);
+
+  const paternalOk =
+    data.hasPaternalAuntsUncles === "no" ||
+    (data.hasPaternalAuntsUncles === "yes" && paternalAuntsUncles.length > 0);
+
+  const maternalOk =
+    data.hasMaternalAuntsUncles === "no" ||
+    (data.hasMaternalAuntsUncles === "yes" && maternalAuntsUncles.length > 0);
+
+  return grandparentsOk && paternalOk && maternalOk;
+}
+
+function isFamilyKnowledgeCurrentLinksComplete(row: CompletionRow): boolean {
+  const data = (row as Record<string, unknown> | null)?.data as
+    | Record<string, unknown>
+    | undefined;
+
+  if (!data) return false;
+
+  const contacts = Array.isArray(data.contacts) ? data.contacts : [];
+
+  if (contacts.length === 0) return false;
+
+  return contacts.every((contact) => {
+    const person = contact as Record<string, unknown>;
+
+    const firstName =
+      typeof person.firstName === "string" ? person.firstName.trim() : "";
+    const lastName =
+      typeof person.lastName === "string" ? person.lastName.trim() : "";
+    const relationshipType =
+      typeof person.relationshipType === "string"
+        ? person.relationshipType
+        : "";
+    const relationshipLabel =
+      typeof person.relationshipLabel === "string"
+        ? person.relationshipLabel.trim()
+        : "";
+
+    const hasIdentity = Boolean(firstName || lastName);
+    const hasRelationship = Boolean(relationshipType);
+    const hasOtherRelationship =
+      relationshipType !== "other" || Boolean(relationshipLabel);
+
+    return hasIdentity && hasRelationship && hasOtherRelationship;
+  });
+}
+
+function getFamilyKnowledgeGodparentsData(
+  rowsByTable: Record<string, CompletionRow>,
+) {
+  const row = rowsByTable["participant_family_knowledge_godparents"] as
+    | Record<string, unknown>
+    | null;
+
+  return (row?.data as Record<string, unknown> | undefined) ?? null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function getNestedRecord(
+  source: Record<string, unknown> | null | undefined,
+  key: string,
+): Record<string, unknown> | null {
+  return asRecord(source?.[key]);
+}
+
+function hasValidKnownPersonIdentity(
+  person: Record<string, unknown> | null | undefined,
+) {
+  if (!person) return false;
+
+  if (person["known"] === false) return true;
+
+  if (person["known"] === true) {
+    const firstName =
+      typeof person["firstName"] === "string" ? person["firstName"].trim() : "";
+    const lastName =
+      typeof person["lastName"] === "string" ? person["lastName"].trim() : "";
+    const nickname =
+      typeof person["nickname"] === "string" ? person["nickname"].trim() : "";
+
+    if (!(firstName || lastName || nickname)) return false;
+
+    if (
+      person["isFamilyMember"] === "yes" &&
+      !(
+        typeof person["familyRelationshipDetail"] === "string" &&
+        person["familyRelationshipDetail"].trim()
+      )
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+function isGodchildrenListComplete(
+  section: Record<string, unknown> | null | undefined,
+) {
+  if (!section) return false;
+
+  const hasGodchildren = section["hasGodchildren"];
+  const godchildren = Array.isArray(section["godchildren"])
+    ? section["godchildren"]
+    : [];
+
+  if (hasGodchildren === "no") return true;
+
+  if (hasGodchildren === "yes") {
+    return godchildren.every((godchild) =>
+      hasValidKnownPersonIdentity(asRecord(godchild)),
+    );
+  }
+
+  return false;
+}
+
+function isParrainageSectionComplete(
+  section: Record<string, unknown> | null | undefined,
+) {
+  if (!section) return false;
+
+  const isBaptized = section["isBaptized"];
+  const hasGodchildren = section["hasGodchildren"];
+  const godfather = asRecord(section["godfather"]);
+  const godmother = asRecord(section["godmother"]);
+
+  const baptizedOk =
+    isBaptized === "no" ||
+    (isBaptized === "yes" &&
+      hasValidKnownPersonIdentity(godfather) &&
+      hasValidKnownPersonIdentity(godmother));
+
+  const godchildrenOk =
+    hasGodchildren === "no" ||
+    (hasGodchildren === "yes" && isGodchildrenListComplete(section));
+
+  return baptizedOk && godchildrenOk;
+}
+
+function isFamilyKnowledgeGodparentsComplete(
+  rowsByTable: Record<string, CompletionRow>,
+): boolean {
+  const data = getFamilyKnowledgeGodparentsData(rowsByTable);
+  if (!data) return false;
+
+  const closeFamily = getCloseFamilyData(rowsByTable);
+  const grandparents = getFamilyKnowledgeGrandparentsData(rowsByTable);
+
+  const selfOk = isParrainageSectionComplete(getNestedRecord(data, "self"));
+
+  const fatherKnown = Boolean(getCloseFamilyPerson(closeFamily, "parent1")?.known);
+  const motherKnown = Boolean(getCloseFamilyPerson(closeFamily, "parent2")?.known);
+
+  const fatherOk =
+    !fatherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "father"));
+
+  const motherOk =
+    !motherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "mother"));
+
+  const paternalGrandfatherKnown = Boolean(
+    getGrandparentPerson(grandparents, "paternalGrandfather")?.known,
+  );
+  const paternalGrandmotherKnown = Boolean(
+    getGrandparentPerson(grandparents, "paternalGrandmother")?.known,
+  );
+  const maternalGrandfatherKnown = Boolean(
+    getGrandparentPerson(grandparents, "maternalGrandfather")?.known,
+  );
+  const maternalGrandmotherKnown = Boolean(
+    getGrandparentPerson(grandparents, "maternalGrandmother")?.known,
+  );
+
+  const paternalGrandfatherOk =
+    !paternalGrandfatherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "paternalGrandfather"));
+
+  const paternalGrandmotherOk =
+    !paternalGrandmotherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "paternalGrandmother"));
+
+  const maternalGrandfatherOk =
+    !maternalGrandfatherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "maternalGrandfather"));
+
+  const maternalGrandmotherOk =
+    !maternalGrandmotherKnown ||
+    isParrainageSectionComplete(getNestedRecord(data, "maternalGrandmother"));
+
+  return (
+    selfOk &&
+    fatherOk &&
+    motherOk &&
+    paternalGrandfatherOk &&
+    paternalGrandmotherOk &&
+    maternalGrandfatherOk &&
+    maternalGrandmotherOk
   );
 }

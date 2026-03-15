@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, BookOpenText } from "lucide-react";
+import { ArrowLeft, BookOpenText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -8,42 +8,24 @@ import {
 } from "../config/familyKnowledgeStepsConfig";
 import { OnboardingStepCard } from "../../onboarding/components/OnboardingStepCard";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import {
+  getFamilyKnowledgeCompletionRules,
+  isCompletionRuleComplete,
+} from "../../../lib/completion/sectionCompletion";
+import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
-type StepProgressByKey = Record<FamilyKnowledgeStepKey, FamilyKnowledgeStepStatus>;
-
-function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
-  return {
-    close_family:
-      localStorage.getItem(`connect:${slug}:family-knowledge:close_family`) ===
-      "done"
-        ? "done"
-        : "todo",
-    grandparents:
-      localStorage.getItem(`connect:${slug}:family-knowledge:grandparents`) ===
-      "done"
-        ? "done"
-        : "todo",
-    godparents:
-      localStorage.getItem(`connect:${slug}:family-knowledge:godparents`) ===
-      "done"
-        ? "done"
-        : "todo",
-    current_links:
-      localStorage.getItem(`connect:${slug}:family-knowledge:current_links`) ===
-      "done"
-        ? "done"
-        : "todo",
-    memory:
-      localStorage.getItem(`connect:${slug}:family-knowledge:memory`) === "done"
-        ? "done"
-        : "todo",
-  };
-}
+type StepProgressByKey = Record<
+  FamilyKnowledgeStepKey,
+  FamilyKnowledgeStepStatus
+>;
 
 export function FamilyKnowledgeHubPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
 
   const [progress, setProgress] = useState<StepProgressByKey>({
     close_family: "todo",
@@ -51,11 +33,92 @@ export function FamilyKnowledgeHubPage() {
     godparents: "todo",
     current_links: "todo",
     memory: "todo",
+    photos: "todo",
   });
 
+  const familyKnowledgeRules = useMemo(
+    () => getFamilyKnowledgeCompletionRules(),
+    [],
+  );
+
   useEffect(() => {
-    setProgress(getFallbackProgressFromLocalStorage(slug));
-  }, [slug]);
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/family-knowledge`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProgress() {
+      const participantSession = getParticipantSession(slug);
+
+      if (!participantSession?.participantId) {
+        return;
+      }
+
+      try {
+        const rowsByTable = await loadCompletionData(
+          participantSession.participantId,
+          familyKnowledgeRules,
+        );
+
+        if (!isMounted) return;
+
+        const nextProgress: StepProgressByKey = {
+          close_family: "todo",
+          grandparents: "todo",
+          godparents: "todo",
+          current_links: "todo",
+          memory: "todo",
+          photos: "todo",
+        };
+
+        for (const rule of familyKnowledgeRules) {
+          if (!rule.familyKnowledgeKey) continue;
+
+          const row = rule.table ? rowsByTable[rule.table] : null;
+
+          nextProgress[rule.familyKnowledgeKey] = isCompletionRuleComplete(
+            rule,
+            row,
+            rowsByTable,
+          )
+            ? "done"
+            : "todo";
+        }
+
+        setProgress(nextProgress);
+      } catch {
+        if (isMounted) {
+          setProgress({
+            close_family: "todo",
+            grandparents: "todo",
+            godparents: "todo",
+            current_links: "todo",
+            memory: "todo",
+            photos: "todo",
+          });
+        }
+      }
+    }
+
+    void loadProgress();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug, familyKnowledgeRules]);
 
   const completedCount = Object.values(progress).filter(
     (status) => status === "done",
@@ -66,9 +129,6 @@ export function FamilyKnowledgeHubPage() {
     () => Math.round((completedCount / totalCount) * 100),
     [completedCount, totalCount],
   );
-
-  const participantSession = getParticipantSession(slug);
-  const firstName = participantSession?.firstName?.trim();
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -82,14 +142,11 @@ export function FamilyKnowledgeHubPage() {
               </div>
 
               <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
-                {firstName
-                  ? `Merci de partager, ${firstName}`
-                  : "Merci de partager ce que tu sais"}
+                Ta contribution à l’histoire de la famille
               </h1>
 
               <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
-                Même un petit souvenir ou un nom incomplet peut aider la famille
-                à mieux se connaître et à transmettre son histoire.
+                Partage ce que tu sais sur ta famille : les personnes autour de toi, les générations passées, les liens actuels et les souvenirs qui méritent d’être transmis.
               </p>
             </div>
 
@@ -128,23 +185,6 @@ export function FamilyKnowledgeHubPage() {
         </section>
 
         <div className="mt-5 space-y-3">
-          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-              <div className='flex items-start gap-3'>
-                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                  <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>Revoir le titre</li>
-                      <li>Revoir la barre de progression pour qu'elle se base sur la base de données</li>
-                      <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
-                      <li>revoir les labels des cartes</li>
-                      <li>créer une carte pour savoir uploader les photos</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
           {familyKnowledgeStepsConfig.map((step) => (
             <OnboardingStepCard
               key={step.key}
@@ -154,8 +194,8 @@ export function FamilyKnowledgeHubPage() {
               ctaLabel={step.ctaLabel}
               status={progress[step.key]}
               highlight={
-                (step.key === "close_family") &&
-                progress[step.key] !== "done"
+                step.key === "close_family" &&
+                progress.close_family !== "done"
               }
               onClick={() =>
                 nav(`/e/${slug}/family-knowledge/${step.routeSuffix}`)

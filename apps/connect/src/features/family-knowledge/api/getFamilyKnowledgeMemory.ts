@@ -9,6 +9,10 @@ export type FamilyKnowledgeStoryTellerEntry = {
 export type FamilyKnowledgeMemoryValues = {
   storyTellers: FamilyKnowledgeStoryTellerEntry[];
   familyAnecdote: string;
+
+  hasSeenFamilyPhotos: "" | "yes" | "no";
+  seenFamilyPhotosContext: string;
+
   hasFamilyPhotos: "" | "yes" | "no";
   familyPhotosNote: string;
 };
@@ -29,6 +33,10 @@ export function getDefaultFamilyKnowledgeMemoryValues(): FamilyKnowledgeMemoryVa
   return {
     storyTellers: [],
     familyAnecdote: "",
+
+    hasSeenFamilyPhotos: "",
+    seenFamilyPhotosContext: "",
+
     hasFamilyPhotos: "",
     familyPhotosNote: "",
   };
@@ -64,6 +72,13 @@ export async function getFamilyKnowledgeMemory({
       ? raw.storyTellers.map(normalizeStoryTeller)
       : [],
     familyAnecdote: raw.familyAnecdote ?? "",
+
+    hasSeenFamilyPhotos:
+      raw.hasSeenFamilyPhotos === "yes" || raw.hasSeenFamilyPhotos === "no"
+        ? raw.hasSeenFamilyPhotos
+        : "",
+    seenFamilyPhotosContext: raw.seenFamilyPhotosContext ?? "",
+
     hasFamilyPhotos:
       raw.hasFamilyPhotos === "yes" || raw.hasFamilyPhotos === "no"
         ? raw.hasFamilyPhotos

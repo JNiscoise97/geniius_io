@@ -17,7 +17,7 @@ type TableSpec = {
 
 const TABLE_SPECS: TableSpec[] = [
   {
-    table: "participant_family_knowledge_parents",
+    table: "participant_family_knowledge_close_family",
     personType: "parent",
   },
   {

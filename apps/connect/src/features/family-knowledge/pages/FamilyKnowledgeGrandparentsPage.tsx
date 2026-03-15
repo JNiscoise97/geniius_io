@@ -30,6 +30,7 @@ import {
   getPersonDisplayName,
   normalizeOrderedKeys,
 } from "../lib/siblingOrder";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 function AuntUncleCard({
   title,
@@ -133,7 +134,7 @@ function AuntUncleCard({
             ]}
           />
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <LivingStatusField
               value={value.isAlive}
               onChange={(isAlive) => onChange({ isAlive })}
@@ -171,6 +172,26 @@ export function FamilyKnowledgeGrandparentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const config = grandparentsFormConfig;
+
+
+  const participantSession = getParticipantSession(slug);
+    const participantId = participantSession?.participantId ?? null;
+  
+    useEffect(() => {
+        if (!participantId) return;
+    
+        const tracker = createPageTimeTracker({
+          participantId,
+          eventSlug: slug,
+          pageKey: `/e/${slug}/family-knowledge/grandparents`,
+        });
+    
+        tracker.start();
+    
+        return () => {
+          void tracker.stop();
+        };
+      }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -215,94 +236,94 @@ export function FamilyKnowledgeGrandparentsPage() {
   }, [slug]);
 
   const paternalOrderItems = useMemo(() => {
-  const knownKeys = values.paternalAuntsUncles
-    .filter((person) => person.known)
-    .map((person) => `paternal:${person.id}`);
+    const knownKeys = values.paternalAuntsUncles
+      .filter((person) => person.known)
+      .map((person) => `paternal:${person.id}`);
 
-  const order = normalizeOrderedKeys({
-    existingKeys: values.paternalSiblingOrder,
-    allowedKeys: [FATHER_SIBLING_ORDER_KEY, ...knownKeys],
-    fixedKey: FATHER_SIBLING_ORDER_KEY,
-  });
+    const order = normalizeOrderedKeys({
+      existingKeys: values.paternalSiblingOrder,
+      allowedKeys: [FATHER_SIBLING_ORDER_KEY, ...knownKeys],
+      fixedKey: FATHER_SIBLING_ORDER_KEY,
+    });
 
-  const items: Array<SiblingOrderItem | null> = order.map((key) => {
-    if (key === FATHER_SIBLING_ORDER_KEY) {
+    const items: Array<SiblingOrderItem | null> = order.map((key) => {
+      if (key === FATHER_SIBLING_ORDER_KEY) {
+        return {
+          key,
+          label: config.sections.paternalAuntsUncles.selfLabel,
+          meta: "Lecture seule",
+          readOnly: true,
+        };
+      }
+
+      const personId = key.replace("paternal:", "");
+      const person = values.paternalAuntsUncles.find((item) => item.id === personId);
+
+      if (!person || !person.known) {
+        return null;
+      }
+
       return {
         key,
-        label: config.sections.paternalAuntsUncles.selfLabel,
-        meta: "Lecture seule",
-        readOnly: true,
+        label: getPersonDisplayName(person),
+        meta: "Oncle / tante paternel(le)",
+        readOnly: false,
       };
-    }
+    });
 
-    const personId = key.replace("paternal:", "");
-    const person = values.paternalAuntsUncles.find((item) => item.id === personId);
-
-    if (!person || !person.known) {
-      return null;
-    }
-
-    return {
-      key,
-      label: getPersonDisplayName(person),
-      meta: "Oncle / tante paternel(le)",
-      readOnly: false,
-    };
-  });
-
-  return items.filter(
-    (item): item is SiblingOrderItem => item !== null,
-  );
-}, [
-  config.sections.paternalAuntsUncles.selfLabel,
-  values.paternalAuntsUncles,
-  values.paternalSiblingOrder,
-]);
+    return items.filter(
+      (item): item is SiblingOrderItem => item !== null,
+    );
+  }, [
+    config.sections.paternalAuntsUncles.selfLabel,
+    values.paternalAuntsUncles,
+    values.paternalSiblingOrder,
+  ]);
 
   const maternalOrderItems = useMemo(() => {
-  const knownKeys = values.maternalAuntsUncles
-    .filter((person) => person.known)
-    .map((person) => `maternal:${person.id}`);
+    const knownKeys = values.maternalAuntsUncles
+      .filter((person) => person.known)
+      .map((person) => `maternal:${person.id}`);
 
-  const order = normalizeOrderedKeys({
-    existingKeys: values.maternalSiblingOrder,
-    allowedKeys: [MOTHER_SIBLING_ORDER_KEY, ...knownKeys],
-    fixedKey: MOTHER_SIBLING_ORDER_KEY,
-  });
+    const order = normalizeOrderedKeys({
+      existingKeys: values.maternalSiblingOrder,
+      allowedKeys: [MOTHER_SIBLING_ORDER_KEY, ...knownKeys],
+      fixedKey: MOTHER_SIBLING_ORDER_KEY,
+    });
 
-  const items: Array<SiblingOrderItem | null> = order.map((key) => {
-    if (key === MOTHER_SIBLING_ORDER_KEY) {
+    const items: Array<SiblingOrderItem | null> = order.map((key) => {
+      if (key === MOTHER_SIBLING_ORDER_KEY) {
+        return {
+          key,
+          label: config.sections.maternalAuntsUncles.selfLabel,
+          meta: "Lecture seule",
+          readOnly: true,
+        };
+      }
+
+      const personId = key.replace("maternal:", "");
+      const person = values.maternalAuntsUncles.find((item) => item.id === personId);
+
+      if (!person || !person.known) {
+        return null;
+      }
+
       return {
         key,
-        label: config.sections.maternalAuntsUncles.selfLabel,
-        meta: "Lecture seule",
-        readOnly: true,
+        label: getPersonDisplayName(person),
+        meta: "Oncle / tante maternel(le)",
+        readOnly: false,
       };
-    }
+    });
 
-    const personId = key.replace("maternal:", "");
-    const person = values.maternalAuntsUncles.find((item) => item.id === personId);
-
-    if (!person || !person.known) {
-      return null;
-    }
-
-    return {
-      key,
-      label: getPersonDisplayName(person),
-      meta: "Oncle / tante maternel(le)",
-      readOnly: false,
-    };
-  });
-
-  return items.filter(
-    (item): item is SiblingOrderItem => item !== null,
-  );
-}, [
-  config.sections.maternalAuntsUncles.selfLabel,
-  values.maternalAuntsUncles,
-  values.maternalSiblingOrder,
-]);
+    return items.filter(
+      (item): item is SiblingOrderItem => item !== null,
+    );
+  }, [
+    config.sections.maternalAuntsUncles.selfLabel,
+    values.maternalAuntsUncles,
+    values.maternalSiblingOrder,
+  ]);
 
   function setPaternalAuntUncle(
     index: number,
@@ -526,10 +547,6 @@ export function FamilyKnowledgeGrandparentsPage() {
         },
       });
 
-      localStorage.setItem(
-        `connect:${slug}:family-knowledge:grandparents`,
-        "done",
-      );
       nav(`/e/${slug}/family-knowledge`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");
@@ -593,313 +610,398 @@ export function FamilyKnowledgeGrandparentsPage() {
           <form onSubmit={onSubmit} className="mt-3 grid gap-3">
             <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="text-[16px] font-black text-slate-900">
-                {config.sections.grandparents.title}
+                Famille paternelle
               </div>
               <div className="mt-1 text-sm font-bold text-slate-700">
-                {config.sections.grandparents.subtitle}
+                Les grands-parents et la fratrie de ton père.
               </div>
 
               <div className="mt-4 grid gap-3">
-                <FamilyPersonForm
-                  title={config.sections.grandparents.paternalGrandfatherLabel}
-                  value={values.paternalGrandfather}
-                  onChange={(patch) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      paternalGrandfather: {
-                        ...prev.paternalGrandfather,
-                        ...patch,
-                      },
-                    }))
-                  }
-                  labels={config.personFields}
-                />
+                <div>
+                  <div className="text-sm font-black text-slate-900">
+                    {config.sections.grandparents.title}
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-700">
+                    Branche du père
+                  </div>
 
-                <FamilyPersonForm
-                  title={config.sections.grandparents.paternalGrandmotherLabel}
-                  value={values.paternalGrandmother}
-                  onChange={(patch) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      paternalGrandmother: {
-                        ...prev.paternalGrandmother,
-                        ...patch,
-                      },
-                    }))
-                  }
-                  labels={config.personFields}
-                />
+                  <div className="mt-4 grid gap-3">
+                    <FamilyPersonForm
+                      title={config.sections.grandparents.paternalGrandfatherLabel}
+                      value={values.paternalGrandfather}
+                      onChange={(patch) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          paternalGrandfather: {
+                            ...prev.paternalGrandfather,
+                            ...patch,
+                          },
+                        }))
+                      }
+                      labels={config.personFields}
+                    />
 
-                <FamilyPersonForm
-                  title={config.sections.grandparents.maternalGrandfatherLabel}
-                  value={values.maternalGrandfather}
-                  onChange={(patch) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      maternalGrandfather: {
-                        ...prev.maternalGrandfather,
-                        ...patch,
-                      },
-                    }))
-                  }
-                  labels={config.personFields}
-                />
+                    <FamilyPersonForm
+                      title={config.sections.grandparents.paternalGrandmotherLabel}
+                      value={values.paternalGrandmother}
+                      onChange={(patch) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          paternalGrandmother: {
+                            ...prev.paternalGrandmother,
+                            ...patch,
+                          },
+                        }))
+                      }
+                      labels={config.personFields}
+                    />
+                  </div>
+                </div>
 
-                <FamilyPersonForm
-                  title={config.sections.grandparents.maternalGrandmotherLabel}
-                  value={values.maternalGrandmother}
-                  onChange={(patch) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      maternalGrandmother: {
-                        ...prev.maternalGrandmother,
-                        ...patch,
-                      },
-                    }))
-                  }
-                  labels={config.personFields}
-                />
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-[16px] font-black text-slate-900">
+                    {config.sections.paternalAuntsUncles.title}
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-700">
+                    {config.sections.paternalAuntsUncles.subtitle}
+                  </div>
+
+                  <div className="mt-4 grid gap-1">
+                    <span className="text-xs font-extrabold text-slate-800">
+                      {config.sections.paternalAuntsUncles.questionLabel}
+                    </span>
+
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = "yes";
+
+                          setValues((prev) => ({
+                            ...prev,
+                            hasPaternalAuntsUncles: next,
+                            paternalAuntsUncles: prev.paternalAuntsUncles,
+                            knowsFatherSiblingOrder: prev.knowsFatherSiblingOrder,
+                            paternalSiblingOrder: prev.paternalSiblingOrder,
+                          }));
+                        }}
+                        className={[
+                          "h-12 rounded-2xl border font-extrabold transition",
+                          values.hasPaternalAuntsUncles === "yes"
+                            ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                            : "border-slate-200 bg-white text-slate-700",
+                        ].join(" ")}
+                      >
+                        {config.personFields.yesLabel}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = "no";
+
+                          setValues((prev) => ({
+                            ...prev,
+                            hasPaternalAuntsUncles: next,
+                            paternalAuntsUncles: [],
+                            knowsFatherSiblingOrder: false,
+                            paternalSiblingOrder: [FATHER_SIBLING_ORDER_KEY],
+                          }));
+                        }}
+                        className={[
+                          "h-12 rounded-2xl border font-extrabold transition",
+                          values.hasPaternalAuntsUncles === "no"
+                            ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                            : "border-slate-200 bg-white text-slate-700",
+                        ].join(" ")}
+                      >
+                        {config.personFields.noLabel}
+                      </button>
+                    </div>
+                  </div>
+
+                  {values.hasPaternalAuntsUncles === "yes" ? (
+                    <>
+                      <div className="mt-4 grid gap-3">
+                        {values.paternalAuntsUncles.length === 0 ? (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm font-bold text-slate-600">
+                            {config.sections.paternalAuntsUncles.emptyText}
+                          </div>
+                        ) : null}
+
+                        {values.paternalAuntsUncles.map((person, index) => (
+                          <AuntUncleCard
+                            key={person.id}
+                            title={`${config.sections.paternalAuntsUncles.itemLabel} ${index + 1}`}
+                            value={person}
+                            onChange={(patch) => setPaternalAuntUncle(index, patch)}
+                            onRemove={() => removePaternalAuntUncle(index)}
+                          />
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={addPaternalAuntUncle}
+                          className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                        >
+                          <Plus size={16} />
+                          {config.sections.paternalAuntsUncles.addLabel}
+                        </button>
+                      </div>
+
+                      <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          checked={values.knowsFatherSiblingOrder}
+                          onChange={(e) =>
+                            setValues((prev) => ({
+                              ...prev,
+                              knowsFatherSiblingOrder: e.target.checked,
+                              paternalSiblingOrder: e.target.checked
+                                ? normalizeOrderedKeys({
+                                  existingKeys: prev.paternalSiblingOrder,
+                                  allowedKeys: [
+                                    FATHER_SIBLING_ORDER_KEY,
+                                    ...prev.paternalAuntsUncles
+                                      .filter((person) => person.known)
+                                      .map((person) => `paternal:${person.id}`),
+                                  ],
+                                  fixedKey: FATHER_SIBLING_ORDER_KEY,
+                                })
+                                : prev.paternalSiblingOrder,
+                            }))
+                          }
+                        />
+                        <div>
+                          <div className="text-sm font-black text-slate-900">
+                            {config.sections.paternalAuntsUncles.knowsOrderLabel}
+                          </div>
+                          <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                            {config.sections.paternalAuntsUncles.knowsOrderHelp}
+                          </div>
+                        </div>
+                      </label>
+                    </>
+                  ) : null}
+
+
+
+                  {values.knowsFatherSiblingOrder ? (
+                    <div className="rounded-3xl border border-slate-200 bg-white p-4 mt-3">
+                      <SiblingOrderField
+                        label={config.sections.paternalAuntsUncles.orderLabel}
+                        helpText={config.sections.paternalAuntsUncles.orderHelp}
+                        items={paternalOrderItems}
+                        onChange={(items) =>
+                          setValues((prev) => ({
+                            ...prev,
+                            paternalSiblingOrder: items.map((item) => item.key),
+                          }))
+                        }
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="text-[16px] font-black text-slate-900">
-                {config.sections.paternalAuntsUncles.title}
+                Famille maternelle
               </div>
               <div className="mt-1 text-sm font-bold text-slate-700">
-                {config.sections.paternalAuntsUncles.subtitle}
+                Les grands-parents et la fratrie de ta mère.
               </div>
 
-              <label className="mt-4 grid gap-1">
-                <span className="text-xs font-extrabold text-slate-800">
-                  {config.sections.paternalAuntsUncles.questionLabel}
-                </span>
-                <select
-                  className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                  value={values.hasPaternalAuntsUncles}
-                  onChange={(e) => {
-                    const next = e.target.value as "" | "yes" | "no";
-
-                    setValues((prev) => ({
-                      ...prev,
-                      hasPaternalAuntsUncles: next,
-                      paternalAuntsUncles:
-                        next === "yes" ? prev.paternalAuntsUncles : [],
-                      knowsFatherSiblingOrder:
-                        next === "yes" ? prev.knowsFatherSiblingOrder : false,
-                      paternalSiblingOrder:
-                        next === "yes"
-                          ? prev.paternalSiblingOrder
-                          : [FATHER_SIBLING_ORDER_KEY],
-                    }));
-                  }}
-                >
-                  <option value="">{config.personFields.chooseLabel}</option>
-                  <option value="yes">{config.personFields.yesLabel}</option>
-                  <option value="no">{config.personFields.noLabel}</option>
-                </select>
-              </label>
-
-              {values.hasPaternalAuntsUncles === "yes" ? (
-                <>
-                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                      checked={values.knowsFatherSiblingOrder}
-                      onChange={(e) =>
-                        setValues((prev) => ({
-                          ...prev,
-                          knowsFatherSiblingOrder: e.target.checked,
-                          paternalSiblingOrder: e.target.checked
-                            ? normalizeOrderedKeys({
-                                existingKeys: prev.paternalSiblingOrder,
-                                allowedKeys: [
-                                  FATHER_SIBLING_ORDER_KEY,
-                                  ...prev.paternalAuntsUncles
-                                    .filter((person) => person.known)
-                                    .map((person) => `paternal:${person.id}`),
-                                ],
-                                fixedKey: FATHER_SIBLING_ORDER_KEY,
-                              })
-                            : prev.paternalSiblingOrder,
-                        }))
-                      }
-                    />
-                    <div>
-                      <div className="text-sm font-black text-slate-900">
-                        {config.sections.paternalAuntsUncles.knowsOrderLabel}
-                      </div>
-                      <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                        {config.sections.paternalAuntsUncles.knowsOrderHelp}
-                      </div>
-                    </div>
-                  </label>
+              <div className="mt-4 grid gap-3">
+                <div>
+                  <div className="text-sm font-black text-slate-900">
+                    {config.sections.grandparents.title}
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-700">
+                    Branche de la mère
+                  </div>
 
                   <div className="mt-4 grid gap-3">
-                    {values.paternalAuntsUncles.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
-                        {config.sections.paternalAuntsUncles.emptyText}
+                    <FamilyPersonForm
+                      title={config.sections.grandparents.maternalGrandfatherLabel}
+                      value={values.maternalGrandfather}
+                      onChange={(patch) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          maternalGrandfather: {
+                            ...prev.maternalGrandfather,
+                            ...patch,
+                          },
+                        }))
+                      }
+                      labels={config.personFields}
+                    />
+
+                    <FamilyPersonForm
+                      title={config.sections.grandparents.maternalGrandmotherLabel}
+                      value={values.maternalGrandmother}
+                      onChange={(patch) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          maternalGrandmother: {
+                            ...prev.maternalGrandmother,
+                            ...patch,
+                          },
+                        }))
+                      }
+                      labels={config.personFields}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-[16px] font-black text-slate-900">
+                    {config.sections.maternalAuntsUncles.title}
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-slate-700">
+                    {config.sections.maternalAuntsUncles.subtitle}
+                  </div>
+
+                  <div className="mt-4 grid gap-1">
+                    <span className="text-xs font-extrabold text-slate-800">
+                      {config.sections.maternalAuntsUncles.questionLabel}
+                    </span>
+
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = "yes";
+
+                          setValues((prev) => ({
+                            ...prev,
+                            hasMaternalAuntsUncles: next,
+                            maternalAuntsUncles: prev.maternalAuntsUncles,
+                            knowsMotherSiblingOrder: prev.knowsMotherSiblingOrder,
+                            maternalSiblingOrder: prev.maternalSiblingOrder,
+                          }));
+                        }}
+                        className={[
+                          "h-12 rounded-2xl border font-extrabold transition",
+                          values.hasMaternalAuntsUncles === "yes"
+                            ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                            : "border-slate-200 bg-white text-slate-700",
+                        ].join(" ")}
+                      >
+                        {config.personFields.yesLabel}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = "no";
+
+                          setValues((prev) => ({
+                            ...prev,
+                            hasMaternalAuntsUncles: next,
+                            maternalAuntsUncles: [],
+                            knowsMotherSiblingOrder: false,
+                            maternalSiblingOrder: [MOTHER_SIBLING_ORDER_KEY],
+                          }));
+                        }}
+                        className={[
+                          "h-12 rounded-2xl border font-extrabold transition",
+                          values.hasMaternalAuntsUncles === "no"
+                            ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                            : "border-slate-200 bg-white text-slate-700",
+                        ].join(" ")}
+                      >
+                        {config.personFields.noLabel}
+                      </button>
+                    </div>
+                  </div>
+
+                  {values.hasMaternalAuntsUncles === "yes" ? (
+                    <>
+                      <div className="mt-4 grid gap-3">
+                        {values.maternalAuntsUncles.length === 0 ? (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm font-bold text-slate-600">
+                            {config.sections.maternalAuntsUncles.emptyText}
+                          </div>
+                        ) : null}
+
+                        {values.maternalAuntsUncles.map((person, index) => (
+                          <AuntUncleCard
+                            key={person.id}
+                            title={`${config.sections.maternalAuntsUncles.itemLabel} ${index + 1}`}
+                            value={person}
+                            onChange={(patch) => setMaternalAuntUncle(index, patch)}
+                            onRemove={() => removeMaternalAuntUncle(index)}
+                          />
+                        ))}
+
+                        
+
+                        <button
+                          type="button"
+                          onClick={addMaternalAuntUncle}
+                          className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                        >
+                          <Plus size={16} />
+                          {config.sections.maternalAuntsUncles.addLabel}
+                        </button>
                       </div>
-                    ) : null}
+                    </>
+                  ) : null}
 
-                    {values.paternalAuntsUncles.map((person, index) => (
-                      <AuntUncleCard
-                        key={person.id}
-                        title={`${config.sections.paternalAuntsUncles.itemLabel} ${index + 1}`}
-                        value={person}
-                        onChange={(patch) => setPaternalAuntUncle(index, patch)}
-                        onRemove={() => removePaternalAuntUncle(index)}
-                      />
-                    ))}
-
-                    {values.knowsFatherSiblingOrder ? (
-                      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                        <SiblingOrderField
-                          label={config.sections.paternalAuntsUncles.orderLabel}
-                          helpText={config.sections.paternalAuntsUncles.orderHelp}
-                          items={paternalOrderItems}
-                          onChange={(items) =>
+                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          checked={values.knowsMotherSiblingOrder}
+                          onChange={(e) =>
                             setValues((prev) => ({
                               ...prev,
-                              paternalSiblingOrder: items.map((item) => item.key),
+                              knowsMotherSiblingOrder: e.target.checked,
+                              maternalSiblingOrder: e.target.checked
+                                ? normalizeOrderedKeys({
+                                  existingKeys: prev.maternalSiblingOrder,
+                                  allowedKeys: [
+                                    MOTHER_SIBLING_ORDER_KEY,
+                                    ...prev.maternalAuntsUncles
+                                      .filter((person) => person.known)
+                                      .map((person) => `maternal:${person.id}`),
+                                  ],
+                                  fixedKey: MOTHER_SIBLING_ORDER_KEY,
+                                })
+                                : prev.maternalSiblingOrder,
                             }))
                           }
                         />
-                      </div>
-                    ) : null}
+                        <div>
+                          <div className="text-sm font-black text-slate-900">
+                            {config.sections.maternalAuntsUncles.knowsOrderLabel}
+                          </div>
+                          <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                            {config.sections.maternalAuntsUncles.knowsOrderHelp}
+                          </div>
+                        </div>
+                      </label>
 
-                    <button
-                      type="button"
-                      onClick={addPaternalAuntUncle}
-                      className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
-                    >
-                      <Plus size={16} />
-                      {config.sections.paternalAuntsUncles.addLabel}
-                    </button>
-                  </div>
-                </>
-              ) : null}
-            </section>
-
-            <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="text-[16px] font-black text-slate-900">
-                {config.sections.maternalAuntsUncles.title}
+                  {values.knowsMotherSiblingOrder ? (
+                          <div className="rounded-3xl border border-slate-200 bg-white p-4 mt-3">
+                            <SiblingOrderField
+                              label={config.sections.maternalAuntsUncles.orderLabel}
+                              helpText={config.sections.maternalAuntsUncles.orderHelp}
+                              items={maternalOrderItems}
+                              onChange={(items) =>
+                                setValues((prev) => ({
+                                  ...prev,
+                                  maternalSiblingOrder: items.map((item) => item.key),
+                                }))
+                              }
+                            />
+                          </div>
+                        ) : null}
+                </div>
               </div>
-              <div className="mt-1 text-sm font-bold text-slate-700">
-                {config.sections.maternalAuntsUncles.subtitle}
-              </div>
-
-              <label className="mt-4 grid gap-1">
-                <span className="text-xs font-extrabold text-slate-800">
-                  {config.sections.maternalAuntsUncles.questionLabel}
-                </span>
-                <select
-                  className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                  value={values.hasMaternalAuntsUncles}
-                  onChange={(e) => {
-                    const next = e.target.value as "" | "yes" | "no";
-
-                    setValues((prev) => ({
-                      ...prev,
-                      hasMaternalAuntsUncles: next,
-                      maternalAuntsUncles:
-                        next === "yes" ? prev.maternalAuntsUncles : [],
-                      knowsMotherSiblingOrder:
-                        next === "yes" ? prev.knowsMotherSiblingOrder : false,
-                      maternalSiblingOrder:
-                        next === "yes"
-                          ? prev.maternalSiblingOrder
-                          : [MOTHER_SIBLING_ORDER_KEY],
-                    }));
-                  }}
-                >
-                  <option value="">{config.personFields.chooseLabel}</option>
-                  <option value="yes">{config.personFields.yesLabel}</option>
-                  <option value="no">{config.personFields.noLabel}</option>
-                </select>
-              </label>
-
-              {values.hasMaternalAuntsUncles === "yes" ? (
-                <>
-                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                      checked={values.knowsMotherSiblingOrder}
-                      onChange={(e) =>
-                        setValues((prev) => ({
-                          ...prev,
-                          knowsMotherSiblingOrder: e.target.checked,
-                          maternalSiblingOrder: e.target.checked
-                            ? normalizeOrderedKeys({
-                                existingKeys: prev.maternalSiblingOrder,
-                                allowedKeys: [
-                                  MOTHER_SIBLING_ORDER_KEY,
-                                  ...prev.maternalAuntsUncles
-                                    .filter((person) => person.known)
-                                    .map((person) => `maternal:${person.id}`),
-                                ],
-                                fixedKey: MOTHER_SIBLING_ORDER_KEY,
-                              })
-                            : prev.maternalSiblingOrder,
-                        }))
-                      }
-                    />
-                    <div>
-                      <div className="text-sm font-black text-slate-900">
-                        {config.sections.maternalAuntsUncles.knowsOrderLabel}
-                      </div>
-                      <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                        {config.sections.maternalAuntsUncles.knowsOrderHelp}
-                      </div>
-                    </div>
-                  </label>
-
-                  <div className="mt-4 grid gap-3">
-                    {values.maternalAuntsUncles.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
-                        {config.sections.maternalAuntsUncles.emptyText}
-                      </div>
-                    ) : null}
-
-                    {values.maternalAuntsUncles.map((person, index) => (
-                      <AuntUncleCard
-                        key={person.id}
-                        title={`${config.sections.maternalAuntsUncles.itemLabel} ${index + 1}`}
-                        value={person}
-                        onChange={(patch) => setMaternalAuntUncle(index, patch)}
-                        onRemove={() => removeMaternalAuntUncle(index)}
-                      />
-                    ))}
-
-                    {values.knowsMotherSiblingOrder ? (
-                      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                        <SiblingOrderField
-                          label={config.sections.maternalAuntsUncles.orderLabel}
-                          helpText={config.sections.maternalAuntsUncles.orderHelp}
-                          items={maternalOrderItems}
-                          onChange={(items) =>
-                            setValues((prev) => ({
-                              ...prev,
-                              maternalSiblingOrder: items.map((item) => item.key),
-                            }))
-                          }
-                        />
-                      </div>
-                    ) : null}
-
-                    <button
-                      type="button"
-                      onClick={addMaternalAuntUncle}
-                      className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
-                    >
-                      <Plus size={16} />
-                      {config.sections.maternalAuntsUncles.addLabel}
-                    </button>
-                  </div>
-                </>
-              ) : null}
             </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">

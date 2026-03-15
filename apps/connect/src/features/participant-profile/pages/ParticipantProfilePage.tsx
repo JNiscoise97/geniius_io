@@ -164,7 +164,7 @@ export function ParticipantProfilePage() {
           </h1>
 
           <p className="mt-2 text-sm font-bold text-slate-700">
-            Quelques réponses pour aider les cousins à mieux te connaître
+            {profileQuestionsConfig.subtitle}
           </p>
         </section>
 

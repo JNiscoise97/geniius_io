@@ -116,40 +116,74 @@ export function FamilyPersonForm({
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-2">
-            <label className="grid gap-1">
+          <div className="grid grid-cols-1 gap-2">
+            <div className="grid gap-1">
               <span className="text-xs font-extrabold text-slate-800">
                 {l.isAliveLabel}
               </span>
-              <select
-                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                value={value.isAlive}
-                onChange={(e) =>
-                  onChange({ isAlive: e.target.value as "" | "yes" | "no" })
-                }
-              >
-                <option value="">{l.chooseLabel}</option>
-                <option value="yes">{l.yesLabel}</option>
-                <option value="no">{l.noLabel}</option>
-              </select>
-            </label>
 
-            <label className="grid gap-1">
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onChange({ isAlive: "yes" })}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    value.isAlive === "yes"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {l.yesLabel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onChange({ isAlive: "no" })}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    value.isAlive === "no"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {l.noLabel}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-1">
               <span className="text-xs font-extrabold text-slate-800">
                 {l.hasPhotoLabel}
               </span>
-              <select
-                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                value={value.hasPhoto}
-                onChange={(e) =>
-                  onChange({ hasPhoto: e.target.value as "" | "yes" | "no" })
-                }
-              >
-                <option value="">{l.chooseLabel}</option>
-                <option value="yes">{l.yesLabel}</option>
-                <option value="no">{l.noLabel}</option>
-              </select>
-            </label>
+
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onChange({ hasPhoto: "yes" })}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    value.hasPhoto === "yes"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {l.yesLabel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onChange({ hasPhoto: "no" })}
+                  className={[
+                    "h-12 rounded-2xl border font-extrabold transition",
+                    value.hasPhoto === "no"
+                      ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                      : "border-slate-200 bg-white text-slate-700",
+                  ].join(" ")}
+                >
+                  {l.noLabel}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

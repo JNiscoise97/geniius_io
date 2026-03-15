@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  Plus,
   Trash2,
   Users,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import {
 } from "../api/getFamilyKnowledgeCurrentLinks";
 import { saveFamilyKnowledgeCurrentLinks } from "../api/saveFamilyKnowledgeCurrentLinks";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 
 
@@ -54,29 +56,29 @@ function CurrentLinkCard({
       </div>
 
       <div className="mt-3 grid gap-3">
-          <label className="grid gap-2">
-            <span className="text-xs font-extrabold text-slate-800">
-              {fields.firstNameLabel}
-            </span>
-            <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-              value={value.firstName}
-              onChange={(e) => onChange({ firstName: e.target.value })}
-              placeholder={fields.firstNameLabel}
-            />
-          </label>
+        <label className="grid gap-2">
+          <span className="text-xs font-extrabold text-slate-800">
+            {fields.firstNameLabel}
+          </span>
+          <input
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            value={value.firstName}
+            onChange={(e) => onChange({ firstName: e.target.value })}
+            placeholder={fields.firstNameLabel}
+          />
+        </label>
 
-          <label className="grid gap-2">
-            <span className="text-xs font-extrabold text-slate-800">
-              {fields.lastNameLabel}
-            </span>
-            <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-              value={value.lastName}
-              onChange={(e) => onChange({ lastName: e.target.value })}
-              placeholder={fields.lastNameLabel}
-            />
-          </label>
+        <label className="grid gap-2">
+          <span className="text-xs font-extrabold text-slate-800">
+            {fields.lastNameLabel}
+          </span>
+          <input
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            value={value.lastName}
+            onChange={(e) => onChange({ lastName: e.target.value })}
+            placeholder={fields.lastNameLabel}
+          />
+        </label>
 
         <RelationshipTypeField
           label={fields.relationshipTypeLabel}
@@ -131,7 +133,24 @@ export function FamilyKnowledgeCurrentLinksPage() {
 
   const config = currentLinksFormConfig;
 
-  
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/family-knowledge/current-links`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -231,10 +250,6 @@ export function FamilyKnowledgeCurrentLinksPage() {
         values,
       });
 
-      localStorage.setItem(
-        `connect:${slug}:family-knowledge:current_links`,
-        "done",
-      );
       nav(`/e/${slug}/family-knowledge`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");
@@ -250,11 +265,11 @@ export function FamilyKnowledgeCurrentLinksPage() {
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
-            <Users size={14} />
-            Famille en contact
-          </div>
+              <Users size={14} />
+              Famille en contact
+            </div>
 
-          <button
+            <button
               type="button"
               onClick={() => nav(`/e/${slug}/family-knowledge`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
@@ -264,7 +279,7 @@ export function FamilyKnowledgeCurrentLinksPage() {
                 Retour
               </span>
             </button>
-            </div>
+          </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {config.pageTitle}
@@ -274,22 +289,6 @@ export function FamilyKnowledgeCurrentLinksPage() {
             {config.pageSubtitle}
           </p>
         </section>
-
-        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-          <div className='flex items-start gap-3'>
-            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-            <div className='min-w-0'>
-              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-              <div className='mt-0.5 text-xs text-amber-800'>
-                <ol>
-                  <li>Si parent non connu pas la section</li>
-                  <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
-                  <li>revoir les labels des cartes</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {error ? (
           <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
@@ -313,36 +312,45 @@ export function FamilyKnowledgeCurrentLinksPage() {
           </section>
         ) : (
           <form onSubmit={onSubmit} className="mt-3 grid gap-3">
-            <FamilyPeopleList
-              title={config.section.title}
-              subtitle={config.section.subtitle}
-              addLabel={config.section.addLabel}
-              emptyText={config.section.emptyText}
-              items={values.contacts}
-              onAdd={() =>
-                setValues((prev) => ({
-                  ...prev,
-                  contacts: [
-                    ...prev.contacts,
-                    createEmptyFamilyKnowledgeCurrentLink(),
-                  ],
-                }))
-              }
-              renderItem={(person, index) => (
-                <CurrentLinkCard
-                  key={index}
-                  title={`${config.section.itemLabel} ${index + 1}`}
-                  value={person}
-                  onChange={(patch) => setContact(index, patch)}
-                  onRemove={() =>
-                    setValues((prev) => ({
-                      ...prev,
-                      contacts: prev.contacts.filter((_, i) => i !== index),
-                    }))
-                  }
-                />
-              )}
-            />
+            <div className="grid gap-3">
+              <FamilyPeopleList
+                title={config.section.title}
+                subtitle={config.section.subtitle}
+                emptyText={config.section.emptyText}
+                items={values.contacts}
+                renderItem={(person, index) => (
+                  <CurrentLinkCard
+                    key={index}
+                    title={`${config.section.itemLabel} ${index + 1}`}
+                    value={person}
+                    onChange={(patch) => setContact(index, patch)}
+                    onRemove={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        contacts: prev.contacts.filter((_, i) => i !== index),
+                      }))
+                    }
+                  />
+                )}
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setValues((prev) => ({
+                    ...prev,
+                    contacts: [
+                      ...prev.contacts,
+                      createEmptyFamilyKnowledgeCurrentLink(),
+                    ],
+                  }))
+                }
+                className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+              >
+                <Plus size={16} />
+                {config.section.addLabel}
+              </button>
+            </div>
 
             <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
               <div className="flex items-start gap-2">

@@ -1,8 +1,9 @@
 import { supabase } from "../../../lib/supabase/client";
 import type {
-  FamilyKnowledgeGodparentPerson,
+  FamilyKnowledgeGodchildPerson,
+  FamilyKnowledgeGodparentLinkPerson,
   FamilyKnowledgeGodparentsValues,
-  FamilyKnowledgeParentGodparentPerson,
+  FamilyKnowledgeParrainageSection,
 } from "./getFamilyKnowledgeGodparents";
 
 type SaveFamilyKnowledgeGodparentsInput = {
@@ -14,9 +15,9 @@ function cleanText(value: string): string {
   return value.trim();
 }
 
-function normalizeGodparentPerson(
-  person: FamilyKnowledgeGodparentPerson,
-): FamilyKnowledgeGodparentPerson {
+function normalizeGodparentLinkPerson(
+  person: FamilyKnowledgeGodparentLinkPerson,
+): FamilyKnowledgeGodparentLinkPerson {
   return {
     known: person.known,
     firstName: cleanText(person.firstName),
@@ -25,18 +26,68 @@ function normalizeGodparentPerson(
     isAlive: person.isAlive,
     hasPhoto: person.hasPhoto,
     isFamilyMember: person.isFamilyMember,
+    familyRelationshipDetail:
+      person.isFamilyMember === "yes"
+        ? cleanText(person.familyRelationshipDetail)
+        : "",
   };
 }
 
-function normalizeParentGodparentPerson(
-  person: FamilyKnowledgeParentGodparentPerson,
-): FamilyKnowledgeParentGodparentPerson {
+function normalizeGodchildPerson(
+  person: FamilyKnowledgeGodchildPerson,
+): FamilyKnowledgeGodchildPerson {
   return {
+    id: person.id,
     known: person.known,
     firstName: cleanText(person.firstName),
     lastName: cleanText(person.lastName),
     nickname: cleanText(person.nickname),
+    isAlive: person.isAlive,
     hasPhoto: person.hasPhoto,
+    isFamilyMember: person.isFamilyMember,
+    familyRelationshipDetail:
+      person.isFamilyMember === "yes"
+        ? cleanText(person.familyRelationshipDetail)
+        : "",
+  };
+}
+
+function normalizeParrainageSection(
+  section: FamilyKnowledgeParrainageSection,
+): FamilyKnowledgeParrainageSection {
+  return {
+    isBaptized: section.isBaptized,
+    godfather:
+      section.isBaptized === "yes"
+        ? normalizeGodparentLinkPerson(section.godfather)
+        : normalizeGodparentLinkPerson({
+            known: false,
+            firstName: "",
+            lastName: "",
+            nickname: "",
+            isAlive: "",
+            hasPhoto: "",
+            isFamilyMember: "",
+            familyRelationshipDetail: "",
+          }),
+    godmother:
+      section.isBaptized === "yes"
+        ? normalizeGodparentLinkPerson(section.godmother)
+        : normalizeGodparentLinkPerson({
+            known: false,
+            firstName: "",
+            lastName: "",
+            nickname: "",
+            isAlive: "",
+            hasPhoto: "",
+            isFamilyMember: "",
+            familyRelationshipDetail: "",
+          }),
+    hasGodchildren: section.hasGodchildren,
+    godchildren:
+      section.hasGodchildren === "yes"
+        ? section.godchildren.map(normalizeGodchildPerson)
+        : [],
   };
 }
 
@@ -45,11 +96,13 @@ export async function saveFamilyKnowledgeGodparents({
   values,
 }: SaveFamilyKnowledgeGodparentsInput): Promise<void> {
   const payload = {
-    personalGodparents: values.personalGodparents.map(normalizeGodparentPerson),
-    fatherGodfather: normalizeParentGodparentPerson(values.fatherGodfather),
-    fatherGodmother: normalizeParentGodparentPerson(values.fatherGodmother),
-    motherGodfather: normalizeParentGodparentPerson(values.motherGodfather),
-    motherGodmother: normalizeParentGodparentPerson(values.motherGodmother),
+    self: normalizeParrainageSection(values.self),
+    father: normalizeParrainageSection(values.father),
+    mother: normalizeParrainageSection(values.mother),
+    paternalGrandfather: normalizeParrainageSection(values.paternalGrandfather),
+    paternalGrandmother: normalizeParrainageSection(values.paternalGrandmother),
+    maternalGrandfather: normalizeParrainageSection(values.maternalGrandfather),
+    maternalGrandmother: normalizeParrainageSection(values.maternalGrandmother),
   };
 
   const res = await supabase

@@ -20,12 +20,23 @@ export const familyMemoryFormConfig = {
         "Ex : un repas de famille, une histoire souvent racontée, une habitude, un souvenir d’enfance…",
       maxLength: 3000,
     },
-    photos: {
-      title: "As-tu des photos de famille ?",
+    seenPhotos: {
+      title: "As-tu déjà vu des photos de la famille ?",
       subtitle:
-        "Tu peux simplement l’indiquer ici pour le moment, même sans les envoyer tout de suite.",
-      hasPhotosLabel: "As-tu des photos de famille ?",
-      noteLabel: "Précision",
+        "Même si tu ne les as pas chez toi, cela peut déjà aider à les retrouver.",
+      hasSeenLabel: "",
+      contextLabel: "Où, dans quel contexte et avec qui ?",
+      contextPlaceholder:
+        "Ex : chez ma grand-mère dans un album, chez une tante pendant une fête de famille, sur le téléphone d’un cousin…",
+      contextHelpText:
+        "Tu peux préciser où tu les as vues, à quelle occasion et avec qui.",
+    },
+    photos: {
+      title: "As-tu toi-même des photos de famille ?",
+      subtitle:
+        "",
+      hasPhotosLabel: "",
+      noteLabel: "Peux-tu nous en dire un peu plus ?",
       notePlaceholder:
         "Ex : photos papier, album ancien, quelques photos sur téléphone, photos d’un mariage…",
     },
@@ -40,7 +51,6 @@ export const familyMemoryFormConfig = {
     lastNameLabel: "Nom",
     relationshipLabel: "Quel lien avec toi ?",
     relationshipPlaceholder: "Ex : grand-mère, tante, cousin...",
-    hasPhotosChooseLabel: "Choisir",
     yesLabel: "Oui",
     noLabel: "Non",
   },

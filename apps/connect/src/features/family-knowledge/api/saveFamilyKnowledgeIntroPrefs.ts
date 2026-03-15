@@ -1,18 +1,27 @@
+import { supabase } from "../../../lib/supabase/client";
 import type { FamilyKnowledgeIntroPrefs } from "./getFamilyKnowledgeIntroPrefs";
 
 type SaveFamilyKnowledgeIntroPrefsInput = {
-  slug: string;
+  participantId: string;
   values: FamilyKnowledgeIntroPrefs;
 };
 
-export function saveFamilyKnowledgeIntroPrefs({
-  slug,
+export async function saveFamilyKnowledgeIntroPrefs({
+  participantId,
   values,
-}: SaveFamilyKnowledgeIntroPrefsInput): void {
-  localStorage.setItem(
-    `connect:${slug}:family-knowledge:intro:prefs`,
-    JSON.stringify({
-      hideNextTime: values.hideNextTime,
-    }),
-  );
+}: SaveFamilyKnowledgeIntroPrefsInput): Promise<void> {
+  const res = await supabase
+    .from("participant_preferences")
+    .upsert(
+      {
+        participant_id: participantId,
+        hide_family_knowledge_intro_next_time: values.hideNextTime,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "participant_id" },
+    );
+
+  if (res.error) {
+    throw new Error(res.error.message);
+  }
 }

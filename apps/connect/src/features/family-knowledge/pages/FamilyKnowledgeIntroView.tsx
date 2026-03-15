@@ -1,9 +1,12 @@
-import { AlertTriangle, ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
 import { IntroQuoteCard } from "../components/IntroQuoteCard";
 import { KnownToggleField } from "../components/KnownToggleField";
 import { familyKnowledgeIntroConfig } from "../config/familyKnowledgeIntroConfig";
 import type { FamilyKnowledgeIntroPrefs } from "../api/getFamilyKnowledgeIntroPrefs";
 import { useNavigate, useParams } from "react-router-dom";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { useEffect } from "react";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 type FamilyKnowledgeIntroViewProps = {
   values: FamilyKnowledgeIntroPrefs;
@@ -21,6 +24,24 @@ export function FamilyKnowledgeIntroView({
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
+  const participantSession = getParticipantSession(slug);
+      const participantId = participantSession?.participantId ?? null;
+    
+      useEffect(() => {
+          if (!participantId) return;
+      
+          const tracker = createPageTimeTracker({
+            participantId,
+            eventSlug: slug,
+            pageKey: `/e/${slug}/family-knowledge/intro`,
+          });
+      
+          tracker.start();
+      
+          return () => {
+            void tracker.stop();
+          };
+        }, [participantId, slug]);
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-4 pb-28">
@@ -52,20 +73,6 @@ export function FamilyKnowledgeIntroView({
           </p>
         </section>
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm mt-3">
-          <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-            <div className='flex items-start gap-3'>
-              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-              <div className='min-w-0'>
-                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                <div className='mt-0.5 text-xs text-amber-800'>
-                  <ol>
-                    <li>Enregistrer en bd la volonté de l'utilisateur</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="mt-5">
             <IntroQuoteCard quote={config.quote} text={config.text} />
           </div>

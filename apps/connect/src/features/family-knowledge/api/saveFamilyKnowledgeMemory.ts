@@ -29,6 +29,10 @@ export async function saveFamilyKnowledgeMemory({
   const payload = {
     storyTellers: values.storyTellers.map(normalizeStoryTeller),
     familyAnecdote: cleanText(values.familyAnecdote),
+
+    hasSeenFamilyPhotos: values.hasSeenFamilyPhotos,
+    seenFamilyPhotosContext: cleanText(values.seenFamilyPhotosContext),
+
     hasFamilyPhotos: values.hasFamilyPhotos,
     familyPhotosNote: cleanText(values.familyPhotosNote),
   };

@@ -1,6 +1,9 @@
 import { supabase } from "../../../lib/supabase/client";
+import { createFamilyOrderId } from "../lib/siblingOrder";
 
-export type FamilyKnowledgeGodparentPerson = {
+export type YesNo = "" | "yes" | "no";
+
+export type FamilyKnowledgeGodparentLinkPerson = {
   known: boolean;
   firstName: string;
   lastName: string;
@@ -8,31 +11,50 @@ export type FamilyKnowledgeGodparentPerson = {
   isAlive: "" | "yes" | "no";
   hasPhoto: "" | "yes" | "no";
   isFamilyMember: "" | "yes" | "no";
+  familyRelationshipDetail: string;
 };
 
-export type FamilyKnowledgeParentGodparentPerson = {
+export type FamilyKnowledgeGodchildPerson = {
+  id: string;
   known: boolean;
   firstName: string;
   lastName: string;
   nickname: string;
+  isAlive: "" | "yes" | "no";
   hasPhoto: "" | "yes" | "no";
+  isFamilyMember: "" | "yes" | "no";
+  familyRelationshipDetail: string;
+};
+
+export type FamilyKnowledgeParrainageSection = {
+  isBaptized: YesNo;
+  godfather: FamilyKnowledgeGodparentLinkPerson;
+  godmother: FamilyKnowledgeGodparentLinkPerson;
+  hasGodchildren: YesNo;
+  godchildren: FamilyKnowledgeGodchildPerson[];
 };
 
 export type FamilyKnowledgeGodparentsValues = {
-  personalGodparents: FamilyKnowledgeGodparentPerson[];
-  fatherGodfather: FamilyKnowledgeParentGodparentPerson;
-  fatherGodmother: FamilyKnowledgeParentGodparentPerson;
-  motherGodfather: FamilyKnowledgeParentGodparentPerson;
-  motherGodmother: FamilyKnowledgeParentGodparentPerson;
+  self: FamilyKnowledgeParrainageSection;
+  father: FamilyKnowledgeParrainageSection;
+  mother: FamilyKnowledgeParrainageSection;
+  paternalGrandfather: FamilyKnowledgeParrainageSection;
+  paternalGrandmother: FamilyKnowledgeParrainageSection;
+  maternalGrandfather: FamilyKnowledgeParrainageSection;
+  maternalGrandmother: FamilyKnowledgeParrainageSection;
 };
 
 type GetFamilyKnowledgeGodparentsInput = {
   participantId: string;
 };
 
-export function createEmptyFamilyKnowledgeGodparentPerson(
+function normalizeYesNo(value: unknown): YesNo {
+  return value === "yes" || value === "no" ? value : "";
+}
+
+export function createEmptyFamilyKnowledgeGodparentLinkPerson(
   known = true,
-): FamilyKnowledgeGodparentPerson {
+): FamilyKnowledgeGodparentLinkPerson {
   return {
     known,
     firstName: "",
@@ -41,58 +63,84 @@ export function createEmptyFamilyKnowledgeGodparentPerson(
     isAlive: "",
     hasPhoto: "",
     isFamilyMember: "",
+    familyRelationshipDetail: "",
   };
 }
 
-export function createEmptyFamilyKnowledgeParentGodparentPerson(
+export function createEmptyFamilyKnowledgeGodchildPerson(
   known = true,
-): FamilyKnowledgeParentGodparentPerson {
+): FamilyKnowledgeGodchildPerson {
   return {
+    id: crypto.randomUUID(),
     known,
     firstName: "",
     lastName: "",
     nickname: "",
+    isAlive: "",
     hasPhoto: "",
+    isFamilyMember: "",
+    familyRelationshipDetail: "",
+  };
+}
+
+export function createEmptyFamilyKnowledgeParrainageSection(): FamilyKnowledgeParrainageSection {
+  return {
+    isBaptized: "",
+    godfather: createEmptyFamilyKnowledgeGodparentLinkPerson(true),
+    godmother: createEmptyFamilyKnowledgeGodparentLinkPerson(true),
+    hasGodchildren: "",
+    godchildren: [],
   };
 }
 
 export function getDefaultFamilyKnowledgeGodparentsValues(): FamilyKnowledgeGodparentsValues {
   return {
-    personalGodparents: [],
-    fatherGodfather: createEmptyFamilyKnowledgeParentGodparentPerson(true),
-    fatherGodmother: createEmptyFamilyKnowledgeParentGodparentPerson(true),
-    motherGodfather: createEmptyFamilyKnowledgeParentGodparentPerson(true),
-    motherGodmother: createEmptyFamilyKnowledgeParentGodparentPerson(true),
+    self: createEmptyFamilyKnowledgeParrainageSection(),
+    father: createEmptyFamilyKnowledgeParrainageSection(),
+    mother: createEmptyFamilyKnowledgeParrainageSection(),
+    paternalGrandfather: createEmptyFamilyKnowledgeParrainageSection(),
+    paternalGrandmother: createEmptyFamilyKnowledgeParrainageSection(),
+    maternalGrandfather: createEmptyFamilyKnowledgeParrainageSection(),
+    maternalGrandmother: createEmptyFamilyKnowledgeParrainageSection(),
   };
 }
 
-function normalizeGodparentPerson(input: any): FamilyKnowledgeGodparentPerson {
+function normalizeGodparentLinkPerson(input: any): FamilyKnowledgeGodparentLinkPerson {
   return {
     known: Boolean(input?.known),
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
     nickname: input?.nickname ?? "",
-    isAlive:
-      input?.isAlive === "yes" || input?.isAlive === "no" ? input.isAlive : "",
-    hasPhoto:
-      input?.hasPhoto === "yes" || input?.hasPhoto === "no" ? input.hasPhoto : "",
-    isFamilyMember:
-      input?.isFamilyMember === "yes" || input?.isFamilyMember === "no"
-        ? input.isFamilyMember
-        : "",
+    isAlive: normalizeYesNo(input?.isAlive),
+    hasPhoto: normalizeYesNo(input?.hasPhoto),
+    isFamilyMember: normalizeYesNo(input?.isFamilyMember),
+    familyRelationshipDetail: input?.familyRelationshipDetail ?? "",
   };
 }
 
-function normalizeParentGodparentPerson(
-  input: any,
-): FamilyKnowledgeParentGodparentPerson {
+function normalizeGodchildPerson(input: any): FamilyKnowledgeGodchildPerson {
   return {
+    id: input?.id ?? createFamilyOrderId(),
     known: Boolean(input?.known),
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
     nickname: input?.nickname ?? "",
-    hasPhoto:
-      input?.hasPhoto === "yes" || input?.hasPhoto === "no" ? input.hasPhoto : "",
+    isAlive: normalizeYesNo(input?.isAlive),
+    hasPhoto: normalizeYesNo(input?.hasPhoto),
+    isFamilyMember: normalizeYesNo(input?.isFamilyMember),
+    familyRelationshipDetail: input?.familyRelationshipDetail ?? "",
+  };
+}
+
+function normalizeParrainageSection(input: any): FamilyKnowledgeParrainageSection {
+  return {
+    isBaptized: normalizeYesNo(input?.isBaptized),
+    godfather: normalizeGodparentLinkPerson(input?.godfather),
+    godmother: normalizeGodparentLinkPerson(input?.godmother),
+    hasGodchildren: normalizeYesNo(input?.hasGodchildren),
+    godchildren: Array.isArray(input?.godchildren)
+      ? input.godchildren.map(normalizeGodchildPerson)
+      : [],
   };
 }
 
@@ -109,17 +157,21 @@ export async function getFamilyKnowledgeGodparents({
     throw new Error(res.error.message);
   }
 
-  if (!res.data?.data) return null;
+  if (!res.data?.data) {
+    return null;
+  }
 
   const raw = res.data.data;
+  const defaults = getDefaultFamilyKnowledgeGodparentsValues();
 
   return {
-    personalGodparents: Array.isArray(raw.personalGodparents)
-      ? raw.personalGodparents.map(normalizeGodparentPerson)
-      : [],
-    fatherGodfather: normalizeParentGodparentPerson(raw.fatherGodfather),
-    fatherGodmother: normalizeParentGodparentPerson(raw.fatherGodmother),
-    motherGodfather: normalizeParentGodparentPerson(raw.motherGodfather),
-    motherGodmother: normalizeParentGodparentPerson(raw.motherGodmother),
+    ...defaults,
+    self: normalizeParrainageSection(raw.self),
+    father: normalizeParrainageSection(raw.father),
+    mother: normalizeParrainageSection(raw.mother),
+    paternalGrandfather: normalizeParrainageSection(raw.paternalGrandfather),
+    paternalGrandmother: normalizeParrainageSection(raw.paternalGrandmother),
+    maternalGrandfather: normalizeParrainageSection(raw.maternalGrandfather),
+    maternalGrandmother: normalizeParrainageSection(raw.maternalGrandmother),
   };
 }

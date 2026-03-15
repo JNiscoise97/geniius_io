@@ -21,9 +21,9 @@ export type ProfileFormConfig = {
 };
 
 export const profileQuestionsConfig: ProfileFormConfig = {
-  title: "Apprendre à mieux te connaître",
+  title: "Apprendre à te connaître",
   subtitle:
-    "Ces informations pourront apparaître sur ton profil dans l’application.",
+    "Ces réponses permettent aux cousins d’en savoir un peu plus sur toi et de créer plus facilement du lien. Tu peux répondre seulement à ce que tu souhaites partager.",
   introTitle: "Seulement ce que tu souhaites partager",
   introText:
     "Ces réponses permettent aux cousins d’en savoir un peu plus sur toi et de créer plus facilement du lien. Tu peux répondre seulement à ce que tu souhaites partager.",

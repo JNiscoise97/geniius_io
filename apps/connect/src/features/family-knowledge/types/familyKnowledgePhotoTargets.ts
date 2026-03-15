@@ -1,5 +1,5 @@
 export type FamilyKnowledgeTableName =
-  | "participant_family_knowledge_parents"
+  | "participant_family_knowledge_close_family"
   | "participant_family_knowledge_godparents"
   | "participant_family_knowledge_grandparents"
   | "participant_family_knowledge_siblings";

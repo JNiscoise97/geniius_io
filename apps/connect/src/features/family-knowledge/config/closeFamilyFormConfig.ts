@@ -43,7 +43,7 @@ export const closeFamilyFormConfig = {
     },
   },
   personFields: {
-    knownLabel: "Personne connue",
+    knownLabel: "Je connais son identitié",
     knownHelp: "Décoche si tu ne connais pas encore cette personne.",
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",

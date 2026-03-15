@@ -4,7 +4,7 @@ export const currentLinksFormConfig = {
   section: {
     title: "Avec quelles personnes de la famille es-tu en contact aujourd’hui ?",
     subtitle:
-      "Ajoute les personnes avec qui tu échanges encore aujourd’hui, même si tu n’as que peu d’informations.",
+      "",
     addLabel: "Ajouter",
     emptyText: "Aucune personne ajoutée pour le moment.",
     itemLabel: "Personne",

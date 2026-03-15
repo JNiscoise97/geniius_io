@@ -1,5 +1,15 @@
+import { supabase } from "../../../lib/supabase/client";
+
 export type FamilyKnowledgeIntroPrefs = {
   hideNextTime: boolean;
+};
+
+type GetFamilyKnowledgeIntroPrefsInput = {
+  participantId: string;
+};
+
+type ParticipantPreferencesRow = {
+  hide_family_knowledge_intro_next_time: boolean | null;
 };
 
 export function getDefaultFamilyKnowledgeIntroPrefs(): FamilyKnowledgeIntroPrefs {
@@ -8,24 +18,20 @@ export function getDefaultFamilyKnowledgeIntroPrefs(): FamilyKnowledgeIntroPrefs
   };
 }
 
-export function getFamilyKnowledgeIntroPrefs(
-  slug: string,
-): FamilyKnowledgeIntroPrefs {
-  const raw = localStorage.getItem(
-    `connect:${slug}:family-knowledge:intro:prefs`,
-  );
+export async function getFamilyKnowledgeIntroPrefs({
+  participantId,
+}: GetFamilyKnowledgeIntroPrefsInput): Promise<FamilyKnowledgeIntroPrefs> {
+  const res = await supabase
+    .from("participant_preferences")
+    .select("hide_family_knowledge_intro_next_time")
+    .eq("participant_id", participantId)
+    .maybeSingle<ParticipantPreferencesRow>();
 
-  if (!raw) {
-    return getDefaultFamilyKnowledgeIntroPrefs();
+  if (res.error) {
+    throw new Error(res.error.message);
   }
 
-  try {
-    const parsed = JSON.parse(raw) as Partial<FamilyKnowledgeIntroPrefs>;
-
-    return {
-      hideNextTime: Boolean(parsed.hideNextTime),
-    };
-  } catch {
-    return getDefaultFamilyKnowledgeIntroPrefs();
-  }
+  return {
+    hideNextTime: res.data?.hide_family_knowledge_intro_next_time ?? false,
+  };
 }

@@ -14,6 +14,7 @@ type OnboardingStepCardProps = {
   icon: LucideIcon;
   ctaLabel: string;
   status?: OnboardingStepStatus;
+  badge?: string;
   disabled?: boolean;
   highlight?: boolean;
   onClick?: () => void;
@@ -49,6 +50,7 @@ export function OnboardingStepCard({
   icon: Icon,
   ctaLabel,
   status = "todo",
+  badge,
   disabled = false,
   highlight = false,
   onClick,
@@ -66,8 +68,8 @@ export function OnboardingStepCard({
         disabled
           ? "border-slate-200 bg-slate-50 opacity-75"
           : highlight
-          ? "border-indigo-200 bg-indigo-50"
-          : "border-slate-200 bg-white active:scale-[0.995] active:shadow-none",
+            ? "border-indigo-200 bg-indigo-50"
+            : "border-slate-200 bg-white active:scale-[0.995] active:shadow-none",
       ].join(" ")}
     >
       <div className="flex items-start gap-3">
@@ -84,9 +86,30 @@ export function OnboardingStepCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-[17px] font-black text-slate-900">
-              {title}
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                className={[
+                  "text-[17px] font-black",
+                  disabled ? "text-slate-500" : "text-slate-900",
+                ].join(" ")}
+              >
+                {title}
+              </div>
+
+              {badge ? (
+                <span
+                  className={[
+                    "rounded-full px-2 py-1 text-[10px] font-black",
+                    disabled
+                      ? "bg-slate-200 text-slate-500"
+                      : "bg-indigo-50 text-indigo-700",
+                  ].join(" ")}
+                >
+                  {badge}
+                </span>
+              ) : null}
             </div>
+
 
             <div className="shrink-0">
               {disabled ? (

@@ -25,6 +25,7 @@ import {
   getPersonDisplayName,
   normalizeOrderedKeys,
 } from "../lib/siblingOrder";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 const SELF_SIBLING_ORDER_KEY = "self";
 
@@ -41,6 +42,24 @@ export function FamilyKnowledgeCloseFamilyPage() {
   const [error, setError] = useState<string | null>(null);
 
   const config = closeFamilyFormConfig;
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+      if (!participantId) return;
+  
+      const tracker = createPageTimeTracker({
+        participantId,
+        eventSlug: slug,
+        pageKey: `/e/${slug}/family-knowledge/close-family`,
+      });
+  
+      tracker.start();
+  
+      return () => {
+        void tracker.stop();
+      };
+    }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -85,45 +104,45 @@ export function FamilyKnowledgeCloseFamilyPage() {
   }, [slug]);
 
   const siblingOrderItems = useMemo(() => {
-  const knownSiblingKeys = values.siblings
-    .filter((sibling) => sibling.known)
-    .map((sibling) => `sibling:${sibling.id}`);
+    const knownSiblingKeys = values.siblings
+      .filter((sibling) => sibling.known)
+      .map((sibling) => `sibling:${sibling.id}`);
 
-  const order = normalizeOrderedKeys({
-    existingKeys: values.siblingOrder,
-    allowedKeys: [SELF_SIBLING_ORDER_KEY, ...knownSiblingKeys],
-    fixedKey: SELF_SIBLING_ORDER_KEY,
-  });
+    const order = normalizeOrderedKeys({
+      existingKeys: values.siblingOrder,
+      allowedKeys: [SELF_SIBLING_ORDER_KEY, ...knownSiblingKeys],
+      fixedKey: SELF_SIBLING_ORDER_KEY,
+    });
 
-  const items: Array<SiblingOrderItem | null> = order.map((key) => {
-    if (key === SELF_SIBLING_ORDER_KEY) {
+    const items: Array<SiblingOrderItem | null> = order.map((key) => {
+      if (key === SELF_SIBLING_ORDER_KEY) {
+        return {
+          key,
+          label: config.sections.siblings.selfLabel,
+          meta: "Individu courant",
+          readOnly: true,
+        };
+      }
+
+      const siblingId = key.replace("sibling:", "");
+      const sibling = values.siblings.find((item) => item.id === siblingId);
+
+      if (!sibling || !sibling.known) {
+        return null;
+      }
+
       return {
         key,
-        label: config.sections.siblings.selfLabel,
-        meta: "Individu courant",
-        readOnly: true,
+        label: getPersonDisplayName(sibling),
+        meta: "Frère / sœur",
+        readOnly: false,
       };
-    }
+    });
 
-    const siblingId = key.replace("sibling:", "");
-    const sibling = values.siblings.find((item) => item.id === siblingId);
-
-    if (!sibling || !sibling.known) {
-      return null;
-    }
-
-    return {
-      key,
-      label: getPersonDisplayName(sibling),
-      meta: "Frère / sœur",
-      readOnly: false,
-    };
-  });
-
-  return items.filter(
-    (item): item is SiblingOrderItem => item !== null,
-  );
-}, [config.sections.siblings.selfLabel, values.siblingOrder, values.siblings]);
+    return items.filter(
+      (item): item is SiblingOrderItem => item !== null,
+    );
+  }, [config.sections.siblings.selfLabel, values.siblingOrder, values.siblings]);
 
   function validateKnownPerson(
     person: FamilyKnowledgePersonEntry,
@@ -322,11 +341,6 @@ export function FamilyKnowledgeCloseFamilyPage() {
         },
       });
 
-      localStorage.setItem(
-        `connect:${slug}:family-knowledge:close_family`,
-        "done",
-      );
-
       nav(`/e/${slug}/family-knowledge`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");
@@ -461,40 +475,6 @@ export function FamilyKnowledgeCloseFamilyPage() {
 
               {values.hasSiblings === "yes" ? (
                 <>
-                  <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                      checked={values.knowsSiblingOrder}
-                      onChange={(e) =>
-                        setValues((prev) => ({
-                          ...prev,
-                          knowsSiblingOrder: e.target.checked,
-                          siblingOrder: e.target.checked
-                            ? normalizeOrderedKeys({
-                                existingKeys: prev.siblingOrder,
-                                allowedKeys: [
-                                  SELF_SIBLING_ORDER_KEY,
-                                  ...prev.siblings
-                                    .filter((sibling) => sibling.known)
-                                    .map((sibling) => `sibling:${sibling.id}`),
-                                ],
-                                fixedKey: SELF_SIBLING_ORDER_KEY,
-                              })
-                            : prev.siblingOrder,
-                        }))
-                      }
-                    />
-                    <div>
-                      <div className="text-sm font-black text-slate-900">
-                        {config.sections.siblings.knowsOrderLabel}
-                      </div>
-                      <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                        {config.sections.siblings.knowsOrderHelp}
-                      </div>
-                    </div>
-                  </label>
-
                   <div className="mt-4 grid gap-3">
                     {values.siblings.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600">
@@ -521,6 +501,40 @@ export function FamilyKnowledgeCloseFamilyPage() {
                       <Plus size={16} />
                       {config.sections.siblings.addLabel}
                     </button>
+
+                    <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        checked={values.knowsSiblingOrder}
+                        onChange={(e) =>
+                          setValues((prev) => ({
+                            ...prev,
+                            knowsSiblingOrder: e.target.checked,
+                            siblingOrder: e.target.checked
+                              ? normalizeOrderedKeys({
+                                existingKeys: prev.siblingOrder,
+                                allowedKeys: [
+                                  SELF_SIBLING_ORDER_KEY,
+                                  ...prev.siblings
+                                    .filter((sibling) => sibling.known)
+                                    .map((sibling) => `sibling:${sibling.id}`),
+                                ],
+                                fixedKey: SELF_SIBLING_ORDER_KEY,
+                              })
+                              : prev.siblingOrder,
+                          }))
+                        }
+                      />
+                      <div>
+                        <div className="text-sm font-black text-slate-900">
+                          {config.sections.siblings.knowsOrderLabel}
+                        </div>
+                        <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                          {config.sections.siblings.knowsOrderHelp}
+                        </div>
+                      </div>
+                    </label>
 
                     {values.knowsSiblingOrder ? (
                       <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
@@ -579,28 +593,39 @@ export function FamilyKnowledgeCloseFamilyPage() {
               </div>
 
               {values.hasChildren === "yes" ? (
-                <FamilyPeopleList
-                  title=""
-                  emptyText={config.sections.children.emptyText}
-                  addLabel={config.sections.children.addLabel}
-                  items={values.children}
-                  onAdd={addChild}
-                  renderItem={(child, index) => (
-                    <FamilyPersonForm
-                      key={child.id}
-                      title={`${config.sections.children.itemLabel} ${index + 1}`}
-                      value={child}
-                      onChange={(patch) => setChild(index, patch)}
-                      onRemove={() =>
-                        setValues((prev) => ({
-                          ...prev,
-                          children: prev.children.filter((_, i) => i !== index),
-                        }))
-                      }
-                      labels={config.personFields}
+                <>
+                  <div className="mt-4 grid gap-3">
+                    <FamilyPeopleList
+                      title=""
+                      emptyText={config.sections.children.emptyText}
+                      items={values.children}
+                      renderItem={(child, index) => (
+                        <FamilyPersonForm
+                          key={child.id}
+                          title={`${config.sections.children.itemLabel} ${index + 1}`}
+                          value={child}
+                          onChange={(patch) => setChild(index, patch)}
+                          onRemove={() =>
+                            setValues((prev) => ({
+                              ...prev,
+                              children: prev.children.filter((_, i) => i !== index),
+                            }))
+                          }
+                          labels={config.personFields}
+                        />
+                      )}
                     />
-                  )}
-                />
+
+                    <button
+                      type="button"
+                      onClick={addChild}
+                      className="h-10 px-3 rounded-xl font-extrabold text-sm inline-flex items-center justify-center gap-2 border bg-indigo-50 text-slate-900 border-indigo-100"
+                    >
+                      <Plus size={16} />
+                      {config.sections.children.addLabel}
+                    </button>
+                  </div>
+                </>
               ) : null}
             </section>
 
@@ -612,25 +637,50 @@ export function FamilyKnowledgeCloseFamilyPage() {
                 {config.sections.partner.subtitle}
               </div>
 
-              <label className="grid gap-1 mt-4">
-                <span className="text-xs font-extrabold text-slate-800">
+              <div className="mt-4">
+                <div className="text-xs font-extrabold text-slate-800">
                   {config.sections.partner.fieldLabel}
-                </span>
-                <select
-                  className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                  value={values.isInRelationship}
-                  onChange={(e) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      isInRelationship: e.target.value as "" | "yes" | "no",
-                    }))
-                  }
-                >
-                  <option value="">{config.personFields.chooseLabel}</option>
-                  <option value="yes">{config.personFields.yesLabel}</option>
-                  <option value="no">{config.personFields.noLabel}</option>
-                </select>
-              </label>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        isInRelationship: "yes",
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.isInRelationship === "yes"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.personFields.yesLabel}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValues((prev) => ({
+                        ...prev,
+                        isInRelationship: "no",
+                        partner: createEmptyFamilyKnowledgePerson(false),
+                      }))
+                    }
+                    className={[
+                      "h-12 rounded-2xl border font-extrabold transition",
+                      values.isInRelationship === "no"
+                        ? "border-indigo-200 bg-indigo-50 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-700",
+                    ].join(" ")}
+                  >
+                    {config.personFields.noLabel}
+                  </button>
+                </div>
+              </div>
 
               {values.isInRelationship === "yes" ? (
                 <div className="mt-4">
