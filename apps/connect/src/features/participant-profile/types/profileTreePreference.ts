@@ -1,0 +1,1 @@
+export type ProfileTreePreference = "yes" | "no" | null;

@@ -1,8 +1,9 @@
 import { supabase } from "../../../lib/supabase/client";
+import type { ProfileTreePreference } from "../types/profileTreePreference";
 
 type SaveProfileTreePreferenceInput = {
   participantId: string;
-  allowInfoInFamilyTree: boolean;
+  allowInfoInFamilyTree: ProfileTreePreference;
 };
 
 export async function saveProfileTreePreference({

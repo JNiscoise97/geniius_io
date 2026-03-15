@@ -11,7 +11,7 @@ import {
 } from "../config/onboardingConfig";
 import { OnboardingStepCard } from "../components/OnboardingStepCard";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import { completionRules, isCompletionRuleComplete } from "../../../lib/completion/sectionCompletion";
+import { getOnboardingCompletionRules, isCompletionRuleComplete } from "../../../lib/completion/sectionCompletion";
 import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
 
 type StepProgressByKey = Record<
@@ -32,9 +32,9 @@ export function OnboardingHubPage() {
   });
 
   const onboardingRules = useMemo(
-    () => completionRules.filter((rule) => rule.onboardingKey !== undefined),
-    [],
-  );
+  () => getOnboardingCompletionRules(),
+  [],
+);
 
   useEffect(() => {
     let isMounted = true;
@@ -66,7 +66,11 @@ export function OnboardingHubPage() {
 
           const row = rule.table ? rowsByTable[rule.table] : null;
 
-          nextProgress[rule.onboardingKey] = isCompletionRuleComplete(rule, row)
+          nextProgress[rule.onboardingKey] = isCompletionRuleComplete(
+            rule,
+            row,
+            rowsByTable,
+          )
             ? "done"
             : "todo";
         }
@@ -75,11 +79,11 @@ export function OnboardingHubPage() {
       } catch {
         if (isMounted) {
           setProgress({
-          identity: "todo",
-          profile: "todo",
-          preferences: "todo",
-          origins: "todo",
-        });
+            identity: "todo",
+            profile: "todo",
+            preferences: "todo",
+            origins: "todo",
+          });
         }
       }
     }
@@ -168,7 +172,7 @@ export function OnboardingHubPage() {
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
                     <li>Revoir le titre</li>
-                    <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
+                    <li>faire une lib qui dit les conditions pour qu'une section soit dite complète (préférences)</li>
                     <li>revoir les labels des cartes</li>
                   </ol>
                 </div>

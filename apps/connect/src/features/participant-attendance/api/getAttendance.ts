@@ -25,7 +25,8 @@ export async function getAttendance({
       | ""
       | "yes"
       | "no"
-      | "maybe",
+      | "maybe"
+      | "definitive-no",
     partySize: res.data.party_size ? String(res.data.party_size) : "",
     canHelp: res.data.can_help ?? false,
     helpTypes: (res.data.help_types ?? []) as AttendanceFormValues["helpTypes"],

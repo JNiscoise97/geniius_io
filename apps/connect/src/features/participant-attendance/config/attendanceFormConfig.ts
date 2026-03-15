@@ -1,5 +1,5 @@
 export type AttendanceOption = {
-  key: "yes" | "no" | "maybe";
+  key: "yes" | "no" | "maybe" | "definitive-no";
   label: string;
 };
 
@@ -52,6 +52,7 @@ export const attendanceFormConfig: AttendanceFormConfig = {
     { key: "yes", label: "Oui, je serai présent" },
     { key: "no", label: "Non, je ne pourrai pas venir" },
     { key: "maybe", label: "Je ne sais pas encore" },
+    { key: "definitive-no", label: "Je ne veux pas venir" },
   ],
   helpOptions: [
     { key: "setup", label: "Installation" },

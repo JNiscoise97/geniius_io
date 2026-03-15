@@ -478,7 +478,7 @@ export function LandingPage() {
           setGuidedPrompts(nextPrompts);
         }
       } catch (error) {
-        console.error("Impossible de charger les actions rapides", error);
+        console.error("Impossible de charger les actions guidées", error);
 
         if (!cancelled) {
           setGuidedPrompts([]);
@@ -566,7 +566,7 @@ export function LandingPage() {
                   : "bg-slate-50 text-slate-700",
               ].join(" ")}
             >
-              Actions rapides
+              Actions guidées
             </button>
 
             <button
@@ -595,7 +595,7 @@ export function LandingPage() {
                   </div>
                   <div className="mt-0.5 text-xs text-amber-800">
                     <ol>
-                      <li>construire les actions rapides guidées (revoir les icones, si générique pas de spécifiques dans la liste des 5 par ex si j'ai origins pas besoin de mettre les origins-xxx)</li>
+                      <li>construire les actions guidées (revoir les icones, si générique pas de spécifiques dans la liste des 5 par ex si j'ai origins pas besoin de mettre les origins-xxx)</li>
                     </ol>
                   </div>
                 </div>
@@ -605,7 +605,7 @@ export function LandingPage() {
             {loadingGuidedPrompts ? (
               <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="text-sm font-bold text-slate-700">
-                  Chargement des actions rapides…
+                  Chargement des actions guidées...
                 </div>
               </section>
             ) : null}

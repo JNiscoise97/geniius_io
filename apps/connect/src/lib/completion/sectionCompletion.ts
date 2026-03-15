@@ -13,11 +13,11 @@ export type CompletionItemType = "form" | "info";
 export type CompletionCondition =
   | string
   | {
-      and: CompletionCondition[];
-    }
+    and: CompletionCondition[];
+  }
   | {
-      or: CompletionCondition[];
-    };
+    or: CompletionCondition[];
+  };
 
 export type CompletionRule = {
   key: string;
@@ -33,6 +33,9 @@ export type CompletionRule = {
   fields: CompletionCondition;
   to: string;
   type: CompletionItemType;
+  dependsOnTables?: string[];
+  selectFieldsByTable?: Record<string, string[]>;
+  isComplete?: (rowsByTable: Record<string, CompletionRow>) => boolean;
 };
 
 export type CompletionRow = Record<string, unknown> | null | undefined;
@@ -126,11 +129,36 @@ export const completionRules: CompletionRule[] = [
     text: "Tes réponses donnent envie d’échanger et créent plus facilement du lien entre cousins.",
     cta: "Partager quelques infos",
     icon: MessageCircleHeart,
-    table: "participant_profile",
-    participantField: "participant_id",
-    fields: "completed",
+    table: null,
+    fields: { and: [] },
+    dependsOnTables: ["participant_profile", "participant_preferences"],
+    selectFieldsByTable: {
+      participant_profile: ["city", "occupation", "interests", "free_share"],
+      participant_preferences: ["allow_info_in_family_tree"],
+    },
     to: "/welcome/profile",
     type: "form",
+    isComplete: (rowsByTable) => {
+      const preferences = rowsByTable["participant_preferences"] as Record<string, unknown> | null;
+      const profile = rowsByTable["participant_profile"] as Record<string, unknown> | null;
+
+      const treePreference = preferences?.allow_info_in_family_tree;
+
+      if (treePreference !== "yes" && treePreference !== "no") {
+        return false;
+      }
+
+      if (treePreference === "no") {
+        return true;
+      }
+
+      return hasAnyFilledField(profile, [
+        "city",
+        "occupation",
+        "interests",
+        "free_share",
+      ]);
+    },
   },
   {
     key: "preferences",
@@ -180,6 +208,14 @@ function isValueFilled(value: unknown): boolean {
   return true;
 }
 
+function hasAnyFilledField(
+  row: Record<string, unknown> | null | undefined,
+  fields: string[],
+): boolean {
+  if (!row) return false;
+  return fields.some((field) => isValueFilled(row[field]));
+}
+
 function evaluateCompletionCondition(
   condition: CompletionCondition,
   row: Record<string, unknown>,
@@ -206,9 +242,14 @@ function evaluateCompletionCondition(
 export function isCompletionRuleComplete(
   rule: CompletionRule,
   row: CompletionRow,
+  rowsByTable?: Record<string, CompletionRow>,
 ): boolean {
   if (rule.type === "info") {
     return true;
+  }
+
+  if (rule.isComplete) {
+    return rule.isComplete(rowsByTable ?? {});
   }
 
   if (!row) {
@@ -221,10 +262,11 @@ export function isCompletionRuleComplete(
 export function buildCompletionItemStatus(
   rule: CompletionRule,
   row: CompletionRow,
+  rowsByTable?: Record<string, CompletionRow>,
 ) {
   return {
     ...rule,
-    complete: isCompletionRuleComplete(rule, row),
+    complete: isCompletionRuleComplete(rule, row, rowsByTable),
   };
 }
 
@@ -240,7 +282,7 @@ export function getFirstIncompleteCompletionRules(
       }
 
       const row = rule.table ? rowsByTable[rule.table] : null;
-      return !isCompletionRuleComplete(rule, row);
+      return !isCompletionRuleComplete(rule, row, rowsByTable);
     })
     .slice(0, limit);
 }

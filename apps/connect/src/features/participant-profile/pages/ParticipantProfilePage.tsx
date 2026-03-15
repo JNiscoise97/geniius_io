@@ -11,6 +11,7 @@ import { getProfile } from "../api/getProfile";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { getProfileTreePreference } from "../api/getProfileTreePreference";
 import { saveProfileTreePreference } from "../api/saveProfileTreePreference";
+import type { ProfileTreePreference } from "../types/profileTreePreference";
 
 export function ParticipantProfilePage() {
   const nav = useNavigate();
@@ -24,7 +25,9 @@ export function ParticipantProfilePage() {
     freeShare: "",
   });
 
-  const [allowInfoInFamilyTree, setAllowInfoInFamilyTree] = useState(false);
+  const [allowInfoInFamilyTree, setAllowInfoInFamilyTree] =
+    useState<ProfileTreePreference>(null);
+
   const [loading, setLoading] = useState(false);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,19 +81,9 @@ export function ParticipantProfilePage() {
     };
   }, [slug]);
 
-  function validate(): string | null {
-    return null;
-  }
-
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-
-    const msg = validate();
-    if (msg) {
-      setError(msg);
-      return;
-    }
 
     const participantSession = getParticipantSession(slug);
     if (!participantSession?.participantId) {

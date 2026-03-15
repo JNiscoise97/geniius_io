@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import type { FormEvent } from "react";
 import type { ProfileFormConfig } from "../config/profileQuestionsConfig";
+import type { ProfileTreePreference } from "../types/profileTreePreference";
 
 export type ProfileFormValues = {
   city: string;
@@ -14,8 +15,8 @@ type ProfileFormProps = {
   value: ProfileFormValues;
   loading?: boolean;
   error?: string | null;
-  allowInfoInFamilyTree: boolean;
-  onChangeAllowInfoInFamilyTree: (next: boolean) => void;
+  allowInfoInFamilyTree: ProfileTreePreference;
+  onChangeAllowInfoInFamilyTree: (next: ProfileTreePreference) => void;
   onChange: (patch: Partial<ProfileFormValues>) => void;
   onSubmit: (e: FormEvent) => void;
 };
@@ -73,9 +74,7 @@ export function ProfileForm({
             </div>
             <div className="mt-0.5 text-xs text-amber-800">
               <ol>
-                <li>Envoi d'une notif par mail à l'organisateur</li>
                 <li>Revoir les labels du titre</li>
-                <li>Transformer boolean de preferences en yes/no/null</li>
               </ol>
             </div>
           </div>
@@ -85,29 +84,76 @@ export function ProfileForm({
       <form id="profile-form" onSubmit={onSubmit} className="mt-3">
         <section className="rounded-3xl bg-white shadow-[0_14px_32px_rgba(15,23,42,0.06)] border border-slate-200 overflow-hidden">
           <div className="p-4">
-           
-           <label className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <input
-                type="checkbox"
-                checked={allowInfoInFamilyTree}
-                onChange={(e) =>
-                  onChangeAllowInfoInFamilyTree(e.target.checked)
-                }
-                disabled={loading}
-                className="mt-1"
-              />
-
-              <div>
-                <div className="text-sm font-black text-slate-900">
-                  Afficher ces informations dans l’arbre généalogique
-                </div>
-                <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                  Si tu coches cette case, les informations remplies dans ce
-                  formulaire pourront apparaître dans l’arbre généalogique de la
-                  famille, si tu souhaites y figurer.
-                </div>
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm font-black text-slate-900">
+                Afficher ces informations dans l’arbre généalogique ?
               </div>
-            </label>
+              <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                Tu peux autoriser ou refuser l’affichage de ces réponses dans
+                l’arbre. Tant que tu n’as pas choisi, rien n’est considéré comme
+                accepté.
+              </div>
+
+              <div className="mt-3 grid gap-2">
+                <label
+                  className={[
+                    "flex items-start gap-3 rounded-2xl border p-3 transition",
+                    allowInfoInFamilyTree === "yes"
+                      ? "border-indigo-200 bg-indigo-50"
+                      : "border-slate-200 bg-white",
+                  ].join(" ")}
+                >
+                  <input
+                    type="radio"
+                    name="allow-info-in-family-tree"
+                    checked={allowInfoInFamilyTree === "yes"}
+                    onChange={() => onChangeAllowInfoInFamilyTree("yes")}
+                    disabled={loading}
+                    className="mt-1 h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-slate-900">
+                      Oui, j’accepte
+                    </div>
+                    <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                      Ces informations pourront apparaître dans l’arbre familial.
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  className={[
+                    "flex items-start gap-3 rounded-2xl border p-3 transition",
+                    allowInfoInFamilyTree === "no"
+                      ? "border-indigo-200 bg-indigo-50"
+                      : "border-slate-200 bg-white",
+                  ].join(" ")}
+                >
+                  <input
+                    type="radio"
+                    name="allow-info-in-family-tree"
+                    checked={allowInfoInFamilyTree === "no"}
+                    onChange={() => onChangeAllowInfoInFamilyTree("no")}
+                    disabled={loading}
+                    className="mt-1 h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-slate-900">
+                      Non, je préfère ne pas les afficher
+                    </div>
+                    <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                      Tes réponses resteront privées dans ce cadre.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {allowInfoInFamilyTree === null ? (
+                <div className="mt-3 text-xs font-bold text-amber-700">
+                  Aucune préférence choisie pour le moment.
+                </div>
+              ) : null}
+            </div>
 
             <div className="mt-4 grid gap-4">
               {config.questions.map((question) => (

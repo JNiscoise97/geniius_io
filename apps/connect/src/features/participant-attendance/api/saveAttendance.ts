@@ -27,16 +27,23 @@ export async function saveAttendance({
   values,
 }: SaveAttendanceInput): Promise<void> {
   const attendanceStatus = values.attendanceStatus || "maybe";
+  const isAbsent =
+    attendanceStatus === "no" || attendanceStatus === "definitive-no";
+
+  const partySize =
+    attendanceStatus === "yes"
+      ? toPartySizeOrNull(values.partySize)
+      : attendanceStatus === "maybe"
+        ? toPartySizeOrNull(values.partySize)
+        : null;
 
   const res = await supabase.from("participant_attendance").upsert(
     {
       participant_id: participantId,
       attendance_status: attendanceStatus,
-      party_size:
-        attendanceStatus === "no" ? null : toPartySizeOrNull(values.partySize),
-      can_help: attendanceStatus === "no" ? false : values.canHelp,
-      help_types:
-        attendanceStatus === "no" || !values.canHelp ? [] : values.helpTypes,
+      party_size: partySize,
+      can_help: isAbsent ? false : values.canHelp,
+      help_types: isAbsent || !values.canHelp ? [] : values.helpTypes,
       note: cleanText(values.note),
       completed: true,
       updated_at: new Date().toISOString(),
