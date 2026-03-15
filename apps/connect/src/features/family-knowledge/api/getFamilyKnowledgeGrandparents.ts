@@ -1,4 +1,9 @@
 import { supabase } from "../../../lib/supabase/client";
+import {
+  createFamilyOrderId,
+  normalizeOrderedKeys,
+  sortIdsByLegacyBirthOrder,
+} from "../lib/siblingOrder";
 
 export type FamilyKnowledgeGrandparentPerson = {
   known: boolean;
@@ -10,6 +15,7 @@ export type FamilyKnowledgeGrandparentPerson = {
 };
 
 export type FamilyKnowledgeAuntUnclePerson = {
+  id: string;
   known: boolean;
   firstName: string;
   lastName: string;
@@ -17,7 +23,6 @@ export type FamilyKnowledgeAuntUnclePerson = {
   isAlive: "" | "yes" | "no";
   hasPhoto: "" | "yes" | "no";
   relationshipType: "" | "both_parents" | "father_only" | "mother_only";
-  birthOrder: string;
 };
 
 export type FamilyKnowledgeGrandparentsValues = {
@@ -29,15 +34,24 @@ export type FamilyKnowledgeGrandparentsValues = {
   hasPaternalAuntsUncles: "" | "yes" | "no";
   paternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsFatherSiblingOrder: boolean;
+  paternalSiblingOrder: string[];
 
   hasMaternalAuntsUncles: "" | "yes" | "no";
   maternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsMotherSiblingOrder: boolean;
+  maternalSiblingOrder: string[];
 };
 
 type GetFamilyKnowledgeGrandparentsInput = {
   participantId: string;
 };
+
+type LegacyFamilyKnowledgeAuntUnclePerson = FamilyKnowledgeAuntUnclePerson & {
+  birthOrder?: string;
+};
+
+export const FATHER_SIBLING_ORDER_KEY = "father";
+export const MOTHER_SIBLING_ORDER_KEY = "mother";
 
 export function createEmptyFamilyKnowledgeGrandparentPerson(
   known = true,
@@ -56,6 +70,7 @@ export function createEmptyFamilyKnowledgeAuntUnclePerson(
   known = true,
 ): FamilyKnowledgeAuntUnclePerson {
   return {
+    id: createFamilyOrderId(),
     known,
     firstName: "",
     lastName: "",
@@ -63,7 +78,6 @@ export function createEmptyFamilyKnowledgeAuntUnclePerson(
     isAlive: "",
     hasPhoto: "",
     relationshipType: "",
-    birthOrder: "",
   };
 }
 
@@ -77,10 +91,12 @@ export function getDefaultFamilyKnowledgeGrandparentsValues(): FamilyKnowledgeGr
     hasPaternalAuntsUncles: "",
     paternalAuntsUncles: [],
     knowsFatherSiblingOrder: false,
+    paternalSiblingOrder: [FATHER_SIBLING_ORDER_KEY],
 
     hasMaternalAuntsUncles: "",
     maternalAuntsUncles: [],
     knowsMotherSiblingOrder: false,
+    maternalSiblingOrder: [MOTHER_SIBLING_ORDER_KEY],
   };
 }
 
@@ -99,8 +115,9 @@ function normalizeGrandparentPerson(input: any): FamilyKnowledgeGrandparentPerso
   };
 }
 
-function normalizeAuntUnclePerson(input: any): FamilyKnowledgeAuntUnclePerson {
+function normalizeAuntUnclePerson(input: any): LegacyFamilyKnowledgeAuntUnclePerson {
   return {
+    id: input?.id ?? createFamilyOrderId(),
     known: Boolean(input?.known),
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
@@ -137,6 +154,48 @@ export async function getFamilyKnowledgeGrandparents({
   const raw = res.data.data;
   const defaults = getDefaultFamilyKnowledgeGrandparentsValues();
 
+  const paternalAuntsUncles: LegacyFamilyKnowledgeAuntUnclePerson[] = Array.isArray(
+    raw.paternalAuntsUncles,
+  )
+    ? raw.paternalAuntsUncles.map(normalizeAuntUnclePerson)
+    : [];
+
+  const maternalAuntsUncles: LegacyFamilyKnowledgeAuntUnclePerson[] = Array.isArray(
+    raw.maternalAuntsUncles,
+  )
+    ? raw.maternalAuntsUncles.map(normalizeAuntUnclePerson)
+    : [];
+
+  const paternalKeys = paternalAuntsUncles
+    .filter((person) => person.known)
+    .map((person) => `paternal:${person.id}`);
+
+  const maternalKeys = maternalAuntsUncles
+    .filter((person) => person.known)
+    .map((person) => `maternal:${person.id}`);
+
+  const rawPaternalOrder = Array.isArray(raw.paternalSiblingOrder)
+    ? raw.paternalSiblingOrder.filter((value: unknown): value is string => typeof value === "string")
+    : [];
+
+  const rawMaternalOrder = Array.isArray(raw.maternalSiblingOrder)
+    ? raw.maternalSiblingOrder.filter((value: unknown): value is string => typeof value === "string")
+    : [];
+
+  const legacyPaternalOrder =
+    rawPaternalOrder.length === 0
+      ? sortIdsByLegacyBirthOrder(
+          paternalAuntsUncles.filter((person) => person.known),
+        ).map((id) => `paternal:${id}`)
+      : [];
+
+  const legacyMaternalOrder =
+    rawMaternalOrder.length === 0
+      ? sortIdsByLegacyBirthOrder(
+          maternalAuntsUncles.filter((person) => person.known),
+        ).map((id) => `maternal:${id}`)
+      : [];
+
   return {
     ...defaults,
     paternalGrandfather: normalizeGrandparentPerson(raw.paternalGrandfather),
@@ -145,15 +204,27 @@ export async function getFamilyKnowledgeGrandparents({
     maternalGrandmother: normalizeGrandparentPerson(raw.maternalGrandmother),
 
     hasPaternalAuntsUncles: normalizeYesNo(raw.hasPaternalAuntsUncles),
-    paternalAuntsUncles: Array.isArray(raw.paternalAuntsUncles)
-      ? raw.paternalAuntsUncles.map(normalizeAuntUnclePerson)
-      : [],
+    paternalAuntsUncles: paternalAuntsUncles.map(
+      ({ birthOrder: _birthOrder, ...person }) => person,
+    ),
     knowsFatherSiblingOrder: Boolean(raw.knowsFatherSiblingOrder),
+    paternalSiblingOrder: normalizeOrderedKeys({
+      existingKeys:
+        rawPaternalOrder.length > 0 ? rawPaternalOrder : legacyPaternalOrder,
+      allowedKeys: [FATHER_SIBLING_ORDER_KEY, ...paternalKeys],
+      fixedKey: FATHER_SIBLING_ORDER_KEY,
+    }),
 
     hasMaternalAuntsUncles: normalizeYesNo(raw.hasMaternalAuntsUncles),
-    maternalAuntsUncles: Array.isArray(raw.maternalAuntsUncles)
-      ? raw.maternalAuntsUncles.map(normalizeAuntUnclePerson)
-      : [],
+    maternalAuntsUncles: maternalAuntsUncles.map(
+      ({ birthOrder: _birthOrder, ...person }) => person,
+    ),
     knowsMotherSiblingOrder: Boolean(raw.knowsMotherSiblingOrder),
+    maternalSiblingOrder: normalizeOrderedKeys({
+      existingKeys:
+        rawMaternalOrder.length > 0 ? rawMaternalOrder : legacyMaternalOrder,
+      allowedKeys: [MOTHER_SIBLING_ORDER_KEY, ...maternalKeys],
+      fixedKey: MOTHER_SIBLING_ORDER_KEY,
+    }),
   };
 }

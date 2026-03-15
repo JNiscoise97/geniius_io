@@ -1,13 +1,18 @@
 import { supabase } from "../../../lib/supabase/client";
+import {
+  createFamilyOrderId,
+  normalizeOrderedKeys,
+  sortIdsByLegacyBirthOrder,
+} from "../lib/siblingOrder";
 
 export type FamilyKnowledgePersonEntry = {
+  id: string;
   known: boolean;
   firstName: string;
   lastName: string;
   nickname: string;
   isAlive: "" | "yes" | "no";
   hasPhoto: "" | "yes" | "no";
-  birthOrder: string;
 };
 
 export type FamilyKnowledgeCloseFamilyValues = {
@@ -17,6 +22,7 @@ export type FamilyKnowledgeCloseFamilyValues = {
   hasSiblings: "" | "yes" | "no";
   siblings: FamilyKnowledgePersonEntry[];
   knowsSiblingOrder: boolean;
+  siblingOrder: string[];
 
   hasChildren: "" | "yes" | "no";
   children: FamilyKnowledgePersonEntry[];
@@ -29,17 +35,23 @@ type GetFamilyKnowledgeCloseFamilyInput = {
   participantId: string;
 };
 
+type LegacyFamilyKnowledgePersonEntry = FamilyKnowledgePersonEntry & {
+  birthOrder?: string;
+};
+
+const SELF_SIBLING_ORDER_KEY = "self";
+
 export function createEmptyFamilyKnowledgePerson(
   known = true,
 ): FamilyKnowledgePersonEntry {
   return {
+    id: createFamilyOrderId(),
     known,
     firstName: "",
     lastName: "",
     nickname: "",
     isAlive: "",
     hasPhoto: "",
-    birthOrder: "",
   };
 }
 
@@ -51,6 +63,7 @@ export function getDefaultFamilyKnowledgeCloseFamilyValues(): FamilyKnowledgeClo
     hasSiblings: "",
     siblings: [],
     knowsSiblingOrder: false,
+    siblingOrder: [SELF_SIBLING_ORDER_KEY],
 
     hasChildren: "",
     children: [],
@@ -60,8 +73,9 @@ export function getDefaultFamilyKnowledgeCloseFamilyValues(): FamilyKnowledgeClo
   };
 }
 
-function normalizePerson(input: any): FamilyKnowledgePersonEntry {
+function normalizePerson(input: any): LegacyFamilyKnowledgePersonEntry {
   return {
+    id: input?.id ?? createFamilyOrderId(),
     known: Boolean(input?.known),
     firstName: input?.firstName ?? "",
     lastName: input?.lastName ?? "",
@@ -92,32 +106,58 @@ export async function getFamilyKnowledgeCloseFamily({
   const raw = res.data.data;
   const defaults = getDefaultFamilyKnowledgeCloseFamilyValues();
 
-  return {
-  ...defaults,
-  parent1: normalizePerson(raw.parent1),
-  parent2: normalizePerson(raw.parent2),
-
-  hasSiblings:
-    raw.hasSiblings === "yes" || raw.hasSiblings === "no"
-      ? raw.hasSiblings
-      : "",
-  siblings: Array.isArray(raw.siblings)
+  const siblings: LegacyFamilyKnowledgePersonEntry[] = Array.isArray(raw.siblings)
     ? raw.siblings.map(normalizePerson)
-    : [],
-  knowsSiblingOrder: Boolean(raw.knowsSiblingOrder),
+    : [];
 
-  hasChildren:
-    raw.hasChildren === "yes" || raw.hasChildren === "no"
-      ? raw.hasChildren
-      : "",
-  children: Array.isArray(raw.children)
+  const children: LegacyFamilyKnowledgePersonEntry[] = Array.isArray(raw.children)
     ? raw.children.map(normalizePerson)
-    : [],
+    : [];
 
-  isInRelationship:
-    raw.isInRelationship === "yes" || raw.isInRelationship === "no"
-      ? raw.isInRelationship
-      : "",
-  partner: normalizePerson(raw.partner),
-};
+  const siblingKeys = siblings
+    .filter((sibling) => sibling.known)
+    .map((sibling) => `sibling:${sibling.id}`);
+
+  const rawSiblingOrder = Array.isArray(raw.siblingOrder)
+    ? raw.siblingOrder.filter((value: unknown): value is string => typeof value === "string")
+    : [];
+
+  const legacyOrderedIds =
+    rawSiblingOrder.length === 0
+      ? sortIdsByLegacyBirthOrder(
+          siblings.filter((sibling) => sibling.known),
+        ).map((id) => `sibling:${id}`)
+      : [];
+
+  const siblingOrder = normalizeOrderedKeys({
+    existingKeys: rawSiblingOrder.length > 0 ? rawSiblingOrder : legacyOrderedIds,
+    allowedKeys: [SELF_SIBLING_ORDER_KEY, ...siblingKeys],
+    fixedKey: SELF_SIBLING_ORDER_KEY,
+  });
+
+  return {
+    ...defaults,
+    parent1: normalizePerson(raw.parent1),
+    parent2: normalizePerson(raw.parent2),
+
+    hasSiblings:
+      raw.hasSiblings === "yes" || raw.hasSiblings === "no"
+        ? raw.hasSiblings
+        : "",
+    siblings: siblings.map(({ birthOrder: _birthOrder, ...person }) => person),
+    knowsSiblingOrder: Boolean(raw.knowsSiblingOrder),
+    siblingOrder,
+
+    hasChildren:
+      raw.hasChildren === "yes" || raw.hasChildren === "no"
+        ? raw.hasChildren
+        : "",
+    children: children.map(({ birthOrder: _birthOrder, ...person }) => person),
+
+    isInRelationship:
+      raw.isInRelationship === "yes" || raw.isInRelationship === "no"
+        ? raw.isInRelationship
+        : "",
+    partner: normalizePerson(raw.partner),
+  };
 }

@@ -4,6 +4,11 @@ import type {
   FamilyKnowledgeGrandparentPerson,
   FamilyKnowledgeGrandparentsValues,
 } from "./getFamilyKnowledgeGrandparents";
+import {
+  FATHER_SIBLING_ORDER_KEY,
+  MOTHER_SIBLING_ORDER_KEY,
+} from "./getFamilyKnowledgeGrandparents";
+import { normalizeOrderedKeys } from "../lib/siblingOrder";
 
 type SaveFamilyKnowledgeGrandparentsInput = {
   participantId: string;
@@ -31,6 +36,7 @@ function normalizeAuntUnclePerson(
   person: FamilyKnowledgeAuntUnclePerson,
 ): FamilyKnowledgeAuntUnclePerson {
   return {
+    id: person.id,
     known: person.known,
     firstName: cleanText(person.firstName),
     lastName: cleanText(person.lastName),
@@ -38,7 +44,6 @@ function normalizeAuntUnclePerson(
     isAlive: person.isAlive,
     hasPhoto: person.hasPhoto,
     relationshipType: person.relationshipType,
-    birthOrder: cleanText(person.birthOrder),
   };
 }
 
@@ -46,6 +51,39 @@ export async function saveFamilyKnowledgeGrandparents({
   participantId,
   values,
 }: SaveFamilyKnowledgeGrandparentsInput): Promise<void> {
+  const normalizedPaternalAuntsUncles = values.paternalAuntsUncles.map(
+    normalizeAuntUnclePerson,
+  );
+  const normalizedMaternalAuntsUncles = values.maternalAuntsUncles.map(
+    normalizeAuntUnclePerson,
+  );
+
+  const paternalAllowedKeys = normalizedPaternalAuntsUncles
+    .filter((person) => person.known)
+    .map((person) => `paternal:${person.id}`);
+
+  const maternalAllowedKeys = normalizedMaternalAuntsUncles
+    .filter((person) => person.known)
+    .map((person) => `maternal:${person.id}`);
+
+  const paternalSiblingOrder =
+    values.hasPaternalAuntsUncles === "yes" && values.knowsFatherSiblingOrder
+      ? normalizeOrderedKeys({
+          existingKeys: values.paternalSiblingOrder,
+          allowedKeys: [FATHER_SIBLING_ORDER_KEY, ...paternalAllowedKeys],
+          fixedKey: FATHER_SIBLING_ORDER_KEY,
+        })
+      : [];
+
+  const maternalSiblingOrder =
+    values.hasMaternalAuntsUncles === "yes" && values.knowsMotherSiblingOrder
+      ? normalizeOrderedKeys({
+          existingKeys: values.maternalSiblingOrder,
+          allowedKeys: [MOTHER_SIBLING_ORDER_KEY, ...maternalAllowedKeys],
+          fixedKey: MOTHER_SIBLING_ORDER_KEY,
+        })
+      : [];
+
   const payload = {
     paternalGrandfather: normalizeGrandparentPerson(values.paternalGrandfather),
     paternalGrandmother: normalizeGrandparentPerson(values.paternalGrandmother),
@@ -55,22 +93,24 @@ export async function saveFamilyKnowledgeGrandparents({
     hasPaternalAuntsUncles: values.hasPaternalAuntsUncles,
     paternalAuntsUncles:
       values.hasPaternalAuntsUncles === "yes"
-        ? values.paternalAuntsUncles.map(normalizeAuntUnclePerson)
+        ? normalizedPaternalAuntsUncles
         : [],
     knowsFatherSiblingOrder:
       values.hasPaternalAuntsUncles === "yes"
         ? values.knowsFatherSiblingOrder
         : false,
+    paternalSiblingOrder,
 
     hasMaternalAuntsUncles: values.hasMaternalAuntsUncles,
     maternalAuntsUncles:
       values.hasMaternalAuntsUncles === "yes"
-        ? values.maternalAuntsUncles.map(normalizeAuntUnclePerson)
+        ? normalizedMaternalAuntsUncles
         : [],
     knowsMotherSiblingOrder:
       values.hasMaternalAuntsUncles === "yes"
         ? values.knowsMotherSiblingOrder
         : false,
+    maternalSiblingOrder,
   };
 
   const res = await supabase

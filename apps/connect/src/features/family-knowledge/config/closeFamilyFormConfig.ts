@@ -16,7 +16,11 @@ export const closeFamilyFormConfig = {
       addLabel: "Ajouter",
       knowsOrderLabel: "Sais-tu ordonner ta fratrie ?",
       knowsOrderHelp:
-        "Si oui, tu peux préciser le rang de chaque frère ou sœur.",
+        "Si oui, tu pourras réorganiser la liste avec des boutons monter / descendre. Ta propre fiche sera ajoutée automatiquement dans l’ordre.",
+      orderLabel: "Ordre de la fratrie",
+      orderHelp:
+        "Déplace les cartes pour représenter l’ordre de naissance. “Toi” est inclus pour te situer parmi tes frères et sœurs.",
+      selfLabel: "Toi",
       itemLabel: "Frère / sœur",
     },
     children: {
@@ -44,8 +48,6 @@ export const closeFamilyFormConfig = {
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",
     nicknameLabel: "Surnom",
-    birthOrderLabel: "Rang dans la fratrie",
-    birthOrderPlaceholder: "Ex : 1",
     isAliveLabel: "Toujours en vie ?",
     hasPhotoLabel: "As-tu une photo ?",
     yesLabel: "Oui",
@@ -65,7 +67,7 @@ export const closeFamilyFormConfig = {
     missingIdentity:
       "Merci de renseigner au moins un nom ou un prénom pour",
     missingSiblingOrder:
-      "Merci de renseigner le rang dans la fratrie pour les frères et sœurs concernés.",
+      "Merci d’ordonner la fratrie si tu as coché que tu connais cet ordre.",
     missingParticipant:
       "Nous n’avons pas retrouvé ton identification. Merci de commencer par te présenter.",
   },

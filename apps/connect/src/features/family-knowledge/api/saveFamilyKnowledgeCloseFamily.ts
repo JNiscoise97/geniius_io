@@ -1,32 +1,30 @@
 import { supabase } from "../../../lib/supabase/client";
-import type { FamilyKnowledgeCloseFamilyValues } from "./getFamilyKnowledgeCloseFamily";
+import type {
+  FamilyKnowledgeCloseFamilyValues,
+  FamilyKnowledgePersonEntry,
+} from "./getFamilyKnowledgeCloseFamily";
+import { normalizeOrderedKeys } from "../lib/siblingOrder";
 
 type SaveFamilyKnowledgeCloseFamilyInput = {
   participantId: string;
   values: FamilyKnowledgeCloseFamilyValues;
 };
 
+const SELF_SIBLING_ORDER_KEY = "self";
+
 function cleanText(value: string): string {
   return value.trim();
 }
 
-function normalizePerson(person: {
-  known: boolean;
-  firstName: string;
-  lastName: string;
-  nickname: string;
-  isAlive: "" | "yes" | "no";
-  hasPhoto: "" | "yes" | "no";
-  birthOrder: string;
-}) {
+function normalizePerson(person: FamilyKnowledgePersonEntry): FamilyKnowledgePersonEntry {
   return {
+    id: person.id,
     known: person.known,
     firstName: cleanText(person.firstName),
     lastName: cleanText(person.lastName),
     nickname: cleanText(person.nickname),
     isAlive: person.isAlive,
     hasPhoto: person.hasPhoto,
-    birthOrder: cleanText(person.birthOrder),
   };
 }
 
@@ -34,27 +32,38 @@ export async function saveFamilyKnowledgeCloseFamily({
   participantId,
   values,
 }: SaveFamilyKnowledgeCloseFamilyInput): Promise<void> {
+  const normalizedSiblings = values.siblings.map(normalizePerson);
+  const normalizedChildren = values.children.map(normalizePerson);
+
+  const siblingKeys = normalizedSiblings
+    .filter((sibling) => sibling.known)
+    .map((sibling) => `sibling:${sibling.id}`);
+
+  const siblingOrder =
+    values.hasSiblings === "yes" && values.knowsSiblingOrder
+      ? normalizeOrderedKeys({
+          existingKeys: values.siblingOrder,
+          allowedKeys: [SELF_SIBLING_ORDER_KEY, ...siblingKeys],
+          fixedKey: SELF_SIBLING_ORDER_KEY,
+        })
+      : [];
+
   const payload = {
-  parent1: normalizePerson(values.parent1),
-  parent2: normalizePerson(values.parent2),
+    parent1: normalizePerson(values.parent1),
+    parent2: normalizePerson(values.parent2),
 
-  hasSiblings: values.hasSiblings,
-  siblings:
-    values.hasSiblings === "yes"
-      ? values.siblings.map(normalizePerson)
-      : [],
-  knowsSiblingOrder:
-    values.hasSiblings === "yes" ? values.knowsSiblingOrder : false,
+    hasSiblings: values.hasSiblings,
+    siblings: values.hasSiblings === "yes" ? normalizedSiblings : [],
+    knowsSiblingOrder:
+      values.hasSiblings === "yes" ? values.knowsSiblingOrder : false,
+    siblingOrder,
 
-  hasChildren: values.hasChildren,
-  children:
-    values.hasChildren === "yes"
-      ? values.children.map(normalizePerson)
-      : [],
+    hasChildren: values.hasChildren,
+    children: values.hasChildren === "yes" ? normalizedChildren : [],
 
-  isInRelationship: values.isInRelationship,
-  partner: normalizePerson(values.partner),
-};
+    isInRelationship: values.isInRelationship,
+    partner: normalizePerson(values.partner),
+  };
 
   const res = await supabase
     .from("participant_family_knowledge_close_family")

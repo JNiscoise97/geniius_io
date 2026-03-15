@@ -6,10 +6,11 @@ import {
   Plus,
   Users,
 } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FamilyPeopleList } from "../components/FamilyPeopleList";
 import { FamilyPersonForm } from "../components/FamilyPersonForm";
+import { SiblingOrderField, type SiblingOrderItem } from "../components/SiblingOrderField";
 import { closeFamilyFormConfig } from "../config/closeFamilyFormConfig";
 import {
   createEmptyFamilyKnowledgePerson,
@@ -20,6 +21,12 @@ import {
 } from "../api/getFamilyKnowledgeCloseFamily";
 import { saveFamilyKnowledgeCloseFamily } from "../api/saveFamilyKnowledgeCloseFamily";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import {
+  getPersonDisplayName,
+  normalizeOrderedKeys,
+} from "../lib/siblingOrder";
+
+const SELF_SIBLING_ORDER_KEY = "self";
 
 export function FamilyKnowledgeCloseFamilyPage() {
   const nav = useNavigate();
@@ -77,6 +84,47 @@ export function FamilyKnowledgeCloseFamilyPage() {
     };
   }, [slug]);
 
+  const siblingOrderItems = useMemo(() => {
+  const knownSiblingKeys = values.siblings
+    .filter((sibling) => sibling.known)
+    .map((sibling) => `sibling:${sibling.id}`);
+
+  const order = normalizeOrderedKeys({
+    existingKeys: values.siblingOrder,
+    allowedKeys: [SELF_SIBLING_ORDER_KEY, ...knownSiblingKeys],
+    fixedKey: SELF_SIBLING_ORDER_KEY,
+  });
+
+  const items: Array<SiblingOrderItem | null> = order.map((key) => {
+    if (key === SELF_SIBLING_ORDER_KEY) {
+      return {
+        key,
+        label: config.sections.siblings.selfLabel,
+        meta: "Individu courant",
+        readOnly: true,
+      };
+    }
+
+    const siblingId = key.replace("sibling:", "");
+    const sibling = values.siblings.find((item) => item.id === siblingId);
+
+    if (!sibling || !sibling.known) {
+      return null;
+    }
+
+    return {
+      key,
+      label: getPersonDisplayName(sibling),
+      meta: "Frère / sœur",
+      readOnly: false,
+    };
+  });
+
+  return items.filter(
+    (item): item is SiblingOrderItem => item !== null,
+  );
+}, [config.sections.siblings.selfLabel, values.siblingOrder, values.siblings]);
+
   function validateKnownPerson(
     person: FamilyKnowledgePersonEntry,
     label: string,
@@ -117,11 +165,21 @@ export function FamilyKnowledgeCloseFamilyPage() {
       }
 
       if (values.knowsSiblingOrder) {
-        const siblingWithMissingOrder = values.siblings.find(
-          (sibling) => sibling.known && !sibling.birthOrder.trim(),
+        const knownSiblingKeys = values.siblings
+          .filter((sibling) => sibling.known)
+          .map((sibling) => `sibling:${sibling.id}`);
+
+        const normalizedOrder = normalizeOrderedKeys({
+          existingKeys: values.siblingOrder,
+          allowedKeys: [SELF_SIBLING_ORDER_KEY, ...knownSiblingKeys],
+          fixedKey: SELF_SIBLING_ORDER_KEY,
+        });
+
+        const missingKnownSibling = knownSiblingKeys.some(
+          (key) => !normalizedOrder.includes(key),
         );
 
-        if (siblingWithMissingOrder) {
+        if (!normalizedOrder.includes(SELF_SIBLING_ORDER_KEY) || missingKnownSibling) {
           return config.validation.missingSiblingOrder;
         }
       }
@@ -174,11 +232,41 @@ export function FamilyKnowledgeCloseFamilyPage() {
   }
 
   function addSibling() {
-    setValues((prev) => ({
-      ...prev,
-      hasSiblings: "yes",
-      siblings: [...prev.siblings, createEmptyFamilyKnowledgePerson(true)],
-    }));
+    setValues((prev) => {
+      const nextSibling = createEmptyFamilyKnowledgePerson(true);
+
+      return {
+        ...prev,
+        hasSiblings: "yes",
+        siblings: [...prev.siblings, nextSibling],
+        siblingOrder: normalizeOrderedKeys({
+          existingKeys: prev.siblingOrder,
+          allowedKeys: [
+            SELF_SIBLING_ORDER_KEY,
+            ...prev.siblings
+              .filter((sibling) => sibling.known)
+              .map((sibling) => `sibling:${sibling.id}`),
+            `sibling:${nextSibling.id}`,
+          ],
+          fixedKey: SELF_SIBLING_ORDER_KEY,
+        }),
+      };
+    });
+  }
+
+  function removeSibling(index: number) {
+    setValues((prev) => {
+      const removed = prev.siblings[index];
+      const nextSiblings = prev.siblings.filter((_, i) => i !== index);
+
+      return {
+        ...prev,
+        siblings: nextSiblings,
+        siblingOrder: prev.siblingOrder.filter(
+          (key) => key !== `sibling:${removed.id}`,
+        ),
+      };
+    });
   }
 
   function addChild() {
@@ -195,6 +283,7 @@ export function FamilyKnowledgeCloseFamilyPage() {
       hasSiblings: next,
       siblings: next === "yes" ? prev.siblings : [],
       knowsSiblingOrder: next === "yes" ? prev.knowsSiblingOrder : false,
+      siblingOrder: next === "yes" ? prev.siblingOrder : [SELF_SIBLING_ORDER_KEY],
     }));
   }
 
@@ -227,7 +316,10 @@ export function FamilyKnowledgeCloseFamilyPage() {
     try {
       await saveFamilyKnowledgeCloseFamily({
         participantId: participantSession.participantId,
-        values,
+        values: {
+          ...values,
+          siblingOrder: siblingOrderItems.map((item) => item.key),
+        },
       });
 
       localStorage.setItem(
@@ -273,24 +365,6 @@ export function FamilyKnowledgeCloseFamilyPage() {
             {config.pageSubtitle}
           </p>
         </section>
-
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>Ordonner la fratrie avec des boutons up/down</li>
-                  <li>Faire une lib de complétude par section</li>
-                  <li>Revoir les labels des cartes</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {error ? (
           <div className="mt-3 rounded-2xl bg-white shadow-sm border border-[rgba(220,38,38,0.22)] p-3">
@@ -396,6 +470,18 @@ export function FamilyKnowledgeCloseFamilyPage() {
                         setValues((prev) => ({
                           ...prev,
                           knowsSiblingOrder: e.target.checked,
+                          siblingOrder: e.target.checked
+                            ? normalizeOrderedKeys({
+                                existingKeys: prev.siblingOrder,
+                                allowedKeys: [
+                                  SELF_SIBLING_ORDER_KEY,
+                                  ...prev.siblings
+                                    .filter((sibling) => sibling.known)
+                                    .map((sibling) => `sibling:${sibling.id}`),
+                                ],
+                                fixedKey: SELF_SIBLING_ORDER_KEY,
+                              })
+                            : prev.siblingOrder,
                         }))
                       }
                     />
@@ -418,17 +504,11 @@ export function FamilyKnowledgeCloseFamilyPage() {
 
                     {values.siblings.map((sibling, index) => (
                       <FamilyPersonForm
-                        key={index}
+                        key={sibling.id}
                         title={`${config.sections.siblings.itemLabel} ${index + 1}`}
                         value={sibling}
-                        showBirthOrder={values.knowsSiblingOrder}
                         onChange={(patch) => setSibling(index, patch)}
-                        onRemove={() =>
-                          setValues((prev) => ({
-                            ...prev,
-                            siblings: prev.siblings.filter((_, i) => i !== index),
-                          }))
-                        }
+                        onRemove={() => removeSibling(index)}
                         labels={config.personFields}
                       />
                     ))}
@@ -441,6 +521,22 @@ export function FamilyKnowledgeCloseFamilyPage() {
                       <Plus size={16} />
                       {config.sections.siblings.addLabel}
                     </button>
+
+                    {values.knowsSiblingOrder ? (
+                      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <SiblingOrderField
+                          label={config.sections.siblings.orderLabel}
+                          helpText={config.sections.siblings.orderHelp}
+                          items={siblingOrderItems}
+                          onChange={(items) =>
+                            setValues((prev) => ({
+                              ...prev,
+                              siblingOrder: items.map((item) => item.key),
+                            }))
+                          }
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </>
               ) : null}
@@ -491,7 +587,7 @@ export function FamilyKnowledgeCloseFamilyPage() {
                   onAdd={addChild}
                   renderItem={(child, index) => (
                     <FamilyPersonForm
-                      key={index}
+                      key={child.id}
                       title={`${config.sections.children.itemLabel} ${index + 1}`}
                       value={child}
                       onChange={(patch) => setChild(index, patch)}

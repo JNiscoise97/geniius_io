@@ -20,7 +20,11 @@ export const grandparentsFormConfig = {
       itemLabel: "Oncle / tante paternel(le)",
       knowsOrderLabel: "Sais-tu ordonner la fratrie de ton père ?",
       knowsOrderHelp:
-        "Si oui, tu peux préciser le rang de chaque oncle ou tante.",
+        "Si oui, tu pourras réorganiser la liste avec des boutons monter / descendre. Ton père sera ajouté automatiquement en lecture seule pour le situer dans la fratrie.",
+      orderLabel: "Ordre de la fratrie de ton père",
+      orderHelp:
+        "Déplace les cartes pour représenter l’ordre de naissance. Ton père est inclus en lecture seule pour le situer parmi ses frères et sœurs.",
+      selfLabel: "Ton père",
     },
     maternalAuntsUncles: {
       title: "Frères et sœurs de ta mère",
@@ -32,7 +36,11 @@ export const grandparentsFormConfig = {
       itemLabel: "Oncle / tante maternel(le)",
       knowsOrderLabel: "Sais-tu ordonner la fratrie de ta mère ?",
       knowsOrderHelp:
-        "Si oui, tu peux préciser le rang de chaque oncle ou tante.",
+        "Si oui, tu pourras réorganiser la liste avec des boutons monter / descendre. Ta mère sera ajoutée automatiquement en lecture seule pour la situer dans la fratrie.",
+      orderLabel: "Ordre de la fratrie de ta mère",
+      orderHelp:
+        "Déplace les cartes pour représenter l’ordre de naissance. Ta mère est incluse en lecture seule pour la situer parmi ses frères et sœurs.",
+      selfLabel: "Ta mère",
     },
     info: {
       title: "Les générations précédentes éclairent souvent le reste",
@@ -46,8 +54,6 @@ export const grandparentsFormConfig = {
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",
     nicknameLabel: "Surnom",
-    birthOrderLabel: "Rang dans la fratrie",
-    birthOrderPlaceholder: "Ex : 1",
     isAliveLabel: "Toujours en vie ?",
     hasPhotoLabel: "As-tu une photo ?",
     relationshipTypeLabel: "Lien avec les grands-parents",
@@ -73,8 +79,8 @@ export const grandparentsFormConfig = {
     missingAuntUncleRelationship:
       "Merci de préciser le lien avec les grands-parents pour chaque oncle ou tante ajouté(e).",
     missingFatherSiblingOrder:
-      "Merci de renseigner le rang dans la fratrie pour les oncles et tantes paternels concernés.",
+      "Merci d’ordonner la fratrie de ton père si tu as coché que tu connais cet ordre.",
     missingMotherSiblingOrder:
-      "Merci de renseigner le rang dans la fratrie pour les oncles et tantes maternels concernés.",
+      "Merci d’ordonner la fratrie de ta mère si tu as coché que tu connais cet ordre.",
   },
 } as const;
