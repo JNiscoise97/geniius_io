@@ -104,10 +104,6 @@ export function FamilyKnowledgeMemoryPage() {
 
   const config = familyMemoryFormConfig;
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   
 
   useEffect(() => {

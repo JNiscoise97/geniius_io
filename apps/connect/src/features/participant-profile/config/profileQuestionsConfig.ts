@@ -48,7 +48,7 @@ export const profileQuestionsConfig: ProfileFormConfig = {
     },
     {
       key: "interests",
-      label: "Qu’aimes-tu particulièrement ?",
+      label: "Qu’aimes-tu faire sur ton temps libre ?",
       helpText:
         "Tes centres d’intérêt, passions ou petits plaisirs du quotidien.",
       type: "textarea",

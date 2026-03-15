@@ -178,10 +178,6 @@ export function FamilyKnowledgeGrandparentsPage() {
     const config = grandparentsFormConfig;
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }, []);
-
-    useEffect(() => {
         let isMounted = true;
 
         async function loadExistingData() {

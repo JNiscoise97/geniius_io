@@ -10,34 +10,14 @@ import {
   type OnboardingStepStatus,
 } from "../config/onboardingConfig";
 import { OnboardingStepCard } from "../components/OnboardingStepCard";
-import { supabase } from "../../../lib/supabase/client";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { completionRules, isCompletionRuleComplete } from "../../../lib/completion/sectionCompletion";
+import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
 
 type StepProgressByKey = Record<
   "identity" | "profile" | "preferences" | "origins",
   OnboardingStepStatus
 >;
-
-function getFallbackProgressFromLocalStorage(slug: string): StepProgressByKey {
-  return {
-    identity:
-      localStorage.getItem(`connect:${slug}:onboarding:identity`) === "done"
-        ? "done"
-        : "todo",
-    profile:
-      localStorage.getItem(`connect:${slug}:onboarding:profile`) === "done"
-        ? "done"
-        : "todo",
-    preferences:
-      localStorage.getItem(`connect:${slug}:onboarding:preferences`) === "done"
-        ? "done"
-        : "todo",
-    origins:
-      localStorage.getItem(`connect:${slug}:onboarding:profile`) === "done"
-        ? "done"
-        : "todo",
-  };
-}
 
 export function OnboardingHubPage() {
   const nav = useNavigate();
@@ -51,6 +31,11 @@ export function OnboardingHubPage() {
     origins: "todo",
   });
 
+  const onboardingRules = useMemo(
+    () => completionRules.filter((rule) => rule.onboardingKey !== undefined),
+    [],
+  );
+
   useEffect(() => {
     let isMounted = true;
 
@@ -58,54 +43,43 @@ export function OnboardingHubPage() {
       const participantSession = getParticipantSession(slug);
 
       if (!participantSession?.participantId) {
-        if (isMounted) {
-          setProgress(getFallbackProgressFromLocalStorage(slug));
-        }
         return;
       }
 
       try {
-        const participantId = participantSession.participantId;
-
-        const [identityRes, profileRes, preferencesRes, originsRes] = await Promise.all([
-          supabase
-            .from("participant_identity")
-            .select("completed")
-            .eq("participant_id", participantId)
-            .maybeSingle(),
-
-          supabase
-            .from("participant_profile")
-            .select("completed")
-            .eq("participant_id", participantId)
-            .maybeSingle(),
-
-          supabase
-            .from("participant_preferences")
-            .select("completed")
-            .eq("participant_id", participantId)
-            .maybeSingle(),
-
-          supabase
-            .from("participant_origins")
-            .select("completed")
-            .eq("participant_id", participantId)
-            .maybeSingle(),
-        ]);
+        const rowsByTable = await loadCompletionData(
+          participantSession.participantId,
+          onboardingRules,
+        );
 
         if (!isMounted) return;
 
         const nextProgress: StepProgressByKey = {
-          identity: identityRes.data?.completed ? "done" : "todo",
-          profile: profileRes.data?.completed ? "done" : "todo",
-          preferences: preferencesRes.data?.completed ? "done" : "todo",
-          origins: originsRes.data?.completed ? "done" : "todo",
+          identity: "todo",
+          profile: "todo",
+          preferences: "todo",
+          origins: "todo",
         };
+
+        for (const rule of onboardingRules) {
+          if (!rule.onboardingKey) continue;
+
+          const row = rule.table ? rowsByTable[rule.table] : null;
+
+          nextProgress[rule.onboardingKey] = isCompletionRuleComplete(rule, row)
+            ? "done"
+            : "todo";
+        }
 
         setProgress(nextProgress);
       } catch {
         if (isMounted) {
-          setProgress(getFallbackProgressFromLocalStorage(slug));
+          setProgress({
+          identity: "todo",
+          profile: "todo",
+          preferences: "todo",
+          origins: "todo",
+        });
         }
       }
     }
@@ -115,7 +89,7 @@ export function OnboardingHubPage() {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, onboardingRules]);
 
   const completedCount = Object.values(progress).filter(
     (status) => status === "done",
@@ -187,21 +161,20 @@ export function OnboardingHubPage() {
 
         <div className="mt-5 space-y-3">
           <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-              <div className='flex items-start gap-3'>
-                <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-                <div className='min-w-0'>
-                  <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-                  <div className='mt-0.5 text-xs text-amber-800'>
-                    <ol>
-                      <li>Revoir le titre</li>
-                      <li>Revoir la barre de progression pour qu'elle se base sur la base de données</li>
-                      <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
-                      <li>revoir les labels des cartes</li>
-                    </ol>
-                  </div>
+            <div className='flex items-start gap-3'>
+              <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
+              <div className='min-w-0'>
+                <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
+                <div className='mt-0.5 text-xs text-amber-800'>
+                  <ol>
+                    <li>Revoir le titre</li>
+                    <li>faire une lib qui dit les conditions pour qu'une section soit dite complète</li>
+                    <li>revoir les labels des cartes</li>
+                  </ol>
                 </div>
               </div>
             </div>
+          </div>
           {onboardingStepsConfig.map((step) => (
             <OnboardingStepCard
               key={step.key}

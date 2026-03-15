@@ -38,10 +38,6 @@ export function ParticipantIdentityPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {
@@ -179,8 +175,6 @@ export function ParticipantIdentityPage() {
           recoveryToken: result.recoveryToken ?? undefined,
         }),
       );
-
-      localStorage.setItem(`connect:${slug}:onboarding:identity`, "done");
 
       nav(`/e/${slug}/welcome/confirmation?step=identity`, { replace: true });
     } catch (e: any) {

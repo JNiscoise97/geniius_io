@@ -36,10 +36,6 @@ export function FamilyKnowledgeCloseFamilyPage() {
   const config = closeFamilyFormConfig;
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {

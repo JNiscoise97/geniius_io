@@ -33,10 +33,6 @@ export function ParticipantPreferencesPage() {
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   
 
   useEffect(() => {
@@ -109,8 +105,6 @@ export function ParticipantPreferencesPage() {
         participantId: participantSession.participantId,
         values,
       });
-
-      localStorage.setItem(`connect:${slug}:onboarding:preferences`, "done");
 
       nav(`/e/${slug}/welcome/confirmation?step=preferences`, { replace: true });
     } catch (e: any) {

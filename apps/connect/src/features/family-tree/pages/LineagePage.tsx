@@ -14,11 +14,6 @@ export function LineagePage() {
   const [data, setData] = useState<GetLineageResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   useEffect(() => {
     let isMounted = true;
 

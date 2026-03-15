@@ -1,6 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getPersonSheet } from "../api/getPersonSheet";
 import type { PersonSheetData } from "../config/personSheets";
 import { PersonSheetHero } from "../components/PersonSheetHero";
@@ -11,6 +11,8 @@ import { PersonSheetTimeline } from "../components/PersonSheetTimeline";
 import { PersonSheetFamily } from "../components/PersonSheetFamily";
 import { PersonSheetStats } from "../components/PersonSheetStats";
 import { PersonSheetPhoto } from "../components/PersonSheetPhoto";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 export function PersonSheetPage() {
   const [searchParams] = useSearchParams();
@@ -20,6 +22,12 @@ export function PersonSheetPage() {
   const [error, setError] = useState<string | null>(null);
 
   const personId = searchParams.get("id")?.trim() ?? "";
+
+  const { eventSlug } = useParams();
+  const slug = eventSlug ?? "demo";
+
+  const participantSession = getParticipantSession(slug);
+    const participantId = participantSession?.participantId ?? null;
 
   useEffect(() => {
     let mounted = true;
@@ -59,6 +67,22 @@ export function PersonSheetPage() {
       mounted = false;
     };
   }, [personId]);
+
+  useEffect(() => {
+      if (!participantId) return;
+  
+      const tracker = createPageTimeTracker({
+        participantId,
+        eventSlug: slug,
+        pageKey: `/e/${slug}/fiche?id=@7398@`,
+      });
+  
+      tracker.start();
+  
+      return () => {
+        void tracker.stop();
+      };
+    }, [participantId, slug]);
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">

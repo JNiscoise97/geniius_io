@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { FormEvent } from "react";
 import {
   ContactChannelCheckboxGroup,
@@ -59,20 +59,7 @@ export function IdentityForm({
   const enabledChannels = getEnabledChannels(value);
 
   return (
-    <><div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-      <div className='flex items-start gap-3'>
-        <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-        <div className='min-w-0'>
-          <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-          <div className='mt-0.5 text-xs text-amber-800'>
-            <ol>
-              <li>Sortir les champs branche familiale et déjà venu</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    </div>
-      <form id="identity-form" onSubmit={onSubmit} className="mt-3">
+    <form id="identity-form" onSubmit={onSubmit} className="mt-3">
         <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm space-y-4">
           <div className="grid gap-1">
             <span className="text-xs font-extrabold text-slate-800">
@@ -254,6 +241,6 @@ export function IdentityForm({
             </div>
           </div>
         </footer>
-      </form></>
+      </form>
   );
 }

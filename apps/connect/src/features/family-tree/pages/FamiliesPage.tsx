@@ -16,10 +16,6 @@ export function FamiliesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     async function loadData() {

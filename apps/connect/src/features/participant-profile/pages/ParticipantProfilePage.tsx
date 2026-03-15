@@ -30,10 +30,6 @@ export function ParticipantProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     async function loadExistingData() {
@@ -117,7 +113,6 @@ export function ParticipantProfilePage() {
         }),
       ]);
 
-      localStorage.setItem(`connect:${slug}:onboarding:profile`, "done");
       nav(`/e/${slug}/welcome/confirmation?step=profile`, { replace: true });
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");

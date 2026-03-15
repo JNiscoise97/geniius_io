@@ -29,6 +29,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { completionRules, getFirstIncompleteCompletionRules, type CompletionRule } from "../../../lib/completion/sectionCompletion";
+import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
+
 
 type HubActionStatus = "enabled" | "dev" | "disabled";
 type HubAvailabilityMode = "available" | "launch";
@@ -53,15 +56,6 @@ type HubSection = {
   title: string;
   subtitle: string;
   items: HubAction[];
-};
-
-type GuidedPrompt = {
-  key: string;
-  eyebrow?: string;
-  title: string;
-  text: string;
-  cta: string;
-  actionKey: string;
 };
 
 const SECTION_HEADER_CLASS =
@@ -154,6 +148,12 @@ export function LandingPage() {
     dayof: false,
     after: false,
   });
+  const [guidedPrompts, setGuidedPrompts] = useState<CompletionRule[]>([]);
+  const [loadingGuidedPrompts, setLoadingGuidedPrompts] = useState(true);
+
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+  const firstName = participantSession?.firstName?.trim();
 
   const features = {
     preEvent: {
@@ -181,7 +181,7 @@ export function LandingPage() {
     core: {
       familyTree: false,
       familyLibrary: false,
-      familyTreePerson:true,
+      familyTreePerson: true,
     },
   };
 
@@ -448,68 +448,58 @@ export function LandingPage() {
     [slug],
   );
 
-  const actionMap = useMemo(() => {
-    const entries = sections.flatMap((section) =>
-      section.items.map((item) => [item.key, item] as const),
-    );
-    return new Map(entries);
-  }, [sections]);
+  useEffect(() => {
+    let cancelled = false;
 
-  const participantSession = getParticipantSession(slug);
-  const participantId = participantSession?.participantId ?? null;
-  const firstName = participantSession?.firstName?.trim();
+    async function loadGuidedPrompts() {
+      if (!participantId) {
+        if (!cancelled) {
+          setGuidedPrompts(
+            completionRules
+              .filter((rule) => rule.type === "info")
+              .slice(0, 5),
+          );
+          setLoadingGuidedPrompts(false);
+        }
+        return;
+      }
 
-  const guidedPrompts = useMemo<GuidedPrompt[]>(() => {
-    const prompts: GuidedPrompt[] = [];
+      try {
+        setLoadingGuidedPrompts(true);
 
-    if (actionMap.has("attendance")) {
-      prompts.push({
-        key: "attendance-first",
-        eyebrow: "Pour bien commencer",
-        title: "As-tu déjà confirmé ta présence ?",
-        text: "Aide-nous à préparer la journée en annonçant ta venue.",
-        cta: "Confirmer ma présence",
-        actionKey: "attendance",
-      });
+        const rowsByTable = await loadCompletionData(participantId, completionRules);
+        const nextPrompts = getFirstIncompleteCompletionRules(
+          completionRules,
+          rowsByTable,
+          4,
+        );
+
+        if (!cancelled) {
+          setGuidedPrompts(nextPrompts);
+        }
+      } catch (error) {
+        console.error("Impossible de charger les actions rapides", error);
+
+        if (!cancelled) {
+          setGuidedPrompts([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingGuidedPrompts(false);
+        }
+      }
     }
 
-    if (actionMap.has("questionnaire")) {
-      prompts.push({
-        key: "grandparents",
-        eyebrow: "Mémoire familiale",
-        title: "As-tu connu tes grands-parents ?",
-        text: "Partage ce que tu sais pour aider à préserver l’histoire familiale.",
-        cta: "Partager ce que je sais",
-        actionKey: "questionnaire",
-      });
-    }
+    void loadGuidedPrompts();
 
-    if (actionMap.has("family-tree")) {
-      prompts.push({
-        key: "lineage",
-        eyebrow: "Arbre familial",
-        title: "Connais-tu ton lien exact avec Gromèr Covindou ?",
-        text: "Retrouve ta place dans l’arbre et explore les liens entre les branches.",
-        cta: "Voir mon lien dans l’arbre",
-        actionKey: "family-tree",
-      });
-    }
+    return () => {
+      cancelled = true;
+    };
+  }, [participantId]);
 
-    if (actionMap.has("present")) {
-      prompts.unshift({
-        key: "present-first",
-        eyebrow: "Profil",
-        title: firstName
-          ? `${firstName}, veux-tu te présenter à la famille ?`
-          : "Veux-tu te présenter à la famille ?",
-        text: "Quelques informations aident les cousins à mieux te situer.",
-        cta: "Compléter mon profil",
-        actionKey: "present",
-      });
-    }
-
-    return prompts.slice(0, 4);
-  }, [actionMap, firstName]);
+  function openCompletionRule(rule: CompletionRule) {
+    navigate(`/e/${slug}${rule.to}`);
+  }
 
   function openAction(item: HubAction) {
     const status = getActionStatus(item);
@@ -605,26 +595,29 @@ export function LandingPage() {
                   </div>
                   <div className="mt-0.5 text-xs text-amber-800">
                     <ol>
-                      <li>construire les actions rapides guidées</li>
+                      <li>construire les actions rapides guidées (revoir les icones, si générique pas de spécifiques dans la liste des 5 par ex si j'ai origins pas besoin de mettre les origins-xxx)</li>
                     </ol>
                   </div>
                 </div>
               </div>
             </div>
 
-            {guidedPrompts.map((prompt) => {
-              const item = actionMap.get(prompt.actionKey);
-              if (!item) return null;
+            {loadingGuidedPrompts ? (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="text-sm font-bold text-slate-700">
+                  Chargement des actions rapides…
+                </div>
+              </section>
+            ) : null}
 
-              return (
+            {!loadingGuidedPrompts &&
+              guidedPrompts.map((prompt) => (
                 <GuidedPromptCard
                   key={prompt.key}
                   prompt={prompt}
-                  item={item}
-                  onClick={() => openAction(item)}
+                  onClick={() => openCompletionRule(prompt)}
                 />
-              );
-            })}
+              ))}
           </section>
         ) : (
           <div className="mt-5 space-y-4">
@@ -686,78 +679,40 @@ export function LandingPage() {
 
 function GuidedPromptCard({
   prompt,
-  item,
   onClick,
 }: {
-  prompt: GuidedPrompt;
-  item: HubAction;
+  prompt: CompletionRule;
   onClick: () => void;
 }) {
-  const Icon = item.icon;
-  const status = getActionStatus(item);
-  const disabled = status !== "enabled";
-  const availabilityLabel = item.availableAt
-    ? getAvailabilityLabel(item.availableAt, item.availabilityMode)
-    : undefined;
+  const Icon = prompt.icon;
 
   return (
     <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-      {prompt.eyebrow ? (
-        <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
-          {prompt.eyebrow}
-        </div>
-      ) : null}
+      <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+        {prompt.eyebrow}
+      </div>
 
       <div className="mt-3 flex items-start gap-4">
-        <div
-          className={[
-            "mt-0.5 rounded-2xl p-3",
-            disabled
-              ? "bg-slate-200 text-slate-500"
-              : "bg-indigo-50 text-indigo-700",
-          ].join(" ")}
-        >
+        <div className="mt-0.5 rounded-2xl bg-indigo-50 p-3 text-indigo-700">
           <Icon size={20} />
         </div>
 
         <div className="min-w-0 flex-1">
-          <h2
-            className={[
-              "text-lg font-black leading-6",
-              disabled ? "text-slate-500" : "text-slate-900",
-            ].join(" ")}
-          >
-            {prompt.title}
+          <h2 className="text-lg font-black leading-6 text-slate-900">
+            {prompt.actionRapide}
           </h2>
 
-          <p
-            className={[
-              "mt-2 text-sm font-bold leading-6",
-              disabled ? "text-slate-500" : "text-slate-700",
-            ].join(" ")}
-          >
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
             {prompt.text}
           </p>
-
-          {disabled ? (
-            <div className="mt-3 text-[11px] font-extrabold text-slate-500">
-              {availabilityLabel}
-            </div>
-          ) : null}
 
           <button
             type="button"
             onClick={onClick}
-            disabled={disabled}
-            className={[
-              "mt-4 inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition",
-              disabled
-                ? "bg-slate-100 text-slate-400"
-                : "bg-[color:var(--blue)] text-white active:scale-[0.99]",
-            ].join(" ")}
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
           >
             {prompt.cta}
-            {!disabled ? <ArrowRight size={16} /> : null}
+            <ArrowRight size={16} />
           </button>
         </div>
       </div>

@@ -234,10 +234,6 @@ export function FamilyKnowledgeGodparentsPage() {
 
   const config = godparentsFormConfig;
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
 
 
   useEffect(() => {

@@ -9,6 +9,7 @@ import { contactOrganizerFormConfig } from "../config/contactOrganizerFormConfig
 import { saveOrganizerMessage } from "../api/saveOrganizerMessage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { getParticipantContactProfile } from "../api/getParticipantContactProfile";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 const INITIAL_VALUES: ContactOrganizerFormValues = {
   topic: "",
@@ -36,10 +37,23 @@ export function ParticipantContactOrganizerPage() {
   const [error, setError] = useState<string | null>(null);
 
   const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+        if (!participantId) return;
+    
+        const tracker = createPageTimeTracker({
+          participantId,
+          eventSlug: slug,
+          pageKey: `/e/${slug}/fiche?id=@7398@`,
+        });
+    
+        tracker.start();
+    
+        return () => {
+          void tracker.stop();
+        };
+      }, [participantId, slug]);
 
   useEffect(() => {
     let mounted = true;

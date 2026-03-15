@@ -29,10 +29,6 @@ export function ParticipantAttendancePage() {
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   
 
   useEffect(() => {

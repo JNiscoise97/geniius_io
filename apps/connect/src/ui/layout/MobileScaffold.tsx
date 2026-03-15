@@ -1,5 +1,6 @@
 import { Link, Outlet, useParams } from "react-router-dom";
 import { ProfileSwitcher } from "./ProfileSwitcher";
+import { ScrollToTop } from "../components/ScollToTop";
 
 export function MobileScaffold() {
   const { eventSlug } = useParams();
@@ -7,6 +8,7 @@ export function MobileScaffold() {
 
   return (
     <div className="app min-h-screen bg-[color:var(--bg)]">
+      <ScrollToTop />
       <header className="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="c-container flex items-center justify-between gap-3 p-4">
           <Link to={`/e/${slug}/home`} className="min-w-0">

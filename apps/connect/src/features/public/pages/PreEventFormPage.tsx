@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, Users } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../lib/supabase/client";
 
@@ -44,10 +44,6 @@ export function PreEventFormPage() {
     () => config.previousEditions.length > 0,
     [config.previousEditions],
   );
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
 
   function toggleArrayValue(
     value: string,

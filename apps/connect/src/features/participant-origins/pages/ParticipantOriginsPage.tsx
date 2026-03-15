@@ -104,7 +104,6 @@ export function ParticipantOriginsPage() {
         values,
       });
 
-      localStorage.setItem(`connect:${slug}:onboarding:origins`, "done");
       nav(`/e/${slug}/welcome/confirmation?step=origins`, { replace: true });
     } catch (e: any) {
       setError(e?.message ?? "Erreur inconnue.");

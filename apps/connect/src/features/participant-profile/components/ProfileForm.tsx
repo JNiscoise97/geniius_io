@@ -75,6 +75,7 @@ export function ProfileForm({
               <ol>
                 <li>Envoi d'une notif par mail à l'organisateur</li>
                 <li>Revoir les labels du titre</li>
+                <li>Transformer boolean de preferences en yes/no/null</li>
               </ol>
             </div>
           </div>

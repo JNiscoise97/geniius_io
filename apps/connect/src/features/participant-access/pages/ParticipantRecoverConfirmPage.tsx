@@ -29,10 +29,6 @@ export function ParticipantRecoverConfirmPage() {
   const token = searchParams.get("t")?.trim() ?? "";
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     async function loadPreview() {

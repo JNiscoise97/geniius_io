@@ -131,10 +131,6 @@ export function FamilyKnowledgeCurrentLinksPage() {
 
   const config = currentLinksFormConfig;
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   
 
   useEffect(() => {
