@@ -33,8 +33,8 @@ export function OnboardingConfirmationPage() {
         };
       case "preferences":
         return {
-          title: "Merci, tes préférences ont bien été enregistrées",
-          text: "Tes choix concernant les autorisations, l’arbre familial et les usages de tes informations ont bien été pris en compte.",
+          title: "Merci, tes consentements ont bien été enregistrés",
+          text: "Tes choix concernant l’arbre familial, les photos, les contacts et certains usages dans l’application ont bien été pris en compte.",
         };
       case "attendance":
         return {

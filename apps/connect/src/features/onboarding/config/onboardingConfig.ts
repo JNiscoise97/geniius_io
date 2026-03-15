@@ -31,11 +31,10 @@ export const onboardingStepsConfig: OnboardingStepConfig[] = [
   },
   {
     key: "preferences",
-    title: "Préférences de communication",
-    subtitle:
-      "Choisis ce que la famille peut afficher ou partager à ton sujet.",
-    why: "Tu peux décider ce que tu autorises : photos, informations dans l’arbre familial ou diffusion de certains éléments.",
-    ctaLabel: "Gérer mes préférences",
+    title: "Consentements et partage",
+    subtitle: "Choisis ce que la famille peut voir, afficher ou réutiliser à ton sujet.",
+    why: "Tu gardes la main sur les photos, l’arbre familial, les contacts et certains usages dans l’application.",
+    ctaLabel: "Gérer mes consentements",
     icon: Settings,
     routeSuffix: "preferences",
   },

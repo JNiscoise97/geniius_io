@@ -13,6 +13,7 @@ import { OnboardingStepCard } from "../components/OnboardingStepCard";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { getOnboardingCompletionRules, isCompletionRuleComplete } from "../../../lib/completion/sectionCompletion";
 import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 type StepProgressByKey = Record<
   "identity" | "profile" | "preferences" | "origins",
@@ -23,6 +24,8 @@ export function OnboardingHubPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
 
   const [progress, setProgress] = useState<StepProgressByKey>({
     identity: "todo",
@@ -35,6 +38,23 @@ export function OnboardingHubPage() {
   () => getOnboardingCompletionRules(),
   [],
 );
+
+
+ useEffect(() => {
+          if (!participantId) return;
+      
+          const tracker = createPageTimeTracker({
+            participantId,
+            eventSlug: slug,
+            pageKey: `/e/${slug}/welcome`,
+          });
+      
+          tracker.start();
+      
+          return () => {
+            void tracker.stop();
+          };
+        }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,7 +125,6 @@ export function OnboardingHubPage() {
     [completedCount, totalCount],
   );
 
-  const participantSession = getParticipantSession(slug);
   const firstName = participantSession?.firstName?.trim();
 
   return (
@@ -172,7 +191,6 @@ export function OnboardingHubPage() {
                 <div className='mt-0.5 text-xs text-amber-800'>
                   <ol>
                     <li>Revoir le titre</li>
-                    <li>faire une lib qui dit les conditions pour qu'une section soit dite complète (préférences)</li>
                     <li>revoir les labels des cartes</li>
                   </ol>
                 </div>

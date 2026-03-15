@@ -1,1 +1,1 @@
-export type ProfileTreePreference = "yes" | "no" | null;
+export type ProfileTreePreference = boolean | null;

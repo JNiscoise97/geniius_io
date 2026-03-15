@@ -12,6 +12,7 @@ import { getParticipantSession } from "../../../lib/participant-session/getActiv
 import { getProfileTreePreference } from "../api/getProfileTreePreference";
 import { saveProfileTreePreference } from "../api/saveProfileTreePreference";
 import type { ProfileTreePreference } from "../types/profileTreePreference";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 export function ParticipantProfilePage() {
   const nav = useNavigate();
@@ -31,6 +32,26 @@ export function ParticipantProfilePage() {
   const [loading, setLoading] = useState(false);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/welcome/profile`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -52,6 +73,7 @@ export function ParticipantProfilePage() {
           }),
           getProfileTreePreference({
             participantId: participantSession.participantId,
+            eventSlug: slug,
           }),
         ]);
 
@@ -102,6 +124,7 @@ export function ParticipantProfilePage() {
         }),
         saveProfileTreePreference({
           participantId: participantSession.participantId,
+          eventSlug: slug,
           allowInfoInFamilyTree,
         }),
       ]);

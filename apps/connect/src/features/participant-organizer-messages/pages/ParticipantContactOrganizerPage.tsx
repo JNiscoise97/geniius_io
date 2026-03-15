@@ -45,7 +45,7 @@ export function ParticipantContactOrganizerPage() {
         const tracker = createPageTimeTracker({
           participantId,
           eventSlug: slug,
-          pageKey: `/e/${slug}/fiche?id=@7398@`,
+          pageKey: `/e/${slug}/contact`,
         });
     
         tracker.start();
