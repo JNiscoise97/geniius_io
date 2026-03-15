@@ -6,7 +6,7 @@ import { getFamilyKnowledgePhotoTargets } from "../api/getFamilyKnowledgePhotoTa
 import { sendFamilyKnowledgePhotoEmail } from "../api/sendFamilyKnowledgePhotoEmail";
 import { uploadFamilyKnowledgePhoto } from "../api/uploadFamilyKnowledgePhoto";
 import { FamilyKnowledgePhotoCard } from "../components/FamilyKnowledgePhotoCard";
-import type { FamilyPhotoTarget } from "../../family-knowledge/types/familyKnowledgePhotoTargets";
+import type { FamilyPhotoTarget } from "../types/familyKnowledgePhotoTargets";
 
 type UploadStatus = "idle" | "uploading" | "sent" | "error";
 
@@ -28,12 +28,18 @@ function groupTitle(personType: FamilyPhotoTarget["personType"]): string {
   switch (personType) {
     case "parent":
       return "Parents";
-    case "godparent":
-      return "Parrains et marraines";
+    case "child":
+      return "Enfants";
+    case "partner":
+      return "Conjoint";
+    case "current_link":
+      return "Liens actuels";
     case "grandparent":
       return "Grands-parents";
-    case "sibling":
-      return "Frères et sœurs";
+    case "aunt_uncle":
+      return "Oncles et tantes";
+    case "story_teller":
+      return "Personnes ressources";
     default:
       return "Autres";
   }
@@ -65,7 +71,6 @@ export function FamilyKnowledgePhotosPage() {
         }
 
         const rows = await getFamilyKnowledgePhotoTargets({
-          eventSlug: slug,
           participantId: session.participantId,
         });
 
@@ -198,14 +203,16 @@ export function FamilyKnowledgePhotosPage() {
 
       {!targets.length ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
-          Aucune personne avec <code>hasPhoto = true</code> n’a été trouvée dans les données familiales.
+          Aucune personne avec <code>hasPhoto = yes</code> n’a été trouvée dans les données familiales.
         </div>
       ) : null}
 
       <div className="space-y-8">
         {groupedTargets.map(([title, items]) => (
           <section key={title}>
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">{title}</h2>
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+              {title}
+            </h2>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {items.map((target) => {
