@@ -1,3 +1,10 @@
+import TanjamaManicon from "../../../assets/images/tanjama-manicon.jpg";
+import TanjamaCoundeaman from "../../../assets/images/tanjama-coundeaman.jpg";
+import TanjamaCanou from "../../../assets/images/tanjama-canou.jpg";
+import TanjamaSavoupaquiom from "../../../assets/images/tanjama-savoupaquiom.jpg";
+import BlukerEmmanuel from "../../../assets/images/bluker-emmanuel.jpg";
+import KicheninCandide from "../../../assets/images/kichenin-candide.jpg";
+
 export type PersonSheetMedia = {
   key: string;
   type: "image" | "document";
@@ -20,6 +27,15 @@ export type PersonSheetRelative = {
   name: string;
   years?: string;
   linkId?: string;
+
+  photo?: any;
+
+  spouses?: {
+    name: string;
+    photo?: string;
+  }[];
+
+  childrenCount?: number;
 };
 
 export type PersonSheetBranchStat = {
@@ -104,7 +120,7 @@ export const personSheets: Record<string, PersonSheetData> = {
       "Dans les dénombrements de 1926 et 1931, elle vit chez sa fille Barlama, épouse d’Augustin VIRAMA, dans le quartier de Grande Ravine. Les documents indiquent qu’elle est illettrée.",
       "Très attachée aux traditions religieuses tamoules transmises par sa mère, elle vit cependant assez longtemps pour voir une partie de la génération suivante se convertir au catholicisme.",
       "En 1949, à l’âge de 81 ans, elle reçoit un ondoyement à l’église de Trois-Bassins.",
-      "Elle décède le 12 juillet 1955 à Trois-Bassins, sur la route Hubert Delisle."
+      "Elle décède le 12 juillet 1955 à Trois-Bassins, sur la route Hubert Delisle.",
     ],
 
     genealogyNotes: [
@@ -113,7 +129,7 @@ export const personSheets: Record<string, PersonSheetData> = {
       "Elle apparaît comme cheffe de famille dans plusieurs dénombrements.",
       "Les documents mentionnent qu’elle était illettrée.",
       "Elle a travaillé dans l’environnement agricole de l’établissement Grande Ravine.",
-      "À ce jour, plus de 1 190 descendants ont été identifiés dans sa descendance."
+      "À ce jour, plus de 1 190 descendants ont été identifiés dans sa descendance.",
     ],
 
     aliases: [
@@ -153,8 +169,7 @@ export const personSheets: Record<string, PersonSheetData> = {
         label: "Naissance de son fils Candassamy",
         date: "1885",
         place: "Saint-Leu",
-        description:
-          "Naissance dans une des maisons d’Augustin CERVEAUX.",
+        description: "Naissance dans une des maisons d’Augustin CERVEAUX.",
       },
 
       {
@@ -217,8 +232,7 @@ export const personSheets: Record<string, PersonSheetData> = {
         label: "Dénombrement",
         date: "27.07.1920",
         place: "Trois-Bassins · Bas de la Grande Ravine",
-        description:
-          "Numéro d’ordre 9. Cheffe de famille, cultivatrice.",
+        description: "Numéro d’ordre 9. Cheffe de famille, cultivatrice.",
       },
 
       {
@@ -226,8 +240,7 @@ export const personSheets: Record<string, PersonSheetData> = {
         label: "Dénombrement",
         date: "30.07.1921",
         place: "Trois-Bassins · Petite Ravine · établissement",
-        description:
-          "Numéro d’ordre 36. Cheffe de famille, sans profession.",
+        description: "Numéro d’ordre 36. Cheffe de famille, sans profession.",
       },
 
       {
@@ -288,22 +301,110 @@ export const personSheets: Record<string, PersonSheetData> = {
     ],
 
     children: [
-      { key: "c1", label: "Enfant", name: "Candassamy TANJAMA", years: "1885-1945" },
-      { key: "c2", label: "Enfant", name: "Barlama TANJAMA", years: "1889-1967" },
-      { key: "c3", label: "Enfant", name: "Coundéaman TANJAMA", years: "1891-1975" },
-      { key: "c4", label: "Enfant", name: "Tévané TANJAMA", years: "1893-1982" },
-      { key: "c5", label: "Enfant", name: "Savoupaquiom TANJAMA", years: "1895-1992" },
-      { key: "c6", label: "Enfant", name: "Virassamy ARIAPOUTRY", years: "1897-1897" },
+      {
+        key: "c1",
+        label: "Enfant",
+        name: "Candassamy TANJAMA",
+        years: "1885-1945",
+        childrenCount: 11,
+        spouses: [
+          {
+            name: 'KICHENIN Marie "Candide" dite Kakann (1888-1960)',
+            photo: KicheninCandide,
+          },
+        ],
+      },
+      {
+        key: "c2",
+        label: "Enfant",
+        name: "Barlama dite Manicon TANJAMA",
+        years: "1889-1967",
+        photo: TanjamaManicon,
+        childrenCount: 14,
+        spouses: [
+          {
+            name: "VIRAMA Augustin dit Augustin Claire (1886-1960)",
+          },
+        ],
+      },
+      {
+        key: "c3",
+        label: "Enfant",
+        name: "Coundéaman TANJAMA",
+        years: "1891-1975",
+        photo: TanjamaCoundeaman,
+        childrenCount: 9,
+        spouses: [
+          {
+            name: "BLUKER Antoine dit Emmanuel (1888-1986)",
+            photo: BlukerEmmanuel,
+          },
+        ],
+      },
+      {
+        key: "c4",
+        label: "Enfant",
+        name: "Tévané dite Canou TANJAMA",
+        years: "1893-1982",
+        photo: TanjamaCanou,
+        childrenCount: 5,
+        spouses: [
+          {
+            name: "GAPS Jean Louis Pierre Paul (1883-)",
+          },
+          {
+            name: "VIRAMA Joseph (1888-)",
+          },
+          {
+            name: "RAMANY Auguste (1893-1965)",
+          },
+        ],
+      },
+      {
+        key: "c5",
+        label: "Enfant",
+        name: "Savoupaquiom dite Molotte TANJAMA",
+        years: "1895-1992",
+        photo: TanjamaSavoupaquiom,
+        childrenCount: 5,
+        spouses: [
+          {
+            name: "CALÉTY Joseph (1892-1945)",
+          },
+        ],
+      },
+      {
+        key: "c6",
+        label: "Enfant",
+        name: "Virassamy ARIAPOUTRY",
+        years: "1897-1897",
+      },
     ],
 
     stats: {
       identifiedDescendants: 1193,
       branchStats: [
-        { key: "candassamy", label: "Descendance de Candassamy dit Candé", count: 313 },
-        { key: "barlama", label: "Descendance de Barlama dite Manicon", count: 374 },
+        {
+          key: "candassamy",
+          label: "Descendance de Candassamy dit Candé",
+          count: 313,
+        },
+        {
+          key: "barlama",
+          label: "Descendance de Barlama dite Manicon",
+          count: 374,
+        },
         { key: "coundeaman", label: "Descendance de Coundéaman", count: 165 },
-        { key: "tevane", label: "Descendance de Tévané dite Canou", count: 146 },
-        { key: "savoupaquiom", label: "Descendance de Savoupaquiom dite Molotte", count: 202 },
+        {
+          key: "tevane",
+          label: "Descendance de Tévané dite Canou",
+          count: 146,
+        },
+        {
+          key: "savoupaquiom",
+          label: "Descendance de Savoupaquiom dite Molotte",
+          count: 202,
+        },
       ],
       note: "Quelques implexes existent dans la descendance.",
     },

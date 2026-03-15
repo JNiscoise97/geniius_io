@@ -15,15 +15,59 @@ function RelativeList({
   return (
     <div>
       <div className="text-sm font-black text-slate-900">{title}</div>
+
       <div className="mt-3 space-y-2">
         {items.map((item) => (
-          <div key={item.key} className="rounded-2xl bg-slate-50 px-4 py-3">
-            <div className="text-sm font-black text-slate-900">{item.name}</div>
-            {item.years ? (
-              <div className="mt-1 text-xs font-bold text-slate-600">
-                {item.years}
-              </div>
+          <div
+            key={item.key}
+            className="rounded-2xl bg-slate-50 px-4 py-3 flex items-start gap-3"
+          >
+            {/* photo de l'enfant */}
+            {item.photo ? (
+              <img
+                src={item.photo}
+                className="h-10 w-10 rounded-full object-cover"
+              />
             ) : null}
+
+            <div className="min-w-0">
+              <div className="text-sm font-black text-slate-900">
+                {item.name}
+
+                {item.childrenCount !== undefined && (
+                  <span className="ml-1 text-xs font-bold text-slate-500">
+                    ({item.childrenCount})
+                  </span>
+                )}
+              </div>
+
+              {item.years ? (
+                <div className="mt-1 text-xs font-bold text-slate-600">
+                  {item.years}
+                </div>
+              ) : null}
+
+              {/* conjoints */}
+              {item.spouses && item.spouses.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                  {item.spouses.map((spouse, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border border-slate-200"
+                    >
+                      {spouse.photo ? (
+                        <img
+                          src={spouse.photo}
+                          className="h-5 w-5 rounded-full object-cover"
+                        />
+                      ) : null}
+
+                      <span className="font-semibold">{spouse.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
