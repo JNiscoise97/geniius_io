@@ -34,7 +34,7 @@ export const profileQuestionsConfig: ProfileFormConfig = {
       helpText:
         "",
       type: "textarea",
-      placeholder: "Ex : Montpellier",
+      placeholder: "Ex : Trois-Bassins",
       maxLength: 120,
     },
     {

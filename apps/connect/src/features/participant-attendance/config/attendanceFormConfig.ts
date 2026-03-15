@@ -4,7 +4,7 @@ export type AttendanceOption = {
 };
 
 export type HelpOption = {
-  key: "setup" | "welcome" | "animation" | "cleanup" | "other";
+  key: "setup" | "welcome" | "animation" | "cleanup" | "unknown" | "other";
   label: string;
 };
 
@@ -59,6 +59,7 @@ export const attendanceFormConfig: AttendanceFormConfig = {
     { key: "welcome", label: "Accueil" },
     { key: "animation", label: "Animation" },
     { key: "cleanup", label: "Rangement" },
+    { key: "unknown", label: "Je ne sais pas encore" },
     { key: "other", label: "Autre" },
   ],
   fields: {
