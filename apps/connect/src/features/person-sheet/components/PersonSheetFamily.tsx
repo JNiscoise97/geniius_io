@@ -1,4 +1,3 @@
-import { AlertTriangle } from "lucide-react";
 import type { PersonSheetData, PersonSheetRelative } from "../config/personSheets";
 
 type PersonSheetFamilyProps = {
