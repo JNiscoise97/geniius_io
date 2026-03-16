@@ -4,8 +4,8 @@ export const createProfileConfig = {
   subtitle:
     "Quelques informations suffisent pour entrer dans l’espace famille.",
   helper:
-    "Ton profil restera sur ce téléphone. Un lien personnel te sera aussi envoyé.",
-  contactTitle: "Contact",
+    "Ton email personnel est nécessaire pour recevoir ton lien d’accès. Les autres moyens de contact servent uniquement pour les prochains échanges.",
+  contactTitle: "Pour les prochains échanges",
   contactHelper:
-    "Indique au moins un contact et choisis ton moyen préféré.",
+    "Téléphone, WhatsApp et Messenger sont facultatifs. Ils aideront la famille à te recontacter plus facilement ensuite.",
 };

@@ -23,13 +23,10 @@ export type ParticipantContactProfile = {
   preferredContactChannels: ContactChannel[];
 };
 
-function normalizeChannels(values: string[] | null | undefined): ContactChannel[] {
-  const allowed = new Set<ContactChannel>([
-    "sms",
-    "email",
-    "whatsapp",
-    "messenger",
-  ]);
+function normalizeChannels(
+  values: string[] | null | undefined,
+): ContactChannel[] {
+  const allowed = new Set<ContactChannel>(["sms", "whatsapp", "messenger"]);
 
   return (values ?? []).filter(
     (value): value is ContactChannel => allowed.has(value as ContactChannel),

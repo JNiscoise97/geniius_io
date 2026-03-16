@@ -1,14 +1,16 @@
 import { supabase } from "../../../lib/supabase/client";
 
+export type ParticipantContactChannel = "sms" | "whatsapp" | "messenger";
+
 export type ParticipantAccessCreateValues = {
   firstName: string;
   lastName: string;
   birthYear: string;
+  email: string;
   phone?: string;
-  email?: string;
   hasWhatsapp: boolean;
   messenger?: string;
-  preferredContactChannels: Array<"sms" | "email" | "whatsapp" | "messenger">;
+  preferredContactChannels: ParticipantContactChannel[];
 };
 
 type ParticipantRow = {
@@ -17,8 +19,8 @@ type ParticipantRow = {
   first_name: string;
   last_name: string;
   birth_year: number | null;
-  phone: string | null;
   email: string | null;
+  phone: string | null;
   has_whatsapp: boolean | null;
   messenger: string | null;
   preferred_contact_channels: string[] | null;
@@ -30,15 +32,20 @@ export type SaveParticipantAccessProfileResult = {
   firstName: string;
   lastName: string;
   birthYear?: string;
-  phone?: string;
   email?: string;
+  phone?: string;
   hasWhatsapp: boolean;
   messenger?: string;
-  preferredContactChannels: string[];
+  preferredContactChannels: ParticipantContactChannel[];
 };
 
 function normalizeText(value?: string): string | undefined {
   const v = value?.trim();
+  return v ? v : undefined;
+}
+
+function normalizeEmail(value?: string): string | undefined {
+  const v = value?.trim().toLowerCase();
   return v ? v : undefined;
 }
 
@@ -48,8 +55,29 @@ function normalizeBirthYear(value?: string): number | null {
   return Number(v);
 }
 
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+function uniqueChannels(values: string[]): ParticipantContactChannel[] {
+  const allowed: ParticipantContactChannel[] = ["sms", "whatsapp", "messenger"];
+  return [...new Set(values.map((v) => v.trim()).filter(Boolean))].filter(
+    (v): v is ParticipantContactChannel =>
+      allowed.includes(v as ParticipantContactChannel),
+  );
+}
+
+function toResult(row: ParticipantRow): SaveParticipantAccessProfileResult {
+  return {
+    participantId: row.id,
+    eventSlug: row.event_slug,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    birthYear: row.birth_year ? String(row.birth_year) : undefined,
+    email: row.email ?? undefined,
+    phone: row.phone ?? undefined,
+    hasWhatsapp: row.has_whatsapp === true,
+    messenger: row.messenger ?? undefined,
+    preferredContactChannels: uniqueChannels(
+      row.preferred_contact_channels ?? [],
+    ),
+  };
 }
 
 export async function saveParticipantAccessProfile({
@@ -63,11 +91,11 @@ export async function saveParticipantAccessProfile({
   const firstName = normalizeText(values.firstName);
   const lastName = normalizeText(values.lastName);
   const birthYear = normalizeBirthYear(values.birthYear);
+  const email = normalizeEmail(values.email);
   const phone = normalizeText(values.phone);
-  const email = normalizeText(values.email);
   const hasWhatsapp = values.hasWhatsapp === true;
   const messenger = normalizeText(values.messenger);
-  const preferredContactChannels = uniqueStrings(values.preferredContactChannels);
+  const preferredContactChannels = uniqueChannels(values.preferredContactChannels);
 
   if (!normalizedEventSlug) {
     throw new Error("eventSlug requis.");
@@ -75,6 +103,12 @@ export async function saveParticipantAccessProfile({
 
   if (!firstName || !lastName) {
     throw new Error("Le prénom et le nom sont requis.");
+  }
+
+  if (!email) {
+    throw new Error(
+      "Une adresse email est requise pour envoyer le lien personnel.",
+    );
   }
 
   const participantLookup = await supabase
@@ -85,8 +119,8 @@ export async function saveParticipantAccessProfile({
       first_name,
       last_name,
       birth_year,
-      phone,
       email,
+      phone,
       has_whatsapp,
       messenger,
       preferred_contact_channels
@@ -107,8 +141,8 @@ export async function saveParticipantAccessProfile({
     const updateRes = await supabase
       .from("participants")
       .update({
+        email,
         phone: phone ?? existing.phone,
-        email: email ?? existing.email,
         has_whatsapp: hasWhatsapp || existing.has_whatsapp === true,
         messenger: messenger ?? existing.messenger,
         preferred_contact_channels:
@@ -124,8 +158,8 @@ export async function saveParticipantAccessProfile({
         first_name,
         last_name,
         birth_year,
-        phone,
         email,
+        phone,
         has_whatsapp,
         messenger,
         preferred_contact_channels
@@ -136,20 +170,7 @@ export async function saveParticipantAccessProfile({
       throw new Error(updateRes.error.message);
     }
 
-    const row = updateRes.data;
-
-    return {
-      participantId: row.id,
-      eventSlug: row.event_slug,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      birthYear: row.birth_year ? String(row.birth_year) : undefined,
-      phone: row.phone ?? undefined,
-      email: row.email ?? undefined,
-      hasWhatsapp: row.has_whatsapp === true,
-      messenger: row.messenger ?? undefined,
-      preferredContactChannels: row.preferred_contact_channels ?? [],
-    };
+    return toResult(updateRes.data);
   }
 
   const insertRes = await supabase
@@ -159,8 +180,8 @@ export async function saveParticipantAccessProfile({
       first_name: firstName,
       last_name: lastName,
       birth_year: birthYear,
+      email,
       phone: phone ?? null,
-      email: email ?? null,
       has_whatsapp: hasWhatsapp,
       messenger: messenger ?? null,
       preferred_contact_channels: preferredContactChannels,
@@ -171,8 +192,8 @@ export async function saveParticipantAccessProfile({
       first_name,
       last_name,
       birth_year,
-      phone,
       email,
+      phone,
       has_whatsapp,
       messenger,
       preferred_contact_channels
@@ -183,18 +204,5 @@ export async function saveParticipantAccessProfile({
     throw new Error(insertRes.error.message);
   }
 
-  const row = insertRes.data;
-
-  return {
-    participantId: row.id,
-    eventSlug: row.event_slug,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    birthYear: row.birth_year ? String(row.birth_year) : undefined,
-    phone: row.phone ?? undefined,
-    email: row.email ?? undefined,
-    hasWhatsapp: row.has_whatsapp === true,
-    messenger: row.messenger ?? undefined,
-    preferredContactChannels: row.preferred_contact_channels ?? [],
-  };
+  return toResult(insertRes.data);
 }

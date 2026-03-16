@@ -1,28 +1,29 @@
-type ContactChannel = "sms" | "whatsapp" | "messenger";
+export type ReplyContactChannel = "sms" | "email" | "whatsapp" | "messenger";
 
-type ContactChannelOption = {
-  value: ContactChannel;
+type ReplyChannelOption = {
+  value: ReplyContactChannel;
   label: string;
 };
 
-type ContactChannelCheckboxGroupProps = {
-  value: ContactChannel[];
-  enabledChannels: ContactChannel[];
-  onChange: (next: ContactChannel[]) => void;
+type ReplyChannelCheckboxGroupProps = {
+  value: ReplyContactChannel[];
+  enabledChannels: ReplyContactChannel[];
+  onChange: (next: ReplyContactChannel[]) => void;
 };
 
-const OPTIONS: ContactChannelOption[] = [
+const OPTIONS: ReplyChannelOption[] = [
   { value: "sms", label: "SMS" },
+  { value: "email", label: "Email" },
   { value: "whatsapp", label: "WhatsApp" },
   { value: "messenger", label: "Messenger" },
 ];
 
-export function ContactChannelCheckboxGroup({
+export function ReplyChannelCheckboxGroup({
   value,
   enabledChannels,
   onChange,
-}: ContactChannelCheckboxGroupProps) {
-  function toggle(channel: ContactChannel) {
+}: ReplyChannelCheckboxGroupProps) {
+  function toggle(channel: ReplyContactChannel) {
     if (!enabledChannels.includes(channel)) {
       return;
     }
@@ -36,7 +37,7 @@ export function ContactChannelCheckboxGroup({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2">
       {OPTIONS.map((option) => {
         const checked = value.includes(option.value);
         const enabled = enabledChannels.includes(option.value);
@@ -63,5 +64,3 @@ export function ContactChannelCheckboxGroup({
     </div>
   );
 }
-
-export type { ContactChannel };

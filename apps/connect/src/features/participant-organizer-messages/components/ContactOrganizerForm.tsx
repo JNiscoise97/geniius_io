@@ -5,9 +5,9 @@ import type {
   OrganizerMessageTopic,
 } from "../config/contactOrganizerFormConfig";
 import {
-  ContactChannelCheckboxGroup,
-  type ContactChannel,
-} from "../../participant-access/components/ContactChannelCheckboxGroup";
+  ReplyChannelCheckboxGroup,
+  type ReplyContactChannel,
+} from "./ReplyChannelCheckboxGroup";
 
 export type ContactOrganizerFormValues = {
   topic: OrganizerMessageTopic | "";
@@ -17,7 +17,7 @@ export type ContactOrganizerFormValues = {
   email: string;
   hasWhatsapp: boolean;
   messenger: string;
-  preferredContactChannels: ContactChannel[];
+  preferredContactChannels: ReplyContactChannel[];
 };
 
 type ContactOrganizerFormProps = {
@@ -31,8 +31,8 @@ type ContactOrganizerFormProps = {
 
 function getEnabledChannels(
   values: ContactOrganizerFormValues,
-): ContactChannel[] {
-  const channels: ContactChannel[] = [];
+): ReplyContactChannel[] {
+  const channels: ReplyContactChannel[] = [];
 
   if (values.phone.trim()) {
     channels.push("sms");
@@ -260,9 +260,11 @@ export function ContactOrganizerForm({
                 type="checkbox"
                 checked={value.hasWhatsapp}
                 onChange={(e) => {
-                  onChange({ hasWhatsapp: e.target.checked });
+                  const checked = e.target.checked;
 
-                  if (!e.target.checked) {
+                  onChange({ hasWhatsapp: checked });
+
+                  if (!checked) {
                     onChange({
                       preferredContactChannels:
                         value.preferredContactChannels.filter(
@@ -318,7 +320,7 @@ export function ContactOrganizerForm({
                 {config.fields.preferredContactChannels.label}
               </label>
 
-              <ContactChannelCheckboxGroup
+              <ReplyChannelCheckboxGroup
                 value={value.preferredContactChannels}
                 enabledChannels={enabledChannels}
                 onChange={(next) =>

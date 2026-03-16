@@ -6,20 +6,43 @@ export type SendParticipantRecoveryLinkInput = {
   recoveryLink: string;
   firstName?: string;
   lastName?: string;
-  phone?: string;
-  email?: string;
-  hasWhatsapp: boolean;
-  messenger?: string;
-  preferredContactChannels: string[];
+  email: string;
 };
 
 export async function sendParticipantRecoveryLink(
   input: SendParticipantRecoveryLinkInput,
 ): Promise<void> {
+  const payload: SendParticipantRecoveryLinkInput = {
+    eventSlug: input.eventSlug.trim(),
+    participantId: input.participantId.trim(),
+    recoveryLink: input.recoveryLink.trim(),
+    firstName: input.firstName?.trim(),
+    lastName: input.lastName?.trim(),
+    email: input.email.trim(),
+  };
+
+  if (!payload.eventSlug) {
+    throw new Error("eventSlug requis.");
+  }
+
+  if (!payload.participantId) {
+    throw new Error("participantId requis.");
+  }
+
+  if (!payload.recoveryLink) {
+    throw new Error("recoveryLink requis.");
+  }
+
+  if (!payload.email) {
+    throw new Error(
+      "Adresse email requise pour l’envoi du lien personnel.",
+    );
+  }
+
   const { error } = await supabase.functions.invoke(
     "send-participant-recovery-link",
     {
-      body: input,
+      body: payload,
     },
   );
 

@@ -22,10 +22,8 @@ const INITIAL_VALUES: ParticipantAccessCreateValues = {
   preferredContactChannels: [],
 };
 
-function hasAtLeastOneRequiredContact(
-  values: ParticipantAccessCreateValues,
-): boolean {
-  return Boolean(values.phone?.trim() || values.email?.trim());
+function hasOptionalContact(values: ParticipantAccessCreateValues): boolean {
+  return Boolean(values.phone?.trim() || values.messenger?.trim());
 }
 
 export function ParticipantAccessCreatePage() {
@@ -51,12 +49,8 @@ export function ParticipantAccessCreatePage() {
       return "Merci d’indiquer ton nom.";
     }
 
-    if (!hasAtLeastOneRequiredContact(values)) {
-      return "Merci d’indiquer au moins un contact : téléphone ou email.";
-    }
-
-    if (values.preferredContactChannels.length === 0) {
-      return "Choisis au moins un moyen de contact à privilégier.";
+    if (!values.email?.trim()) {
+      return "Merci d’indiquer ton email. Il est nécessaire pour recevoir ton lien personnel.";
     }
 
     if (
@@ -74,17 +68,17 @@ export function ParticipantAccessCreatePage() {
     }
 
     if (
-      values.preferredContactChannels.includes("email") &&
-      !values.email?.trim()
-    ) {
-      return "Une adresse email est nécessaire pour l’envoi par email.";
-    }
-
-    if (
       values.preferredContactChannels.includes("messenger") &&
       !values.messenger?.trim()
     ) {
       return "Un identifiant Messenger est nécessaire pour ce canal.";
+    }
+
+    if (
+      hasOptionalContact(values) &&
+      values.preferredContactChannels.length === 0
+    ) {
+      return "Choisis un moyen de contact à privilégier pour les prochains échanges.";
     }
 
     return null;
@@ -119,11 +113,7 @@ export function ParticipantAccessCreatePage() {
         recoveryLink: recovery.recoveryLink,
         firstName: participant.firstName,
         lastName: participant.lastName,
-        phone: participant.phone,
-        email: participant.email,
-        hasWhatsapp: participant.hasWhatsapp,
-        messenger: participant.messenger,
-        preferredContactChannels: participant.preferredContactChannels,
+        email: participant.email ?? "",
       });
 
       addStoredParticipantProfile(participant.eventSlug, {

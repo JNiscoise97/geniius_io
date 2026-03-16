@@ -27,10 +27,6 @@ function getEnabledChannels(
     channels.push("whatsapp");
   }
 
-  if (values.email?.trim()) {
-    channels.push("email");
-  }
-
   if (values.messenger?.trim()) {
     channels.push("messenger");
   }
@@ -97,15 +93,34 @@ export function ParticipantAccessCreateForm({
             disabled={loading}
           />
         </div>
+
+        <div className="grid gap-1">
+          <label className="text-xs font-extrabold text-slate-800">
+            Email personnel *
+          </label>
+          <input
+            value={values.email ?? ""}
+            onChange={(e) => onChange({ email: e.target.value })}
+            className="h-12 rounded-2xl border border-slate-200 px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            placeholder="Ex : toi@email.com"
+            inputMode="email"
+            disabled={loading}
+          />
+          <p className="text-xs font-bold leading-5 text-slate-500">
+            Cet email est obligatoire. Il sert à t’envoyer ton lien personnel
+            d’accès à l’espace famille.
+          </p>
+        </div>
       </section>
 
       <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm space-y-4">
         <div className="text-[16px] font-black text-slate-900">
-          Comment te recontacter
+          Pour les prochains échanges
         </div>
 
         <div className="text-xs font-bold leading-5 text-slate-600">
-          Au moins un contact est requis : téléphone ou email.
+          Tu peux indiquer ici les moyens les plus pratiques pour te recontacter
+          ensuite au sujet de la cousinade.
         </div>
 
         <div className="grid gap-1">
@@ -127,14 +142,15 @@ export function ParticipantAccessCreateForm({
             type="checkbox"
             checked={values.hasWhatsapp}
             onChange={(e) => {
-              onChange({ hasWhatsapp: e.target.checked });
+              const checked = e.target.checked;
 
-              if (!e.target.checked) {
+              onChange({ hasWhatsapp: checked });
+
+              if (!checked) {
                 onChange({
-                  preferredContactChannels:
-                    values.preferredContactChannels.filter(
-                      (channel) => channel !== "whatsapp",
-                    ),
+                  preferredContactChannels: values.preferredContactChannels.filter(
+                    (channel) => channel !== "whatsapp",
+                  ),
                 });
               }
             }}
@@ -147,25 +163,11 @@ export function ParticipantAccessCreateForm({
               Ce numéro a aussi WhatsApp
             </div>
             <div className="mt-1 text-xs font-bold leading-5 text-slate-600">
-              Active cette option seulement si le numéro indiqué pour le téléphone
-              peut aussi être utilisé sur WhatsApp.
+              Active cette option seulement si le numéro indiqué pour le
+              téléphone peut aussi être utilisé sur WhatsApp.
             </div>
           </div>
         </label>
-
-        <div className="grid gap-1">
-          <label className="text-xs font-extrabold text-slate-800">
-            Email
-          </label>
-          <input
-            value={values.email ?? ""}
-            onChange={(e) => onChange({ email: e.target.value })}
-            className="h-12 rounded-2xl border border-slate-200 px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-            placeholder="Ex : toi@email.com"
-            inputMode="email"
-            disabled={loading}
-          />
-        </div>
 
         <div className="grid gap-1">
           <label className="text-xs font-extrabold text-slate-800">
@@ -182,7 +184,7 @@ export function ParticipantAccessCreateForm({
 
         <div className="grid gap-2">
           <label className="text-xs font-extrabold text-slate-800">
-            Moyen de contact à privilégier *
+            Moyen à privilégier pour les prochains échanges
           </label>
 
           <ContactChannelCheckboxGroup
@@ -197,9 +199,9 @@ export function ParticipantAccessCreateForm({
             Envoi du lien personnel
           </div>
           <div className="mt-1 text-xs font-bold leading-5 text-slate-700">
-            Si tu choisis l’email, le lien est envoyé automatiquement. Pour SMS,
-            WhatsApp et Messenger, la demande est enregistrée et l’envoi sera
-            fait manuellement dans un second temps.
+            Le lien personnel d’accès est envoyé par email. Le téléphone,
+            WhatsApp et Messenger servent uniquement pour les prochains échanges
+            liés à la cousinade.
           </div>
         </section>
 

@@ -24,8 +24,12 @@ const INITIAL_VALUES: IdentityFormValues = {
   preferredContactChannels: [],
 };
 
-function hasAtLeastOneRequiredContact(values: IdentityFormValues): boolean {
-  return Boolean(values.phone.trim() || values.email.trim());
+function hasOptionalContact(values: IdentityFormValues): boolean {
+  return Boolean(values.phone.trim() || values.messenger.trim());
+}
+
+function isEmailValid(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
 export function ParticipantIdentityPage() {
@@ -39,23 +43,23 @@ export function ParticipantIdentityPage() {
   const [error, setError] = useState<string | null>(null);
 
   const participantSession = getParticipantSession(slug);
-      const participantId = participantSession?.participantId ?? null;
-    
-      useEffect(() => {
-        if (!participantId) return;
-    
-        const tracker = createPageTimeTracker({
-          participantId,
-          eventSlug: slug,
-          pageKey: `/e/${slug}/welcome/identity`,
-        });
-    
-        tracker.start();
-    
-        return () => {
-          void tracker.stop();
-        };
-      }, [participantId, slug]);
+  const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/welcome/identity`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     let isMounted = true;
@@ -100,8 +104,13 @@ export function ParticipantIdentityPage() {
   }, [slug]);
 
   function validate(): string | null {
-    if (!values.firstName.trim()) return "Merci d’indiquer ton prénom.";
-    if (!values.lastName.trim()) return "Merci d’indiquer ton nom.";
+    if (!values.firstName.trim()) {
+      return "Merci d’indiquer ton prénom.";
+    }
+
+    if (!values.lastName.trim()) {
+      return "Merci d’indiquer ton nom.";
+    }
 
     if (values.birthYear.trim()) {
       if (!/^\d{4}$/.test(values.birthYear.trim())) {
@@ -116,12 +125,8 @@ export function ParticipantIdentityPage() {
       }
     }
 
-    if (!hasAtLeastOneRequiredContact(values)) {
-      return "Merci d’indiquer au moins un contact : téléphone ou email.";
-    }
-
-    if (values.preferredContactChannels.length === 0) {
-      return "Choisis au moins un moyen de contact à privilégier.";
+    if (values.email.trim() && !isEmailValid(values.email)) {
+      return "Merci de renseigner une adresse email valide.";
     }
 
     if (
@@ -139,17 +144,17 @@ export function ParticipantIdentityPage() {
     }
 
     if (
-      values.preferredContactChannels.includes("email") &&
-      !values.email.trim()
-    ) {
-      return "Une adresse email est nécessaire pour l’envoi par email.";
-    }
-
-    if (
       values.preferredContactChannels.includes("messenger") &&
       !values.messenger.trim()
     ) {
       return "Un identifiant Messenger est nécessaire pour ce canal.";
+    }
+
+    if (
+      hasOptionalContact(values) &&
+      values.preferredContactChannels.length === 0
+    ) {
+      return "Choisis un moyen de contact à privilégier pour les prochains échanges.";
     }
 
     return null;
@@ -166,6 +171,7 @@ export function ParticipantIdentityPage() {
     }
 
     setLoading(true);
+
     try {
       const participantSession = getParticipantSession(slug);
 
@@ -210,11 +216,11 @@ export function ParticipantIdentityPage() {
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
-            <Users size={14} />
-            Identification
-          </div>
+              <Users size={14} />
+              Identification
+            </div>
 
-          <button
+            <button
               type="button"
               onClick={() => nav(`/e/${slug}/welcome`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
@@ -224,7 +230,7 @@ export function ParticipantIdentityPage() {
                 Retour
               </span>
             </button>
-            </div>
+          </div>
 
           <h1 className="mt-4 text-[28px] leading-[1.05] font-black tracking-tight text-slate-900">
             {identityFormConfig.title}
