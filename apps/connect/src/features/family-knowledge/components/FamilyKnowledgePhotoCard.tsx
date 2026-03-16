@@ -61,9 +61,6 @@ export function FamilyKnowledgePhotoCard({
           {target.years ? (
             <p className="mt-1 text-sm text-slate-500">{target.years}</p>
           ) : null}
-          <p className="mt-1 text-xs text-slate-400">
-            {target.personType} · {target.sourceTable}
-          </p>
         </div>
 
         <div className="shrink-0">
