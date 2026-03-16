@@ -1,5 +1,5 @@
 import { ImagePlus, Loader2, MailCheck, TriangleAlert } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FamilyPhotoTarget } from "../types/familyKnowledgePhotoTargets";
 
 type UploadStatus = "idle" | "uploading" | "sent" | "error";
@@ -18,8 +18,35 @@ export function FamilyKnowledgePhotoCard({
   onPickFile,
 }: FamilyPhotoCardProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const isBusy = status === "uploading";
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(nextPreviewUrl);
+
+    try {
+      await onPickFile(file);
+    } finally {
+      event.currentTarget.value = "";
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -63,6 +90,16 @@ export function FamilyKnowledgePhotoCard({
         </div>
       </div>
 
+      {previewUrl ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <img
+            src={previewUrl}
+            alt={`Photo de ${target.displayName}`}
+            className="h-44 w-full object-cover"
+          />
+        </div>
+      ) : null}
+
       {errorMessage ? (
         <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {errorMessage}
@@ -76,12 +113,7 @@ export function FamilyKnowledgePhotoCard({
           accept="image/*"
           className="hidden"
           disabled={isBusy}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            void onPickFile(file);
-            event.currentTarget.value = "";
-          }}
+          onChange={handleFileChange}
         />
 
         <button
