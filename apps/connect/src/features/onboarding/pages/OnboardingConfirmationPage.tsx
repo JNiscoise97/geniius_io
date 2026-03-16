@@ -10,9 +10,9 @@ export function OnboardingConfirmationPage() {
 
   const step = searchParams.get("step");
   const url =
-    step === "attendance" || step === "organizer-message"
-      ? `/e/${slug}/home`
-      : `/e/${slug}/welcome`;
+    step === "identity"
+      ? `/e/${slug}/welcome`
+      : `/e/${slug}/home`;
 
   const content = useMemo(() => {
     switch (step) {
