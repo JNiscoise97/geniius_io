@@ -28,9 +28,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import { completionRules, getFirstIncompleteCompletionRules, type CompletionRule } from "../../../lib/completion/sectionCompletion";
+import {
+  completionRules,
+  getFirstIncompleteCompletionRules,
+  type CompletionRule,
+} from "../../../lib/completion/sectionCompletion";
 import { loadCompletionData } from "../../../lib/completion/loadCompletionData";
-
 
 type HubActionStatus = "enabled" | "dev" | "disabled";
 type HubAvailabilityMode = "available" | "launch";
@@ -453,9 +456,7 @@ export function LandingPage() {
       if (!participantId) {
         if (!cancelled) {
           setGuidedPrompts(
-            completionRules
-              .filter((rule) => rule.type === "info")
-              .slice(0, 5),
+            completionRules.filter((rule) => rule.type === "info").slice(0, 5),
           );
           setLoadingGuidedPrompts(false);
         }
@@ -465,7 +466,10 @@ export function LandingPage() {
       try {
         setLoadingGuidedPrompts(true);
 
-        const rowsByTable = await loadCompletionData(participantId, completionRules);
+        const rowsByTable = await loadCompletionData(
+          participantId,
+          completionRules,
+        );
         const nextPrompts = getFirstIncompleteCompletionRules(
           completionRules,
           rowsByTable,
@@ -580,11 +584,16 @@ export function LandingPage() {
               Tout explorer
             </button>
           </div>
+
+          <p className="px-2 pb-2 pt-3 text-[12px] font-semibold leading-5 text-slate-600">
+            {mode === "guided"
+              ? "Dans “Tout explorer”, tu retrouveras toutes les rubriques de l’espace famille, celles déjà renseignées comme celles à venir."
+              : ""}
+          </p>
         </section>
 
         {mode === "guided" ? (
           <section className="mt-5 space-y-4">
-
             {loadingGuidedPrompts ? (
               <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="text-sm font-bold text-slate-700">
@@ -601,6 +610,17 @@ export function LandingPage() {
                   onClick={() => openCompletionRule(prompt)}
                 />
               ))}
+
+            {!loadingGuidedPrompts && guidedPrompts.length === 0 ? (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="text-sm font-bold text-slate-900">
+                  Tu es à jour pour le moment.
+                </div>
+                <p className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                  Retrouve toutes les rubriques dans “Tout explorer”.
+                </p>
+              </section>
+            ) : null}
           </section>
         ) : (
           <div className="mt-5 space-y-4">
@@ -689,14 +709,20 @@ function GuidedPromptCard({
             {prompt.text}
           </p>
 
-          <button
-            type="button"
-            onClick={onClick}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
-          >
-            {prompt.cta}
-            <ArrowRight size={16} />
-          </button>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={onClick}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
+            >
+              {prompt.cta}
+              <ArrowRight size={16} />
+            </button>
+
+            <span className="text-[11px] font-extrabold text-slate-500">
+              Modifiable dans “Tout explorer”
+            </span>
+          </div>
         </div>
       </div>
     </article>
