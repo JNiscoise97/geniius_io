@@ -18,38 +18,38 @@ export function OnboardingConfirmationPage() {
     switch (step) {
       case "identity":
         return {
-          title: "Merci, ta présentation a bien été enregistrée",
-          text: "Les cousins pourront mieux savoir qui tu es et te situer plus facilement dans la famille.",
+          title: "Merci, ta présentation est bien enregistrée",
+          text: "Cela aidera l’organisateur et la famille à mieux te reconnaître et à mieux te situer.",
         };
       case "profile":
         return {
-          title: "Merci, ton profil a bien été complété",
-          text: "Ces informations aideront les cousins à mieux te connaître et à créer plus facilement du lien.",
+          title: "Merci, tu as ajouté quelques éléments sur toi",
+          text: "Ces informations pourront faciliter les échanges et créer plus facilement du lien.",
         };
       case "contact":
         return {
-          title: "Merci, tes coordonnées ont bien été enregistrées",
+          title: "Merci, tes coordonnées sont bien enregistrées",
           text: "Tes informations de contact ont bien été prises en compte.",
         };
       case "preferences":
         return {
-          title: "Merci, tes consentements ont bien été enregistrés",
-          text: "Tes choix concernant l’arbre familial, les photos, les contacts et certains usages dans l’application ont bien été pris en compte.",
+          title: "Merci, tes préférences ont bien été prises en compte",
+          text: "Tes choix concernant l’arbre, les photos, les contacts et certains usages dans l’application sont maintenant enregistrés.",
         };
       case "attendance":
         return {
-          title: "Merci, ta participation a bien été enregistrée",
-          text: "Ta réponse nous aidera à mieux préparer la journée et à accueillir chacun dans les meilleures conditions.",
+          title: "Merci pour ta réponse",
+          text: "Elle nous aide à préparer la journée dans les meilleures conditions.",
         };
       case "organizer-message":
         return {
-          title: "Merci, ton message a bien été transmis",
-          text: "L’organisateur a bien reçu ton message. S’il est nécessaire de te répondre, il utilisera le moyen de contact que tu as indiqué.",
+          title: "Merci, ton message a bien été envoyé",
+          text: "L’organisateur l’a bien reçu. Si besoin, il te répondra via le moyen de contact que tu as indiqué.",
         };
       default:
         return {
           title: "Merci",
-          text: "Tes informations ont bien été enregistrées.",
+          text: "Tes informations ont bien été prises en compte.",
         };
     }
   }, [step]);
@@ -57,31 +57,31 @@ export function OnboardingConfirmationPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-6 pb-24">
-        <section className="rounded-3xl bg-white shadow-[0_16px_38px_rgba(15,23,42,0.08)] border border-slate-200 overflow-hidden">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
           <div className="p-5">
-            <div className="h-14 w-14 rounded-[20px] bg-green-50 border border-green-100 flex items-center justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[20px] border border-green-100 bg-green-50">
               <CheckCircle2 size={28} className="text-[color:var(--ok)]" />
             </div>
 
-            <h1 className="mt-4 text-[24px] leading-tight font-black tracking-tight text-slate-900">
+            <h1 className="mt-4 text-[24px] font-black leading-tight tracking-tight text-slate-900">
               {content.title}
             </h1>
 
-            <p className="mt-2 text-sm font-bold text-slate-700 leading-6">
+            <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
               {content.text}
             </p>
 
-            <div className="mt-4 rounded-2xl bg-indigo-50 border border-indigo-100 p-3">
+            <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-3">
               <div className="flex items-start gap-2">
                 <div className="mt-0.5 text-[color:var(--blue)]">
                   <Sparkles size={18} />
                 </div>
                 <div>
                   <div className="text-sm font-black text-slate-900">
-                    Tu peux revenir à ton espace
+                    La suite quand tu veux
                   </div>
                   <div className="text-xs font-bold text-slate-700">
-                    Tu verras l’avancement de tes réponses et tu pourras compléter les autres étapes à ton rythme.
+                    Tu peux revenir à ton espace pour voir ce qu’il reste à compléter et avancer à ton rythme.
                   </div>
                 </div>
               </div>
@@ -90,11 +90,11 @@ export function OnboardingConfirmationPage() {
         </section>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-gradient-to-t from-white via-white/95 to-white/0">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white/95 to-white/0 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
         <div className="c-container">
-          <div className="rounded-3xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_16px_38px_rgba(15,23,42,0.10)] p-2">
+          <div className="rounded-3xl border border-slate-200 bg-white/95 p-2 shadow-[0_16px_38px_rgba(15,23,42,0.10)] backdrop-blur">
             <button
-              className="w-full h-12 rounded-2xl font-black inline-flex items-center justify-center gap-2 bg-[color:var(--blue)] text-white"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[color:var(--blue)] font-black text-white"
               onClick={() => nav(url, { replace: true })}
             >
               <Home size={18} />
