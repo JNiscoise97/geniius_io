@@ -247,6 +247,18 @@ export const completionRules: CompletionRule[] = [
     type: "form",
   },
   {
+    key: "covindou-sheet",
+    eyebrow: "Histoire familiale",
+    actionRapide: "Découvrir la fiche consacrée à Gromèr Covindou",
+    text: "Découvre la figure centrale de notre famille et l’histoire transmise autour d’elle.",
+    cta: "Ouvrir la fiche",
+    icon: BookOpen,
+    table: null,
+    fields: { and: [] },
+    to: "/fiche?id=@7398@",
+    type: "info",
+  },
+  {
     key: "origins-heard_about_initiative",
     eyebrow: "Lien avec la cousinade",
     group: "origins",
@@ -871,18 +883,6 @@ export const completionRules: CompletionRule[] = [
       isFamilyKnowledgeGrandparentsComplete(
         rowsByTable["participant_family_knowledge_grandparents"],
       ),
-  },
-  {
-    key: "covindou-sheet",
-    eyebrow: "Histoire familiale",
-    actionRapide: "Découvrir la fiche consacrée à gromèr Covindou",
-    text: "Découvre la figure centrale de notre famille et l’histoire transmise autour d’elle.",
-    cta: "Ouvrir la fiche",
-    icon: BookOpen,
-    table: null,
-    fields: { and: [] },
-    to: "/fiche?id=@7398@",
-    type: "info",
   },
   {
     key: "godparents-self-baptized",
