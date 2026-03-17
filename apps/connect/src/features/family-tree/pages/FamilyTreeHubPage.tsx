@@ -46,7 +46,7 @@ export function FamilyTreeHubPage() {
     title: "Arbre généalogique",
     displayName: "Covindou TANDIEMAIN (1868-1955)",
     description:
-      "Cet arbre rassemble les descendants identifiés de gromèr Covindou TANDIEMAIN (1868-1955). Il permet à chacun de retrouver sa place dans la famille, de mieux comprendre ses liens avec les cousins et de transmettre ce qu’il sait.",
+      "Cet arbre rassemble les descendants identifiés de Gromèr Covindou TANDIEMAIN (1868-1955). Il permet à chacun de retrouver sa place dans la famille, de mieux comprendre ses liens avec les cousins et de transmettre ce qu’il sait.",
   };
 
   const metrics = useMemo<TreeMetric[]>(
@@ -78,7 +78,7 @@ export function FamilyTreeHubPage() {
           },
           {
             key: "my-link-to-ancestor",
-            label: "Voir mon lien avec la gromèr commune",
+            label: "Voir mon lien avec Gromèr Covindou",
             description:
               "Découvre comment tu descends de Coundiaman TANJAMA.",
             icon: Heart,
@@ -211,7 +211,7 @@ export function FamilyTreeHubPage() {
           <div className='mt-0.5 text-xs text-amber-800'>
             <ol>
               <li>Revoir le titre</li>
-              <li>Rédiger la page sur gromèr Covindou</li>
+              <li>Rédiger la page sur Gromèr Covindou</li>
             </ol>
           </div>
         </div>
@@ -229,7 +229,7 @@ export function FamilyTreeHubPage() {
               </div>
               <p className="mt-1 text-sm font-bold leading-6 text-slate-700">
                 Le plus simple est de te trouver dans l’arbre, puis de regarder
-                ton lien avec la gromèr commune.
+                ton lien avec Gromèr Covindou.
               </p>
             </div>
           </div>

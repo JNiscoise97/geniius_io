@@ -56,6 +56,7 @@ import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPa
 import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
 import { ParticipantOriginsPage } from "../features/participant-origins/pages/ParticipantOriginsPage";
 import { FamilyKnowledgePhotosPage } from "../features/family-knowledge/pages/FamilyKnowledgePhotosPage";
+import { DemoFamilyTreeFocusPage } from "../features/family-tree/pages/DemoFamilyTreeFocusPage";
 
 export const router = createBrowserRouter([
   {
@@ -133,6 +134,8 @@ export const router = createBrowserRouter([
               { path: "arbre/families/:familyId/siblings", element: <SiblingsPage /> },
               { path: "arbre/persons/:personId", element: <PersonPage /> },
               { path: "arbre/persons/:personId/lineage", element: <LineagePage /> },
+
+              { path: "arbre/demo", element: <DemoFamilyTreeFocusPage /> },
 
               { path: "fiche", element: <PersonSheetPage /> },
 

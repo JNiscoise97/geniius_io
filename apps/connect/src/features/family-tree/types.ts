@@ -105,3 +105,63 @@ export type GetLineageResult = {
   lineage: TreeLineage;
   breadcrumbs: TreeBreadcrumbItem[];
 };
+
+
+export type GedcomSex = "M" | "F" | "U";
+
+export type FamilyGraphPerson = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  nickname?: string;
+  sex: GedcomSex;
+  birthDate?: string;
+  deathDate?: string;
+  birthYear?: string;
+  deathYear?: string;
+  birthPlace?: string;
+  deathPlace?: string;
+  famcIds: string[]; // familles où la personne est enfant
+  famsIds: string[]; // familles où la personne est conjoint
+  branch?: string[];
+};
+
+export type FamilyGraphFamily = {
+  id: string;
+  husbandId?: string;
+  wifeId?: string;
+  childIds: string[];
+};
+
+export type FamilyGraphData = {
+  people: Record<string, FamilyGraphPerson>;
+  families: Record<string, FamilyGraphFamily>;
+};
+
+export type PersonSummary = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  nickname?: string;
+  sex: string;
+  subtitle: string;
+  birthYear?: string;
+  deathYear?: string;
+  birthPlace?: string;
+  deathPlace?: string;
+  photoSrc?: string;
+  spouseRoleLabel?: string;
+  linkedSpouseLabel?: string;
+  isPossiblyAlive?: boolean;
+  hidden: boolean;
+  branch?: string[];
+};
+
+export type PersonContext = {
+  person: PersonSummary;
+  parents: PersonSummary[];
+  spouses: PersonSummary[];
+  children: PersonSummary[];
+  siblings: PersonSummary[];
+  grandparents: PersonSummary[];
+};

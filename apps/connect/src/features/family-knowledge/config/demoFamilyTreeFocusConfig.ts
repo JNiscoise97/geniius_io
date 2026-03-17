@@ -1,0 +1,693 @@
+
+
+import tanjamaManicon from "../../../assets/images/tanjama-manicon.jpg";
+import tanjamaCoundeaman from "../../../assets/images/tanjama-coundeaman.jpg";
+import tanjamaCanou from "../../../assets/images/tanjama-canou.jpg";
+import tanjamaSavoupaquiom from "../../../assets/images/tanjama-savoupaquiom.jpg";
+import gromer from "../../../assets/images/gromer.jpg";
+
+export type PersonSummary = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  subtitle?: string;
+  birthYear?: string;
+  deathYear?: string;
+  birthPlace?: string;
+  deathPlace?: string;
+  spouseRoleLabel?: string;
+  linkedSpouseLabel?: string;
+  photoSrc?: string;
+};
+
+export type PersonContext = {
+  person: PersonSummary;
+  parents: PersonSummary[];
+  spouses: PersonSummary[];
+  children: PersonSummary[];
+  siblings: PersonSummary[];
+  grandparents: PersonSummary[];
+};
+
+export const DEMO_CONTEXTS: Record<string, PersonContext> = {
+  covindou: {
+    person: {
+      id: "covindou",
+      firstName: "Covindou",
+      lastName: "TANDIEMAIN",
+      subtitle: "Aïeule",
+      birthYear: "1868",
+      deathYear: "1955",
+      photoSrc: gromer,
+    },
+    parents: [
+      {
+        id: "ariapoutri",
+        firstName: "Ariapoutri",
+        lastName: "TANJAMA",
+        subtitle: "Père",
+        birthYear: "1837",
+        deathYear: "1901",
+      },
+      {
+        id: "salleyen-vaillaydon",
+        firstName: "Salléyen Vaillaydon",
+        lastName: "NOM INCONNU",
+        subtitle: "Mère",
+      },
+    ],
+    spouses: [
+      {
+        id: "engage-inconnu-covindou",
+        firstName: "Nom inconnu",
+        lastName: "ENGAGÉ INDIEN",
+        subtitle: "Conjoint",
+        spouseRoleLabel: "Père de 5 enfants connus",
+      },
+    ],
+    children: [
+      {
+        id: "candassamy",
+        firstName: "Candassamy",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1885",
+        deathYear: "1945",
+        linkedSpouseLabel: "Avec le conjoint 1",
+      },
+      {
+        id: "barlama",
+        firstName: "Barlama",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1889",
+        deathYear: "1967",
+        linkedSpouseLabel: "Avec le conjoint 1",
+        photoSrc: tanjamaManicon,
+      },
+      {
+        id: "coundeaman",
+        firstName: "Coundéaman",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1891",
+        deathYear: "1975",
+        linkedSpouseLabel: "Avec le conjoint 1",
+        photoSrc: tanjamaCoundeaman,
+      },
+      {
+        id: "tevane",
+        firstName: "Tévané",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1893",
+        deathYear: "1982",
+        linkedSpouseLabel: "Avec le conjoint 1",
+        photoSrc: tanjamaCanou,
+      },
+      {
+        id: "savoupaquiom-enfant",
+        firstName: "Savoupaquiom",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1895",
+        deathYear: "1992",
+        linkedSpouseLabel: "Avec le conjoint 1",
+        photoSrc: tanjamaSavoupaquiom,
+      },
+      {
+        id: "virassamy",
+        firstName: "Virassamy",
+        lastName: "ARIAPOUTRY",
+        subtitle: "Enfant",
+        birthYear: "1897",
+        deathYear: "1897",
+        linkedSpouseLabel: "Avec le conjoint 1",
+      },
+    ],
+    siblings: [
+      {
+        id: "souprayen",
+        firstName: "Souprayen",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1852",
+        deathYear: "1907",
+      },
+      {
+        id: "singaliny",
+        firstName: "Singaliny",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1858",
+        deathYear: "1930",
+      },
+      {
+        id: "enfant-1863",
+        firstName: "Nom inconnu",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1863",
+        deathYear: "1863",
+      },
+      {
+        id: "sillamoutou",
+        firstName: "Sillamoutou",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1865",
+        deathYear: "1926",
+      },
+      {
+        id: "armon",
+        firstName: "Armon",
+        lastName: "ARIAPOUTRY",
+        subtitle: "Frère / sœur",
+        birthYear: "1866",
+        deathYear: "1881",
+      },
+    ],
+    grandparents: [],
+  },
+
+  ariapoutri: {
+    person: {
+      id: "ariapoutri",
+      firstName: "Ariapoutri",
+      lastName: "TANJAMA",
+      subtitle: "Aïeul",
+      birthYear: "1837",
+      deathYear: "1901",
+    },
+    parents: [],
+    spouses: [
+      {
+        id: "mourouvin",
+        firstName: "Sans nom",
+        lastName: "MOUROUVIN",
+        subtitle: "Conjointe",
+        birthYear: "1830",
+        spouseRoleLabel: "Mère de certains enfants",
+      },
+      {
+        id: "salleyen-vaillaydon",
+        firstName: "Salléyen Vaillaydon",
+        lastName: "NOM INCONNU",
+        subtitle: "Conjointe",
+        spouseRoleLabel: "Mère de Covindou",
+      },
+    ],
+    children: [
+      {
+        id: "souprayen",
+        firstName: "Souprayen",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1852",
+        deathYear: "1907",
+      },
+      {
+        id: "singaliny",
+        firstName: "Singaliny",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1858",
+        deathYear: "1930",
+      },
+      {
+        id: "enfant-1863",
+        firstName: "Nom inconnu",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1863",
+        deathYear: "1863",
+      },
+      {
+        id: "sillamoutou",
+        firstName: "Sillamoutou",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1865",
+        deathYear: "1926",
+        linkedSpouseLabel: "Avec Sans nom MOUROUVIN",
+      },
+      {
+        id: "armon",
+        firstName: "Armon",
+        lastName: "ARIAPOUTRY",
+        subtitle: "Enfant",
+        birthYear: "1866",
+        deathYear: "1881",
+      },
+      {
+        id: "covindou",
+        firstName: "Covindou",
+        lastName: "TANDIEMAIN",
+        subtitle: "Enfant",
+        birthYear: "1868",
+        deathYear: "1955",
+        linkedSpouseLabel: "Avec Salléyen Vaillaydon",
+        photoSrc: gromer,
+      },
+    ],
+    siblings: [],
+    grandparents: [],
+  },
+
+  souprayen: {
+    person: {
+      id: "souprayen",
+      firstName: "Souprayen",
+      lastName: "TANJAMA",
+      subtitle: "Enfant",
+      birthYear: "1852",
+      deathYear: "1907",
+    },
+    parents: [
+      {
+        id: "ariapoutri",
+        firstName: "Ariapoutri",
+        lastName: "TANJAMA",
+        subtitle: "Parent",
+        birthYear: "1837",
+        deathYear: "1901",
+      },
+    ],
+    spouses: [
+      {
+        id: "claire-virama",
+        firstName: "Claire",
+        lastName: "VIRAMA",
+        subtitle: "Conjointe",
+        birthYear: "1861",
+        deathYear: "1893",
+        spouseRoleLabel: "Mère de Clara",
+      },
+    ],
+    children: [
+      {
+        id: "clara",
+        firstName: "Clara",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1881",
+        deathYear: "1943",
+        linkedSpouseLabel: "Avec Claire VIRAMA",
+      },
+    ],
+    siblings: [
+      {
+        id: "singaliny",
+        firstName: "Singaliny",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1858",
+        deathYear: "1930",
+      },
+      {
+        id: "sillamoutou",
+        firstName: "Sillamoutou",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1865",
+        deathYear: "1926",
+      },
+      {
+        id: "covindou",
+        firstName: "Covindou",
+        lastName: "TANDIEMAIN",
+        subtitle: "Frère / sœur",
+        birthYear: "1868",
+        deathYear: "1955",
+        photoSrc: gromer,
+      },
+    ],
+    grandparents: [],
+  },
+
+  singaliny: {
+    person: {
+      id: "singaliny",
+      firstName: "Singaliny",
+      lastName: "TANJAMA",
+      subtitle: "Enfant",
+      birthYear: "1858",
+      deathYear: "1930",
+    },
+    parents: [
+      {
+        id: "ariapoutri",
+        firstName: "Ariapoutri",
+        lastName: "TANJAMA",
+        subtitle: "Parent",
+        birthYear: "1837",
+        deathYear: "1901",
+      },
+    ],
+    spouses: [
+      {
+        id: "ayempermal",
+        firstName: "Ayempermal",
+        lastName: "SANGARLINGOM",
+        subtitle: "Conjoint",
+        birthYear: "1838",
+        deathYear: "1901",
+        spouseRoleLabel: "Parent de plusieurs enfants",
+      },
+    ],
+    children: [
+      {
+        id: "enfant-singaliny-1875",
+        firstName: "Nom inconnu",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1875",
+        deathYear: "1875",
+      },
+      {
+        id: "mourgapin",
+        firstName: "Mourgapin",
+        lastName: "AYEMPERMAL",
+        subtitle: "Enfant",
+        birthYear: "1876",
+        deathYear: "1927",
+      },
+      {
+        id: "maleama",
+        firstName: "Maléama",
+        lastName: "SANGARLINGOM",
+        subtitle: "Enfant",
+        birthYear: "1878",
+        deathYear: "1896",
+      },
+      {
+        id: "sevamy",
+        firstName: "Sévamy",
+        lastName: "SANGARLINGOM",
+        subtitle: "Enfant",
+        birthYear: "1880",
+        deathYear: "1920",
+      },
+      {
+        id: "moutama",
+        firstName: "Moutama",
+        lastName: "SANGARLINGOM",
+        subtitle: "Enfant",
+        birthYear: "1882",
+        deathYear: "1926",
+      },
+      {
+        id: "sangarlingom-fils",
+        firstName: "Sangarlingom",
+        lastName: "SANGARLINGOM",
+        subtitle: "Enfant",
+        birthYear: "1884",
+        deathYear: "1886",
+      },
+      {
+        id: "francois",
+        firstName: "François",
+        lastName: "SANGARLINGOM",
+        subtitle: "Enfant",
+        birthYear: "1900",
+        deathYear: "1900",
+      },
+      {
+        id: "joseph",
+        firstName: "Joseph",
+        lastName: "SINGALINY",
+        subtitle: "Enfant",
+        birthYear: "1902",
+        deathYear: "1903",
+      },
+    ],
+    siblings: [
+      {
+        id: "souprayen",
+        firstName: "Souprayen",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1852",
+        deathYear: "1907",
+      },
+      {
+        id: "sillamoutou",
+        firstName: "Sillamoutou",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1865",
+        deathYear: "1926",
+      },
+      {
+        id: "covindou",
+        firstName: "Covindou",
+        lastName: "TANDIEMAIN",
+        subtitle: "Frère / sœur",
+        birthYear: "1868",
+        deathYear: "1955",
+        photoSrc: gromer,
+      },
+    ],
+    grandparents: [],
+  },
+
+  sillamoutou: {
+    person: {
+      id: "sillamoutou",
+      firstName: "Sillamoutou",
+      lastName: "TANJAMA",
+      subtitle: "Enfant",
+      birthYear: "1865",
+      deathYear: "1926",
+    },
+    parents: [
+      {
+        id: "ariapoutri",
+        firstName: "Ariapoutri",
+        lastName: "TANJAMA",
+        subtitle: "Parent",
+        birthYear: "1837",
+        deathYear: "1901",
+      },
+    ],
+    spouses: [
+      {
+        id: "marie-coupaye",
+        firstName: "Marie Coupaye",
+        lastName: "COMARIN",
+        subtitle: "Conjointe",
+        birthYear: "1867",
+        deathYear: "1911",
+        spouseRoleLabel: "Mère de plusieurs enfants",
+      },
+    ],
+    children: [
+      {
+        id: "ramaye",
+        firstName: "Ramaye",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1886",
+        deathYear: "1888",
+      },
+      {
+        id: "allagama",
+        firstName: "Allagama",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1888",
+        deathYear: "1932",
+      },
+      {
+        id: "valliamee",
+        firstName: "Valliamée",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1890",
+        deathYear: "1912",
+      },
+      {
+        id: "alamelou",
+        firstName: "Alamélou",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1893",
+      },
+      {
+        id: "paquilee",
+        firstName: "Paquilée",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1895",
+        deathYear: "1977",
+      },
+      {
+        id: "salleyen-vaillaydon-fille",
+        firstName: "Salléyen Vaillaydon",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1898",
+        deathYear: "1898",
+      },
+      {
+        id: "thevanin",
+        firstName: "Thévanin",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1899",
+      },
+      {
+        id: "augustine-comarin",
+        firstName: "Augustine",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1902",
+      },
+      {
+        id: "augustine-tanjama",
+        firstName: "Augustine",
+        lastName: "TANJAMA",
+        subtitle: "Enfant",
+        birthYear: "1904",
+        deathYear: "1965",
+      },
+      {
+        id: "marie-mardaye",
+        firstName: "Marie Mardaye",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1907",
+      },
+      {
+        id: "soupaman-marguerite",
+        firstName: "Soupaman Marguerite",
+        lastName: "COMARIN",
+        subtitle: "Enfant",
+        birthYear: "1909",
+        deathYear: "1910",
+      },
+    ],
+    siblings: [
+      {
+        id: "souprayen",
+        firstName: "Souprayen",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1852",
+        deathYear: "1907",
+      },
+      {
+        id: "singaliny",
+        firstName: "Singaliny",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1858",
+        deathYear: "1930",
+      },
+      {
+        id: "covindou",
+        firstName: "Covindou",
+        lastName: "TANDIEMAIN",
+        subtitle: "Frère / sœur",
+        birthYear: "1868",
+        deathYear: "1955",
+        photoSrc: gromer,
+      },
+    ],
+    grandparents: [],
+  },
+
+  coundeaman: {
+    person: {
+      id: "coundeaman",
+      firstName: "Coundéaman",
+      lastName: "TANJAMA",
+      subtitle: "Enfant",
+      birthYear: "1891",
+      deathYear: "1975",
+      birthPlace: "Saint-Leu",
+      deathPlace: "Trois-Bassins",
+      photoSrc: tanjamaCoundeaman,
+    },
+    parents: [
+      {
+        id: "covindou",
+        firstName: "Covindou",
+        lastName: "TANDIEMAIN",
+        subtitle: "Parent",
+        birthYear: "1868",
+        deathYear: "1955",
+        photoSrc: gromer,
+      },
+      {
+        id: "engage-inconnu-covindou",
+        firstName: "Nom inconnu",
+        lastName: "ENGAGÉ INDIEN",
+        subtitle: "Parent",
+      },
+    ],
+    spouses: [],
+    children: [],
+    siblings: [
+      {
+        id: "candassamy",
+        firstName: "Candassamy",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1885",
+        deathYear: "1945",
+      },
+      {
+        id: "barlama",
+        firstName: "Barlama",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1889",
+        deathYear: "1967",
+        photoSrc: tanjamaManicon,
+      },
+      {
+        id: "tevane",
+        firstName: "Tévané",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1893",
+        deathYear: "1982",
+        photoSrc: tanjamaCanou,
+      },
+      {
+        id: "savoupaquiom-enfant",
+        firstName: "Savoupaquiom",
+        lastName: "TANJAMA",
+        subtitle: "Frère / sœur",
+        birthYear: "1895",
+        deathYear: "1992",
+        photoSrc: tanjamaSavoupaquiom,
+      },
+      {
+        id: "virassamy",
+        firstName: "Virassamy",
+        lastName: "ARIAPOUTRY",
+        subtitle: "Frère / sœur",
+        birthYear: "1897",
+        deathYear: "1897",
+      },
+    ],
+    grandparents: [
+      {
+        id: "ariapoutri",
+        firstName: "Ariapoutri",
+        lastName: "TANJAMA",
+        subtitle: "Grand-parent",
+        birthYear: "1837",
+        deathYear: "1901",
+      },
+      {
+        id: "salleyen-vaillaydon",
+        firstName: "Salléyen Vaillaydon",
+        lastName: "NOM INCONNU",
+        subtitle: "Grand-parent",
+      },
+    ],
+  },
+};
