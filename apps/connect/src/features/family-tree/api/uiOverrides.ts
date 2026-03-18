@@ -1,5 +1,8 @@
 
 import tanjamaCoundeaman from "../../../assets/images/tanjama-coundeaman.jpg";
+import tanjamaCanou from "../../../assets/images/tanjama-canou.jpg";
+import tanjamaManicon from "../../../assets/images/tanjama-manicon.jpg";
+import tanjamaSavoupaquiom from "../../../assets/images/tanjama-savoupaquiom.jpg";
 import gromer from "../../../assets/images/gromer.jpg";
 import niscoiseJordan from "../../../assets/images/niscoise-jordan.jpg";
 import blukerMariot from "../../../assets/images/bluker-mariot.jpg";
@@ -69,6 +72,18 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "731261074": {
     photoSrc: sinatambyLouise,
+  },
+  "7391": {
+    photoSrc: tanjamaCoundeaman,
+  },
+  "732469": {
+    photoSrc: tanjamaManicon,
+  },
+  "732470": {
+    photoSrc: tanjamaCanou,
+  },
+  "732467": {
+    photoSrc: tanjamaSavoupaquiom,
   },
   "733631992": {
     photoSrc: sennypalanyElisabeth,
