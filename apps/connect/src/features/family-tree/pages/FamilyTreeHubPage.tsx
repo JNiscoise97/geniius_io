@@ -5,7 +5,7 @@ import {
   GitBranch,
   Heart,
   Search,
-  TreePine,
+  TreeDeciduous,
   UserCircle2,
   Users,
   type LucideIcon,
@@ -107,7 +107,7 @@ export function FamilyTreeHubPage() {
             label: "Parcourir l’arbre",
             description:
               "Explore librement les générations et les différentes branches.",
-            icon: TreePine,
+            icon: TreeDeciduous,
             to: `/e/${slug}/family-tree/browse`,
             enabled: true,
           },
@@ -176,7 +176,7 @@ export function FamilyTreeHubPage() {
 
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700">
-            <TreePine size={14} />
+            <TreeDeciduous size={14} />
             {commonAncestor.title}
           </div>
 

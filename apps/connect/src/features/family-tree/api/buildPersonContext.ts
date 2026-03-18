@@ -57,7 +57,7 @@ function computeHidden(
     return override.hidden;
   }
 
-  return computeIsPossiblyAlive(person) === true;
+  return computeIsPossiblyAlive(person) != false;
 }
 
 function toSummary(

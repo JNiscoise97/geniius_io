@@ -25,6 +25,9 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
     photoSrc: niscoiseJordan,
     hidden: false,
   },
+  733728949: {
+    hidden: false,
+  },
   731454: {
     photoSrc: kicheninCandide,
   },
