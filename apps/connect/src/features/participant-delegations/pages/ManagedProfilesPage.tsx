@@ -65,7 +65,7 @@ export function ManagedProfilesPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => nav(`/e/${slug}/access`)}
+              onClick={() => nav(`/e/${slug}/access/intro`)}
               className="rounded-2xl bg-slate-100 p-2 text-slate-700"
             >
               <ArrowLeft size={18} />

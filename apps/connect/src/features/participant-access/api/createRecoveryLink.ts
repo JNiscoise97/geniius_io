@@ -86,9 +86,9 @@ export async function createRecoveryLink({
   }
 
   const rootUrl = resolveBaseUrl(baseUrl);
-  const recoveryLink = `${rootUrl}/e/${normalizedEventSlug}/access/recover?t=${encodeURIComponent(
-    recoveryToken,
-  )}`;
+  const recoveryLink = `${rootUrl}/e/${normalizedEventSlug}/access/continue?t=${encodeURIComponent(
+  recoveryToken,
+)}`;
 
   return {
     recoveryToken,

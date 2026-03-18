@@ -44,7 +44,6 @@ import { FamilyKnowledgeMemoryPage } from "../features/family-knowledge/pages/Fa
 import { ParticipantRecoverConfirmPage } from "../features/participant-access/pages/ParticipantRecoverConfirmPage";
 import { ParticipantRecoverPage } from "../features/participant-access/pages/ParticipantRecoverPage";
 import { ParticipantAccessPage } from "../features/participant-access/pages/ParticipantAccessPage";
-import { ParticipantAccessGatePage } from "../features/participant-access/pages/ParticipantAccessGatePage";
 import { ParticipantAccessIntroPage } from "../features/participant-access/pages/ParticipantAccessIntroPage";
 import { ParticipantAccessCreatePage } from "../features/participant-access/pages/ParticipantAccessCreatePage";
 
@@ -56,6 +55,9 @@ import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPa
 import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
 import { ParticipantOriginsPage } from "../features/participant-origins/pages/ParticipantOriginsPage";
 import { FamilyKnowledgePhotosPage } from "../features/family-knowledge/pages/FamilyKnowledgePhotosPage";
+import { ParticipantAccessContinuePage } from "../features/participant-access/pages/ParticipantAccessContinuePage";
+import { ParticipantConfirmTokenPage } from "../features/participant-access/pages/ParticipantConfirmTokenPage";
+import { ParticipantConfirmDevicePage } from "../features/participant-access/pages/ParticipantConfirmDevicePage";
 import { FamilyTreeBrowsePage } from "../features/family-tree/pages/FamilyTreeBrowsePage";
 import { FamilyTreeEntryPage } from "../features/family-tree/pages/FamilyTreeEntryPage";
 import { FamilyRelationshipStoryPage } from "../features/family-tree/pages/FamilyRelationshipStoryPage";
@@ -72,17 +74,17 @@ export const router = createBrowserRouter([
         path: "e/:eventSlug",
         children: [
           // Entrée unique
-          { index: true, element: <ParticipantAccessGatePage /> },
+          { index: true, element: <ParticipantAccessIntroPage  /> },
 
           // Access flow
-          { path: "access/options", element: <ParticipantAccessPage /> },
           { path: "access/intro", element: <ParticipantAccessIntroPage /> },
+          { path: "access/continue", element: <ParticipantAccessContinuePage /> },
+          { path: "access/options", element: <ParticipantAccessPage /> },
+          { path: "access/confirm-token", element: <ParticipantConfirmTokenPage /> },
+          { path: "access/confirm-device", element: <ParticipantConfirmDevicePage /> },
           { path: "access/recover", element: <ParticipantRecoverPage /> },
+          { path: "access/recover-confirm", element: <ParticipantRecoverConfirmPage /> },
           { path: "access/create", element: <ParticipantAccessCreatePage /> },
-          {
-            path: "access/recover/confirm",
-            element: <ParticipantRecoverConfirmPage />,
-          },
           { path: "device-profiles", element: <DeviceProfilesPage /> },
 
           // Legacy pre-event / public leftovers

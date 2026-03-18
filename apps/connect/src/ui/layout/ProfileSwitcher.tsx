@@ -74,13 +74,13 @@ export function ProfileSwitcher() {
   function handleLogout() {
     clearEventSession(slug);
     setOpen(false);
-    navigate(`/e/${slug}/access`, { replace: true });
+    navigate(`/e/${slug}/access/intro`, { replace: true });
   }
 
   if (!activeProfile) {
     return (
       <Link
-        to={`/e/${slug}/access`}
+        to={`/e/${slug}/access/intro`}
         className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-800"
       >
         <UserCircle2 size={16} />

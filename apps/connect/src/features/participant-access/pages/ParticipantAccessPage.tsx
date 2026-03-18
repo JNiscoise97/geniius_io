@@ -6,27 +6,8 @@ import { DeviceProfilesCard } from "../components/DeviceProfilesCard";
 import { accessConfig } from "../config/accessConfig";
 import {
   getStoredParticipantProfiles,
-  type StoredParticipantProfile,
 } from "../../../lib/participant-session/getStoredParticipantProfiles";
-import { setActiveParticipant } from "../../../lib/participant-session/setActiveParticipant";
-
-function syncLegacyParticipantStorage(
-  slug: string,
-  profile: StoredParticipantProfile | null,
-) {
-  if (!profile) return;
-
-  localStorage.setItem(
-    `connect:${slug}:participant`,
-    JSON.stringify({
-      participantId: profile.participantId,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      birthYear: profile.birthYear,
-      recoveryToken: profile.recoveryToken,
-    }),
-  );
-}
+import { getParticipantAccessConfirmDevicePath, getParticipantAccessCreatePath } from "../config/participantAccessRoutes";
 
 export function ParticipantAccessPage() {
   const nav = useNavigate();
@@ -44,16 +25,10 @@ export function ParticipantAccessPage() {
   );
 
   function openStoredProfile(participantId: string) {
-    const ok = setActiveParticipant(slug, participantId);
-    if (!ok) return;
-
-    const nextActive =
-      state.profiles.find((profile) => profile.participantId === participantId) ??
-      null;
-
-    syncLegacyParticipantStorage(slug, nextActive);
-    nav(`/e/${slug}/welcome`);
-  }
+  nav(
+    `${getParticipantAccessConfirmDevicePath(slug)}?participantId=${encodeURIComponent(participantId)}`
+  );
+}
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -98,7 +73,7 @@ export function ParticipantAccessPage() {
                   }
 
                   if (choice.key === "create") {
-                    nav(`/e/${slug}/welcome/identity`);
+                    nav(getParticipantAccessCreatePath(slug));
                   }
                 }}
               />
