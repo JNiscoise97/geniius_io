@@ -8,6 +8,7 @@ export type SaveStoredProfileInput = {
   birthYear?: string;
   label?: string;
   recoveryToken?: string;
+  allowTest?: boolean;
   managedByParticipantId?: string;
   setAsActive?: boolean;
 };

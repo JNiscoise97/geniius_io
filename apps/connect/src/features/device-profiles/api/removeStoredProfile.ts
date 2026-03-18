@@ -53,6 +53,7 @@ export function removeStoredProfile(
           lastName: activeProfile.lastName,
           birthYear: activeProfile.birthYear,
           recoveryToken: activeProfile.recoveryToken,
+          allowTest: activeProfile.allowTest
         }),
       );
     }

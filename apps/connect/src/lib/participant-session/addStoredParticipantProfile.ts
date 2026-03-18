@@ -35,6 +35,7 @@ export type AddStoredParticipantProfileInput = {
   recoveryToken?: string;
   managedByParticipantId?: string;
   remembered?: boolean;
+  allowTest?: boolean;
   setAsActive?: boolean;
 };
 
@@ -58,6 +59,7 @@ export function addStoredParticipantProfile(
     label: input.label?.trim() || undefined,
     recoveryToken: input.recoveryToken?.trim() || undefined,
     managedByParticipantId: input.managedByParticipantId?.trim() || undefined,
+    allowTest: input.allowTest,
     updatedAt: now,
   };
 

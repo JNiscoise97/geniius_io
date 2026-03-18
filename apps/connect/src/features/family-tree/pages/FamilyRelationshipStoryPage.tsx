@@ -132,7 +132,7 @@ export function FamilyRelationshipStoryPage() {
               type="button"
               onClick={() =>
                 navigate(
-                  `/e/${slug}/familyTree/browse?id=${encodeURIComponent(targetId)}`,
+                  `/e/${slug}/family-tree/browse?personId=${encodeURIComponent(targetId)}`,
                 )
               }
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"

@@ -80,7 +80,7 @@ export function FamilyTreeHubPage() {
           {
             key: "my-link-to-ancestor",
             label: "Voir mon lien avec Gromèr Covindou",
-            description: "Découvre comment tu descends de Coundiaman TANJAMA.",
+            description: "Découvre comment tu descends de Gromèr.",
             icon: Heart,
             to: `/e/${slug}/family-tree/story`,
             enabled: true,
@@ -210,13 +210,28 @@ export function FamilyTreeHubPage() {
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
-                  <li>Revoir les chiffres</li>
+                  <li>Revoir les chiffres (hydratation)</li>
                   <li>Me trouver dans l'arbre
                     <ul>
                       <li>Akinator?</li>
                       <li>C'est moi qui fait le rapprochement d'identité</li>
                       <li>Formulaire sur les parents et grands-parents</li>
-                      <li>Par navigation: je pense être ici</li>
+                      <li>Par navigation: je pense être ici à partir d'une personne non masquée décrit ton lien précis</li>
+                      <li>Consentement</li>
+                    </ul>
+                  </li>
+                  <li>Navigation dans l'arbre
+                    <ul>
+                      <li>J'ajouter les photos</li>
+                      <li>Inclure les lieux de domicile dans le circuit des lieux d'une personne</li>
+                      <li>Virer les ? NOM INCONNU, ? SANS NOM, Nom inconnu pour les enfants</li>
+                      <li>Pour la pastille, prendre en compte le sexe</li>
+                      <li>Nom du père des enfants</li>
+                      <li>Ordre des fratries</li>
+                      <li>Sur un conjoint "Parent de X enfants"</li>
+                      <li>Lien avec Gromèr</li>
+                      <li>Boutons: revenir à Gromèr, revenir à moi, chercher une personne, me trouver</li>
+                      <li>Voir la fiche d'une personne</li>
                     </ul>
                   </li>
                   <li>Voir mon lien avec Gromèr

@@ -5,6 +5,8 @@ type LegacyProfile = {
   lastName?: string;
   birthYear?: string;
   recoveryToken?: string;
+  allowTest?: boolean;
+
 };
 
 export function syncLegacyParticipantStorage(
@@ -21,6 +23,7 @@ export function syncLegacyParticipantStorage(
       lastName: profile.lastName,
       birthYear: profile.birthYear,
       recoveryToken: profile.recoveryToken,
+      allowTest: profile.allowTest,
     }),
   );
 }

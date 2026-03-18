@@ -23,6 +23,7 @@ export function setActiveStoredProfile(
         lastName: activeProfile.lastName,
         birthYear: activeProfile.birthYear,
         recoveryToken: activeProfile.recoveryToken,
+        allowTest: activeProfile.allowTest
       }),
     );
   }
