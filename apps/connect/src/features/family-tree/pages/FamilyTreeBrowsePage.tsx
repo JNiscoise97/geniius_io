@@ -662,6 +662,19 @@ export function FamilyTreeBrowsePage() {
             </button>
           </div>
 
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                `/e/${slug}/familyTree/find-person?centerId=${encodeURIComponent(centerId)}`,
+              )
+            }
+            className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
+          >
+            <UserCircle2 size={16} />
+            Trouver une personne
+          </button>
+
           <div className="mt-4">
             <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
               {isSourceMe ? "Lien avec moi" : "Lien avec Gromèr"}

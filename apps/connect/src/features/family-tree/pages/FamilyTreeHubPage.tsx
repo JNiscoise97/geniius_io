@@ -99,7 +99,7 @@ export function FamilyTreeHubPage() {
             description:
               "Trouve rapidement une personne dans l’arbre familial.",
             icon: Search,
-            to: `/e/${slug}/arbre/recherche`,
+            to: `/e/${slug}/family-tree/find-person`,
             enabled: true,
           },
           {
@@ -224,8 +224,7 @@ export function FamilyTreeHubPage() {
                       <li>un écran un peu propre qui explicite le lien direct</li>
                     </ul>
                   </li>
-                  <li>un moteur de recherche qui nav vers la fiche de la personne</li>
-                  <li>un moteur de recherche</li>
+                  <li>un moteur de recherche: bouton revenir à moi, sexe dans le lien</li>
                   <li>Rédiger la page sur Gromèr Covindou</li>
                 </ol>
               </div>

@@ -10,31 +10,31 @@ import type { PersonSummary } from "../types";
 export type PersonUiOverride = Partial<PersonSummary>;
 
 export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
-  coundeaman: {
+  "coundeaman": {
     photoSrc: tanjamaCoundeaman,
     subtitle: "Aïeule",
   },
-  7398: {
+  "7398": {
     subtitle: "Aïeule",
     photoSrc: gromer,
   },
-  ariapoutri: {
+  "ariapoutri": {
     subtitle: "Aïeul",
   },
-  7351: {
+  "7351": {
     photoSrc: niscoiseJordan,
     hidden: false,
   },
-  733728949: {
+  "733728949": {
     hidden: false,
   },
-  731454: {
+  "731454": {
     photoSrc: kicheninCandide,
   },
-  731304634: {
+  "731304634": {
     photoSrc: blukerMariot,
   },
-  7372: {
+  "7372": {
     photoSrc: blukerMichel,
   },
 };
