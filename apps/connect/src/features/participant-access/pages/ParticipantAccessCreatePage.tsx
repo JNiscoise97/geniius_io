@@ -1,5 +1,5 @@
-import { type FormEvent, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { type FormEvent, useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import {
   saveParticipantAccessProfile,
@@ -10,17 +10,12 @@ import { sendParticipantRecoveryLink } from "../api/sendParticipantRecoveryLink"
 import { ParticipantAccessCreateForm } from "../components/ParticipantAccessCreateForm";
 import { createProfileConfig } from "../config/createProfileConfig";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
-
-const INITIAL_VALUES: ParticipantAccessCreateValues = {
-  firstName: "",
-  lastName: "",
-  birthYear: "",
-  phone: "",
-  email: "",
-  hasWhatsapp: false,
-  messenger: "",
-  preferredContactChannels: [],
-};
+import { syncLegacyParticipantStorage } from "../../../lib/participant-session/syncLegacyParticipantStorage";
+import {
+  getParticipantAccessRecoverConfirmPath,
+  getParticipantHomePath,
+} from "../config/participantAccessRoutes";
+import { findParticipantByEmail } from "../api/findParticipantByEmail";
 
 function hasOptionalContact(values: ParticipantAccessCreateValues): boolean {
   return Boolean(values.phone?.trim() || values.messenger?.trim());
@@ -30,11 +25,31 @@ export function ParticipantAccessCreatePage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
-
-  const [values, setValues] =
-    useState<ParticipantAccessCreateValues>(INITIAL_VALUES);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [searchParams] = useSearchParams();
+  const prefilledEmail = searchParams.get("email")?.trim() ?? "";
+
+  const [values, setValues] = useState<ParticipantAccessCreateValues>({
+    firstName: "",
+    lastName: "",
+    birthYear: "",
+    phone: "",
+    email: prefilledEmail,
+    hasWhatsapp: false,
+    messenger: "",
+    preferredContactChannels: [],
+  });
+
+  useEffect(() => {
+    if (!prefilledEmail) return;
+
+    setValues((prev) => {
+      if (prev.email?.trim()) return prev;
+      return { ...prev, email: prefilledEmail };
+    });
+  }, [prefilledEmail]);
 
   function patchValues(patch: Partial<ParticipantAccessCreateValues>) {
     setValues((prev) => ({ ...prev, ...patch }));
@@ -47,6 +62,10 @@ export function ParticipantAccessCreatePage() {
 
     if (!values.lastName.trim()) {
       return "Merci d’indiquer ton nom.";
+    }
+
+    if (!/^\d{4}$/.test(values.birthYear.trim())) {
+      return "Merci d’indiquer ton année de naissance sur 4 chiffres.";
     }
 
     if (!values.email?.trim()) {
@@ -126,20 +145,49 @@ export function ParticipantAccessCreatePage() {
         setAsActive: true,
       });
 
-      localStorage.setItem(
-        `connect:${participant.eventSlug}:participant`,
-        JSON.stringify({
-          participantId: participant.participantId,
-          firstName: participant.firstName,
-          lastName: participant.lastName,
-          birthYear: participant.birthYear,
-          recoveryToken: recovery.recoveryToken,
-        }),
-      );
+      syncLegacyParticipantStorage(participant.eventSlug, {
+        participantId: participant.participantId,
+        firstName: participant.firstName,
+        lastName: participant.lastName,
+        birthYear: participant.birthYear,
+        recoveryToken: recovery.recoveryToken,
+      });
 
-      navigate(`/e/${participant.eventSlug}/home`, { replace: true });
+      navigate(getParticipantHomePath(participant.eventSlug), { replace: true });
     } catch (e: any) {
-      setError(e?.message ?? "Impossible de créer le profil.");
+      const message = e?.message ?? "";
+
+      // 🧠 Cas email déjà existant (duplicate key ou erreur custom)
+      if (
+        message.toLowerCase().includes("duplicate") ||
+        message.toLowerCase().includes("email")
+      ) {
+        try {
+          const existing = await findParticipantByEmail({
+            eventSlug: slug,
+            email: values.email,
+          });
+
+          if (existing.found) {
+            navigate(
+              `${getParticipantAccessRecoverConfirmPath(existing.eventSlug)}?participantId=${encodeURIComponent(existing.participantId)}`,
+              {
+                replace: true,
+                state: {
+                  email: existing.email,
+                  maskedDisplayName: existing.maskedDisplayName,
+                  fromCreateConflict: true, // 🔥 IMPORTANT
+                },
+              },
+            );
+            return;
+          }
+        } catch (innerError) {
+          console.error(innerError);
+        }
+      }
+
+      setError("Impossible de créer le profil.");
     } finally {
       setLoading(false);
     }

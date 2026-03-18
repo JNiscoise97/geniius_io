@@ -1,54 +1,52 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Smartphone } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { RecoveryBirthYearForm } from "../components/RecoveryBirthYearForm";
-import { RecoverySummaryCard } from "../components/RecoverySummaryCard";
 import { accessConfig } from "../config/accessConfig";
-import { confirmParticipantRecoveryByParticipantId } from "../api/confirmParticipantRecoveryByParticipantId";
+import {
+  getStoredParticipantProfiles,
+  type StoredParticipantProfile,
+} from "../../../lib/participant-session/getStoredParticipantProfiles";
+import { confirmStoredParticipantAccess } from "../api/confirmStoredParticipantAccess";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 import { syncLegacyParticipantStorage } from "../../../lib/participant-session/syncLegacyParticipantStorage";
-import { createRecoveryLink } from "../api/createRecoveryLink";
 import {
   getParticipantAccessRecoverPath,
   getParticipantHomePath,
 } from "../config/participantAccessRoutes";
-import { resendParticipantRecoveryLink } from "../api/resendParticipantRecoveryLink";
 import { sendParticipantConnection } from "../api/sendParticipantConnection";
 
-type RecoverConfirmLocationState = {
-  email?: string;
-  maskedDisplayName?: string;
-  fromCreateConflict?: boolean;
-} | null;
+function getProfileDisplayName(profile: StoredParticipantProfile | null): string {
+  if (!profile) return "Profil familial";
+  if (profile.label?.trim()) return profile.label.trim();
 
-export function ParticipantRecoverConfirmPage() {
+  const parts = [profile.firstName?.trim(), profile.lastName?.trim()].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : "Profil familial";
+}
+
+export function ParticipantConfirmDevicePage() {
   const nav = useNavigate();
-  const location = useLocation();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
-
-  const state = (location.state as RecoverConfirmLocationState) ?? null;
-
   const [searchParams] = useSearchParams();
-  const participantId = searchParams.get("participantId")?.trim() ?? "";
-  const email = state?.email?.trim() ?? "";
-  const maskedDisplayName = state?.maskedDisplayName?.trim() ?? "Profil familial";
-  const fromCreateConflict = state?.fromCreateConflict === true;
 
+  const participantId = searchParams.get("participantId")?.trim() ?? "";
   const [birthYear, setBirthYear] = useState("");
   const [loadingConfirm, setLoadingConfirm] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const pageError = useMemo(() => {
-    if (!participantId) {
-      return "Impossible de poursuivre la récupération de ce profil.";
-    }
-    return null;
-  }, [participantId]);
+  const deviceState = useMemo(() => getStoredParticipantProfiles(slug), [slug]);
+
+  const profile = useMemo(
+    () =>
+      deviceState.profiles.find((item) => item.participantId === participantId) ??
+      null,
+    [deviceState.profiles, participantId],
+  );
 
   function validate(): string | null {
-    if (!participantId) {
-      return "Impossible de poursuivre la récupération de ce profil.";
+    if (!participantId || !profile) {
+      return "Impossible de retrouver le profil enregistré sur cet appareil.";
     }
 
     if (!/^\d{4}$/.test(birthYear.trim())) {
@@ -71,49 +69,25 @@ export function ParticipantRecoverConfirmPage() {
     setLoadingConfirm(true);
 
     try {
-      const result = await confirmParticipantRecoveryByParticipantId({
+      const result = await confirmStoredParticipantAccess({
         participantId,
         birthYear,
       });
 
       if (!result) {
-        setFormError("L’année de naissance ne correspond pas à ce profil.");
+        nav(getParticipantAccessRecoverPath(slug), {
+          replace: true,
+          state: { reason: "birth-year-mismatch" },
+        });
         return;
       }
-
-      let recoveryToken = result.recoveryToken;
-      let recoveryLink: string | undefined;
-
-      if (!recoveryToken) {
-        const recovery = await createRecoveryLink({
-          participantId: result.participantId,
-          eventSlug: result.eventSlug,
-        });
-        recoveryToken = recovery.recoveryToken;
-        recoveryLink = recovery.recoveryLink;
-      } else {
-        const recovery = await createRecoveryLink({
-          participantId: result.participantId,
-          eventSlug: result.eventSlug,
-        });
-        recoveryLink = recovery.recoveryLink;
-      }
-
-      await resendParticipantRecoveryLink({
-        eventSlug: result.eventSlug,
-        participantId: result.participantId,
-        recoveryLink: recoveryLink,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        email: email || result.email || "",
-      });
 
       addStoredParticipantProfile(result.eventSlug, {
         participantId: result.participantId,
         firstName: result.firstName,
         lastName: result.lastName,
         birthYear: result.birthYear,
-        recoveryToken,
+        recoveryToken: result.recoveryToken,
         remembered: true,
         setAsActive: true,
       });
@@ -123,7 +97,7 @@ export function ParticipantRecoverConfirmPage() {
         firstName: result.firstName,
         lastName: result.lastName,
         birthYear: result.birthYear,
-        recoveryToken,
+        recoveryToken: result.recoveryToken,
       });
 
       await sendParticipantConnection({
@@ -131,8 +105,8 @@ export function ParticipantRecoverConfirmPage() {
         participantId: result.participantId,
         firstName: result.firstName,
         lastName: result.lastName,
-        email: email || result.email,
-        source: "email-recovery",
+        email: result.email,
+        source: "device",
       });
 
       nav(getParticipantHomePath(result.eventSlug), { replace: true });
@@ -143,7 +117,7 @@ export function ParticipantRecoverConfirmPage() {
     }
   }
 
-  if (pageError) {
+  if (!participantId || !profile) {
     return (
       <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
         <main className="c-container pt-3 pb-24">
@@ -154,10 +128,10 @@ export function ParticipantRecoverConfirmPage() {
               </div>
               <div>
                 <div className="text-sm font-black text-slate-900">
-                  Impossible de poursuivre
+                  Profil introuvable
                 </div>
                 <div className="mt-1 text-sm font-bold leading-6 text-slate-700">
-                  {pageError}
+                  Impossible de retrouver le profil enregistré sur cet appareil.
                 </div>
               </div>
             </div>
@@ -168,7 +142,7 @@ export function ParticipantRecoverConfirmPage() {
                 onClick={() => nav(getParticipantAccessRecoverPath(slug))}
                 className="w-full rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white"
               >
-                Retour à la récupération
+                Continuer autrement
               </button>
             </div>
           </section>
@@ -180,25 +154,40 @@ export function ParticipantRecoverConfirmPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pt-3 pb-28">
-        {fromCreateConflict ? (
-          <section className="mb-4 rounded-[24px] border border-amber-200 bg-amber-50 p-4 shadow-sm">
-            <div className="text-sm font-black text-slate-900">
-              Profil déjà existant
+        <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-2xl bg-slate-100 p-3 text-slate-900">
+              <Smartphone size={20} />
             </div>
 
-            <div className="mt-1 text-sm font-bold leading-6 text-slate-700">
-              Cette adresse email est déjà associée à un profil existant.
-              Pour continuer en toute sécurité, confirme l’année de naissance liée à ce profil.
+            <div className="min-w-0 flex-1">
+              <div className="text-[16px] font-black text-slate-900">
+                Profil retrouvé sur cet appareil
+              </div>
+              <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
+                Nous avons retrouvé un profil déjà enregistré sur ce téléphone.
+              </p>
+
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-[11px] font-black uppercase tracking-wide text-slate-500">
+                  Profil retrouvé
+                </div>
+                <div className="mt-1 text-sm font-black text-slate-900">
+                  {getProfileDisplayName(profile)}
+                </div>
+              </div>
             </div>
-          </section>
-        ) : null}
-        <RecoverySummaryCard
-          title="Profil retrouvé"
-          subtitle="Nous avons retrouvé un profil correspondant à cette adresse email."
-          helperTitle="Vérification rapide"
-          helperText="Indique l’année de naissance associée à ce profil pour ouvrir directement l’espace famille."
-          displayName={maskedDisplayName}
-        />
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-[24px] border border-indigo-100 bg-indigo-50 p-4 shadow-sm">
+          <div className="text-sm font-black text-slate-900">
+            Vérification rapide
+          </div>
+          <div className="mt-1 text-xs font-bold leading-5 text-slate-700">
+            Indique l’année de naissance associée à ce profil pour confirmer l’ouverture sur cet appareil.
+          </div>
+        </section>
 
         <RecoveryBirthYearForm
           value={birthYear}
@@ -206,7 +195,7 @@ export function ParticipantRecoverConfirmPage() {
           error={formError}
           label={accessConfig.recovery.birthYearLabel}
           placeholder={accessConfig.recovery.birthYearPlaceholder}
-          submitLabel="Confirmer et ouvrir le profil"
+          submitLabel={accessConfig.recovery.submitLabel}
           onChange={setBirthYear}
           onSubmit={onSubmit}
         />

@@ -26,6 +26,14 @@ type ParticipantRow = {
   preferred_contact_channels: string[] | null;
 };
 
+type ParticipantEmailLookupRow = {
+  id: string;
+  event_slug: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+};
+
 export type SaveParticipantAccessProfileResult = {
   participantId: string;
   eventSlug: string;
@@ -38,6 +46,27 @@ export type SaveParticipantAccessProfileResult = {
   messenger?: string;
   preferredContactChannels: ParticipantContactChannel[];
 };
+
+export class ExistingParticipantEmailError extends Error {
+  participantId: string;
+  eventSlug: string;
+  email: string;
+  maskedDisplayName: string;
+
+  constructor(input: {
+    participantId: string;
+    eventSlug: string;
+    email: string;
+    maskedDisplayName: string;
+  }) {
+    super("Cette adresse email est déjà utilisée pour un profil existant.");
+    this.name = "ExistingParticipantEmailError";
+    this.participantId = input.participantId;
+    this.eventSlug = input.eventSlug;
+    this.email = input.email;
+    this.maskedDisplayName = input.maskedDisplayName;
+  }
+}
 
 function normalizeText(value?: string): string | undefined {
   const v = value?.trim();
@@ -61,6 +90,18 @@ function uniqueChannels(values: string[]): ParticipantContactChannel[] {
     (v): v is ParticipantContactChannel =>
       allowed.includes(v as ParticipantContactChannel),
   );
+}
+
+function maskNamePart(value?: string): string {
+  const v = value?.trim();
+  if (!v) return "";
+  if (v.length === 1) return "*";
+  return `${v[0]}${"*".repeat(Math.max(4, v.length - 1))}`;
+}
+
+function buildMaskedDisplayName(firstName?: string, lastName?: string): string {
+  const parts = [maskNamePart(firstName), maskNamePart(lastName)].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : "Profil familial";
 }
 
 function toResult(row: ParticipantRow): SaveParticipantAccessProfileResult {
@@ -105,6 +146,10 @@ export async function saveParticipantAccessProfile({
     throw new Error("Le prénom et le nom sont requis.");
   }
 
+  if (birthYear === null) {
+    throw new Error("L’année de naissance est requise.");
+  }
+
   if (!email) {
     throw new Error(
       "Une adresse email est requise pour envoyer le lien personnel.",
@@ -135,23 +180,51 @@ export async function saveParticipantAccessProfile({
     throw new Error(participantLookup.error.message);
   }
 
-  if (participantLookup.data) {
-    const existing = participantLookup.data;
+  const existingByIdentity = participantLookup.data ?? null;
 
+  const emailLookup = await supabase
+    .from("participants")
+    .select("id, event_slug, first_name, last_name, email")
+    .eq("event_slug", normalizedEventSlug)
+    .eq("email", email)
+    .maybeSingle<ParticipantEmailLookupRow>();
+
+  if (emailLookup.error) {
+    throw new Error(emailLookup.error.message);
+  }
+
+  const existingByEmail = emailLookup.data ?? null;
+
+  if (
+    existingByEmail &&
+    (!existingByIdentity || existingByEmail.id !== existingByIdentity.id)
+  ) {
+    throw new ExistingParticipantEmailError({
+      participantId: existingByEmail.id,
+      eventSlug: existingByEmail.event_slug,
+      email: existingByEmail.email ?? email,
+      maskedDisplayName: buildMaskedDisplayName(
+        existingByEmail.first_name ?? undefined,
+        existingByEmail.last_name ?? undefined,
+      ),
+    });
+  }
+
+  if (existingByIdentity) {
     const updateRes = await supabase
       .from("participants")
       .update({
         email,
-        phone: phone ?? existing.phone,
-        has_whatsapp: hasWhatsapp || existing.has_whatsapp === true,
-        messenger: messenger ?? existing.messenger,
+        phone: phone ?? existingByIdentity.phone,
+        has_whatsapp: hasWhatsapp || existingByIdentity.has_whatsapp === true,
+        messenger: messenger ?? existingByIdentity.messenger,
         preferred_contact_channels:
           preferredContactChannels.length > 0
             ? preferredContactChannels
-            : existing.preferred_contact_channels ?? [],
+            : existingByIdentity.preferred_contact_channels ?? [],
         updated_at: new Date().toISOString(),
       })
-      .eq("id", existing.id)
+      .eq("id", existingByIdentity.id)
       .select(`
         id,
         event_slug,

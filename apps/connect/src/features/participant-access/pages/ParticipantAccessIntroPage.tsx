@@ -1,6 +1,6 @@
 import { ArrowRight, ShieldCheck, TreePine, Users } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getParticipantAccessCreatePath } from "../config/participantAccessRoutes";
+import { getParticipantAccessContinuePath } from "../config/participantAccessRoutes";
 import cousinade from "../../../assets/images/cousinade.jpg";
 
 export function ParticipantAccessIntroPage() {
@@ -9,7 +9,7 @@ export function ParticipantAccessIntroPage() {
   const slug = eventSlug ?? "demo";
 
   function handleStart() {
-    navigate(getParticipantAccessCreatePath(slug));
+    navigate(getParticipantAccessContinuePath(slug));
   }
 
   return (

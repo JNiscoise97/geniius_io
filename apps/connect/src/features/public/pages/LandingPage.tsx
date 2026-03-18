@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ClipboardList,
   Contact,
+  Footprints,
   Gamepad2,
   Gift,
   Hammer,
@@ -215,8 +216,8 @@ export function LandingPage() {
         items: [
           {
             key: "present",
-            label: "Quelques mots sur toi",
-            description: "Aide les cousins à mieux te situer dans la famille.",
+            label: "Ton espace personnel",
+            description: "Ajoute quelques informations pour te présenter et créer du lien avec les cousins.",
             icon: UserCircle2,
             to: `/e/${slug}/welcome`,
             enabled: features.preEvent.presentYourself,
@@ -473,7 +474,7 @@ export function LandingPage() {
         const nextPrompts = getFirstIncompleteCompletionRules(
           completionRules,
           rowsByTable,
-          4,
+          3,
         );
 
         if (!cancelled) {
@@ -562,12 +563,13 @@ export function LandingPage() {
               type="button"
               onClick={() => setMode("guided")}
               className={[
-                "rounded-2xl px-4 py-3 text-sm font-black transition",
+                "rounded-2xl px-4 py-3 text-sm font-black transition inline-flex items-center justify-center gap-2",
                 mode === "guided"
                   ? "bg-[color:var(--blue)] text-white"
                   : "bg-slate-50 text-slate-700",
               ].join(" ")}
             >
+              <Footprints size={16} />
               Actions guidées
             </button>
 
@@ -575,25 +577,26 @@ export function LandingPage() {
               type="button"
               onClick={() => setMode("all")}
               className={[
-                "rounded-2xl px-4 py-3 text-sm font-black transition",
+                "rounded-2xl px-4 py-3 text-sm font-black transition inline-flex items-center justify-center gap-2",
                 mode === "all"
                   ? "bg-[color:var(--blue)] text-white"
                   : "bg-slate-50 text-slate-700",
               ].join(" ")}
             >
-              Tout explorer
+              <Library size={16} />
+              Toutes les rubriques
             </button>
           </div>
 
-          <p className="px-2 pb-2 pt-3 text-[12px] font-semibold leading-5 text-slate-600">
+          <p className="px-2 pb-2 pt-3 text-[13px] font-bold leading-5 text-slate-700">
             {mode === "guided"
-              ? "Dans “Tout explorer”, tu retrouveras toutes les rubriques de l’espace famille, celles déjà renseignées comme celles à venir."
-              : ""}
+              ? "Toutes les rubriques te permettent de retrouver l’ensemble de l’espace famille : ce que tu as déjà rempli, ce qu’il reste à compléter et ce qui arrive bientôt."
+              : "Tu peux revenir aux actions guidées si tu préfères être accompagné pas à pas."}
           </p>
         </section>
 
         {mode === "guided" ? (
-          <section className="mt-5 space-y-4">
+          <><section className="mt-5 space-y-4">
             {loadingGuidedPrompts ? (
               <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="text-sm font-bold text-slate-700">
@@ -607,8 +610,7 @@ export function LandingPage() {
                 <GuidedPromptCard
                   key={prompt.key}
                   prompt={prompt}
-                  onClick={() => openCompletionRule(prompt)}
-                />
+                  onClick={() => openCompletionRule(prompt)} />
               ))}
 
             {!loadingGuidedPrompts && guidedPrompts.length === 0 ? (
@@ -622,6 +624,38 @@ export function LandingPage() {
               </section>
             ) : null}
           </section>
+            <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm mt-3">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-2xl bg-slate-100 p-3 text-slate-900">
+                  <Library size={20} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="text-[16px] font-black text-slate-900">
+                    Voir toutes les rubriques
+                  </div>
+                  <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
+                    Retrouve tout l’espace famille en un seul endroit, y compris les rubriques déjà remplies et celles à venir.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: "auto",
+                      });
+                      setMode("all")
+                    }}
+                    className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900"
+                  >
+                    Ouvrir
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </section></>
         ) : (
           <div className="mt-5 space-y-4">
             {sections.map((section) => {
@@ -718,10 +752,6 @@ function GuidedPromptCard({
               {prompt.cta}
               <ArrowRight size={16} />
             </button>
-
-            <span className="text-[11px] font-extrabold text-slate-500">
-              Modifiable dans “Tout explorer”
-            </span>
           </div>
         </div>
       </div>

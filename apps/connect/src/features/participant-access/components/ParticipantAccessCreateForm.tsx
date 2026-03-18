@@ -77,7 +77,7 @@ export function ParticipantAccessCreateForm({
 
         <div className="grid gap-1">
           <label className="text-xs font-extrabold text-slate-800">
-            Année de naissance
+            Année de naissance *
           </label>
           <input
             value={values.birthYear}
@@ -92,6 +92,9 @@ export function ParticipantAccessCreateForm({
             maxLength={4}
             disabled={loading}
           />
+          <p className="text-xs font-bold leading-5 text-slate-500">
+            Cette information sert à vérifier ton identité si tu réouvres ton profil sur un autre appareil.
+          </p>
         </div>
 
         <div className="grid gap-1">
