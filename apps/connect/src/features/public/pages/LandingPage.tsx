@@ -189,18 +189,24 @@ export function LandingPage() {
   };
 
   const timeline = {
-    present: "2026-03-14",
-    familyKnowledge: "2026-03-14",
-    attendance: "2026-03-14",
-    contact: "2026-03-14",
+    present: "2026-03-17",
+    familyKnowledge: "2026-03-17",
+    attendance: "2026-03-17",
+    contact: "2026-03-17",
+    familyTreePerson: "2026-03-17",
+
+
     familyTree: "2026-03-22",
-    familyTreePerson: "2026-03-14",
-    familyLibrary: "2026-03-25",
+    warmupQuizAt: "2026-03-22",
     testimonyBefore: "2026-03-22",
     contribute: "2026-03-22",
-    warmupQuizAt: "2026-03-22",
+
+    familyLibrary: "2026-03-25",
+
     familyChallengesAt: "2026-03-29",
+
     programAt: "2026-04-05",
+
     teamGameAt: "2026-04-12",
     leaderboardAt: "2026-04-12",
     photosAt: "2026-04-12",
