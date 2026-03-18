@@ -10,7 +10,6 @@ import {
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FamilyPeopleList } from "../components/FamilyPeopleList";
-import { KnownToggleField } from "../components/KnownToggleField";
 import { LivingStatusField } from "../components/LivingStatusField";
 import { PhotoPresenceField } from "../components/PhotoPresenceField";
 import { godparentsFormConfig } from "../config/godparentsFormConfig";
@@ -28,6 +27,7 @@ import { getParticipantSession } from "../../../lib/participant-session/getActiv
 import { getFamilyKnowledgeCloseFamily } from "../api/getFamilyKnowledgeCloseFamily";
 import { getFamilyKnowledgeGrandparents } from "../api/getFamilyKnowledgeGrandparents";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { KnownToggleField } from "../../../shared/components/KnownToggleField";
 
 type VisibleSections = {
   self: boolean;

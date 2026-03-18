@@ -56,7 +56,10 @@ import { FamilyTreeHubPage } from "../features/family-tree/pages/FamilyTreeHubPa
 import { PersonSheetPage } from "../features/person-sheet/pages/PersonSheetPage";
 import { ParticipantOriginsPage } from "../features/participant-origins/pages/ParticipantOriginsPage";
 import { FamilyKnowledgePhotosPage } from "../features/family-knowledge/pages/FamilyKnowledgePhotosPage";
-import { DemoFamilyTreeFocusPage } from "../features/family-tree/pages/DemoFamilyTreeFocusPage";
+import { FamilyTreeBrowsePage } from "../features/family-tree/pages/FamilyTreeBrowsePage";
+import { FamilyTreeEntryPage } from "../features/family-tree/pages/FamilyTreeEntryPage";
+import { FamilyRelationshipStoryPage } from "../features/family-tree/pages/FamilyRelationshipStoryPage";
+import { FamilyTreeFindMePage } from "../features/family-tree/pages/FamilyTreeFindMePage";
 
 export const router = createBrowserRouter([
   {
@@ -128,6 +131,7 @@ export const router = createBrowserRouter([
               { path: "family-knowledge/photos", element: <FamilyKnowledgePhotosPage /> },
 
               // Family tree
+              { path: "family-tree", element: <FamilyTreeEntryPage /> },
               { path: "arbre", element: <FamilyTreeHubPage /> },
               { path: "arbre2", element: <BranchesPage /> },
               { path: "arbre/branches/:branchId/families", element: <FamiliesPage /> },
@@ -135,7 +139,9 @@ export const router = createBrowserRouter([
               { path: "arbre/persons/:personId", element: <PersonPage /> },
               { path: "arbre/persons/:personId/lineage", element: <LineagePage /> },
 
-              { path: "arbre/demo", element: <DemoFamilyTreeFocusPage /> },
+              { path: "family-tree/browse", element: <FamilyTreeBrowsePage /> },
+              { path: "family-tree/story", element: <FamilyRelationshipStoryPage /> },
+              { path: "family-tree/find-me", element: <FamilyTreeFindMePage />},
 
               { path: "fiche", element: <PersonSheetPage /> },
 

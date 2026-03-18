@@ -9,8 +9,8 @@ import {
   User,
   UserCircle2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import type { PersonSummary } from "../types";
@@ -23,6 +23,10 @@ import {
   type RelationshipPathNode,
 } from "../api/findRelationshipPath";
 import { FAMILY_GRAPH } from "../api/loadGraph";
+import {
+  createFamilyTreeViewTracker,
+  type FamilyTreeViaAction,
+} from "../../../lib/analytics/familyTreeViewTracker";
 
 function anonymizePerson(person: PersonSummary): PersonSummary {
   if (!person.hidden) return person;
@@ -234,20 +238,6 @@ function getPluralLabel(count: number, singular: string, plural: string) {
   return count > 1 ? plural : singular;
 }
 
-function getStepArrow(via: RelationshipPathNode["via"]) {
-  if (via === "parent") return "↑";
-  if (via === "child") return "↓";
-  if (via === "spouse") return "↔";
-  return "•";
-}
-
-function getStepText(via: RelationshipPathNode["via"]) {
-  if (via === "parent") return "on remonte";
-  if (via === "child") return "on redescend";
-  if (via === "spouse") return "par alliance";
-  return "";
-}
-
 function getAncestorLabel(level: number) {
   if (level <= 0) return "famille";
   if (level === 1) return "parent";
@@ -305,7 +295,7 @@ function summarizeRelationshipPath(
     : `Voici le chemin familial le plus court depuis ${sourceDisplayName}.`;
 }
 
-export function DemoFamilyTreeFocusPage() {
+export function FamilyTreeBrowsePage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
@@ -313,11 +303,19 @@ export function DemoFamilyTreeFocusPage() {
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
 
+  const [searchParams] = useSearchParams();
+  const requestedPersonId = searchParams.get("personId");
+
   const rootHonoredPersonId = "7398";
   const sourcePersonId = "7351";
   const isSourceMe = false;
 
-  const [centerId, setCenterId] = useState<string>(rootHonoredPersonId);
+  const initialCenterId =
+    requestedPersonId && FAMILY_GRAPH.people[requestedPersonId]
+      ? requestedPersonId
+      : rootHonoredPersonId;
+
+  const [centerId, setCenterId] = useState<string>(initialCenterId);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     parents: true,
     spouses: true,
@@ -343,7 +341,32 @@ export function DemoFamilyTreeFocusPage() {
   );
 
   const heroConfig = useMemo(() => getPersonHeroConfig(centerId), [centerId]);
-  const visibleOtherBranches = displayPerson.hidden ? [] : heroConfig.otherBranches;
+  const visibleOtherBranches = displayPerson.hidden
+    ? []
+    : heroConfig.otherBranches;
+
+  const familyTreeTrackerRef = useRef<ReturnType<
+    typeof createFamilyTreeViewTracker
+  > | null>(null);
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createFamilyTreeViewTracker({
+      participantId,
+      eventSlug: slug,
+      sourcePageKey: `/e/${slug}/familyTree/browse`,
+      initialPersonId: centerId,
+    });
+
+    familyTreeTrackerRef.current = tracker;
+    tracker.start();
+
+    return () => {
+      familyTreeTrackerRef.current = null;
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -351,7 +374,7 @@ export function DemoFamilyTreeFocusPage() {
     const tracker = createPageTimeTracker({
       participantId,
       eventSlug: slug,
-      pageKey: `/e/${slug}/arbre/focus`,
+      pageKey: `/e/${slug}/familyTree/browse`,
     });
 
     tracker.start();
@@ -365,16 +388,31 @@ export function DemoFamilyTreeFocusPage() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [centerId]);
 
-  function goToPerson(personId: string) {
+  function goToPerson(personId: string, viaAction: FamilyTreeViaAction) {
     setCenterId(personId);
+    const tracker = familyTreeTrackerRef.current;
+
+    if (tracker) {
+      void tracker.changePerson(personId, viaAction);
+    }
   }
 
   function recenterOnSource() {
     setCenterId(sourcePersonId);
+    const tracker = familyTreeTrackerRef.current;
+
+    if (tracker) {
+      void tracker.changePerson(sourcePersonId, "recenter_source");
+    }
   }
 
   function recenterOnRoot() {
     setCenterId(rootHonoredPersonId);
+    const tracker = familyTreeTrackerRef.current;
+
+    if (tracker) {
+      void tracker.changePerson(rootHonoredPersonId, "recenter_root");
+    }
   }
 
   function openCentralPerson() {
@@ -425,7 +463,7 @@ export function DemoFamilyTreeFocusPage() {
           <div className="flex items-start justify-end gap-3">
             <button
               type="button"
-              onClick={() => navigate(`/e/${slug}/home`)}
+              onClick={() => navigate(`/e/${slug}/family-tree`)}
               className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
             >
               <span className="inline-flex items-center gap-2">
@@ -525,6 +563,7 @@ export function DemoFamilyTreeFocusPage() {
             onToggle={() => toggleSection("parents")}
             emptyLabel="Aucun parent affiché pour le moment."
             onSelect={goToPerson}
+            viaAction="parents_section"
             showCount={false}
           />
 
@@ -537,6 +576,7 @@ export function DemoFamilyTreeFocusPage() {
             onToggle={() => toggleSection("spouses")}
             emptyLabel="Aucun conjoint affiché pour le moment."
             onSelect={goToPerson}
+            viaAction="spouses_section"
           />
 
           <TreeRelationSection
@@ -548,6 +588,7 @@ export function DemoFamilyTreeFocusPage() {
             onToggle={() => toggleSection("children")}
             emptyLabel="Aucun enfant affiché pour le moment."
             onSelect={goToPerson}
+            viaAction="children_section"
           />
 
           <TreeRelationSection
@@ -559,6 +600,7 @@ export function DemoFamilyTreeFocusPage() {
             onToggle={() => toggleSection("siblings")}
             emptyLabel="Aucune fratrie affichée pour le moment."
             onSelect={goToPerson}
+            viaAction="siblings_section"
           />
 
           <TreeRelationSection
@@ -570,6 +612,7 @@ export function DemoFamilyTreeFocusPage() {
             onToggle={() => toggleSection("grandparents")}
             emptyLabel="Aucun aïeul affiché pour le moment."
             onSelect={goToPerson}
+            viaAction="grandparents_section"
             showCount={false}
           />
         </div>
@@ -608,6 +651,15 @@ export function DemoFamilyTreeFocusPage() {
                   : `Revenir à ${sourcePerson.firstName}`}
               </button>
             ) : null}
+
+            <button
+              type="button"
+              onClick={() => navigate(`/e/${slug}/family-tree/find-me`)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
+            >
+              <UserCircle2 size={16} />
+              Me trouver
+            </button>
           </div>
 
           <div className="mt-4">
@@ -633,56 +685,20 @@ export function DemoFamilyTreeFocusPage() {
                 </div>
               </div>
 
-              {relationshipPath && relationshipPath.length > 1 ? (
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  {relationshipPath.map((node, index) => {
-                    const person = anonymizePerson(
-                      getPersonContext(node.personId).person,
-                    );
-                    const isLast = index === relationshipPath.length - 1;
-
-                    const label =
-                      node.personId === rootHonoredPersonId
-                        ? `Gromèr ${person.firstName}`
-                        : node.personId === sourcePersonId
-                          ? isSourceMe
-                            ? "Moi"
-                            : `${person.firstName} ${person.lastName}`
-                          : `${person.firstName} ${person.lastName}`;
-
-                    const nextNode = relationshipPath[index + 1];
-
-                    return (
-                      <div
-                        key={`${node.personId}-${index}`}
-                        className="inline-flex items-center gap-2"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => goToPerson(node.personId)}
-                          className={[
-                            "rounded-full px-3 py-2 text-[11px] font-extrabold transition active:scale-[0.99]",
-                            isLast
-                              ? "bg-indigo-600 text-white"
-                              : "border border-slate-200 bg-white text-slate-700",
-                          ].join(" ")}
-                        >
-                          {label}
-                        </button>
-
-                        {!isLast && nextNode ? (
-                          <span className="inline-flex items-center gap-2 text-[10px] font-extrabold text-slate-500">
-                            <span className="text-base leading-none text-slate-400">
-                              {getStepArrow(nextNode.via)}
-                            </span>
-                            <span>{getStepText(nextNode.via)}</span>
-                          </span>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    `/e/${slug}/familyTree/story?from=${encodeURIComponent(
+                      rootHonoredPersonId,
+                    )}&to=${encodeURIComponent(centerId)}`,
+                  )
+                }
+                className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
+              >
+                Voir l’histoire de cette branche
+                <ArrowRight size={16} />
+              </button>
             </div>
           </div>
         </section>
@@ -700,6 +716,7 @@ function TreeRelationSection({
   onToggle,
   emptyLabel,
   onSelect,
+  viaAction,
   showCount = true,
 }: {
   title: string;
@@ -709,7 +726,8 @@ function TreeRelationSection({
   headerClassName: string;
   onToggle: () => void;
   emptyLabel: string;
-  onSelect: (personId: string) => void;
+  onSelect: (personId: string, viaAction: FamilyTreeViaAction) => void;
+  viaAction: FamilyTreeViaAction;
   showCount?: boolean;
 }) {
   const count = persons.length;
@@ -752,7 +770,7 @@ function TreeRelationSection({
               <TreePersonCard
                 key={person.id}
                 person={anonymizePerson(person)}
-                onClick={() => onSelect(person.id)}
+                onClick={() => onSelect(person.id, viaAction)}
               />
             ))}
           </div>

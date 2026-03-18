@@ -1,9 +1,9 @@
 import { ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
-import { IntroQuoteCard } from "../components/IntroQuoteCard";
-import { KnownToggleField } from "../components/KnownToggleField";
 import { familyKnowledgeIntroConfig } from "../config/familyKnowledgeIntroConfig";
 import type { FamilyKnowledgeIntroPrefs } from "../api/getFamilyKnowledgeIntroPrefs";
 import { useNavigate, useParams } from "react-router-dom";
+import { KnownToggleField } from "../../../shared/components/KnownToggleField";
+import { IntroQuoteCard } from "../../../shared/components/IntroQuoteCard";
 
 type FamilyKnowledgeIntroViewProps = {
   values: FamilyKnowledgeIntroPrefs;

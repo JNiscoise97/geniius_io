@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { KnownToggleField } from "./KnownToggleField";
+import { KnownToggleField } from "../../../shared/components/KnownToggleField";
 
 export type FamilyPersonFormValues = {
   known: boolean;

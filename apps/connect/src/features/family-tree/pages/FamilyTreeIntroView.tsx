@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
-import { familyKnowledgeIntroConfig } from "../config/familyKnowledgeIntroConfig";
-import type { FamilyKnowledgeIntroPrefs } from "../api/getFamilyKnowledgeIntroPrefs";
+import { familyTreeIntroConfig } from "../config/familyTreeIntroConfig";
+import type { FamilyTreeIntroPrefs } from "../api/getFamilyTreeIntroPrefs";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { useEffect } from "react";
@@ -8,18 +8,18 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { IntroQuoteCard } from "../../../shared/components/IntroQuoteCard";
 import { KnownToggleField } from "../../../shared/components/KnownToggleField";
 
-type FamilyKnowledgeIntroViewProps = {
-  values: FamilyKnowledgeIntroPrefs;
-  onChange: (values: FamilyKnowledgeIntroPrefs) => void;
+type FamilyTreeIntroViewProps = {
+  values: FamilyTreeIntroPrefs;
+  onChange: (values: FamilyTreeIntroPrefs) => void;
   onContinue: () => void;
 };
 
-export function FamilyKnowledgeIntroView({
+export function FamilyTreeIntroView({
   values,
   onChange,
   onContinue,
-}: FamilyKnowledgeIntroViewProps) {
-  const config = familyKnowledgeIntroConfig;
+}: FamilyTreeIntroViewProps) {
+  const config = familyTreeIntroConfig;
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
@@ -33,7 +33,7 @@ export function FamilyKnowledgeIntroView({
           const tracker = createPageTimeTracker({
             participantId,
             eventSlug: slug,
-            pageKey: `/e/${slug}/family-knowledge/intro`,
+            pageKey: `/e/${slug}/family-tree/intro`,
           });
       
           tracker.start();

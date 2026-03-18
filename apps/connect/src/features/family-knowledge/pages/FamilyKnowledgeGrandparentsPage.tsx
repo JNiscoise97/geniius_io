@@ -9,7 +9,6 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FamilyPersonForm } from "../components/FamilyPersonForm";
-import { KnownToggleField } from "../components/KnownToggleField";
 import { LivingStatusField } from "../components/LivingStatusField";
 import { PhotoPresenceField } from "../components/PhotoPresenceField";
 import { RelationshipTypeField } from "../components/RelationshipTypeField";
@@ -31,6 +30,7 @@ import {
   normalizeOrderedKeys,
 } from "../lib/siblingOrder";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { KnownToggleField } from "../../../shared/components/KnownToggleField";
 
 function AuntUncleCard({
   title,

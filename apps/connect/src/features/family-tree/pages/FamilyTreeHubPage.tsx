@@ -51,7 +51,7 @@ export function FamilyTreeHubPage() {
 
   const metrics = useMemo<TreeMetric[]>(
     () => [
-      { key: "descendants", label: "Descendants identifiés", value: "327" },
+      { key: "descendants", label: "Descendants identifiés", value: "1193" },
       { key: "generations", label: "Générations connues", value: "8" },
       { key: "branches", label: "Branches familiales", value: "54" },
     ],
@@ -63,7 +63,8 @@ export function FamilyTreeHubPage() {
       {
         key: "start",
         title: "Commencer",
-        subtitle: "Les deux actions les plus utiles pour te repérer rapidement.",
+        subtitle:
+          "Les deux actions les plus utiles pour te repérer rapidement.",
         items: [
           {
             key: "find-me",
@@ -71,7 +72,7 @@ export function FamilyTreeHubPage() {
             description:
               "Retrouve ta place dans la famille et accède à ta branche.",
             icon: UserCircle2,
-            to: `/e/${slug}/arbre/moi`,
+            to: `/e/${slug}/family-tree/find-me`,
             enabled: true,
             featured: true,
             badge: "Essentiel",
@@ -79,10 +80,9 @@ export function FamilyTreeHubPage() {
           {
             key: "my-link-to-ancestor",
             label: "Voir mon lien avec Gromèr Covindou",
-            description:
-              "Découvre comment tu descends de Coundiaman TANJAMA.",
+            description: "Découvre comment tu descends de Coundiaman TANJAMA.",
             icon: Heart,
-            to: `/e/${slug}/arbre/lien-gromer`,
+            to: `/e/${slug}/family-tree/story`,
             enabled: true,
             featured: true,
           },
@@ -108,14 +108,13 @@ export function FamilyTreeHubPage() {
             description:
               "Explore librement les générations et les différentes branches.",
             icon: TreePine,
-            to: `/e/${slug}/arbre/parcourir`,
+            to: `/e/${slug}/family-tree/browse`,
             enabled: true,
           },
           {
             key: "ancestor-sheet",
-            label: "Voir la fiche de Coundiaman",
-            description:
-              "Consulte la fiche dédiée à notre aïeule commune.",
+            label: "Voir la fiche de Gromèr Covindou",
+            description: "Consulte la fiche dédiée à notre aïeule commune.",
             icon: GitBranch,
             to: `/e/${slug}/arbre/fiche-gromer`,
             enabled: true,
@@ -130,8 +129,7 @@ export function FamilyTreeHubPage() {
           {
             key: "my-link-to-cousin",
             label: "Voir mon lien avec un cousin",
-            description:
-              "Choisis un cousin et découvre votre lien familial.",
+            description: "Choisis un cousin et découvre votre lien familial.",
             icon: Users,
             to: `/e/${slug}/arbre/lien-cousin`,
             enabled: false,
@@ -203,37 +201,37 @@ export function FamilyTreeHubPage() {
           </div>
         </section>
 
-<div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-      <div className='flex items-start gap-3'>
-        <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-        <div className='min-w-0'>
-          <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-          <div className='mt-0.5 text-xs text-amber-800'>
-            <ol>
-              <li>Revoir le titre</li>
-              <li>Rédiger la page sur Gromèr Covindou</li>
-            </ol>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Revoir les chiffres</li>
+                  <li>Me trouver dans l'arbre
+                    <ul>
+                      <li>Akinator?</li>
+                      <li>C'est moi qui fait le rapprochement d'identité</li>
+                      <li>Formulaire sur les parents et grands-parents</li>
+                      <li>Par navigation: je pense être ici</li>
+                    </ul>
+                  </li>
+                  <li>Voir mon lien avec Gromèr
+                    <ul>
+                      <li>un écran un peu propre qui explicite le lien direct</li>
+                    </ul>
+                  </li>
+                  <li>un moteur de recherche qui nav vers la fiche de la personne</li>
+                  <li>un moteur de recherche</li>
+                  <li>Rédiger la page sur Gromèr Covindou</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-        <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-2xl bg-slate-100 p-2 text-slate-700">
-              <GitBranch size={18} />
-            </div>
-
-            <div>
-              <div className="text-[15px] font-black text-slate-900">
-                Commence ici
-              </div>
-              <p className="mt-1 text-sm font-bold leading-6 text-slate-700">
-                Le plus simple est de te trouver dans l’arbre, puis de regarder
-                ton lien avec Gromèr Covindou.
-              </p>
-            </div>
-          </div>
-        </section>
 
         <div className="mt-6 space-y-6">
           {sections.map((section) => (
@@ -250,7 +248,7 @@ export function FamilyTreeHubPage() {
               <div
                 className={
                   section.key === "start"
-                    ? "grid gap-3 md:grid-cols-2"
+                    ? "grid gap-3 md:grid-cols-1"
                     : "grid gap-3"
                 }
               >
