@@ -36,4 +36,6 @@ export type FamilyPersonContributionStats = {
   memoriesCount: number;
   photosCount: number;
   reactionsCount: number;
+  knownCount: number;
+  heardCount: number;
 };

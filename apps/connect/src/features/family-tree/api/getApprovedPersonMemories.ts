@@ -16,7 +16,6 @@ type ParticipantProfile = {
   first_name?: string | null;
   last_name?: string | null;
   nickname?: string | null;
-  gender?: "male" | "female" | null;
 };
 
 function buildDisplayName(
@@ -33,12 +32,9 @@ function buildDisplayName(
   const firstName = profile.first_name?.trim() ?? "";
   const lastName = profile.last_name?.trim() ?? "";
   const nickname = profile.nickname?.trim();
-  const gender = profile.gender;
-
-  const ditLabel = gender === "female" ? "dite" : "dit";
 
   if (nickname) {
-    return `${firstName} ${ditLabel} "${nickname}" ${lastName}`.trim();
+    return `${firstName} "${nickname}" ${lastName}`.trim();
   }
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
@@ -67,8 +63,7 @@ export async function getApprovedPersonMemories(params: {
       participant:participant_id (
         first_name,
         last_name,
-        nickname,
-        gender
+        nickname
       )
     `)
     .eq("event_slug", eventSlug)
