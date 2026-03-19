@@ -1,32 +1,62 @@
 import {
+  AlertTriangle,
   ArrowLeft,
-  ArrowRight,
-  ChevronDown,
-  ChevronRight,
+  Camera,
   Heart,
   MapPin,
+  Megaphone,
+  MessageCircle,
   Plus,
-  User,
+  Search,
+  UserCheck,
   UserCircle2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import type { PersonSummary } from "../types";
-import {
-  getPersonContext,
-  getPersonHeroConfig,
-} from "../config/configGenealogy";
-import {
-  findRelationshipPath,
-  type RelationshipPathNode,
-} from "../api/findRelationshipPath";
-import { FAMILY_GRAPH } from "../api/loadGraph";
 import {
   createFamilyTreeViewTracker,
   type FamilyTreeViaAction,
 } from "../../../lib/analytics/familyTreeViewTracker";
+import {
+  findRelationshipPath,
+  type RelationshipEdgeType,
+  type RelationshipPathNode,
+} from "../api/findRelationshipPath";
+import { FAMILY_GRAPH } from "../api/loadGraph";
+import {
+  getPersonContext,
+  getPersonHeroConfig,
+} from "../config/configGenealogy";
+import type { PersonSummary } from "../types";
+import { getPersonContributionStats } from "../api/getPersonContributionStats";
+import { getPersonReactionState } from "../api/getPersonReactionState";
+import { togglePersonReaction } from "../api/togglePersonReaction";
+import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
+import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
+import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
+import { PersonPhotoUploadPanel } from "../components/PersonPhotoUploadPanel";
+import {
+  getApprovedPersonMemories,
+  type ApprovedPersonMemory,
+} from "../api/getApprovedPersonMemories";
+import {
+  getApprovedPersonPhotos,
+  type ApprovedPersonPhoto,
+} from "../api/getApprovedPersonPhotos";
+import { getMyPersonMemoryToBeApproved } from "../api/getMyPersonMemoryToBeApproved";
+import { saveMyPersonMemory } from "../api/saveMyPersonMemory";
+import { uploadPersonPhoto } from "../api/uploadPersonPhoto";
+import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
+import { SmartImage } from "../../../lib/media/useSmartImage";
+
+type BrowsePanelMode =
+  | "relations"
+  | "memories"
+  | "memory_editor"
+  | "photo_upload"
+  | "photos";
 
 function anonymizePerson(person: PersonSummary): PersonSummary {
   if (!person.hidden) return person;
@@ -238,26 +268,127 @@ function getPluralLabel(count: number, singular: string, plural: string) {
   return count > 1 ? plural : singular;
 }
 
-function getAncestorLabel(level: number) {
-  if (level <= 0) return "famille";
-  if (level === 1) return "parent";
-  if (level === 2) return "grand-parent";
-  if (level === 3) return "arrière-grand-parent";
-  return `${"arrière-".repeat(level - 2)}grand-parent`;
+function getAncestorLabel(level: number, sex?: string) {
+  const isFemale = sex === "F";
+  const isMale = sex === "M";
+
+  if (level <= 0) return "de la famille";
+
+  if (level === 1) {
+    if (isFemale) return "la mère";
+    if (isMale) return "le père";
+    return "un parent";
+  }
+
+  if (level === 2) {
+    if (isFemale) return "la grand-mère";
+    if (isMale) return "le grand-père";
+    return "un grand-parent";
+  }
+
+  if (level === 3) {
+    if (isFemale) return "l’arrière-grand-mère";
+    if (isMale) return "l’arrière-grand-père";
+    return "un arrière-grand-parent";
+  }
+
+  if (isFemale) {
+    return `l’${"arrière-".repeat(level - 2)}grand-mère`;
+  }
+
+  if (isMale) {
+    return `l’${"arrière-".repeat(level - 2)}grand-père`;
+  }
+
+  return `un ${"arrière-".repeat(level - 2)}grand-parent`;
 }
 
-function getDescendantLabel(level: number) {
-  if (level <= 0) return "famille";
-  if (level === 1) return "enfant";
-  if (level === 2) return "petit-enfant";
-  if (level === 3) return "arrière-petit-enfant";
-  return `${"arrière-".repeat(level - 2)}petit-enfant`;
+function getDescendantLabel(level: number, sex?: string) {
+  const isFemale = sex === "F";
+  const isMale = sex === "M";
+
+  if (level <= 0) return "de la famille";
+
+  if (level === 1) {
+    if (isFemale) return "la fille";
+    if (isMale) return "le fils";
+    return "un enfant";
+  }
+
+  if (level === 2) {
+    if (isFemale) return "la petite-fille";
+    if (isMale) return "le petit-fils";
+    return "un petit-enfant";
+  }
+
+  if (level === 3) {
+    if (isFemale) return "l’arrière-petite-fille";
+    if (isMale) return "l’arrière-petit-fils";
+    return "un arrière-petit-enfant";
+  }
+
+  if (isFemale) {
+    return `l’${"arrière-".repeat(level - 2)}petite-fille`;
+  }
+
+  if (isMale) {
+    return `l’${"arrière-".repeat(level - 2)}petit-fils`;
+  }
+
+  return `un ${"arrière-".repeat(level - 2)}petit-enfant`;
+}
+
+function getSiblingDescendantLabel(level: number, sex?: string) {
+  const isFemale = sex === "F";
+  const isMale = sex === "M";
+
+  if (level <= 0) {
+    if (isFemale) return "la sœur";
+    if (isMale) return "le frère";
+    return "un frère ou une sœur";
+  }
+
+  if (level === 1) {
+    if (isFemale) return "la nièce";
+    if (isMale) return "le neveu";
+    return "un neveu ou une nièce";
+  }
+
+  if (level === 2) {
+    if (isFemale) return "la petite-nièce";
+    if (isMale) return "le petit-neveu";
+    return "un petit-neveu ou une petite-nièce";
+  }
+
+  if (level === 3) {
+    if (isFemale) return "l’arrière-petite-nièce";
+    if (isMale) return "l’arrière-petit-neveu";
+    return "un arrière-petit-neveu ou une arrière-petite-nièce";
+  }
+
+  if (isFemale) {
+    return `l’${"arrière-".repeat(level - 2)}petite-nièce`;
+  }
+
+  if (isMale) {
+    return `l’${"arrière-".repeat(level - 2)}petit-neveu`;
+  }
+
+  return `un ${"arrière-".repeat(level - 2)}petit-neveu ou une ${"arrière-".repeat(level - 2)}petite-nièce`;
+}
+
+function isSiblingLinePattern(moves: RelationshipEdgeType[]): boolean {
+  if (moves.length < 2) return false;
+  if (moves[0] !== "parent") return false;
+  if (moves[1] !== "child") return false;
+  return moves.slice(2).every((via) => via === "child");
 }
 
 function summarizeRelationshipPath(
   path: RelationshipPathNode[] | null,
   isSourceMe: boolean,
   sourceDisplayName: string,
+  targetSex?: string,
 ) {
   if (!path) return "Aucun chemin trouvé.";
 
@@ -267,21 +398,32 @@ function summarizeRelationshipPath(
       : `Tu es actuellement centré sur ${sourceDisplayName}.`;
   }
 
-  const moves = path.slice(1).map((node) => node.via);
+  const moves = path
+    .slice(1)
+    .map((node) => node.via)
+    .filter((via): via is RelationshipEdgeType => Boolean(via));
+
   const upCount = moves.filter((via) => via === "parent").length;
   const downCount = moves.filter((via) => via === "child").length;
   const spouseCount = moves.filter((via) => via === "spouse").length;
 
   if (spouseCount === 0 && upCount > 0 && downCount === 0) {
     return isSourceMe
-      ? `Cette personne est ton ${getAncestorLabel(upCount)}.`
-      : `Cette personne se situe à ${upCount} génération(s) au-dessus de ${sourceDisplayName}.`;
+      ? `Cette personne est ${getAncestorLabel(upCount, targetSex)}.`
+      : `Cette personne est ${getAncestorLabel(upCount, targetSex)} de ${sourceDisplayName}.`;
   }
 
   if (spouseCount === 0 && downCount > 0 && upCount === 0) {
     return isSourceMe
-      ? `Cette personne est ton ${getDescendantLabel(downCount)}.`
-      : `Cette personne se situe à ${downCount} génération(s) au-dessous de ${sourceDisplayName}.`;
+      ? `Cette personne est ${getDescendantLabel(downCount, targetSex)}.`
+      : `Cette personne est ${getDescendantLabel(downCount, targetSex)} de ${sourceDisplayName}.`;
+  }
+
+  if (spouseCount === 0 && isSiblingLinePattern(moves)) {
+    const level = moves.length - 2;
+    return isSourceMe
+      ? `Cette personne est ${getSiblingDescendantLabel(level, targetSex)}.`
+      : `Cette personne est ${getSiblingDescendantLabel(level, targetSex)} de ${sourceDisplayName}.`;
   }
 
   if (spouseCount > 0) {
@@ -295,6 +437,51 @@ function summarizeRelationshipPath(
     : `Voici le chemin familial le plus court depuis ${sourceDisplayName}.`;
 }
 
+function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
+  return [...persons].sort((a, b) => {
+    const aYear = Number(a.birthYear);
+    const bYear = Number(b.birthYear);
+
+    const aHasYear = Boolean(a.birthYear && !Number.isNaN(aYear));
+    const bHasYear = Boolean(b.birthYear && !Number.isNaN(bYear));
+
+    if (aHasYear && bHasYear) {
+      return aYear - bYear;
+    }
+
+    if (aHasYear && !bHasYear) {
+      return -1;
+    }
+
+    if (!aHasYear && bHasYear) {
+      return 1;
+    }
+
+    return 0;
+  });
+}
+
+function removeUniformLinkedSpouseLabel(
+  persons: PersonSummary[],
+): PersonSummary[] {
+  const distinctLabels = Array.from(
+    new Set(
+      persons
+        .map((person) => person.linkedSpouseLabel?.trim())
+        .filter((label): label is string => Boolean(label)),
+    ),
+  );
+
+  if (distinctLabels.length !== 1) {
+    return persons;
+  }
+
+  return persons.map((person) => ({
+    ...person,
+    linkedSpouseLabel: undefined,
+  }));
+}
+
 export function FamilyTreeBrowsePage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
@@ -305,6 +492,31 @@ export function FamilyTreeBrowsePage() {
 
   const [searchParams] = useSearchParams();
   const requestedPersonId = searchParams.get("personId");
+
+  const [hasKnownPerson, setHasKnownPerson] = useState(false);
+  const [hasHeardOfPerson, setHasHeardOfPerson] = useState(false);
+  const [hasTouchedPerson, setHasTouchedPerson] = useState(false);
+  const [hasMyComment, setHasMyComment] = useState(false);
+  const [memoriesCount, setMemoriesCount] = useState(0);
+  const [photosCount, setPhotosCount] = useState(0);
+  const [reactionsCount, setReactionsCount] = useState(0);
+  const [panelMode, setPanelMode] = useState<BrowsePanelMode>("relations");
+
+  const [approvedMemories, setApprovedMemories] = useState<
+    ApprovedPersonMemory[]
+  >([]);
+  const [approvedPhotos, setApprovedPhotos] = useState<ApprovedPersonPhoto[]>(
+    [],
+  );
+  const [memoryDraft, setMemoryDraft] = useState("");
+  const [myMemoryStatus, setMyMemoryStatus] = useState<
+    "pending" | "approved" | "rejected" | null
+  >(null);
+  const [myMemoryModeratorComment, setMyMemoryModeratorComment] = useState<
+    string | null
+  >(null);
+  const [isSavingMemory, setIsSavingMemory] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const rootHonoredPersonId = "7398";
   const sourcePersonId = "7351";
@@ -325,6 +537,7 @@ export function FamilyTreeBrowsePage() {
   });
 
   const context = useMemo(() => getPersonContext(centerId), [centerId]);
+
   const displayPerson = useMemo(
     () => anonymizePerson(context.person),
     [context.person],
@@ -341,6 +554,7 @@ export function FamilyTreeBrowsePage() {
   );
 
   const heroConfig = useMemo(() => getPersonHeroConfig(centerId), [centerId]);
+
   const visibleOtherBranches = displayPerson.hidden
     ? []
     : heroConfig.otherBranches;
@@ -348,6 +562,17 @@ export function FamilyTreeBrowsePage() {
   const familyTreeTrackerRef = useRef<ReturnType<
     typeof createFamilyTreeViewTracker
   > | null>(null);
+
+  const sortedChildren = useMemo(
+    () =>
+      removeUniformLinkedSpouseLabel(sortPersonsByBirthYear(context.children)),
+    [context.children],
+  );
+
+  const sortedSiblings = useMemo(
+    () => sortPersonsByBirthYear(context.siblings),
+    [context.siblings],
+  );
 
   useEffect(() => {
     if (!participantId) return;
@@ -366,7 +591,7 @@ export function FamilyTreeBrowsePage() {
       familyTreeTrackerRef.current = null;
       void tracker.stop();
     };
-  }, [participantId, slug]);
+  }, [participantId, slug, centerId]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -386,6 +611,10 @@ export function FamilyTreeBrowsePage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
+  }, [centerId]);
+
+  useEffect(() => {
+    setPanelMode("relations");
   }, [centerId]);
 
   function goToPerson(personId: string, viaAction: FamilyTreeViaAction) {
@@ -438,7 +667,162 @@ export function FamilyTreeBrowsePage() {
     relationshipPath,
     isSourceMe,
     isSourceMe ? "toi" : `Gromèr ${rootPerson.firstName}`,
+    displayPerson.sex,
   );
+
+  useEffect(() => {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+
+    async function loadReactionData() {
+      const [
+        reactionState,
+        stats,
+        myMemory,
+        approved,
+        approvedPhotosData,
+      ] = await Promise.all([
+        getPersonReactionState({
+          eventSlug: slug,
+          participantId: currentParticipantId,
+          personId: centerId,
+        }),
+        getPersonContributionStats({
+          eventSlug: slug,
+          personId: centerId,
+        }),
+        getMyPersonMemoryToBeApproved({
+          eventSlug: slug,
+          participantId: currentParticipantId,
+          personId: centerId,
+        }),
+        getApprovedPersonMemories({
+          eventSlug: slug,
+          personId: centerId,
+          currentParticipantId,
+        }),
+        getApprovedPersonPhotos({
+          eventSlug: slug,
+          personId: centerId,
+          currentParticipantId,
+        }),
+      ]);
+
+      setHasKnownPerson(reactionState.knewPerson);
+      setHasHeardOfPerson(reactionState.heardOfPerson);
+      setHasTouchedPerson(reactionState.touchedByPerson);
+
+      setMemoriesCount(stats.memoriesCount);
+      setPhotosCount(stats.photosCount);
+      setReactionsCount(stats.reactionsCount);
+
+      setHasMyComment(Boolean(myMemory?.content?.trim()));
+      setMemoryDraft(myMemory?.content ?? "");
+      setMyMemoryStatus(myMemory?.moderation_status ?? null);
+      setMyMemoryModeratorComment(myMemory?.moderator_comment ?? null);
+
+      setApprovedMemories(approved);
+      setApprovedPhotos(approvedPhotosData);
+    }
+
+    void loadReactionData();
+  }, [participantId, slug, centerId]);
+
+  async function handleToggleKnown() {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+    const next = !hasKnownPerson;
+
+    await togglePersonReaction({
+      eventSlug: slug,
+      participantId: currentParticipantId,
+      personId: centerId,
+      reactionType: "knew_person",
+      isActive: next,
+    });
+
+    setHasKnownPerson(next);
+    setReactionsCount((prev) => Math.max(0, prev + (next ? 1 : -1)));
+  }
+
+  async function handleToggleHeard() {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+    const next = !hasHeardOfPerson;
+
+    await togglePersonReaction({
+      eventSlug: slug,
+      participantId: currentParticipantId,
+      personId: centerId,
+      reactionType: "heard_of_person",
+      isActive: next,
+    });
+
+    setHasHeardOfPerson(next);
+    setReactionsCount((prev) => Math.max(0, prev + (next ? 1 : -1)));
+  }
+
+  async function handleToggleTouched() {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+    const next = !hasTouchedPerson;
+
+    await togglePersonReaction({
+      eventSlug: slug,
+      participantId: currentParticipantId,
+      personId: centerId,
+      reactionType: "touched_by_person",
+      isActive: next,
+    });
+
+    setHasTouchedPerson(next);
+    setReactionsCount((prev) => Math.max(0, prev + (next ? 1 : -1)));
+  }
+
+  async function handleSaveMemory() {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+    const content = memoryDraft.trim();
+
+    if (!content) return;
+
+    setIsSavingMemory(true);
+
+    try {
+      await saveMyPersonMemory({
+        eventSlug: slug,
+        participantId: currentParticipantId,
+        personId: centerId,
+        content,
+      });
+
+      setHasMyComment(true);
+      setMyMemoryStatus("pending");
+      setPanelMode("relations");
+    } finally {
+      setIsSavingMemory(false);
+    }
+  }
+
+  async function handleUploadPhoto(file: File) {
+    if (!participantId) return;
+    const currentParticipantId = participantId;
+
+    setIsUploadingPhoto(true);
+
+    try {
+      await uploadPersonPhoto({
+        eventSlug: slug,
+        participantId: currentParticipantId,
+        personId: centerId,
+        file,
+      });
+
+      setPanelMode("relations");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  }
 
   const labelSpouses = getPluralLabel(
     context.spouses.length,
@@ -456,11 +840,49 @@ export function FamilyTreeBrowsePage() {
     "Fratrie",
   );
 
+  const knowLabel = displayPerson.isPossiblyAlive
+    ? "Je le connais"
+    : "Je l’ai connu";
+
+  const heardLabel =
+    displayPerson.sex === "F"
+      ? "J’ai entendu parler d’elle"
+      : displayPerson.sex === "M"
+        ? "J’ai entendu parler de lui"
+        : "J’ai entendu parler de cette personne";
+
+  const photoLabel =
+    displayPerson.photoSrc
+      ? displayPerson.sex === "F"
+        ? "J’ai une autre photo d’elle"
+        : displayPerson.sex === "M"
+          ? "J’ai une autre photo de lui"
+          : "J’ai une autre photo"
+      : displayPerson.sex === "F"
+        ? "J’ai une photo d’elle"
+        : displayPerson.sex === "M"
+          ? "J’ai une photo de lui"
+          : "J’ai une photo";
+
+  const personDisplayName =
+    `${displayPerson.firstName} ${displayPerson.lastName}`.trim();
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pb-24 pt-3">
         <section>
-          <div className="flex items-start justify-end gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(`/e/${slug}/family-tree/find-person`)}
+              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Search size={14} />
+                Chercher une personne
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => navigate(`/e/${slug}/family-tree`)}
@@ -474,13 +896,68 @@ export function FamilyTreeBrowsePage() {
           </div>
         </section>
 
+
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>J'ajouter les photos (J6+2+6+1+1+1+1=18; R10+4+2+1+1+1=19; B7+2+7+1+1+1=19; M3+1+1+1=6; V5+1+1+1+1+2=11 // =73)</li>
+                  <li>Inclure les lieux de domicile dans le circuit des lieux d'une personne</li>
+                  <li>Boutons: revenir à... [Gromèr, moi]</li>
+                  <li>Message "pas de conjoint / d'enfant identifié"</li>
+                  <li>Bouton de réactions:
+                    <ul>
+                      <li>touched_by_person doit avoir aussi un effet animate</li>
+                      <li>touched_by_person doit être branché sur le reactionsCount</li>
+                      <li>knew_person et heard_of_person ne doivent pas être branchées sur le reactionsCount</li>
+                      <li>Enregistrer un draft par person_id et participant_id</li>
+                      <li>bouton C'est moi, si c'est moi pas de je l'ai connu ni de j'ai entendu parler de lui</li>
+                      <li>Demander le démasquage + Notif mail</li>
+                      
+                      </ul>
+                  </li>
+                  <li>Signaler un manque, un soucis</li>
+                  <li>Calque family-knowledge sur browse</li>
+                  <li>Photos:
+                    <ul>
+                      <li>Revoir l'entête de ajouter une photo</li>
+                      <li>Pouvoir supprimer une photo</li>
+                    <li>Consentement pour afficher le nom de la personne qui publie</li>
+                    <li>Demander si l'utilisateur a recueilli le consentement de la personne</li>
+                    <li>Photo pour remplacer celle affichée</li>
+                    <li>Voir les photos affichées</li>
+                    <li>Ajouter un commentaire à la photo</li>
+                    <li>Notif mail</li>
+                    </ul>
+                    </li>
+                    <li>Souvenirs
+                    <ul>
+                      <li>Pouvoir écrire plusieurs souvenirs</li>
+                    <li>Pouvoir supprimer un souvenir</li>
+                    <li>Consentement pour afficher le nom de la personne qui publie</li>
+                    <li>Photo pour remplacer celle affichée</li>
+                    <li>Notif mail</li>
+                    </ul>
+                    </li>
+                    <li>revenir à moi</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {displayPerson.photoSrc ? (
           <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
             <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
-              <img
+              <SmartImage
                 src={displayPerson.photoSrc}
                 alt={`${displayPerson.firstName} ${displayPerson.lastName}`}
-                className="h-full w-full object-cover"
               />
             </div>
           </section>
@@ -553,80 +1030,174 @@ export function FamilyTreeBrowsePage() {
           </div>
         </section>
 
-        <div className="space-y-4">
-          <TreeRelationSection
-            title="Parents"
-            subtitle="Remonter d’une génération."
-            headerClassName={heroConfig.headerClassName}
-            persons={context.parents}
-            isOpen={openSections.parents}
-            onToggle={() => toggleSection("parents")}
-            emptyLabel="Aucun parent affiché pour le moment."
-            onSelect={goToPerson}
-            viaAction="parents_section"
-            showCount={false}
-          />
+        <section className="mb-4 mt-3 rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Réagir
+            </div>
 
-          <TreeRelationSection
-            title={labelSpouses}
-            subtitle="Voir les unions liées à cette personne."
-            headerClassName={heroConfig.headerClassName}
-            persons={context.spouses}
-            isOpen={openSections.spouses}
-            onToggle={() => toggleSection("spouses")}
-            emptyLabel="Aucun conjoint affiché pour le moment."
-            onSelect={goToPerson}
-            viaAction="spouses_section"
-          />
+            <div className="flex items-center gap-3 text-[11px] font-semibold text-slate-500">
+              <button
+                type="button"
+                onClick={() => setPanelMode("memories")}
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-500"
+                  }`}
+              >
+                <MessageCircle size={20} />
+                {memoriesCount}
+              </button>
 
-          <TreeRelationSection
-            title={labelChildren}
-            subtitle="Descendre d’une génération."
-            headerClassName={heroConfig.headerClassName}
-            persons={context.children}
-            isOpen={openSections.children}
-            onToggle={() => toggleSection("children")}
-            emptyLabel="Aucun enfant affiché pour le moment."
-            onSelect={goToPerson}
-            viaAction="children_section"
-          />
+              <button
+                type="button"
+                onClick={() => setPanelMode("photos")}
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-500"
+                  }`}
+              >
+                <Camera size={20} />
+                {photosCount}
+              </button>
 
-          <TreeRelationSection
-            title={labelSiblings}
-            subtitle="Passer rapidement à un frère ou une sœur."
-            headerClassName={heroConfig.headerClassName}
-            persons={context.siblings}
-            isOpen={openSections.siblings}
-            onToggle={() => toggleSection("siblings")}
-            emptyLabel="Aucune fratrie affichée pour le moment."
-            onSelect={goToPerson}
-            viaAction="siblings_section"
-          />
+              <span className="inline-flex items-center gap-1">
+                <Heart
+                  size={20}
+                  className={`transition ${reactionsCount > 0
+                      ? "text-red-500 scale-110"
+                      : "text-slate-400"
+                    }`}
+                  fill={reactionsCount > 0 ? "currentColor" : "none"}
+                />
+                {reactionsCount}
+              </span>
+            </div>
+          </div>
 
-          <TreeRelationSection
-            title="Aïeux"
-            subtitle="Accéder directement à la génération au-dessus des parents."
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleToggleTouched()}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                  }`}
+              >
+                <Heart size={14} />
+                Cette personne me touche
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleToggleKnown()}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                  }`}
+              >
+                <UserCheck size={14} />
+                {knowLabel}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleToggleHeard()}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                  }`}
+              >
+                <Megaphone size={14} />
+                {heardLabel}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setPanelMode("memory_editor")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                  }`}
+              >
+                <MessageCircle size={14} />
+                {hasMyComment ? "Modifier mon souvenir" : "Raconter un souvenir"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPanelMode("photo_upload")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                  }`}
+              >
+                <Camera size={14} />
+                {photoLabel}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {panelMode === "relations" ? (
+          <FamilyRelationsSection
             headerClassName={heroConfig.headerClassName}
-            persons={context.grandparents}
-            isOpen={openSections.grandparents}
-            onToggle={() => toggleSection("grandparents")}
-            emptyLabel="Aucun aïeul affiché pour le moment."
+            openSections={openSections}
+            onToggle={toggleSection}
             onSelect={goToPerson}
-            viaAction="grandparents_section"
-            showCount={false}
+            labelSpouses={labelSpouses}
+            labelChildren={labelChildren}
+            labelSiblings={labelSiblings}
+            parents={context.parents}
+            spouses={context.spouses}
+            children={sortedChildren}
+            siblings={sortedSiblings}
+            grandparents={context.grandparents}
           />
-        </div>
+        ) : panelMode === "memories" ? (
+          <PersonMemoriesPanel
+            memories={approvedMemories}
+            pendingMemory={
+              myMemoryStatus === "pending" && memoryDraft.trim()
+                ? {
+                  content: memoryDraft,
+                }
+                : null
+            }
+            onBack={() => setPanelMode("relations")}
+          />
+        ) : panelMode === "memory_editor" ? (
+          <PersonMemoryEditorPanel
+            personDisplayName={personDisplayName}
+            initialValue={memoryDraft}
+            moderationStatus={myMemoryStatus}
+            moderatorComment={myMemoryModeratorComment}
+            isSaving={isSavingMemory}
+            onChange={setMemoryDraft}
+            onSave={() => void handleSaveMemory()}
+            onBack={() => setPanelMode("relations")}
+          />
+        ) : panelMode === "photo_upload" ? (
+          <PersonPhotoUploadPanel
+            personDisplayName={personDisplayName}
+            isSubmitting={isUploadingPhoto}
+            onSelectFile={(file) => void handleUploadPhoto(file)}
+            onBack={() => setPanelMode("relations")}
+          />
+        ) : (
+          <PersonPhotosPanel
+            photos={approvedPhotos}
+            onBack={() => setPanelMode("relations")}
+          />
+        )}
 
         <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={openCentralPerson}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
-            >
-              Voir la fiche
-              <ArrowRight size={16} />
-            </button>
 
             {centerId !== rootHonoredPersonId ? (
               <button
@@ -651,29 +1222,7 @@ export function FamilyTreeBrowsePage() {
                   : `Revenir à ${sourcePerson.firstName}`}
               </button>
             ) : null}
-
-            <button
-              type="button"
-              onClick={() => navigate(`/e/${slug}/family-tree/find-me`)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
-            >
-              <UserCircle2 size={16} />
-              Me trouver
-            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                `/e/${slug}/familyTree/find-person?centerId=${encodeURIComponent(centerId)}`,
-              )
-            }
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
-          >
-            <UserCircle2 size={16} />
-            Trouver une personne
-          </button>
 
           <div className="mt-4">
             <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
@@ -687,187 +1236,13 @@ export function FamilyTreeBrowsePage() {
                   className="mt-[2px] shrink-0 text-indigo-600"
                 />
                 <div>
-                  <div>
-                    {isSourceMe
-                      ? `Chemin de parenté vers ${displayPerson.firstName} ${displayPerson.lastName}`
-                      : `Chemin depuis Gromèr Covindou vers ${displayPerson.firstName} ${displayPerson.lastName}`}
-                  </div>
-                  <div className="mt-1 text-xs font-bold text-slate-500">
-                    {relationshipSummary}
-                  </div>
+                  <div className="text-slate-900">{relationshipSummary}</div>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate(
-                    `/e/${slug}/familyTree/story?from=${encodeURIComponent(
-                      rootHonoredPersonId,
-                    )}&to=${encodeURIComponent(centerId)}`,
-                  )
-                }
-                className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
-              >
-                Voir l’histoire de cette branche
-                <ArrowRight size={16} />
-              </button>
             </div>
           </div>
         </section>
       </main>
     </div>
-  );
-}
-
-function TreeRelationSection({
-  title,
-  subtitle,
-  persons,
-  isOpen,
-  headerClassName,
-  onToggle,
-  emptyLabel,
-  onSelect,
-  viaAction,
-  showCount = true,
-}: {
-  title: string;
-  subtitle: string;
-  persons: PersonSummary[];
-  isOpen: boolean;
-  headerClassName: string;
-  onToggle: () => void;
-  emptyLabel: string;
-  onSelect: (personId: string, viaAction: FamilyTreeViaAction) => void;
-  viaAction: FamilyTreeViaAction;
-  showCount?: boolean;
-}) {
-  const count = persons.length;
-
-  return (
-    <section className="space-y-3">
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`w-full rounded-[26px] p-4 text-left ${headerClassName}`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="text-[20px] font-black">
-                {title}
-                {showCount ? ` (${count})` : ""}
-              </div>
-            </div>
-
-            <p className="mt-1 text-sm font-bold leading-6 text-white/90">
-              {subtitle}
-            </p>
-          </div>
-
-          <div className="shrink-0 rounded-2xl bg-white/10 p-2 text-white">
-            {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-          </div>
-        </div>
-      </button>
-
-      {isOpen ? (
-        persons.length === 0 ? (
-          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-500 shadow-sm">
-            {emptyLabel}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {persons.map((person) => (
-              <TreePersonCard
-                key={person.id}
-                person={anonymizePerson(person)}
-                onClick={() => onSelect(person.id, viaAction)}
-              />
-            ))}
-          </div>
-        )
-      ) : null}
-    </section>
-  );
-}
-
-function TreePersonCard({
-  person,
-  onClick,
-}: {
-  person: PersonSummary;
-  onClick: () => void;
-}) {
-  const lowerSubtitle = person.subtitle?.toLowerCase() ?? "";
-  const isSpouse =
-    lowerSubtitle.includes("conjoint") ||
-    lowerSubtitle.includes("conjointe") ||
-    lowerSubtitle.includes("époux") ||
-    lowerSubtitle.includes("épouse");
-
-  const years = formatYears(person);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition active:scale-[0.99] active:shadow-none"
-    >
-      <div className="flex items-start gap-3">
-        {person.photoSrc ? (
-          <img
-            src={person.photoSrc}
-            alt={`${person.firstName} ${person.lastName}`}
-            className="h-12 w-12 shrink-0 rounded-2xl object-cover"
-          />
-        ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700">
-            {isSpouse ? <Heart size={20} /> : <User size={20} />}
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="text-[16px] font-black text-slate-900">
-              {person.firstName} {person.lastName}
-            </div>
-
-            {person.subtitle ? (
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-700">
-                {person.subtitle}
-              </span>
-            ) : null}
-
-            {person.hidden ? (
-              <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-black text-slate-700">
-                Profil masqué
-              </span>
-            ) : null}
-
-            {isSpouse && person.spouseRoleLabel ? (
-              <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-700">
-                {person.spouseRoleLabel}
-              </span>
-            ) : null}
-
-            {!isSpouse && person.linkedSpouseLabel ? (
-              <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-700">
-                {person.linkedSpouseLabel}
-              </span>
-            ) : null}
-          </div>
-
-          {years ? (
-            <p className="mt-1 text-xs font-bold text-slate-700">{years}</p>
-          ) : null}
-        </div>
-
-        <div className="shrink-0 rounded-2xl bg-slate-100 p-2 text-slate-900">
-          <ArrowRight size={18} />
-        </div>
-      </div>
-    </button>
   );
 }

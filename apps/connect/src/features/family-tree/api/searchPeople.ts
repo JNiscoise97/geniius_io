@@ -25,6 +25,14 @@ function addMatch(
   matches.add(key);
 }
 
+function splitNormalizedWords(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split(" ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 function getRelationshipDistanceBonus(
   graph: FamilyGraphData,
   centerPersonId: string | undefined,
@@ -44,9 +52,7 @@ function getRelationshipDistanceBonus(
   return 0;
 }
 
-function hasAnyNameMatch(
-  matches: Set<PersonSearchMatchKey>,
-): boolean {
+function hasAnyNameMatch(matches: Set<PersonSearchMatchKey>): boolean {
   return (
     matches.has("full_name_exact") ||
     matches.has("first_name_exact") ||
@@ -58,9 +64,7 @@ function hasAnyNameMatch(
   );
 }
 
-function hasAnyDateOrPlaceMatch(
-  matches: Set<PersonSearchMatchKey>,
-): boolean {
+function hasAnyDateOrPlaceMatch(matches: Set<PersonSearchMatchKey>): boolean {
   return (
     matches.has("birth_year") ||
     matches.has("death_year") ||
@@ -91,25 +95,39 @@ export function searchPeople({
     const matches = new Set<PersonSearchMatchKey>();
     let matchedPrimaryTokenCount = 0;
 
+    const firstNameWords = splitNormalizedWords(doc.firstNameNormalized);
+    const lastNameWords = splitNormalizedWords(doc.lastNameNormalized);
+    const nicknameWords = splitNormalizedWords(doc.nicknameNormalized);
+
     if (doc.fullNameNormalized === normalizedQuery) {
       score += 240;
       addMatch(matches, "full_name_exact");
       matchedPrimaryTokenCount = queryTokens.length;
     }
 
-    if (doc.firstNameNormalized === normalizedQuery) {
+    if (
+      doc.firstNameNormalized === normalizedQuery ||
+      firstNameWords.includes(normalizedQuery)
+    ) {
       score += 140;
       addMatch(matches, "first_name_exact");
       matchedPrimaryTokenCount = Math.max(matchedPrimaryTokenCount, 1);
     }
 
-    if (doc.lastNameNormalized === normalizedQuery) {
+    if (
+      doc.lastNameNormalized === normalizedQuery ||
+      lastNameWords.includes(normalizedQuery)
+    ) {
       score += 140;
       addMatch(matches, "last_name_exact");
       matchedPrimaryTokenCount = Math.max(matchedPrimaryTokenCount, 1);
     }
 
-    if (doc.nicknameNormalized && doc.nicknameNormalized === normalizedQuery) {
+    if (
+      doc.nicknameNormalized &&
+      (doc.nicknameNormalized === normalizedQuery ||
+        nicknameWords.includes(normalizedQuery))
+    ) {
       score += 120;
       addMatch(matches, "nickname_exact");
       matchedPrimaryTokenCount = Math.max(matchedPrimaryTokenCount, 1);
@@ -118,39 +136,51 @@ export function searchPeople({
     for (const token of queryTokens) {
       let tokenMatched = false;
 
-      if (doc.firstNameNormalized === token) {
+      if (
+        doc.firstNameNormalized === token ||
+        firstNameWords.includes(token)
+      ) {
         score += 100;
         addMatch(matches, "first_name_exact");
         tokenMatched = true;
       } else if (
         token.length >= 2 &&
-        doc.firstNameNormalized.startsWith(token)
+        (doc.firstNameNormalized.startsWith(token) ||
+          firstNameWords.some((word) => word.startsWith(token)))
       ) {
         score += 50;
         addMatch(matches, "first_name_prefix");
         tokenMatched = true;
       }
 
-      if (doc.lastNameNormalized === token) {
+      if (
+        doc.lastNameNormalized === token ||
+        lastNameWords.includes(token)
+      ) {
         score += 100;
         addMatch(matches, "last_name_exact");
         tokenMatched = true;
       } else if (
         token.length >= 2 &&
-        doc.lastNameNormalized.startsWith(token)
+        (doc.lastNameNormalized.startsWith(token) ||
+          lastNameWords.some((word) => word.startsWith(token)))
       ) {
         score += 50;
         addMatch(matches, "last_name_prefix");
         tokenMatched = true;
       }
 
-      if (doc.nicknameNormalized === token) {
+      if (
+        doc.nicknameNormalized &&
+        (doc.nicknameNormalized === token || nicknameWords.includes(token))
+      ) {
         score += 80;
         addMatch(matches, "nickname_exact");
         tokenMatched = true;
       } else if (
         token.length >= 2 &&
-        doc.nicknameNormalized?.includes(token)
+        (doc.nicknameNormalized?.includes(token) ||
+          nicknameWords.some((word) => word.startsWith(token)))
       ) {
         score += 50;
         addMatch(matches, "nickname_partial");
@@ -161,10 +191,7 @@ export function searchPeople({
         score += 45;
         addMatch(matches, "birth_year");
         tokenMatched = true;
-      } else if (
-        token.length >= 3 &&
-        doc.birthYear?.startsWith(token)
-      ) {
+      } else if (token.length >= 3 && doc.birthYear?.startsWith(token)) {
         score += 20;
         addMatch(matches, "birth_year");
         tokenMatched = true;
@@ -174,28 +201,19 @@ export function searchPeople({
         score += 45;
         addMatch(matches, "death_year");
         tokenMatched = true;
-      } else if (
-        token.length >= 3 &&
-        doc.deathYear?.startsWith(token)
-      ) {
+      } else if (token.length >= 3 && doc.deathYear?.startsWith(token)) {
         score += 20;
         addMatch(matches, "death_year");
         tokenMatched = true;
       }
 
-      if (
-        token.length >= 2 &&
-        doc.birthPlaceNormalized?.includes(token)
-      ) {
+      if (token.length >= 2 && doc.birthPlaceNormalized?.includes(token)) {
         score += 35;
         addMatch(matches, "birth_place");
         tokenMatched = true;
       }
 
-      if (
-        token.length >= 2 &&
-        doc.deathPlaceNormalized?.includes(token)
-      ) {
+      if (token.length >= 2 && doc.deathPlaceNormalized?.includes(token)) {
         score += 35;
         addMatch(matches, "death_place");
         tokenMatched = true;

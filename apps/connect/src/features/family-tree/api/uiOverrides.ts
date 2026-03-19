@@ -7,6 +7,7 @@ import gromer from "../../../assets/images/gromer.jpg";
 import niscoiseJordan from "../../../assets/images/niscoise-jordan.jpg";
 import blukerMariot from "../../../assets/images/bluker-mariot.jpg";
 import blukerMichel from "../../../assets/images/bluker-michel.jpg";
+import blukerEmmanuel from "../../../assets/images/bluker-emmanuel.jpg";
 import kicheninCandide from "../../../assets/images/kichenin-candide.jpg";
 import poninAugustine from "../../../assets/images/ponin-augustine.jpg";
 import amassyJoseph from "../../../assets/images/amassy-joseph.jpg";
@@ -87,5 +88,8 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "733631992": {
     photoSrc: sennypalanyElisabeth,
+  },
+  "7390": {
+    photoSrc: blukerEmmanuel,
   },
 };

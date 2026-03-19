@@ -1,8 +1,10 @@
 // src/features/family-knowledge/pages/FamilyTreeFindMePage.tsx
 
 import {
+  AlertTriangle,
   ArrowLeft,
   Compass,
+  Mail,
   Search,
   TreePine,
   UserCircle2,
@@ -118,6 +120,33 @@ export function FamilyTreeFindMePage() {
             </div>
           </div>
         </section>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Mettre le titre dans la bonne forme</li>
+                  <li>Brancher l'item "demander à l'organisateur de me trouver"</li>
+                  <li>Préciser qu'il est normal qu'ils soient masqués avant de se trouver</li>
+                  <li>Me trouver dans l'arbre
+                    <ul>
+                      <li>Akinator?</li>
+                      <li>C'est moi qui fait le rapprochement d'identité</li>
+                      <li>Formulaire sur les parents et grands-parents</li>
+                      <li>Par navigation: je pense être ici à partir d'une personne non masquée décrit ton lien précis</li>
+                      <li>Récupérer le consentement</li>
+                      <li>Déléguation de consentement</li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {mode === "home" ? (
           <div className="space-y-3">
@@ -132,6 +161,13 @@ export function FamilyTreeFindMePage() {
               title="Je préfère explorer l’arbre"
               description="Ouvre l’arbre et navigue librement jusqu’à l’endroit où tu penses te reconnaître."
               icon={<Compass size={22} />}
+              onClick={openNavigationMode}
+            />
+
+            <FindMeModeCard
+              title="Contacter l’organisateur"
+              description="Tu recevras une notification par mail quand il t'aura identifié."
+              icon={<Mail size={22} />}
               onClick={openNavigationMode}
             />
           </div>

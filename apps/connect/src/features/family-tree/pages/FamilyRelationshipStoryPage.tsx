@@ -1,6 +1,7 @@
 // src/features/family-knowledge/pages/FamilyRelationshipStoryPage.tsx
 
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   BookOpen,
@@ -117,16 +118,6 @@ export function FamilyRelationshipStoryPage() {
       <main className="c-container pb-24 pt-3">
         <section>
           <div className="flex items-start justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(`/e/${slug}/family-tree`)}
-              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
-            >
-              <span className="inline-flex items-center gap-2">
-                <ArrowLeft size={14} />
-                Retour
-              </span>
-            </button>
 
             <button
               type="button"
@@ -140,6 +131,17 @@ export function FamilyRelationshipStoryPage() {
               <span className="inline-flex items-center gap-2">
                 <ListTree size={14} />
                 Voir dans l’arbre
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(`/e/${slug}/family-tree`)}
+              className="shrink-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
+            >
+              <span className="inline-flex items-center gap-2">
+                <ArrowLeft size={14} />
+                Retour
               </span>
             </button>
           </div>
@@ -160,6 +162,26 @@ export function FamilyRelationshipStoryPage() {
           </p>
         </section>
 
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Voir mon lien avec Gromèr
+                    <ul>
+                      <li>un écran un peu propre qui explicite le lien direct</li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
         <RelationshipStoryProgress
           currentIndex={currentIndex}
           total={totalScreens}

@@ -25,14 +25,14 @@ const DEFAULT_THEME: HeroTheme = {
 
 const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
   "731452": {
-    id: "731452",
-    label: "branche Candassamy",
-    heroClassName:
-      "bg-[linear-gradient(135deg,#5c4715_0%,#8a6a1f_55%,#c9a43b_100%)]",
-    headerClassName:
-      "bg-[#8a6a1f] text-white shadow-[0_10px_24px_rgba(138,106,31,0.25)]",
-    chipClassName: "bg-yellow-100/90 text-yellow-900",
-  },
+  id: "731452",
+  label: "branche Candassamy",
+  heroClassName:
+    "bg-[linear-gradient(135deg,#4a3614_0%,#8a6a1f_60%,#d4af37_100%)]",
+  headerClassName:
+    "bg-[#7a5a1a] text-white shadow-[0_10px_24px_rgba(122,90,26,0.30)]",
+  chipClassName: "bg-yellow-200/90 text-yellow-900",
+},
 
   "732469": {
     id: "732469",

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
+import { FAMILY_GRAPH } from "../api/loadGraph";
 
 type TreeHubAction = {
   key: string;
@@ -49,14 +51,28 @@ export function FamilyTreeHubPage() {
       "Cet arbre rassemble les descendants identifiés de Gromèr Covindou TANDIEMAIN (1868-1955). Il permet à chacun de retrouver sa place dans la famille, de mieux comprendre ses liens avec les cousins et de transmettre ce qu’il sait.",
   };
 
-  const metrics = useMemo<TreeMetric[]>(
-    () => [
-      { key: "descendants", label: "Descendants identifiés", value: "1193" },
-      { key: "generations", label: "Générations connues", value: "8" },
-      { key: "branches", label: "Branches familiales", value: "54" },
-    ],
-    [],
-  );
+  const metrics = useMemo<TreeMetric[]>(() => {
+  const rootPersonId = "7398";
+  const computed = buildFamilyTreeMetrics(FAMILY_GRAPH, rootPersonId);
+
+  return [
+    {
+      key: "descendants",
+      label: "Descendants identifiés",
+      value: String(computed.descendantsCount),
+    },
+    {
+      key: "generations",
+      label: "Générations connues",
+      value: String(computed.generationsCount),
+    },
+    {
+      key: "branches",
+      label: "Branches familiales",
+      value: String(computed.branchesCount),
+    },
+  ];
+}, []);
 
   const sections = useMemo<TreeHubSection[]>(
     () => [
@@ -109,14 +125,6 @@ export function FamilyTreeHubPage() {
               "Explore librement les générations et les différentes branches.",
             icon: TreeDeciduous,
             to: `/e/${slug}/family-tree/browse`,
-            enabled: true,
-          },
-          {
-            key: "ancestor-sheet",
-            label: "Voir la fiche de Gromèr Covindou",
-            description: "Consulte la fiche dédiée à notre aïeule commune.",
-            icon: GitBranch,
-            to: `/e/${slug}/arbre/fiche-gromer`,
             enabled: true,
           },
         ],
@@ -210,37 +218,7 @@ export function FamilyTreeHubPage() {
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
-                  <li>Revoir les chiffres (hydratation)</li>
-                  <li>Me trouver dans l'arbre
-                    <ul>
-                      <li>Akinator?</li>
-                      <li>C'est moi qui fait le rapprochement d'identité</li>
-                      <li>Formulaire sur les parents et grands-parents</li>
-                      <li>Par navigation: je pense être ici à partir d'une personne non masquée décrit ton lien précis</li>
-                      <li>Consentement</li>
-                    </ul>
-                  </li>
-                  <li>Navigation dans l'arbre
-                    <ul>
-                      <li>J'ajouter les photos</li>
-                      <li>Inclure les lieux de domicile dans le circuit des lieux d'une personne</li>
-                      <li>Virer les ? NOM INCONNU, ? SANS NOM, Nom inconnu pour les enfants</li>
-                      <li>Pour la pastille, prendre en compte le sexe</li>
-                      <li>Nom du père des enfants</li>
-                      <li>Ordre des fratries</li>
-                      <li>Sur un conjoint "Parent de X enfants"</li>
-                      <li>Lien avec Gromèr</li>
-                      <li>Boutons: revenir à Gromèr, revenir à moi, chercher une personne, me trouver</li>
-                      <li>Voir la fiche d'une personne</li>
-                    </ul>
-                  </li>
-                  <li>Voir mon lien avec Gromèr
-                    <ul>
-                      <li>un écran un peu propre qui explicite le lien direct</li>
-                    </ul>
-                  </li>
-                  <li>un moteur de recherche: bouton revenir à moi, sexe dans le lien</li>
-                  <li>Rédiger la page sur Gromèr Covindou</li>
+                  <li>Revoir les labels et les recommandés pour commencer</li>
                 </ol>
               </div>
             </div>

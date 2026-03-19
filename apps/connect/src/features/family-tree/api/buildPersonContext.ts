@@ -13,6 +13,80 @@ function defaultSubtitleForSex(sex: FamilyGraphPerson["sex"]): string {
   return "Personne";
 }
 
+function getParentSubtitle(sex?: FamilyGraphPerson["sex"]): string {
+  if (sex === "F") return "Mère";
+  if (sex === "M") return "Père";
+  return "Parent";
+}
+
+function getChildSubtitle(sex?: FamilyGraphPerson["sex"]): string {
+  if (sex === "F") return "Fille";
+  if (sex === "M") return "Fils";
+  return "Enfant";
+}
+
+function getSpouseSubtitle(sex?: FamilyGraphPerson["sex"]): string {
+  if (sex === "F") return "Conjointe";
+  if (sex === "M") return "Conjoint";
+  return "Conjoint";
+}
+
+function getGrandparentSubtitle(sex?: FamilyGraphPerson["sex"]): string {
+  if (sex === "F") return "Grand-mère";
+  if (sex === "M") return "Grand-père";
+  return "Grand-parent";
+}
+
+function getSiblingSubtitleFromSharedParents(
+  siblingSex: FamilyGraphPerson["sex"] | undefined,
+  siblingParentIds: string[],
+  personParentIds: Set<string>,
+  graph: FamilyGraphData,
+): string {
+  const sharedParentIds = siblingParentIds.filter((id) =>
+    personParentIds.has(id),
+  );
+
+  if (sharedParentIds.length >= 2) {
+    if (siblingSex === "F") return "Sœur";
+    if (siblingSex === "M") return "Frère";
+    return "Frère / sœur";
+  }
+
+  if (sharedParentIds.length === 1) {
+    const sharedParent = graph.people[sharedParentIds[0]];
+    const sharedParentSex = sharedParent?.sex;
+
+    const personKnownParentsCount = personParentIds.size;
+    const siblingKnownParentsCount = siblingParentIds.length;
+
+    const lowConfidenceContext =
+      personKnownParentsCount <= 1 && siblingKnownParentsCount <= 1;
+
+    if (lowConfidenceContext) {
+      if (siblingSex === "F") return "Sœur";
+      if (siblingSex === "M") return "Frère";
+      return "Frère / sœur";
+    }
+
+    if (sharedParentSex === "M") {
+      if (siblingSex === "F") return "Sœur par le père";
+      if (siblingSex === "M") return "Frère par le père";
+      return "Frère / sœur par le père";
+    }
+
+    if (sharedParentSex === "F") {
+      if (siblingSex === "F") return "Sœur par la mère";
+      if (siblingSex === "M") return "Frère par la mère";
+      return "Frère / sœur par la mère";
+    }
+  }
+
+  if (siblingSex === "F") return "Sœur";
+  if (siblingSex === "M") return "Frère";
+  return "Frère / sœur";
+}
+
 function formatLinkedSpouseLabel(spouse?: PersonSummary): string | undefined {
   if (!spouse) return undefined;
   const name = `${spouse.firstName} ${spouse.lastName}`.trim();
@@ -47,9 +121,7 @@ function computeIsPossiblyAlive(
   return age <= 110;
 }
 
-function computeHidden(
-  person: FamilyGraphPerson | undefined,
-): boolean {
+function computeHidden(person: FamilyGraphPerson | undefined): boolean {
   if (!person) return false;
 
   const override = PERSON_UI_OVERRIDES[person.id];
@@ -58,6 +130,13 @@ function computeHidden(
   }
 
   return computeIsPossiblyAlive(person) != false;
+}
+
+function normalizeLastName(lastName?: string): string {
+  if (!lastName) return "";
+  if (lastName === "? SANS NOM") return "";
+  if (lastName === "? NOM INCONNU") return "";
+  return lastName;
 }
 
 function toSummary(
@@ -71,8 +150,8 @@ function toSummary(
 
   return {
     id: person.id,
-    firstName: person.firstName || "Nom inconnu",
-    lastName: person.lastName || "",
+    firstName: person.firstName || "",
+    lastName: normalizeLastName(person.lastName),
     nickname: person.nickname || "",
     sex: person.sex,
     subtitle: override.subtitle ?? subtitle ?? defaultSubtitleForSex(person.sex),
@@ -144,15 +223,12 @@ export function buildPersonContext(
     spouseFamilies.map((fam) => {
       const spouseId = getSpouseIdForFamily(personId, fam);
       const spouse = getPerson(graph, spouseId);
-      return toSummary(
-        spouse,
-        spouse?.sex === "F" ? "Conjointe" : "Conjoint",
-        {
-          spouseRoleLabel: fam.childIds.length
-            ? `Parent de ${fam.childIds.length} enfant(s)`
-            : undefined,
-        },
-      );
+
+      return toSummary(spouse, getSpouseSubtitle(spouse?.sex), {
+        spouseRoleLabel: fam.childIds.length
+          ? `${(spouse?.sex === "F") ? "Mère" : (spouse?.sex === "M") ? "Père" : "Parent"} de ${fam.childIds.length ==1 ? "un ": fam.childIds.length} enfant${fam.childIds.length>1?"s":""}`
+          : undefined,
+      });
     }),
   );
 
@@ -162,19 +238,26 @@ export function buildPersonContext(
   });
 
   const parents = uniqueById(
-    parentFamilies.flatMap((fam) => [
-      toSummary(getPerson(graph, fam.husbandId), "Parent"),
-      toSummary(getPerson(graph, fam.wifeId), "Parent"),
-    ]),
+    parentFamilies.flatMap((fam) => {
+      const father = getPerson(graph, fam.husbandId);
+      const mother = getPerson(graph, fam.wifeId);
+
+      return [
+        toSummary(father, getParentSubtitle(father?.sex)),
+        toSummary(mother, getParentSubtitle(mother?.sex)),
+      ];
+    }),
   );
 
   const children = uniqueById(
     spouseFamilies.flatMap((fam) =>
-      fam.childIds.map((childId) =>
-        toSummary(getPerson(graph, childId), "Enfant", {
+      fam.childIds.map((childId) => {
+        const child = getPerson(graph, childId);
+
+        return toSummary(child, getChildSubtitle(child?.sex), {
           linkedSpouseLabel: formatLinkedSpouseLabel(spouseByFamilyId.get(fam.id)),
-        }),
-      ),
+        });
+      }),
     ),
   );
 
@@ -197,14 +280,16 @@ export function buildPersonContext(
             if (!sibling) return null;
 
             const siblingParentIds = getParentIds(sibling, graph);
-            const sharedParentsCount = siblingParentIds.filter((id) =>
-              personParentIds.has(id),
-            ).length;
 
-            const subtitle =
-              sharedParentsCount >= 2 ? "Frère / sœur" : "Demi-frère / sœur";
-
-            return toSummary(sibling, subtitle);
+            return toSummary(
+              sibling,
+              getSiblingSubtitleFromSharedParents(
+                sibling.sex,
+                siblingParentIds,
+                personParentIds,
+                graph,
+              ),
+            );
           }),
       );
     }),
@@ -219,10 +304,15 @@ export function buildPersonContext(
         .map((id) => getFamily(graph, id))
         .filter((f): f is FamilyGraphFamily => Boolean(f));
 
-      return gpFamilies.flatMap((fam) => [
-        toSummary(getPerson(graph, fam.husbandId), "Grand-parent"),
-        toSummary(getPerson(graph, fam.wifeId), "Grand-parent"),
-      ]);
+      return gpFamilies.flatMap((fam) => {
+        const grandfather = getPerson(graph, fam.husbandId);
+        const grandmother = getPerson(graph, fam.wifeId);
+
+        return [
+          toSummary(grandfather, getGrandparentSubtitle(grandfather?.sex)),
+          toSummary(grandmother, getGrandparentSubtitle(grandmother?.sex)),
+        ];
+      });
     }),
   );
 
@@ -232,7 +322,7 @@ export function buildPersonContext(
       ({
         id: person.id,
         firstName: person.firstName,
-        lastName: person.lastName,
+        lastName: normalizeLastName(person.lastName),
         nickname: person.nickname,
         sex: person.sex,
         subtitle: defaultSubtitleForSex(person.sex),
