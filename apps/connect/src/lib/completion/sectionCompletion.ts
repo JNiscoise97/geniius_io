@@ -8,9 +8,15 @@ import {
   MessageCircleHeart,
   Network,
   Settings,
+  TreeDeciduous,
   UserCircle2,
   Users,
 } from "lucide-react";
+
+
+const FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS = new Set<string>([
+  "4c36193e-09c9-4166-b1fb-e423fdcc3984",
+]);
 
 export type CompletionItemType = "form" | "info";
 
@@ -43,7 +49,8 @@ export type CompletionRule = {
     | "godparents"
     | "current_links"
     | "memory"
-    | "photos";
+    | "photos"
+    | "beta";
   eyebrow: string;
   actionRapide: string;
   text: string;
@@ -57,6 +64,8 @@ export type CompletionRule = {
   dependsOnTables?: string[];
   selectFieldsByTable?: Record<string, string[]>;
   isComplete?: (rowsByTable: Record<string, CompletionRow>) => boolean;
+  betaBadge?: string;
+  isVisibleForParticipant?: (participantId: string | null) => boolean;
 };
 
 export type CompletionRow = Record<string, unknown> | null | undefined;
@@ -80,6 +89,23 @@ export function getFamilyKnowledgeCompletionRules(
 }
 
 export const completionRules: CompletionRule[] = [
+  {
+  key: "beta-family-tree",
+  group: "beta",
+  eyebrow: "Accès anticipé",
+  actionRapide: "Tester la nouvelle exploration de l’arbre familial",
+  text: "Tu fais partie du petit groupe qui peut découvrir en avant-première cette fonctionnalité encore en test, qui sera disponible ce dimanche 22/03.",
+  cta: "Explorer",
+  icon: TreeDeciduous,
+  table: null,
+  fields: { and: [] },
+  to: "/family-tree",
+  type: "info",
+  betaBadge: "Test",
+  isVisibleForParticipant: (participantId) =>
+    !!participantId &&
+    FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS.has(participantId),
+},
   {
     key: "identity",
     onboardingKey: "identity",
@@ -1692,4 +1718,14 @@ function isFamilyKnowledgeGodparentsComplete(
     maternalGrandfatherOk &&
     maternalGrandmotherOk
   );
+}
+
+export function getCompletionRulesForParticipant(
+  participantId: string | null,
+  rules: CompletionRule[] = completionRules,
+) {
+  return rules.filter((rule) => {
+    if (!rule.isVisibleForParticipant) return true;
+    return rule.isVisibleForParticipant(participantId);
+  });
 }

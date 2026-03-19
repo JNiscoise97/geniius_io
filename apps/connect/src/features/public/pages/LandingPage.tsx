@@ -30,7 +30,7 @@ import type { LucideIcon } from "lucide-react";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import {
-  completionRules,
+  getCompletionRulesForParticipant,
   getFirstIncompleteCompletionRules,
   type CompletionRule,
 } from "../../../lib/completion/sectionCompletion";
@@ -212,6 +212,11 @@ export function LandingPage() {
     photosAt: "2026-04-12",
     feedbackAt: "2026-04-12",
   };
+
+  const participantCompletionRules = useMemo(
+    () => getCompletionRulesForParticipant(participantId),
+    [participantId],
+  );
 
   const sections = useMemo<HubSection[]>(
     () => [
@@ -463,7 +468,7 @@ export function LandingPage() {
       if (!participantId) {
         if (!cancelled) {
           setGuidedPrompts(
-            completionRules.filter((rule) => rule.type === "info").slice(0, 5),
+            participantCompletionRules.filter((rule) => rule.type === "info").slice(0, 5),
           );
           setLoadingGuidedPrompts(false);
         }
@@ -475,10 +480,10 @@ export function LandingPage() {
 
         const rowsByTable = await loadCompletionData(
           participantId,
-          completionRules,
+          participantCompletionRules,
         );
         const nextPrompts = getFirstIncompleteCompletionRules(
-          completionRules,
+          participantCompletionRules,
           rowsByTable,
           3,
         );
@@ -504,7 +509,7 @@ export function LandingPage() {
     return () => {
       cancelled = true;
     };
-  }, [participantId]);
+  }, [participantId, participantCompletionRules]);
 
   function openCompletionRule(rule: CompletionRule) {
     navigate(`/e/${slug}${rule.to}`);
@@ -728,15 +733,43 @@ function GuidedPromptCard({
   onClick: () => void;
 }) {
   const Icon = prompt.icon;
+  const isBeta = Boolean(prompt.betaBadge);
 
   return (
-    <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
-        {prompt.eyebrow}
+    <article
+      className={[
+        "rounded-[28px] border p-5 shadow-sm",
+        isBeta
+          ? "border-amber-200 bg-[linear-gradient(135deg,#fff7ed_0%,#fffbeb_100%)]"
+          : "border-slate-200 bg-white",
+      ].join(" ")}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className={[
+            "text-[11px] font-extrabold uppercase tracking-wide",
+            isBeta ? "text-amber-700" : "text-slate-500",
+          ].join(" ")}
+        >
+          {prompt.eyebrow}
+        </div>
+
+        {prompt.betaBadge ? (
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+            {prompt.betaBadge}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-3 flex items-start gap-4">
-        <div className="mt-0.5 rounded-2xl bg-indigo-50 p-3 text-indigo-700">
+        <div
+          className={[
+            "mt-0.5 rounded-2xl p-3",
+            isBeta
+              ? "bg-amber-100 text-amber-700"
+              : "bg-indigo-50 text-indigo-700",
+          ].join(" ")}
+        >
           <Icon size={20} />
         </div>
 
@@ -753,7 +786,12 @@ function GuidedPromptCard({
             <button
               type="button"
               onClick={onClick}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
+              className={[
+                "inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]",
+                isBeta
+                  ? "bg-amber-600 hover:bg-amber-700"
+                  : "bg-[color:var(--blue)]",
+              ].join(" ")}
             >
               {prompt.cta}
               <ArrowRight size={16} />
@@ -764,6 +802,7 @@ function GuidedPromptCard({
     </article>
   );
 }
+
 
 function HubActionCard({
   item,
