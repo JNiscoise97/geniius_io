@@ -58,6 +58,7 @@ import { FamilyRelationshipStoryPage } from "../features/family-tree/pages/Famil
 import { FamilyTreeFindMePage } from "../features/family-tree/pages/FamilyTreeFindMePage";
 import { FamilyTreeFindPersonPage } from "../features/family-tree/pages/FamilyTreeFindPersonPage";
 import { FamilyTreeHandleProfilePage } from "../features/family-tree/pages/FamilyTreeHandleProfilePage";
+import { ModerationQueuePage } from "../features/moderation/pages/ModerationQueuePage";
 import { ModerationReviewPage } from "../features/moderation/pages/ModerationReviewPage";
 
 export const router = createBrowserRouter([
@@ -153,6 +154,7 @@ export const router = createBrowserRouter([
               { path: "zones", element: <TeamZonesPage /> },
               { path: "z/:zoneId/play", element: <ZonePlayPage /> },
 
+              { path: "moderation", element: <ModerationQueuePage /> },
               { path: "moderation/:entityType/:entityId", element: <ModerationReviewPage /> },
             ],
           },

@@ -1545,16 +1545,15 @@ export function FamilyTreeBrowsePage() {
                     <ul>
                       <li>Photo pour remplacer celle affichée</li>
                       <li>Notif mail</li>
-                      <li>Process de modération</li>
                     </ul>
                   </li>
                   <li>
                     Souvenirs
                     <ul>
                       <li>Notif mail</li>
-                      <li>Process de modération</li>
                     </ul>
                   </li>
+                  <li>Protéger l'URL de modération</li>
                   <li>Déléguation de consentement</li>
                   <li>Fiche + icon dans le hero</li>
                 </ol>
