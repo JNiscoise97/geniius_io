@@ -20,7 +20,10 @@ import amassyMarie from "../../../assets/images/amassy-marie.jpg";
 import amassySavamy from "../../../assets/images/amassy-savamy.jpg";
 import blukerDaniel from "../../../assets/images/bluker-daniel.jpg";
 import blukerElianne from "../../../assets/images/bluker-elianne.jpg";
+import blukerEstenie from "../../../assets/images/bluker-estenie.jpg";
 import blukerGaston from "../../../assets/images/bluker-gaston.jpg";
+import blukerJp from "../../../assets/images/bluker-jp.jpg";
+import blukerMaurice from "../../../assets/images/bluker-maurice.jpg";
 import blukerPaula from "../../../assets/images/bluker-paula.jpg";
 import blukerRene from "../../../assets/images/bluker-rene.jpg";
 import caletyMadeleine from "../../../assets/images/calety-madeleine.jpg";
@@ -37,6 +40,7 @@ import mammosaValerie from "../../../assets/images/mammosa-valerie.jpg";
 import piterbothMarthe from "../../../assets/images/piterboth-marthe.jpg";
 import poinapinJb from "../../../assets/images/poinapin-jb.jpg";
 import poninPierre from "../../../assets/images/ponin-pierre.jpg";
+import pougavanomAdrienne from "../../../assets/images/pougavanom-adrienne.jpg";
 import poutaredyJoseph from "../../../assets/images/poutaredy-joseph.jpg";
 import poutaredyScholastique from "../../../assets/images/poutaredy-scholastique.jpg";
 import ramanyAimee from "../../../assets/images/ramany-aimee.jpg";
@@ -71,6 +75,7 @@ import viramaEtienne from "../../../assets/images/virama-etienne.jpg";
 import viramaEugenie from "../../../assets/images/virama-eugenie.jpg";
 import viramaBebe from "../../../assets/images/virama-bébé.jpg";
 import viramaCelestin from "../../../assets/images/virama-celestin.jpg";
+import viramaCharlemagne from "../../../assets/images/virama-charlemagne.jpg";
 import viramaClairette from "../../../assets/images/virama-clairette.jpg";
 import viramaMadeleine from "../../../assets/images/virama-madeleine.jpg";
 import viramaOlivienne from "../../../assets/images/virama-olivienne.jpg";
@@ -96,7 +101,6 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "7351": {
     photoSrc: niscoiseJordan,
-    canDisplay: true,
   },
   "733728949": {
     canDisplay: true,
@@ -328,5 +332,20 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "7373": {
     photoSrc: mammosaValerie,
+  },
+  "7380": {
+    photoSrc: blukerEstenie,
+  },
+  "7381": {
+    photoSrc: blukerJp,
+  },
+  "7397": {
+    photoSrc: blukerMaurice,
+  },
+  "731277823": {
+    photoSrc: pougavanomAdrienne,
+  },
+  "731270991": {
+    photoSrc: viramaCharlemagne,
   },
 };

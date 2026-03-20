@@ -71,21 +71,48 @@ type BrowsePanelMode =
   | "photos";
 
 function anonymizePerson(person: PersonSummary): PersonSummary {
-  if (person.canDisplay) return person;
+  if (
+    person.canDisplay &&
+    person.canDisplayName &&
+    person.canDisplayPhoto &&
+    person.canDisplayInfo
+  ) {
+    return person;
+  }
 
   return {
     ...person,
-    firstName: "Personne",
-    lastName: "privée",
-    nickname: undefined,
-    photoSrc: undefined,
-    birthYear: undefined,
-    deathYear: undefined,
-    birthPlace: undefined,
-    deathPlace: undefined,
-    linkedSpouseLabel: undefined,
-    spouseRoleLabel: undefined,
-    branch: undefined,
+    firstName:
+      person.canDisplay && person.canDisplayName
+        ? person.firstName
+        : "Personne",
+    lastName:
+      person.canDisplay && person.canDisplayName ? person.lastName : "privée",
+    nickname:
+      person.canDisplay && person.canDisplayName ? person.nickname : undefined,
+    photoSrc:
+      person.canDisplay && person.canDisplayPhoto ? person.photoSrc : undefined,
+    birthYear:
+      person.canDisplay && person.canDisplayInfo ? person.birthYear : undefined,
+    deathYear:
+      person.canDisplay && person.canDisplayInfo ? person.deathYear : undefined,
+    birthPlace:
+      person.canDisplay && person.canDisplayInfo
+        ? person.birthPlace
+        : undefined,
+    deathPlace:
+      person.canDisplay && person.canDisplayInfo
+        ? person.deathPlace
+        : undefined,
+    linkedSpouseLabel:
+      person.canDisplay && person.canDisplayInfo
+        ? person.linkedSpouseLabel
+        : undefined,
+    spouseRoleLabel:
+      person.canDisplay && person.canDisplayInfo
+        ? person.spouseRoleLabel
+        : undefined,
+    branch: person.canDisplay ? person.branch : undefined,
   };
 }
 
@@ -93,10 +120,6 @@ function getDisplayPerson(
   person: PersonSummary,
   forceDisplayedPersonIds: Set<string>,
 ): PersonSummary {
-  if (person.canDisplay) {
-    return person;
-  }
-
   if (forceDisplayedPersonIds.has(person.id)) {
     return person;
   }
@@ -578,8 +601,10 @@ export function FamilyTreeBrowsePage() {
   const [myVisibilityRequestStatus, setMyVisibilityRequestStatus] = useState<
     "pending" | "approved" | "rejected" | null
   >(null);
-  const [myVisibilityRequestModeratorComment, setMyVisibilityRequestModeratorComment] =
-    useState<string | null>(null);
+  const [
+    myVisibilityRequestModeratorComment,
+    setMyVisibilityRequestModeratorComment,
+  ] = useState<string | null>(null);
   const [isSavingVisibilityRequest, setIsSavingVisibilityRequest] =
     useState(false);
 
@@ -689,9 +714,10 @@ export function FamilyTreeBrowsePage() {
 
   const heroConfig = useMemo(() => getPersonHeroConfig(centerId), [centerId]);
 
-  const visibleOtherBranches = !displayPerson.canDisplay
-    ? []
-    : heroConfig.otherBranches;
+  const visibleOtherBranches =
+  displayPerson.canDisplay && displayPerson.canDisplayName
+    ? heroConfig.otherBranches
+    : [];
 
   const familyTreeTrackerRef = useRef<ReturnType<
     typeof createFamilyTreeViewTracker
@@ -703,8 +729,14 @@ export function FamilyTreeBrowsePage() {
   const hasRejectedVisibilityRequestForCurrentPerson =
     myVisibilityRequestStatus === "rejected";
 
-  const centerYears = formatYears(displayPerson);
-  const centerPath = formatLifePath(displayPerson);
+  const centerYears =
+  displayPerson.canDisplay && displayPerson.canDisplayInfo
+    ? formatYears(displayPerson)
+    : null;
+  const centerPath =
+  displayPerson.canDisplay && displayPerson.canDisplayInfo
+    ? formatLifePath(displayPerson)
+    : null;
 
   const rootPerson = useMemo(
     () => anonymizePerson(getPersonContext(rootHonoredPersonId).person),
@@ -1208,13 +1240,9 @@ export function FamilyTreeBrowsePage() {
                     <ol>
                       <li>Auguste VIRAMA</li>
                       <li>Simone RAMA</li>
-                      <li>Daniel BLUKER</li>
-                      <li>Esténie BLUKER</li>
                       <li>Firmin BLUKER</li>
-                      <li>JP BLUKER</li>
                       <li>Charlot BLUKER</li>
                       <li>Sylvio BLUKER</li>
-                      <li>Maurice BLUKER</li>
                       <li>Georget MARDEMOUTOU</li>
                     </ol>
                   </li>
@@ -1223,22 +1251,23 @@ export function FamilyTreeBrowsePage() {
                     d&apos;une personne
                   </li>
                   <li>
-                    Message &quot;pas de conjoint / d&apos;enfant identifié&quot;
+                    Message &quot;pas de conjoint / d&apos;enfant
+                    identifié&quot;
                   </li>
                   <li>
                     Bouton de réactions:
                     <ul>
                       <li>
-                        bouton C&apos;est moi, si c&apos;est moi pas de
-                        je l&apos;ai connu ni de j&apos;ai entendu parler de lui
+                        bouton C&apos;est moi, si c&apos;est moi pas de je
+                        l&apos;ai connu ni de j&apos;ai entendu parler de lui
                       </li>
                       <li>
-                        bouton C&apos;est moi, pouvoir override la photo affichée
+                        bouton C&apos;est moi, pouvoir override la photo
+                        affichée
                       </li>
                       <li>
-                        bouton C&apos;est moi, les labels des boutons
-                        &quot;sur cette personne&quot;, &quot;de lui&quot; sont
-                        bizarre
+                        bouton C&apos;est moi, les labels des boutons &quot;sur
+                        cette personne&quot;, &quot;de lui&quot; sont bizarre
                       </li>
                       <li>Demander le démasquage + Notif mail</li>
                     </ul>
@@ -1255,8 +1284,8 @@ export function FamilyTreeBrowsePage() {
                         publie
                       </li>
                       <li>
-                        Demander si l&apos;utilisateur a recueilli le consentement
-                        de la personne
+                        Demander si l&apos;utilisateur a recueilli le
+                        consentement de la personne
                       </li>
                       <li>Photo pour remplacer celle affichée</li>
                       <li>Voir les photos affichées</li>
@@ -1295,12 +1324,14 @@ export function FamilyTreeBrowsePage() {
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-amber-900">
-                    L’exploration de l’arbre n’est pas encore disponible pour toi
+                    L’exploration de l’arbre n’est pas encore disponible pour
+                    toi
                   </div>
                   <div className="mt-1 text-xs leading-5 text-amber-800">
-                    L’organisation n’a pas encore suffisamment d’éléments pour te
-                    rattacher à une branche de l’arbre. Renseigne les informations
-                    sur ta famille pour faciliter ton identification.
+                    L’organisation n’a pas encore suffisamment d’éléments pour
+                    te rattacher à une branche de l’arbre. Renseigne les
+                    informations sur ta famille pour faciliter ton
+                    identification.
                   </div>
                 </div>
               </div>
@@ -1317,7 +1348,9 @@ export function FamilyTreeBrowsePage() {
           </section>
         ) : (
           <>
-            {displayPerson.photoSrc ? (
+            {displayPerson.canDisplay &&
+            displayPerson.canDisplayPhoto &&
+            displayPerson.photoSrc ? (
               <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
                   <SmartImage
@@ -1350,6 +1383,12 @@ export function FamilyTreeBrowsePage() {
                         {!displayPerson.canDisplay ? (
                           <span className="inline-flex items-center rounded-full bg-black/20 px-3 py-1 text-[11px] font-extrabold text-white">
                             Profil masqué
+                          </span>
+                        ) : !displayPerson.canDisplayName ||
+                          !displayPerson.canDisplayPhoto ||
+                          !displayPerson.canDisplayInfo ? (
+                          <span className="inline-flex items-center rounded-full bg-black/20 px-3 py-1 text-[11px] font-extrabold text-white">
+                            Profil partiellement masqué
                           </span>
                         ) : null}
 
@@ -1404,7 +1443,9 @@ export function FamilyTreeBrowsePage() {
                       className="mt-[2px] shrink-0 text-indigo-600"
                     />
                     <div>
-                      <div className="text-slate-900">{relationshipSummary}</div>
+                      <div className="text-slate-900">
+                        {relationshipSummary}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1468,11 +1509,9 @@ export function FamilyTreeBrowsePage() {
                       <button
                         type="button"
                         onClick={() =>
-                          void (
-                            hasPendingClaimForCurrentPerson
-                              ? handleCancelIdentityClaim()
-                              : handleSetAsMe()
-                          )
+                          void (hasPendingClaimForCurrentPerson
+                            ? handleCancelIdentityClaim()
+                            : handleSetAsMe())
                         }
                         disabled={isSavingIdentityClaim}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
@@ -1564,11 +1603,9 @@ export function FamilyTreeBrowsePage() {
                         <button
                           type="button"
                           onClick={() =>
-                            void (
-                              hasPendingClaimForCurrentPerson
-                                ? handleCancelIdentityClaim()
-                                : handleSetAsMe()
-                            )
+                            void (hasPendingClaimForCurrentPerson
+                              ? handleCancelIdentityClaim()
+                              : handleSetAsMe())
                           }
                           disabled={isSavingIdentityClaim}
                           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
