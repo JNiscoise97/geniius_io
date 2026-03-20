@@ -53,3 +53,35 @@ export async function getMyPersonIdentityClaim(params: {
 
   return (data ?? null) as PersonIdentityClaim | null;
 }
+
+export async function getMyPersonIdentityClaims(params: {
+  eventSlug: string;
+  participantId: string;
+}): Promise<PersonIdentityClaim[]> {
+  const { eventSlug, participantId } = params;
+
+  const { data, error } = await supabase
+    .from("family_person_identity_claims")
+    .select(
+      `
+        id,
+        event_slug,
+        participant_id,
+        person_id,
+        claim_status,
+        moderator_comment,
+        submitted_at,
+        moderated_at,
+        updated_at
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("participant_id", participantId)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as PersonIdentityClaim[];
+}

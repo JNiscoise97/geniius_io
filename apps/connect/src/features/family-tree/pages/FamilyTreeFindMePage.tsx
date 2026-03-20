@@ -9,6 +9,8 @@ import {
   Search,
   TreePine,
   UserCircle2,
+  Lock,
+  LockIcon
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -24,6 +26,8 @@ import type { FindMeAnswers } from "../lib/findMeMatching";
 import { FindMeCandidateCard } from "../components/FindMeCandidateCard";
 import { FindMeModeCard } from "../components/FindMeModeCard";
 import { FindMeSearchField } from "../components/FindMeSearchField";
+import { getMyPersonIdentityClaims, type PersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { MyIdentityClaimsSection } from "../components/MyIdentityClaimsSection";
 
 type FindMeMode = "home" | "guided";
 
@@ -42,6 +46,43 @@ export function FamilyTreeFindMePage() {
   const [mode, setMode] = useState<FindMeMode>("home");
   const [answers, setAnswers] = useState<FindMeAnswers>(FIND_ME_EMPTY_ANSWERS);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  const [claims, setClaims] = useState<PersonIdentityClaim[]>([]);
+  const [claimsLoading, setClaimsLoading] = useState(false);
+  const [claimsError, setClaimsError] = useState<string | null>(null);
+
+  const hasApprovedClaim = useMemo(
+    () => claims.some((claim) => claim.claim_status === "approved"),
+    [claims],
+  );
+
+  async function loadClaims() {
+    if (!participantId) {
+      setClaims([]);
+      return;
+    }
+
+    try {
+      setClaimsLoading(true);
+      setClaimsError(null);
+
+      const data = await getMyPersonIdentityClaims({
+        eventSlug: slug,
+        participantId,
+      });
+
+      setClaims(data);
+    } catch (error) {
+      console.error(error);
+      setClaimsError("Impossible de charger tes demandes pour le moment.");
+    } finally {
+      setClaimsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadClaims();
+  }, [participantId, slug]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -85,8 +126,16 @@ export function FamilyTreeFindMePage() {
     navigate(`/e/${slug}/family-tree/browse`);
   }
 
+  function openContactOrganizerMode() {
+    navigate(`/e/${slug}/contact?preset=find-me-identification`, {
+      state: {
+        findMeDraft: answers,
+      },
+    });
+  }
+
   function openCandidateInTree(personId: string) {
-    navigate(`/e/${slug}/familyTree/browse?personId=${encodeURIComponent(personId)}&from=find-me`);
+    navigate(`/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}&from=find-me`);
   }
 
   return (
@@ -122,7 +171,32 @@ export function FamilyTreeFindMePage() {
           </div>
         </section>
 
-        
+        {!hasApprovedClaim ? (
+          <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-indigo-950">
+                  Il est normal que certaines personnes soient masquées
+                </div>
+                <div className="mt-1 text-xs leading-5 text-indigo-900">
+                  Pour protéger la vie privée de chacun, certaines personnes de l’arbre
+                  restent masquées tant qu’elles n’ont pas été identifiées ou n’ont pas
+                  donné leur accord. Tu peux toutefois te repérer à partir de tes proches
+                  visibles et signaler le profil qui pourrait correspondre à toi.
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <MyIdentityClaimsSection
+          claims={claims}
+          loading={claimsLoading}
+          error={claimsError}
+          onOpenPerson={openCandidateInTree}
+        />
+
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
@@ -132,16 +206,12 @@ export function FamilyTreeFindMePage() {
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
-                  <li>Brancher l'item "demander à l'organisateur de me trouver"</li>
-                  <li>Préciser qu'il est normal qu'ils soient masqués avant de se trouver</li>
                   <li>Me trouver dans l'arbre
                     <ul>
+                      <li>Sortir la logique profil vérifié</li>
                       <li>Akinator?</li>
                       <li>C'est moi qui fait le rapprochement d'identité</li>
                       <li>Formulaire sur les parents et grands-parents</li>
-                      <li>Par navigation: je pense être ici à partir d'une personne non masquée décrit ton lien précis</li>
-                      <li>Récupérer le consentement</li>
-                      <li>Déléguation de consentement</li>
                     </ul>
                   </li>
                 </ol>
@@ -170,6 +240,13 @@ export function FamilyTreeFindMePage() {
               title="Contacter l’organisateur"
               description="Tu recevras une notification par mail quand il t'aura identifié."
               icon={<Mail size={22} />}
+              onClick={openContactOrganizerMode}
+            />    
+
+            <FindMeModeCard
+              title="Gérer les infos sur moi"
+              description="Ouvre l’arbre et navigue librement jusqu’à l’endroit où tu penses te reconnaître."
+              icon={<LockIcon size={22} />}
               onClick={openNavigationMode}
             />
           </div>

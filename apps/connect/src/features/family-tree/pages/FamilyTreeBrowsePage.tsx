@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowRight,
   Camera,
   Eye,
   Heart,
@@ -57,6 +58,7 @@ import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim"
 import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
 import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequest";
 import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
+import { ORGANIZER_ID, ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 
 type BrowsePanelMode =
   | "relations"
@@ -93,9 +95,8 @@ function ReactionCountBadge({
 }) {
   return (
     <span
-      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${
-        active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-      }`}
+      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+        }`}
     >
       {count}
     </span>
@@ -409,18 +410,18 @@ function isSiblingLinePattern(moves: RelationshipEdgeType[]): boolean {
   return moves.slice(2).every((via) => via === "child");
 }
 
-function summarizeRelationshipPath(
+function summarizeRelationshipToRoot(
   path: RelationshipPathNode[] | null,
-  isSourceMe: boolean,
-  sourceDisplayName: string,
+  rootDisplayName: string,
+  isCenteredOnMe: boolean,
   targetSex?: string,
 ) {
   if (!path) return "Aucun chemin trouvé.";
 
   if (path.length === 1) {
-    return isSourceMe
+    return isCenteredOnMe
       ? "Tu es actuellement centré sur toi."
-      : `Tu es actuellement centré sur ${sourceDisplayName}.`;
+      : `Tu es actuellement centré sur ${rootDisplayName}.`;
   }
 
   const moves = path
@@ -433,33 +434,33 @@ function summarizeRelationshipPath(
   const spouseCount = moves.filter((via) => via === "spouse").length;
 
   if (spouseCount === 0 && upCount > 0 && downCount === 0) {
-    return isSourceMe
-      ? `Cette personne est ${getAncestorLabel(upCount, targetSex)}.`
-      : `Cette personne est ${getAncestorLabel(upCount, targetSex)} de ${sourceDisplayName}.`;
+    return isCenteredOnMe
+      ? `Tu es ${getAncestorLabel(upCount, targetSex)} de ${rootDisplayName}.`
+      : `Cette personne est ${getAncestorLabel(upCount, targetSex)} de ${rootDisplayName}.`;
   }
 
   if (spouseCount === 0 && downCount > 0 && upCount === 0) {
-    return isSourceMe
-      ? `Cette personne est ${getDescendantLabel(downCount, targetSex)}.`
-      : `Cette personne est ${getDescendantLabel(downCount, targetSex)} de ${sourceDisplayName}.`;
+    return isCenteredOnMe
+      ? `Tu es ${getDescendantLabel(downCount, targetSex)} de ${rootDisplayName}.`
+      : `Cette personne est ${getDescendantLabel(downCount, targetSex)} de ${rootDisplayName}.`;
   }
 
   if (spouseCount === 0 && isSiblingLinePattern(moves)) {
     const level = moves.length - 2;
-    return isSourceMe
-      ? `Cette personne est ${getSiblingDescendantLabel(level, targetSex)}.`
-      : `Cette personne est ${getSiblingDescendantLabel(level, targetSex)} de ${sourceDisplayName}.`;
+    return isCenteredOnMe
+      ? `Tu es ${getSiblingDescendantLabel(level, targetSex)} de ${rootDisplayName}.`
+      : `Cette personne est ${getSiblingDescendantLabel(level, targetSex)} de ${rootDisplayName}.`;
   }
 
   if (spouseCount > 0) {
-    return isSourceMe
-      ? "Le lien passe par une alliance."
-      : `Le lien avec ${sourceDisplayName} passe par une alliance.`;
+    return isCenteredOnMe
+      ? `Ton lien avec ${rootDisplayName} passe par une alliance.`
+      : `Le lien avec ${rootDisplayName} passe par une alliance.`;
   }
 
-  return isSourceMe
-    ? "Voici le chemin familial le plus court entre vous."
-    : `Voici le chemin familial le plus court depuis ${sourceDisplayName}.`;
+  return isCenteredOnMe
+    ? `Voici ton chemin familial le plus court depuis ${rootDisplayName}.`
+    : `Voici le chemin familial le plus court depuis ${rootDisplayName}.`;
 }
 
 function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
@@ -533,8 +534,6 @@ export function FamilyTreeBrowsePage() {
   const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
     "pending" | "approved" | "rejected" | null
   >(null);
-  const [myIdentityModeratorComment, setMyIdentityModeratorComment] =
-    useState<string | null>(null);
   const [isSavingIdentityClaim, setIsSavingIdentityClaim] = useState(false);
 
   const [approvedMemories, setApprovedMemories] = useState<
@@ -563,9 +562,9 @@ export function FamilyTreeBrowsePage() {
   const [isSavingVisibilityRequest, setIsSavingVisibilityRequest] =
     useState(false);
 
-  const rootHonoredPersonId = "7398";
-  const sourcePersonId = "7351";
-  const isSourceMe = false;
+  const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
+  const sourcePersonId = ORGANIZER_ID;
+
 
   const initialCenterId =
     requestedPersonId && FAMILY_GRAPH.people[requestedPersonId]
@@ -586,11 +585,6 @@ export function FamilyTreeBrowsePage() {
   const displayPerson = useMemo(
     () => anonymizePerson(context.person),
     [context.person],
-  );
-
-  const sourcePerson = useMemo(
-    () => anonymizePerson(getPersonContext(sourcePersonId).person),
-    [sourcePersonId],
   );
 
   const relationshipPath = useMemo(
@@ -638,11 +632,12 @@ export function FamilyTreeBrowsePage() {
     () => anonymizePerson(getPersonContext(rootHonoredPersonId).person),
     [rootHonoredPersonId],
   );
+  const isCenteredOnMe = centerId === sourcePersonId;
 
-  const relationshipSummary = summarizeRelationshipPath(
+  const relationshipSummary = summarizeRelationshipToRoot(
     relationshipPath,
-    isSourceMe,
-    isSourceMe ? "toi" : `Gromèr ${rootPerson.firstName}`,
+    `Gromèr ${rootPerson.firstName}`,
+    isCenteredOnMe,
     displayPerson.sex,
   );
 
@@ -705,7 +700,6 @@ export function FamilyTreeBrowsePage() {
 
     setClaimedPersonId(identityClaim?.person_id ?? null);
     setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
-    setMyIdentityModeratorComment(identityClaim?.moderator_comment ?? null);
 
     setHasMyComment(Boolean(myMemory?.content?.trim()));
     setMemoryDraft(myMemory?.content ?? "");
@@ -877,7 +871,9 @@ export function FamilyTreeBrowsePage() {
         personId: centerId,
       });
 
-      await loadCurrentPersonData();
+      await Promise.all([
+        loadCurrentPersonData(),
+      ]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -897,14 +893,15 @@ export function FamilyTreeBrowsePage() {
         personId: centerId,
       });
 
-      await loadCurrentPersonData();
+      await Promise.all([
+        loadCurrentPersonData(),
+      ]);
     } catch (e) {
       console.error(e);
     } finally {
       setIsSavingIdentityClaim(false);
     }
   }
-
   async function handleToggleKnown() {
     if (!participantId) return;
 
@@ -1032,28 +1029,28 @@ export function FamilyTreeBrowsePage() {
   );
 
   const knowLabel = displayPerson.isPossiblyAlive
-    ? "Je connais personnellement cette personne"
-    : "J’ai personnellement connu cette personne";
+    ? "Je connais cette personne"
+    : "J’ai connu cette personne";
 
   const heardLabel =
     displayPerson.sex === "F"
-      ? "J’ai entendu parler d’elle dans la famille"
+      ? "J’ai entendu parler d’elle"
       : displayPerson.sex === "M"
-        ? "J’ai entendu parler de lui dans la famille"
-        : "J’ai entendu parler de cette personne dans la famille";
+        ? "J’ai entendu parler de lui"
+        : "J’ai entendu parler de cette personne";
 
   const photoLabel =
     displayPerson.photoSrc
       ? displayPerson.sex === "F"
-        ? "J’ai une autre photo d’elle à proposer"
+        ? "J’ai une autre photo d’elle"
         : displayPerson.sex === "M"
-          ? "J’ai une autre photo de lui à proposer"
-          : "J’ai une autre photo à proposer"
+          ? "J’ai une autre photo de lui"
+          : "J’ai une autre photo"
       : displayPerson.sex === "F"
-        ? "J’ai une photo d’elle à proposer"
+        ? "J’ai une photo d’elle"
         : displayPerson.sex === "M"
-          ? "J’ai une photo de lui à proposer"
-          : "J’ai une photo à proposer";
+          ? "J’ai une photo de lui"
+          : "J’ai une photo";
 
   const personDisplayName =
     `${displayPerson.firstName} ${displayPerson.lastName}`.trim();
@@ -1097,24 +1094,46 @@ export function FamilyTreeBrowsePage() {
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
                   <li>
-                    J&apos;ajouter les photos (J6+2+6+1+1+1+1=18; R10+4+2+1+1+1=19;
-                    B7+2+7+1+1+1=19; M3+1+1+1=6; V5+1+1+1+1+2=11 // =73)
+                    Ajouter les photos des défunts
+                    <ol>
+                      <li>Samy</li>
+                      <li>Risla</li>
+                      <li>David</li>
+                      <li>Pierre PONIN</li>
+                      <li>Félicien DASSA</li>
+                      <li>Auguste VIRAMA</li>
+                      <li>Simone RAMA</li>
+                      <li>Daniel BLUKER</li>
+                      <li>Valérie MAM</li>
+                      <li>Esténie BLUKER</li>
+                      <li>Firmin BLUKER</li>
+                      <li>JP BLUKER</li>
+                      <li>Charlot BLUKER</li>
+                      <li>Marthe PITER</li>
+                      <li>Sylvio BLUKER</li>
+                      <li>Maurice BLUKER</li>
+                      <li>Georget MARDEMOUTOU</li>
+                      </ol>
+                   
                   </li>
                   <li>
                     Inclure les lieux de domicile dans le circuit des lieux
                     d&apos;une personne
                   </li>
-                  <li>Boutons: revenir à... [Gromèr, moi]</li>
                   <li>Message &quot;pas de conjoint / d&apos;enfant identifié&quot;</li>
+                  <li>Attention: si je suis connecté et que je suis identité, mais que je veux masquer mon profil depuis les consentements alors mon profil est privé pour tous mais pour moi je dois me voir avec une pastille Profil masqué</li>
                   <li>
                     Bouton de réactions:
                     <ul>
                       <li>
-                        Enregistrer un draft par person_id et participant_id
-                      </li>
-                      <li>
                         bouton C&apos;est moi, si c&apos;est moi pas de je l&apos;ai connu ni
                         de j&apos;ai entendu parler de lui
+                      </li>
+                      <li>
+                        bouton C&apos;est moi, pouvoir override la photo affichée
+                      </li>
+                      <li>
+                        bouton C&apos;est moi, les labels des boutons "sur cette personne", "de lui" sont bizarre
                       </li>
                       <li>Demander le démasquage + Notif mail</li>
                     </ul>
@@ -1143,6 +1162,9 @@ export function FamilyTreeBrowsePage() {
                   <li>
                     Souvenirs
                     <ul>
+                      <li>
+                        Enregistrer un draft par person_id et participant_id
+                      </li>
                       <li>Pouvoir écrire plusieurs souvenirs</li>
                       <li>Pouvoir supprimer un souvenir</li>
                       <li>
@@ -1153,7 +1175,8 @@ export function FamilyTreeBrowsePage() {
                       <li>Notif mail</li>
                     </ul>
                   </li>
-                  <li>revenir à moi</li>
+                      <li>Récupérer le consentement</li>
+                      <li>Déléguation de consentement</li>
                 </ol>
               </div>
             </div>
@@ -1237,6 +1260,20 @@ export function FamilyTreeBrowsePage() {
             </div>
           </div>
         </section>
+        {centerId !== rootHonoredPersonId ? (
+          <div className="mt-4">
+            <div className="mt-2 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start gap-2 text-sm font-black text-slate-900">
+                <Heart
+                  size={16}
+                  className="mt-[2px] shrink-0 text-indigo-600"
+                />
+                <div>
+                  <div className="text-slate-900">{relationshipSummary}</div>
+                </div>
+              </div>
+            </div>
+          </div>) : null}
 
         <section className="mb-4 mt-3 rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -1249,11 +1286,10 @@ export function FamilyTreeBrowsePage() {
                 <button
                   type="button"
                   onClick={() => setPanelMode("memories")}
-                  className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                    panelMode === "memories"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-500"
-                  }`}
+                  className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-500"
+                    }`}
                 >
                   <MessageCircle size={20} />
                   {memoriesCount}
@@ -1262,11 +1298,10 @@ export function FamilyTreeBrowsePage() {
                 <button
                   type="button"
                   onClick={() => setPanelMode("photos")}
-                  className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                    panelMode === "photos"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-500"
-                  }`}
+                  className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-500"
+                    }`}
                 >
                   <Camera size={20} />
                   {photosCount}
@@ -1275,11 +1310,10 @@ export function FamilyTreeBrowsePage() {
                 <span className="inline-flex items-center gap-1">
                   <Heart
                     size={20}
-                    className={`transition ${
-                      reactionsCount > 0
-                        ? "text-red-500 scale-110"
-                        : "text-slate-400"
-                    }`}
+                    className={`transition ${reactionsCount > 0
+                      ? "text-red-500 scale-110"
+                      : "text-slate-400"
+                      }`}
                     fill={reactionsCount > 0 ? "currentColor" : "none"}
                   />
                   {reactionsCount}
@@ -1290,92 +1324,114 @@ export function FamilyTreeBrowsePage() {
 
           <div className="mt-3 flex flex-wrap gap-2">
             {displayPerson.hidden ? (
-              <div className="flex w-full flex-wrap gap-2">
+              <><div className="flex w-full flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => void handleRequestDisplay()}
-                  disabled={isSavingVisibilityRequest}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                    hasPendingVisibilityRequestForCurrentPerson
+                  onClick={() => void (
+                    hasPendingClaimForCurrentPerson
+                      ? handleCancelIdentityClaim()
+                      : handleSetAsMe()
+                  )}
+                  disabled={isSavingIdentityClaim}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
+                    ? "bg-indigo-600 text-white"
+                    : hasPendingClaimForCurrentPerson
+                      ? "bg-amber-100 text-amber-900"
+                      : "bg-slate-100 text-slate-700"}`}
+                >
+                  <UserCheck
+                    size={14}
+                    className={`transition ${isApprovedClaimForCurrentPerson ? "scale-110" : ""}`} />
+                  {isApprovedClaimForCurrentPerson
+                    ? "C'est moi !"
+                    : hasPendingClaimForCurrentPerson
+                      ? "Finalement, je ne pense pas que c'est moi."
+                      : "Je pense que c'est moi !"}
+                </button>
+              </div>
+                <div className="flex w-full flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleRequestDisplay()}
+                    disabled={isSavingVisibilityRequest}
+                    className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasPendingVisibilityRequestForCurrentPerson
                       ? "bg-amber-100 text-amber-900"
                       : hasRejectedVisibilityRequestForCurrentPerson
                         ? "bg-rose-100 text-rose-900"
-                        : "bg-slate-100 text-slate-700"
-                  }`}
-                >
-                  <Eye size={14} />
-                  {hasPendingVisibilityRequestForCurrentPerson
-                    ? "Annuler ma demande d’affichage pour cette personne"
-                    : hasRejectedVisibilityRequestForCurrentPerson
-                      ? "Redemander l’affichage de cette personne"
-                      : "Demander l’affichage de cette personne"}
-                </button>
+                        : "bg-slate-100 text-slate-700"}`}
+                  >
+                    <Eye size={14} />
+                    {hasPendingVisibilityRequestForCurrentPerson
+                      ? "Annuler ma demande d’affichage pour cette personne"
+                      : hasRejectedVisibilityRequestForCurrentPerson
+                        ? "Redemander l’affichage de cette personne"
+                        : "Demander l’affichage de cette personne"}
+                  </button>
 
-                {hasPendingVisibilityRequestForCurrentPerson ? (
-                  <div className="inline-flex items-center rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-semibold text-amber-900">
-                    Demande d’affichage en attente de modération
-                  </div>
-                ) : null}
+                  {hasPendingVisibilityRequestForCurrentPerson ? (
+                    <div className="inline-flex items-center rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-semibold text-amber-900">
+                      Demande d’affichage en attente de modération
+                    </div>
+                  ) : null}
 
-                {hasRejectedVisibilityRequestForCurrentPerson &&
-                myVisibilityRequestModeratorComment ? (
-                  <div className="w-full rounded-[16px] border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] leading-5 text-rose-900">
-                    {myVisibilityRequestModeratorComment}
-                  </div>
-                ) : null}
-              </div>
+                  {hasRejectedVisibilityRequestForCurrentPerson &&
+                    myVisibilityRequestModeratorComment ? (
+                    <div className="w-full rounded-[16px] border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] leading-5 text-rose-900">
+                      {myVisibilityRequestModeratorComment}
+                    </div>
+                  ) : null}
+                </div>
+              </>
             ) : (
               <>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => void handleToggleTouched()}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                      hasTouchedPerson
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-700"
+                      }`}
                   >
                     <Heart
                       size={14}
-                      className={`transition ${
-                        hasTouchedPerson ? "text-red-300 scale-110" : ""
-                      }`}
+                      className={`transition ${hasTouchedPerson ? "text-red-300 scale-110" : ""
+                        }`}
                       fill={hasTouchedPerson ? "currentColor" : "none"}
                     />
-                    Cette personne me touche particulièrement
+                    J'aime
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void (
-                        hasPendingClaimForCurrentPerson
-                          ? handleCancelIdentityClaim()
-                          : handleSetAsMe()
-                      )
-                    }
-                    disabled={isSavingIdentityClaim}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                      isApprovedClaimForCurrentPerson
+                  {displayPerson.isPossiblyAlive ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void (
+                          hasPendingClaimForCurrentPerson
+                            ? handleCancelIdentityClaim()
+                            : handleSetAsMe()
+                        )
+                      }
+                      disabled={isSavingIdentityClaim}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
                         ? "bg-indigo-600 text-white"
                         : hasPendingClaimForCurrentPerson
                           ? "bg-amber-100 text-amber-900"
                           : "bg-slate-100 text-slate-700"
-                    }`}
-                  >
-                    <UserCheck
-                      size={14}
-                      className={`transition ${
-                        isApprovedClaimForCurrentPerson ? "scale-110" : ""
-                      }`}
-                    />
-                    {isApprovedClaimForCurrentPerson
-                      ? "Cette fiche correspond à mon identité"
-                      : hasPendingClaimForCurrentPerson
-                        ? "Annuler ma demande d’identification pour cette fiche"
-                        : "Cette fiche correspond à moi"}
-                  </button>
+                        }`}
+                    >
+                      <UserCheck
+                        size={14}
+                        className={`transition ${isApprovedClaimForCurrentPerson ? "scale-110" : ""
+                          }`}
+                      />
+                      {isApprovedClaimForCurrentPerson
+                        ? "C'est moi !"
+                        : hasPendingClaimForCurrentPerson
+                          ? "Finalement, je ne pense pas que c'est moi."
+                          : "Je pense que c'est moi !"}
+                    </button>
+                  ) : null}
                 </div>
 
                 {!isApprovedClaimForCurrentPerson ? (
@@ -1383,11 +1439,10 @@ export function FamilyTreeBrowsePage() {
                     <button
                       type="button"
                       onClick={() => void handleToggleKnown()}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                        hasKnownPerson
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-700"
+                        }`}
                     >
                       <UserCheck size={14} />
                       {knowLabel}
@@ -1402,11 +1457,10 @@ export function FamilyTreeBrowsePage() {
                     <button
                       type="button"
                       onClick={() => void handleToggleHeard()}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                        hasHeardOfPerson
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-700"
+                        }`}
                     >
                       <Megaphone size={14} />
                       {heardLabel}
@@ -1424,11 +1478,10 @@ export function FamilyTreeBrowsePage() {
                   <button
                     type="button"
                     onClick={() => setPanelMode("memory_editor")}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                      panelMode === "memory_editor"
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-700"
+                      }`}
                   >
                     <MessageCircle size={14} />
                     {hasMyComment
@@ -1439,11 +1492,10 @@ export function FamilyTreeBrowsePage() {
                   <button
                     type="button"
                     onClick={() => setPanelMode("photo_upload")}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                      panelMode === "photo_upload"
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-700"
+                      }`}
                   >
                     <Camera size={14} />
                     {photoLabel}
@@ -1455,7 +1507,7 @@ export function FamilyTreeBrowsePage() {
         </section>
 
         {panelMode === "relations" ? (
-          <FamilyRelationsSection
+          <><FamilyRelationsSection
             headerClassName={heroConfig.headerClassName}
             openSections={openSections}
             onToggle={toggleSection}
@@ -1467,16 +1519,69 @@ export function FamilyTreeBrowsePage() {
             spouses={context.spouses}
             children={sortedChildren}
             siblings={sortedSiblings}
-            grandparents={context.grandparents}
-          />
+            grandparents={context.grandparents} /><section className="mb-4 mt-3 rounded-[24px] border border-slate-300 bg-slate-900 p-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
+              <div className="px-2 pb-1 pt-1">
+                <div className="text-[18px] font-black text-white">Navigation</div>
+              </div>
+
+              <div className="mt-3 grid gap-3">
+                {centerId !== rootHonoredPersonId ? (
+                  <button
+                    type="button"
+                    onClick={recenterOnRoot}
+                    className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition active:scale-[0.99] active:shadow-none"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-700">
+                        <Heart size={20} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[16px] font-black text-slate-900">
+                          Centrer sur Gromèr {rootPerson.firstName}
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 rounded-2xl bg-slate-100 p-2 text-slate-900">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                  </button>
+                ) : null}
+
+                {centerId !== sourcePersonId ? (
+                  <button
+                    type="button"
+                    onClick={recenterOnSource}
+                    className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition active:scale-[0.99] active:shadow-none"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700">
+                        <UserCircle2 size={20} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[16px] font-black text-slate-900">
+                          Centrer sur moi
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 rounded-2xl bg-slate-100 p-2 text-slate-900">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                  </button>
+                ) : null}
+              </div>
+            </section></>
         ) : panelMode === "memories" ? (
           <PersonMemoriesPanel
             memories={approvedMemories}
             pendingMemory={
               myMemoryStatus === "pending" && memoryDraft.trim()
                 ? {
-                    content: memoryDraft,
-                  }
+                  content: memoryDraft,
+                }
                 : null
             }
             onBack={() => setPanelMode("relations")}
@@ -1505,64 +1610,6 @@ export function FamilyTreeBrowsePage() {
             onBack={() => setPanelMode("relations")}
           />
         )}
-
-        <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            {centerId !== rootHonoredPersonId ? (
-              <button
-                type="button"
-                onClick={recenterOnRoot}
-                className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
-              >
-                <Heart size={16} />
-                Revenir à Gromèr
-              </button>
-            ) : null}
-
-            {centerId !== sourcePersonId ? (
-              <button
-                type="button"
-                onClick={recenterOnSource}
-                className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
-              >
-                <UserCircle2 size={16} />
-                {isSourceMe
-                  ? "Me retrouver"
-                  : `Revenir à ${sourcePerson.firstName}`}
-              </button>
-            ) : null}
-          </div>
-
-          <div className="mt-4">
-            <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
-              {isSourceMe ? "Lien avec moi" : "Lien avec Gromèr"}
-            </div>
-
-            <div className="mt-2 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start gap-2 text-sm font-black text-slate-900">
-                <Heart
-                  size={16}
-                  className="mt-[2px] shrink-0 text-indigo-600"
-                />
-                <div>
-                  <div className="text-slate-900">{relationshipSummary}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {myIdentityClaimStatus === "rejected" &&
-          myIdentityModeratorComment ? (
-            <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3">
-              <div className="text-sm font-semibold text-rose-900">
-                Ta précédente demande d’identification n’a pas été validée
-              </div>
-              <div className="mt-1 text-xs leading-5 text-rose-800">
-                {myIdentityModeratorComment}
-              </div>
-            </div>
-          ) : null}
-        </section>
       </main>
     </div>
   );

@@ -55,12 +55,6 @@ export function FamilySearchResultCard({
               <div className="text-[16px] font-black text-slate-900">
                 {person.firstName} {person.lastName}
               </div>
-
-              {person.subtitle ? (
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-700">
-                  {person.subtitle}
-                </span>
-              ) : null}
             </div>
 
             {person.nickname ? (

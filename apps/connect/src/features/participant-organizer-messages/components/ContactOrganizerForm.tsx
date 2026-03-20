@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import type { FormEvent } from "react";
+import { useEffect, useRef, type FormEvent } from "react";
 import type {
   ContactOrganizerFormConfig,
   OrganizerMessageTopic,
@@ -25,6 +25,7 @@ type ContactOrganizerFormProps = {
   value: ContactOrganizerFormValues;
   loading?: boolean;
   error?: string | null;
+  lockTopic?: boolean;
   onChange: (patch: Partial<ContactOrganizerFormValues>) => void;
   onSubmit: (e: FormEvent) => void;
 };
@@ -120,11 +121,25 @@ export function ContactOrganizerForm({
   value,
   loading = false,
   error = null,
+  lockTopic = false,
   onChange,
   onSubmit,
 }: ContactOrganizerFormProps) {
   const enabledChannels = getEnabledChannels(value);
   const submitDisabled = loading || isFormIncomplete(value);
+
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = "auto"; // reset
+    el.style.height = `${el.scrollHeight}px`; // ajuste à contenu
+  }
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      autoResize(textareaRef.current);
+    }
+  }, [value.message]);
 
   return (
     <form id="contact-organizer-form" onSubmit={onSubmit} className="mt-3">
@@ -135,14 +150,14 @@ export function ContactOrganizerForm({
           </span>
 
           <select
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100 disabled:bg-slate-50 disabled:text-slate-500"
             value={value.topic}
             onChange={(e) =>
               onChange({
                 topic: e.target.value as OrganizerMessageTopic | "",
               })
             }
-            disabled={loading}
+            disabled={loading || lockTopic}
           >
             <option value="">Choisir</option>
             {config.topicOptions.map((option) => (
@@ -157,6 +172,12 @@ export function ContactOrganizerForm({
               {config.fields.topic.helpText}
             </div>
           ) : null}
+
+          {lockTopic ? (
+            <div className="text-xs font-bold leading-5 text-slate-500">
+              Ce sujet est défini automatiquement par le parcours.
+            </div>
+          ) : null}
         </label>
 
         <label className="grid gap-1">
@@ -165,15 +186,18 @@ export function ContactOrganizerForm({
           </span>
 
           <textarea
-            className="min-h-[140px] rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-400 outline-none resize-y focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            ref={textareaRef}
+            className="min-h-[140px] rounded-2xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 placeholder:text-slate-400 outline-none resize-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
             value={value.message}
-            onChange={(e) =>
-              onChange({
-                message: config.fields.message.maxLength
-                  ? e.target.value.slice(0, config.fields.message.maxLength)
-                  : e.target.value,
-              })
-            }
+            onChange={(e) => {
+              const nextValue = config.fields.message.maxLength
+                ? e.target.value.slice(0, config.fields.message.maxLength)
+                : e.target.value;
+
+              onChange({ message: nextValue });
+
+              autoResize(e.target);
+            }}
             placeholder={config.fields.message.placeholder}
             disabled={loading}
           />

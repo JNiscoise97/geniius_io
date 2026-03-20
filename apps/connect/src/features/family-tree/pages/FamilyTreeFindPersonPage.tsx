@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Lock, Search } from "lucide-react";
+import { ArrowLeft, Lock, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
@@ -29,6 +29,7 @@ import {
   pushRecentFamilySearch,
 } from "../lib/familySearchRecent";
 import type { PersonSummary } from "../types";
+import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 
 function getAncestorLabel(level: number, sex?: string) {
   const isFemale = sex === "F";
@@ -195,7 +196,7 @@ export function FamilyTreeFindPersonPage() {
   const participantId = participantSession?.participantId ?? null;
 
   const [searchParams] = useSearchParams();
-  const centerId = searchParams.get("centerId") ?? "7398";
+  const centerId = searchParams.get("centerId") ?? ROOT_HONORED_PERSON_ID;
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
@@ -325,21 +326,6 @@ export function FamilyTreeFindPersonPage() {
           </div>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>subtitle Aïeul intempestif</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
         <section className="mt-3 space-y-3">
           <FamilySearchInput
             value={query}

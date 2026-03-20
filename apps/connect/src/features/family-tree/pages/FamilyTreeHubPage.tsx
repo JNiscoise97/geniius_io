@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Compass,
   GitBranch,
   Heart,
   Search,
@@ -14,6 +15,7 @@ import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
 import { FAMILY_GRAPH } from "../api/loadGraph";
+import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 
 type TreeHubAction = {
   key: string;
@@ -52,7 +54,7 @@ export function FamilyTreeHubPage() {
   };
 
   const metrics = useMemo<TreeMetric[]>(() => {
-  const rootPersonId = "7398";
+  const rootPersonId = ROOT_HONORED_PERSON_ID;
   const computed = buildFamilyTreeMetrics(FAMILY_GRAPH, rootPersonId);
 
   return [
@@ -99,6 +101,16 @@ export function FamilyTreeHubPage() {
             description: "Découvre comment tu descends de Gromèr.",
             icon: Heart,
             to: `/e/${slug}/family-tree/story`,
+            enabled: true,
+            featured: true,
+          },
+          {
+            key: "handle-consent",
+            label: "Ma place dans l’arbre",
+            description:
+              "Retrouve ta place dans la famille et accède à ta branche.",
+            icon: Compass,
+            to: `/e/${slug}/family-tree/handle-consent`,
             enabled: true,
             featured: true,
           },
@@ -219,6 +231,10 @@ export function FamilyTreeHubPage() {
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
                   <li>Revoir les labels et les recommandés pour commencer</li>
+                  <li>Créer un item "profil vérifié" où on pourra gérer les consentements</li>
+                  <li>mettre dans la table participants une valeur par default de gedcom_person_id à valider par claim</li>
+                  <li>gedcom_person_id même logique que allowTest</li>
+                  <li>si gedcom_person_id alors masquer "find-me" et afficher "handle-consent" sinon l'inverse</li>
                 </ol>
               </div>
             </div>

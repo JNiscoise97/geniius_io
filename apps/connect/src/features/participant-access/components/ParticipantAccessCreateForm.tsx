@@ -54,7 +54,7 @@ export function ParticipantAccessCreateForm({
             value={values.firstName}
             onChange={(e) => onChange({ firstName: e.target.value })}
             className="h-12 rounded-2xl border border-slate-200 px-4 font-extrabold text-slate-900 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-            placeholder="Ex : Jordan"
+            placeholder="Ex : Paul"
             disabled={loading}
           />
         </div>
