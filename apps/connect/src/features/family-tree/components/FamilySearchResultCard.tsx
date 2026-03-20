@@ -19,7 +19,6 @@ export function FamilySearchResultCard({
   person: PersonSummary;
   relationshipSummary?: string;
   onCenter: () => void;
-  onOpenProfile: () => void;
 }) {
   const years = formatYears(person);
 

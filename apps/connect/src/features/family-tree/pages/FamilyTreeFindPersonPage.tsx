@@ -4,14 +4,16 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { useDebouncedValue } from "../../../lib/useDebouncedValue";
+import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { buildFamilySearchIndex } from "../api/buildFamilySearchIndex";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
   type RelationshipPathNode,
 } from "../api/findRelationshipPath";
+import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import { searchPeople } from "../api/searchPeople";
 import { FamilySearchInput } from "../components/FamilySearchInput";
@@ -30,8 +32,7 @@ import {
   getRecentFamilySearches,
   pushRecentFamilySearch,
 } from "../lib/familySearchRecent";
-import type { PersonSummary } from "../types";
-import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
+import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 
 function getAncestorLabel(level: number, sex?: string) {
   const isFemale = sex === "F";
@@ -193,27 +194,54 @@ function getDisplaySearchPerson(
   person: PersonSummary,
   forceDisplayedPersonIds: string[],
 ): PersonSummary {
-  if (person.canDisplay) {
+  if (forceDisplayedPersonIds.includes(person.id)) {
     return person;
   }
 
-  if (forceDisplayedPersonIds.includes(person.id)) {
+  if (
+    person.canDisplay &&
+    person.canDisplayName &&
+    person.canDisplayPhoto &&
+    person.canDisplayInfo
+  ) {
     return person;
   }
 
   return {
     ...person,
-    firstName: "Personne",
-    lastName: "privée",
-    nickname: undefined,
-    photoSrc: undefined,
-    birthYear: undefined,
-    deathYear: undefined,
-    birthPlace: undefined,
-    deathPlace: undefined,
-    linkedSpouseLabel: undefined,
-    spouseRoleLabel: undefined,
-    branch: undefined,
+    firstName:
+      person.canDisplay && person.canDisplayName
+        ? person.firstName
+        : "Personne",
+    lastName:
+      person.canDisplay && person.canDisplayName
+        ? person.lastName
+        : "privée",
+    nickname:
+      person.canDisplay && person.canDisplayName ? person.nickname : undefined,
+    photoSrc:
+      person.canDisplay && person.canDisplayPhoto ? person.photoSrc : undefined,
+    birthYear:
+      person.canDisplay && person.canDisplayInfo ? person.birthYear : undefined,
+    deathYear:
+      person.canDisplay && person.canDisplayInfo ? person.deathYear : undefined,
+    birthPlace:
+      person.canDisplay && person.canDisplayInfo
+        ? person.birthPlace
+        : undefined,
+    deathPlace:
+      person.canDisplay && person.canDisplayInfo
+        ? person.deathPlace
+        : undefined,
+    linkedSpouseLabel:
+      person.canDisplay && person.canDisplayInfo
+        ? person.linkedSpouseLabel
+        : undefined,
+    spouseRoleLabel:
+      person.canDisplay && person.canDisplayInfo
+        ? person.spouseRoleLabel
+        : undefined,
+    branch: person.canDisplay ? person.branch : undefined,
   };
 }
 
@@ -230,13 +258,23 @@ export function FamilyTreeFindPersonPage() {
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
+
   const [recentIds, setRecentIds] = useState<string[]>([]);
-  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<string | null>(null);
-  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] = useState(false);
+  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<
+    string | null
+  >(null);
+  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] =
+    useState(false);
+
   const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
   const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
     "pending" | "approved" | "rejected" | "auto_verified" | null
   >(null);
+
+  const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
+    useState<PersonVisibilityPreferenceMap>({});
+  const [visibilityPreferencesLoading, setVisibilityPreferencesLoading] =
+    useState(true);
 
   const forceDisplayedPersonIds = useMemo(() => {
     const ids: string[] = [];
@@ -252,7 +290,30 @@ export function FamilyTreeFindPersonPage() {
     return ids;
   }, [claimedPersonId, myIdentityClaimStatus]);
 
-  const searchIndex = useMemo(() => buildFamilySearchIndex(FAMILY_GRAPH), []);
+  const searchIndex = useMemo(() => {
+    return buildFamilySearchIndex(FAMILY_GRAPH, visibilityPreferencesByPersonId);
+  }, [visibilityPreferencesByPersonId]);
+
+  useEffect(() => {
+    async function loadVisibilityPreferencesMap() {
+      try {
+        setVisibilityPreferencesLoading(true);
+
+        const map = await getFamilyTreeVisibilityPreferencesMap({
+          eventSlug: slug,
+        });
+
+        setVisibilityPreferencesByPersonId(map);
+      } catch (error) {
+        console.error(error);
+        setVisibilityPreferencesByPersonId({});
+      } finally {
+        setVisibilityPreferencesLoading(false);
+      }
+    }
+
+    void loadVisibilityPreferencesMap();
+  }, [slug]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -338,6 +399,7 @@ export function FamilyTreeFindPersonPage() {
 
   const results = useMemo(() => {
     if (!canSearchInTree) return [];
+    if (visibilityPreferencesLoading) return [];
 
     if (trimmedDebouncedQuery.length < FAMILY_SEARCH_MIN_QUERY_LENGTH) {
       return [];
@@ -353,6 +415,7 @@ export function FamilyTreeFindPersonPage() {
     });
   }, [
     canSearchInTree,
+    visibilityPreferencesLoading,
     trimmedDebouncedQuery,
     searchIndex,
     centerId,
@@ -361,9 +424,16 @@ export function FamilyTreeFindPersonPage() {
 
   const enrichedResults = useMemo(() => {
     return results.map((result) => {
-      const rawPerson = getPersonContext(result.personId).person;
+      const rawPerson = getPersonContext(
+        result.personId,
+        visibilityPreferencesByPersonId,
+      ).person;
+
       const person = getDisplaySearchPerson(rawPerson, forceDisplayedPersonIds);
-      const source = getPersonContext(centerId).person;
+      const source = getPersonContext(
+        centerId,
+        visibilityPreferencesByPersonId,
+      ).person;
 
       const path = findRelationshipPath(FAMILY_GRAPH, centerId, result.personId);
       const relationshipSummary = summarizeRelationshipPath(
@@ -372,6 +442,19 @@ export function FamilyTreeFindPersonPage() {
         rawPerson.sex,
       );
 
+    if (result.personId === "7351") {
+      console.log("rawPerson flags", {
+        canDisplay: rawPerson.canDisplay,
+        canDisplayName: rawPerson.canDisplayName,
+        canDisplayPhoto: rawPerson.canDisplayPhoto,
+        canDisplayInfo: rawPerson.canDisplayInfo,
+      });
+      console.log("rawPerson", rawPerson);
+  console.log("displayedPerson", person);
+  console.log("relationshipSummary", relationshipSummary);
+    }
+    console.log("forceDisplayedPersonIds", forceDisplayedPersonIds);
+
       return {
         person,
         score: result.score,
@@ -379,13 +462,21 @@ export function FamilyTreeFindPersonPage() {
         relationshipSummary,
       };
     });
-  }, [results, centerId, forceDisplayedPersonIds]);
+  }, [
+    results,
+    centerId,
+    forceDisplayedPersonIds,
+    visibilityPreferencesByPersonId,
+  ]);
 
   const recentPersons = useMemo(() => {
     return recentIds
       .map((personId) => {
         try {
-          return getPersonContext(personId).person;
+          return getPersonContext(
+            personId,
+            visibilityPreferencesByPersonId,
+          ).person;
         } catch {
           return null;
         }
@@ -396,16 +487,13 @@ export function FamilyTreeFindPersonPage() {
         return forceDisplayedPersonIds.includes(person.id);
       })
       .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
-  }, [recentIds, forceDisplayedPersonIds]);
+  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId]);
 
   function handleCenterPerson(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
-    navigate(`/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}`);
-  }
-
-  function handleOpenProfile(personId: string) {
-    pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
-    navigate(`/e/${slug}/fiche?id=${encodeURIComponent(personId)}`);
+    navigate(
+      `/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}`,
+    );
   }
 
   function openFamilyKnowledge() {
@@ -455,9 +543,10 @@ export function FamilyTreeFindPersonPage() {
                     La recherche n’est pas encore disponible pour toi
                   </div>
                   <div className="mt-1 text-xs leading-5 text-amber-800">
-                    L’organisation n’a pas encore suffisamment d’éléments pour te
-                    rattacher à une branche de l’arbre. Renseigne les informations sur
-                    ta famille pour faciliter ton identification.
+                    L’organisation n’a pas encore suffisamment d’éléments pour
+                    te rattacher à une branche de l’arbre. Renseigne les
+                    informations sur ta famille pour faciliter ton
+                    identification.
                   </div>
                 </div>
               </div>
@@ -501,10 +590,11 @@ export function FamilyTreeFindPersonPage() {
                         Certaines personnes n’apparaissent pas dans la recherche
                       </div>
                       <div className="mt-1 text-xs leading-5 text-indigo-900">
-                        Une identité est considérée comme privée lorsque la personne
-                        concernée n’a pas elle-même consenti à apparaître dans l’arbre
-                        généalogique de cette application. Ces profils sont donc exclus
-                        des résultats de recherche.
+                        Une identité est considérée comme privée lorsque la
+                        personne concernée n’a pas elle-même consenti à
+                        apparaître dans l’arbre généalogique de cette
+                        application. Ces profils sont donc exclus des résultats
+                        de recherche.
                       </div>
                     </div>
                   </div>
@@ -521,7 +611,6 @@ export function FamilyTreeFindPersonPage() {
                         key={person.id}
                         person={person}
                         onCenter={() => handleCenterPerson(person.id)}
-                        onOpenProfile={() => handleOpenProfile(person.id)}
                       />
                     ))}
                   </div>
@@ -531,7 +620,7 @@ export function FamilyTreeFindPersonPage() {
               <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
                 {FAMILY_SEARCH_SHORT_QUERY_MESSAGE}
               </section>
-            ) : isTyping ? (
+            ) : isTyping || visibilityPreferencesLoading ? (
               <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
                 Recherche en cours…
               </section>
@@ -551,7 +640,6 @@ export function FamilyTreeFindPersonPage() {
                     person={result.person}
                     relationshipSummary={result.relationshipSummary}
                     onCenter={() => handleCenterPerson(result.person.id)}
-                    onOpenProfile={() => handleOpenProfile(result.person.id)}
                   />
                 ))}
               </section>
