@@ -19,6 +19,14 @@ function getStatusMeta(status: PersonIdentityClaim["claim_status"]) {
         titleClassName: "text-emerald-900",
         textClassName: "text-emerald-800",
       };
+    case "auto_verified":
+      return {
+        label: "Profil confirmé",
+        icon: <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-700" />,
+        containerClassName: "border-emerald-200 bg-emerald-50",
+        titleClassName: "text-emerald-900",
+        textClassName: "text-emerald-800",
+      };
     case "rejected":
       return {
         label: "Non confirmé",
