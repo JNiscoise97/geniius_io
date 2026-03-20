@@ -1,4 +1,3 @@
-
 import { PERSON_UI_OVERRIDES } from "../api/uiOverrides";
 import type {
   FamilyGraphPerson,
@@ -27,9 +26,31 @@ export function computeIsPossiblyAlive(
   return currentYear - birthYearNumber <= 110;
 }
 
-function computeBaseCanDisplay(person: FamilyGraphPerson | undefined): boolean {
+function hasAnyExplicitTreeConsent(
+  preferences?: ParticipantTreeVisibilityPreferences,
+): boolean {
+  return Boolean(
+    preferences?.allowNameInFamilyTree ||
+      preferences?.allowPhotoInFamilyTree ||
+      preferences?.allowInfoInFamilyTree,
+  );
+}
+
+function computeBaseCanDisplay(
+  person: FamilyGraphPerson | undefined,
+  preferences?: ParticipantTreeVisibilityPreferences,
+): boolean {
   if (!person) return false;
-  return computeIsPossiblyAlive(person) === false;
+
+  const isPossiblyAlive = computeIsPossiblyAlive(person);
+
+  // Décédé => affiché par défaut
+  if (isPossiblyAlive === false) {
+    return true;
+  }
+
+  // Vivant ou statut incertain => affiché seulement si consentement explicite
+  return hasAnyExplicitTreeConsent(preferences);
 }
 
 export function computePersonDisplayPermissions(
@@ -50,7 +71,7 @@ export function computePersonDisplayPermissions(
   const canDisplay =
     typeof override?.canDisplay === "boolean"
       ? override.canDisplay
-      : computeBaseCanDisplay(person);
+      : computeBaseCanDisplay(person, preferences);
 
   if (!canDisplay) {
     return {
@@ -61,10 +82,41 @@ export function computePersonDisplayPermissions(
     };
   }
 
+  const isPossiblyAlive = computeIsPossiblyAlive(person);
+
+  // Décédé => affichage complet par défaut
+  if (isPossiblyAlive === false) {
+    return {
+      canDisplay: true,
+      canDisplayName:
+        typeof override?.canDisplayName === "boolean"
+          ? override.canDisplayName
+          : true,
+      canDisplayPhoto:
+        typeof override?.canDisplayPhoto === "boolean"
+          ? override.canDisplayPhoto
+          : true,
+      canDisplayInfo:
+        typeof override?.canDisplayInfo === "boolean"
+          ? override.canDisplayInfo
+          : true,
+    };
+  }
+
+  // Vivant => affichage piloté par les consentements
   return {
     canDisplay: true,
-    canDisplayName: preferences?.allowNameInFamilyTree ?? true,
-    canDisplayPhoto: preferences?.allowPhotoInFamilyTree ?? true,
-    canDisplayInfo: preferences?.allowInfoInFamilyTree ?? true,
+    canDisplayName:
+      typeof override?.canDisplayName === "boolean"
+        ? override.canDisplayName
+        : (preferences?.allowNameInFamilyTree ?? false),
+    canDisplayPhoto:
+      typeof override?.canDisplayPhoto === "boolean"
+        ? override.canDisplayPhoto
+        : (preferences?.allowPhotoInFamilyTree ?? false),
+    canDisplayInfo:
+      typeof override?.canDisplayInfo === "boolean"
+        ? override.canDisplayInfo
+        : (preferences?.allowInfoInFamilyTree ?? false),
   };
 }

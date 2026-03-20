@@ -1,4 +1,4 @@
-export type PreferencesFieldKey =
+export type ConsentsFieldKey =
   | "allowFamilyPhotoSharing"
   | "allowPhotoDisplayInApp"
   | "allowEventPhotoMemory"
@@ -12,8 +12,8 @@ export type PreferencesFieldKey =
   | "allowNameInEventActivities"
   | "allowParticipationInGames";
 
-export type PreferencesFieldConfig = {
-  key: PreferencesFieldKey;
+export type ConsentsFieldConfig = {
+  key: ConsentsFieldKey;
   label: string;
   helpText?: string;
   acceptLabel?: string;
@@ -22,7 +22,7 @@ export type PreferencesFieldConfig = {
   refuseHelpText?: string;
 };
 
-export type PreferencesFormConfig = {
+export type ConsentsFormConfig = {
   title: string;
   subtitle: string;
   introTitle: string;
@@ -31,7 +31,7 @@ export type PreferencesFormConfig = {
     key: string;
     title: string;
     description?: string;
-    fields: PreferencesFieldConfig[];
+    fields: ConsentsFieldConfig[];
   }[];
   otherPreferences: {
     label: string;
@@ -41,7 +41,7 @@ export type PreferencesFormConfig = {
   };
 };
 
-export const preferencesFormConfig: PreferencesFormConfig = {
+export const preferencesFormConfig: ConsentsFormConfig = {
   title: "Consentements et partage",
   subtitle:
     "Choisis clairement ce que la famille peut voir, afficher ou réutiliser à ton sujet.",

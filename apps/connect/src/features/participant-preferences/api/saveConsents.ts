@@ -1,10 +1,10 @@
 import { supabase } from "../../../lib/supabase/client";
-import type { PreferencesFormValues } from "../components/PreferencesForm";
+import type { ConsentsFormValues } from "../components/ConsentsForm";
 
-type SavePreferencesInput = {
+type SaveConsentsInput = {
   participantId: string;
   eventSlug: string;
-  values: PreferencesFormValues;
+  values: ConsentsFormValues;
 };
 
 function cleanText(value: string): string | null {
@@ -12,12 +12,14 @@ function cleanText(value: string): string | null {
   return s ? s : null;
 }
 
-export async function savePreferences({
+export async function saveConsents({
   participantId,
   eventSlug,
   values,
-}: SavePreferencesInput): Promise<void> {
+}: SaveConsentsInput): Promise<void> {
   const now = new Date().toISOString();
+
+  
 
   const res = await supabase.from("participant_consents").upsert(
     {

@@ -1,3 +1,5 @@
+//FamilyTreeBrowsePage.tsx
+
 import {
   AlertTriangle,
   ArrowLeft,
@@ -33,7 +35,7 @@ import {
   getPersonContext,
   getPersonHeroConfig,
 } from "../config/configGenealogy";
-import type { PersonSummary } from "../types";
+import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { getPersonContributionStats } from "../api/getPersonContributionStats";
 import { getPersonReactionState } from "../api/getPersonReactionState";
 import { togglePersonReaction } from "../api/togglePersonReaction";
@@ -62,6 +64,7 @@ import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequ
 import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
+import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
 
 type BrowsePanelMode =
   | "relations"
@@ -636,7 +639,14 @@ export function FamilyTreeBrowsePage() {
     grandparents: false,
   });
 
-  const context = useMemo(() => getPersonContext(centerId), [centerId]);
+  const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
+  useState<PersonVisibilityPreferenceMap>({});
+
+  const context = useMemo(
+  () => getPersonContext(centerId, visibilityPreferencesByPersonId),
+  [centerId, visibilityPreferencesByPersonId],
+);
+  console.log("context", context)
 
   const hasPendingClaimForCurrentPerson =
     myIdentityClaimStatus === "pending" && claimedPersonId === centerId;
@@ -712,7 +722,10 @@ export function FamilyTreeBrowsePage() {
     [centerId, rootHonoredPersonId],
   );
 
-  const heroConfig = useMemo(() => getPersonHeroConfig(centerId), [centerId]);
+  const heroConfig = useMemo(
+  () => getPersonHeroConfig(centerId, visibilityPreferencesByPersonId),
+  [centerId, visibilityPreferencesByPersonId],
+);
 
   const visibleOtherBranches =
   displayPerson.canDisplay && displayPerson.canDisplayName
@@ -739,9 +752,13 @@ export function FamilyTreeBrowsePage() {
     : null;
 
   const rootPerson = useMemo(
-    () => anonymizePerson(getPersonContext(rootHonoredPersonId).person),
-    [rootHonoredPersonId],
-  );
+  () =>
+    anonymizePerson(
+      getPersonContext(rootHonoredPersonId, visibilityPreferencesByPersonId)
+        .person,
+    ),
+  [rootHonoredPersonId, visibilityPreferencesByPersonId],
+);
   const isCenteredOnMe = Boolean(sourcePersonId && centerId === sourcePersonId);
 
   const relationshipSummary = summarizeRelationshipToRoot(
@@ -815,6 +832,24 @@ export function FamilyTreeBrowsePage() {
       setDefaultGedcomPersonLoading(false);
     }
   }
+
+  async function loadVisibilityPreferencesMap() {
+  try {
+    const map = await getFamilyTreeVisibilityPreferencesMap({
+      eventSlug: slug,
+    });
+
+    setVisibilityPreferencesByPersonId(map);
+    console.log("map",map)
+  } catch (error) {
+    console.error(error);
+    setVisibilityPreferencesByPersonId({});
+  }
+}
+
+useEffect(() => {
+  void loadVisibilityPreferencesMap();
+}, [slug]);
 
   const loadCurrentPersonData = useCallback(async () => {
     if (!participantId) return;

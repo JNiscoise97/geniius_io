@@ -2,21 +2,21 @@ import { AlertTriangle, ArrowLeft, Settings } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  PreferencesForm,
-  type PreferencesFormValues,
-} from "../components/PreferencesForm";
-import { preferencesFormConfig } from "../config/preferencesFormConfig";
-import { savePreferences } from "../api/savePreferences";
-import { getPreferences } from "../api/getPreferences";
+  ConsentsForm,
+  type ConsentsFormValues,
+} from "../components/ConsentsForm";
+import { preferencesFormConfig } from "../config/consentsFormConfig";
+import { saveConsents } from "../api/saveConsents";
+import { getConsents } from "../api/getConsents";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
-export function ParticipantPreferencesPage() {
+export function ParticipantConsentsPage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
-  const [values, setValues] = useState<PreferencesFormValues>({
+  const [values, setValues] = useState<ConsentsFormValues>({
     allowFamilyPhotoSharing: null,
     allowPhotoDisplayInApp: null,
     allowEventPhotoMemory: null,
@@ -74,7 +74,7 @@ export function ParticipantPreferencesPage() {
       }
 
       try {
-        const existing = await getPreferences({
+        const existing = await getConsents({
           participantId: participantSession.participantId,
           eventSlug: slug,
         });
@@ -127,7 +127,7 @@ export function ParticipantPreferencesPage() {
 
     setLoading(true);
     try {
-      await savePreferences({
+      await saveConsents({
         participantId: participantSession.participantId,
         eventSlug: slug,
         values,
@@ -193,7 +193,7 @@ export function ParticipantPreferencesPage() {
             </div>
           </section>
         ) : (
-          <PreferencesForm
+          <ConsentsForm
             config={preferencesFormConfig}
             value={values}
             loading={loading}

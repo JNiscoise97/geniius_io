@@ -14,9 +14,9 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
-import { getPreferences } from "../../participant-preferences/api/getPreferences";
-import { savePreferences } from "../../participant-preferences/api/savePreferences";
 import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { saveTreeProfileConsents } from "../../participant-preferences/api/saveTreeProfileConsents";
+import { getTreeProfileConsents } from "../../participant-preferences/api/getTreeProfileConsents";
 
 type HandleProfileValues = {
   allowNameInFamilyTree: boolean | null;
@@ -134,8 +134,8 @@ export function FamilyTreeHandleProfilePage() {
       }
 
       try {
-        const [existingPreferences, identityClaim] = await Promise.all([
-          getPreferences({
+        const [existingConsents, identityClaim] = await Promise.all([
+          getTreeProfileConsents({
             participantId: session.participantId,
             eventSlug: slug,
           }),
@@ -147,18 +147,18 @@ export function FamilyTreeHandleProfilePage() {
 
         if (!isMounted) return;
 
-        if (existingPreferences) {
+        if (existingConsents) {
           setValues({
-            allowNameInFamilyTree: existingPreferences.allowNameInFamilyTree,
-            allowPhotoInFamilyTree: existingPreferences.allowPhotoInFamilyTree,
-            allowInfoInFamilyTree: existingPreferences.allowInfoInFamilyTree,
+            allowNameInFamilyTree: existingConsents.allowNameInFamilyTree,
+            allowPhotoInFamilyTree: existingConsents.allowPhotoInFamilyTree,
+            allowInfoInFamilyTree: existingConsents.allowInfoInFamilyTree,
           });
         }
         setIdentityStatus(identityClaim?.claim_status ?? null);
 
         const verifiedPersonId =
           identityClaim?.claim_status === "approved" ||
-          identityClaim?.claim_status === "auto_verified"
+            identityClaim?.claim_status === "auto_verified"
             ? identityClaim.person_id
             : null;
 
@@ -213,28 +213,15 @@ export function FamilyTreeHandleProfilePage() {
     setLoading(true);
 
     try {
-      await savePreferences({
+      await saveTreeProfileConsents({
         participantId: session.participantId,
         eventSlug: slug,
         values: {
-          allowFamilyPhotoSharing: null,
-          allowPhotoDisplayInApp: null,
-          allowEventPhotoMemory: null,
 
           allowNameInFamilyTree: values.allowNameInFamilyTree,
           allowPhotoInFamilyTree: values.allowPhotoInFamilyTree,
           allowInfoInFamilyTree: values.allowInfoInFamilyTree,
 
-          allowContactDetailsWithFamily: null,
-          allowFutureFamilyContact: null,
-
-          allowGenealogyEnrichment: null,
-          allowGenealogyContributionStorage: null,
-
-          allowNameInEventActivities: null,
-          allowParticipationInGames: null,
-
-          otherPreferences: "",
         },
       });
 
@@ -278,13 +265,12 @@ export function FamilyTreeHandleProfilePage() {
           </p>
 
           <div
-            className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${
-              isVerified
+            className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${isVerified
                 ? "bg-emerald-50 text-emerald-700"
                 : identityStatus === "pending"
                   ? "bg-amber-50 text-amber-700"
                   : "bg-slate-100 text-slate-700"
-            }`}
+              }`}
           >
             <BadgeCheck size={14} />
             {verifiedLabel}

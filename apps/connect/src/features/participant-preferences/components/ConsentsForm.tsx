@@ -1,10 +1,10 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import type { FormEvent } from "react";
-import type { PreferencesFormConfig } from "../config/preferencesFormConfig";
+import type { ConsentsFormConfig } from "../config/consentsFormConfig";
 
 export type ConsentValue = boolean | null;
 
-export type PreferencesFormValues = {
+export type ConsentsFormValues = {
   allowFamilyPhotoSharing: ConsentValue;
   allowPhotoDisplayInApp: ConsentValue;
   allowEventPhotoMemory: ConsentValue;
@@ -25,29 +25,29 @@ export type PreferencesFormValues = {
   otherPreferences: string;
 };
 
-type PreferencesFormProps = {
-  config: PreferencesFormConfig;
-  value: PreferencesFormValues;
+type ConsentsFormProps = {
+  config: ConsentsFormConfig;
+  value: ConsentsFormValues;
   loading?: boolean;
-  onChange: (patch: Partial<PreferencesFormValues>) => void;
+  onChange: (patch: Partial<ConsentsFormValues>) => void;
   onSubmit: (e: FormEvent) => void;
 };
 
-export function PreferencesForm({
+export function ConsentsForm({
   config,
   value,
   loading = false,
   onChange,
   onSubmit,
-}: PreferencesFormProps) {
+}: ConsentsFormProps) {
   function getConsentValue(
-    key: keyof Omit<PreferencesFormValues, "otherPreferences">,
+    key: keyof Omit<ConsentsFormValues, "otherPreferences">,
   ): ConsentValue {
     return value[key];
   }
 
   function setConsentValue(
-    key: keyof Omit<PreferencesFormValues, "otherPreferences">,
+    key: keyof Omit<ConsentsFormValues, "otherPreferences">,
     next: ConsentValue,
   ) {
     onChange({ [key]: next });
@@ -83,7 +83,7 @@ export function PreferencesForm({
                 <div className="grid gap-3">
                   {section.fields.map((field) => {
                     const fieldKey = field.key as keyof Omit<
-                      PreferencesFormValues,
+                      ConsentsFormValues,
                       "otherPreferences"
                     >;
                     const currentValue = getConsentValue(fieldKey);

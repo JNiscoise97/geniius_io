@@ -1,5 +1,6 @@
 import { buildPersonContext } from "../api/buildPersonContext";
 import { FAMILY_GRAPH } from "../api/loadGraph";
+import type { PersonVisibilityPreferenceMap } from "../types";
 
 type HeroTheme = {
   heroClassName: string;
@@ -25,14 +26,14 @@ const DEFAULT_THEME: HeroTheme = {
 
 const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
   "731452": {
-  id: "731452",
-  label: "branche Candassamy",
-  heroClassName:
-    "bg-[linear-gradient(135deg,#4a3614_0%,#8a6a1f_60%,#d4af37_100%)]",
-  headerClassName:
-    "bg-[#7a5a1a] text-white shadow-[0_10px_24px_rgba(122,90,26,0.30)]",
-  chipClassName: "bg-yellow-200/90 text-yellow-900",
-},
+    id: "731452",
+    label: "branche Candassamy",
+    heroClassName:
+      "bg-[linear-gradient(135deg,#4a3614_0%,#8a6a1f_60%,#d4af37_100%)]",
+    headerClassName:
+      "bg-[#7a5a1a] text-white shadow-[0_10px_24px_rgba(122,90,26,0.30)]",
+    chipClassName: "bg-yellow-200/90 text-yellow-900",
+  },
 
   "732469": {
     id: "732469",
@@ -75,12 +76,22 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
   },
 };
 
-export function getPersonContext(personId: string) {
-  return buildPersonContext(personId, FAMILY_GRAPH);
+export function getPersonContext(
+  personId: string,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+) {
+  return buildPersonContext(
+    personId,
+    FAMILY_GRAPH,
+    visibilityPreferencesByPersonId,
+  );
 }
 
-export function getPersonHeroConfig(personId: string) {
-  const context = getPersonContext(personId);
+export function getPersonHeroConfig(
+  personId: string,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+) {
+  const context = getPersonContext(personId, visibilityPreferencesByPersonId);
   const branches = context.person.branch ?? [];
 
   if (branches.length === 0) {

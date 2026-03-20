@@ -1,21 +1,21 @@
 import { supabase } from "../../../lib/supabase/client";
 import type { ParticipantVisibilityPreferenceMap } from "../../family-tree/types";
-import type { PreferencesFormValues } from "../components/PreferencesForm";
+import type { ConsentsFormValues } from "../components/ConsentsForm";
 
-type GetPreferencesInput = {
+type GetConsentsInput = {
   participantId: string;
   eventSlug: string;
 };
 
-type GetTreeVisibilityPreferencesInput = {
+type GetTreeVisibilityConsentsInput = {
   participantIds: string[];
   eventSlug: string;
 };
 
-export async function getPreferences({
+export async function getConsents({
   participantId,
   eventSlug,
-}: GetPreferencesInput): Promise<PreferencesFormValues | null> {
+}: GetConsentsInput): Promise<ConsentsFormValues | null> {
   const res = await supabase
     .from("participant_consents")
     .select(`
@@ -68,10 +68,10 @@ export async function getPreferences({
   };
 }
 
-export async function getTreeVisibilityPreferencesByParticipantId({
+export async function getTreeVisibilityConsentsByParticipantId({
   participantIds,
   eventSlug,
-}: GetTreeVisibilityPreferencesInput): Promise<ParticipantVisibilityPreferenceMap> {
+}: GetTreeVisibilityConsentsInput): Promise<ParticipantVisibilityPreferenceMap> {
   if (!participantIds.length) return {};
 
   const res = await supabase

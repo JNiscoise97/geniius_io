@@ -23,7 +23,7 @@ import { PUBLIC_EVENT_SLUG } from "../config/publicEvent";
 import { OnboardingHubPage } from "../features/onboarding/pages/OnboardingHubPage";
 import { ParticipantIdentityPage } from "../features/participant-identity/pages/ParticipantIdentityPage";
 import { ParticipantProfilePage } from "../features/participant-profile/pages/ParticipantProfilePage";
-import { ParticipantPreferencesPage } from "../features/participant-preferences/pages/ParticipantPreferencesPage";
+import { ParticipantConsentsPage } from "../features/participant-preferences/pages/ParticipantConsentsPage";
 import { OnboardingConfirmationPage } from "../features/onboarding/pages/OnboardingConfirmationPage";
 
 import { ParticipantAttendancePage } from "../features/participant-attendance/pages/ParticipantAttendancePage";
@@ -98,7 +98,7 @@ export const router = createBrowserRouter([
               // Onboarding participant
               { path: "welcome", element: <OnboardingHubPage /> },
               { path: "welcome/profile", element: <ParticipantProfilePage /> },
-              { path: "welcome/preferences", element: <ParticipantPreferencesPage /> },
+              { path: "welcome/preferences", element: <ParticipantConsentsPage /> },
 
               // Attendance
               { path: "attendance", element: <ParticipantAttendancePage /> },

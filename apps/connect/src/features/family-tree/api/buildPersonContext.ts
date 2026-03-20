@@ -1,3 +1,5 @@
+//buildPersonContext.ts
+
 import { PERSON_UI_OVERRIDES } from "./uiOverrides";
 import {
   computeIsPossiblyAlive,
