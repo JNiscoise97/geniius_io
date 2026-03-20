@@ -80,7 +80,10 @@ export async function getVisiblePersonPhotos(params: {
     .eq("moderation_status", "approved")
     .order("submitted_at", { ascending: false });
 
-  if (approvedError) throw approvedError;
+    if (approvedError) {
+  console.error("approvedError", approvedError);
+  throw approvedError;
+}
 
   const { data: mineRows, error: mineError } = await supabase
     .from("family_person_photos")
@@ -91,7 +94,10 @@ export async function getVisiblePersonPhotos(params: {
     .in("moderation_status", ["pending", "rejected"])
     .order("submitted_at", { ascending: false });
 
-  if (mineError) throw mineError;
+  if (mineError) {
+  console.error("mineError", mineError);
+  throw mineError;
+}
 
   const byId = new Map<string, any>();
 
