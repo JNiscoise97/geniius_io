@@ -1,4 +1,3 @@
-// getVisiblePersonPhotos.ts
 import { supabase } from "../../../lib/supabase/client";
 
 export type PersonPhotoItem = {
@@ -47,6 +46,25 @@ function buildDisplayName(
   return fullName || null;
 }
 
+const PHOTO_SELECT = `
+  id,
+  event_slug,
+  participant_id,
+  person_id,
+  storage_path,
+  caption,
+  consent_obtained,
+  moderation_status,
+  moderator_comment,
+  submitted_at,
+  updated_at,
+  participant:participants!family_person_photos_participant_id_fkey (
+    first_name,
+    last_name,
+    nickname
+  )
+`;
+
 export async function getVisiblePersonPhotos(params: {
   eventSlug: string;
   personId: string;
@@ -54,64 +72,38 @@ export async function getVisiblePersonPhotos(params: {
 }): Promise<PersonPhotoItem[]> {
   const { eventSlug, personId, currentParticipantId } = params;
 
-  // 1. Photos approuvées (tout le monde)
-  const { data: approved, error: errorApproved } = await supabase
+  const { data: approvedRows, error: approvedError } = await supabase
     .from("family_person_photos")
-    .select(`
-      id,
-      event_slug,
-      participant_id,
-      person_id,
-      storage_path,
-      caption,
-      consent_obtained,
-      moderation_status,
-      moderator_comment,
-      submitted_at,
-      updated_at,
-      participant:participant_id (
-        first_name,
-        last_name,
-        nickname
-      )
-    `)
+    .select(PHOTO_SELECT)
     .eq("event_slug", eventSlug)
     .eq("person_id", personId)
-    .eq("moderation_status", "approved");
+    .eq("moderation_status", "approved")
+    .order("submitted_at", { ascending: false });
 
-  if (errorApproved) throw errorApproved;
+  if (approvedError) throw approvedError;
 
-  // 2. Mes photos (pending + rejected)
-  const { data: mine, error: errorMine } = await supabase
+  const { data: mineRows, error: mineError } = await supabase
     .from("family_person_photos")
-    .select(`
-      id,
-      event_slug,
-      participant_id,
-      person_id,
-      storage_path,
-      caption,
-      consent_obtained,
-      moderation_status,
-      moderator_comment,
-      submitted_at,
-      updated_at,
-      participant:participant_id (
-        first_name,
-        last_name,
-        nickname
-      )
-    `)
+    .select(PHOTO_SELECT)
     .eq("event_slug", eventSlug)
     .eq("person_id", personId)
     .eq("participant_id", currentParticipantId)
-    .in("moderation_status", ["pending", "rejected"]);
+    .in("moderation_status", ["pending", "rejected"])
+    .order("submitted_at", { ascending: false });
 
-  if (errorMine) throw errorMine;
+  if (mineError) throw mineError;
 
-  const combined = [...(approved ?? []), ...(mine ?? [])];
+  const byId = new Map<string, any>();
 
-  return combined
+  for (const row of approvedRows ?? []) {
+    byId.set(row.id, row);
+  }
+
+  for (const row of mineRows ?? []) {
+    byId.set(row.id, row);
+  }
+
+  return Array.from(byId.values())
     .sort(
       (a, b) =>
         new Date(b.submitted_at).getTime() -
@@ -130,7 +122,7 @@ export async function getVisiblePersonPhotos(params: {
         storage_path: row.storage_path,
         public_url: publicUrlData.publicUrl,
         caption: row.caption ?? null,
-        consent_obtained: !!row.consent_obtained,
+        consent_obtained: Boolean(row.consent_obtained),
         moderation_status: row.moderation_status,
         moderator_comment: row.moderator_comment ?? null,
         submitted_at: row.submitted_at,
