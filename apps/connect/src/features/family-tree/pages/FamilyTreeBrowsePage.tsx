@@ -1344,7 +1344,6 @@ useEffect(() => {
                       <li>Notif mail</li>
                     </ul>
                   </li>
-                  <li>Récupérer le consentement</li>
                   <li>Déléguation de consentement</li>
                 </ol>
               </div>

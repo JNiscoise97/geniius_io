@@ -1,10 +1,6 @@
 import { supabase } from "../../../lib/supabase/client";
 import type { PersonVisibilityPreferenceMap } from "../types";
 
-function toBooleanAllowInfo(value: "yes" | "no" | null | undefined): boolean {
-  return value === "yes";
-}
-
 export async function getFamilyTreeVisibilityPreferencesMap({
   eventSlug,
 }: {
@@ -50,9 +46,7 @@ export async function getFamilyTreeVisibilityPreferencesMap({
       {
         allowNameInFamilyTree: pref.allow_name_in_family_tree,
         allowPhotoInFamilyTree: pref.allow_photo_in_family_tree,
-        allowInfoInFamilyTree: toBooleanAllowInfo(
-          pref.allow_info_in_family_tree,
-        ),
+        allowInfoInFamilyTree: pref.allow_info_in_family_tree,
       },
     ]),
   );
