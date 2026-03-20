@@ -27,13 +27,11 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { SmartImage } from "../../../lib/media/useSmartImage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-import {
-  getApprovedPersonPhotos,
-  type ApprovedPersonPhoto,
-} from "../api/getApprovedPersonPhotos";
 import { createMyPersonMemory } from "../api/createMyPersonMemory";
+import { createMyPersonPhoto } from "../api/createMyPersonPhoto";
 import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim";
 import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
+import { deleteMyPersonPhoto } from "../api/deleteMyPersonPhoto";
 import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
 import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
 import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
@@ -41,6 +39,10 @@ import {
   getMyPersonMemoryModerationCounts,
   type MyPersonMemoryModerationCounts,
 } from "../api/getMyPersonMemoryModerationCounts";
+import {
+  getMyPersonPhotoModerationCounts,
+  type MyPersonPhotoModerationCounts,
+} from "../api/getMyPersonPhotoModerationCounts";
 import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
 import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
 import { getPersonContributionStats } from "../api/getPersonContributionStats";
@@ -49,8 +51,12 @@ import {
   getVisiblePersonMemories,
   type PersonMemoryItem,
 } from "../api/getVisiblePersonMemories";
+import {
+  getVisiblePersonPhotos,
+  type PersonPhotoItem,
+} from "../api/getVisiblePersonPhotos";
 import { updateMyPersonMemory } from "../api/updateMyPersonMemory";
-import { uploadPersonPhoto } from "../api/uploadPersonPhoto";
+import { updateMyPersonPhoto } from "../api/updateMyPersonPhoto";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
@@ -65,7 +71,6 @@ import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
 import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
 import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
 import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
-import { PersonPhotoUploadPanel } from "../components/PersonPhotoUploadPanel";
 
 import {
   getPersonContext,
@@ -76,6 +81,7 @@ import type {
   PersonSummary,
   PersonVisibilityPreferenceMap,
 } from "../types";
+import { PersonPhotoEditorPanel } from "../components/PersonPhotoUploadPanel";
 
 type BrowsePanelMode =
   | "relations"
@@ -608,6 +614,28 @@ export function FamilyTreeBrowsePage() {
   const [memoryPublishSuccessMessage, setMemoryPublishSuccessMessage] =
     useState<string | null>(null);
 
+  const [visiblePhotos, setVisiblePhotos] = useState<PersonPhotoItem[]>([]);
+  const [photoCounts, setPhotoCounts] = useState<MyPersonPhotoModerationCounts>(
+    {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+    },
+  );
+
+  const [photoEditorMode, setPhotoEditorMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
+  const [photoPublishSuccessMessage, setPhotoPublishSuccessMessage] = useState<
+    string | null
+  >(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoCaption, setPhotoCaption] = useState("");
+  const [photoConsentObtained, setPhotoConsentObtained] = useState(false);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+
   const [panelMode, setPanelMode] = useState<BrowsePanelMode>("relations");
 
   const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
@@ -616,16 +644,11 @@ export function FamilyTreeBrowsePage() {
   >(null);
   const [isSavingIdentityClaim, setIsSavingIdentityClaim] = useState(false);
 
-  const [approvedPhotos, setApprovedPhotos] = useState<ApprovedPersonPhoto[]>(
-    [],
-  );
-
   const [memoryDraftsByPersonId, setMemoryDraftsByPersonId] = useState<
     Record<string, MemoryDraftState>
   >({});
 
   const [isSavingMemory, setIsSavingMemory] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [myVisibilityRequestStatus, setMyVisibilityRequestStatus] = useState<
     "pending" | "approved" | "rejected" | null
@@ -844,6 +867,11 @@ export function FamilyTreeBrowsePage() {
     memoryDraftsByPersonId[centerId] ?? EMPTY_MEMORY_DRAFT;
   const memoryDraft = currentMemoryDraft.value;
 
+  const editingPhoto = useMemo(
+    () => visiblePhotos.find((photo) => photo.id === editingPhotoId) ?? null,
+    [editingPhotoId, visiblePhotos],
+  );
+
   async function loadDefaultGedcomPersonId() {
     if (!participantId) {
       setDefaultGedcomPersonId(null);
@@ -887,10 +915,11 @@ export function FamilyTreeBrowsePage() {
       reactionState,
       stats,
       visibleMemoriesData,
-      approvedPhotosData,
+      visiblePhotosData,
       identityClaim,
       visibilityRequest,
-      counts,
+      memoryCountsData,
+      photoCountsData,
     ] = await Promise.all([
       getPersonReactionState({
         eventSlug: slug,
@@ -906,7 +935,7 @@ export function FamilyTreeBrowsePage() {
         personId: centerId,
         currentParticipantId: participantId,
       }),
-      getApprovedPersonPhotos({
+      getVisiblePersonPhotos({
         eventSlug: slug,
         personId: centerId,
         currentParticipantId: participantId,
@@ -921,6 +950,11 @@ export function FamilyTreeBrowsePage() {
         personId: centerId,
       }),
       getMyPersonMemoryModerationCounts({
+        eventSlug: slug,
+        participantId,
+        personId: centerId,
+      }),
+      getMyPersonPhotoModerationCounts({
         eventSlug: slug,
         participantId,
         personId: centerId,
@@ -941,7 +975,9 @@ export function FamilyTreeBrowsePage() {
     setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
 
     setVisibleMemories(visibleMemoriesData);
-    setMemoryCounts(counts);
+    setVisiblePhotos(visiblePhotosData);
+    setMemoryCounts(memoryCountsData);
+    setPhotoCounts(photoCountsData);
 
     setMemoryDraftsByPersonId((prev) => {
       const existing = prev[centerId];
@@ -955,8 +991,6 @@ export function FamilyTreeBrowsePage() {
         },
       };
     });
-
-    setApprovedPhotos(approvedPhotosData);
 
     setMyVisibilityRequestStatus(visibilityRequest?.request_status ?? null);
     setMyVisibilityRequestModeratorComment(
@@ -1039,6 +1073,29 @@ export function FamilyTreeBrowsePage() {
     setCurrentMemoryDraft(memory.content);
     setMemoryPublishSuccessMessage(null);
     setPanelMode("memory_editor");
+  }
+
+  function openCreatePhotoEditor() {
+    setPhotoEditorMode("create");
+    setEditingPhotoId(null);
+    setPhotoFile(null);
+    setPhotoCaption("");
+    setPhotoConsentObtained(false);
+    setPhotoPublishSuccessMessage(null);
+    setPanelMode("photo_upload");
+  }
+
+  function handleEditPhoto(photoId: string) {
+    const photo = visiblePhotos.find((item) => item.id === photoId);
+    if (!photo) return;
+
+    setPhotoEditorMode("edit");
+    setEditingPhotoId(photo.id);
+    setPhotoFile(null);
+    setPhotoCaption(photo.caption ?? "");
+    setPhotoConsentObtained(photo.consent_obtained);
+    setPhotoPublishSuccessMessage(null);
+    setPanelMode("photo_upload");
   }
 
   async function handleRequestDisplay() {
@@ -1244,25 +1301,84 @@ export function FamilyTreeBrowsePage() {
     }
   }
 
-  async function handleUploadPhoto(file: File) {
+  async function handleSavePhoto() {
     if (!participantId) return;
 
-    setIsUploadingPhoto(true);
+    if (displayPerson.isPossiblyAlive && !photoConsentObtained) {
+      return;
+    }
+
+    setIsSavingPhoto(true);
 
     try {
-      await uploadPersonPhoto({
-        eventSlug: slug,
-        participantId,
-        personId: centerId,
-        file,
-      });
+      if (photoEditorMode === "edit" && editingPhotoId) {
+        await updateMyPersonPhoto({
+          photoId: editingPhotoId,
+          participantId,
+          caption: photoCaption,
+          consentObtained: photoConsentObtained,
+          file: photoFile ?? undefined,
+        });
 
-      setPanelMode("relations");
+        setPhotoPublishSuccessMessage(
+          "Ta photo a été mise à jour et renvoyée en modération.",
+        );
+      } else {
+        if (!photoFile) return;
+
+        await createMyPersonPhoto({
+          eventSlug: slug,
+          participantId,
+          personId: centerId,
+          file: photoFile,
+          caption: photoCaption,
+          consentObtained: photoConsentObtained,
+        });
+
+        setPhotoPublishSuccessMessage(
+          "Ta photo a bien été envoyée à la modération.",
+        );
+      }
+
+      setPhotoEditorMode("create");
+      setEditingPhotoId(null);
+      setPhotoFile(null);
+      setPhotoCaption("");
+      setPhotoConsentObtained(false);
+
       await loadCurrentPersonData();
     } catch (e) {
       console.error(e);
     } finally {
-      setIsUploadingPhoto(false);
+      setIsSavingPhoto(false);
+    }
+  }
+
+  async function handleDeletePhoto(photoId: string) {
+    if (!participantId) return;
+
+    setDeletingPhotoId(photoId);
+
+    try {
+      await deleteMyPersonPhoto({
+        photoId,
+        participantId,
+      });
+
+      if (editingPhotoId === photoId) {
+        setEditingPhotoId(null);
+        setPhotoEditorMode("create");
+        setPhotoFile(null);
+        setPhotoCaption("");
+        setPhotoConsentObtained(false);
+        setPanelMode("photos");
+      }
+
+      await loadCurrentPersonData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDeletingPhotoId(null);
     }
   }
 
@@ -1433,14 +1549,6 @@ export function FamilyTreeBrowsePage() {
                     Photos:
                     <ul>
                       <li>Pouvoir supprimer une photo</li>
-                      <li>
-                        Consentement pour afficher le nom de la personne qui
-                        publie
-                      </li>
-                      <li>
-                        Demander si l&apos;utilisateur a recueilli le
-                        consentement de la personne
-                      </li>
                       <li>Photo pour remplacer celle affichée</li>
                       <li>Voir les photos affichées</li>
                       <li>Ajouter un commentaire à la photo</li>
@@ -1832,7 +1940,7 @@ export function FamilyTreeBrowsePage() {
 
                       <button
                         type="button"
-                        onClick={() => setPanelMode("photo_upload")}
+                        onClick={openCreatePhotoEditor}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
                           panelMode === "photo_upload"
                             ? "bg-slate-900 text-white"
@@ -1947,14 +2055,30 @@ export function FamilyTreeBrowsePage() {
                 onBack={() => setPanelMode("relations")}
               />
             ) : panelMode === "photo_upload" ? (
-              <PersonPhotoUploadPanel
-                isSubmitting={isUploadingPhoto}
-                onSelectFile={(file) => void handleUploadPhoto(file)}
+              <PersonPhotoEditorPanel
+                personDisplayName={personDisplayName}
+                isPossiblyAlive={displayPerson.isPossiblyAlive === true}
+                mode={photoEditorMode}
+                selectedFile={photoFile}
+                existingPhotoUrl={editingPhoto?.public_url ?? null}
+                caption={photoCaption}
+                consentObtained={photoConsentObtained}
+                counts={photoCounts}
+                publishSuccessMessage={photoPublishSuccessMessage}
+                isSubmitting={isSavingPhoto}
                 onBack={() => setPanelMode("relations")}
+                onSelectFile={setPhotoFile}
+                onChangeCaption={setPhotoCaption}
+                onChangeConsent={setPhotoConsentObtained}
+                onSubmit={() => void handleSavePhoto()}
               />
             ) : (
               <PersonPhotosPanel
-                photos={approvedPhotos}
+                photos={visiblePhotos}
+                currentParticipantId={participantId}
+                isDeletingPhotoId={deletingPhotoId}
+                onEditPhoto={handleEditPhoto}
+                onDeletePhoto={(photoId) => void handleDeletePhoto(photoId)}
                 onBack={() => setPanelMode("relations")}
               />
             )}
