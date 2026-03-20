@@ -1,5 +1,3 @@
-//FamilyTreeBrowsePage.tsx
-
 import {
   AlertTriangle,
   ArrowLeft,
@@ -19,52 +17,65 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
-import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+
+import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import {
   createFamilyTreeViewTracker,
   type FamilyTreeViaAction,
 } from "../../../lib/analytics/familyTreeViewTracker";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { SmartImage } from "../../../lib/media/useSmartImage";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+
+import {
+  getApprovedPersonPhotos,
+  type ApprovedPersonPhoto,
+} from "../api/getApprovedPersonPhotos";
+import { createMyPersonMemory } from "../api/createMyPersonMemory";
+import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim";
+import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
+import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
+import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
+import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import {
+  getMyPersonMemoryModerationCounts,
+  type MyPersonMemoryModerationCounts,
+} from "../api/getMyPersonMemoryModerationCounts";
+import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
+import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
+import { getPersonContributionStats } from "../api/getPersonContributionStats";
+import { getPersonReactionState } from "../api/getPersonReactionState";
+import {
+  getVisiblePersonMemories,
+  type PersonMemoryItem,
+} from "../api/getVisiblePersonMemories";
+import { updateMyPersonMemory } from "../api/updateMyPersonMemory";
+import { uploadPersonPhoto } from "../api/uploadPersonPhoto";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
   type RelationshipPathNode,
 } from "../api/findRelationshipPath";
 import { FAMILY_GRAPH } from "../api/loadGraph";
+import { saveMyPersonIdentityClaim } from "../api/saveMyPersonIdentityClaim";
+import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequest";
+import { togglePersonReaction } from "../api/togglePersonReaction";
+
+import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
+import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
+import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
+import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
+import { PersonPhotoUploadPanel } from "../components/PersonPhotoUploadPanel";
+
 import {
   getPersonContext,
   getPersonHeroConfig,
 } from "../config/configGenealogy";
-import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { getPersonContributionStats } from "../api/getPersonContributionStats";
-import { getPersonReactionState } from "../api/getPersonReactionState";
-import { togglePersonReaction } from "../api/togglePersonReaction";
-import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
-import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
-import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
-import { PersonPhotoUploadPanel } from "../components/PersonPhotoUploadPanel";
-import {
-  getApprovedPersonMemories,
-  type ApprovedPersonMemory,
-} from "../api/getApprovedPersonMemories";
-import {
-  getApprovedPersonPhotos,
-  type ApprovedPersonPhoto,
-} from "../api/getApprovedPersonPhotos";
-import { getMyPersonMemoryToBeApproved } from "../api/getMyPersonMemoryToBeApproved";
-import { saveMyPersonMemory } from "../api/saveMyPersonMemory";
-import { uploadPersonPhoto } from "../api/uploadPersonPhoto";
-import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
-import { SmartImage } from "../../../lib/media/useSmartImage";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
-import { saveMyPersonIdentityClaim } from "../api/saveMyPersonIdentityClaim";
-import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim";
-import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
-import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequest";
-import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
-import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
-import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
+
+import type {
+  PersonSummary,
+  PersonVisibilityPreferenceMap,
+} from "../types";
 
 type BrowsePanelMode =
   | "relations"
@@ -72,6 +83,25 @@ type BrowsePanelMode =
   | "memory_editor"
   | "photo_upload"
   | "photos";
+
+type MemoryDraftState = {
+  value: string;
+  loaded: boolean;
+  dirty: boolean;
+};
+
+type ParsedPlace = {
+  city?: string;
+  department?: string;
+  region?: string;
+  country?: string;
+};
+
+const EMPTY_MEMORY_DRAFT: MemoryDraftState = {
+  value: "",
+  loaded: false,
+  dirty: false,
+};
 
 function anonymizePerson(person: PersonSummary): PersonSummary {
   if (
@@ -152,24 +182,11 @@ function formatYears(person: PersonSummary) {
   const { birthYear, deathYear, isPossiblyAlive } = person;
 
   if (!birthYear && !deathYear) return null;
-
-  if (birthYear && deathYear) {
-    return `${birthYear} - ${deathYear}`;
-  }
-
-  if (!isPossiblyAlive) {
-    return `${birthYear ?? "?"} - ?`;
-  }
+  if (birthYear && deathYear) return `${birthYear} - ${deathYear}`;
+  if (!isPossiblyAlive) return `${birthYear ?? "?"} - ?`;
 
   return birthYear ?? "?";
 }
-
-type ParsedPlace = {
-  city?: string;
-  department?: string;
-  region?: string;
-  country?: string;
-};
 
 function cleanPart(value?: string): string | undefined {
   const s = value?.trim();
@@ -520,13 +537,8 @@ function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
       return aYear - bYear;
     }
 
-    if (aHasYear && !bHasYear) {
-      return -1;
-    }
-
-    if (!aHasYear && bHasYear) {
-      return 1;
-    }
+    if (aHasYear && !bHasYear) return -1;
+    if (!aHasYear && bHasYear) return 1;
 
     return 0;
   });
@@ -571,12 +583,31 @@ export function FamilyTreeBrowsePage() {
   const [hasKnownPerson, setHasKnownPerson] = useState(false);
   const [hasHeardOfPerson, setHasHeardOfPerson] = useState(false);
   const [hasTouchedPerson, setHasTouchedPerson] = useState(false);
-  const [hasMyComment, setHasMyComment] = useState(false);
+
   const [memoriesCount, setMemoriesCount] = useState(0);
   const [knownCount, setKnownCount] = useState(0);
   const [heardCount, setHeardCount] = useState(0);
   const [photosCount, setPhotosCount] = useState(0);
   const [reactionsCount, setReactionsCount] = useState(0);
+
+  const [visibleMemories, setVisibleMemories] = useState<PersonMemoryItem[]>(
+    [],
+  );
+  const [memoryCounts, setMemoryCounts] =
+    useState<MyPersonMemoryModerationCounts>({
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+    });
+
+  const [memoryEditorMode, setMemoryEditorMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
+  const [deletingMemoryId, setDeletingMemoryId] = useState<string | null>(null);
+  const [memoryPublishSuccessMessage, setMemoryPublishSuccessMessage] =
+    useState<string | null>(null);
+
   const [panelMode, setPanelMode] = useState<BrowsePanelMode>("relations");
 
   const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
@@ -585,19 +616,14 @@ export function FamilyTreeBrowsePage() {
   >(null);
   const [isSavingIdentityClaim, setIsSavingIdentityClaim] = useState(false);
 
-  const [approvedMemories, setApprovedMemories] = useState<
-    ApprovedPersonMemory[]
-  >([]);
   const [approvedPhotos, setApprovedPhotos] = useState<ApprovedPersonPhoto[]>(
     [],
   );
-  const [memoryDraft, setMemoryDraft] = useState("");
-  const [myMemoryStatus, setMyMemoryStatus] = useState<
-    "pending" | "approved" | "rejected" | null
-  >(null);
-  const [myMemoryModeratorComment, setMyMemoryModeratorComment] = useState<
-    string | null
-  >(null);
+
+  const [memoryDraftsByPersonId, setMemoryDraftsByPersonId] = useState<
+    Record<string, MemoryDraftState>
+  >({});
+
   const [isSavingMemory, setIsSavingMemory] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -617,20 +643,6 @@ export function FamilyTreeBrowsePage() {
   const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] =
     useState(false);
 
-  const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
-  const sourcePersonId =
-    myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified"
-      ? claimedPersonId
-      : null;
-  const hasDefaultTreeEntry = Boolean(defaultGedcomPersonId);
-
-  const initialCenterId =
-    requestedPersonId && FAMILY_GRAPH.people[requestedPersonId]
-      ? requestedPersonId
-      : rootHonoredPersonId;
-
-  const [centerId, setCenterId] = useState<string>(initialCenterId);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     parents: true,
     spouses: true,
@@ -640,13 +652,29 @@ export function FamilyTreeBrowsePage() {
   });
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
-  useState<PersonVisibilityPreferenceMap>({});
+    useState<PersonVisibilityPreferenceMap>({});
+
+  const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
+
+  const sourcePersonId =
+    myIdentityClaimStatus === "approved" ||
+    myIdentityClaimStatus === "auto_verified"
+      ? claimedPersonId
+      : null;
+
+  const hasDefaultTreeEntry = Boolean(defaultGedcomPersonId);
+
+  const initialCenterId =
+    requestedPersonId && FAMILY_GRAPH.people[requestedPersonId]
+      ? requestedPersonId
+      : rootHonoredPersonId;
+
+  const [centerId, setCenterId] = useState<string>(initialCenterId);
 
   const context = useMemo(
-  () => getPersonContext(centerId, visibilityPreferencesByPersonId),
-  [centerId, visibilityPreferencesByPersonId],
-);
-  console.log("context", context)
+    () => getPersonContext(centerId, visibilityPreferencesByPersonId),
+    [centerId, visibilityPreferencesByPersonId],
+  );
 
   const hasPendingClaimForCurrentPerson =
     myIdentityClaimStatus === "pending" && claimedPersonId === centerId;
@@ -723,14 +751,14 @@ export function FamilyTreeBrowsePage() {
   );
 
   const heroConfig = useMemo(
-  () => getPersonHeroConfig(centerId, visibilityPreferencesByPersonId),
-  [centerId, visibilityPreferencesByPersonId],
-);
+    () => getPersonHeroConfig(centerId, visibilityPreferencesByPersonId),
+    [centerId, visibilityPreferencesByPersonId],
+  );
 
   const visibleOtherBranches =
-  displayPerson.canDisplay && displayPerson.canDisplayName
-    ? heroConfig.otherBranches
-    : [];
+    displayPerson.canDisplay && displayPerson.canDisplayName
+      ? heroConfig.otherBranches
+      : [];
 
   const familyTreeTrackerRef = useRef<ReturnType<
     typeof createFamilyTreeViewTracker
@@ -743,22 +771,24 @@ export function FamilyTreeBrowsePage() {
     myVisibilityRequestStatus === "rejected";
 
   const centerYears =
-  displayPerson.canDisplay && displayPerson.canDisplayInfo
-    ? formatYears(displayPerson)
-    : null;
+    displayPerson.canDisplay && displayPerson.canDisplayInfo
+      ? formatYears(displayPerson)
+      : null;
+
   const centerPath =
-  displayPerson.canDisplay && displayPerson.canDisplayInfo
-    ? formatLifePath(displayPerson)
-    : null;
+    displayPerson.canDisplay && displayPerson.canDisplayInfo
+      ? formatLifePath(displayPerson)
+      : null;
 
   const rootPerson = useMemo(
-  () =>
-    anonymizePerson(
-      getPersonContext(rootHonoredPersonId, visibilityPreferencesByPersonId)
-        .person,
-    ),
-  [rootHonoredPersonId, visibilityPreferencesByPersonId],
-);
+    () =>
+      anonymizePerson(
+        getPersonContext(rootHonoredPersonId, visibilityPreferencesByPersonId)
+          .person,
+      ),
+    [rootHonoredPersonId, visibilityPreferencesByPersonId],
+  );
+
   const isCenteredOnMe = Boolean(sourcePersonId && centerId === sourcePersonId);
 
   const relationshipSummary = summarizeRelationshipToRoot(
@@ -810,6 +840,10 @@ export function FamilyTreeBrowsePage() {
   const personDisplayName =
     `${displayPerson.firstName} ${displayPerson.lastName}`.trim();
 
+  const currentMemoryDraft =
+    memoryDraftsByPersonId[centerId] ?? EMPTY_MEMORY_DRAFT;
+  const memoryDraft = currentMemoryDraft.value;
+
   async function loadDefaultGedcomPersonId() {
     if (!participantId) {
       setDefaultGedcomPersonId(null);
@@ -834,22 +868,17 @@ export function FamilyTreeBrowsePage() {
   }
 
   async function loadVisibilityPreferencesMap() {
-  try {
-    const map = await getFamilyTreeVisibilityPreferencesMap({
-      eventSlug: slug,
-    });
+    try {
+      const map = await getFamilyTreeVisibilityPreferencesMap({
+        eventSlug: slug,
+      });
 
-    setVisibilityPreferencesByPersonId(map);
-    console.log("map",map)
-  } catch (error) {
-    console.error(error);
-    setVisibilityPreferencesByPersonId({});
+      setVisibilityPreferencesByPersonId(map);
+    } catch (error) {
+      console.error(error);
+      setVisibilityPreferencesByPersonId({});
+    }
   }
-}
-
-useEffect(() => {
-  void loadVisibilityPreferencesMap();
-}, [slug]);
 
   const loadCurrentPersonData = useCallback(async () => {
     if (!participantId) return;
@@ -857,11 +886,11 @@ useEffect(() => {
     const [
       reactionState,
       stats,
-      myMemory,
-      approved,
+      visibleMemoriesData,
       approvedPhotosData,
       identityClaim,
       visibilityRequest,
+      counts,
     ] = await Promise.all([
       getPersonReactionState({
         eventSlug: slug,
@@ -872,12 +901,7 @@ useEffect(() => {
         eventSlug: slug,
         personId: centerId,
       }),
-      getMyPersonMemoryToBeApproved({
-        eventSlug: slug,
-        participantId,
-        personId: centerId,
-      }),
-      getApprovedPersonMemories({
+      getVisiblePersonMemories({
         eventSlug: slug,
         personId: centerId,
         currentParticipantId: participantId,
@@ -892,6 +916,11 @@ useEffect(() => {
         participantId,
       }),
       getMyPersonVisibilityRequest({
+        eventSlug: slug,
+        participantId,
+        personId: centerId,
+      }),
+      getMyPersonMemoryModerationCounts({
         eventSlug: slug,
         participantId,
         personId: centerId,
@@ -911,12 +940,22 @@ useEffect(() => {
     setClaimedPersonId(identityClaim?.person_id ?? null);
     setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
 
-    setHasMyComment(Boolean(myMemory?.content?.trim()));
-    setMemoryDraft(myMemory?.content ?? "");
-    setMyMemoryStatus(myMemory?.moderation_status ?? null);
-    setMyMemoryModeratorComment(myMemory?.moderator_comment ?? null);
+    setVisibleMemories(visibleMemoriesData);
+    setMemoryCounts(counts);
 
-    setApprovedMemories(approved);
+    setMemoryDraftsByPersonId((prev) => {
+      const existing = prev[centerId];
+      if (existing) return prev;
+
+      return {
+        ...prev,
+        [centerId]: {
+          ...EMPTY_MEMORY_DRAFT,
+          loaded: true,
+        },
+      };
+    });
+
     setApprovedPhotos(approvedPhotosData);
 
     setMyVisibilityRequestStatus(visibilityRequest?.request_status ?? null);
@@ -925,92 +964,24 @@ useEffect(() => {
     );
   }, [centerId, participantId, slug]);
 
-  useEffect(() => {
-    if (!participantId) return;
-
-    const tracker = createFamilyTreeViewTracker({
-      participantId,
-      eventSlug: slug,
-      sourcePageKey: `/e/${slug}/familyTree/browse`,
-      initialPersonId: centerId,
-    });
-
-    familyTreeTrackerRef.current = tracker;
-    tracker.start();
-
-    return () => {
-      familyTreeTrackerRef.current = null;
-      void tracker.stop();
-    };
-  }, [participantId, slug, centerId]);
-
-  useEffect(() => {
-    if (!participantId) return;
-
-    const tracker = createPageTimeTracker({
-      participantId,
-      eventSlug: slug,
-      pageKey: `/e/${slug}/familyTree/browse`,
-    });
-
-    tracker.start();
-
-    return () => {
-      void tracker.stop();
-    };
-  }, [participantId, slug]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-  }, [centerId]);
-
-  useEffect(() => {
-    setPanelMode("relations");
-  }, [centerId]);
-
-  useEffect(() => {
-    if (!displayPerson.canDisplay) {
-      setPanelMode("relations");
-    }
-  }, [displayPerson.canDisplay]);
-
-  useEffect(() => {
-    if (displayPerson.canDisplay) {
-      setMyVisibilityRequestStatus(null);
-      setMyVisibilityRequestModeratorComment(null);
-    }
-  }, [displayPerson.canDisplay]);
-
-  useEffect(() => {
-    if (!participantId) return;
-
-    let isCancelled = false;
-
-    async function run() {
-      try {
-        await loadCurrentPersonData();
-      } catch (e) {
-        if (!isCancelled) {
-          console.error("Erreur loadCurrentPersonData", e);
-        }
-      }
-    }
-
-    void run();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [participantId, loadCurrentPersonData]);
-
-  useEffect(() => {
-    void loadDefaultGedcomPersonId();
-  }, [participantId, slug]);
+  function setCurrentMemoryDraft(value: string) {
+    setMemoryDraftsByPersonId((prev) => ({
+      ...prev,
+      [centerId]: {
+        ...(prev[centerId] ?? {
+          ...EMPTY_MEMORY_DRAFT,
+          loaded: true,
+        }),
+        value,
+        dirty: true,
+      },
+    }));
+  }
 
   function goToPerson(personId: string, viaAction: FamilyTreeViaAction) {
     setCenterId(personId);
-    const tracker = familyTreeTrackerRef.current;
 
+    const tracker = familyTreeTrackerRef.current;
     if (tracker) {
       void tracker.changePerson(personId, viaAction);
     }
@@ -1020,8 +991,8 @@ useEffect(() => {
     if (!sourcePersonId) return;
 
     setCenterId(sourcePersonId);
-    const tracker = familyTreeTrackerRef.current;
 
+    const tracker = familyTreeTrackerRef.current;
     if (tracker) {
       void tracker.changePerson(sourcePersonId, "recenter_source");
     }
@@ -1029,8 +1000,8 @@ useEffect(() => {
 
   function recenterOnRoot() {
     setCenterId(rootHonoredPersonId);
-    const tracker = familyTreeTrackerRef.current;
 
+    const tracker = familyTreeTrackerRef.current;
     if (tracker) {
       void tracker.changePerson(rootHonoredPersonId, "recenter_root");
     }
@@ -1040,11 +1011,34 @@ useEffect(() => {
     navigate(`/e/${slug}/fiche?id=${context.person.id}`);
   }
 
+  function openFamilyKnowledge() {
+    navigate(`/e/${slug}/family-knowledge`);
+  }
+
   function toggleSection(key: string) {
     setOpenSections((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
+  }
+
+  function openCreateMemoryEditor() {
+    setMemoryEditorMode("create");
+    setEditingMemoryId(null);
+    setCurrentMemoryDraft("");
+    setMemoryPublishSuccessMessage(null);
+    setPanelMode("memory_editor");
+  }
+
+  function handleEditMemory(memoryId: string) {
+    const memory = visibleMemories.find((item) => item.id === memoryId);
+    if (!memory) return;
+
+    setMemoryEditorMode("edit");
+    setEditingMemoryId(memory.id);
+    setCurrentMemoryDraft(memory.content);
+    setMemoryPublishSuccessMessage(null);
+    setPanelMode("memory_editor");
   }
 
   async function handleRequestDisplay() {
@@ -1190,19 +1184,63 @@ useEffect(() => {
     setIsSavingMemory(true);
 
     try {
-      await saveMyPersonMemory({
-        eventSlug: slug,
-        participantId,
-        personId: centerId,
-        content,
-      });
+      if (memoryEditorMode === "edit" && editingMemoryId) {
+        await updateMyPersonMemory({
+          memoryId: editingMemoryId,
+          participantId,
+          content,
+        });
 
-      setPanelMode("relations");
+        setMemoryPublishSuccessMessage(
+          "Ton souvenir a été mis à jour et renvoyé en modération.",
+        );
+      } else {
+        await createMyPersonMemory({
+          eventSlug: slug,
+          participantId,
+          personId: centerId,
+          content,
+        });
+
+        setMemoryPublishSuccessMessage(
+          "Ton souvenir a bien été envoyé à la modération.",
+        );
+      }
+
+      setMemoryEditorMode("create");
+      setEditingMemoryId(null);
+      setCurrentMemoryDraft("");
       await loadCurrentPersonData();
     } catch (e) {
       console.error(e);
     } finally {
       setIsSavingMemory(false);
+    }
+  }
+
+  async function handleDeleteMemory(memoryId: string) {
+    if (!participantId) return;
+
+    setDeletingMemoryId(memoryId);
+
+    try {
+      await deleteMyPersonMemory({
+        memoryId,
+        participantId,
+      });
+
+      if (editingMemoryId === memoryId) {
+        setEditingMemoryId(null);
+        setMemoryEditorMode("create");
+        setCurrentMemoryDraft("");
+        setPanelMode("memories");
+      }
+
+      await loadCurrentPersonData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDeletingMemoryId(null);
     }
   }
 
@@ -1228,9 +1266,91 @@ useEffect(() => {
     }
   }
 
-  function openFamilyKnowledge() {
-    navigate(`/e/${slug}/family-knowledge`);
-  }
+  useEffect(() => {
+    void loadVisibilityPreferencesMap();
+  }, [slug]);
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createFamilyTreeViewTracker({
+      participantId,
+      eventSlug: slug,
+      sourcePageKey: `/e/${slug}/familyTree/browse`,
+      initialPersonId: centerId,
+    });
+
+    familyTreeTrackerRef.current = tracker;
+    tracker.start();
+
+    return () => {
+      familyTreeTrackerRef.current = null;
+      void tracker.stop();
+    };
+  }, [participantId, slug, centerId]);
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/familyTree/browse`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [centerId]);
+
+  useEffect(() => {
+    setPanelMode("relations");
+  }, [centerId]);
+
+  useEffect(() => {
+    if (!displayPerson.canDisplay) {
+      setPanelMode("relations");
+    }
+  }, [displayPerson.canDisplay]);
+
+  useEffect(() => {
+    if (displayPerson.canDisplay) {
+      setMyVisibilityRequestStatus(null);
+      setMyVisibilityRequestModeratorComment(null);
+    }
+  }, [displayPerson.canDisplay]);
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    let isCancelled = false;
+
+    async function run() {
+      try {
+        await loadCurrentPersonData();
+      } catch (e) {
+        if (!isCancelled) {
+          console.error("Erreur loadCurrentPersonData", e);
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [participantId, loadCurrentPersonData]);
+
+  useEffect(() => {
+    void loadDefaultGedcomPersonId();
+  }, [participantId, slug]);
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -1312,7 +1432,6 @@ useEffect(() => {
                   <li>
                     Photos:
                     <ul>
-                      <li>Revoir l&apos;entête de ajouter une photo</li>
                       <li>Pouvoir supprimer une photo</li>
                       <li>
                         Consentement pour afficher le nom de la personne qui
@@ -1331,16 +1450,6 @@ useEffect(() => {
                   <li>
                     Souvenirs
                     <ul>
-                      <li>
-                        Enregistrer un draft par person_id et participant_id
-                      </li>
-                      <li>Pouvoir écrire plusieurs souvenirs</li>
-                      <li>Pouvoir supprimer un souvenir</li>
-                      <li>
-                        Consentement pour afficher le nom de la personne qui
-                        publie
-                      </li>
-                      <li>Photo pour remplacer celle affichée</li>
                       <li>Notif mail</li>
                     </ul>
                   </li>
@@ -1678,12 +1787,12 @@ useEffect(() => {
                         >
                           <UserCheck size={14} />
                           {knowLabel}
-                          {knownCount > 0 && (
+                          {knownCount > 0 ? (
                             <ReactionCountBadge
                               count={knownCount}
                               active={hasKnownPerson}
                             />
-                          )}
+                          ) : null}
                         </button>
 
                         <button
@@ -1697,12 +1806,12 @@ useEffect(() => {
                         >
                           <Megaphone size={14} />
                           {heardLabel}
-                          {heardCount > 0 && (
+                          {heardCount > 0 ? (
                             <ReactionCountBadge
                               count={heardCount}
                               active={hasHeardOfPerson}
                             />
-                          )}
+                          ) : null}
                         </button>
                       </div>
                     ) : null}
@@ -1710,7 +1819,7 @@ useEffect(() => {
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => setPanelMode("memory_editor")}
+                        onClick={openCreateMemoryEditor}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
                           panelMode === "memory_editor"
                             ? "bg-slate-900 text-white"
@@ -1718,9 +1827,7 @@ useEffect(() => {
                         }`}
                       >
                         <MessageCircle size={14} />
-                        {hasMyComment
-                          ? "Modifier le souvenir que j’ai partagé"
-                          : "Partager un souvenir sur cette personne"}
+                        Partager un souvenir sur cette personne
                       </button>
 
                       <button
@@ -1818,28 +1925,29 @@ useEffect(() => {
               </>
             ) : panelMode === "memories" ? (
               <PersonMemoriesPanel
-                memories={approvedMemories}
-                pendingMemory={
-                  myMemoryStatus === "pending" && memoryDraft.trim()
-                    ? { content: memoryDraft }
-                    : null
-                }
+                memories={visibleMemories}
+                currentParticipantId={participantId}
+                isDeletingMemoryId={deletingMemoryId}
+                onEditMemory={handleEditMemory}
+                onDeleteMemory={(memoryId) => void handleDeleteMemory(memoryId)}
                 onBack={() => setPanelMode("relations")}
               />
             ) : panelMode === "memory_editor" ? (
               <PersonMemoryEditorPanel
                 personDisplayName={personDisplayName}
                 initialValue={memoryDraft}
-                moderationStatus={myMemoryStatus}
-                moderatorComment={myMemoryModeratorComment}
+                mode={memoryEditorMode}
+                moderationStatus={null}
+                moderatorComment={null}
+                counts={memoryCounts}
+                publishSuccessMessage={memoryPublishSuccessMessage}
                 isSaving={isSavingMemory}
-                onChange={setMemoryDraft}
+                onChange={setCurrentMemoryDraft}
                 onSave={() => void handleSaveMemory()}
                 onBack={() => setPanelMode("relations")}
               />
             ) : panelMode === "photo_upload" ? (
               <PersonPhotoUploadPanel
-                personDisplayName={personDisplayName}
                 isSubmitting={isUploadingPhoto}
                 onSelectFile={(file) => void handleUploadPhoto(file)}
                 onBack={() => setPanelMode("relations")}

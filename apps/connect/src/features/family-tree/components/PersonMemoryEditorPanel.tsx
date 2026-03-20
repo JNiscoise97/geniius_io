@@ -5,8 +5,15 @@ type MemoryStatus = "pending" | "approved" | "rejected" | null;
 type PersonMemoryEditorPanelProps = {
   personDisplayName: string;
   initialValue: string;
+  mode: "create" | "edit";
   moderationStatus: MemoryStatus;
   moderatorComment?: string | null;
+  counts?: {
+    pending: number;
+    approved: number;
+    rejected: number;
+  };
+  publishSuccessMessage?: string | null;
   isSaving: boolean;
   onChange: (value: string) => void;
   onSave: () => void;
@@ -15,8 +22,11 @@ type PersonMemoryEditorPanelProps = {
 
 export function PersonMemoryEditorPanel({
   initialValue,
+  mode,
   moderationStatus,
   moderatorComment,
+  counts,
+  publishSuccessMessage,
   isSaving,
   onChange,
   onSave,
@@ -34,6 +44,34 @@ export function PersonMemoryEditorPanel({
           Retour
         </button>
       </div>
+
+      {publishSuccessMessage ? (
+        <div className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div className="text-sm font-semibold text-emerald-900">
+            {publishSuccessMessage}
+          </div>
+        </div>
+      ) : null}
+
+      {counts ? (
+        <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+            Mes souvenirs pour cette personne
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
+              En attente : {counts.pending}
+            </span>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-900">
+              Acceptés : {counts.approved}
+            </span>
+            <span className="rounded-full bg-rose-100 px-3 py-1 text-rose-900">
+              Refusés : {counts.rejected}
+            </span>
+          </div>
+        </div>
+      ) : null}
+
       <div className="rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
         <div className="flex items-start gap-3">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
@@ -83,7 +121,11 @@ export function PersonMemoryEditorPanel({
             className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition disabled:opacity-50"
           >
             <Save size={16} />
-            {isSaving ? "Enregistrement..." : "Enregistrer mon souvenir"}
+            {isSaving
+              ? "Publication..."
+              : mode === "edit"
+                ? "Mettre à jour le souvenir"
+                : "Publier un nouveau souvenir"}
           </button>
         </div>
       </div>
