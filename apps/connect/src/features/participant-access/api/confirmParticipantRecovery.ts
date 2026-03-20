@@ -12,6 +12,7 @@ export type ConfirmParticipantRecoveryResult = {
   lastName?: string;
   birthYear: string;
   displayName: string;
+  defaultGedcomPersonId?: string;
 };
 
 type ParticipantRow = {
@@ -20,6 +21,7 @@ type ParticipantRow = {
   first_name: string | null;
   last_name: string | null;
   birth_year: number | null;
+  default_gedcom_person_id: string | null;
 };
 
 function buildDisplayName(firstName?: string, lastName?: string): string {
@@ -40,7 +42,7 @@ export async function confirmParticipantRecovery({
 
   const participantRes = await supabase
     .from("participants")
-    .select("id, event_slug, first_name, last_name, birth_year")
+    .select("id, event_slug, first_name, last_name, birth_year, default_gedcom_person_id")
     .eq("recovery_token", token)
     .maybeSingle<ParticipantRow>();
 
@@ -64,6 +66,7 @@ export async function confirmParticipantRecovery({
 
   const firstName = participant.first_name ?? undefined;
   const lastName = participant.last_name ?? undefined;
+  const defaultGedcomPersonId = participant.default_gedcom_person_id ?? undefined;
 
   return {
     participantId: participant.id,
@@ -72,5 +75,6 @@ export async function confirmParticipantRecovery({
     lastName,
     birthYear: normalizedBirthYear,
     displayName: buildDisplayName(firstName, lastName),
+    defaultGedcomPersonId
   };
 }

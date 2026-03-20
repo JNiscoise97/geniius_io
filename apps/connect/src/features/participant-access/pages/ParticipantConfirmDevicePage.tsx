@@ -89,6 +89,7 @@ export function ParticipantConfirmDevicePage() {
         birthYear: result.birthYear,
         recoveryToken: result.recoveryToken,
         remembered: true,
+        defaultGedcomPersonId: result.defaultGedcomPersonId,
         setAsActive: true,
       });
 
@@ -98,6 +99,7 @@ export function ParticipantConfirmDevicePage() {
         lastName: result.lastName,
         birthYear: result.birthYear,
         recoveryToken: result.recoveryToken,
+        defaultGedcomPersonId: result.defaultGedcomPersonId,
       });
 
       await sendParticipantConnection({

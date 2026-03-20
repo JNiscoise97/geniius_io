@@ -10,6 +10,24 @@ export async function saveMyPersonIdentityClaim(params: {
 
   const now = new Date().toISOString();
 
+  const { data: participant, error: participantError } = await supabase
+    .from("participants")
+    .select("default_gedcom_person_id")
+    .eq("id", participantId)
+    .single();
+
+  if (participantError) {
+    throw participantError;
+  }
+
+  const defaultGedcomPersonId =
+    participant?.default_gedcom_person_id?.trim() || null;
+
+  const nextStatus =
+    defaultGedcomPersonId === personId ? "auto_verified" : "pending";
+
+  const moderatedAt = nextStatus === "auto_verified" ? now : null;
+
   const { data: existing, error: existingError } = await supabase
     .from("family_person_identity_claims")
     .select(
@@ -38,9 +56,9 @@ export async function saveMyPersonIdentityClaim(params: {
     const { data, error } = await supabase
       .from("family_person_identity_claims")
       .update({
-        claim_status: "pending",
+        claim_status: nextStatus,
         moderator_comment: null,
-        moderated_at: null,
+        moderated_at: moderatedAt,
         updated_at: now,
       })
       .eq("id", existing.id)
@@ -72,9 +90,9 @@ export async function saveMyPersonIdentityClaim(params: {
       event_slug: eventSlug,
       participant_id: participantId,
       person_id: personId,
-      claim_status: "pending",
+      claim_status: nextStatus,
       moderator_comment: null,
-      moderated_at: null,
+      moderated_at: moderatedAt,
       updated_at: now,
     })
     .select(

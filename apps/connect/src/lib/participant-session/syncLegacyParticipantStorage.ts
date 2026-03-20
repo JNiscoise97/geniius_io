@@ -6,6 +6,7 @@ type LegacyProfile = {
   birthYear?: string;
   recoveryToken?: string;
   allowTest?: boolean;
+  defaultGedcomPersonId?: string;
 
 };
 
@@ -24,6 +25,7 @@ export function syncLegacyParticipantStorage(
       birthYear: profile.birthYear,
       recoveryToken: profile.recoveryToken,
       allowTest: profile.allowTest,
+      defaultGedcomPersonId: profile.defaultGedcomPersonId,
     }),
   );
 }

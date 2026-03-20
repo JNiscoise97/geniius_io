@@ -1,3 +1,5 @@
+//searchPeople.ts
+
 import { findRelationshipPath } from "./findRelationshipPath";
 import {
   normalizeSearchText,
@@ -16,6 +18,7 @@ export type SearchPeopleInput = {
   graph: FamilyGraphData;
   centerPersonId?: string;
   limit?: number;
+  forceDisplayedPersonIds?: string[];
 };
 
 function addMatch(
@@ -79,6 +82,7 @@ export function searchPeople({
   graph,
   centerPersonId,
   limit = 20,
+  forceDisplayedPersonIds = [],
 }: SearchPeopleInput): PersonSearchResult[] {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return [];
@@ -86,10 +90,13 @@ export function searchPeople({
   const queryTokens = tokenizeSearchText(query);
   if (queryTokens.length === 0) return [];
 
+  const forceDisplayedPersonIdsSet = new Set(forceDisplayedPersonIds);
   const results: PersonSearchResult[] = [];
 
   for (const doc of documents) {
-    if (doc.hidden) continue;
+    const canForceDisplay = forceDisplayedPersonIdsSet.has(doc.personId);
+
+if (!doc.canDisplay && !canForceDisplay) continue;
 
     let score = 0;
     const matches = new Set<PersonSearchMatchKey>();

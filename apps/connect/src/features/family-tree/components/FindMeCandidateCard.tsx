@@ -1,4 +1,4 @@
-// src/features/family-knowledge/components/FindMeCandidateCard.tsx
+// FindMeCandidateCard.tsx
 
 import { ArrowRight, Heart, MapPin, User } from "lucide-react";
 import { useMemo } from "react";

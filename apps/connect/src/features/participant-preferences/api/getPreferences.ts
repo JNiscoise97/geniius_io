@@ -1,8 +1,14 @@
 import { supabase } from "../../../lib/supabase/client";
+import type { ParticipantVisibilityPreferenceMap } from "../../family-tree/types";
 import type { PreferencesFormValues } from "../components/PreferencesForm";
 
 type GetPreferencesInput = {
   participantId: string;
+  eventSlug: string;
+};
+
+type GetTreeVisibilityPreferencesInput = {
+  participantIds: string[];
   eventSlug: string;
 };
 
@@ -40,24 +46,58 @@ export async function getPreferences({
   if (!res.data) return null;
 
   return {
-  allowFamilyPhotoSharing: res.data.allow_family_photo_sharing,
-  allowPhotoDisplayInApp: res.data.allow_photo_display_in_app,
-  allowEventPhotoMemory: res.data.allow_event_photo_memory,
+    allowFamilyPhotoSharing: res.data.allow_family_photo_sharing,
+    allowPhotoDisplayInApp: res.data.allow_photo_display_in_app,
+    allowEventPhotoMemory: res.data.allow_event_photo_memory,
 
-  allowNameInFamilyTree: res.data.allow_name_in_family_tree,
-  allowPhotoInFamilyTree: res.data.allow_photo_in_family_tree,
-  allowInfoInFamilyTree: res.data.allow_info_in_family_tree,
+    allowNameInFamilyTree: res.data.allow_name_in_family_tree,
+    allowPhotoInFamilyTree: res.data.allow_photo_in_family_tree,
+    allowInfoInFamilyTree: res.data.allow_info_in_family_tree,
 
-  allowContactDetailsWithFamily: res.data.allow_contact_details_with_family,
-  allowFutureFamilyContact: res.data.allow_future_family_contact,
+    allowContactDetailsWithFamily: res.data.allow_contact_details_with_family,
+    allowFutureFamilyContact: res.data.allow_future_family_contact,
 
-  allowGenealogyEnrichment: res.data.allow_genealogy_enrichment,
-  allowGenealogyContributionStorage:
-    res.data.allow_genealogy_contribution_storage,
+    allowGenealogyEnrichment: res.data.allow_genealogy_enrichment,
+    allowGenealogyContributionStorage:
+      res.data.allow_genealogy_contribution_storage,
 
-  allowNameInEventActivities: res.data.allow_name_in_event_activities,
-  allowParticipationInGames: res.data.allow_participation_in_games,
+    allowNameInEventActivities: res.data.allow_name_in_event_activities,
+    allowParticipationInGames: res.data.allow_participation_in_games,
 
-  otherPreferences: res.data.other_preferences ?? "",
-};
+    otherPreferences: res.data.other_preferences ?? "",
+  };
+}
+
+export async function getTreeVisibilityPreferencesByParticipantId({
+  participantIds,
+  eventSlug,
+}: GetTreeVisibilityPreferencesInput): Promise<ParticipantVisibilityPreferenceMap> {
+  if (!participantIds.length) return {};
+
+  const res = await supabase
+    .from("participant_consents")
+    .select(`
+      participant_id,
+      allow_name_in_family_tree,
+      allow_photo_in_family_tree,
+      allow_info_in_family_tree
+    `)
+    .eq("event_slug", eventSlug)
+    .in("participant_id", participantIds);
+
+  if (res.error) {
+    throw new Error(res.error.message);
+  }
+
+  const map: ParticipantVisibilityPreferenceMap = {};
+
+  for (const row of res.data ?? []) {
+    map[row.participant_id] = {
+      allowNameInFamilyTree: row.allow_name_in_family_tree,
+      allowPhotoInFamilyTree: row.allow_photo_in_family_tree,
+      allowInfoInFamilyTree: row.allow_info_in_family_tree,
+    };
+  }
+
+  return map;
 }

@@ -1,7 +1,6 @@
 // src/features/family-knowledge/pages/FamilyTreeFindMePage.tsx
 
 import {
-  AlertTriangle,
   ArrowLeft,
   Compass,
   Mail,
@@ -10,13 +9,14 @@ import {
   TreePine,
   UserCircle2,
   Lock,
-  LockIcon
+  Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { searchFindMeCandidates } from "../api/findMeCandidates";
+import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
 import {
   FIND_ME_EMPTY_ANSWERS,
   FIND_ME_MINIMAL_INPUT_COUNT,
@@ -26,7 +26,10 @@ import type { FindMeAnswers } from "../lib/findMeMatching";
 import { FindMeCandidateCard } from "../components/FindMeCandidateCard";
 import { FindMeModeCard } from "../components/FindMeModeCard";
 import { FindMeSearchField } from "../components/FindMeSearchField";
-import { getMyPersonIdentityClaims, type PersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import {
+  getMyPersonIdentityClaims,
+  type PersonIdentityClaim,
+} from "../api/getMyPersonIdentityClaim";
 import { MyIdentityClaimsSection } from "../components/MyIdentityClaimsSection";
 
 type FindMeMode = "home" | "guided";
@@ -51,10 +54,16 @@ export function FamilyTreeFindMePage() {
   const [claimsLoading, setClaimsLoading] = useState(false);
   const [claimsError, setClaimsError] = useState<string | null>(null);
 
+  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<string | null>(null);
+  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] = useState(false);
+
   const hasApprovedClaim = useMemo(
     () => claims.some((claim) => claim.claim_status === "approved"),
     [claims],
   );
+
+  const hasDefaultTreeEntry = Boolean(defaultGedcomPersonId);
+  const allowGuidedSearch = false;
 
   async function loadClaims() {
     if (!participantId) {
@@ -80,8 +89,32 @@ export function FamilyTreeFindMePage() {
     }
   }
 
+  async function loadDefaultGedcomPersonId() {
+    if (!participantId) {
+      setDefaultGedcomPersonId(null);
+      return;
+    }
+
+    try {
+      setDefaultGedcomPersonLoading(true);
+
+      const personId = await getParticipantDefaultGedcomPersonId({
+        eventSlug: slug,
+        participantId,
+      });
+
+      setDefaultGedcomPersonId(personId?.trim() ? personId : null);
+    } catch (error) {
+      console.error(error);
+      setDefaultGedcomPersonId(null);
+    } finally {
+      setDefaultGedcomPersonLoading(false);
+    }
+  }
+
   useEffect(() => {
     void loadClaims();
+    void loadDefaultGedcomPersonId();
   }, [participantId, slug]);
 
   useEffect(() => {
@@ -94,6 +127,7 @@ export function FamilyTreeFindMePage() {
     });
 
     tracker.start();
+
     return () => {
       void tracker.stop();
     };
@@ -135,7 +169,13 @@ export function FamilyTreeFindMePage() {
   }
 
   function openCandidateInTree(personId: string) {
-    navigate(`/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}&from=find-me`);
+    navigate(
+      `/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}&from=find-me`,
+    );
+  }
+
+  function openFamilyKnowledge() {
+    navigate(`/e/${slug}/family-knowledge`);
   }
 
   return (
@@ -146,15 +186,16 @@ export function FamilyTreeFindMePage() {
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold text-indigo-700">
                 <Map size={14} />
-                Retrouve-toi dans l’arbre
+                Retrouve ton profil
               </div>
 
               <h1 className="mt-4 text-[28px] font-black leading-[1.05] tracking-tight text-slate-900">
-                Me trouver dans l’arbre
+                Me retrouver dans l’arbre
               </h1>
 
               <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
-                Tu peux partir d’indices familiaux, puis vérifier toi-même le bon profil avant de naviguer dans l’arbre.
+                Parcours l’arbre familial pour te repérer, ou demande à l’organisateur
+                de t’aider à t’identifier.
               </p>
             </div>
 
@@ -171,7 +212,7 @@ export function FamilyTreeFindMePage() {
           </div>
         </section>
 
-        {!hasApprovedClaim ? (
+        {!defaultGedcomPersonLoading && hasDefaultTreeEntry && !hasApprovedClaim ? (
           <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
             <div className="flex items-start gap-3">
               <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
@@ -180,10 +221,11 @@ export function FamilyTreeFindMePage() {
                   Il est normal que certaines personnes soient masquées
                 </div>
                 <div className="mt-1 text-xs leading-5 text-indigo-900">
-                  Pour protéger la vie privée de chacun, certaines personnes de l’arbre
-                  restent masquées tant qu’elles n’ont pas été identifiées ou n’ont pas
-                  donné leur accord. Tu peux toutefois te repérer à partir de tes proches
-                  visibles et signaler le profil qui pourrait correspondre à toi.
+                  Pour protéger la vie privée de chacun, certaines personnes de
+                  l’arbre restent masquées tant qu’elles n’ont pas été identifiées
+                  ou n’ont pas donné leur accord. Tu peux toutefois te repérer à
+                  partir de tes proches visibles et signaler le profil qui pourrait
+                  correspondre à toi.
                 </div>
               </div>
             </div>
@@ -197,57 +239,60 @@ export function FamilyTreeFindMePage() {
           onOpenPerson={openCandidateInTree}
         />
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>Me trouver dans l'arbre
-                    <ul>
-                      <li>Sortir la logique profil vérifié</li>
-                      <li>Akinator?</li>
-                      <li>C'est moi qui fait le rapprochement d'identité</li>
-                      <li>Formulaire sur les parents et grands-parents</li>
-                    </ul>
-                  </li>
-                </ol>
+        {!defaultGedcomPersonLoading && !hasDefaultTreeEntry ? (
+          <section className="mt-3 space-y-3">
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-amber-900">
+                    L’exploration de l’arbre n’est pas encore disponible pour toi
+                  </div>
+                  <div className="mt-1 text-xs leading-5 text-amber-800">
+                    L’organisation n’a pas encore suffisamment d’éléments pour te
+                    rattacher à une branche de l’arbre. Renseigne les informations sur
+                    ta famille pour faciliter ton identification.
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+
+            <button
+              type="button"
+              onClick={openFamilyKnowledge}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
+            >
+              <Users size={16} />
+              Renseigner ma famille
+            </button>
+          </section>
+        ) : null}
 
         {mode === "home" ? (
-          <div className="space-y-3">
-            <FindMeModeCard
-              title="Je veux être guidé"
-              description="Renseigne quelques infos sur toi, tes parents ou tes grands-parents pour faire ressortir les profils les plus probables."
-              icon={<Search size={22} />}
-              onClick={() => setMode("guided")}
-            />
+          <div className="mt-3 space-y-3">
+            {allowGuidedSearch ? (
+              <FindMeModeCard
+                title="Je veux être guidé"
+                description="Renseigne quelques infos sur toi, tes parents ou tes grands-parents pour faire ressortir les profils les plus probables."
+                icon={<Search size={22} />}
+                onClick={() => setMode("guided")}
+              />
+            ) : null}
 
-            <FindMeModeCard
-              title="Je préfère explorer l’arbre"
-              description="Ouvre l’arbre et navigue librement jusqu’à l’endroit où tu penses te reconnaître."
-              icon={<Compass size={22} />}
-              onClick={openNavigationMode}
-            />
+            {!defaultGedcomPersonLoading && hasDefaultTreeEntry ? (
+              <FindMeModeCard
+                title="Je préfère explorer l’arbre"
+                description="Ouvre l’arbre et navigue librement jusqu’à l’endroit où tu penses te reconnaître."
+                icon={<Compass size={22} />}
+                onClick={openNavigationMode}
+              />
+            ) : null}
 
             <FindMeModeCard
               title="Contacter l’organisateur"
-              description="Tu recevras une notification par mail quand il t'aura identifié."
+              description="Tu recevras une notification par mail quand il t’aura identifié."
               icon={<Mail size={22} />}
               onClick={openContactOrganizerMode}
-            />    
-
-            <FindMeModeCard
-              title="Gérer les infos sur moi"
-              description="Ouvre l’arbre et navigue librement jusqu’à l’endroit où tu penses te reconnaître."
-              icon={<LockIcon size={22} />}
-              onClick={openNavigationMode}
             />
           </div>
         ) : null}
@@ -403,14 +448,16 @@ export function FamilyTreeFindMePage() {
                   Réinitialiser
                 </button>
 
-                <button
-                  type="button"
-                  onClick={openNavigationMode}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
-                >
-                  <TreePine size={16} />
-                  Explorer l’arbre
-                </button>
+                {hasDefaultTreeEntry ? (
+                  <button
+                    type="button"
+                    onClick={openNavigationMode}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900 transition active:scale-[0.99]"
+                  >
+                    <TreePine size={16} />
+                    Explorer l’arbre
+                  </button>
+                ) : null}
               </div>
 
               {filledCount < FIND_ME_MINIMAL_INPUT_COUNT ? (
@@ -436,8 +483,7 @@ export function FamilyTreeFindMePage() {
                 {candidates.length === 0 ? (
                   <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-500 shadow-sm">
                     Aucun profil suffisamment proche n’a été trouvé avec ces
-                    indices. Essaie d’ajouter un parent, un grand-parent ou un
-                    lieu.
+                    indices. Essaie d’ajouter un parent, un grand-parent ou un lieu.
                   </div>
                 ) : (
                   candidates.map((candidate) => (

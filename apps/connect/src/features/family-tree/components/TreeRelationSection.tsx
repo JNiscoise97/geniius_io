@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight, Heart, User, ArrowRight } from "lucide-react";
 import type { FamilyTreeViaAction } from "../../../lib/analytics/familyTreeViewTracker";
-import { anonymizePerson, formatYears } from "../lib/genealogyUi";
+import { formatYears } from "../lib/genealogyUi";
 import type { PersonSummary } from "../types";
 
 export function TreeRelationSection({
@@ -65,7 +65,7 @@ export function TreeRelationSection({
             {persons.map((person) => (
               <TreePersonCard
                 key={person.id}
-                person={anonymizePerson(person)}
+                person={person}
                 onClick={() => onSelect(person.id, viaAction)}
               />
             ))}

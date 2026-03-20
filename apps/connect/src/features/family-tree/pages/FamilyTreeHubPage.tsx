@@ -16,6 +16,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 type TreeHubAction = {
   key: string;
@@ -171,6 +172,9 @@ export function FamilyTreeHubPage() {
     [slug],
   );
 
+  const participantSession = getParticipantSession(slug);
+  console.log("participantSession",participantSession)
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pb-24 pt-4">
@@ -233,8 +237,8 @@ export function FamilyTreeHubPage() {
                   <li>Revoir les labels et les recommandés pour commencer</li>
                   <li>Créer un item "profil vérifié" où on pourra gérer les consentements</li>
                   <li>mettre dans la table participants une valeur par default de gedcom_person_id à valider par claim</li>
-                  <li>gedcom_person_id même logique que allowTest</li>
                   <li>si gedcom_person_id alors masquer "find-me" et afficher "handle-consent" sinon l'inverse</li>
+                  <li>Family tree/story disponible que si default_gedcom_person_id + claim approved</li>
                 </ol>
               </div>
             </div>

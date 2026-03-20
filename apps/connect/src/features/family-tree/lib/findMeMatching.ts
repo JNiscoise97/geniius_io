@@ -1,4 +1,4 @@
-// src/features/family-knowledge/lib/findMeMatching.ts
+// findMeMatching.ts
 
 import type {
   FamilyGraphData,

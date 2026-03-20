@@ -36,6 +36,7 @@ export type AddStoredParticipantProfileInput = {
   managedByParticipantId?: string;
   remembered?: boolean;
   allowTest?: boolean;
+  defaultGedcomPersonId?: string;
   setAsActive?: boolean;
 };
 
@@ -61,6 +62,7 @@ export function addStoredParticipantProfile(
     managedByParticipantId: input.managedByParticipantId?.trim() || undefined,
     allowTest: input.allowTest,
     updatedAt: now,
+    defaultGedcomPersonId: input.defaultGedcomPersonId,
   };
 
   if (typeof input.remembered === "boolean") {

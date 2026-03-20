@@ -8,6 +8,7 @@ export type StoredParticipantProfile = {
   managedByParticipantId?: string;
   remembered?: boolean;
   allowTest?: boolean;
+  defaultGedcomPersonId?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -44,6 +45,7 @@ function normalizeProfile(
     managedByParticipantId: profile.managedByParticipantId?.trim() || undefined,
     remembered: profile.remembered === true,
     allowTest: profile.allowTest || undefined,
+    defaultGedcomPersonId: profile.defaultGedcomPersonId || undefined,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
   };

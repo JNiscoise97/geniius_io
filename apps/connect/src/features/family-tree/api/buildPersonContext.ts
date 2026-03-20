@@ -1,10 +1,15 @@
 import { PERSON_UI_OVERRIDES } from "./uiOverrides";
+import {
+  computeIsPossiblyAlive,
+  computePersonDisplayPermissions,
+} from "../lib/computePersonDisplayPermissions";
 import type {
   FamilyGraphData,
   FamilyGraphFamily,
   FamilyGraphPerson,
   PersonContext,
   PersonSummary,
+  PersonVisibilityPreferenceMap,
 } from "../types";
 
 function defaultSubtitleForSex(sex: FamilyGraphPerson["sex"]): string {
@@ -97,39 +102,13 @@ function uniqueById(
   items: Array<PersonSummary | null | undefined>,
 ): PersonSummary[] {
   const map = new Map<string, PersonSummary>();
+
   for (const item of items) {
     if (!item) continue;
     map.set(item.id, item);
   }
+
   return [...map.values()];
-}
-
-function computeIsPossiblyAlive(
-  person: FamilyGraphPerson | undefined,
-): boolean | undefined {
-  if (!person) return undefined;
-
-  if (person.deathYear) return false;
-  if (!person.birthYear) return undefined;
-
-  const birthYearNumber = Number(person.birthYear);
-  if (Number.isNaN(birthYearNumber)) return undefined;
-
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - birthYearNumber;
-
-  return age <= 110;
-}
-
-function computeHidden(person: FamilyGraphPerson | undefined): boolean {
-  if (!person) return false;
-
-  const override = PERSON_UI_OVERRIDES[person.id];
-  if (typeof override?.hidden === "boolean") {
-    return override.hidden;
-  }
-
-  return computeIsPossiblyAlive(person) != false;
 }
 
 function normalizeLastName(lastName?: string): string {
@@ -137,34 +116,6 @@ function normalizeLastName(lastName?: string): string {
   if (lastName === "? SANS NOM") return "";
   if (lastName === "? NOM INCONNU") return "";
   return lastName;
-}
-
-function toSummary(
-  person: FamilyGraphPerson | undefined,
-  subtitle: string,
-  extra?: Partial<PersonSummary>,
-): PersonSummary | null {
-  if (!person) return null;
-
-  const override = PERSON_UI_OVERRIDES[person.id] ?? {};
-
-  return {
-    id: person.id,
-    firstName: person.firstName || "",
-    lastName: normalizeLastName(person.lastName),
-    nickname: person.nickname || "",
-    sex: person.sex,
-    subtitle: override.subtitle ?? subtitle ?? defaultSubtitleForSex(person.sex),
-    birthYear: person.birthYear,
-    deathYear: person.deathYear,
-    birthPlace: person.birthPlace,
-    deathPlace: person.deathPlace,
-    branch: person.branch,
-    isPossiblyAlive: computeIsPossiblyAlive(person),
-    hidden: computeHidden(person),
-    ...override,
-    ...extra,
-  };
 }
 
 function getFamily(
@@ -202,11 +153,46 @@ function getParentIds(
     .filter((id): id is string => Boolean(id));
 }
 
+function toSummary(
+  person: FamilyGraphPerson | undefined,
+  subtitle: string,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+  extra?: Partial<PersonSummary>,
+): PersonSummary | null {
+  if (!person) return null;
+
+  const override = PERSON_UI_OVERRIDES[person.id] ?? {};
+  const displayPermissions = computePersonDisplayPermissions(
+    person,
+    visibilityPreferencesByPersonId?.[person.id],
+  );
+
+  return {
+    id: person.id,
+    firstName: person.firstName || "",
+    lastName: normalizeLastName(person.lastName),
+    nickname: person.nickname || "",
+    sex: person.sex,
+    subtitle: override.subtitle ?? subtitle ?? defaultSubtitleForSex(person.sex),
+    birthYear: person.birthYear,
+    deathYear: person.deathYear,
+    birthPlace: person.birthPlace,
+    deathPlace: person.deathPlace,
+    branch: person.branch,
+    isPossiblyAlive: computeIsPossiblyAlive(person),
+    ...displayPermissions,
+    ...override,
+    ...extra,
+  };
+}
+
 export function buildPersonContext(
   personId: string,
   graph: FamilyGraphData,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
 ): PersonContext {
   const person = graph.people[personId];
+
   if (!person) {
     throw new Error(`Personne introuvable: ${personId}`);
   }
@@ -224,11 +210,18 @@ export function buildPersonContext(
       const spouseId = getSpouseIdForFamily(personId, fam);
       const spouse = getPerson(graph, spouseId);
 
-      return toSummary(spouse, getSpouseSubtitle(spouse?.sex), {
-        spouseRoleLabel: fam.childIds.length
-          ? `${(spouse?.sex === "F") ? "Mère" : (spouse?.sex === "M") ? "Père" : "Parent"} de ${fam.childIds.length ==1 ? "un ": fam.childIds.length} enfant${fam.childIds.length>1?"s":""}`
-          : undefined,
-      });
+      return toSummary(
+        spouse,
+        getSpouseSubtitle(spouse?.sex),
+        visibilityPreferencesByPersonId,
+        {
+          spouseRoleLabel: fam.childIds.length
+            ? `${spouse?.sex === "F" ? "Mère" : spouse?.sex === "M" ? "Père" : "Parent"} de ${
+                fam.childIds.length === 1 ? "un " : fam.childIds.length
+              } enfant${fam.childIds.length > 1 ? "s" : ""}`
+            : undefined,
+        },
+      );
     }),
   );
 
@@ -243,8 +236,16 @@ export function buildPersonContext(
       const mother = getPerson(graph, fam.wifeId);
 
       return [
-        toSummary(father, getParentSubtitle(father?.sex)),
-        toSummary(mother, getParentSubtitle(mother?.sex)),
+        toSummary(
+          father,
+          getParentSubtitle(father?.sex),
+          visibilityPreferencesByPersonId,
+        ),
+        toSummary(
+          mother,
+          getParentSubtitle(mother?.sex),
+          visibilityPreferencesByPersonId,
+        ),
       ];
     }),
   );
@@ -254,9 +255,16 @@ export function buildPersonContext(
       fam.childIds.map((childId) => {
         const child = getPerson(graph, childId);
 
-        return toSummary(child, getChildSubtitle(child?.sex), {
-          linkedSpouseLabel: formatLinkedSpouseLabel(spouseByFamilyId.get(fam.id)),
-        });
+        return toSummary(
+          child,
+          getChildSubtitle(child?.sex),
+          visibilityPreferencesByPersonId,
+          {
+            linkedSpouseLabel: formatLinkedSpouseLabel(
+              spouseByFamilyId.get(fam.id),
+            ),
+          },
+        );
       }),
     ),
   );
@@ -289,6 +297,7 @@ export function buildPersonContext(
                 personParentIds,
                 graph,
               ),
+              visibilityPreferencesByPersonId,
             );
           }),
       );
@@ -309,8 +318,16 @@ export function buildPersonContext(
         const grandmother = getPerson(graph, fam.wifeId);
 
         return [
-          toSummary(grandfather, getGrandparentSubtitle(grandfather?.sex)),
-          toSummary(grandmother, getGrandparentSubtitle(grandmother?.sex)),
+          toSummary(
+            grandfather,
+            getGrandparentSubtitle(grandfather?.sex),
+            visibilityPreferencesByPersonId,
+          ),
+          toSummary(
+            grandmother,
+            getGrandparentSubtitle(grandmother?.sex),
+            visibilityPreferencesByPersonId,
+          ),
         ];
       });
     }),
@@ -318,7 +335,11 @@ export function buildPersonContext(
 
   return {
     person:
-      toSummary(person, defaultSubtitleForSex(person.sex)) ??
+      toSummary(
+        person,
+        defaultSubtitleForSex(person.sex),
+        visibilityPreferencesByPersonId,
+      ) ??
       ({
         id: person.id,
         firstName: person.firstName,
@@ -328,7 +349,10 @@ export function buildPersonContext(
         subtitle: defaultSubtitleForSex(person.sex),
         branch: person.branch,
         isPossiblyAlive: computeIsPossiblyAlive(person),
-        hidden: computeHidden(person),
+        ...computePersonDisplayPermissions(
+          person,
+          visibilityPreferencesByPersonId?.[person.id],
+        ),
       } satisfies PersonSummary),
     parents,
     spouses,
@@ -340,11 +364,16 @@ export function buildPersonContext(
 
 export function buildAllPersonContexts(
   graph: FamilyGraphData,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
 ): Record<string, PersonContext> {
   const result: Record<string, PersonContext> = {};
 
   for (const personId of Object.keys(graph.people)) {
-    result[personId] = buildPersonContext(personId, graph);
+    result[personId] = buildPersonContext(
+      personId,
+      graph,
+      visibilityPreferencesByPersonId,
+    );
   }
 
   return result;

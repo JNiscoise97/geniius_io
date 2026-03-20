@@ -113,6 +113,7 @@ export function ParticipantConfirmTokenPage() {
         birthYear: result.birthYear,
         recoveryToken: token,
         remembered: true,
+        defaultGedcomPersonId: result.defaultGedcomPersonId,
         setAsActive: true,
       });
 
@@ -122,6 +123,7 @@ export function ParticipantConfirmTokenPage() {
         lastName: result.lastName,
         birthYear: result.birthYear,
         recoveryToken: token,
+        defaultGedcomPersonId: result.defaultGedcomPersonId,
       });
 
       await sendParticipantConnectionViaToken({

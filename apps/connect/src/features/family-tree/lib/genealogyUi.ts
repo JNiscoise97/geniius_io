@@ -1,9 +1,9 @@
-// src/features/family-knowledge/lib/genealogyUi.ts
+// genealogyUi.ts
 
 import type { PersonSummary } from "../types";
 
 export function anonymizePerson(person: PersonSummary): PersonSummary {
-  if (!person.hidden) return person;
+  if (person.canDisplay) return person;
 
   return {
     ...person,

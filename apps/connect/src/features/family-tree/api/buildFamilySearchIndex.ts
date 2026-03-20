@@ -1,94 +1,91 @@
-import type { FamilyGraphData, FamilySearchDocument } from "../types";
-import { PERSON_UI_OVERRIDES } from "./uiOverrides";
+
+import { computePersonDisplayPermissions, computeIsPossiblyAlive } from "../lib/computePersonDisplayPermissions";
 import { normalizeSearchText } from "../lib/normalizeSearchText";
-
-function computeIsPossiblyAliveForSearch(
-  birthYear?: string,
-  deathYear?: string,
-): boolean | undefined {
-  if (deathYear) return false;
-  if (!birthYear) return undefined;
-
-  const birthYearNumber = Number(birthYear);
-  if (Number.isNaN(birthYearNumber)) return undefined;
-
-  const currentYear = new Date().getFullYear();
-  return currentYear - birthYearNumber <= 110;
-}
-
-function computeHiddenForSearch(person: FamilyGraphData["people"][string]) {
-  const override = PERSON_UI_OVERRIDES[person.id];
-  if (typeof override?.hidden === "boolean") {
-    return override.hidden;
-  }
-
-  const isPossiblyAlive = computeIsPossiblyAliveForSearch(
-    person.birthYear,
-    person.deathYear,
-  );
-
-  return isPossiblyAlive !== false;
-}
+import type {
+  FamilyGraphData,
+  FamilySearchDocument,
+  PersonVisibilityPreferenceMap,
+} from "../types";
 
 export function buildFamilySearchIndex(
   graph: FamilyGraphData,
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
 ): FamilySearchDocument[] {
-  return Object.values(graph.people)
-    .map((person) => {
-      const firstNameNormalized = normalizeSearchText(person.firstName);
-      const lastNameNormalized = normalizeSearchText(person.lastName);
-      const nicknameNormalized = normalizeSearchText(person.nickname);
-      const birthPlaceNormalized = normalizeSearchText(person.birthPlace);
-      const deathPlaceNormalized = normalizeSearchText(person.deathPlace);
+  return Object.values(graph.people).map((person): FamilySearchDocument => {
+    const displayPermissions = computePersonDisplayPermissions(
+      person,
+      visibilityPreferencesByPersonId?.[person.id],
+    );
 
-      const fullNameNormalized = [firstNameNormalized, lastNameNormalized]
-        .filter(Boolean)
-        .join(" ");
+    const firstNameNormalized = displayPermissions.canDisplayName
+      ? normalizeSearchText(person.firstName)
+      : "";
 
-      const searchableText = [
-        firstNameNormalized,
-        lastNameNormalized,
-        nicknameNormalized,
-        fullNameNormalized,
-        birthPlaceNormalized,
-        deathPlaceNormalized,
-        person.birthYear,
-        person.deathYear,
-      ]
-        .filter(Boolean)
-        .join(" ");
+    const lastNameNormalized = displayPermissions.canDisplayName
+      ? normalizeSearchText(person.lastName)
+      : "";
 
-      const tokens = Array.from(
-        new Set(searchableText.split(" ").map((s) => s.trim()).filter(Boolean)),
-      );
+    const nicknameNormalized = displayPermissions.canDisplayName
+      ? normalizeSearchText(person.nickname)
+      : "";
 
-      const hidden = computeHiddenForSearch(person);
+    const birthPlaceNormalized = displayPermissions.canDisplayInfo
+      ? normalizeSearchText(person.birthPlace)
+      : "";
 
-      return {
-        id: person.id,
-        personId: person.id,
-        firstName: person.firstName,
-        lastName: person.lastName,
-        nickname: person.nickname,
-        firstNameNormalized,
-        lastNameNormalized,
-        nicknameNormalized: nicknameNormalized || undefined,
-        fullNameNormalized,
-        birthYear: person.birthYear,
-        deathYear: person.deathYear,
-        birthPlace: person.birthPlace,
-        deathPlace: person.deathPlace,
-        birthPlaceNormalized: birthPlaceNormalized || undefined,
-        deathPlaceNormalized: deathPlaceNormalized || undefined,
-        branch: person.branch,
-        hidden,
-        isPossiblyAlive: computeIsPossiblyAliveForSearch(
-          person.birthYear,
-          person.deathYear,
-        ),
-        searchableText,
-        tokens,
-      } satisfies FamilySearchDocument;
-    })
-    .filter((doc) => !doc.hidden);
+    const deathPlaceNormalized = displayPermissions.canDisplayInfo
+      ? normalizeSearchText(person.deathPlace)
+      : "";
+
+    const fullNameNormalized = [firstNameNormalized, lastNameNormalized]
+      .filter(Boolean)
+      .join(" ");
+
+    const searchableText = [
+      firstNameNormalized,
+      lastNameNormalized,
+      nicknameNormalized,
+      fullNameNormalized,
+      birthPlaceNormalized,
+      deathPlaceNormalized,
+      displayPermissions.canDisplayInfo ? person.birthYear : undefined,
+      displayPermissions.canDisplayInfo ? person.deathYear : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const tokens = Array.from(
+      new Set(searchableText.split(" ").map((s) => s.trim()).filter(Boolean)),
+    );
+
+    return {
+      id: person.id,
+      personId: person.id,
+      firstName: person.firstName,
+      lastName: person.lastName,
+      nickname: person.nickname,
+      firstNameNormalized,
+      lastNameNormalized,
+      nicknameNormalized: nicknameNormalized || undefined,
+      fullNameNormalized,
+      birthYear: displayPermissions.canDisplayInfo ? person.birthYear : undefined,
+      deathYear: displayPermissions.canDisplayInfo ? person.deathYear : undefined,
+      birthPlace: displayPermissions.canDisplayInfo
+        ? person.birthPlace
+        : undefined,
+      deathPlace: displayPermissions.canDisplayInfo
+        ? person.deathPlace
+        : undefined,
+      birthPlaceNormalized: birthPlaceNormalized || undefined,
+      deathPlaceNormalized: deathPlaceNormalized || undefined,
+      branch: person.branch,
+      canDisplay: displayPermissions.canDisplay,
+      canDisplayName: displayPermissions.canDisplayName,
+      canDisplayPhoto: displayPermissions.canDisplayPhoto,
+      canDisplayInfo: displayPermissions.canDisplayInfo,
+      isPossiblyAlive: computeIsPossiblyAlive(person),
+      searchableText,
+      tokens,
+    };
+  });
 }

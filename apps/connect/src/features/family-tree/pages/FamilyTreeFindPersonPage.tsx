@@ -1,10 +1,12 @@
-import { ArrowLeft, Lock, Search } from "lucide-react";
+import { ArrowLeft, Lock, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { useDebouncedValue } from "../../../lib/useDebouncedValue";
 import { buildFamilySearchIndex } from "../api/buildFamilySearchIndex";
+import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
+import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
@@ -187,6 +189,34 @@ function summarizeRelationshipPath(
   return `Voici le chemin familial le plus court depuis ${sourceDisplayName}.`;
 }
 
+function getDisplaySearchPerson(
+  person: PersonSummary,
+  forceDisplayedPersonIds: string[],
+): PersonSummary {
+  if (person.canDisplay) {
+    return person;
+  }
+
+  if (forceDisplayedPersonIds.includes(person.id)) {
+    return person;
+  }
+
+  return {
+    ...person,
+    firstName: "Personne",
+    lastName: "privée",
+    nickname: undefined,
+    photoSrc: undefined,
+    birthYear: undefined,
+    deathYear: undefined,
+    birthPlace: undefined,
+    deathPlace: undefined,
+    linkedSpouseLabel: undefined,
+    spouseRoleLabel: undefined,
+    branch: undefined,
+  };
+}
+
 export function FamilyTreeFindPersonPage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
@@ -201,6 +231,26 @@ export function FamilyTreeFindPersonPage() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<string | null>(null);
+  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] = useState(false);
+  const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
+  const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
+    "pending" | "approved" | "rejected" | "auto_verified" | null
+  >(null);
+
+  const forceDisplayedPersonIds = useMemo(() => {
+    const ids: string[] = [];
+
+    if (
+      claimedPersonId &&
+      (myIdentityClaimStatus === "approved" ||
+        myIdentityClaimStatus === "auto_verified")
+    ) {
+      ids.push(claimedPersonId);
+    }
+
+    return ids;
+  }, [claimedPersonId, myIdentityClaimStatus]);
 
   const searchIndex = useMemo(() => buildFamilySearchIndex(FAMILY_GRAPH), []);
 
@@ -228,11 +278,67 @@ export function FamilyTreeFindPersonPage() {
     );
   }, [slug]);
 
+  useEffect(() => {
+    async function loadMyIdentityClaim() {
+      if (!participantId) {
+        setClaimedPersonId(null);
+        setMyIdentityClaimStatus(null);
+        return;
+      }
+
+      try {
+        const claim = await getMyPersonIdentityClaim({
+          eventSlug: slug,
+          participantId,
+        });
+
+        setClaimedPersonId(claim?.person_id ?? null);
+        setMyIdentityClaimStatus(claim?.claim_status ?? null);
+      } catch (error) {
+        console.error(error);
+        setClaimedPersonId(null);
+        setMyIdentityClaimStatus(null);
+      }
+    }
+
+    void loadMyIdentityClaim();
+  }, [participantId, slug]);
+
+  useEffect(() => {
+    async function loadDefaultGedcomPersonId() {
+      if (!participantId) {
+        setDefaultGedcomPersonId(null);
+        return;
+      }
+
+      try {
+        setDefaultGedcomPersonLoading(true);
+
+        const personId = await getParticipantDefaultGedcomPersonId({
+          eventSlug: slug,
+          participantId,
+        });
+
+        setDefaultGedcomPersonId(personId?.trim() ? personId : null);
+      } catch (error) {
+        console.error(error);
+        setDefaultGedcomPersonId(null);
+      } finally {
+        setDefaultGedcomPersonLoading(false);
+      }
+    }
+
+    void loadDefaultGedcomPersonId();
+  }, [participantId, slug]);
+
   const trimmedQuery = query.trim();
   const trimmedDebouncedQuery = debouncedQuery.trim();
   const isTyping = trimmedQuery !== trimmedDebouncedQuery;
+  const canSearchInTree = Boolean(defaultGedcomPersonId);
 
   const results = useMemo(() => {
+    if (!canSearchInTree) return [];
+
     if (trimmedDebouncedQuery.length < FAMILY_SEARCH_MIN_QUERY_LENGTH) {
       return [];
     }
@@ -243,19 +349,27 @@ export function FamilyTreeFindPersonPage() {
       graph: FAMILY_GRAPH,
       centerPersonId: centerId,
       limit: FAMILY_SEARCH_DEFAULT_LIMIT,
+      forceDisplayedPersonIds,
     });
-  }, [trimmedDebouncedQuery, searchIndex, centerId]);
+  }, [
+    canSearchInTree,
+    trimmedDebouncedQuery,
+    searchIndex,
+    centerId,
+    forceDisplayedPersonIds,
+  ]);
 
   const enrichedResults = useMemo(() => {
     return results.map((result) => {
-      const person = getPersonContext(result.personId).person;
+      const rawPerson = getPersonContext(result.personId).person;
+      const person = getDisplaySearchPerson(rawPerson, forceDisplayedPersonIds);
       const source = getPersonContext(centerId).person;
 
       const path = findRelationshipPath(FAMILY_GRAPH, centerId, result.personId);
       const relationshipSummary = summarizeRelationshipPath(
         path,
         `${source.firstName} ${source.lastName}`.trim(),
-        person.sex,
+        rawPerson.sex,
       );
 
       return {
@@ -265,7 +379,7 @@ export function FamilyTreeFindPersonPage() {
         relationshipSummary,
       };
     });
-  }, [results, centerId]);
+  }, [results, centerId, forceDisplayedPersonIds]);
 
   const recentPersons = useMemo(() => {
     return recentIds
@@ -276,21 +390,26 @@ export function FamilyTreeFindPersonPage() {
           return null;
         }
       })
-      .filter(
-        (person): person is PersonSummary => Boolean(person && !person.hidden),
-      );
-  }, [recentIds]);
+      .filter((person): person is PersonSummary => {
+        if (!person) return false;
+        if (person.canDisplay) return true;
+        return forceDisplayedPersonIds.includes(person.id);
+      })
+      .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
+  }, [recentIds, forceDisplayedPersonIds]);
 
   function handleCenterPerson(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
-    navigate(
-      `/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}`,
-    );
+    navigate(`/e/${slug}/family-tree/browse?personId=${encodeURIComponent(personId)}`);
   }
 
   function handleOpenProfile(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
     navigate(`/e/${slug}/fiche?id=${encodeURIComponent(personId)}`);
+  }
+
+  function openFamilyKnowledge() {
+    navigate(`/e/${slug}/family-knowledge`);
   }
 
   return (
@@ -326,86 +445,119 @@ export function FamilyTreeFindPersonPage() {
           </div>
         </section>
 
-        <section className="mt-3 space-y-3">
-          <FamilySearchInput
-            value={query}
-            placeholder={FAMILY_SEARCH_HINT}
-            onChange={setQuery}
-            onClear={() => setQuery("")}
-          />
-        </section>
-
-        {!trimmedQuery ? (
+        {!defaultGedcomPersonLoading && !canSearchInTree ? (
           <section className="mt-4 space-y-3">
-            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="text-sm font-bold text-slate-600">
-                {FAMILY_SEARCH_EMPTY_MESSAGE}
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 shadow-sm">
               <div className="flex items-start gap-3">
-                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-indigo-950">
-                    Certaines personnes n’apparaissent pas dans la recherche
+                  <div className="text-sm font-semibold text-amber-900">
+                    La recherche n’est pas encore disponible pour toi
                   </div>
-                  <div className="mt-1 text-xs leading-5 text-indigo-900">
-                    Une identité est considérée comme privée lorsque la personne
-                    concernée n’a pas elle-même consenti à apparaître dans
-                    l’arbre généalogique de cette application. Ces profils sont
-                    donc exclus des résultats de recherche.
+                  <div className="mt-1 text-xs leading-5 text-amber-800">
+                    L’organisation n’a pas encore suffisamment d’éléments pour te
+                    rattacher à une branche de l’arbre. Renseigne les informations sur
+                    ta famille pour faciliter ton identification.
                   </div>
                 </div>
               </div>
             </div>
 
-            {recentPersons.length > 0 ? (
-              <div className="space-y-3">
-                <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
-                  Recherches récentes
+            <button
+              type="button"
+              onClick={openFamilyKnowledge}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--blue)] px-4 py-3 text-sm font-black text-white transition active:scale-[0.99]"
+            >
+              <Users size={16} />
+              Renseigner ma famille
+            </button>
+          </section>
+        ) : null}
+
+        {!defaultGedcomPersonLoading && canSearchInTree ? (
+          <>
+            <section className="mt-3 space-y-3">
+              <FamilySearchInput
+                value={query}
+                placeholder={FAMILY_SEARCH_HINT}
+                onChange={setQuery}
+                onClear={() => setQuery("")}
+              />
+            </section>
+
+            {!trimmedQuery ? (
+              <section className="mt-4 space-y-3">
+                <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="text-sm font-bold text-slate-600">
+                    {FAMILY_SEARCH_EMPTY_MESSAGE}
+                  </div>
                 </div>
 
-                {recentPersons.map((person) => (
+                <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-indigo-950">
+                        Certaines personnes n’apparaissent pas dans la recherche
+                      </div>
+                      <div className="mt-1 text-xs leading-5 text-indigo-900">
+                        Une identité est considérée comme privée lorsque la personne
+                        concernée n’a pas elle-même consenti à apparaître dans l’arbre
+                        généalogique de cette application. Ces profils sont donc exclus
+                        des résultats de recherche.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {recentPersons.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+                      Recherches récentes
+                    </div>
+
+                    {recentPersons.map((person) => (
+                      <FamilySearchResultCard
+                        key={person.id}
+                        person={person}
+                        onCenter={() => handleCenterPerson(person.id)}
+                        onOpenProfile={() => handleOpenProfile(person.id)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+            ) : trimmedQuery.length < FAMILY_SEARCH_MIN_QUERY_LENGTH ? (
+              <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
+                {FAMILY_SEARCH_SHORT_QUERY_MESSAGE}
+              </section>
+            ) : isTyping ? (
+              <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
+                Recherche en cours…
+              </section>
+            ) : enrichedResults.length === 0 ? (
+              <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
+                {FAMILY_SEARCH_NO_RESULT_MESSAGE}
+              </section>
+            ) : (
+              <section className="mt-4 space-y-3">
+                <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+                  Résultats ({enrichedResults.length})
+                </div>
+
+                {enrichedResults.map((result) => (
                   <FamilySearchResultCard
-                    key={person.id}
-                    person={person}
-                    onCenter={() => handleCenterPerson(person.id)}
-                    onOpenProfile={() => handleOpenProfile(person.id)}
+                    key={result.person.id}
+                    person={result.person}
+                    relationshipSummary={result.relationshipSummary}
+                    onCenter={() => handleCenterPerson(result.person.id)}
+                    onOpenProfile={() => handleOpenProfile(result.person.id)}
                   />
                 ))}
-              </div>
-            ) : null}
-          </section>
-        ) : trimmedQuery.length < FAMILY_SEARCH_MIN_QUERY_LENGTH ? (
-          <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
-            {FAMILY_SEARCH_SHORT_QUERY_MESSAGE}
-          </section>
-        ) : isTyping ? (
-          <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
-            Recherche en cours…
-          </section>
-        ) : enrichedResults.length === 0 ? (
-          <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
-            {FAMILY_SEARCH_NO_RESULT_MESSAGE}
-          </section>
-        ) : (
-          <section className="mt-4 space-y-3">
-            <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
-              Résultats ({enrichedResults.length})
-            </div>
-
-            {enrichedResults.map((result) => (
-              <FamilySearchResultCard
-                key={result.person.id}
-                person={result.person}
-                relationshipSummary={result.relationshipSummary}
-                onCenter={() => handleCenterPerson(result.person.id)}
-                onOpenProfile={() => handleOpenProfile(result.person.id)}
-              />
-            ))}
-          </section>
-        )}
+              </section>
+            )}
+          </>
+        ) : null}
       </main>
     </div>
   );

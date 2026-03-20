@@ -1,6 +1,6 @@
 import { supabase } from "../../../lib/supabase/client";
 
-export type PersonIdentityClaimStatus = "pending" | "approved" | "rejected";
+export type PersonIdentityClaimStatus = "pending" | "approved" | "rejected" | "auto_verified";
 
 export type PersonIdentityClaim = {
   id: string;

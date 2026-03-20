@@ -14,6 +14,7 @@ function ensureParticipantAccess(slug: string): boolean {
       lastName: legacy.lastName,
       birthYear: legacy.birthYear,
       recoveryToken: legacy.recoveryToken,
+      defaultGedcomPersonId: legacy.defaultGedcomPersonId,
       remembered: true,
       setAsActive: true,
     });

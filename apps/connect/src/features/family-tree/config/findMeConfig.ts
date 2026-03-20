@@ -1,4 +1,4 @@
-// src/features/family-knowledge/config/findMeConfig.ts
+// findMeConfig.ts
 
 export const FIND_ME_PAGE_KEY = "family-tree-find-me";
 

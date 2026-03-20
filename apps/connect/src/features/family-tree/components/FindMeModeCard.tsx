@@ -1,4 +1,4 @@
-// src/features/family-knowledge/components/FindMeModeCard.tsx
+// FindMeModeCard.tsx
 
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";

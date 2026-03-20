@@ -10,6 +10,7 @@ export type SaveStoredProfileInput = {
   recoveryToken?: string;
   allowTest?: boolean;
   managedByParticipantId?: string;
+  defaultGedcomPersonId?: string;
   setAsActive?: boolean;
 };
 

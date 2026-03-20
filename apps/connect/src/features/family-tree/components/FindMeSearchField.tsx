@@ -1,4 +1,4 @@
-// src/features/family-knowledge/components/FindMeSearchField.tsx
+// FindMeSearchField.tsx
 
 import { Search } from "lucide-react";
 import { useMemo } from "react";
