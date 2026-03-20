@@ -3,7 +3,7 @@ export const FAMILY_SEARCH_DEFAULT_LIMIT = 10;
 export const FAMILY_SEARCH_RECENT_LIMIT = 5;
 
 export const FAMILY_SEARCH_HINT =
-  "Nom, prénom, surnom, année ou lieu";
+  "Nom, prénom, surnom ou année";
 
 export const FAMILY_SEARCH_EMPTY_MESSAGE =
   "Commence à taper pour retrouver une personne dans l’arbre.";

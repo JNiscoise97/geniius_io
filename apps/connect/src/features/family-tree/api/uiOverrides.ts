@@ -18,6 +18,7 @@ import amassyJoseph from "../../../assets/images/amassy-joseph.jpg";
 import amassyGermaine from "../../../assets/images/amassy-germaine.jpg";
 import amassyMarie from "../../../assets/images/amassy-marie.jpg";
 import amassySavamy from "../../../assets/images/amassy-savamy.jpg";
+import blukerDaniel from "../../../assets/images/bluker-daniel.jpg";
 import blukerElianne from "../../../assets/images/bluker-elianne.jpg";
 import blukerGaston from "../../../assets/images/bluker-gaston.jpg";
 import blukerPaula from "../../../assets/images/bluker-paula.jpg";
@@ -28,10 +29,14 @@ import caletyGaby from "../../../assets/images/calety-gaby.jpg";
 import caletyLouis from "../../../assets/images/calety-louis.jpg";
 import caletyRoland from "../../../assets/images/calety-roland.jpg";
 import dassachettySoubaya from "../../../assets/images/dassachetty-soubaya.jpg";
+import dassachettyFelicien from "../../../assets/images/dassachetty-felicien.jpg";
 import gaspNoeline from "../../../assets/images/gasp-noeline.jpg";
 import latchimyNayadou from "../../../assets/images/latchimy-nayadou.jpg";
 import mardemoutouFelicien from "../../../assets/images/mardemoutou-felicien.jpg";
+import mammosaValerie from "../../../assets/images/mammosa-valerie.jpg";
+import piterbothMarthe from "../../../assets/images/piterboth-marthe.jpg";
 import poinapinJb from "../../../assets/images/poinapin-jb.jpg";
+import poninPierre from "../../../assets/images/ponin-pierre.jpg";
 import poutaredyJoseph from "../../../assets/images/poutaredy-joseph.jpg";
 import poutaredyScholastique from "../../../assets/images/poutaredy-scholastique.jpg";
 import ramanyAimee from "../../../assets/images/ramany-aimee.jpg";
@@ -47,11 +52,14 @@ import tandiamaJoseph from "../../../assets/images/tandiama-joseph.jpg";
 import tanjamaAdrien from "../../../assets/images/tanjama-adrien.jpg";
 import tanjamaAndre from "../../../assets/images/tanjama-andre.jpg";
 import tanjamaChristiane from "../../../assets/images/tanjama-christiane.jpg";
+import tanjamaDavid from "../../../assets/images/tanjama-david.jpg";
 import tanjamaJeanne from "../../../assets/images/tanjama-jeanne.jpg";
 import tanjamaMarie from "../../../assets/images/tanjama-marie.jpg";
 import tanjamaOlivier from "../../../assets/images/tanjama-olivier.jpg";
 import tanjamaRaphael from "../../../assets/images/tanjama-raphael.jpg";
+import tanjamaRisla from "../../../assets/images/tanjama-risla.jpg";
 import tanjamaRoger from "../../../assets/images/tanjama-roger.jpg";
+import tanjamaSamy from "../../../assets/images/tanjama-samy.jpg";
 import tanjamaStella from "../../../assets/images/tanjama-stella.jpg";
 import tanjamaVirginie from "../../../assets/images/tanjama-virginie.jpg";
 import tiohonoueLeonus from "../../../assets/images/tiohonoue-leonus.jpg";
@@ -296,5 +304,29 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "733581226": {
     photoSrc: viramaOlivienne,
+  },
+  "733582083": {
+    photoSrc: tanjamaSamy,
+  },
+  "733581149": {
+    photoSrc: tanjamaRisla,
+  },
+  "732524": {
+    photoSrc: tanjamaDavid,
+  },
+  "732494": {
+    photoSrc: poninPierre,
+  },
+  "73304": {
+    photoSrc: piterbothMarthe,
+  },
+  "732722": {
+    photoSrc: dassachettyFelicien,
+  },
+  "7374": {
+    photoSrc: blukerDaniel,
+  },
+  "7373": {
+    photoSrc: mammosaValerie,
   },
 };
