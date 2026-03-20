@@ -104,6 +104,7 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "733728949": {
     canDisplay: true,
+    canDisplayName: true,
   },
   "731454": {
     photoSrc: kicheninCandide,

@@ -299,7 +299,25 @@ export function FamilyTreeHandleProfilePage() {
           </section>
         ) : (
           <form id="handle-profile-form" onSubmit={onSubmit} className="mt-3">
-            <section className="grid grid-cols-2 gap-3">
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Brancher les deux fonctions de calcul</li>
+                  <li>Mes j'aime</li>
+                  <li>Les j'aime que j'ai donné</li>
+                  <li>Nombre de personnes individuelles qui se sont arrêtés sur ma fiche</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+        <section className="grid grid-cols-2 gap-3">
               <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
                   <Heart size={18} />

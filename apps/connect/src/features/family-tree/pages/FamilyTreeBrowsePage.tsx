@@ -77,10 +77,7 @@ import {
   getPersonHeroConfig,
 } from "../config/configGenealogy";
 
-import type {
-  PersonSummary,
-  PersonVisibilityPreferenceMap,
-} from "../types";
+import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { PersonPhotoEditorPanel } from "../components/PersonPhotoUploadPanel";
 
 type BrowsePanelMode =
@@ -671,7 +668,7 @@ export function FamilyTreeBrowsePage() {
     spouses: true,
     children: true,
     siblings: true,
-    grandparents: false,
+    grandparents: true,
   });
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
@@ -1042,7 +1039,7 @@ export function FamilyTreeBrowsePage() {
   }
 
   function openCentralPerson() {
-    navigate(`/e/${slug}/fiche?id=${context.person.id}`);
+    //navigate(`/e/${slug}/fiche?id=${context.person.id}`);
   }
 
   function openFamilyKnowledge() {
@@ -1507,61 +1504,59 @@ export function FamilyTreeBrowsePage() {
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
                   <li>
-                    Ajouter les photos des défunts
-                    <ol>
-                      <li>Auguste VIRAMA</li>
-                      <li>Simone RAMA</li>
-                      <li>Firmin BLUKER</li>
-                      <li>Charlot BLUKER</li>
-                      <li>Sylvio BLUKER</li>
-                      <li>Georget MARDEMOUTOU</li>
-                    </ol>
-                  </li>
-                  <li>
                     Inclure les lieux de domicile dans le circuit des lieux
-                    d&apos;une personne
+                    d'une personne
                   </li>
                   <li>
-                    Message &quot;pas de conjoint / d&apos;enfant
-                    identifié&quot;
+                    Message "pas de conjoint / d'enfant identifié" quid de ce qui n'en ont pas eu pour sur
                   </li>
                   <li>
                     Bouton de réactions:
                     <ul>
                       <li>
-                        bouton C&apos;est moi, si c&apos;est moi pas de je
-                        l&apos;ai connu ni de j&apos;ai entendu parler de lui
+                        bouton C'est moi, si c'est moi pas de je
+                        l'ai connu ni de j'ai entendu parler de lui
                       </li>
                       <li>
-                        bouton C&apos;est moi, pouvoir override la photo
+                        bouton C'est moi, pouvoir override la photo
                         affichée
                       </li>
                       <li>
-                        bouton C&apos;est moi, les labels des boutons &quot;sur
-                        cette personne&quot;, &quot;de lui&quot; sont bizarre
+                        bouton C'est moi, les labels des boutons "sur
+                        cette personne", "de lui" sont bizarre
                       </li>
-                      <li>Demander le démasquage + Notif mail</li>
                     </ul>
                   </li>
-                  <li>Signaler un manque, un soucis</li>
+                  <li>Signaler un manque, un soucis
+                    <ul>
+                      <li>modération</li>
+                      <li>Notif mail</li>
+                    </ul></li>
+                  <li>
+                    Demander le démasquage
+                    <ul>
+                      <li>modération</li>
+                      <li>Notif mail</li>
+                    </ul>
+                  </li>
                   <li>Calque family-knowledge sur browse</li>
                   <li>
                     Photos:
                     <ul>
-                      <li>Pouvoir supprimer une photo</li>
                       <li>Photo pour remplacer celle affichée</li>
-                      <li>Voir les photos affichées</li>
-                      <li>Ajouter un commentaire à la photo</li>
                       <li>Notif mail</li>
+                      <li>Process de modération</li>
                     </ul>
                   </li>
                   <li>
                     Souvenirs
                     <ul>
                       <li>Notif mail</li>
+                      <li>Process de modération</li>
                     </ul>
                   </li>
                   <li>Déléguation de consentement</li>
+                  <li>Fiche + icon dans le hero</li>
                 </ol>
               </div>
             </div>
