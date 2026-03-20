@@ -11,12 +11,13 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
 
 type TreeHubAction = {
   key: string;
@@ -47,6 +48,14 @@ export function FamilyTreeHubPage() {
   const { eventSlug } = useParams();
   const slug = eventSlug ?? "demo";
 
+  const participantSession = getParticipantSession(slug);
+  const participantId = participantSession?.participantId ?? null;
+
+  const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
+    "pending" | "approved" | "rejected" | "auto_verified" | null
+  >(null);
+  const [loadingClaim, setLoadingClaim] = useState(true);
+
   const commonAncestor = {
     title: "Arbre généalogique",
     displayName: "Covindou TANDIEMAIN (1868-1955)",
@@ -54,28 +63,70 @@ export function FamilyTreeHubPage() {
       "Cet arbre rassemble les descendants identifiés de Gromèr Covindou TANDIEMAIN (1868-1955). Il permet à chacun de retrouver sa place dans la famille, de mieux comprendre ses liens avec les cousins et de transmettre ce qu’il sait.",
   };
 
-  const metrics = useMemo<TreeMetric[]>(() => {
-  const rootPersonId = ROOT_HONORED_PERSON_ID;
-  const computed = buildFamilyTreeMetrics(FAMILY_GRAPH, rootPersonId);
+  useEffect(() => {
+    let isMounted = true;
 
-  return [
-    {
-      key: "descendants",
-      label: "Descendants identifiés",
-      value: String(computed.descendantsCount),
-    },
-    {
-      key: "generations",
-      label: "Générations connues",
-      value: String(computed.generationsCount),
-    },
-    {
-      key: "branches",
-      label: "Branches familiales",
-      value: String(computed.branchesCount),
-    },
-  ];
-}, []);
+    async function loadIdentityClaim() {
+      if (!participantId) {
+        if (isMounted) {
+          setMyIdentityClaimStatus(null);
+          setLoadingClaim(false);
+        }
+        return;
+      }
+
+      try {
+        const identityClaim = await getMyPersonIdentityClaim({
+          eventSlug: slug,
+          participantId,
+        });
+
+        if (!isMounted) return;
+
+        setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
+      } catch {
+        if (!isMounted) return;
+        setMyIdentityClaimStatus(null);
+      } finally {
+        if (isMounted) {
+          setLoadingClaim(false);
+        }
+      }
+    }
+
+    void loadIdentityClaim();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [participantId, slug]);
+
+  const hasVerifiedClaim =
+    myIdentityClaimStatus === "approved" ||
+    myIdentityClaimStatus === "auto_verified";
+
+  const metrics = useMemo<TreeMetric[]>(() => {
+    const rootPersonId = ROOT_HONORED_PERSON_ID;
+    const computed = buildFamilyTreeMetrics(FAMILY_GRAPH, rootPersonId);
+
+    return [
+      {
+        key: "descendants",
+        label: "Descendants identifiés",
+        value: String(computed.descendantsCount),
+      },
+      {
+        key: "generations",
+        label: "Générations connues",
+        value: String(computed.generationsCount),
+      },
+      {
+        key: "branches",
+        label: "Branches familiales",
+        value: String(computed.branchesCount),
+      },
+    ];
+  }, []);
 
   const sections = useMemo<TreeHubSection[]>(
     () => [
@@ -85,17 +136,21 @@ export function FamilyTreeHubPage() {
         subtitle:
           "Les deux actions les plus utiles pour te repérer rapidement.",
         items: [
-          {
-            key: "find-me",
-            label: "Me trouver dans l’arbre",
-            description:
-              "Retrouve ta place dans la famille et accède à ta branche.",
-            icon: UserCircle2,
-            to: `/e/${slug}/family-tree/find-me`,
-            enabled: true,
-            featured: true,
-            badge: "Essentiel",
-          },
+          ...(!hasVerifiedClaim && !loadingClaim
+            ? [
+                {
+                  key: "find-me",
+                  label: "Me trouver dans l’arbre",
+                  description:
+                    "Retrouve ta place dans la famille et accède à ta branche.",
+                  icon: UserCircle2,
+                  to: `/e/${slug}/family-tree/find-me`,
+                  enabled: true,
+                  featured: true,
+                  badge: "Essentiel",
+                } satisfies TreeHubAction,
+              ]
+            : []),
           {
             key: "my-link-to-ancestor",
             label: "Voir mon lien avec Gromèr Covindou",
@@ -105,16 +160,20 @@ export function FamilyTreeHubPage() {
             enabled: true,
             featured: true,
           },
-          {
-            key: "handle-consent",
-            label: "Ma place dans l’arbre",
-            description:
-              "Retrouve ta place dans la famille et accède à ta branche.",
-            icon: Compass,
-            to: `/e/${slug}/family-tree/handle-consent`,
-            enabled: true,
-            featured: true,
-          },
+          ...(hasVerifiedClaim && !loadingClaim
+            ? [
+                {
+                  key: "handle-profile",
+                  label: "Ma place dans l’arbre",
+                  description:
+                    "Gère la visibilité de ta fiche et consulte les statistiques liées à ton profil.",
+                  icon: Compass,
+                  to: `/e/${slug}/family-tree/handle-profile`,
+                  enabled: true,
+                  featured: true,
+                } satisfies TreeHubAction,
+              ]
+            : []),
         ],
       },
       {
@@ -169,11 +228,8 @@ export function FamilyTreeHubPage() {
         ],
       },
     ],
-    [slug],
+    [hasVerifiedClaim, loadingClaim, slug],
   );
-
-  const participantSession = getParticipantSession(slug);
-  console.log("participantSession",participantSession)
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -225,9 +281,9 @@ export function FamilyTreeHubPage() {
           </div>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3">
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-700" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
             <div className="min-w-0">
               <div className="text-sm font-semibold text-amber-900">
                 Chantiers en cours
@@ -235,10 +291,10 @@ export function FamilyTreeHubPage() {
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
                   <li>Revoir les labels et les recommandés pour commencer</li>
-                  <li>Créer un item "profil vérifié" où on pourra gérer les consentements</li>
-                  <li>mettre dans la table participants une valeur par default de gedcom_person_id à valider par claim</li>
-                  <li>si gedcom_person_id alors masquer "find-me" et afficher "handle-consent" sinon l'inverse</li>
-                  <li>Family tree/story disponible que si default_gedcom_person_id + claim approved</li>
+                  <li>
+                    Family tree/story disponible que si default_gedcom_person_id
+                    + claim approved
+                  </li>
                 </ol>
               </div>
             </div>

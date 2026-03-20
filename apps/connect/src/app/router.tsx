@@ -57,6 +57,7 @@ import { FamilyTreeEntryPage } from "../features/family-tree/pages/FamilyTreeEnt
 import { FamilyRelationshipStoryPage } from "../features/family-tree/pages/FamilyRelationshipStoryPage";
 import { FamilyTreeFindMePage } from "../features/family-tree/pages/FamilyTreeFindMePage";
 import { FamilyTreeFindPersonPage } from "../features/family-tree/pages/FamilyTreeFindPersonPage";
+import { FamilyTreeHandleProfilePage } from "../features/family-tree/pages/FamilyTreeHandleProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -134,6 +135,7 @@ export const router = createBrowserRouter([
               { path: "family-tree/browse", element: <FamilyTreeBrowsePage /> },
               { path: "family-tree/story", element: <FamilyRelationshipStoryPage /> },
               { path: "family-tree/find-me", element: <FamilyTreeFindMePage />},
+              { path: "family-tree/handle-profile", element: <FamilyTreeHandleProfilePage />},
               { path: "family-tree/find-person", element: <FamilyTreeFindPersonPage  />},
 
               { path: "fiche", element: <PersonSheetPage /> },
