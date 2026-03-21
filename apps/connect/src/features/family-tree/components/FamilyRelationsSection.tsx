@@ -31,6 +31,7 @@ export function FamilyRelationsSection({
   siblings,
   grandparents,
 }: FamilyRelationsSectionProps) {
+  console.log("children",children)
   return (
     <section className="space-y-4">
       <TreeRelationSection

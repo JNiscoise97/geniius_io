@@ -197,9 +197,9 @@ export function LandingPage() {
 
 
     familyTree: "2026-03-22",
-    warmupQuizAt: "2026-03-22",
-    testimonyBefore: "2026-03-22",
-    contribute: "2026-03-22",
+    warmupQuizAt: "2026-03-25",
+    testimonyBefore: "2026-03-25",
+    contribute: "2026-03-25",
 
     familyLibrary: "2026-03-25",
 

@@ -714,9 +714,10 @@ export function FamilyTreeBrowsePage() {
 
   const [setAsProfilePhoto, setSetAsProfilePhoto] = useState(false);
 
+  const sosaReferencePersonId = sourcePersonId ?? defaultGedcomPersonId ?? null;
   const context = useMemo(
-    () => getPersonContext(centerId, visibilityPreferencesByPersonId),
-    [centerId, visibilityPreferencesByPersonId],
+    () => getPersonContext(centerId, visibilityPreferencesByPersonId, sosaReferencePersonId),
+    [centerId, visibilityPreferencesByPersonId,sosaReferencePersonId],
   );
 
   const hasPendingClaimForCurrentPerson =
@@ -797,9 +798,14 @@ export function FamilyTreeBrowsePage() {
   );
 
   const heroConfig = useMemo(
-    () => getPersonHeroConfig(centerId, visibilityPreferencesByPersonId),
-    [centerId, visibilityPreferencesByPersonId],
-  );
+  () =>
+    getPersonHeroConfig(
+      centerId,
+      visibilityPreferencesByPersonId,
+      sosaReferencePersonId,
+    ),
+  [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId],
+);
 
   const visibleOtherBranches =
     displayPerson.canDisplay && displayPerson.canDisplayName
@@ -827,13 +833,16 @@ export function FamilyTreeBrowsePage() {
       : null;
 
   const rootPerson = useMemo(
-    () =>
-      anonymizePerson(
-        getPersonContext(rootHonoredPersonId, visibilityPreferencesByPersonId)
-          .person,
-      ),
-    [rootHonoredPersonId, visibilityPreferencesByPersonId],
-  );
+  () =>
+    anonymizePerson(
+      getPersonContext(
+        rootHonoredPersonId,
+        visibilityPreferencesByPersonId,
+        sosaReferencePersonId,
+      ).person,
+    ),
+  [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId],
+);
 
   const isCenteredOnMe = Boolean(sourcePersonId && centerId === sourcePersonId);
 

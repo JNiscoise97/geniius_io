@@ -40,7 +40,6 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     ownProfileBadgeClassName:
       "bg-yellow-100 text-yellow-900 border border-yellow-300",
   },
-
   "732469": {
     id: "732469",
     label: "branche Manicon",
@@ -52,7 +51,6 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     ownProfileBadgeClassName:
       "bg-red-100 text-red-900 border border-red-200",
   },
-
   "7391": {
     id: "7391",
     label: "branche Coundéaman",
@@ -64,7 +62,6 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     ownProfileBadgeClassName:
       "bg-blue-100 text-blue-900 border border-blue-200",
   },
-
   "732470": {
     id: "732470",
     label: "branche Canou",
@@ -76,7 +73,6 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     ownProfileBadgeClassName:
       "bg-amber-100 text-amber-900 border border-amber-200",
   },
-
   "732467": {
     id: "732467",
     label: "branche Savoupaquiom",
@@ -93,19 +89,27 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
 export function getPersonContext(
   personId: string,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+  sosaReferencePersonId?: string | null,
 ) {
   return buildPersonContext(
     personId,
     FAMILY_GRAPH,
     visibilityPreferencesByPersonId,
+    sosaReferencePersonId,
   );
 }
 
 export function getPersonHeroConfig(
   personId: string,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+  sosaReferencePersonId?: string | null,
 ) {
-  const context = getPersonContext(personId, visibilityPreferencesByPersonId);
+  const context = getPersonContext(
+    personId,
+    visibilityPreferencesByPersonId,
+    sosaReferencePersonId,
+  );
+
   const branches = context.person.branch ?? [];
 
   if (branches.length === 0) {
@@ -123,16 +127,14 @@ export function getPersonHeroConfig(
     .filter(Boolean);
 
   return {
-    heroClassName:
-      mainBranch?.heroClassName ?? DEFAULT_THEME.heroClassName,
+    heroClassName: mainBranch?.heroClassName ?? DEFAULT_THEME.heroClassName,
     headerClassName:
       mainBranch?.headerClassName ?? DEFAULT_THEME.headerClassName,
-    chipClassName:
-      mainBranch?.chipClassName ?? DEFAULT_THEME.chipClassName,
+    chipClassName: mainBranch?.chipClassName ?? DEFAULT_THEME.chipClassName,
     mainBranch,
     ownProfileBadgeClassName:
-    mainBranch?.ownProfileBadgeClassName ??
-    DEFAULT_THEME.ownProfileBadgeClassName,
+      mainBranch?.ownProfileBadgeClassName ??
+      DEFAULT_THEME.ownProfileBadgeClassName,
     otherBranches,
   };
 }

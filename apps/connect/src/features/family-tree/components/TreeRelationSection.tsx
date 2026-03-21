@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Heart, User, ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Heart, User, ArrowRight, Leaf } from "lucide-react";
 import type { FamilyTreeViaAction } from "../../../lib/analytics/familyTreeViewTracker";
 import { formatYears } from "../lib/genealogyUi";
 import type { PersonSummary } from "../types";
@@ -116,6 +116,11 @@ function TreePersonCard({
             <div className="text-[16px] font-black text-slate-900">
               {person.firstName} {person.lastName}
             </div>
+            {person.isSosa ? (
+    <span className="inline-flex items-center gap-1 rounded-full  px-2 py-1 text-[10px] font-black text-emerald-900">
+      <Leaf size={14} className="fill-emerald-700" />
+    </span>
+  ) : null}
 
             {person.subtitle ? (
               <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-700">
