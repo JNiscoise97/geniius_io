@@ -103,7 +103,7 @@ export function PersonVisibilityRequestFormPanel({
               />
               <div className="min-w-0">
                 <div className="text-sm font-semibold">
-                  J’ai son consentement pour demander l’affichage de cette fiche
+                  J’ai son consentement pour demander l’affichage de cette fiche aux cousins qui ont accès à l'application
                 </div>
               </div>
             </label>

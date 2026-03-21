@@ -411,7 +411,7 @@ function TreeActionCard({
           ) : item.featured ? (
             <span className="text-emerald-700">Utile pour se repérer</span>
           ) : (
-            <span className="text-slate-500">Ouvrir</span>
+            null
           )}
         </div>
       </div>
