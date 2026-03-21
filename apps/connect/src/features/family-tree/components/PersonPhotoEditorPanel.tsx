@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, Info, Save, Upload, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Camera, Info, Save, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SmartImage } from "../../../lib/media/useSmartImage";
 
@@ -261,7 +261,6 @@ export function PersonPhotoEditorPanel({
             />
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-sm font-semibold text-indigo-950">
-                <UserCircle2 size={16} />
                 Définir cette photo comme photo de profil
               </div>
               <div className="mt-1 text-xs leading-5 text-indigo-900">

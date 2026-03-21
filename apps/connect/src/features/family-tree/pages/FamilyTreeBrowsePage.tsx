@@ -73,7 +73,7 @@ import {
 } from "../config/configGenealogy";
 
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { PersonPhotoEditorPanel } from "../components/PersonPhotoUploadPanel";
+import { PersonPhotoEditorPanel } from "../components/PersonPhotoEditorPanel";
 import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
 import {
   getTouchedParticipants,
