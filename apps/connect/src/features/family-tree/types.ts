@@ -44,6 +44,7 @@ export type PersonSummary = {
   spouseRoleLabel?: string;
   linkedSpouseLabel?: string;
   isPossiblyAlive?: boolean;
+  isSosa: boolean;
   canDisplay: boolean;
   canDisplayName: boolean;
   canDisplayPhoto: boolean;
