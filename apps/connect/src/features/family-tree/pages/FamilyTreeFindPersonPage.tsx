@@ -638,6 +638,23 @@ export function FamilyTreeFindPersonPage() {
             ) : enrichedResults.length === 0 ? (
               <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
                 {FAMILY_SEARCH_NO_RESULT_MESSAGE}
+                <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-indigo-950">
+                        Certaines personnes n’apparaissent pas dans la recherche
+                      </div>
+                      <div className="mt-1 text-xs leading-5 text-indigo-900">
+                        Une identité est considérée comme privée lorsque la
+                        personne concernée n’a pas elle-même consenti à
+                        apparaître dans l’arbre généalogique de cette
+                        application. Ces profils sont donc exclus des résultats
+                        de recherche.
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </section>
             ) : (
               <section className="mt-4 space-y-3">
@@ -653,6 +670,23 @@ export function FamilyTreeFindPersonPage() {
                     onCenter={() => handleCenterPerson(result.person.id)}
                   />
                 ))}
+                <div className="mt-4 rounded-[20px] border border-indigo-200 bg-indigo-50 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-indigo-950">
+                        Certaines personnes n’apparaissent pas dans la recherche
+                      </div>
+                      <div className="mt-1 text-xs leading-5 text-indigo-900">
+                        Une identité est considérée comme privée lorsque la
+                        personne concernée n’a pas elle-même consenti à
+                        apparaître dans l’arbre généalogique de cette
+                        application. Ces profils sont donc exclus des résultats
+                        de recherche.
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </section>
             )}
           </>
