@@ -165,15 +165,17 @@ export function FamilyTreeHubPage() {
               ]
             : []),
           {
-            key: "my-link-to-ancestor",
-            label: "Voir mon lien avec Gromèr Covindou",
-            description: "Découvre comment tu descends de Gromèr.",
-            icon: Heart,
-            to: `/e/${slug}/family-tree/story`,
-            enabled: false,
-            badge: "Disponible demain",
-            featured: true,
-          },
+          key: "my-link-to-ancestor",
+          label: "Voir mon lien avec Gromèr Covindou",
+          description: hasVerifiedClaim
+            ? "Découvre comment tu descends de Gromèr."
+            : "Disponible une fois ton profil vérifié dans l’arbre.",
+          icon: Heart,
+          to: hasVerifiedClaim ? `/e/${slug}/family-tree/story` : undefined,
+          enabled: hasVerifiedClaim,
+          badge: hasVerifiedClaim ? undefined : "Profil à vérifier",
+          featured: true,
+        } satisfies TreeHubAction,
         ],
       },
       {
