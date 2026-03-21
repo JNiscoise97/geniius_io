@@ -117,10 +117,10 @@ function TreePersonCard({
               {person.firstName} {person.lastName}
             </div>
             {person.isSosa ? (
-    <span className="inline-flex items-center gap-1 rounded-full  px-2 py-1 text-[10px] font-black text-emerald-900">
-      <Leaf size={14} className="fill-emerald-700" />
-    </span>
-  ) : null}
+              <span className="inline-flex items-center gap-1 rounded-full  px-2 py-1 text-[10px] font-black text-emerald-900">
+                <Leaf size={14} className="fill-emerald-700" />
+              </span>
+            ) : null}
 
             {person.subtitle ? (
               <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-700">

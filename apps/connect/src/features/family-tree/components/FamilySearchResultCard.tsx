@@ -1,4 +1,4 @@
-import { ArrowRight, Heart, User } from "lucide-react";
+import { ArrowRight, Heart, Leaf, User } from "lucide-react";
 import type { PersonSummary } from "../types";
 
 function formatYears(person: PersonSummary) {
@@ -54,6 +54,12 @@ export function FamilySearchResultCard({
               <div className="text-[16px] font-black text-slate-900">
                 {person.firstName} {person.lastName}
               </div>
+
+              {person.isSosa ? (
+                <span className="inline-flex items-center rounded-full px-1 py-1 text-emerald-900">
+                  <Leaf size={14} className="fill-emerald-700" />
+                </span>
+              ) : null}
             </div>
 
             {person.nickname ? (

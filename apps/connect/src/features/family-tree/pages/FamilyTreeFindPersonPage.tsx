@@ -397,6 +397,13 @@ export function FamilyTreeFindPersonPage() {
   const isTyping = trimmedQuery !== trimmedDebouncedQuery;
   const canSearchInTree = Boolean(defaultGedcomPersonId);
 
+  const sosaReferencePersonId =
+    (myIdentityClaimStatus === "approved" ||
+      myIdentityClaimStatus === "auto_verified") &&
+      claimedPersonId
+      ? claimedPersonId
+      : defaultGedcomPersonId ?? undefined;
+
   const results = useMemo(() => {
     if (!canSearchInTree) return [];
     if (visibilityPreferencesLoading) return [];
@@ -427,12 +434,14 @@ export function FamilyTreeFindPersonPage() {
       const rawPerson = getPersonContext(
         result.personId,
         visibilityPreferencesByPersonId,
+        sosaReferencePersonId,
       ).person;
 
       const person = getDisplaySearchPerson(rawPerson, forceDisplayedPersonIds);
-      const source = getPersonContext(
+            const source = getPersonContext(
         centerId,
         visibilityPreferencesByPersonId,
+        sosaReferencePersonId,
       ).person;
 
       const path = findRelationshipPath(FAMILY_GRAPH, centerId, result.personId);
@@ -442,18 +451,18 @@ export function FamilyTreeFindPersonPage() {
         rawPerson.sex,
       );
 
-    if (result.personId === "7351") {
-      console.log("rawPerson flags", {
-        canDisplay: rawPerson.canDisplay,
-        canDisplayName: rawPerson.canDisplayName,
-        canDisplayPhoto: rawPerson.canDisplayPhoto,
-        canDisplayInfo: rawPerson.canDisplayInfo,
-      });
-      console.log("rawPerson", rawPerson);
-  console.log("displayedPerson", person);
-  console.log("relationshipSummary", relationshipSummary);
-    }
-    console.log("forceDisplayedPersonIds", forceDisplayedPersonIds);
+      if (result.personId === "7351") {
+        console.log("rawPerson flags", {
+          canDisplay: rawPerson.canDisplay,
+          canDisplayName: rawPerson.canDisplayName,
+          canDisplayPhoto: rawPerson.canDisplayPhoto,
+          canDisplayInfo: rawPerson.canDisplayInfo,
+        });
+        console.log("rawPerson", rawPerson);
+        console.log("displayedPerson", person);
+        console.log("relationshipSummary", relationshipSummary);
+      }
+      console.log("forceDisplayedPersonIds", forceDisplayedPersonIds);
 
       return {
         person,
@@ -467,15 +476,17 @@ export function FamilyTreeFindPersonPage() {
     centerId,
     forceDisplayedPersonIds,
     visibilityPreferencesByPersonId,
+    sosaReferencePersonId
   ]);
 
   const recentPersons = useMemo(() => {
     return recentIds
       .map((personId) => {
         try {
-          return getPersonContext(
+           return getPersonContext(
             personId,
             visibilityPreferencesByPersonId,
+            sosaReferencePersonId,
           ).person;
         } catch {
           return null;
@@ -487,7 +498,7 @@ export function FamilyTreeFindPersonPage() {
         return forceDisplayedPersonIds.includes(person.id);
       })
       .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
-  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId]);
+  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId,sosaReferencePersonId]);
 
   function handleCenterPerson(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
