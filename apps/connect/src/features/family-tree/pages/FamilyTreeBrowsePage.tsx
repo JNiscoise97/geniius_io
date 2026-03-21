@@ -28,7 +28,6 @@ import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim"
 import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
 import { deleteMyPersonPhoto } from "../api/deleteMyPersonPhoto";
 import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
-import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
 import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
 import {
   getMyPersonMemoryModerationCounts,
@@ -81,6 +80,7 @@ import {
 } from "../api/getTouchedParticipants";
 import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
 import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
+import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
 
 type BrowsePanelMode =
   | "relations"
@@ -909,7 +909,7 @@ export function FamilyTreeBrowsePage() {
 
   async function loadVisibilityPreferencesMap() {
     try {
-      const map = await getFamilyTreeVisibilityPreferencesMap({
+      const map = await getFamilyTreeEffectiveVisibilityMap({
         eventSlug: slug,
       });
 
@@ -1644,8 +1644,7 @@ export function FamilyTreeBrowsePage() {
                     Photos:
                     <ul>
                       <li>Photo pour remplacer celle affichée</li>
-                      <li>Notif mail</li>
-                      <li>modération</li>
+                      <li>Notif mail avec PJ</li>
                     </ul>
                   </li>
                   <li>Fiche + icon dans le hero</li>

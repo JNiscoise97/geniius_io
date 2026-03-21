@@ -1,13 +1,13 @@
-// src/features/moderation/pages/ModerationQueuePage.tsx
-
 import {
   AlertTriangle,
   Camera,
   ChevronRight,
   Clock3,
+  Eye,
   Loader2,
   Lock,
   MessageSquareText,
+  UserCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,6 +19,8 @@ const MODERATION_PASSWORD = "3826";
 
 function QueueItemIcon({ type }: { type: ModerationQueueItem["type"] }) {
   if (type === "photo") return <Camera size={18} />;
+  if (type === "visibility_request") return <Eye size={18} />;
+  if (type === "identity_claim") return <UserCheck size={18} />;
   return <MessageSquareText size={18} />;
 }
 
@@ -267,7 +269,7 @@ export function ModerationQueuePage() {
             Aucun élément en attente
           </div>
           <div className="mt-2 text-sm font-medium text-slate-500">
-            Tous les souvenirs et toutes les photos ont déjà été traités.
+            Tous les souvenirs, photos et demandes ont déjà été traités.
           </div>
         </section>
       ) : (

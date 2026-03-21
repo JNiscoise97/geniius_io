@@ -1,28 +1,26 @@
-// src/features/moderation/types.ts
-
-export type ModerationEntityType =
+export type SupportedModerationEntityType =
   | "memory"
   | "photo"
-  | "relation"
-  | "profile";
+  | "visibility_request"
+  | "identity_claim";
 
-export type SupportedModerationEntityType = "memory" | "photo";
-
-export type ModerationStatus = "pending" | "approved" | "rejected";
+export type ModerationStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "auto_verified";
 
 export type ModerationQueueItem = {
   id: string;
-  type: ModerationEntityType;
+  type: SupportedModerationEntityType;
   title: string;
   subtitle?: string;
   preview?: string;
   submittedAt: string;
-
-  participantId?: string;
-  participantLabel?: string;
-
-  personId?: string;
-  personLabel?: string;
+  participantId?: string | null;
+  participantLabel?: string | null;
+  personId?: string | null;
+  personLabel?: string | null;
 };
 
 export type ModerationMetaItem = {
@@ -30,47 +28,35 @@ export type ModerationMetaItem = {
   value: string;
 };
 
+export type ModerationActionMode = "approve_reject" | "approve_only";
+
 export type ModerationEntityRecord = {
   id: string;
-  type: ModerationEntityType;
+  type: SupportedModerationEntityType;
   title: string;
   subtitle?: string;
-  content?: string;
-  imageUrl?: string;
-  meta?: ModerationMetaItem[];
+  content?: string | null;
+  imageUrl?: string | null;
   moderationStatus: ModerationStatus;
   moderatorComment?: string | null;
-  submittedAt?: string;
+  submittedAt?: string | null;
   moderatedAt?: string | null;
+  participantId?: string | null;
+  participantLabel?: string | null;
+  personId?: string | null;
+  personLabel?: string | null;
+  meta?: ModerationMetaItem[];
+  actionMode: ModerationActionMode;
+  expectedGedcomPersonId?: string | null;
 };
 
-export type GetModerationEntityParams = {
-  eventSlug: string;
-  entityType: SupportedModerationEntityType;
-  entityId: string;
-};
-
-export type ModerateEntityInput = {
-  eventSlug: string;
-  entityType: SupportedModerationEntityType;
-  entityId: string;
-  status: Exclude<ModerationStatus, "pending">;
-  moderatorComment?: string;
-};
-
-export function isModerationEntityType(
-  value: string | undefined,
-): value is ModerationEntityType {
+export function isSupportedModerationEntityType(
+  value?: string | null,
+): value is SupportedModerationEntityType {
   return (
     value === "memory" ||
     value === "photo" ||
-    value === "relation" ||
-    value === "profile"
+    value === "visibility_request" ||
+    value === "identity_claim"
   );
-}
-
-export function isSupportedModerationEntityType(
-  value: string | undefined,
-): value is SupportedModerationEntityType {
-  return value === "memory" || value === "photo";
 }

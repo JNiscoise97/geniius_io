@@ -1,20 +1,20 @@
-// src/features/moderation/pages/ModerationReviewPage.tsx
-
 import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
+  Eye,
   Image as ImageIcon,
   Loader2,
   Lock,
   MessageSquareText,
+  UserCheck,
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { getModerationEntity } from "../api/getModerationEntity";
-import { moderateEntity } from "../api/moderateEntity";
+import { processModerationEntity } from "../api/moderateEntity";
 import type {
   ModerationEntityRecord,
   ModerationStatus,
@@ -42,6 +42,14 @@ function getStatusBadge(status: ModerationStatus) {
           "inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700",
       };
 
+    case "auto_verified":
+      return {
+        label: "Auto-vérifié",
+        icon: <CheckCircle2 size={16} />,
+        className:
+          "inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700",
+      };
+
     case "pending":
     default:
       return {
@@ -56,6 +64,14 @@ function getStatusBadge(status: ModerationStatus) {
 function EntityIcon({ type }: { type: SupportedModerationEntityType }) {
   if (type === "photo") {
     return <ImageIcon size={18} />;
+  }
+
+  if (type === "visibility_request") {
+    return <Eye size={18} />;
+  }
+
+  if (type === "identity_claim") {
+    return <UserCheck size={18} />;
   }
 
   return <MessageSquareText size={18} />;
@@ -110,9 +126,10 @@ export function ModerationReviewPage() {
   const [entity, setEntity] = useState<ModerationEntityRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [submittingAction, setSubmittingAction] = useState<
-    "approved" | "rejected" | null
+    "approved" | "rejected" | "confirm_identity" | null
   >(null);
   const [moderatorComment, setModeratorComment] = useState("");
+  const [expectedGedcomPersonId, setExpectedGedcomPersonId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -130,6 +147,9 @@ export function ModerationReviewPage() {
     if (!entity) return null;
     return getStatusBadge(entity.moderationStatus);
   }, [entity]);
+
+  const isIdentityClaim = entity?.type === "identity_claim";
+  const supportsApproveReject = entity?.actionMode === "approve_reject";
 
   async function load() {
     if (!eventSlug || !validType || !entityId) {
@@ -150,6 +170,7 @@ export function ModerationReviewPage() {
 
       setEntity(data);
       setModeratorComment(data.moderatorComment ?? "");
+      setExpectedGedcomPersonId(data.expectedGedcomPersonId ?? "");
     } catch (err) {
       setError(
         err instanceof Error
@@ -211,7 +232,7 @@ export function ModerationReviewPage() {
     setError(null);
 
     try {
-      await moderateEntity({
+      await processModerationEntity({
         eventSlug,
         entityType: validType,
         entityId,
@@ -225,6 +246,39 @@ export function ModerationReviewPage() {
         err instanceof Error
           ? err.message
           : "Impossible de mettre à jour la modération.",
+      );
+      setSubmittingAction(null);
+    }
+  }
+
+  async function handleConfirmIdentityClaim() {
+    if (!eventSlug || !validType || !entityId || !entity) return;
+
+    const cleanedGedcomPersonId = expectedGedcomPersonId.trim();
+
+    if (!cleanedGedcomPersonId) {
+      setError("Le GEDCOM person id attendu est requis.");
+      return;
+    }
+
+    setSubmittingAction("confirm_identity");
+    setError(null);
+
+    try {
+      await processModerationEntity({
+        eventSlug,
+        entityType: validType,
+        entityId,
+        moderatorComment,
+        expectedGedcomPersonId: cleanedGedcomPersonId,
+      });
+
+      navigate(`/e/${eventSlug}/moderation`, { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de confirmer la demande d’identification.",
       );
       setSubmittingAction(null);
     }
@@ -369,7 +423,9 @@ export function ModerationReviewPage() {
     );
   }
 
-  const alreadyModerated = entity.moderationStatus !== "pending";
+  const alreadyModerated =
+    entity.moderationStatus !== "pending" &&
+    entity.moderationStatus !== "auto_verified";
   const isSubmitting = submittingAction !== null;
 
   return (
@@ -449,7 +505,7 @@ export function ModerationReviewPage() {
                   <div className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
                     {item.label}
                   </div>
-                  <div className="mt-1 text-sm font-semibold text-slate-800">
+                  <div className="mt-1 break-words text-sm font-semibold text-slate-800">
                     {item.value}
                   </div>
                 </div>
@@ -475,6 +531,29 @@ export function ModerationReviewPage() {
             placeholder="Ex. photo floue, doublon, souvenir à reformuler…"
           />
 
+          {isIdentityClaim ? (
+            <div className="mt-4">
+              <div className="text-sm font-black text-slate-900">
+                GEDCOM person id attendu
+              </div>
+              <div className="mt-1 text-sm font-medium text-slate-500">
+                Cette valeur sera copiée dans{" "}
+                <span className="font-bold">participants.default_gedcom_person_id</span>{" "}
+                et remplacera aussi{" "}
+                <span className="font-bold">family_person_identity_claims.person_id</span>.
+              </div>
+
+              <input
+                type="text"
+                value={expectedGedcomPersonId}
+                onChange={(e) => setExpectedGedcomPersonId(e.target.value)}
+                disabled={isSubmitting}
+                placeholder="Ex. I1234"
+                className="mt-3 w-full rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-300"
+              />
+            </div>
+          ) : null}
+
           {error ? (
             <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
               {error}
@@ -482,23 +561,40 @@ export function ModerationReviewPage() {
           ) : null}
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => void handleModerate("approved")}
-              disabled={isSubmitting}
-              className="flex-1 rounded-[20px] bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submittingAction === "approved" ? "Validation…" : "Valider"}
-            </button>
+            {supportsApproveReject ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void handleModerate("approved")}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-[20px] bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submittingAction === "approved" ? "Validation…" : "Valider"}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => void handleModerate("rejected")}
-              disabled={isSubmitting}
-              className="flex-1 rounded-[20px] bg-rose-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submittingAction === "rejected" ? "Rejet…" : "Rejeter"}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => void handleModerate("rejected")}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-[20px] bg-rose-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submittingAction === "rejected" ? "Rejet…" : "Rejeter"}
+                </button>
+              </>
+            ) : null}
+
+            {isIdentityClaim ? (
+              <button
+                type="button"
+                onClick={() => void handleConfirmIdentityClaim()}
+                disabled={isSubmitting}
+                className="flex-1 rounded-[20px] bg-indigo-600 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submittingAction === "confirm_identity"
+                  ? "Confirmation…"
+                  : "Confirmer l’identification"}
+              </button>
+            ) : null}
           </div>
 
           <div className="mt-3">

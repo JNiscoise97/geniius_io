@@ -16,12 +16,6 @@ export function buildFamilySearchIndex(
       person,
       visibilityPreferencesByPersonId?.[person.id],
     );
-    if (person.id === "7351") {
-  console.log("🔎 INDEX BUILD");
-  console.log("person", person);
-  console.log("visibility prefs", visibilityPreferencesByPersonId?.[person.id]);
-  console.log("displayPermissions", displayPermissions);
-}
 
     const firstNameNormalized = displayPermissions.canDisplayName
       ? normalizeSearchText(person.firstName)

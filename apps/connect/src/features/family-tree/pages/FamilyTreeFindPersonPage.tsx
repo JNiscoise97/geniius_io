@@ -6,7 +6,6 @@ import { getParticipantSession } from "../../../lib/participant-session/getActiv
 import { useDebouncedValue } from "../../../lib/useDebouncedValue";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { buildFamilySearchIndex } from "../api/buildFamilySearchIndex";
-import { getFamilyTreeVisibilityPreferencesMap } from "../api/getFamilyTreeVisibilityPreferencesMap";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
@@ -33,6 +32,7 @@ import {
   pushRecentFamilySearch,
 } from "../lib/familySearchRecent";
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
+import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
 
 function getAncestorLabel(level: number, sex?: string) {
   const isFemale = sex === "F";
@@ -299,7 +299,7 @@ export function FamilyTreeFindPersonPage() {
       try {
         setVisibilityPreferencesLoading(true);
 
-        const map = await getFamilyTreeVisibilityPreferencesMap({
+        const map = await getFamilyTreeEffectiveVisibilityMap({
           eventSlug: slug,
         });
 
