@@ -264,13 +264,11 @@ export class FamilyTreeViewTracker {
       deviceType: this.deviceType,
     };
 
-    if (
-      payload.visibleMs === 0 &&
-      payload.engagedMs === 0 &&
-      payload.eventCount === 0
-    ) {
-      return;
-    }
+    // ❗ On ignore les vues trop courtes
+if (payload.visibleMs < 8000) {
+  return;
+}
+if (payload.engagedMs < 2000) return;
 
     try {
       await insertFamilyTreeView(payload);

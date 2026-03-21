@@ -175,7 +175,12 @@ export function FamilyRelationshipStoryPage() {
                   <li>Voir mon lien avec Gromèr
                     <ul>
                       <li>un écran un peu propre qui explicite le lien direct</li>
+                      
                     </ul>
+                  </li>
+                  <li>
+                    Family tree/story disponible que si default_gedcom_person_id
+                    + claim approved
                   </li>
                 </ol>
               </div>

@@ -17,6 +17,7 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
 import { saveTreeProfileConsents } from "../../participant-preferences/api/saveTreeProfileConsents";
 import { getTreeProfileConsents } from "../../participant-preferences/api/getTreeProfileConsents";
+import { supabase } from "../../../lib/supabase/client";
 
 type HandleProfileValues = {
   allowNameInFamilyTree: boolean | null;
@@ -161,7 +162,7 @@ export function FamilyTreeHandleProfilePage() {
 
         const verifiedPersonId =
           identityClaim?.claim_status === "approved" ||
-            identityClaim?.claim_status === "auto_verified"
+          identityClaim?.claim_status === "auto_verified"
             ? identityClaim.person_id
             : null;
 
@@ -186,7 +187,9 @@ export function FamilyTreeHandleProfilePage() {
         }
       } catch (e: any) {
         if (!isMounted) return;
-        setError(e?.message ?? "Impossible de charger les informations du profil.");
+        setError(
+          e?.message ?? "Impossible de charger les informations du profil.",
+        );
       } finally {
         if (isMounted) {
           setLoadingInitialData(false);
@@ -220,11 +223,9 @@ export function FamilyTreeHandleProfilePage() {
         participantId: session.participantId,
         eventSlug: slug,
         values: {
-
           allowNameInFamilyTree: values.allowNameInFamilyTree,
           allowPhotoInFamilyTree: values.allowPhotoInFamilyTree,
           allowInfoInFamilyTree: values.allowInfoInFamilyTree,
-
         },
       });
 
@@ -267,18 +268,20 @@ export function FamilyTreeHandleProfilePage() {
             familial.
           </p>
 
-          {isVerified ? null : 
-            (<div
-            className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${isVerified
-                ? "bg-emerald-50 text-emerald-700"
-                : identityStatus === "pending"
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-slate-100 text-slate-700"
+          {isVerified ? null : (
+            <div
+              className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${
+                isVerified
+                  ? "bg-emerald-50 text-emerald-700"
+                  : identityStatus === "pending"
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-slate-100 text-slate-700"
               }`}
-          >
-            <BadgeCheck size={14} />
-            {verifiedLabel}
-          </div>)}
+            >
+              <BadgeCheck size={14} />
+              {verifiedLabel}
+            </div>
+          )}
         </section>
 
         {error ? (
@@ -303,76 +306,60 @@ export function FamilyTreeHandleProfilePage() {
           </section>
         ) : (
           <form id="handle-profile-form" onSubmit={onSubmit} className="mt-3">
-            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>Brancher les deux fonctions de calcul</li>
-                  <li>Mes j'aime</li>
-                  <li>Les j'aime que j'ai donné</li>
-                  <li>Nombre de personnes individuelles qui se sont arrêtés sur ma fiche</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
-        {verifiedPersonId ? (
-  <section className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
-    <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500">
-      Accès rapides
-    </div>
+            {verifiedPersonId ? (
+              <section className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
+                <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500">
+                  Accès rapides
+                </div>
 
-    <div className="mt-3 grid grid-cols-2 gap-3">
-      <button
-        type="button"
-        onClick={() =>
-          nav(`/e/${slug}/family-tree/browse?personId=${verifiedPersonId}`)
-        }
-        className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
-      >
-        <div className="flex items-center gap-3">
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      nav(
+                        `/e/${slug}/family-tree/browse?personId=${verifiedPersonId}`,
+                      )
+                    }
+                    className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[15px] font-black text-slate-900">
+                          Me voir dans l’arbre
+                        </div>
+                      </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-black text-slate-900">
-              Me voir dans l’arbre
-            </div>
-          </div>
+                      <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                  </button>
 
-          <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
-            <ArrowRight size={18} />
-          </div>
-        </div>
-      </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      nav(
+                        `/e/${slug}/family-tree/person?id=${verifiedPersonId}`,
+                      )
+                    }
+                    className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[15px] font-black text-slate-900">
+                          Voir ma fiche
+                        </div>
+                      </div>
 
-      <button
-        type="button"
-        onClick={() =>
-          nav(`/e/${slug}/family-tree/person?id=${verifiedPersonId}`)
-        }
-        className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
-      >
-        <div className="flex items-center gap-3">
-
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-black text-slate-900">
-              Voir ma fiche
-            </div>
-          </div>
-
-          <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
-            <ArrowRight size={18} />
-          </div>
-        </div>
-      </button>
-    </div>
-  </section>
-) : null}
-        <section className="grid grid-cols-2 gap-3">
+                      <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </section>
+            ) : null}
+            <section className="grid grid-cols-2 gap-3">
               <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
                   <Heart size={18} />
@@ -562,22 +549,55 @@ function ProfileConsentField({
   );
 }
 
-/**
- * TODO à brancher sur la vraie source des réactions
- */
-async function getProfileReactionCount(_: {
+async function getProfileReactionCount({
+  eventSlug,
+  personId,
+}: {
   eventSlug: string;
   personId: string;
 }): Promise<number> {
-  return 0;
+  const { count, error } = await supabase
+    .from("family_person_reactions")
+    .select("*", { count: "exact", head: true })
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId)
+    .eq("is_active", true);
+
+  if (error) {
+    throw new Error(
+      error.message || "Impossible de récupérer le nombre de réactions.",
+    );
+  }
+
+  return count ?? 0;
 }
 
-/**
- * TODO à brancher sur la vraie source des vues
- */
-async function getProfileViewCount(_: {
+async function getProfileViewCount({
+  eventSlug,
+  personId,
+}: {
   eventSlug: string;
   personId: string;
 }): Promise<number> {
-  return 0;
+  const { data, error } = await supabase
+    .from("participant_family_tree_views")
+    .select("participant_id")
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId);
+
+  if (error) {
+    throw new Error(
+      error.message || "Impossible de récupérer le nombre de vues.",
+    );
+  }
+
+  const distinctParticipantIds = new Set(
+    (data ?? [])
+      .map((row) => row.participant_id)
+      .filter((participantId): participantId is string =>
+        Boolean(participantId),
+      ),
+  );
+
+  return distinctParticipantIds.size;
 }

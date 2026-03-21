@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Compass,
@@ -281,27 +280,6 @@ export function FamilyTreeHubPage() {
             ))}
           </div>
         </section>
-
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>Revoir les labels et les recommandés pour commencer</li>
-                  <li>
-                    Family tree/story disponible que si default_gedcom_person_id
-                    + claim approved
-                  </li>
-                  <li>Calque family-knowledge sur browse</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className="mt-6 space-y-6">
           {sections.map((section) => (

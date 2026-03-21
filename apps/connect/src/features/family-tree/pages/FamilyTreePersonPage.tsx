@@ -482,13 +482,10 @@ export function FamilyTreePersonPage() {
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
                   <li>
-                    Signaler un manque, un soucis
-                    <ul>
-                      <li>modération</li>
-                      <li>Notif mail</li>
-                    </ul>
+                    Brancher "Signaler une incohérence" (mail avec preset)
                   </li>
-                  <li>Fiche + icon dans le hero</li>
+                  <li>Ajouter les informations saisies par les participants</li>
+                  <li>Ajouter les informations généalogiques sur cette personne</li>
                 </ol>
               </div>
             </div>
