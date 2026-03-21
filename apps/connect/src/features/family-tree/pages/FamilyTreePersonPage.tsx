@@ -13,6 +13,10 @@ import { SmartImage } from "../../../lib/media/useSmartImage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
 import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
+import {
+  getPersonParticipantProfile,
+  type PersonParticipantProfile,
+} from "../api/getPersonParticipantProfile";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import {
   getPersonContext,
@@ -62,9 +66,7 @@ function anonymizePerson(person: PersonSummary): PersonSummary {
   return {
     ...person,
     firstName:
-      person.canDisplay && person.canDisplayName
-        ? person.firstName
-        : "Personne",
+      person.canDisplay && person.canDisplayName ? person.firstName : "Personne",
     lastName:
       person.canDisplay && person.canDisplayName ? person.lastName : "privée",
     nickname:
@@ -215,9 +217,7 @@ function formatRegional(place: ParsedPlace): string {
 }
 
 function formatInternational(place: ParsedPlace): string {
-  return (
-    [place.city, place.region, place.country].filter(Boolean).join(", ") || "?"
-  );
+  return [place.city, place.region, place.country].filter(Boolean).join(", ") || "?";
 }
 
 function formatPlaceTransition(
@@ -265,6 +265,14 @@ function formatYears(person: PersonSummary) {
   return birthYear ?? "?";
 }
 
+function hasParticipantProfileContent(profile: PersonParticipantProfile | null) {
+  if (!profile) return false;
+
+  return Boolean(
+    profile.city || profile.occupation || profile.interests || profile.freeShare,
+  );
+}
+
 export function FamilyTreePersonPage() {
   const navigate = useNavigate();
   const { eventSlug } = useParams();
@@ -277,6 +285,8 @@ export function FamilyTreePersonPage() {
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
     useState<PersonVisibilityPreferenceMap>({});
+  const [participantProfile, setParticipantProfile] =
+    useState<PersonParticipantProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -285,17 +295,28 @@ export function FamilyTreePersonPage() {
     async function run() {
       try {
         setIsLoading(true);
-        const map = await getFamilyTreeEffectiveVisibilityMap({
-          eventSlug: slug,
-        });
+
+        const [visibilityMap, personParticipantProfile] = await Promise.all([
+          getFamilyTreeEffectiveVisibilityMap({
+            eventSlug: slug,
+          }),
+          personId
+            ? getPersonParticipantProfile({
+                eventSlug: slug,
+                personId,
+              })
+            : Promise.resolve(null),
+        ]);
 
         if (!cancelled) {
-          setVisibilityPreferencesByPersonId(map);
+          setVisibilityPreferencesByPersonId(visibilityMap);
+          setParticipantProfile(personParticipantProfile);
         }
       } catch (error) {
         console.error(error);
         if (!cancelled) {
           setVisibilityPreferencesByPersonId({});
+          setParticipantProfile(null);
         }
       } finally {
         if (!cancelled) {
@@ -309,7 +330,7 @@ export function FamilyTreePersonPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, personId]);
 
   const personExists = Boolean(personId && FAMILY_GRAPH.people[personId]);
 
@@ -333,13 +354,29 @@ export function FamilyTreePersonPage() {
     ? formatPlaceTransition(displayPerson.birthPlace, displayPerson.deathPlace)
     : null;
 
+  const showParticipantProfile = hasParticipantProfileContent(participantProfile);
+
   function handleBack() {
     navigate(`/e/${slug}/family-tree/browse?personId=${personId}`);
   }
 
   function handleReportIssue() {
-    navigate(`/e/${slug}/family-tree/report?id=${personId}`);
+  const params = new URLSearchParams({
+    preset: "report-person-issue",
+    personId,
+  });
+
+  if (displayPerson?.canDisplayName) {
+    if (displayPerson.firstName) {
+      params.set("personFirstName", displayPerson.firstName);
+    }
+    if (displayPerson.lastName) {
+      params.set("personLastName", displayPerson.lastName);
+    }
   }
+
+  navigate(`/e/${slug}/contact?${params.toString()}`);
+}
 
   if (isLoading) {
     return (
@@ -481,16 +518,66 @@ export function FamilyTreePersonPage() {
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
-                  <li>
-                    Brancher "Signaler une incohérence" (mail avec preset)
-                  </li>
-                  <li>Ajouter les informations saisies par les participants</li>
                   <li>Ajouter les informations généalogiques sur cette personne</li>
                 </ol>
               </div>
             </div>
           </div>
         </div>
+
+        {showParticipantProfile ? (
+          <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              En savoir plus
+            </div>
+
+            <div className="mt-3 space-y-4">
+              {participantProfile?.city ? (
+                <div>
+                  <div className="text-xs font-extrabold uppercase tracking-wide text-slate-400">
+                    Vit aujourd’hui à
+                  </div>
+                  <div className="mt-1 text-sm font-semibold leading-6 text-slate-800">
+                    {participantProfile.city}
+                  </div>
+                </div>
+              ) : null}
+
+              {participantProfile?.occupation ? (
+                <div>
+                  <div className="text-xs font-extrabold uppercase tracking-wide text-slate-400">
+                    Dans la vie
+                  </div>
+                  <div className="mt-1 text-sm font-semibold leading-6 text-slate-800 whitespace-pre-line">
+                    {participantProfile.occupation}
+                  </div>
+                </div>
+              ) : null}
+
+              {participantProfile?.interests ? (
+                <div>
+                  <div className="text-xs font-extrabold uppercase tracking-wide text-slate-400">
+                    Centres d’intérêt
+                  </div>
+                  <div className="mt-1 text-sm font-semibold leading-6 text-slate-800 whitespace-pre-line">
+                    {participantProfile.interests}
+                  </div>
+                </div>
+              ) : null}
+
+              {participantProfile?.freeShare ? (
+                <div>
+                  <div className="text-xs font-extrabold uppercase tracking-wide text-slate-400">
+                    Quelques mots en plus
+                  </div>
+                  <div className="mt-1 text-sm font-semibold leading-6 text-slate-800 whitespace-pre-line">
+                    {participantProfile.freeShare}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">

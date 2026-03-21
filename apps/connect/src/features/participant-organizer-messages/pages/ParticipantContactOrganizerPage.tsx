@@ -45,6 +45,30 @@ function hasAtLeastOneRequiredContact(
   return Boolean(values.phone.trim() || values.email.trim());
 }
 
+function buildPersonIssueMessage(params: {
+  personId: string;
+  personLabel?: string | null;
+}): string {
+  const personLine = params.personLabel
+    ? `${params.personLabel} (ID ${params.personId})`
+    : `ID ${params.personId}`;
+
+  return [
+    `Bonjour,`,
+    ``,
+    `Je souhaite signaler une erreur, une incohérence, un doute ou une information à vérifier concernant la personne suivante : ${personLine}.`,
+    ``,
+    `Voici ce qui me semble incorrect, incomplet ou incertain :`,
+    `- `,
+    ``,
+    `Proposition de correction ou précision éventuelle :`,
+    `- `,
+    ``,
+    `Source, contexte ou explication complémentaire :`,
+    `- `,
+  ].join("\n");
+}
+
 export function ParticipantContactOrganizerPage() {
   const nav = useNavigate();
   const location = useLocation();
@@ -56,14 +80,32 @@ export function ParticipantContactOrganizerPage() {
     return getContactOrganizerPreset(searchParams.get("preset"));
   }, [searchParams]);
 
+  const reportPersonId = searchParams.get("personId");
+  const reportPersonFirstName = searchParams.get("personFirstName");
+  const reportPersonLastName = searchParams.get("personLastName");
+
+  const reportPersonLabel = [reportPersonFirstName, reportPersonLastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
   const locationState =
     (location.state as ContactOrganizerLocationState | null) ?? null;
 
-  const [values, setValues] = useState<ContactOrganizerFormValues>(() => ({
+  const [values, setValues] = useState<ContactOrganizerFormValues>(() => {
+  const initialMessage =
+    preset?.key === "report-person-issue" && reportPersonId
+      ? buildPersonIssueMessage({
+          personId: reportPersonId,
+          personLabel: reportPersonLabel || null,
+        })
+      : (preset?.messageTemplate ?? "");
+
+  return {
     ...INITIAL_VALUES,
     topic: preset?.forcedTopic ?? "",
-    message: preset?.messageTemplate ?? "",
-  }));
+    message: initialMessage,
+  };
+});
 
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -90,15 +132,25 @@ export function ParticipantContactOrganizerPage() {
   }, [participantId, slug]);
 
   useEffect(() => {
-    setValues((prev) => ({
+  setValues((prev) => {
+    const presetMessage =
+      preset?.key === "report-person-issue" && reportPersonId
+        ? buildPersonIssueMessage({
+            personId: reportPersonId,
+            personLabel: reportPersonLabel || null,
+          })
+        : (preset?.messageTemplate ?? prev.message);
+
+    return {
       ...prev,
       topic: preset?.forcedTopic ?? prev.topic,
       message:
         prev.message.trim().length > 0
           ? prev.message
-          : (preset?.messageTemplate ?? prev.message),
-    }));
-  }, [preset]);
+          : presetMessage,
+    };
+  });
+}, [preset, reportPersonId, reportPersonLabel]);
 
   useEffect(() => {
     let mounted = true;
@@ -118,9 +170,9 @@ export function ParticipantContactOrganizerPage() {
 
         const wantsReply = Boolean(
           profile.phone ||
-            profile.email ||
-            profile.messenger ||
-            profile.preferredContactChannels.length > 0,
+          profile.email ||
+          profile.messenger ||
+          profile.preferredContactChannels.length > 0,
         );
 
         setValues((prev) => ({
@@ -378,7 +430,7 @@ export function ParticipantContactOrganizerPage() {
             setValues((prev) => ({
               ...prev,
               ...patch,
-              topic: preset?.forcedTopic ?? (patch.topic ?? prev.topic),
+              topic: preset?.forcedTopic ?? patch.topic ?? prev.topic,
             }))
           }
           onSubmit={onSubmit}
