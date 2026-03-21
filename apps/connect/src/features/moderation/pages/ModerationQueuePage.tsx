@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clock3,
   Loader2,
+  Lock,
   MessageSquareText,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,6 +14,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { listPendingModerationItems } from "../api/listPendingModerationItems";
 import type { ModerationQueueItem } from "../types";
+
+const MODERATION_PASSWORD = "3826";
 
 function QueueItemIcon({ type }: { type: ModerationQueueItem["type"] }) {
   if (type === "photo") return <Camera size={18} />;
@@ -26,6 +29,14 @@ export function ModerationQueuePage() {
   const [items, setItems] = useState<ModerationQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+
+  const moderationSessionKey = eventSlug
+    ? `connect:${eventSlug}:moderation`
+    : null;
 
   async function load() {
     if (!eventSlug) {
@@ -51,14 +62,136 @@ export function ModerationQueuePage() {
     }
   }
 
+  function handleUnlock() {
+    if (!eventSlug || !moderationSessionKey) {
+      setError("Paramètre eventSlug manquant.");
+      return;
+    }
+
+    if (password === MODERATION_PASSWORD) {
+      sessionStorage.setItem(moderationSessionKey, "true");
+      setIsUnlocked(true);
+      setPasswordError(false);
+      setPassword("");
+      return;
+    }
+
+    setPasswordError(true);
+  }
+
   useEffect(() => {
+    if (!eventSlug) {
+      setError("Paramètre eventSlug manquant.");
+      setLoading(false);
+      return;
+    }
+
+    if (!moderationSessionKey) {
+      setLoading(false);
+      return;
+    }
+
+    const unlocked = sessionStorage.getItem(moderationSessionKey);
+    if (unlocked === "true") {
+      setIsUnlocked(true);
+      return;
+    }
+
+    setLoading(false);
+  }, [eventSlug, moderationSessionKey]);
+
+  useEffect(() => {
+    if (!eventSlug || !isUnlocked) return;
     void load();
-  }, [eventSlug]);
+  }, [eventSlug, isUnlocked]);
 
   function handleOpenItem(item: ModerationQueueItem) {
     if (!eventSlug) return;
-
     navigate(`/e/${eventSlug}/moderation/${item.type}/${item.id}`);
+  }
+
+  function handleGoBack() {
+    if (!eventSlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    navigate(`/e/${eventSlug}`, { replace: true });
+  }
+
+  if (!isUnlocked) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center p-6">
+        <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+            <Lock size={22} />
+          </div>
+
+          <div className="mt-4 text-center">
+            <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+              Accès protégé
+            </div>
+
+            <div className="mt-2 text-xl font-black text-slate-900">
+              Modération
+            </div>
+
+            <div className="mt-2 text-sm font-medium text-slate-500">
+              Saisissez le mot de passe pour afficher la file de modération.
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) {
+                  setPasswordError(false);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleUnlock();
+                }
+              }}
+              placeholder="Mot de passe"
+              autoFocus
+              className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition ${
+                passwordError
+                  ? "border-rose-300 bg-rose-50 focus:border-rose-400"
+                  : "border-slate-200 bg-white focus:border-slate-300"
+              }`}
+            />
+
+            {passwordError ? (
+              <div className="mt-2 text-xs font-semibold text-rose-600">
+                Mot de passe incorrect.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
+            >
+              Retour à l’accueil
+            </button>
+
+            <button
+              type="button"
+              onClick={handleUnlock}
+              className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              Accéder
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
@@ -158,17 +291,19 @@ export function ModerationQueuePage() {
                         {item.title}
                       </div>
 
-                      {item.participantLabel ? (
-                      <span>Proposé par {item.participantLabel}</span>
-                    ) : item.participantId ? (
-                      <span>Participant {item.participantId}</span>
-                    ) : null}
+                      <div className="mt-1 text-sm font-medium text-slate-500">
+                        {item.participantLabel ? (
+                          <span>Proposé par {item.participantLabel}</span>
+                        ) : item.participantId ? (
+                          <span>Participant {item.participantId}</span>
+                        ) : null}
 
-                    {item.personLabel ? (
-                      <span> • Pour {item.personLabel}</span>
-                    ) : item.personId ? (
-                      <span> • Personne {item.personId}</span>
-                    ) : null}
+                        {item.personLabel ? (
+                          <span> • Pour {item.personLabel}</span>
+                        ) : item.personId ? (
+                          <span> • Personne {item.personId}</span>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="shrink-0 text-slate-400">
@@ -184,7 +319,8 @@ export function ModerationQueuePage() {
 
                   <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-slate-500">
                     <span>
-                      Soumis le {new Date(item.submittedAt).toLocaleString("fr-FR")}
+                      Soumis le{" "}
+                      {new Date(item.submittedAt).toLocaleString("fr-FR")}
                     </span>
                   </div>
                 </div>

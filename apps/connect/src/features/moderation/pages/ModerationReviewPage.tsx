@@ -6,6 +6,7 @@ import {
   Clock3,
   Image as ImageIcon,
   Loader2,
+  Lock,
   MessageSquareText,
   XCircle,
 } from "lucide-react";
@@ -20,6 +21,8 @@ import type {
   SupportedModerationEntityType,
 } from "../types";
 import { isSupportedModerationEntityType } from "../types";
+
+const MODERATION_PASSWORD = "3826";
 
 function getStatusBadge(status: ModerationStatus) {
   switch (status) {
@@ -80,7 +83,7 @@ function EntityPreview({ entity }: { entity: ModerationEntityRecord }) {
           )}
 
           {entity.content ? (
-            <div className="rounded-[24px] bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-wrap">
+            <div className="whitespace-pre-wrap rounded-[24px] bg-slate-50 p-4 text-sm leading-6 text-slate-700">
               {entity.content}
             </div>
           ) : null}
@@ -93,7 +96,7 @@ function EntityPreview({ entity }: { entity: ModerationEntityRecord }) {
     <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="text-sm font-black text-slate-900">Contenu proposé</div>
 
-      <div className="mt-4 rounded-[24px] bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-wrap">
+      <div className="mt-4 whitespace-pre-wrap rounded-[24px] bg-slate-50 p-4 text-sm leading-6 text-slate-700">
         {entity.content || "Aucun contenu à afficher."}
       </div>
     </section>
@@ -112,8 +115,16 @@ export function ModerationReviewPage() {
   const [moderatorComment, setModeratorComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+
   const validType: SupportedModerationEntityType | null =
     isSupportedModerationEntityType(entityType) ? entityType : null;
+
+  const moderationSessionKey = eventSlug
+    ? `connect:${eventSlug}:moderation`
+    : null;
 
   const statusBadge = useMemo(() => {
     if (!entity) return null;
@@ -150,9 +161,48 @@ export function ModerationReviewPage() {
     }
   }
 
+  function handleUnlock() {
+    if (!eventSlug || !moderationSessionKey) {
+      setError("Paramètre eventSlug manquant.");
+      return;
+    }
+
+    if (password === MODERATION_PASSWORD) {
+      sessionStorage.setItem(moderationSessionKey, "true");
+      setIsUnlocked(true);
+      setPasswordError(false);
+      setPassword("");
+      return;
+    }
+
+    setPasswordError(true);
+  }
+
   useEffect(() => {
+    if (!eventSlug) {
+      setError("Paramètre eventSlug manquant.");
+      setLoading(false);
+      return;
+    }
+
+    if (!moderationSessionKey) {
+      setLoading(false);
+      return;
+    }
+
+    const unlocked = sessionStorage.getItem(moderationSessionKey);
+    if (unlocked === "true") {
+      setIsUnlocked(true);
+      return;
+    }
+
+    setLoading(false);
+  }, [eventSlug, moderationSessionKey]);
+
+  useEffect(() => {
+    if (!eventSlug || !validType || !entityId || !isUnlocked) return;
     void load();
-  }, [eventSlug, validType, entityId]);
+  }, [eventSlug, validType, entityId, isUnlocked]);
 
   async function handleModerate(nextStatus: "approved" | "rejected") {
     if (!eventSlug || !validType || !entityId || !entity) return;
@@ -187,6 +237,90 @@ export function ModerationReviewPage() {
     }
 
     navigate(`/e/${eventSlug}/moderation`);
+  }
+
+  function handleGoHome() {
+    if (!eventSlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    navigate(`/e/${eventSlug}`, { replace: true });
+  }
+
+  if (!isUnlocked) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center p-6">
+        <div className="w-full max-w-sm rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+            <Lock size={22} />
+          </div>
+
+          <div className="mt-4 text-center">
+            <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+              Accès protégé
+            </div>
+
+            <div className="mt-2 text-xl font-black text-slate-900">
+              Modération
+            </div>
+
+            <div className="mt-2 text-sm font-medium text-slate-500">
+              Saisissez le mot de passe pour ouvrir cet élément de modération.
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) {
+                  setPasswordError(false);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleUnlock();
+                }
+              }}
+              placeholder="Mot de passe"
+              autoFocus
+              className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition ${
+                passwordError
+                  ? "border-rose-300 bg-rose-50 focus:border-rose-400"
+                  : "border-slate-200 bg-white focus:border-slate-300"
+              }`}
+            />
+
+            {passwordError ? (
+              <div className="mt-2 text-xs font-semibold text-rose-600">
+                Mot de passe incorrect.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleGoHome}
+              className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
+            >
+              Retour à l’accueil
+            </button>
+
+            <button
+              type="button"
+              onClick={handleUnlock}
+              className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              Accéder
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {

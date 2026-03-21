@@ -172,9 +172,8 @@ function ReactionCountBadge({
 }) {
   return (
     <span
-      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${
-        active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-      }`}
+      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+        }`}
     >
       {count}
     </span>
@@ -580,6 +579,20 @@ export function FamilyTreeBrowsePage() {
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
 
+  const participantFirstName =
+  participantSession?.firstName?.trim() ||
+  undefined;
+
+const participantLastName =
+  participantSession?.lastName?.trim() ||
+  undefined;
+
+const participantDisplayName =
+  participantSession?.label?.trim() ||
+  [participantFirstName, participantLastName].filter(Boolean).join(" ").trim() ||
+  undefined;
+
+
   const [searchParams] = useSearchParams();
   const requestedPersonId = searchParams.get("personId");
 
@@ -678,7 +691,7 @@ export function FamilyTreeBrowsePage() {
 
   const sourcePersonId =
     myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified"
+      myIdentityClaimStatus === "auto_verified"
       ? claimedPersonId
       : null;
 
@@ -1254,6 +1267,14 @@ export function FamilyTreeBrowsePage() {
           participantId,
           personId: centerId,
           content,
+
+          participantFirstName,
+          participantLastName,
+          participantDisplayName,
+
+          personFirstName: displayPerson.firstName,
+          personLastName: displayPerson.lastName,
+          personDisplayName,
         });
 
         setMemoryPublishSuccessMessage(
@@ -1553,7 +1574,6 @@ export function FamilyTreeBrowsePage() {
                       <li>Notif mail</li>
                     </ul>
                   </li>
-                  <li>Protéger l'URL de modération</li>
                   <li>Déléguation de consentement</li>
                   <li>Fiche + icon dans le hero</li>
                 </ol>
@@ -1594,8 +1614,8 @@ export function FamilyTreeBrowsePage() {
         ) : (
           <>
             {displayPerson.canDisplay &&
-            displayPerson.canDisplayPhoto &&
-            displayPerson.photoSrc ? (
+              displayPerson.canDisplayPhoto &&
+              displayPerson.photoSrc ? (
               <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
                   <SmartImage
@@ -1708,11 +1728,10 @@ export function FamilyTreeBrowsePage() {
                     <button
                       type="button"
                       onClick={() => setPanelMode("memories")}
-                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                        panelMode === "memories"
+                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
                           ? "bg-slate-900 text-white"
                           : "text-slate-500"
-                      }`}
+                        }`}
                     >
                       <MessageCircle size={20} />
                       {memoriesCount}
@@ -1721,11 +1740,10 @@ export function FamilyTreeBrowsePage() {
                     <button
                       type="button"
                       onClick={() => setPanelMode("photos")}
-                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                        panelMode === "photos"
+                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
                           ? "bg-slate-900 text-white"
                           : "text-slate-500"
-                      }`}
+                        }`}
                     >
                       <Camera size={20} />
                       {photosCount}
@@ -1734,11 +1752,10 @@ export function FamilyTreeBrowsePage() {
                     <span className="inline-flex items-center gap-1">
                       <Heart
                         size={20}
-                        className={`transition ${
-                          reactionsCount > 0
+                        className={`transition ${reactionsCount > 0
                             ? "text-red-500 scale-110"
                             : "text-slate-400"
-                        }`}
+                          }`}
                         fill={reactionsCount > 0 ? "currentColor" : "none"}
                       />
                       {reactionsCount}
@@ -1759,23 +1776,21 @@ export function FamilyTreeBrowsePage() {
                             : handleSetAsMe())
                         }
                         disabled={isSavingIdentityClaim}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                          isApprovedClaimForCurrentPerson
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
                             ? "bg-indigo-600 text-white"
                             : hasPendingClaimForCurrentPerson
                               ? "bg-amber-100 text-amber-900"
                               : "bg-slate-100 text-slate-700"
-                        } ${isSavingIdentityClaim ? "opacity-70" : ""}`}
+                          } ${isSavingIdentityClaim ? "opacity-70" : ""}`}
                       >
                         <UserCheck
                           size={14}
-                          className={`transition ${
-                            isSavingIdentityClaim
+                          className={`transition ${isSavingIdentityClaim
                               ? "animate-pulse"
                               : isApprovedClaimForCurrentPerson
                                 ? "scale-110"
                                 : ""
-                          }`}
+                            }`}
                         />
                         {isSavingIdentityClaim
                           ? "Vérification en cours..."
@@ -1792,13 +1807,12 @@ export function FamilyTreeBrowsePage() {
                         type="button"
                         onClick={() => void handleRequestDisplay()}
                         disabled={isSavingVisibilityRequest}
-                        className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                          hasPendingVisibilityRequestForCurrentPerson
+                        className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasPendingVisibilityRequestForCurrentPerson
                             ? "bg-amber-100 text-amber-900"
                             : hasRejectedVisibilityRequestForCurrentPerson
                               ? "bg-rose-100 text-rose-900"
                               : "bg-slate-100 text-slate-700"
-                        }`}
+                          }`}
                       >
                         <Eye size={14} />
                         {hasPendingVisibilityRequestForCurrentPerson
@@ -1815,7 +1829,7 @@ export function FamilyTreeBrowsePage() {
                       ) : null}
 
                       {hasRejectedVisibilityRequestForCurrentPerson &&
-                      myVisibilityRequestModeratorComment ? (
+                        myVisibilityRequestModeratorComment ? (
                         <div className="w-full rounded-[16px] border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] leading-5 text-rose-900">
                           {myVisibilityRequestModeratorComment}
                         </div>
@@ -1828,17 +1842,15 @@ export function FamilyTreeBrowsePage() {
                       <button
                         type="button"
                         onClick={() => void handleToggleTouched()}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                          hasTouchedPerson
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
                             ? "bg-slate-900 text-white"
                             : "bg-slate-100 text-slate-700"
-                        }`}
+                          }`}
                       >
                         <Heart
                           size={14}
-                          className={`transition ${
-                            hasTouchedPerson ? "text-red-300 scale-110" : ""
-                          }`}
+                          className={`transition ${hasTouchedPerson ? "text-red-300 scale-110" : ""
+                            }`}
                           fill={hasTouchedPerson ? "currentColor" : "none"}
                         />
                         J'aime
@@ -1853,19 +1865,17 @@ export function FamilyTreeBrowsePage() {
                               : handleSetAsMe())
                           }
                           disabled={isSavingIdentityClaim}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                            isApprovedClaimForCurrentPerson
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
                               ? "bg-indigo-600 text-white"
                               : hasPendingClaimForCurrentPerson
                                 ? "bg-amber-100 text-amber-900"
                                 : "bg-slate-100 text-slate-700"
-                          }`}
+                            }`}
                         >
                           <UserCheck
                             size={14}
-                            className={`transition ${
-                              isApprovedClaimForCurrentPerson ? "scale-110" : ""
-                            }`}
+                            className={`transition ${isApprovedClaimForCurrentPerson ? "scale-110" : ""
+                              }`}
                           />
                           {isApprovedClaimForCurrentPerson
                             ? "C'est moi !"
@@ -1881,11 +1891,10 @@ export function FamilyTreeBrowsePage() {
                         <button
                           type="button"
                           onClick={() => void handleToggleKnown()}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                            hasKnownPerson
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
                               ? "bg-slate-900 text-white"
                               : "bg-slate-100 text-slate-700"
-                          }`}
+                            }`}
                         >
                           <UserCheck size={14} />
                           {knowLabel}
@@ -1900,11 +1909,10 @@ export function FamilyTreeBrowsePage() {
                         <button
                           type="button"
                           onClick={() => void handleToggleHeard()}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                            hasHeardOfPerson
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
                               ? "bg-slate-900 text-white"
                               : "bg-slate-100 text-slate-700"
-                          }`}
+                            }`}
                         >
                           <Megaphone size={14} />
                           {heardLabel}
@@ -1922,11 +1930,10 @@ export function FamilyTreeBrowsePage() {
                       <button
                         type="button"
                         onClick={openCreateMemoryEditor}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                          panelMode === "memory_editor"
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
                             ? "bg-slate-900 text-white"
                             : "bg-slate-100 text-slate-700"
-                        }`}
+                          }`}
                       >
                         <MessageCircle size={14} />
                         Partager un souvenir sur cette personne
@@ -1935,11 +1942,10 @@ export function FamilyTreeBrowsePage() {
                       <button
                         type="button"
                         onClick={openCreatePhotoEditor}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                          panelMode === "photo_upload"
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
                             ? "bg-slate-900 text-white"
                             : "bg-slate-100 text-slate-700"
-                        }`}
+                          }`}
                       >
                         <Camera size={14} />
                         {photoLabel}

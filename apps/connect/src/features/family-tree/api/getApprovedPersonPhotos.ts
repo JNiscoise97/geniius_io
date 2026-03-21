@@ -53,21 +53,21 @@ export async function getApprovedPersonPhotos(params: {
   const { data, error } = await supabase
     .from("family_person_photos")
     .select(`
-      id,
-      event_slug,
-      participant_id,
-      person_id,
-      storage_path,
-      moderation_status,
-      submitted_at,
-      updated_at,
-      caption,
-      participant:participant_id (
-        first_name,
-        last_name,
-        nickname
-      )
-    `)
+  id,
+  event_slug,
+  participant_id,
+  person_id,
+  storage_path,
+  moderation_status,
+  submitted_at,
+  updated_at,
+  caption,
+  participant:participants!family_person_photos_participant_id_fkey (
+    first_name,
+    last_name,
+    nickname
+  )
+`)
     .eq("event_slug", eventSlug)
     .eq("person_id", personId)
     .eq("moderation_status", "approved")
