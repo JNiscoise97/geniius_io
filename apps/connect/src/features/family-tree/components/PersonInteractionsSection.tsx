@@ -262,7 +262,7 @@ const shouldShowIdentifySection =
                                             }`}
                                         fill={hasTouchedPerson ? "currentColor" : "none"}
                                     />
-                                    Cette personne me touche
+                                    J'aime
                                 </button>
                             </div>
 

@@ -289,7 +289,7 @@ export function FamilyTreeFindMePage() {
             ) : null}
 
             <FindMeModeCard
-              title="Contacter l’organisateur"
+              title="Je préfère contacter l’organisateur"
               description="Tu recevras une notification par mail quand il t’aura identifié."
               icon={<Mail size={22} />}
               onClick={openContactOrganizerMode}

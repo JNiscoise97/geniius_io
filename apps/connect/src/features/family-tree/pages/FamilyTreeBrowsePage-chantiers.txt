@@ -26,6 +26,16 @@
                     Démasquage par modération
                     <ul>
                       <li>Notif mail approuvé/rejeté</li>
+                      <li>Faire un label plus verbeux</li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    Photos:
+                    <ul>
+                      <li>Notif mail approuvé/rejeté</li>
+                      <li>Notif mail approuvé pour remplacer celle affichée</li>
+                      <li>Notif mail avec PJ + demande de modération</li>
                     </ul>
                   </li>
 
