@@ -1127,6 +1127,12 @@ export function FamilyTreeBrowsePage() {
           eventSlug: slug,
           participantId,
           personId: centerId,
+          participantFirstName,
+          participantLastName,
+          participantDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
         }),
         wait(3000),
       ]);
@@ -1278,9 +1284,9 @@ export function FamilyTreeBrowsePage() {
           participantLastName,
           participantDisplayName,
 
-          personFirstName: displayPerson.firstName,
-          personLastName: displayPerson.lastName,
-          personDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
         });
 
         setMemoryPublishSuccessMessage(

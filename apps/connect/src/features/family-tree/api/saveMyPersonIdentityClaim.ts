@@ -5,8 +5,24 @@ export async function saveMyPersonIdentityClaim(params: {
   eventSlug: string;
   participantId: string;
   personId: string;
+  participantFirstName?: string;
+  participantLastName?: string;
+  participantDisplayName?: string;
+  personFirstName?: string;
+  personLastName?: string;
+  personDisplayName?: string;
 }): Promise<PersonIdentityClaim> {
-  const { eventSlug, participantId, personId } = params;
+  const {
+    eventSlug,
+    participantId,
+    personId,
+    participantFirstName,
+    participantLastName,
+    participantDisplayName,
+    personFirstName,
+    personLastName,
+    personDisplayName,
+  } = params;
 
   const now = new Date().toISOString();
 
@@ -28,21 +44,21 @@ export async function saveMyPersonIdentityClaim(params: {
 
   const moderatedAt = nextStatus === "auto_verified" ? now : null;
 
+  const claimSelect = `
+    id,
+    event_slug,
+    participant_id,
+    person_id,
+    claim_status,
+    moderator_comment,
+    submitted_at,
+    moderated_at,
+    updated_at
+  `;
+
   const { data: existing, error: existingError } = await supabase
     .from("family_person_identity_claims")
-    .select(
-      `
-        id,
-        event_slug,
-        participant_id,
-        person_id,
-        claim_status,
-        moderator_comment,
-        submitted_at,
-        moderated_at,
-        updated_at
-      `,
-    )
+    .select(claimSelect)
     .eq("event_slug", eventSlug)
     .eq("participant_id", participantId)
     .eq("person_id", personId)
@@ -51,6 +67,8 @@ export async function saveMyPersonIdentityClaim(params: {
   if (existingError) {
     throw existingError;
   }
+
+  let savedClaim: PersonIdentityClaim;
 
   if (existing) {
     const { data, error } = await supabase
@@ -62,57 +80,64 @@ export async function saveMyPersonIdentityClaim(params: {
         updated_at: now,
       })
       .eq("id", existing.id)
-      .select(
-        `
-          id,
-          event_slug,
-          participant_id,
-          person_id,
-          claim_status,
-          moderator_comment,
-          submitted_at,
-          moderated_at,
-          updated_at
-        `,
-      )
+      .select(claimSelect)
       .single();
 
     if (error) {
       throw error;
     }
 
-    return data as PersonIdentityClaim;
+    savedClaim = data as PersonIdentityClaim;
+  } else {
+    const { data, error } = await supabase
+      .from("family_person_identity_claims")
+      .insert({
+        event_slug: eventSlug,
+        participant_id: participantId,
+        person_id: personId,
+        claim_status: nextStatus,
+        moderator_comment: null,
+        moderated_at: moderatedAt,
+        updated_at: now,
+      })
+      .select(claimSelect)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    savedClaim = data as PersonIdentityClaim;
   }
 
-  const { data, error } = await supabase
-    .from("family_person_identity_claims")
-    .insert({
-      event_slug: eventSlug,
-      participant_id: participantId,
-      person_id: personId,
-      claim_status: nextStatus,
-      moderator_comment: null,
-      moderated_at: moderatedAt,
-      updated_at: now,
-    })
-    .select(
-      `
-        id,
-        event_slug,
-        participant_id,
-        person_id,
-        claim_status,
-        moderator_comment,
-        submitted_at,
-        moderated_at,
-        updated_at
-      `,
-    )
-    .single();
+  const notificationType =
+    nextStatus === "auto_verified" ? "auto_verified" : "submitted";
 
-  if (error) {
-    throw error;
+  const { error: fnError } = await supabase.functions.invoke(
+    "send-identity-claim-notification",
+    {
+      body: {
+        notificationType,
+        claimId: savedClaim.id,
+        eventSlug,
+        participantId,
+        participantFirstName,
+        participantLastName,
+        participantDisplayName,
+        personId,
+        personFirstName,
+        personLastName,
+        personDisplayName,
+      },
+    },
+  );
+
+  if (fnError) {
+    console.error(
+      "[saveMyPersonIdentityClaim] notification non envoyée",
+      fnError,
+    );
   }
 
-  return data as PersonIdentityClaim;
+  return savedClaim;
 }
