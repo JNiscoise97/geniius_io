@@ -580,17 +580,17 @@ export function FamilyTreeBrowsePage() {
   const participantId = participantSession?.participantId ?? null;
 
   const participantFirstName =
-  participantSession?.firstName?.trim() ||
-  undefined;
+    participantSession?.firstName?.trim() ||
+    undefined;
 
-const participantLastName =
-  participantSession?.lastName?.trim() ||
-  undefined;
+  const participantLastName =
+    participantSession?.lastName?.trim() ||
+    undefined;
 
-const participantDisplayName =
-  participantSession?.label?.trim() ||
-  [participantFirstName, participantLastName].filter(Boolean).join(" ").trim() ||
-  undefined;
+  const participantDisplayName =
+    participantSession?.label?.trim() ||
+    [participantFirstName, participantLastName].filter(Boolean).join(" ").trim() ||
+    undefined;
 
 
   const [searchParams] = useSearchParams();
@@ -1254,8 +1254,18 @@ const participantDisplayName =
       if (memoryEditorMode === "edit" && editingMemoryId) {
         await updateMyPersonMemory({
           memoryId: editingMemoryId,
+          eventSlug: slug,
           participantId,
+          personId: centerId,
           content,
+
+          participantFirstName,
+          participantLastName,
+          participantDisplayName,
+
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
         });
 
         setMemoryPublishSuccessMessage(
@@ -1729,8 +1739,8 @@ const participantDisplayName =
                       type="button"
                       onClick={() => setPanelMode("memories")}
                       className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
-                          ? "bg-slate-900 text-white"
-                          : "text-slate-500"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500"
                         }`}
                     >
                       <MessageCircle size={20} />
@@ -1741,8 +1751,8 @@ const participantDisplayName =
                       type="button"
                       onClick={() => setPanelMode("photos")}
                       className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
-                          ? "bg-slate-900 text-white"
-                          : "text-slate-500"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500"
                         }`}
                     >
                       <Camera size={20} />
@@ -1753,8 +1763,8 @@ const participantDisplayName =
                       <Heart
                         size={20}
                         className={`transition ${reactionsCount > 0
-                            ? "text-red-500 scale-110"
-                            : "text-slate-400"
+                          ? "text-red-500 scale-110"
+                          : "text-slate-400"
                           }`}
                         fill={reactionsCount > 0 ? "currentColor" : "none"}
                       />
@@ -1777,19 +1787,19 @@ const participantDisplayName =
                         }
                         disabled={isSavingIdentityClaim}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
-                            ? "bg-indigo-600 text-white"
-                            : hasPendingClaimForCurrentPerson
-                              ? "bg-amber-100 text-amber-900"
-                              : "bg-slate-100 text-slate-700"
+                          ? "bg-indigo-600 text-white"
+                          : hasPendingClaimForCurrentPerson
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-slate-100 text-slate-700"
                           } ${isSavingIdentityClaim ? "opacity-70" : ""}`}
                       >
                         <UserCheck
                           size={14}
                           className={`transition ${isSavingIdentityClaim
-                              ? "animate-pulse"
-                              : isApprovedClaimForCurrentPerson
-                                ? "scale-110"
-                                : ""
+                            ? "animate-pulse"
+                            : isApprovedClaimForCurrentPerson
+                              ? "scale-110"
+                              : ""
                             }`}
                         />
                         {isSavingIdentityClaim
@@ -1808,10 +1818,10 @@ const participantDisplayName =
                         onClick={() => void handleRequestDisplay()}
                         disabled={isSavingVisibilityRequest}
                         className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasPendingVisibilityRequestForCurrentPerson
-                            ? "bg-amber-100 text-amber-900"
-                            : hasRejectedVisibilityRequestForCurrentPerson
-                              ? "bg-rose-100 text-rose-900"
-                              : "bg-slate-100 text-slate-700"
+                          ? "bg-amber-100 text-amber-900"
+                          : hasRejectedVisibilityRequestForCurrentPerson
+                            ? "bg-rose-100 text-rose-900"
+                            : "bg-slate-100 text-slate-700"
                           }`}
                       >
                         <Eye size={14} />
@@ -1843,8 +1853,8 @@ const participantDisplayName =
                         type="button"
                         onClick={() => void handleToggleTouched()}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700"
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-700"
                           }`}
                       >
                         <Heart
@@ -1853,7 +1863,7 @@ const participantDisplayName =
                             }`}
                           fill={hasTouchedPerson ? "currentColor" : "none"}
                         />
-                        J'aime
+                        Cette personne me touche
                       </button>
 
                       {displayPerson.isPossiblyAlive ? (
@@ -1866,10 +1876,10 @@ const participantDisplayName =
                           }
                           disabled={isSavingIdentityClaim}
                           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
-                              ? "bg-indigo-600 text-white"
-                              : hasPendingClaimForCurrentPerson
-                                ? "bg-amber-100 text-amber-900"
-                                : "bg-slate-100 text-slate-700"
+                            ? "bg-indigo-600 text-white"
+                            : hasPendingClaimForCurrentPerson
+                              ? "bg-amber-100 text-amber-900"
+                              : "bg-slate-100 text-slate-700"
                             }`}
                         >
                           <UserCheck
@@ -1892,8 +1902,8 @@ const participantDisplayName =
                           type="button"
                           onClick={() => void handleToggleKnown()}
                           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
-                              ? "bg-slate-900 text-white"
-                              : "bg-slate-100 text-slate-700"
+                            ? "bg-slate-900 text-white"
+                            : "bg-slate-100 text-slate-700"
                             }`}
                         >
                           <UserCheck size={14} />
@@ -1910,8 +1920,8 @@ const participantDisplayName =
                           type="button"
                           onClick={() => void handleToggleHeard()}
                           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
-                              ? "bg-slate-900 text-white"
-                              : "bg-slate-100 text-slate-700"
+                            ? "bg-slate-900 text-white"
+                            : "bg-slate-100 text-slate-700"
                             }`}
                         >
                           <Megaphone size={14} />
@@ -1931,20 +1941,20 @@ const participantDisplayName =
                         type="button"
                         onClick={openCreateMemoryEditor}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700"
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-700"
                           }`}
                       >
                         <MessageCircle size={14} />
-                        Partager un souvenir sur cette personne
+                        Je veux raconter un souvenir
                       </button>
 
                       <button
                         type="button"
                         onClick={openCreatePhotoEditor}
                         className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700"
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-700"
                           }`}
                       >
                         <Camera size={14} />
