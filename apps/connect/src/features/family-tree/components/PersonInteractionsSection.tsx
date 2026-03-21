@@ -184,8 +184,8 @@ export function PersonInteractionsSection({
         ? "Demande non validée"
         : null;
 
-    const isIdentityVerificationPending =
-        isSavingIdentityClaim || hasPendingClaimForCurrentPerson;
+    const isIdentityVerificationSubmitting = isSavingIdentityClaim;
+    const isIdentityVerificationPending = hasPendingClaimForCurrentPerson;
 
     return (
         <>
@@ -249,8 +249,8 @@ export function PersonInteractionsSection({
                                     type="button"
                                     onClick={onToggleTouched}
                                     className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
-                                            ? "bg-slate-900 text-white"
-                                            : "bg-slate-100 text-slate-700"
+                                        ? "bg-slate-900 text-white"
+                                        : "bg-slate-100 text-slate-700"
                                         }`}
                                 >
                                     <Heart
@@ -268,8 +268,8 @@ export function PersonInteractionsSection({
                                     type="button"
                                     onClick={onToggleKnown}
                                     className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
-                                            ? "bg-slate-900 text-white"
-                                            : "bg-slate-100 text-slate-700"
+                                        ? "bg-slate-900 text-white"
+                                        : "bg-slate-100 text-slate-700"
                                         }`}
                                 >
                                     <UserCheck size={14} />
@@ -286,8 +286,8 @@ export function PersonInteractionsSection({
                                     type="button"
                                     onClick={onToggleHeard}
                                     className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
-                                            ? "bg-slate-900 text-white"
-                                            : "bg-slate-100 text-slate-700"
+                                        ? "bg-slate-900 text-white"
+                                        : "bg-slate-100 text-slate-700"
                                         }`}
                                 >
                                     <Megaphone size={14} />
@@ -347,18 +347,26 @@ export function PersonInteractionsSection({
                                         <button
                                             type="button"
                                             onClick={onSetAsMe}
-                                            disabled={isIdentityVerificationPending}
-                                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isIdentityVerificationPending
-                                                ? null
+                                            disabled={isIdentityVerificationSubmitting || isIdentityVerificationPending}
+                                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isIdentityVerificationSubmitting
+                                                ? "bg-slate-200 text-slate-600 opacity-70"
                                                 : hasRejectedClaimForCurrentPerson
                                                     ? "bg-rose-100 text-rose-900"
-                                                    : "bg-slate-900 text-white"
-                                                } ${isIdentityVerificationPending ? "opacity-70" : "active:scale-[0.99]"}`}
+                                                    : isIdentityVerificationPending
+                                                        ? "bg-amber-100 text-amber-900"
+                                                        : "bg-slate-900 text-white"
+                                                } ${isIdentityVerificationSubmitting ? "" : "active:scale-[0.99]"
+                                                }`}
                                         >
-                                            {isIdentityVerificationPending ? (
+                                            {isIdentityVerificationSubmitting ? (
                                                 <>
                                                     <Loader2 size={14} className="animate-spin" />
                                                     Vérification en cours
+                                                </>
+                                            ) : isIdentityVerificationPending ? (
+                                                <>
+                                                    <Check size={14} />
+                                                    Demande envoyée
                                                 </>
                                             ) : (
                                                 <>
@@ -367,6 +375,12 @@ export function PersonInteractionsSection({
                                                 </>
                                             )}
                                         </button>
+                                    ) : null}
+
+                                    {isIdentityVerificationPending && !sourcePersonId ? (
+                                        <div className="rounded-[12px] px-3 py-2 text-[12px] leading-5 text-amber-900">
+                                            Ta demande a bien été envoyée à l’organisation. Tu recevras un mail quand ton profil sera vérifié.
+                                        </div>
                                     ) : null}
 
                                     {identityStatusLabel ? (
