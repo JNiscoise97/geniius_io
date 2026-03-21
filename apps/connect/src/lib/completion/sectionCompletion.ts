@@ -17,7 +17,14 @@ import {
 const FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS = new Set<string>([
   "4c36193e-09c9-4166-b1fb-e423fdcc3984",
   "3dbf7b36-0f5b-4439-9234-fef66a3bf6b0",
-  "451858fc-e84b-48da-9703-6f3837835360"
+  "451858fc-e84b-48da-9703-6f3837835360",
+  "1372c217-c3f7-46d1-ac42-5c4afdcd60a1",
+  "a1bdda22-fad3-42ad-8176-cdf1d72d908c",
+  "0388ca47-d708-49d0-b821-0bec35946488",
+  "2c11debf-d475-48c4-95b5-01313ade4710",
+  "0c014a55-3bd2-4022-8bf9-6eb4bcbbe28b",
+  "df38d26b-db3b-4eb2-af95-3cf2c3bf2ea1",
+  "cee2967a-633a-4c14-88d4-5020281e41a1"
 ]);
 
 export type CompletionItemType = "form" | "info";
