@@ -477,7 +477,7 @@ export function FamilyTreePersonPage() {
             <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
             <div className="min-w-0">
               <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
+                Page en construction
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>

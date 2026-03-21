@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -1614,52 +1613,6 @@ export function FamilyTreeBrowsePage() {
             </button>
           </div>
         </section>
-
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>
-                    Inclure les lieux de domicile dans le circuit des lieux
-                    d'une personne
-                  </li>
-                  <li>
-                    Message "pas de conjoint / d'enfant identifié" quid de ce
-                    qui n'en ont pas eu pour sur
-                  </li>
-                  <li>override de la photo affichée</li>
-                  <li>
-                    Profil vérifié par modération
-                    <ul>
-                      <li>Notif mail approuvé</li>
-                    </ul>
-                  </li>
-                  <li>
-                    Démasquage par modération
-                    <ul>
-                      <li>Notif mail approuvé/rejeté</li>
-                    </ul>
-                  </li>
-
-                  <li>
-                    Photos:
-                    <ul>
-                      <li>Notif mail approuvé/rejeté</li>
-                      <li>Notif mail approuvé pour remplacer celle affichée</li>
-                      <li>Notif mail avec PJ + demande de modération</li>
-                    </ul>
-                  </li>
-                  <li>sous condition: Fiche + icon dans le hero</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {effectiveVisibilityLoading ? (
           <section className="mt-3">
