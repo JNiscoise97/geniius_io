@@ -60,6 +60,7 @@ import { FamilyTreeFindPersonPage } from "../features/family-tree/pages/FamilyTr
 import { FamilyTreeHandleProfilePage } from "../features/family-tree/pages/FamilyTreeHandleProfilePage";
 import { ModerationQueuePage } from "../features/moderation/pages/ModerationQueuePage";
 import { ModerationReviewPage } from "../features/moderation/pages/ModerationReviewPage";
+import { TodoPage } from "../features/todo/pages/TodoPage";
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +74,8 @@ export const router = createBrowserRouter([
         children: [
           // Entrée unique
           { index: true, element: <ParticipantAccessIntroPage  /> },
+
+          { path: "dev/todo", element: <TodoPage /> },
 
           // Access flow
           { path: "access/intro", element: <ParticipantAccessIntroPage /> },
@@ -162,6 +165,7 @@ export const router = createBrowserRouter([
       },
 
       { path: "question-mock", element: <QuestionScreenMock /> },
+      
     ],
   },
 

@@ -2,16 +2,11 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
-  Camera,
-  Eye,
   Heart,
   Lock,
   MapPin,
-  Megaphone,
-  MessageCircle,
   Plus,
   Search,
-  UserCheck,
   UserCircle2,
   Users,
 } from "lucide-react";
@@ -79,13 +74,15 @@ import {
 
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { PersonPhotoEditorPanel } from "../components/PersonPhotoUploadPanel";
+import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
 
 type BrowsePanelMode =
   | "relations"
   | "memories"
   | "memory_editor"
   | "photo_upload"
-  | "photos";
+  | "photos"
+  | "touched";
 
 type MemoryDraftState = {
   value: string;
@@ -161,23 +158,6 @@ function getDisplayPerson(
   }
 
   return anonymizePerson(person);
-}
-
-function ReactionCountBadge({
-  count,
-  active,
-}: {
-  count: number;
-  active: boolean;
-}) {
-  return (
-    <span
-      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-        }`}
-    >
-      {count}
-    </span>
-  );
 }
 
 function formatYears(person: PersonSummary) {
@@ -579,19 +559,17 @@ export function FamilyTreeBrowsePage() {
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
 
-  const participantFirstName =
-    participantSession?.firstName?.trim() ||
-    undefined;
+  const participantFirstName = participantSession?.firstName?.trim() || undefined;
 
-  const participantLastName =
-    participantSession?.lastName?.trim() ||
-    undefined;
+  const participantLastName = participantSession?.lastName?.trim() || undefined;
 
   const participantDisplayName =
     participantSession?.label?.trim() ||
-    [participantFirstName, participantLastName].filter(Boolean).join(" ").trim() ||
+    [participantFirstName, participantLastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
     undefined;
-
 
   const [searchParams] = useSearchParams();
   const requestedPersonId = searchParams.get("personId");
@@ -711,6 +689,9 @@ export function FamilyTreeBrowsePage() {
 
   const hasPendingClaimForCurrentPerson =
     myIdentityClaimStatus === "pending" && claimedPersonId === centerId;
+
+  const hasRejectedClaimForCurrentPerson =
+    myIdentityClaimStatus === "rejected" && claimedPersonId === centerId;
 
   const isApprovedClaimForCurrentPerson =
     (myIdentityClaimStatus === "approved" ||
@@ -846,29 +827,28 @@ export function FamilyTreeBrowsePage() {
     "Frère / sœur",
     "Fratrie",
   );
+  const totalMemoriesCount = Math.max(
+    memoriesCount,
+    memoryCounts.approved + memoryCounts.pending,
+  );
 
-  const knowLabel = displayPerson.isPossiblyAlive
-    ? "Je connais cette personne"
-    : "J’ai connu cette personne";
+  const totalPhotosCount = Math.max(
+    photosCount,
+    photoCounts.approved + photoCounts.pending,
+  );
 
-  const heardLabel =
-    displayPerson.sex === "F"
-      ? "J’ai entendu parler d’elle"
-      : displayPerson.sex === "M"
-        ? "J’ai entendu parler de lui"
-        : "J’ai entendu parler de cette personne";
+  const hasAnySubmittedMemory =
+    totalMemoriesCount > 0 ||
+    visibleMemories.length > 0 ||
+    memoryCounts.pending > 0;
 
-  const photoLabel = displayPerson.photoSrc
-    ? displayPerson.sex === "F"
-      ? "J’ai une autre photo d’elle"
-      : displayPerson.sex === "M"
-        ? "J’ai une autre photo de lui"
-        : "J’ai une autre photo"
-    : displayPerson.sex === "F"
-      ? "J’ai une photo d’elle"
-      : displayPerson.sex === "M"
-        ? "J’ai une photo de lui"
-        : "J’ai une photo";
+  const hasAnySubmittedPhoto =
+    totalPhotosCount > 0 || visiblePhotos.length > 0 || photoCounts.pending > 0;
+
+
+
+  const shouldDisableKnownButton = hasHeardOfPerson && !hasKnownPerson;
+  const shouldDisableHeardButton = hasKnownPerson && !hasHeardOfPerson;
 
   const personDisplayName =
     `${displayPerson.firstName} ${displayPerson.lastName}`.trim();
@@ -1151,6 +1131,23 @@ export function FamilyTreeBrowsePage() {
         wait(3000),
       ]);
 
+      const refreshedClaim = await getMyPersonIdentityClaim({
+        eventSlug: slug,
+        participantId,
+      });
+
+      const isNowVerified =
+        refreshedClaim?.person_id === centerId &&
+        (refreshedClaim?.claim_status === "approved" ||
+          refreshedClaim?.claim_status === "auto_verified");
+
+      if (isNowVerified) {
+        window.location.replace(
+          `/e/${slug}/family-tree/browse?personId=${centerId}`,
+        );
+        return;
+      }
+
       await loadCurrentPersonData();
     } catch (e) {
       console.error(e);
@@ -1158,7 +1155,6 @@ export function FamilyTreeBrowsePage() {
       setIsSavingIdentityClaim(false);
     }
   }
-
   async function handleCancelIdentityClaim() {
     if (!participantId) return;
 
@@ -1180,7 +1176,7 @@ export function FamilyTreeBrowsePage() {
   }
 
   async function handleToggleKnown() {
-    if (!participantId) return;
+    if (!participantId || shouldDisableKnownButton) return;
 
     const next = !hasKnownPerson;
     setHasKnownPerson(next);
@@ -1201,7 +1197,7 @@ export function FamilyTreeBrowsePage() {
   }
 
   async function handleToggleHeard() {
-    if (!participantId) return;
+    if (!participantId || shouldDisableHeardButton) return;
 
     const next = !hasHeardOfPerson;
     setHasHeardOfPerson(next);
@@ -1539,30 +1535,33 @@ export function FamilyTreeBrowsePage() {
                     d'une personne
                   </li>
                   <li>
-                    Message "pas de conjoint / d'enfant identifié" quid de ce qui n'en ont pas eu pour sur
+                    Message "pas de conjoint / d'enfant identifié" quid de ce
+                    qui n'en ont pas eu pour sur
                   </li>
                   <li>
                     Bouton de réactions:
                     <ul>
                       <li>
-                        bouton C'est moi, si c'est moi pas de je
-                        l'ai connu ni de j'ai entendu parler de lui
+                        bouton C'est moi, pouvoir override la photo affichée
                       </li>
                       <li>
-                        bouton C'est moi, pouvoir override la photo
-                        affichée
+                        bouton C'est moi, les labels des boutons "sur cette
+                        personne", "de lui" sont bizarre
                       </li>
                       <li>
-                        bouton C'est moi, les labels des boutons "sur
-                        cette personne", "de lui" sont bizarre
+                        Touched panel
                       </li>
                     </ul>
                   </li>
-                  <li>Signaler un manque, un soucis
+                  <li>message vous recevrez un mail quand le profil sera validé</li>
+                  <li>Notif mail quand profil vérifié, quand demande de vérification</li>
+                  <li>
+                    Signaler un manque, un soucis
                     <ul>
                       <li>modération</li>
                       <li>Notif mail</li>
-                    </ul></li>
+                    </ul>
+                  </li>
                   <li>
                     Demander le démasquage
                     <ul>
@@ -1575,12 +1574,6 @@ export function FamilyTreeBrowsePage() {
                     Photos:
                     <ul>
                       <li>Photo pour remplacer celle affichée</li>
-                      <li>Notif mail</li>
-                    </ul>
-                  </li>
-                  <li>
-                    Souvenirs
-                    <ul>
                       <li>Notif mail</li>
                     </ul>
                   </li>
@@ -1727,244 +1720,46 @@ export function FamilyTreeBrowsePage() {
               </div>
             ) : null}
 
-            <section className="mb-4 mt-3 rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  Réagir
-                </div>
-
-                {displayPerson.canDisplay ? (
-                  <div className="flex items-center gap-3 text-[11px] font-semibold text-slate-500">
-                    <button
-                      type="button"
-                      onClick={() => setPanelMode("memories")}
-                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-500"
-                        }`}
-                    >
-                      <MessageCircle size={20} />
-                      {memoriesCount}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPanelMode("photos")}
-                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-500"
-                        }`}
-                    >
-                      <Camera size={20} />
-                      {photosCount}
-                    </button>
-
-                    <span className="inline-flex items-center gap-1">
-                      <Heart
-                        size={20}
-                        className={`transition ${reactionsCount > 0
-                          ? "text-red-500 scale-110"
-                          : "text-slate-400"
-                          }`}
-                        fill={reactionsCount > 0 ? "currentColor" : "none"}
-                      />
-                      {reactionsCount}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {!displayPerson.canDisplay ? (
-                  <>
-                    <div className="flex w-full flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void (hasPendingClaimForCurrentPerson
-                            ? handleCancelIdentityClaim()
-                            : handleSetAsMe())
-                        }
-                        disabled={isSavingIdentityClaim}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
-                          ? "bg-indigo-600 text-white"
-                          : hasPendingClaimForCurrentPerson
-                            ? "bg-amber-100 text-amber-900"
-                            : "bg-slate-100 text-slate-700"
-                          } ${isSavingIdentityClaim ? "opacity-70" : ""}`}
-                      >
-                        <UserCheck
-                          size={14}
-                          className={`transition ${isSavingIdentityClaim
-                            ? "animate-pulse"
-                            : isApprovedClaimForCurrentPerson
-                              ? "scale-110"
-                              : ""
-                            }`}
-                        />
-                        {isSavingIdentityClaim
-                          ? "Vérification en cours..."
-                          : isApprovedClaimForCurrentPerson
-                            ? "C'est moi !"
-                            : hasPendingClaimForCurrentPerson
-                              ? "Finalement, je ne pense pas que c'est moi."
-                              : "Je pense que c'est moi !"}
-                      </button>
-                    </div>
-
-                    <div className="flex w-full flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void handleRequestDisplay()}
-                        disabled={isSavingVisibilityRequest}
-                        className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasPendingVisibilityRequestForCurrentPerson
-                          ? "bg-amber-100 text-amber-900"
-                          : hasRejectedVisibilityRequestForCurrentPerson
-                            ? "bg-rose-100 text-rose-900"
-                            : "bg-slate-100 text-slate-700"
-                          }`}
-                      >
-                        <Eye size={14} />
-                        {hasPendingVisibilityRequestForCurrentPerson
-                          ? "Annuler ma demande d’affichage pour cette personne"
-                          : hasRejectedVisibilityRequestForCurrentPerson
-                            ? "Redemander l’affichage de cette personne"
-                            : "Demander l’affichage de cette personne"}
-                      </button>
-
-                      {hasPendingVisibilityRequestForCurrentPerson ? (
-                        <div className="inline-flex items-center rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-semibold text-amber-900">
-                          Demande d’affichage en attente de modération
-                        </div>
-                      ) : null}
-
-                      {hasRejectedVisibilityRequestForCurrentPerson &&
-                        myVisibilityRequestModeratorComment ? (
-                        <div className="w-full rounded-[16px] border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] leading-5 text-rose-900">
-                          {myVisibilityRequestModeratorComment}
-                        </div>
-                      ) : null}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void handleToggleTouched()}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700"
-                          }`}
-                      >
-                        <Heart
-                          size={14}
-                          className={`transition ${hasTouchedPerson ? "text-red-300 scale-110" : ""
-                            }`}
-                          fill={hasTouchedPerson ? "currentColor" : "none"}
-                        />
-                        Cette personne me touche
-                      </button>
-
-                      {displayPerson.isPossiblyAlive ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void (hasPendingClaimForCurrentPerson
-                              ? handleCancelIdentityClaim()
-                              : handleSetAsMe())
-                          }
-                          disabled={isSavingIdentityClaim}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isApprovedClaimForCurrentPerson
-                            ? "bg-indigo-600 text-white"
-                            : hasPendingClaimForCurrentPerson
-                              ? "bg-amber-100 text-amber-900"
-                              : "bg-slate-100 text-slate-700"
-                            }`}
-                        >
-                          <UserCheck
-                            size={14}
-                            className={`transition ${isApprovedClaimForCurrentPerson ? "scale-110" : ""
-                              }`}
-                          />
-                          {isApprovedClaimForCurrentPerson
-                            ? "C'est moi !"
-                            : hasPendingClaimForCurrentPerson
-                              ? "Finalement, je ne pense pas que c'est moi."
-                              : "Je pense que c'est moi !"}
-                        </button>
-                      ) : null}
-                    </div>
-
-                    {!isApprovedClaimForCurrentPerson ? (
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleToggleKnown()}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700"
-                            }`}
-                        >
-                          <UserCheck size={14} />
-                          {knowLabel}
-                          {knownCount > 0 ? (
-                            <ReactionCountBadge
-                              count={knownCount}
-                              active={hasKnownPerson}
-                            />
-                          ) : null}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => void handleToggleHeard()}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 text-slate-700"
-                            }`}
-                        >
-                          <Megaphone size={14} />
-                          {heardLabel}
-                          {heardCount > 0 ? (
-                            <ReactionCountBadge
-                              count={heardCount}
-                              active={hasHeardOfPerson}
-                            />
-                          ) : null}
-                        </button>
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={openCreateMemoryEditor}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700"
-                          }`}
-                      >
-                        <MessageCircle size={14} />
-                        Je veux raconter un souvenir
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={openCreatePhotoEditor}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-700"
-                          }`}
-                      >
-                        <Camera size={14} />
-                        {photoLabel}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </section>
+            <PersonInteractionsSection
+              canDisplay={displayPerson.canDisplay}
+              isPossiblyAlive={displayPerson.isPossiblyAlive === true}
+              sex={displayPerson.sex}
+              isApprovedClaimForCurrentPerson={isApprovedClaimForCurrentPerson}
+              hasPendingClaimForCurrentPerson={hasPendingClaimForCurrentPerson}
+              hasRejectedClaimForCurrentPerson={hasRejectedClaimForCurrentPerson}
+              hasPendingVisibilityRequestForCurrentPerson={
+                hasPendingVisibilityRequestForCurrentPerson
+              }
+              hasRejectedVisibilityRequestForCurrentPerson={
+                hasRejectedVisibilityRequestForCurrentPerson
+              }
+              isSavingIdentityClaim={isSavingIdentityClaim}
+              isSavingVisibilityRequest={isSavingVisibilityRequest}
+              sourcePersonId={sourcePersonId}
+              hasTouchedPerson={hasTouchedPerson}
+              hasKnownPerson={hasKnownPerson}
+              hasHeardOfPerson={hasHeardOfPerson}
+              hasAnySubmittedMemory={hasAnySubmittedMemory}
+              hasAnySubmittedPhoto={hasAnySubmittedPhoto}
+              totalMemoriesCount={totalMemoriesCount}
+              totalPhotosCount={totalPhotosCount}
+              reactionsCount={reactionsCount}
+              knownCount={knownCount}
+              heardCount={heardCount}
+              panelMode={panelMode}
+              moderatorComment={myVisibilityRequestModeratorComment}
+              onOpenMemories={() => setPanelMode("memories")}
+              onOpenPhotos={() => setPanelMode("photos")}
+              onOpenTouched={() => setPanelMode("touched")}
+              onOpenMemoryEditor={openCreateMemoryEditor}
+              onOpenPhotoEditor={openCreatePhotoEditor}
+              onToggleTouched={() => void handleToggleTouched()}
+              onToggleKnown={() => void handleToggleKnown()}
+              onToggleHeard={() => void handleToggleHeard()}
+              onSetAsMe={() => void handleSetAsMe()}
+              onCancelIdentityClaim={() => void handleCancelIdentityClaim()}
+              onRequestDisplay={() => void handleRequestDisplay()}
+            />
 
             {panelMode === "relations" ? (
               <>
