@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Heart,
+  Loader2,
   Lock,
   MapPin,
   Plus,
@@ -28,6 +29,7 @@ import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim"
 import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
 import { deleteMyPersonPhoto } from "../api/deleteMyPersonPhoto";
 import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
+import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
 import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
 import {
   getMyPersonMemoryModerationCounts,
@@ -49,6 +51,10 @@ import {
   getVisiblePersonPhotos,
   type PersonPhotoItem,
 } from "../api/getVisiblePersonPhotos";
+import {
+  getTouchedParticipants,
+  type TouchedParticipantItem,
+} from "../api/getTouchedParticipants";
 import { updateMyPersonMemory } from "../api/updateMyPersonMemory";
 import { updateMyPersonPhoto } from "../api/updateMyPersonPhoto";
 import {
@@ -62,9 +68,13 @@ import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequ
 import { togglePersonReaction } from "../api/togglePersonReaction";
 
 import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
+import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
 import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
 import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
+import { PersonPhotoEditorPanel } from "../components/PersonPhotoEditorPanel";
 import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
+import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
+import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
 
 import {
   getPersonContext,
@@ -72,15 +82,6 @@ import {
 } from "../config/configGenealogy";
 
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { PersonPhotoEditorPanel } from "../components/PersonPhotoEditorPanel";
-import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
-import {
-  getTouchedParticipants,
-  type TouchedParticipantItem,
-} from "../api/getTouchedParticipants";
-import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
-import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
 
 type BrowsePanelMode =
   | "relations"
@@ -672,18 +673,24 @@ export function FamilyTreeBrowsePage() {
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
     useState<PersonVisibilityPreferenceMap>({});
+  const [effectiveVisibilityLoading, setEffectiveVisibilityLoading] =
+    useState(true);
 
   const [touchedParticipants, setTouchedParticipants] = useState<
     TouchedParticipantItem[]
   >([]);
 
-  const [visibilityRequestHasLegitimateFamilyLink, setVisibilityRequestHasLegitimateFamilyLink] =
-    useState(false);
+  const [
+    visibilityRequestHasLegitimateFamilyLink,
+    setVisibilityRequestHasLegitimateFamilyLink,
+  ] = useState(false);
   const [visibilityRequestJustification, setVisibilityRequestJustification] =
     useState("");
 
-  const [visibilityRequestPersonCannotRequestByThemself, setVisibilityRequestPersonCannotRequestByThemself] =
-    useState(false);
+  const [
+    visibilityRequestPersonCannotRequestByThemself,
+    setVisibilityRequestPersonCannotRequestByThemself,
+  ] = useState(false);
   const [visibilityRequestHasConsent, setVisibilityRequestHasConsent] =
     useState(false);
 
@@ -691,7 +698,7 @@ export function FamilyTreeBrowsePage() {
 
   const sourcePersonId =
     myIdentityClaimStatus === "approved" ||
-      myIdentityClaimStatus === "auto_verified"
+    myIdentityClaimStatus === "auto_verified"
       ? claimedPersonId
       : null;
 
@@ -704,8 +711,8 @@ export function FamilyTreeBrowsePage() {
 
   const [centerId, setCenterId] = useState<string>(initialCenterId);
 
-
   const [setAsProfilePhoto, setSetAsProfilePhoto] = useState(false);
+
   const context = useMemo(
     () => getPersonContext(centerId, visibilityPreferencesByPersonId),
     [centerId, visibilityPreferencesByPersonId],
@@ -851,6 +858,7 @@ export function FamilyTreeBrowsePage() {
     "Frère / sœur",
     "Fratrie",
   );
+
   const totalMemoriesCount = Math.max(
     memoriesCount,
     memoryCounts.approved + memoryCounts.pending,
@@ -909,6 +917,8 @@ export function FamilyTreeBrowsePage() {
 
   async function loadVisibilityPreferencesMap() {
     try {
+      setEffectiveVisibilityLoading(true);
+
       const map = await getFamilyTreeEffectiveVisibilityMap({
         eventSlug: slug,
       });
@@ -917,6 +927,8 @@ export function FamilyTreeBrowsePage() {
     } catch (error) {
       console.error(error);
       setVisibilityPreferencesByPersonId({});
+    } finally {
+      setEffectiveVisibilityLoading(false);
     }
   }
 
@@ -1022,10 +1034,7 @@ export function FamilyTreeBrowsePage() {
     setVisibilityRequestPersonCannotRequestByThemself(
       visibilityRequest?.person_cannot_request_by_themself ?? false,
     );
-
-    setVisibilityRequestHasConsent(
-      visibilityRequest?.has_consent ?? false,
-    );
+    setVisibilityRequestHasConsent(visibilityRequest?.has_consent ?? false);
     setVisibilityRequestJustification(visibilityRequest?.justification ?? "");
   }, [centerId, participantId, slug]);
 
@@ -1073,7 +1082,7 @@ export function FamilyTreeBrowsePage() {
   }
 
   function openCentralPerson() {
-    //navigate(`/e/${slug}/fiche?id=${context.person.id}`);
+    // navigate(`/e/${slug}/fiche?id=${context.person.id}`);
   }
 
   function openFamilyKnowledge() {
@@ -1180,6 +1189,7 @@ export function FamilyTreeBrowsePage() {
       setIsSavingVisibilityRequest(false);
     }
   }
+
   async function handleSetAsMe() {
     if (!participantId) return;
 
@@ -1226,6 +1236,7 @@ export function FamilyTreeBrowsePage() {
       setIsSavingIdentityClaim(false);
     }
   }
+
   async function handleCancelIdentityClaim() {
     if (!participantId) return;
 
@@ -1325,11 +1336,9 @@ export function FamilyTreeBrowsePage() {
           participantId,
           personId: centerId,
           content,
-
           participantFirstName,
           participantLastName,
           participantDisplayName,
-
           personFirstName: context.person.firstName,
           personLastName: context.person.lastName,
           personDisplayName:
@@ -1345,11 +1354,9 @@ export function FamilyTreeBrowsePage() {
           participantId,
           personId: centerId,
           content,
-
           participantFirstName,
           participantLastName,
           participantDisplayName,
-
           personFirstName: context.person.firstName,
           personLastName: context.person.lastName,
           personDisplayName:
@@ -1614,11 +1621,10 @@ export function FamilyTreeBrowsePage() {
                     Message "pas de conjoint / d'enfant identifié" quid de ce
                     qui n'en ont pas eu pour sur
                   </li>
+                  <li>override de la photo affichée</li>
                   <li>
-                    override de la photo affichée
-                  </li>
-                  <li>
-                    gérer modération pour claim. possibilité d'entrer le bon person_id + envoi de mail
+                    gérer modération pour claim. possibilité d'entrer le bon
+                    person_id + envoi de mail
                   </li>
                   <li>
                     Notif mail quand profil vérifié, quand demande de
@@ -1639,7 +1645,7 @@ export function FamilyTreeBrowsePage() {
                       <li>Notif mail</li>
                     </ul>
                   </li>
-                  
+
                   <li>
                     Photos:
                     <ul>
@@ -1655,7 +1661,16 @@ export function FamilyTreeBrowsePage() {
           </div>
         </div>
 
-        {!defaultGedcomPersonLoading && !hasDefaultTreeEntry ? (
+        {effectiveVisibilityLoading ? (
+          <section className="mt-3">
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Chargement de la fiche…
+              </div>
+            </div>
+          </section>
+        ) : !defaultGedcomPersonLoading && !hasDefaultTreeEntry ? (
           <section className="mt-3 space-y-3">
             <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 shadow-sm">
               <div className="flex items-start gap-3">
@@ -1687,8 +1702,8 @@ export function FamilyTreeBrowsePage() {
         ) : (
           <>
             {displayPerson.canDisplay &&
-              displayPerson.canDisplayPhoto &&
-              displayPerson.photoSrc ? (
+            displayPerson.canDisplayPhoto &&
+            displayPerson.photoSrc ? (
               <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
                   <SmartImage
@@ -1771,6 +1786,10 @@ export function FamilyTreeBrowsePage() {
                 </div>
               </div>
             </section>
+
+            {
+            //ici
+            }
 
             {centerId !== rootHonoredPersonId ? (
               <div className="mt-4">
@@ -1920,14 +1939,22 @@ export function FamilyTreeBrowsePage() {
               />
             ) : panelMode === "visibility_request" ? (
               <PersonVisibilityRequestFormPanel
-                hasLegitimateFamilyLink={visibilityRequestHasLegitimateFamilyLink}
-                personCannotRequestByThemself={visibilityRequestPersonCannotRequestByThemself}
+                hasLegitimateFamilyLink={
+                  visibilityRequestHasLegitimateFamilyLink
+                }
+                personCannotRequestByThemself={
+                  visibilityRequestPersonCannotRequestByThemself
+                }
                 hasConsent={visibilityRequestHasConsent}
                 justification={visibilityRequestJustification}
                 isSubmitting={isSavingVisibilityRequest}
                 onBack={() => setPanelMode("relations")}
-                onChangeHasLegitimateFamilyLink={setVisibilityRequestHasLegitimateFamilyLink}
-                onChangePersonCannotRequestByThemself={setVisibilityRequestPersonCannotRequestByThemself}
+                onChangeHasLegitimateFamilyLink={
+                  setVisibilityRequestHasLegitimateFamilyLink
+                }
+                onChangePersonCannotRequestByThemself={
+                  setVisibilityRequestPersonCannotRequestByThemself
+                }
                 onChangeHasConsent={setVisibilityRequestHasConsent}
                 onChangeJustification={setVisibilityRequestJustification}
                 onSubmit={() => void handleSubmitVisibilityRequest()}
