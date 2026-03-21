@@ -75,6 +75,11 @@ import {
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { PersonPhotoEditorPanel } from "../components/PersonPhotoUploadPanel";
 import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
+import {
+  getTouchedParticipants,
+  type TouchedParticipantItem,
+} from "../api/getTouchedParticipants";
+import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
 
 type BrowsePanelMode =
   | "relations"
@@ -559,7 +564,8 @@ export function FamilyTreeBrowsePage() {
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
 
-  const participantFirstName = participantSession?.firstName?.trim() || undefined;
+  const participantFirstName =
+    participantSession?.firstName?.trim() || undefined;
 
   const participantLastName = participantSession?.lastName?.trim() || undefined;
 
@@ -665,11 +671,15 @@ export function FamilyTreeBrowsePage() {
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
     useState<PersonVisibilityPreferenceMap>({});
 
+  const [touchedParticipants, setTouchedParticipants] = useState<
+    TouchedParticipantItem[]
+  >([]);
+
   const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
 
   const sourcePersonId =
     myIdentityClaimStatus === "approved" ||
-      myIdentityClaimStatus === "auto_verified"
+    myIdentityClaimStatus === "auto_verified"
       ? claimedPersonId
       : null;
 
@@ -845,8 +855,6 @@ export function FamilyTreeBrowsePage() {
   const hasAnySubmittedPhoto =
     totalPhotosCount > 0 || visiblePhotos.length > 0 || photoCounts.pending > 0;
 
-
-
   const shouldDisableKnownButton = hasHeardOfPerson && !hasKnownPerson;
   const shouldDisableHeardButton = hasKnownPerson && !hasHeardOfPerson;
 
@@ -910,6 +918,7 @@ export function FamilyTreeBrowsePage() {
       visibilityRequest,
       memoryCountsData,
       photoCountsData,
+      touchedParticipantsData,
     ] = await Promise.all([
       getPersonReactionState({
         eventSlug: slug,
@@ -949,6 +958,10 @@ export function FamilyTreeBrowsePage() {
         participantId,
         personId: centerId,
       }),
+      getTouchedParticipants({
+        eventSlug: slug,
+        personId: centerId,
+      }),
     ]);
 
     setHasKnownPerson(reactionState.knewPerson);
@@ -968,6 +981,8 @@ export function FamilyTreeBrowsePage() {
     setVisiblePhotos(visiblePhotosData);
     setMemoryCounts(memoryCountsData);
     setPhotoCounts(photoCountsData);
+
+    setTouchedParticipants(touchedParticipantsData);
 
     setMemoryDraftsByPersonId((prev) => {
       const existing = prev[centerId];
@@ -1132,7 +1147,8 @@ export function FamilyTreeBrowsePage() {
           participantDisplayName,
           personFirstName: context.person.firstName,
           personLastName: context.person.lastName,
-          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
         }),
         wait(3000),
       ]);
@@ -1267,7 +1283,8 @@ export function FamilyTreeBrowsePage() {
 
           personFirstName: context.person.firstName,
           personLastName: context.person.lastName,
-          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
         });
 
         setMemoryPublishSuccessMessage(
@@ -1286,7 +1303,8 @@ export function FamilyTreeBrowsePage() {
 
           personFirstName: context.person.firstName,
           personLastName: context.person.lastName,
-          personDisplayName: `${context.person.firstName} ${context.person.lastName}`.trim(),
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
         });
 
         setMemoryPublishSuccessMessage(
@@ -1554,13 +1572,16 @@ export function FamilyTreeBrowsePage() {
                         bouton C'est moi, les labels des boutons "sur cette
                         personne", "de lui" sont bizarre
                       </li>
-                      <li>
-                        Touched panel
-                      </li>
+                      <li>Touched panel</li>
                     </ul>
                   </li>
-                  <li>message vous recevrez un mail quand le profil sera validé</li>
-                  <li>Notif mail quand profil vérifié, quand demande de vérification</li>
+                  <li>
+                    message vous recevrez un mail quand le profil sera validé
+                  </li>
+                  <li>
+                    Notif mail quand profil vérifié, quand demande de
+                    vérification
+                  </li>
                   <li>
                     Signaler un manque, un soucis
                     <ul>
@@ -1623,8 +1644,8 @@ export function FamilyTreeBrowsePage() {
         ) : (
           <>
             {displayPerson.canDisplay &&
-              displayPerson.canDisplayPhoto &&
-              displayPerson.photoSrc ? (
+            displayPerson.canDisplayPhoto &&
+            displayPerson.photoSrc ? (
               <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
                   <SmartImage
@@ -1732,7 +1753,9 @@ export function FamilyTreeBrowsePage() {
               sex={displayPerson.sex}
               isApprovedClaimForCurrentPerson={isApprovedClaimForCurrentPerson}
               hasPendingClaimForCurrentPerson={hasPendingClaimForCurrentPerson}
-              hasRejectedClaimForCurrentPerson={hasRejectedClaimForCurrentPerson}
+              hasRejectedClaimForCurrentPerson={
+                hasRejectedClaimForCurrentPerson
+              }
               hasPendingVisibilityRequestForCurrentPerson={
                 hasPendingVisibilityRequestForCurrentPerson
               }
@@ -1849,6 +1872,11 @@ export function FamilyTreeBrowsePage() {
                 isDeletingMemoryId={deletingMemoryId}
                 onEditMemory={handleEditMemory}
                 onDeleteMemory={(memoryId) => void handleDeleteMemory(memoryId)}
+                onBack={() => setPanelMode("relations")}
+              />
+            ) : panelMode === "touched" ? (
+              <PersonTouchedPanel
+                participants={touchedParticipants}
                 onBack={() => setPanelMode("relations")}
               />
             ) : panelMode === "memory_editor" ? (
