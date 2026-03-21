@@ -76,6 +76,8 @@ export function FamilyTreeHandleProfilePage() {
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [verifiedPersonId, setVerifiedPersonId] = useState<string | null>(null);
+
   const [identityStatus, setIdentityStatus] = useState<
     "pending" | "approved" | "rejected" | "auto_verified" | null
   >(null);
@@ -155,6 +157,7 @@ export function FamilyTreeHandleProfilePage() {
           });
         }
         setIdentityStatus(identityClaim?.claim_status ?? null);
+        setVerifiedPersonId(identityClaim?.person_id ?? null);
 
         const verifiedPersonId =
           identityClaim?.claim_status === "approved" ||
@@ -264,7 +267,8 @@ export function FamilyTreeHandleProfilePage() {
             familial.
           </p>
 
-          <div
+          {isVerified ? null : 
+            (<div
             className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${isVerified
                 ? "bg-emerald-50 text-emerald-700"
                 : identityStatus === "pending"
@@ -274,7 +278,7 @@ export function FamilyTreeHandleProfilePage() {
           >
             <BadgeCheck size={14} />
             {verifiedLabel}
-          </div>
+          </div>)}
         </section>
 
         {error ? (
@@ -317,6 +321,57 @@ export function FamilyTreeHandleProfilePage() {
             </div>
           </div>
         </div>
+        {verifiedPersonId ? (
+  <section className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
+    <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500">
+      Accès rapides
+    </div>
+
+    <div className="mt-3 grid grid-cols-2 gap-3">
+      <button
+        type="button"
+        onClick={() =>
+          nav(`/e/${slug}/family-tree/browse?personId=${verifiedPersonId}`)
+        }
+        className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
+      >
+        <div className="flex items-center gap-3">
+
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-black text-slate-900">
+              Me voir dans l’arbre
+            </div>
+          </div>
+
+          <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
+            <ArrowRight size={18} />
+          </div>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          nav(`/e/${slug}/family-tree/person?id=${verifiedPersonId}`)
+        }
+        className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
+      >
+        <div className="flex items-center gap-3">
+
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-black text-slate-900">
+              Voir ma fiche
+            </div>
+          </div>
+
+          <div className="shrink-0 rounded-2xl bg-white p-2 text-slate-900">
+            <ArrowRight size={18} />
+          </div>
+        </div>
+      </button>
+    </div>
+  </section>
+) : null}
         <section className="grid grid-cols-2 gap-3">
               <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">

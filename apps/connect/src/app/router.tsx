@@ -61,6 +61,7 @@ import { FamilyTreeHandleProfilePage } from "../features/family-tree/pages/Famil
 import { ModerationQueuePage } from "../features/moderation/pages/ModerationQueuePage";
 import { ModerationReviewPage } from "../features/moderation/pages/ModerationReviewPage";
 import { TodoPage } from "../features/todo/pages/TodoPage";
+import { FamilyTreePersonPage } from "../features/family-tree/pages/FamilyTreePersonPage";
 
 export const router = createBrowserRouter([
   {
@@ -142,6 +143,7 @@ export const router = createBrowserRouter([
               { path: "family-tree/find-me", element: <FamilyTreeFindMePage />},
               { path: "family-tree/handle-profile", element: <FamilyTreeHandleProfilePage />},
               { path: "family-tree/find-person", element: <FamilyTreeFindPersonPage  />},
+              { path: "family-tree/person", element: <FamilyTreePersonPage  />},
 
               { path: "fiche", element: <PersonSheetPage /> },
 

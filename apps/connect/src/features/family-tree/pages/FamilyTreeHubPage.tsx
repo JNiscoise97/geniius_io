@@ -132,7 +132,7 @@ export function FamilyTreeHubPage() {
     () => [
       {
         key: "start",
-        title: "Commencer",
+        title: "Découvrir",
         subtitle:
           "Les deux actions les plus utiles pour te repérer rapidement.",
         items: [
@@ -151,15 +151,6 @@ export function FamilyTreeHubPage() {
                 } satisfies TreeHubAction,
               ]
             : []),
-          {
-            key: "my-link-to-ancestor",
-            label: "Voir mon lien avec Gromèr Covindou",
-            description: "Découvre comment tu descends de Gromèr.",
-            icon: Heart,
-            to: `/e/${slug}/family-tree/story`,
-            enabled: true,
-            featured: true,
-          },
           ...(hasVerifiedClaim && !loadingClaim
             ? [
                 {
@@ -174,6 +165,16 @@ export function FamilyTreeHubPage() {
                 } satisfies TreeHubAction,
               ]
             : []),
+          {
+            key: "my-link-to-ancestor",
+            label: "Voir mon lien avec Gromèr Covindou",
+            description: "Découvre comment tu descends de Gromèr.",
+            icon: Heart,
+            to: `/e/${slug}/family-tree/story`,
+            enabled: false,
+            badge: "Disponible demain",
+            featured: true,
+          },
         ],
       },
       {
@@ -295,6 +296,7 @@ export function FamilyTreeHubPage() {
                     Family tree/story disponible que si default_gedcom_person_id
                     + claim approved
                   </li>
+                  <li>Calque family-knowledge sur browse</li>
                 </ol>
               </div>
             </div>
@@ -429,7 +431,7 @@ function TreeActionCard({
           {disabled ? (
             <span className="text-slate-500">Bientôt disponible</span>
           ) : item.featured ? (
-            <span className="text-emerald-700">Recommandé pour commencer</span>
+            <span className="text-emerald-700">Utile pour se repérer</span>
           ) : (
             <span className="text-slate-500">Ouvrir</span>
           )}

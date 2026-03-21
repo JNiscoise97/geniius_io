@@ -128,7 +128,7 @@ const shouldShowIdentityCard =
   (!canDisplay || isPossiblyAlive);
 
 const shouldShowIdentifySection =
-  shouldShowIdentityCard || shouldShowProtectedCard;
+  !isApprovedClaimForCurrentPerson && (shouldShowIdentityCard || shouldShowProtectedCard);
 
     const knowLabel = isPossiblyAlive
         ? "Je le connais personnellement"
@@ -328,23 +328,6 @@ const shouldShowIdentifySection =
                                         ? hiddenIdentityDescription
                                         : visibleIdentityDescription}
                                 </div>
-                                {isApprovedClaimForCurrentPerson && (
-                                    <div className="mt-3 flex flex-col gap-2">
-                                        <button
-                                            type="button"
-                                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition bg-emerald-900 text-white`}
-
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <Check className="mt-0.5 h-4 w-4" />
-
-                                                Profil vérifié
-
-                                            </div>
-
-                                        </button>
-                                    </div>
-                                )}
                                 <div className="mt-3 flex flex-col gap-2">
                                     {!isApprovedClaimForCurrentPerson && !sourcePersonId ? (
                                         <button

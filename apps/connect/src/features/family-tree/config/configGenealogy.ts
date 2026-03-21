@@ -6,6 +6,7 @@ type HeroTheme = {
   heroClassName: string;
   headerClassName: string;
   chipClassName: string;
+  ownProfileBadgeClassName: string;
 };
 
 type BranchMeta = {
@@ -14,6 +15,7 @@ type BranchMeta = {
   heroClassName: string;
   headerClassName: string;
   chipClassName: string;
+  ownProfileBadgeClassName: string;
 };
 
 const DEFAULT_THEME: HeroTheme = {
@@ -22,6 +24,8 @@ const DEFAULT_THEME: HeroTheme = {
   headerClassName:
     "bg-[#3b4274] text-white shadow-[0_10px_24px_rgba(59,66,116,0.18)]",
   chipClassName: "bg-white/10 text-white/90",
+  ownProfileBadgeClassName:
+    "bg-indigo-100 text-indigo-900 border border-indigo-200",
 };
 
 const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
@@ -33,6 +37,8 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     headerClassName:
       "bg-[#7a5a1a] text-white shadow-[0_10px_24px_rgba(122,90,26,0.30)]",
     chipClassName: "bg-yellow-200/90 text-yellow-900",
+    ownProfileBadgeClassName:
+      "bg-yellow-100 text-yellow-900 border border-yellow-300",
   },
 
   "732469": {
@@ -43,6 +49,8 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     headerClassName:
       "bg-[#8a2f2f] text-white shadow-[0_10px_24px_rgba(138,47,47,0.25)]",
     chipClassName: "bg-red-100/90 text-red-900",
+    ownProfileBadgeClassName:
+      "bg-red-100 text-red-900 border border-red-200",
   },
 
   "7391": {
@@ -53,6 +61,8 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     headerClassName:
       "bg-[#2f3f8a] text-white shadow-[0_10px_24px_rgba(47,63,138,0.25)]",
     chipClassName: "bg-blue-200 text-blue-900",
+    ownProfileBadgeClassName:
+      "bg-blue-100 text-blue-900 border border-blue-200",
   },
 
   "732470": {
@@ -63,6 +73,8 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     headerClassName:
       "bg-[#7a5636] text-white shadow-[0_10px_24px_rgba(122,86,54,0.25)]",
     chipClassName: "bg-amber-100/90 text-amber-900",
+    ownProfileBadgeClassName:
+      "bg-amber-100 text-amber-900 border border-amber-200",
   },
 
   "732467": {
@@ -73,6 +85,8 @@ const BRANCH_META_BY_ID: Record<string, BranchMeta> = {
     headerClassName:
       "bg-[#2f7a5a] text-white shadow-[0_10px_24px_rgba(47,122,90,0.25)]",
     chipClassName: "bg-green-100/90 text-green-900",
+    ownProfileBadgeClassName:
+      "bg-green-100 text-green-900 border border-green-200",
   },
 };
 
@@ -116,6 +130,9 @@ export function getPersonHeroConfig(
     chipClassName:
       mainBranch?.chipClassName ?? DEFAULT_THEME.chipClassName,
     mainBranch,
+    ownProfileBadgeClassName:
+    mainBranch?.ownProfileBadgeClassName ??
+    DEFAULT_THEME.ownProfileBadgeClassName,
     otherBranches,
   };
 }

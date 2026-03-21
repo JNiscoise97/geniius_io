@@ -2,6 +2,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Check,
+  Compass,
   Heart,
   Loader2,
   Lock,
@@ -1082,7 +1084,7 @@ export function FamilyTreeBrowsePage() {
   }
 
   function openCentralPerson() {
-    // navigate(`/e/${slug}/fiche?id=${context.person.id}`);
+      navigate(`/e/${slug}/family-tree/person?id=${centerId}`);
   }
 
   function openFamilyKnowledge() {
@@ -1623,38 +1625,27 @@ export function FamilyTreeBrowsePage() {
                   </li>
                   <li>override de la photo affichée</li>
                   <li>
-                    gérer modération pour claim. possibilité d'entrer le bon
-                    person_id + envoi de mail
-                  </li>
-                  <li>
-                    Notif mail quand profil vérifié, quand demande de
-                    vérification
-                  </li>
-                  <li>
-                    Signaler un manque, un soucis
+                    Profil vérifié par modération
                     <ul>
-                      <li>modération</li>
-                      <li>Notif mail</li>
+                      <li>Notif mail approuvé</li>
                     </ul>
                   </li>
                   <li>
-                    Demander le démasquage
+                    Démasquage par modération
                     <ul>
-                      <li>démasquage effectif</li>
-                      <li>modération</li>
-                      <li>Notif mail</li>
+                      <li>Notif mail approuvé/rejeté</li>
                     </ul>
                   </li>
 
                   <li>
                     Photos:
                     <ul>
-                      <li>Photo pour remplacer celle affichée</li>
-                      <li>Notif mail avec PJ</li>
+                      <li>Notif mail approuvé/rejeté</li>
+                      <li>Notif mail approuvé pour remplacer celle affichée</li>
+                      <li>Notif mail avec PJ + demande de modération</li>
                     </ul>
                   </li>
-                  <li>Fiche + icon dans le hero</li>
-                  <li>Calque family-knowledge sur browse</li>
+                  <li>sous condition: Fiche + icon dans le hero</li>
                 </ol>
               </div>
             </div>
@@ -1787,9 +1778,28 @@ export function FamilyTreeBrowsePage() {
               </div>
             </section>
 
-            {
-            //ici
-            }
+            {isApprovedClaimForCurrentPerson || isOwnProfile ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {isApprovedClaimForCurrentPerson ? (
+                  <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-900 px-3 py-2 text-[12px] font-semibold text-white">
+                    <Check className="h-4 w-4" />
+                    Profil vérifié
+                  </div>
+                ) : null}
+
+                {isOwnProfile ? (
+                  <div
+                    className={[
+                      "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold",
+                      heroConfig.ownProfileBadgeClassName,
+                    ].join(" ")}
+                  >
+                    <Compass className="h-4 w-4" />
+                    Mon profil
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {centerId !== rootHonoredPersonId ? (
               <div className="mt-4">
