@@ -118,17 +118,17 @@ export function PersonInteractionsSection({
 }: PersonInteractionsSectionProps) {
     const shouldShowReactSection = canDisplay;
     const shouldShowReactionButtons =
-        canDisplay && !isApprovedClaimForCurrentPerson;
+  canDisplay && !isApprovedClaimForCurrentPerson;
 
-    const shouldShowIdentifySection =
-        !canDisplay || (canDisplay && isPossiblyAlive);
+const shouldShowProtectedCard =
+  !canDisplay && !isApprovedClaimForCurrentPerson;
 
-    const shouldShowIdentityCard =
-        shouldShowIdentifySection &&
-        (isApprovedClaimForCurrentPerson || !sourcePersonId);
+const shouldShowIdentityCard =
+  (isApprovedClaimForCurrentPerson || !sourcePersonId) &&
+  (!canDisplay || isPossiblyAlive);
 
-    const shouldShowProtectedCard =
-        !canDisplay && !isApprovedClaimForCurrentPerson;
+const shouldShowIdentifySection =
+  shouldShowIdentityCard || shouldShowProtectedCard;
 
     const knowLabel = isPossiblyAlive
         ? "Je le connais personnellement"
