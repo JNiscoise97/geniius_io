@@ -7,6 +7,10 @@ export type PersonVisibilityRequest = {
   event_slug: string;
   participant_id: string;
   person_id: string;
+  has_legitimate_family_link: boolean;
+  person_cannot_request_by_themself: boolean;
+  has_consent: boolean;
+  justification: string;
   request_status: PersonVisibilityRequestStatus;
   moderator_comment: string | null;
   submitted_at: string;
@@ -29,6 +33,10 @@ export async function getMyPersonVisibilityRequest(params: {
         event_slug,
         participant_id,
         person_id,
+        has_legitimate_family_link,
+        person_cannot_request_by_themself,
+        has_consent,
+        justification,
         request_status,
         moderator_comment,
         submitted_at,

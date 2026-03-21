@@ -80,6 +80,7 @@ import {
   type TouchedParticipantItem,
 } from "../api/getTouchedParticipants";
 import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
+import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
 
 type BrowsePanelMode =
   | "relations"
@@ -87,7 +88,8 @@ type BrowsePanelMode =
   | "memory_editor"
   | "photo_upload"
   | "photos"
-  | "touched";
+  | "touched"
+  | "visibility_request";
 
 type MemoryDraftState = {
   value: string;
@@ -675,6 +677,16 @@ export function FamilyTreeBrowsePage() {
     TouchedParticipantItem[]
   >([]);
 
+  const [visibilityRequestHasLegitimateFamilyLink, setVisibilityRequestHasLegitimateFamilyLink] =
+    useState(false);
+  const [visibilityRequestJustification, setVisibilityRequestJustification] =
+    useState("");
+
+  const [visibilityRequestPersonCannotRequestByThemself, setVisibilityRequestPersonCannotRequestByThemself] =
+    useState(false);
+  const [visibilityRequestHasConsent, setVisibilityRequestHasConsent] =
+    useState(false);
+
   const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
 
   const sourcePersonId =
@@ -1003,6 +1015,18 @@ export function FamilyTreeBrowsePage() {
     setMyVisibilityRequestModeratorComment(
       visibilityRequest?.moderator_comment ?? null,
     );
+
+    setVisibilityRequestHasLegitimateFamilyLink(
+      visibilityRequest?.has_legitimate_family_link ?? false,
+    );
+    setVisibilityRequestPersonCannotRequestByThemself(
+      visibilityRequest?.person_cannot_request_by_themself ?? false,
+    );
+
+    setVisibilityRequestHasConsent(
+      visibilityRequest?.has_consent ?? false,
+    );
+    setVisibilityRequestJustification(visibilityRequest?.justification ?? "");
   }, [centerId, participantId, slug]);
 
   function setCurrentMemoryDraft(value: string) {
@@ -1107,26 +1131,28 @@ export function FamilyTreeBrowsePage() {
     setPanelMode("photo_upload");
   }
 
-  async function handleRequestDisplay() {
+  function openVisibilityRequestForm() {
+    setPanelMode("visibility_request");
+  }
+
+  async function handleSubmitVisibilityRequest() {
     if (!participantId) return;
 
     setIsSavingVisibilityRequest(true);
 
     try {
-      if (myVisibilityRequestStatus === "pending") {
-        await deleteMyPersonVisibilityRequest({
-          eventSlug: slug,
-          participantId,
-          personId: centerId,
-        });
-      } else {
-        await saveMyPersonVisibilityRequest({
-          eventSlug: slug,
-          participantId,
-          personId: centerId,
-        });
-      }
+      await saveMyPersonVisibilityRequest({
+        eventSlug: slug,
+        participantId,
+        personId: centerId,
+        hasLegitimateFamilyLink: visibilityRequestHasLegitimateFamilyLink,
+        personCannotRequestByThemself:
+          visibilityRequestPersonCannotRequestByThemself,
+        hasConsent: visibilityRequestHasConsent,
+        justification: visibilityRequestJustification,
+      });
 
+      setPanelMode("relations");
       await loadCurrentPersonData();
     } catch (e) {
       console.error(e);
@@ -1135,6 +1161,25 @@ export function FamilyTreeBrowsePage() {
     }
   }
 
+  async function handleRequestDisplay() {
+    if (!participantId) return;
+
+    setIsSavingVisibilityRequest(true);
+
+    try {
+      await deleteMyPersonVisibilityRequest({
+        eventSlug: slug,
+        participantId,
+        personId: centerId,
+      });
+
+      await loadCurrentPersonData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingVisibilityRequest(false);
+    }
+  }
   async function handleSetAsMe() {
     if (!participantId) return;
 
@@ -1570,19 +1615,7 @@ export function FamilyTreeBrowsePage() {
                     qui n'en ont pas eu pour sur
                   </li>
                   <li>
-                    Bouton de réactions:
-                    <ul>
-                      <li>
-                        bouton C'est moi, pouvoir override la photo affichée
-                      </li>
-                      <li>
-                        bouton C'est moi, les labels des boutons "sur cette
-                        personne", "de lui" sont bizarre
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    message vous recevrez un mail quand le profil sera validé
+                    override de la photo affichée
                   </li>
                   <li>
                     gérer modération pour claim. possibilité d'entrer le bon person_id + envoi de mail
@@ -1601,20 +1634,22 @@ export function FamilyTreeBrowsePage() {
                   <li>
                     Demander le démasquage
                     <ul>
+                      <li>démasquage effectif</li>
                       <li>modération</li>
                       <li>Notif mail</li>
                     </ul>
                   </li>
-                  <li>Calque family-knowledge sur browse</li>
+                  
                   <li>
                     Photos:
                     <ul>
                       <li>Photo pour remplacer celle affichée</li>
                       <li>Notif mail</li>
+                      <li>modération</li>
                     </ul>
                   </li>
-                  <li>Déléguation de consentement</li>
                   <li>Fiche + icon dans le hero</li>
+                  <li>Calque family-knowledge sur browse</li>
                 </ol>
               </div>
             </div>
@@ -1784,6 +1819,8 @@ export function FamilyTreeBrowsePage() {
               reactionsCount={reactionsCount}
               knownCount={knownCount}
               heardCount={heardCount}
+              onOpenVisibilityRequestForm={openVisibilityRequestForm}
+              onCancelVisibilityRequest={() => void handleRequestDisplay()}
               panelMode={panelMode}
               moderatorComment={myVisibilityRequestModeratorComment}
               onOpenMemories={() => setPanelMode("memories")}
@@ -1796,7 +1833,6 @@ export function FamilyTreeBrowsePage() {
               onToggleHeard={() => void handleToggleHeard()}
               onSetAsMe={() => void handleSetAsMe()}
               onCancelIdentityClaim={() => void handleCancelIdentityClaim()}
-              onRequestDisplay={() => void handleRequestDisplay()}
             />
 
             {panelMode === "relations" ? (
@@ -1883,6 +1919,20 @@ export function FamilyTreeBrowsePage() {
                 onDeleteMemory={(memoryId) => void handleDeleteMemory(memoryId)}
                 onBack={() => setPanelMode("relations")}
               />
+            ) : panelMode === "visibility_request" ? (
+              <PersonVisibilityRequestFormPanel
+                hasLegitimateFamilyLink={visibilityRequestHasLegitimateFamilyLink}
+                personCannotRequestByThemself={visibilityRequestPersonCannotRequestByThemself}
+                hasConsent={visibilityRequestHasConsent}
+                justification={visibilityRequestJustification}
+                isSubmitting={isSavingVisibilityRequest}
+                onBack={() => setPanelMode("relations")}
+                onChangeHasLegitimateFamilyLink={setVisibilityRequestHasLegitimateFamilyLink}
+                onChangePersonCannotRequestByThemself={setVisibilityRequestPersonCannotRequestByThemself}
+                onChangeHasConsent={setVisibilityRequestHasConsent}
+                onChangeJustification={setVisibilityRequestJustification}
+                onSubmit={() => void handleSubmitVisibilityRequest()}
+              />
             ) : panelMode === "touched" ? (
               <PersonTouchedPanel
                 participants={touchedParticipants}
@@ -1891,6 +1941,7 @@ export function FamilyTreeBrowsePage() {
             ) : panelMode === "memory_editor" ? (
               <PersonMemoryEditorPanel
                 personDisplayName={personDisplayName}
+                isOwnProfile={isOwnProfile}
                 initialValue={memoryDraft}
                 mode={memoryEditorMode}
                 moderationStatus={null}

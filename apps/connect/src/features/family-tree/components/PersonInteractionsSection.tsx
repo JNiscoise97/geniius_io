@@ -15,7 +15,8 @@ type BrowsePanelMode =
     | "memory_editor"
     | "photo_upload"
     | "photos"
-    | "touched";
+    | "touched"
+    | "visibility_request";
 
 function ReactionCountBadge({
     count,
@@ -74,7 +75,8 @@ export type PersonInteractionsSectionProps = {
 
     onSetAsMe: () => void;
     onCancelIdentityClaim: () => void;
-    onRequestDisplay: () => void;
+    onOpenVisibilityRequestForm: () => void;
+    onCancelVisibilityRequest: () => void;
 };
 
 export function PersonInteractionsSection({
@@ -111,7 +113,8 @@ export function PersonInteractionsSection({
     onToggleHeard,
     onSetAsMe,
     onCancelIdentityClaim,
-    onRequestDisplay,
+    onOpenVisibilityRequestForm,
+    onCancelVisibilityRequest
 }: PersonInteractionsSectionProps) {
     const shouldShowReactSection = canDisplay;
     const shouldShowReactionButtons =
@@ -418,7 +421,11 @@ export function PersonInteractionsSection({
                                 <div className="mt-3 flex flex-col gap-2">
                                     <button
                                         type="button"
-                                        onClick={onRequestDisplay}
+                                        onClick={
+                                            hasPendingVisibilityRequestForCurrentPerson
+                                                ? onCancelVisibilityRequest
+                                                : onOpenVisibilityRequestForm
+                                        }
                                         disabled={isSavingVisibilityRequest}
                                         className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasPendingVisibilityRequestForCurrentPerson
                                             ? "bg-amber-100 text-amber-900"
