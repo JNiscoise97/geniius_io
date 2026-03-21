@@ -8,6 +8,12 @@ export async function saveMyPersonVisibilityRequest(params: {
   personCannotRequestByThemself: boolean;
   hasConsent: boolean;
   justification: string;
+  participantFirstName?: string;
+  participantLastName?: string;
+  participantDisplayName?: string;
+  personFirstName?: string;
+  personLastName?: string;
+  personDisplayName?: string;
 }): Promise<void> {
   const {
     eventSlug,
@@ -17,6 +23,12 @@ export async function saveMyPersonVisibilityRequest(params: {
     personCannotRequestByThemself,
     hasConsent,
     justification,
+    participantFirstName,
+    participantLastName,
+    participantDisplayName,
+    personFirstName,
+    personLastName,
+    personDisplayName,
   } = params;
 
   const now = new Date().toISOString();
@@ -40,7 +52,7 @@ export async function saveMyPersonVisibilityRequest(params: {
     throw new Error("La justification est obligatoire.");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("family_person_visibility_requests")
     .upsert(
       {
@@ -60,9 +72,40 @@ export async function saveMyPersonVisibilityRequest(params: {
       {
         onConflict: "event_slug,participant_id,person_id",
       },
-    );
+    )
+    .select("id")
+    .single();
 
   if (error) {
     throw error;
+  }
+
+  const { error: fnError } = await supabase.functions.invoke(
+    "send-visibility-request-notification",
+    {
+      body: {
+        requestId: data.id,
+        eventSlug,
+        participantId,
+        participantFirstName,
+        participantLastName,
+        participantDisplayName,
+        personId,
+        personFirstName,
+        personLastName,
+        personDisplayName,
+        hasLegitimateFamilyLink,
+        personCannotRequestByThemself,
+        hasConsent,
+        justification: cleanedJustification,
+      },
+    },
+  );
+
+  if (fnError) {
+    console.error(
+      "[saveMyPersonVisibilityRequest] notification non envoyée",
+      fnError,
+    );
   }
 }

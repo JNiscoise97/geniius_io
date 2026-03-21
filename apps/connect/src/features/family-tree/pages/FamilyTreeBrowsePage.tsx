@@ -1161,6 +1161,15 @@ export function FamilyTreeBrowsePage() {
           visibilityRequestPersonCannotRequestByThemself,
         hasConsent: visibilityRequestHasConsent,
         justification: visibilityRequestJustification,
+
+        participantFirstName,
+        participantLastName,
+        participantDisplayName,
+
+        personFirstName: context.person.firstName,
+        personLastName: context.person.lastName,
+        personDisplayName:
+          `${context.person.firstName} ${context.person.lastName}`.trim(),
       });
 
       setPanelMode("relations");
