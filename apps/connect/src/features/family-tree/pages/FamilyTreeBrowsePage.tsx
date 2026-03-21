@@ -679,7 +679,7 @@ export function FamilyTreeBrowsePage() {
 
   const sourcePersonId =
     myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified"
+      myIdentityClaimStatus === "auto_verified"
       ? claimedPersonId
       : null;
 
@@ -692,6 +692,8 @@ export function FamilyTreeBrowsePage() {
 
   const [centerId, setCenterId] = useState<string>(initialCenterId);
 
+
+  const [setAsProfilePhoto, setSetAsProfilePhoto] = useState(false);
   const context = useMemo(
     () => getPersonContext(centerId, visibilityPreferencesByPersonId),
     [centerId, visibilityPreferencesByPersonId],
@@ -1086,6 +1088,7 @@ export function FamilyTreeBrowsePage() {
     setPhotoFile(null);
     setPhotoCaption("");
     setPhotoConsentObtained(false);
+    setSetAsProfilePhoto(false);
     setPhotoPublishSuccessMessage(null);
     setPanelMode("photo_upload");
   }
@@ -1099,6 +1102,7 @@ export function FamilyTreeBrowsePage() {
     setPhotoFile(null);
     setPhotoCaption(photo.caption ?? "");
     setPhotoConsentObtained(photo.consent_obtained);
+    setSetAsProfilePhoto(false);
     setPhotoPublishSuccessMessage(null);
     setPanelMode("photo_upload");
   }
@@ -1516,6 +1520,9 @@ export function FamilyTreeBrowsePage() {
     void loadDefaultGedcomPersonId();
   }, [participantId, slug]);
 
+  const isOwnProfile =
+    Boolean(sourcePersonId) && isApprovedClaimForCurrentPerson;
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <main className="c-container pb-24 pt-3">
@@ -1572,11 +1579,13 @@ export function FamilyTreeBrowsePage() {
                         bouton C'est moi, les labels des boutons "sur cette
                         personne", "de lui" sont bizarre
                       </li>
-                      <li>Touched panel</li>
                     </ul>
                   </li>
                   <li>
                     message vous recevrez un mail quand le profil sera validé
+                  </li>
+                  <li>
+                    gérer modération pour claim. possibilité d'entrer le bon person_id + envoi de mail
                   </li>
                   <li>
                     Notif mail quand profil vérifié, quand demande de
@@ -1644,8 +1653,8 @@ export function FamilyTreeBrowsePage() {
         ) : (
           <>
             {displayPerson.canDisplay &&
-            displayPerson.canDisplayPhoto &&
-            displayPerson.photoSrc ? (
+              displayPerson.canDisplayPhoto &&
+              displayPerson.photoSrc ? (
               <section className="mb-4 mt-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="aspect-square overflow-hidden rounded-[20px] bg-slate-100">
                   <SmartImage
@@ -1897,11 +1906,13 @@ export function FamilyTreeBrowsePage() {
               <PersonPhotoEditorPanel
                 personDisplayName={personDisplayName}
                 isPossiblyAlive={displayPerson.isPossiblyAlive === true}
+                isOwnProfile={isOwnProfile}
                 mode={photoEditorMode}
                 selectedFile={photoFile}
                 existingPhotoUrl={editingPhoto?.public_url ?? null}
                 caption={photoCaption}
                 consentObtained={photoConsentObtained}
+                setAsProfilePhoto={setAsProfilePhoto}
                 counts={photoCounts}
                 publishSuccessMessage={photoPublishSuccessMessage}
                 isSubmitting={isSavingPhoto}
@@ -1909,6 +1920,7 @@ export function FamilyTreeBrowsePage() {
                 onSelectFile={setPhotoFile}
                 onChangeCaption={setPhotoCaption}
                 onChangeConsent={setPhotoConsentObtained}
+                onChangeSetAsProfilePhoto={setSetAsProfilePhoto}
                 onSubmit={() => void handleSavePhoto()}
               />
             ) : (
