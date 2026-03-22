@@ -1,5 +1,3 @@
-//searchPeople.ts
-
 import { findRelationshipPath } from "./findRelationshipPath";
 import {
   normalizeSearchText,
@@ -34,6 +32,11 @@ function splitNormalizedWords(value?: string): string[] {
     .split(" ")
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+function toSearchableString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
 }
 
 function getRelationshipDistanceBonus(
@@ -96,7 +99,7 @@ export function searchPeople({
   for (const doc of documents) {
     const canForceDisplay = forceDisplayedPersonIdsSet.has(doc.personId);
 
-if (!doc.canDisplay && !canForceDisplay) continue;
+    if (!doc.canDisplay && !canForceDisplay) continue;
 
     let score = 0;
     const matches = new Set<PersonSearchMatchKey>();
@@ -105,6 +108,9 @@ if (!doc.canDisplay && !canForceDisplay) continue;
     const firstNameWords = splitNormalizedWords(doc.firstNameNormalized);
     const lastNameWords = splitNormalizedWords(doc.lastNameNormalized);
     const nicknameWords = splitNormalizedWords(doc.nicknameNormalized);
+
+    const birthYear = toSearchableString(doc.birthYear);
+    const deathYear = toSearchableString(doc.deathYear);
 
     if (doc.fullNameNormalized === normalizedQuery) {
       score += 240;
@@ -194,21 +200,21 @@ if (!doc.canDisplay && !canForceDisplay) continue;
         tokenMatched = true;
       }
 
-      if (doc.birthYear === token) {
+      if (birthYear === token) {
         score += 45;
         addMatch(matches, "birth_year");
         tokenMatched = true;
-      } else if (token.length >= 3 && doc.birthYear?.startsWith(token)) {
+      } else if (token.length >= 3 && birthYear.startsWith(token)) {
         score += 20;
         addMatch(matches, "birth_year");
         tokenMatched = true;
       }
 
-      if (doc.deathYear === token) {
+      if (deathYear === token) {
         score += 45;
         addMatch(matches, "death_year");
         tokenMatched = true;
-      } else if (token.length >= 3 && doc.deathYear?.startsWith(token)) {
+      } else if (token.length >= 3 && deathYear.startsWith(token)) {
         score += 20;
         addMatch(matches, "death_year");
         tokenMatched = true;
