@@ -1,0 +1,21 @@
+[Cousinade TANJAMA 2026] L'arbre généalogique est accessible !
+
+Bonjour {{firstName}} 👋🏽
+
+👉🏾 L’arbre généalogique est maintenant accessible sur l’application 🌳
+
+C’est la fonctionnalité phare de l’appli, et c’est une grande joie pour moi de pouvoir enfin la partager avec vous 😊
+Plus qu’un simple outil pour la cousinade, il vous permet de :
+
+- naviguer dans les différentes branches de la famille
+- voir les noms et les visages qui font notre histoire
+- comprendre comment nous sommes tous reliés
+
+L’arbre est basé sur les informations que j’ai pu collecter jusqu’ici, donc il peut encore y avoir des choses
+ à compléter ou à corriger.
+
+👉🏾 Si tu peux prendre quelques minutes pour vérifier tes infos ou me faire un retour, ça m’aidera énormément 🙏🏾
+
+Merci d’avance !
+
+Jordan

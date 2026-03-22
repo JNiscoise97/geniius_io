@@ -62,6 +62,7 @@ import { ModerationQueuePage } from "../features/moderation/pages/ModerationQueu
 import { ModerationReviewPage } from "../features/moderation/pages/ModerationReviewPage";
 import { TodoPage } from "../features/todo/pages/TodoPage";
 import { FamilyTreePersonPage } from "../features/family-tree/pages/FamilyTreePersonPage";
+import AnnouncementComposerPage from "../features/announcements/pages/AnnouncementComposerPage";
 
 export const router = createBrowserRouter([
   {
@@ -161,6 +162,8 @@ export const router = createBrowserRouter([
 
               { path: "moderation", element: <ModerationQueuePage /> },
               { path: "moderation/:entityType/:entityId", element: <ModerationReviewPage /> },
+
+              { path:"announcements/new", element:<AnnouncementComposerPage />},
             ],
           },
         ],
