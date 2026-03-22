@@ -358,7 +358,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
     const tracker = createPageTimeTracker({
       participantId,
       eventSlug: slug,
-      pageKey: `/e/${slug}/familyTree/find-person`,
+      pageKey: `/e/${slug}/family-tree/find-person`,
     });
 
     tracker.start();

@@ -7097,19 +7097,6 @@
       "deathYear": "1997",
       "deathPlace": "Le Port, 97420, Réunion, Réunion, FRANCE"
     },
-    "731200299": {
-      "id": "731200299",
-      "firstName": "Daisy",
-      "lastName": "OSIRIS",
-      "nickname": "",
-      "sex": "F",
-      "famcIds": [],
-      "famsIds": [
-        "701200301"
-      ],
-      "birthDate": "1945",
-      "birthYear": "1945"
-    },
     "731204352": {
       "id": "731204352",
       "firstName": "Maurice Rosaire",
@@ -28039,7 +28026,6 @@
     "701200301": {
       "id": "701200301",
       "husbandId": "731304634",
-      "wifeId": "731200299",
       "childIds": []
     },
     "701249666": {

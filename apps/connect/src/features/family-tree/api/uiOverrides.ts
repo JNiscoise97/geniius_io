@@ -157,6 +157,7 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "7390": {
     photoSrc: blukerEmmanuel,
+    nickname: ""
   },
   "734199": {
     photoSrc: dassachettyVivienne,

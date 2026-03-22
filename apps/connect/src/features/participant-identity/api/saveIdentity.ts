@@ -5,12 +5,18 @@ type SaveIdentityInput = {
   eventSlug: string;
   participantId?: string | null;
   values: IdentityFormValues;
+  hasVerifiedClaim?: boolean;
+  claimedPersonId?: string | null;
 };
 
 type SaveIdentityResult = {
   participantId: string;
   recoveryToken: string | null;
 };
+
+function getNowIso() {
+  return new Date().toISOString();
+}
 
 function toBirthYearOrNull(raw: string): number | null {
   const s = raw.trim();
@@ -42,10 +48,98 @@ function generateRecoveryToken(length = 48): string {
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
+async function upsertProfileNamingAndBirthYearOverride(params: {
+  eventSlug: string;
+  personId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  nickname?: string | null;
+  birthYear?: string | null;
+}) {
+  const { eventSlug, personId, firstName, lastName, nickname, birthYear } =
+    params;
+
+  const { data: existingOverrideRow, error: overrideReadError } = await supabase
+    .from("person_overrides")
+    .select(
+      `
+        id,
+        overrides
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId)
+    .maybeSingle();
+
+  if (overrideReadError) {
+    throw overrideReadError;
+  }
+
+  const nextOverrides: Record<string, unknown> = {
+    ...((existingOverrideRow?.overrides as Record<string, unknown> | null) ??
+      {}),
+  };
+
+  if (firstName === null || firstName === undefined) {
+    delete nextOverrides.firstName;
+  } else {
+    nextOverrides.firstName = firstName;
+  }
+
+  if (lastName === null || lastName === undefined) {
+    delete nextOverrides.lastName;
+  } else {
+    nextOverrides.lastName = lastName;
+  }
+
+  if (nickname === null || nickname === undefined) {
+    nextOverrides.nickname = "";
+  } else {
+    nextOverrides.nickname = nickname;
+  }
+
+  if (birthYear === null || birthYear === undefined) {
+    nextOverrides.birthYear = "";
+  } else {
+    nextOverrides.birthYear = birthYear;
+  }
+
+  if (existingOverrideRow?.id) {
+    const { error: overrideUpdateError } = await supabase
+      .from("person_overrides")
+      .update({
+        overrides: nextOverrides,
+        updated_at: getNowIso(),
+      })
+      .eq("id", existingOverrideRow.id);
+
+    if (overrideUpdateError) {
+      throw overrideUpdateError;
+    }
+
+    return;
+  }
+
+  const { error: overrideInsertError } = await supabase
+    .from("person_overrides")
+    .insert({
+      event_slug: eventSlug,
+      person_id: personId,
+      overrides: nextOverrides,
+      updated_at: getNowIso(),
+    });
+
+  if (overrideInsertError) {
+    throw overrideInsertError;
+  }
+}
+
 export async function saveIdentity({
   eventSlug,
   participantId,
   values,
+  hasVerifiedClaim = false,
+  claimedPersonId = null,
 }: SaveIdentityInput): Promise<SaveIdentityResult> {
   let finalParticipantId = participantId ?? null;
   let recoveryToken: string | null = null;
@@ -60,7 +154,7 @@ export async function saveIdentity({
     has_whatsapp: values.hasWhatsapp === true,
     messenger: cleanText(values.messenger),
     preferred_contact_channels: uniqueStrings(values.preferredContactChannels),
-    updated_at: new Date().toISOString(),
+    updated_at: getNowIso(),
   };
 
   if (finalParticipantId) {
@@ -87,7 +181,7 @@ export async function saveIdentity({
         event_slug: eventSlug,
         ...payload,
         recovery_token: newRecoveryToken,
-        recovery_token_created_at: new Date().toISOString(),
+        recovery_token_created_at: getNowIso(),
       })
       .select("id, recovery_token")
       .single();
@@ -99,6 +193,17 @@ export async function saveIdentity({
     finalParticipantId = insertParticipant.data.id as string;
     recoveryToken =
       (insertParticipant.data.recovery_token as string | null) ?? null;
+  }
+
+  if (hasVerifiedClaim && claimedPersonId) {
+    await upsertProfileNamingAndBirthYearOverride({
+      eventSlug,
+      personId: claimedPersonId,
+      firstName: values.firstName.trim() || null,
+      lastName: values.lastName.trim() || null,
+      nickname: cleanText(values.nickname),
+      birthYear: values.birthYear.trim() || null,
+    });
   }
 
   return {

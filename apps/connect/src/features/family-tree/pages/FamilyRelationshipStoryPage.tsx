@@ -140,7 +140,11 @@ export function FamilyRelationshipStoryPage() {
 
   const story = useMemo(() => {
     if (!sourceId || !targetId) return null;
-
+    console.log("buildRelationshipStory",buildRelationshipStory(FAMILY_GRAPH, sourceId, targetId, {
+      visibilityPreferencesByPersonId,
+      sosaReferencePersonId,
+      overridesByPersonId
+    }))
     return buildRelationshipStory(FAMILY_GRAPH, sourceId, targetId, {
       visibilityPreferencesByPersonId,
       sosaReferencePersonId,
@@ -160,7 +164,7 @@ export function FamilyRelationshipStoryPage() {
     const tracker = createPageTimeTracker({
       participantId,
       eventSlug: slug,
-      pageKey: `/e/${slug}/familyTree/story`,
+      pageKey: `/e/${slug}/family-tree/story`,
     });
 
     tracker.start();

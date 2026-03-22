@@ -15,27 +15,6 @@
                     Message "pas de conjoint / d'enfant identifié" quid de ce
                     qui n'en ont pas eu pour sur
                   </li>
-                  <li>table override
-                    <ul>
-                      <li> du nom</li>
-                      <li> du prénom</li>
-                      <li> du surnom</li>
-                      <li> du birthYear</li>
-                      <li> de la photo affichée</li>
-                    </ul>
-                    => au moment du saveIdentity, si claim approved or ..., upsert override (firstName, lastName, nickname, birthYear)
-                    => au moment du deleteMyPersonPhoto, upsert override (photoSrc)
-                    => au moment du moderateEntity.claim, si currentPersonId et claim approved or ..., upsert override (firstName, lastName, nickname, birthYear)
-                    => au moment du moderateEntity.photo, si currentPersonId et claim approved or ... et setAsProfilePhoto, upsert override (photoSrc)
-                  </li>
-
-                  <li>
-                    Photos:
-                    <ul>
-                      <li>Notif mail approuvé/rejeté</li>
-                      <li>Notif mail approuvé pour remplacer celle affichée</li>
-                    </ul>
-                  </li>
                   <li>sous condition: Fiche + icon dans le hero</li>
                 </ol>
               </div>

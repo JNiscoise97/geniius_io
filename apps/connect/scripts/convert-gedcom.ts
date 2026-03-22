@@ -509,6 +509,61 @@ function filterGraphToBloodRelativesAndSpouses(
   };
 }
 
+function excludeIndividuals(
+  graph: FamilyGraphData,
+  excludedPersonIds: string[],
+): FamilyGraphData {
+  const excludedIds = new Set(
+    excludedPersonIds.map((id) => normalizeId(id)),
+  );
+
+  const filteredFamilies: Record<string, FamilyGraphFamily> = {};
+
+  for (const [familyId, family] of Object.entries(graph.families)) {
+    const husbandId =
+      family.husbandId && !excludedIds.has(family.husbandId)
+        ? family.husbandId
+        : undefined;
+
+    const wifeId =
+      family.wifeId && !excludedIds.has(family.wifeId)
+        ? family.wifeId
+        : undefined;
+
+    const childIds = family.childIds.filter(
+      (childId) => !excludedIds.has(childId),
+    );
+
+    if (!husbandId && !wifeId && childIds.length === 0) {
+      continue;
+    }
+
+    filteredFamilies[familyId] = {
+      id: family.id,
+      husbandId,
+      wifeId,
+      childIds,
+    };
+  }
+
+  const filteredPeople: Record<string, FamilyGraphPerson> = {};
+
+  for (const [personId, person] of Object.entries(graph.people)) {
+    if (excludedIds.has(personId)) continue;
+
+    filteredPeople[personId] = {
+      ...person,
+      famcIds: person.famcIds.filter((famId) => Boolean(filteredFamilies[famId])),
+      famsIds: person.famsIds.filter((famId) => Boolean(filteredFamilies[famId])),
+    };
+  }
+
+  return {
+    people: filteredPeople,
+    families: filteredFamilies,
+  };
+}
+
 function main(): void {
   const rootDir = process.cwd();
   const inputPath = path.resolve(
@@ -522,6 +577,7 @@ function main(): void {
 
   const rootAncestorId = "7398";
   const branchRootIds = ["731452", "732469", "7391", "732470", "732467"];
+  const excludedPersonIds: string[] = ["731200299"];
 
   const gedcomText = fs.readFileSync(inputPath, "utf8");
   const fullGraph = buildGraphFromGedcomText(gedcomText);
@@ -529,7 +585,11 @@ function main(): void {
     fullGraph,
     rootAncestorId,
   );
-  const graph = assignBranches(filteredGraph, branchRootIds);
+  const graphWithoutExcludedPeople = excludeIndividuals(
+    filteredGraph,
+    excludedPersonIds,
+  );
+  const graph = assignBranches(graphWithoutExcludedPeople, branchRootIds);
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(graph, null, 2), "utf8");

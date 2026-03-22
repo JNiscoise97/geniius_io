@@ -11,6 +11,7 @@ import { getIdentity } from "../api/getIdentity";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import { getMyPersonIdentityClaim } from "../../family-tree/api/getMyPersonIdentityClaim";
 
 const INITIAL_VALUES: IdentityFormValues = {
   firstName: "",
@@ -42,8 +43,55 @@ export function ParticipantIdentityPage() {
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
+    "pending" | "approved" | "rejected" | "auto_verified" | null
+  >(null);
+  const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
+  const [loadingClaim, setLoadingClaim] = useState(true);
+
   const participantSession = getParticipantSession(slug);
   const participantId = participantSession?.participantId ?? null;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadIdentityClaim() {
+      if (!participantId) {
+        if (isMounted) {
+          setMyIdentityClaimStatus(null);
+          setClaimedPersonId(null);
+          setLoadingClaim(false);
+        }
+        return;
+      }
+
+      try {
+        const identityClaim = await getMyPersonIdentityClaim({
+          eventSlug: slug,
+          participantId,
+        });
+
+        if (!isMounted) return;
+
+        setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
+        setClaimedPersonId(identityClaim?.person_id ?? null);
+      } catch {
+        if (!isMounted) return;
+        setMyIdentityClaimStatus(null);
+        setClaimedPersonId(null);
+      } finally {
+        if (isMounted) {
+          setLoadingClaim(false);
+        }
+      }
+    }
+
+    void loadIdentityClaim();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -174,11 +222,15 @@ export function ParticipantIdentityPage() {
 
     try {
       const participantSession = getParticipantSession(slug);
-
+      const hasVerifiedClaim =
+        myIdentityClaimStatus === "approved" ||
+        myIdentityClaimStatus === "auto_verified";
       const result = await saveIdentity({
         eventSlug: slug,
         participantId: participantSession?.participantId ?? null,
         values,
+        hasVerifiedClaim,
+        claimedPersonId,
       });
 
       addStoredParticipantProfile(slug, {
@@ -255,7 +307,7 @@ export function ParticipantIdentityPage() {
           </div>
         ) : null}
 
-        {loadingInitialData ? (
+        {loadingInitialData || loadingClaim ? (
           <section className="mt-3 rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
             <div className="text-sm font-bold text-slate-700">
               Chargement de tes informations…

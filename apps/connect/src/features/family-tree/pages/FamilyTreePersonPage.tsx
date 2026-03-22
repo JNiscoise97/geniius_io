@@ -26,6 +26,7 @@ import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { formatPlaceTransition } from "../lib/genealogyUi";
 import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 import type { PersonUiOverride } from "../api/uiOverrides";
+import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 
 function PersonVisual({ name, photoSrc }: { name: string; photoSrc?: string }) {
   if (photoSrc) {
@@ -131,6 +132,24 @@ export function FamilyTreePersonPage() {
   const [overridesByPersonId, setOverridesByPersonId] = useState<
     Record<string, PersonUiOverride>
   >({});
+
+
+  
+    useEffect(() => {
+      if (!participantId) return;
+  
+      const tracker = createPageTimeTracker({
+        participantId,
+        eventSlug: slug,
+        pageKey: `/e/${slug}/family-tree/person?id=${personId}`,
+      });
+  
+      tracker.start();
+  
+      return () => {
+        void tracker.stop();
+      };
+    }, [participantId, slug]);
 
   useEffect(() => {
     let cancelled = false;

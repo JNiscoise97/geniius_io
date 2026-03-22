@@ -1288,6 +1288,13 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         consentObtained: photoConsentObtained,
         file: photoFile ?? undefined,
         setAsProfilePhoto, // <-- ajout
+        participantFirstName,
+          participantLastName,
+          participantDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
       });
 
       setPhotoPublishSuccessMessage(
@@ -1304,6 +1311,13 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         caption: photoCaption,
         consentObtained: photoConsentObtained,
         setAsProfilePhoto, // <-- ajout
+        participantFirstName,
+          participantLastName,
+          participantDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
       });
 
       setPhotoPublishSuccessMessage(
@@ -1378,7 +1392,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
     const tracker = createFamilyTreeViewTracker({
       participantId,
       eventSlug: slug,
-      sourcePageKey: `/e/${slug}/familyTree/browse`,
+      sourcePageKey: `/e/${slug}/family-tree/browse`,
       initialPersonId: centerId,
     });
 
@@ -1397,7 +1411,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
     const tracker = createPageTimeTracker({
       participantId,
       eventSlug: slug,
-      pageKey: `/e/${slug}/familyTree/browse`,
+      pageKey: `/e/${slug}/family-tree/browse`,
     });
 
     tracker.start();

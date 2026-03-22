@@ -1,6 +1,105 @@
 import { supabase } from "../../../lib/supabase/client";
 import type { PersonIdentityClaim } from "./getMyPersonIdentityClaim";
 
+function getNowIso() {
+  return new Date().toISOString();
+}
+
+function normalizeText(value?: string | null): string | undefined {
+  const v = value?.trim();
+  return v ? v : undefined;
+}
+
+async function upsertProfileNamingAndBirthYearOverride(params: {
+  eventSlug: string;
+  personId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  nickname?: string | null;
+  birthYear?: number | string | null;
+}) {
+  const { eventSlug, personId, firstName, lastName, nickname, birthYear } =
+    params;
+
+  const { data: existingOverrideRow, error: overrideReadError } = await supabase
+    .from("person_overrides")
+    .select(
+      `
+        id,
+        overrides
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId)
+    .maybeSingle();
+
+  if (overrideReadError) {
+    throw overrideReadError;
+  }
+
+  const nextOverrides: Record<string, unknown> = {
+    ...((existingOverrideRow?.overrides as Record<string, unknown> | null) ??
+      {}),
+  };
+
+  const normalizedFirstName = normalizeText(firstName);
+  const normalizedLastName = normalizeText(lastName);
+  const normalizedNickname = normalizeText(nickname);
+
+  if (normalizedFirstName) {
+    nextOverrides.firstName = normalizedFirstName;
+  } else {
+    delete nextOverrides.firstName;
+  }
+
+  if (normalizedLastName) {
+    nextOverrides.lastName = normalizedLastName;
+  } else {
+    delete nextOverrides.lastName;
+  }
+
+  if (normalizedNickname) {
+    nextOverrides.nickname = normalizedNickname;
+  } else {
+    nextOverrides.nickname = "";
+  }
+
+  if (birthYear === null || birthYear === undefined || birthYear === "") {
+    nextOverrides.birthYear = "";
+  } else {
+    nextOverrides.birthYear = String(birthYear);
+  }
+
+  if (existingOverrideRow?.id) {
+    const { error: overrideUpdateError } = await supabase
+      .from("person_overrides")
+      .update({
+        overrides: nextOverrides,
+        updated_at: getNowIso(),
+      })
+      .eq("id", existingOverrideRow.id);
+
+    if (overrideUpdateError) {
+      throw overrideUpdateError;
+    }
+
+    return;
+  }
+
+  const { error: overrideInsertError } = await supabase
+    .from("person_overrides")
+    .insert({
+      event_slug: eventSlug,
+      person_id: personId,
+      overrides: nextOverrides,
+      updated_at: getNowIso(),
+    });
+
+  if (overrideInsertError) {
+    throw overrideInsertError;
+  }
+}
+
 export async function saveMyPersonIdentityClaim(params: {
   eventSlug: string;
   participantId: string;
@@ -24,11 +123,19 @@ export async function saveMyPersonIdentityClaim(params: {
     personDisplayName,
   } = params;
 
-  const now = new Date().toISOString();
+  const now = getNowIso();
 
   const { data: participant, error: participantError } = await supabase
     .from("participants")
-    .select("default_gedcom_person_id")
+    .select(
+      `
+        default_gedcom_person_id,
+        first_name,
+        last_name,
+        nickname,
+        birth_year
+      `,
+    )
     .eq("id", participantId)
     .single();
 
@@ -112,6 +219,17 @@ export async function saveMyPersonIdentityClaim(params: {
 
   const notificationType =
     nextStatus === "auto_verified" ? "auto_verified" : "submitted";
+
+  if (nextStatus === "auto_verified") {
+    await upsertProfileNamingAndBirthYearOverride({
+      eventSlug,
+      personId,
+      firstName: participant?.first_name ?? null,
+      lastName: participant?.last_name ?? null,
+      nickname: participant?.nickname ?? null,
+      birthYear: participant?.birth_year ?? null,
+    });
+  }
 
   const { error: fnError } = await supabase.functions.invoke(
     "send-identity-claim-notification",

@@ -11,6 +11,15 @@ type ProcessModerationEntityParams = {
   expectedGedcomPersonId?: string;
 };
 
+type MinimalParticipant = {
+  id: string;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  nickname?: string | null;
+  birth_year?: string | null;
+};
+
 function getNowIso() {
   return new Date().toISOString();
 }
@@ -31,13 +40,10 @@ function buildDisplayName(
 }
 
 function getParticipantDisplayName(
-  participant:
-    | {
-        first_name?: string | null;
-        last_name?: string | null;
-      }
-    | null
-    | undefined,
+  participant?: {
+    first_name?: string | null;
+    last_name?: string | null;
+  } | null,
 ) {
   return buildDisplayName(participant?.first_name, participant?.last_name);
 }
@@ -62,14 +68,224 @@ function getPersonIdentityFromGraph(personId?: string | null): {
   const personFirstName = normalizeText(person.firstName);
   const personLastName = normalizeText(person.lastName);
   const personDisplayName =
-    buildDisplayName(personFirstName, personLastName) ??
-    `Personne ${personId}`;
+    buildDisplayName(personFirstName, personLastName) ?? `Personne ${personId}`;
 
   return {
     personFirstName,
     personLastName,
     personDisplayName,
   };
+}
+
+async function readParticipant(
+  participantId: string,
+): Promise<MinimalParticipant | null> {
+  const { data, error } = await supabase
+    .from("participants")
+    .select(
+      `
+        id,
+        email,
+        first_name,
+        last_name,
+        nickname,
+        birth_year
+      `,
+    )
+    .eq("id", participantId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? null) as MinimalParticipant | null;
+}
+
+async function invokeParticipantNotification(params: {
+  functionName: string;
+  eventSlug: string;
+  participant: MinimalParticipant;
+  personId: string;
+  moderatorComment?: string;
+}) {
+  const { functionName, eventSlug, participant, personId, moderatorComment } =
+    params;
+
+  const participantEmail = normalizeText(participant.email);
+  if (!participantEmail) {
+    return;
+  }
+
+  const participantDisplayName = getParticipantDisplayName(participant);
+  const personIdentity = getPersonIdentityFromGraph(personId);
+
+  const { error } = await supabase.functions.invoke(functionName, {
+    body: {
+      eventSlug,
+      participantId: participant.id,
+      participantEmail,
+      participantFirstName: participant.first_name ?? undefined,
+      participantLastName: participant.last_name ?? undefined,
+      participantDisplayName,
+      personId,
+      personFirstName: personIdentity.personFirstName,
+      personLastName: personIdentity.personLastName,
+      personDisplayName: personIdentity.personDisplayName,
+      moderatorComment: moderatorComment ?? undefined,
+    },
+  });
+
+  if (error) {
+    console.error(`Échec d’envoi de la notification ${functionName}`, error);
+  }
+}
+
+async function upsertProfilePhotoOverride(params: {
+  eventSlug: string;
+  personId: string;
+  photoSrc: string;
+}) {
+  const { eventSlug, personId, photoSrc } = params;
+
+  const { data: existingOverrideRow, error: overrideReadError } = await supabase
+    .from("person_overrides")
+    .select(
+      `
+        id,
+        overrides
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId)
+    .maybeSingle();
+
+  if (overrideReadError) {
+    throw overrideReadError;
+  }
+
+  const nextOverrides = {
+    ...((existingOverrideRow?.overrides as Record<string, unknown> | null) ??
+      {}),
+    photoSrc,
+  };
+
+  if (existingOverrideRow?.id) {
+    const { error: overrideUpdateError } = await supabase
+      .from("person_overrides")
+      .update({
+        overrides: nextOverrides,
+        updated_at: getNowIso(),
+      })
+      .eq("id", existingOverrideRow.id);
+
+    if (overrideUpdateError) {
+      throw overrideUpdateError;
+    }
+
+    return;
+  }
+
+  const { error: overrideInsertError } = await supabase
+    .from("person_overrides")
+    .insert({
+      event_slug: eventSlug,
+      person_id: personId,
+      overrides: nextOverrides,
+      updated_at: getNowIso(),
+    });
+
+  if (overrideInsertError) {
+    throw overrideInsertError;
+  }
+}
+
+async function upsertProfileNamingAndBirthYearOverride(params: {
+  eventSlug: string;
+  personId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  nickname?: string | null;
+  birthYear?: string | null;
+}) {
+  const { eventSlug, personId, firstName, lastName, nickname, birthYear } =
+    params;
+
+  const { data: existingOverrideRow, error: overrideReadError } = await supabase
+    .from("person_overrides")
+    .select(
+      `
+        id,
+        overrides
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("person_id", personId)
+    .maybeSingle();
+
+  if (overrideReadError) {
+    throw overrideReadError;
+  }
+
+  const currentOverrides =
+    (existingOverrideRow?.overrides as Record<string, unknown> | null) ?? {};
+
+  const nextOverrides: Record<string, unknown> = {
+    ...currentOverrides,
+  };
+
+  if (firstName != null) {
+    nextOverrides.firstName = firstName;
+  } else {
+    delete nextOverrides.firstName;
+  }
+
+  if (lastName != null) {
+    nextOverrides.lastName = lastName;
+  } else {
+    delete nextOverrides.lastName;
+  }
+
+  if (nickname != null) {
+    nextOverrides.nickname = nickname;
+  } else {
+    nextOverrides.nickname = "";
+  }
+
+  if (birthYear != null) {
+    nextOverrides.birthYear = birthYear;
+  } else {
+    nextOverrides.birthYear = "";
+  }
+
+  if (existingOverrideRow?.id) {
+    const { error: overrideUpdateError } = await supabase
+      .from("person_overrides")
+      .update({
+        overrides: nextOverrides,
+        updated_at: getNowIso(),
+      })
+      .eq("id", existingOverrideRow.id);
+
+    if (overrideUpdateError) {
+      throw overrideUpdateError;
+    }
+
+    return;
+  }
+
+  const { error: overrideInsertError } = await supabase
+    .from("person_overrides")
+    .insert({
+      event_slug: eventSlug,
+      person_id: personId,
+      overrides: nextOverrides,
+      updated_at: getNowIso(),
+    });
+
+  if (overrideInsertError) {
+    throw overrideInsertError;
+  }
 }
 
 export async function processModerationEntity({
@@ -95,112 +311,83 @@ export async function processModerationEntity({
       .eq("event_slug", eventSlug)
       .eq("id", entityId);
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
+
     return;
   }
 
   if (entityType === "photo") {
-  if (!status) {
-    throw new Error("Le statut est requis pour modérer une photo.");
-  }
-
-  const { data: photo, error: photoReadError } = await supabase
-    .from("family_person_photos")
-    .select(
-      `
-        id,
-        event_slug,
-        person_id,
-        storage_path,
-        set_as_profile_photo
-      `,
-    )
-    .eq("event_slug", eventSlug)
-    .eq("id", entityId)
-    .single();
-
-  if (photoReadError || !photo) {
-    throw new Error("Photo introuvable.");
-  }
-
-  const { error: photoUpdateError } = await supabase
-    .from("family_person_photos")
-    .update({
-      moderation_status: status,
-      moderator_comment: moderatorComment ?? null,
-      moderated_at: getNowIso(),
-    })
-    .eq("event_slug", eventSlug)
-    .eq("id", entityId);
-
-  if (photoUpdateError) {
-    throw photoUpdateError;
-  }
-
-  if (status === "approved" && photo.set_as_profile_photo) {
-    const { data: publicUrlData } = supabase.storage
-      .from("family-person-photos")
-      .getPublicUrl(photo.storage_path);
-
-    const photoSrc = publicUrlData?.publicUrl;
-
-    if (!photoSrc) {
-      throw new Error("Impossible de construire l’URL publique de la photo.");
+    if (!status) {
+      throw new Error("Le statut est requis pour modérer une photo.");
     }
 
-    const { data: existingOverrideRow, error: overrideReadError } =
-      await supabase
-        .from("person_overrides")
-        .select(
-          `
-            id,
-            overrides
-          `,
-        )
-        .eq("event_slug", eventSlug)
-        .eq("person_id", photo.person_id)
-        .maybeSingle();
+    const { data: photo, error: photoReadError } = await supabase
+      .from("family_person_photos")
+      .select(
+        `
+          id,
+          event_slug,
+          participant_id,
+          person_id,
+          storage_path,
+          set_as_profile_photo
+        `,
+      )
+      .eq("event_slug", eventSlug)
+      .eq("id", entityId)
+      .single();
 
-    if (overrideReadError) {
-      throw overrideReadError;
+    if (photoReadError || !photo) {
+      throw new Error("Photo introuvable.");
     }
 
-    const nextOverrides = {
-      ...((existingOverrideRow?.overrides as Record<string, unknown> | null) ??
-        {}),
-      photoSrc,
-    };
+    const { error: photoUpdateError } = await supabase
+      .from("family_person_photos")
+      .update({
+        moderation_status: status,
+        moderator_comment: moderatorComment ?? null,
+        moderated_at: getNowIso(),
+      })
+      .eq("event_slug", eventSlug)
+      .eq("id", entityId);
 
-    if (existingOverrideRow?.id) {
-      const { error: overrideUpdateError } = await supabase
-        .from("person_overrides")
-        .update({
-          overrides: nextOverrides,
-          updated_at: getNowIso(),
-        })
-        .eq("id", existingOverrideRow.id);
+    if (photoUpdateError) {
+      throw photoUpdateError;
+    }
 
-      if (overrideUpdateError) {
-        throw overrideUpdateError;
+    const participant = await readParticipant(photo.participant_id);
+
+    if (status === "approved" && photo.set_as_profile_photo) {
+      const { data: publicUrlData } = supabase.storage
+        .from("family-person-photos")
+        .getPublicUrl(photo.storage_path);
+
+      const photoSrc = publicUrlData?.publicUrl;
+
+      if (!photoSrc) {
+        throw new Error("Impossible de construire l’URL publique de la photo.");
       }
-    } else {
-      const { error: overrideInsertError } = await supabase
-        .from("person_overrides")
-        .insert({
-          event_slug: eventSlug,
-          person_id: photo.person_id,
-          overrides: nextOverrides,
-          updated_at: getNowIso(),
+
+      await upsertProfilePhotoOverride({
+        eventSlug,
+        personId: photo.person_id,
+        photoSrc,
+      });
+
+      if (participant) {
+        await invokeParticipantNotification({
+          functionName: "send-photo-profile-approved-notification",
+          eventSlug,
+          participant,
+          personId: photo.person_id,
         });
-
-      if (overrideInsertError) {
-        throw overrideInsertError;
       }
     }
-  }
 
-  return;
-}
+    return;
+  }
 
   if (entityType === "visibility_request") {
     if (!status) {
@@ -237,67 +424,31 @@ export async function processModerationEntity({
       .eq("event_slug", eventSlug)
       .eq("id", entityId);
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
-    const { data: participant, error: participantReadError } = await supabase
-      .from("participants")
-      .select(
-        `
-          id,
-          email,
-          first_name,
-          last_name
-        `,
-      )
-      .eq("id", visibilityRequest.participant_id)
-      .maybeSingle();
+    try {
+      const participant = await readParticipant(
+        visibilityRequest.participant_id,
+      );
 
-    if (participantReadError) {
+      if (participant) {
+        await invokeParticipantNotification({
+          functionName:
+            status === "approved"
+              ? "send-visibility-request-approved-notification"
+              : "send-visibility-request-rejected-notification",
+          eventSlug,
+          participant,
+          personId: visibilityRequest.person_id,
+          moderatorComment,
+        });
+      }
+    } catch (participantReadError) {
       console.error(
         "Impossible de relire le participant après modération visibility_request",
         participantReadError,
-      );
-      return;
-    }
-
-    const participantEmail = normalizeText(participant?.email);
-    if (!participantEmail) {
-      return;
-    }
-
-    const participantDisplayName = getParticipantDisplayName(participant);
-    const personIdentity = getPersonIdentityFromGraph(
-      visibilityRequest.person_id,
-    );
-
-    const functionName =
-      status === "approved"
-        ? "send-visibility-request-approved-notification"
-        : "send-visibility-request-rejected-notification";
-
-    const { error: notificationError } = await supabase.functions.invoke(
-      functionName,
-      {
-        body: {
-          eventSlug,
-          participantId: visibilityRequest.participant_id,
-          participantEmail,
-          participantFirstName: participant?.first_name ?? undefined,
-          participantLastName: participant?.last_name ?? undefined,
-          participantDisplayName,
-          personId: visibilityRequest.person_id,
-          personFirstName: personIdentity.personFirstName,
-          personLastName: personIdentity.personLastName,
-          personDisplayName: personIdentity.personDisplayName,
-          moderatorComment: moderatorComment ?? undefined,
-        },
-      },
-    );
-
-    if (notificationError) {
-      console.error(
-        `Échec d’envoi de la notification visibility_request ${status}`,
-        notificationError,
       );
     }
 
@@ -361,57 +512,30 @@ export async function processModerationEntity({
       throw claimUpdateError;
     }
 
-    const { data: participant, error: participantReadError } = await supabase
-      .from("participants")
-      .select(
-        `
-          id,
-          email,
-          first_name,
-          last_name
-        `,
-      )
-      .eq("id", claim.participant_id)
-      .maybeSingle();
+    try {
+      const participant = await readParticipant(claim.participant_id);
 
-    if (participantReadError) {
+      if (participant) {
+        await upsertProfileNamingAndBirthYearOverride({
+          eventSlug,
+          personId: nextGedcomPersonId,
+          firstName: participant.first_name ?? null,
+          lastName: participant.last_name ?? null,
+          nickname:  participant.nickname ?? null,
+          birthYear:  participant.birth_year ?? null,
+        });
+
+        await invokeParticipantNotification({
+          functionName: "send-identity-claim-approved-notification",
+          eventSlug,
+          participant,
+          personId: nextGedcomPersonId,
+        });
+      }
+    } catch (participantReadError) {
       console.error(
         "Impossible de relire le participant après modération identity_claim",
         participantReadError,
-      );
-      return;
-    }
-
-    const participantEmail = normalizeText(participant?.email);
-    if (!participantEmail) {
-      return;
-    }
-
-    const participantDisplayName = getParticipantDisplayName(participant);
-    const personIdentity = getPersonIdentityFromGraph(nextGedcomPersonId);
-
-    const { error: notificationError } = await supabase.functions.invoke(
-      "send-identity-claim-approved-notification",
-      {
-        body: {
-          eventSlug,
-          participantId: claim.participant_id,
-          participantEmail,
-          participantFirstName: participant?.first_name ?? undefined,
-          participantLastName: participant?.last_name ?? undefined,
-          participantDisplayName,
-          personId: nextGedcomPersonId,
-          personFirstName: personIdentity.personFirstName,
-          personLastName: personIdentity.personLastName,
-          personDisplayName: personIdentity.personDisplayName,
-        },
-      },
-    );
-
-    if (notificationError) {
-      console.error(
-        "Échec d’envoi de la notification identity_claim approved",
-        notificationError,
       );
     }
 
