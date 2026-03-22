@@ -400,23 +400,29 @@ export function FamilyTreePersonPage() {
           </div>
         </section>
 
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Page en construction
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>
-                    Informations généalogiques à venir
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
+                  <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5 rounded-xl bg-slate-200 p-2 text-slate-700">
+      <AlertTriangle size={16} />
+    </div>
+
+    <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="text-sm font-semibold text-slate-900">
+          Informations généalogiques
         </div>
+
+        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-700 border border-slate-200">
+          Bientôt disponible
+        </span>
+      </div>
+
+      <p className="mt-1 text-xs leading-5 text-slate-600">
+        Informations sur la naissance, le baptême, le mariage et le décès.
+      </p>
+    </div>
+  </div>
+</div>
 
         {showParticipantProfile ? (
           <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
@@ -471,33 +477,6 @@ export function FamilyTreePersonPage() {
             </div>
           </section>
         ) : null}
-
-        <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Résumé
-          </div>
-
-          <div className="mt-3 space-y-3 text-sm text-slate-700">
-            <div>
-              <span className="font-black text-slate-900">Identifiant :</span>{" "}
-              {displayPerson.id}
-            </div>
-
-            {displayPerson.branch?.length ? (
-              <div>
-                <span className="font-black text-slate-900">Branches :</span>{" "}
-                {displayPerson.branch.join(", ")}
-              </div>
-            ) : null}
-
-            {participantId ? (
-              <div className="text-xs text-slate-500">
-                Cette page est consultée dans le cadre de ta session
-                participante.
-              </div>
-            ) : null}
-          </div>
-        </section>
       </main>
     </div>
   );

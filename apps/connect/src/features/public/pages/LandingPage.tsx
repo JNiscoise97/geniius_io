@@ -87,7 +87,7 @@ function getAvailabilityLabel(
   const diffMs = startOfTarget.getTime() - startOfToday.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays <= 0 && diffDays >= -5) {
+  if (diffDays <= 0 && diffDays >= -4) {
     return "Nouveau";
   }
 
@@ -334,7 +334,7 @@ export function LandingPage() {
             to: `/e/${slug}/arbre`,
             enabled: features.core.familyTree,
             availableAt: timeline.familyTree,
-            status: "disabled",
+            status: "enabled",
           },
           {
             key: "library",
@@ -618,10 +618,10 @@ export function LandingPage() {
 
             {!loadingGuidedPrompts &&
               guidedPrompts.map((prompt) => (
-                <GuidedPromptCard
+                (prompt.enable && <GuidedPromptCard
                   key={prompt.key}
                   prompt={prompt}
-                  onClick={() => openCompletionRule(prompt)} />
+                  onClick={() => openCompletionRule(prompt)} />)
               ))}
 
             {!loadingGuidedPrompts && guidedPrompts.length === 0 ? (

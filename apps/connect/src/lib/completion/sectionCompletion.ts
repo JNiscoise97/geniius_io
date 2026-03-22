@@ -5,6 +5,7 @@ import {
   GitBranch,
   HeartHandshake,
   Image,
+  Leaf,
   MessageCircleHeart,
   Network,
   Settings,
@@ -12,7 +13,6 @@ import {
   UserCircle2,
   Users,
 } from "lucide-react";
-
 
 const FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS = new Set<string>([
   "4c36193e-09c9-4166-b1fb-e423fdcc3984",
@@ -26,7 +26,7 @@ const FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS = new Set<string>([
   "df38d26b-db3b-4eb2-af95-3cf2c3bf2ea1",
   "cee2967a-633a-4c14-88d4-5020281e41a1",
   "2c8eb65d-d0f2-45ef-9fd3-11d947554a1e",
-  "96df0547-072b-4f64-9bbd-df84e18a0bcf"
+  "96df0547-072b-4f64-9bbd-df84e18a0bcf",
 ]);
 
 export type CompletionItemType = "form" | "info";
@@ -53,6 +53,7 @@ export type CompletionRule = {
   group?:
     | "identity"
     | "attendance"
+    | "family_tree"
     | "preferences"
     | "origins"
     | "close_family"
@@ -63,6 +64,7 @@ export type CompletionRule = {
     | "photos"
     | "beta";
   eyebrow: string;
+  enable: boolean;
   actionRapide: string;
   text: string;
   cta: string;
@@ -74,6 +76,7 @@ export type CompletionRule = {
   type: CompletionItemType;
   dependsOnTables?: string[];
   selectFieldsByTable?: Record<string, string[]>;
+  isVisible?: (rowsByTable: Record<string, CompletionRow>) => boolean;
   isComplete?: (rowsByTable: Record<string, CompletionRow>) => boolean;
   betaBadge?: string;
   isVisibleForParticipant?: (participantId: string | null) => boolean;
@@ -101,28 +104,31 @@ export function getFamilyKnowledgeCompletionRules(
 
 export const completionRules: CompletionRule[] = [
   {
-  key: "beta-family-tree",
-  group: "beta",
-  eyebrow: "Accès anticipé",
-  actionRapide: "Tester la nouvelle exploration de l’arbre familial",
-  text: "Tu fais partie du petit groupe qui peut découvrir en avant-première cette fonctionnalité encore en test, qui sera disponible ce dimanche 22/03.",
-  cta: "Explorer",
-  icon: TreeDeciduous,
-  table: null,
-  fields: { and: [] },
-  to: "/family-tree",
-  type: "info",
-  betaBadge: "Test",
-  isVisibleForParticipant: (participantId) =>
-    !!participantId &&
-    FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS.has(participantId),
-},
+    key: "beta-family-tree",
+    group: "beta",
+    eyebrow: "Accès anticipé",
+    enable: false,
+    actionRapide: "Tester la nouvelle exploration de l’arbre familial",
+    text: "Tu fais partie du petit groupe qui peut découvrir en avant-première cette fonctionnalité encore en test, qui sera disponible ce dimanche 22/03.",
+    cta: "Explorer",
+    icon: TreeDeciduous,
+    table: null,
+    fields: { and: [] },
+    to: "/family-tree",
+    type: "info",
+    betaBadge: "Test",
+    isVisibleForParticipant: (participantId) =>
+      !!participantId &&
+      FAMILY_TREE_EARLY_ACCESS_PARTICIPANT_IDS.has(participantId),
+  },
   {
     key: "identity",
     onboardingKey: "identity",
     group: "identity",
     eyebrow: "Profil",
-    actionRapide: "Ajoute quelques informations pour que l'organisateur puisse bien t'identifier.",
+    enable: true,
+    actionRapide:
+      "Ajoute quelques informations pour que l'organisateur puisse bien t'identifier.",
     text: "",
     cta: "Compléter mon profil",
     icon: UserCircle2,
@@ -146,6 +152,7 @@ export const completionRules: CompletionRule[] = [
     key: "attendance",
     eyebrow: "Présence",
     group: "attendance",
+    enable: true,
     actionRapide: "Souhaites-tu confirmer ta présence au pique-nique ?",
     text: "Ta réponse nous aide à préparer la journée dans les meilleures conditions.",
     cta: "Confirmer ma présence",
@@ -160,8 +167,10 @@ export const completionRules: CompletionRule[] = [
     key: "preferences",
     onboardingKey: "preferences",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis ce que la famille peut voir ou utiliser à ton sujet.",
+    actionRapide:
+      "Choisis ce que la famille peut voir ou utiliser à ton sujet.",
     text: "Tu peux définir ici ce que tu acceptes pour l’arbre, les photos, les contacts et certains usages dans l’application.",
     cta: "Gérer mes consentements",
     icon: Settings,
@@ -189,18 +198,17 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences-app",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis si ton nom peut apparaître dans l’application, notamment dans les jeux.",
+    actionRapide:
+      "Choisis si ton nom peut apparaître dans l’application, notamment dans les jeux.",
     text: "",
     cta: "Gérer mes consentements",
     icon: Settings,
     table: "participant_consents",
     participantField: "participant_id",
     fields: {
-      or: [
-        "allow_name_in_event_activities",
-        "allow_participation_in_games",
-      ],
+      or: ["allow_name_in_event_activities", "allow_participation_in_games"],
     },
     to: "/welcome/preferences",
     type: "form",
@@ -208,8 +216,10 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences-genealogy",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis si les informations que tu partages ici peuvent enrichir l’arbre généalogique familial.",
+    actionRapide:
+      "Choisis si les informations que tu partages ici peuvent enrichir l’arbre généalogique familial.",
     text: "",
     cta: "Gérer mes consentements",
     icon: Settings,
@@ -227,18 +237,17 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences-contact",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis tes préférences pour rester en contact avec la famille.",
+    actionRapide:
+      "Choisis tes préférences pour rester en contact avec la famille.",
     text: "",
     cta: "Gérer mes consentements",
     icon: Settings,
     table: "participant_consents",
     participantField: "participant_id",
     fields: {
-      or: [
-        "allow_contact_details_with_family",
-        "allow_future_family_contact",
-      ],
+      or: ["allow_contact_details_with_family", "allow_future_family_contact"],
     },
     to: "/welcome/preferences",
     type: "form",
@@ -246,8 +255,10 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences-image",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis tes préférences concernant les photos de toi prises pendant l’événement.",
+    actionRapide:
+      "Choisis tes préférences concernant les photos de toi prises pendant l’événement.",
     text: "",
     cta: "Gérer mes consentements",
     icon: Settings,
@@ -266,8 +277,10 @@ export const completionRules: CompletionRule[] = [
   {
     key: "preferences-family-tree",
     group: "preferences",
+    enable: true,
     eyebrow: "Consentements",
-    actionRapide: "Choisis ce que la famille peut voir à ton sujet dans l’arbre généalogique.",
+    actionRapide:
+      "Choisis ce que la famille peut voir à ton sujet dans l’arbre généalogique.",
     text: "",
     cta: "Gérer mes consentements",
     icon: Settings,
@@ -284,8 +297,64 @@ export const completionRules: CompletionRule[] = [
     type: "form",
   },
   {
+    key: "find-me",
+    eyebrow: "Arbre généalogique",
+    enable: true,
+    group: "family_tree",
+    actionRapide: "Te retrouver dans l’arbre généalogique",
+    text: "Parcours l’arbre et indique la personne qui te correspond pour te faire reconnaître dans la famille.",
+    cta: "Associer mon profil",
+    to: "/family-tree/find-me",
+    icon: Leaf,
+    table: "family_person_identity_claims",
+    participantField: "participant_id",
+    fields: "claim_status",
+    type: "form",
+    isComplete: (rowsByTable) => {
+      const row = rowsByTable["family_person_identity_claims"] as
+        | Record<string, unknown>
+        | null
+        | undefined;
+
+      const claimStatus =
+        typeof row?.claim_status === "string" ? row.claim_status : null;
+
+      return (
+        claimStatus === "pending" ||
+        claimStatus === "auto_verified" ||
+        claimStatus === "approved"
+      );
+    },
+  },
+  {
+    key: "family-tree-unlocked",
+    eyebrow: "Arbre généalogique",
+    enable: true,
+    group: "family_tree",
+    actionRapide: "Parcourir notre arbre généalogique",
+    text: "Tu peux maintenant ajouter ta photo, partager des souvenirs et enrichir les fiches des personnes de ta famille que tu reconnais.",
+    cta: "Explorer l’arbre",
+    to: "/family-tree",
+    icon: Leaf,
+    table: null,
+    fields: { and: [] },
+    type: "info",
+    isVisible: (rowsByTable) => {
+      const row = rowsByTable["family_person_identity_claims"] as
+        | Record<string, unknown>
+        | null
+        | undefined;
+
+      const claimStatus =
+        typeof row?.claim_status === "string" ? row.claim_status : null;
+
+      return claimStatus === "auto_verified" || claimStatus === "approved";
+    },
+  },
+  {
     key: "covindou-sheet",
     eyebrow: "Histoire familiale",
+    enable: true,
     actionRapide: "Découvrir la fiche consacrée à Gromèr Covindou",
     text: "Découvre la figure centrale de notre famille et l’histoire transmise autour d’elle.",
     cta: "Ouvrir la fiche",
@@ -299,6 +368,7 @@ export const completionRules: CompletionRule[] = [
     key: "origins-heard_about_initiative",
     eyebrow: "Lien avec la cousinade",
     group: "origins",
+    enable: true,
     actionRapide: "Comment as-tu entendu parler du pique-nique ?",
     text: "",
     cta: "Renseigner ces informations",
@@ -313,7 +383,9 @@ export const completionRules: CompletionRule[] = [
     key: "origins-cousinade_expectation",
     eyebrow: "Lien avec la cousinade",
     group: "origins",
-    actionRapide: "Qu’aimerais-tu retrouver, partager ou découvrir pendant la cousinade ?",
+    enable: true,
+    actionRapide:
+      "Qu’aimerais-tu retrouver, partager ou découvrir pendant la cousinade ?",
     text: "",
     cta: "Renseigner ces informations",
     icon: GitBranch,
@@ -327,6 +399,7 @@ export const completionRules: CompletionRule[] = [
     key: "origins",
     onboardingKey: "origins",
     group: "origins",
+    enable: true,
     eyebrow: "Lien avec la cousinade",
     actionRapide: "Souhaites-tu partager ton lien avec cette cousinade ?",
     text: "Cela nous aide à mieux comprendre comment l’initiative circule dans la famille et ce que chacun espère y vivre.",
@@ -344,6 +417,7 @@ export const completionRules: CompletionRule[] = [
     key: "profile",
     onboardingKey: "profile",
     eyebrow: "Quelques mots sur toi",
+    enable: true,
     actionRapide: "Souhaites-tu partager quelques éléments sur toi ?",
     text: "Quelques informations personnelles peuvent faciliter les échanges et créer du lien entre cousins, si tu souhaites les partager.",
     cta: "Partager quelques infos",
@@ -389,6 +463,7 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-parent1-known",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
     actionRapide: "Souhaites-tu partager ce que tu sais sur ton père ?",
     text: "Même un prénom, un surnom ou une petite information peut déjà être utile.",
@@ -413,6 +488,7 @@ export const completionRules: CompletionRule[] = [
     familyKnowledgeKey: "close_family",
     group: "close_family",
     eyebrow: "Famille proche",
+    enable: true,
     actionRapide: "Souhaites-tu partager ce que tu sais sur ta mère ?",
     text: "Même un prénom, un surnom ou une petite information peut déjà être utile.",
     cta: "Parler de ma mère",
@@ -435,6 +511,7 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-parent1-identity",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
     actionRapide: "As-tu au moins un élément à partager sur ton père ?",
     text: "Un prénom, un nom, un surnom ou même un souvenir peut déjà faire avancer la mémoire familiale.",
@@ -461,6 +538,7 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-parent2-identity",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
     actionRapide: "As-tu au moins un élément à partager sur ta mère ?",
     text: "Un prénom, un nom, un surnom ou même un souvenir peut déjà faire avancer la mémoire familiale.",
@@ -487,6 +565,7 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-hasSiblings",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
     actionRapide: "Souhaites-tu partager ce que tu sais sur ta fratrie ?",
     text: "",
@@ -509,8 +588,10 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-siblings-list",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
-    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur, si tu en connais ?",
+    actionRapide:
+      "Peux-tu ajouter au moins un frère ou une sœur, si tu en connais ?",
     text: "Une seule personne renseignée peut déjà aider à mieux reconstituer la fratrie.",
     cta: "Ajouter un frère ou une sœur",
     icon: Users,
@@ -534,6 +615,7 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-hasChildren",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
     actionRapide: "Souhaites-tu renseigner tes enfants, si tu en as ?",
     text: "Ta réponse nous aide à mieux comprendre ta branche familiale aujourd’hui.",
@@ -556,8 +638,10 @@ export const completionRules: CompletionRule[] = [
     key: "close_family-children-list",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
-    actionRapide: "Peux-tu ajouter au moins un de tes enfants, si tu le souhaites ?",
+    actionRapide:
+      "Peux-tu ajouter au moins un de tes enfants, si tu le souhaites ?",
     text: "Même une information simple peut déjà aider à mieux relier les générations.",
     cta: "Ajouter un enfant",
     icon: Users,
@@ -581,8 +665,10 @@ export const completionRules: CompletionRule[] = [
     key: "close_family",
     familyKnowledgeKey: "close_family",
     group: "close_family",
+    enable: true,
     eyebrow: "Famille proche",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur ta famille proche ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur ta famille proche ?",
     text: "Parents, fratrie, enfants ou conjoint : chaque information aide la famille à mieux se relier.",
     cta: "Compléter ma famille proche",
     icon: Users,
@@ -603,6 +689,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-paternal-grandfather-known",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "As-tu quelques informations sur ton grand-père paternel ?",
     text: "",
@@ -626,8 +713,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-paternal-grandfather-identity",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "As-tu au moins un élément à partager sur ton grand-père paternel ?",
+    actionRapide:
+      "As-tu au moins un élément à partager sur ton grand-père paternel ?",
     text: "Un prénom, un nom ou un surnom peut déjà être précieux.",
     cta: "Ajouter une info sur mon grand-père paternel",
     icon: Network,
@@ -652,6 +741,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-paternal-grandmother-known",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "As-tu quelques informations sur ta grand-mère paternelle ?",
     text: "",
@@ -675,8 +765,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-paternal-grandmother-identity",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "As-tu au moins un élément à partager sur ta grand-mère paternelle ?",
+    actionRapide:
+      "As-tu au moins un élément à partager sur ta grand-mère paternelle ?",
     text: "Un prénom, un nom ou un surnom peut déjà être utile.",
     cta: "Ajouter une info sur ma grand-mère paternelle",
     icon: Network,
@@ -701,6 +793,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-maternal-grandfather-known",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "As-tu quelques informations sur ton grand-père maternel ?",
     text: "",
@@ -724,8 +817,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-maternal-grandfather-identity",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "As-tu au moins un élément à partager sur ton grand-père maternel ?",
+    actionRapide:
+      "As-tu au moins un élément à partager sur ton grand-père maternel ?",
     text: "Un prénom, un nom, un surnom ou un souvenir peut déjà être précieux.",
     cta: "Ajouter une info sur mon grand-père maternel",
     icon: Network,
@@ -750,6 +845,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-maternal-grandmother-known",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "As-tu quelques informations sur ta grand-mère maternelle ?",
     text: "",
@@ -773,8 +869,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-maternal-grandmother-identity",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "As-tu au moins un élément à partager sur ta grand-mère maternelle ?",
+    actionRapide:
+      "As-tu au moins un élément à partager sur ta grand-mère maternelle ?",
     text: "Un prénom, un nom, un surnom ou un souvenir peut déjà être précieux.",
     cta: "Ajouter une info sur ma grand-mère maternelle",
     icon: Network,
@@ -799,6 +897,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-has-paternal-aunts-uncles",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "Sais-tu si ton père avait des frères ou des sœurs ?",
     text: "Ta réponse aide à mieux comprendre la branche paternelle.",
@@ -824,8 +923,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-paternal-aunts-uncles-list",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur de ton père, si tu en connais ?",
+    actionRapide:
+      "Peux-tu ajouter au moins un frère ou une sœur de ton père, si tu en connais ?",
     text: "Une seule personne ajoutée peut déjà aider à reconstituer la fratrie.",
     cta: "Ajouter un oncle ou une tante du côté paternel",
     icon: Network,
@@ -851,6 +952,7 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-has-maternal-aunts-uncles",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
     actionRapide: "Sais-tu si ta mère avait des frères ou des sœurs ?",
     text: "Ta réponse aide à mieux comprendre la branche maternelle.",
@@ -876,8 +978,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents-maternal-aunts-uncles-list",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "Peux-tu ajouter au moins un frère ou une sœur de ta mère, si tu en connais ?",
+    actionRapide:
+      "Peux-tu ajouter au moins un frère ou une sœur de ta mère, si tu en connais ?",
     text: "Une seule personne ajoutée peut déjà aider à reconstituer la fratrie.",
     cta: "Ajouter un oncle ou une tante du côté maternel",
     icon: Network,
@@ -903,8 +1007,10 @@ export const completionRules: CompletionRule[] = [
     key: "grandparents",
     familyKnowledgeKey: "grandparents",
     group: "grandparents",
+    enable: true,
     eyebrow: "Grands-parents",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur tes grands-parents et la fratrie de tes parents ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur tes grands-parents et la fratrie de tes parents ?",
     text: "Les grands-parents et les frères et sœurs de tes parents aident souvent à mieux comprendre toute la branche familiale.",
     cta: "Compléter cette branche familiale",
     icon: Network,
@@ -925,6 +1031,7 @@ export const completionRules: CompletionRule[] = [
     key: "godparents-self-baptized",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
     actionRapide: "Sais-tu si tu as été baptisé ?",
     text: "Quand on s'intéresse à l'entourage d'une famille, l'identité des parrain et marraine est précieuse.",
@@ -941,15 +1048,14 @@ export const completionRules: CompletionRule[] = [
     isComplete: (rowsByTable) => {
       const data = getFamilyKnowledgeGodparentsData(rowsByTable);
       const self = getNestedRecord(data, "self");
-      return (
-        self?.["isBaptized"] === "yes" || self?.["isBaptized"] === "no"
-      );
+      return self?.["isBaptized"] === "yes" || self?.["isBaptized"] === "no";
     },
   },
   {
     key: "godparents-self-godchildren",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
     actionRapide: "Souhaites-tu indiquer si tu as des filleuls ?",
     text: "Même une réponse négative aide à clarifier les liens de parrainage actuels.",
@@ -967,8 +1073,7 @@ export const completionRules: CompletionRule[] = [
       const data = getFamilyKnowledgeGodparentsData(rowsByTable);
       const self = getNestedRecord(data, "self");
       return (
-        self?.["hasGodchildren"] === "yes" ||
-        self?.["hasGodchildren"] === "no"
+        self?.["hasGodchildren"] === "yes" || self?.["hasGodchildren"] === "no"
       );
     },
   },
@@ -976,8 +1081,10 @@ export const completionRules: CompletionRule[] = [
     key: "godparents-father",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur le parrain et la marraine de ton père ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur le parrain et la marraine de ton père ?",
     text: "Parrain, marraine ou éventuels filleuls peuvent révéler des liens familiaux importants.",
     cta: "Compléter pour mon père",
     icon: HeartHandshake,
@@ -1005,8 +1112,10 @@ export const completionRules: CompletionRule[] = [
     key: "godparents-mother",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur le parrain et la marraine de ta mère ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur le parrain et la marraine de ta mère ?",
     text: "Parrains, marraines ou éventuels filleuls peuvent révéler des liens familiaux importants.",
     cta: "Compléter pour ma mère",
     icon: HeartHandshake,
@@ -1034,8 +1143,10 @@ export const completionRules: CompletionRule[] = [
     key: "godparents-paternal-grandparents",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur le parrain et la marraine dans ta famille paternelle ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur le parrain et la marraine dans ta famille paternelle ?",
     text: "Ces informations peuvent aider à retrouver des proximités anciennes dans la branche paternelle.",
     cta: "Compléter le côté paternel",
     icon: HeartHandshake,
@@ -1051,16 +1162,26 @@ export const completionRules: CompletionRule[] = [
     type: "form",
     isComplete: (rowsByTable) => {
       const gp = getFamilyKnowledgeGrandparentsData(rowsByTable);
-      const paternalGrandfather = getGrandparentPerson(gp, "paternalGrandfather");
-      const paternalGrandmother = getGrandparentPerson(gp, "paternalGrandmother");
+      const paternalGrandfather = getGrandparentPerson(
+        gp,
+        "paternalGrandfather",
+      );
+      const paternalGrandmother = getGrandparentPerson(
+        gp,
+        "paternalGrandmother",
+      );
       const data = getFamilyKnowledgeGodparentsData(rowsByTable);
 
       const gfOk =
         !paternalGrandfather?.known ||
-        isParrainageSectionComplete(getNestedRecord(data, "paternalGrandfather"));
+        isParrainageSectionComplete(
+          getNestedRecord(data, "paternalGrandfather"),
+        );
       const gmOk =
         !paternalGrandmother?.known ||
-        isParrainageSectionComplete(getNestedRecord(data, "paternalGrandmother"));
+        isParrainageSectionComplete(
+          getNestedRecord(data, "paternalGrandmother"),
+        );
 
       return gfOk && gmOk;
     },
@@ -1069,8 +1190,10 @@ export const completionRules: CompletionRule[] = [
     key: "godparents-maternal-grandparents",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur le parrain et la marraine dans ta famille maternelle ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur le parrain et la marraine dans ta famille maternelle ?",
     text: "Ces informations peuvent aider à retrouver des proximités anciennes dans la branche maternelle.",
     cta: "Compléter le côté maternel",
     icon: HeartHandshake,
@@ -1086,16 +1209,26 @@ export const completionRules: CompletionRule[] = [
     type: "form",
     isComplete: (rowsByTable) => {
       const gp = getFamilyKnowledgeGrandparentsData(rowsByTable);
-      const maternalGrandfather = getGrandparentPerson(gp, "maternalGrandfather");
-      const maternalGrandmother = getGrandparentPerson(gp, "maternalGrandmother");
+      const maternalGrandfather = getGrandparentPerson(
+        gp,
+        "maternalGrandfather",
+      );
+      const maternalGrandmother = getGrandparentPerson(
+        gp,
+        "maternalGrandmother",
+      );
       const data = getFamilyKnowledgeGodparentsData(rowsByTable);
 
       const gfOk =
         !maternalGrandfather?.known ||
-        isParrainageSectionComplete(getNestedRecord(data, "maternalGrandfather"));
+        isParrainageSectionComplete(
+          getNestedRecord(data, "maternalGrandfather"),
+        );
       const gmOk =
         !maternalGrandmother?.known ||
-        isParrainageSectionComplete(getNestedRecord(data, "maternalGrandmother"));
+        isParrainageSectionComplete(
+          getNestedRecord(data, "maternalGrandmother"),
+        );
 
       return gfOk && gmOk;
     },
@@ -1104,8 +1237,10 @@ export const completionRules: CompletionRule[] = [
     key: "godparents",
     familyKnowledgeKey: "godparents",
     group: "godparents",
+    enable: true,
     eyebrow: "Parrainages",
-    actionRapide: "Peux-tu partager ce que tu sais sur les parrains, marraines et filleuls de la famille ?",
+    actionRapide:
+      "Peux-tu partager ce que tu sais sur les parrains, marraines et filleuls de la famille ?",
     text: "Ces liens racontent souvent des proximités familiales, affectives ou sociales très importantes.",
     cta: "Compléter les liens de parrainage",
     icon: HeartHandshake,
@@ -1123,12 +1258,14 @@ export const completionRules: CompletionRule[] = [
     ],
     to: "/family-knowledge/godparents",
     type: "form",
-    isComplete: (rowsByTable) => isFamilyKnowledgeGodparentsComplete(rowsByTable),
+    isComplete: (rowsByTable) =>
+      isFamilyKnowledgeGodparentsComplete(rowsByTable),
   },
   {
     key: "memory-seen-photos",
     familyKnowledgeKey: "memory",
     group: "memory",
+    enable: true,
     eyebrow: "Mémoire familiale",
     actionRapide: "As-tu déjà vu des photos de la famille ?",
     text: "Même si tu ne les as pas chez toi, ta réponse peut déjà aider à retrouver où elles circulent.",
@@ -1154,6 +1291,7 @@ export const completionRules: CompletionRule[] = [
     key: "memory-has-photos",
     familyKnowledgeKey: "memory",
     group: "memory",
+    enable: true,
     eyebrow: "Mémoire familiale",
     actionRapide: "As-tu des photos de famille chez toi ou en ta possession ?",
     text: "Savoir qu’elles existent peut déjà être très utile.",
@@ -1169,18 +1307,17 @@ export const completionRules: CompletionRule[] = [
     type: "form",
     isComplete: (rowsByTable) => {
       const data = getFamilyKnowledgeMemoryData(rowsByTable);
-      return (
-        data?.hasFamilyPhotos === "yes" ||
-        data?.hasFamilyPhotos === "no"
-      );
+      return data?.hasFamilyPhotos === "yes" || data?.hasFamilyPhotos === "no";
     },
   },
   {
     key: "memory",
     familyKnowledgeKey: "memory",
     group: "memory",
+    enable: true,
     eyebrow: "Mémoire familiale",
-    actionRapide: "Souhaites-tu partager ce que tu sais sur les souvenirs et les photos de la famille ?",
+    actionRapide:
+      "Souhaites-tu partager ce que tu sais sur les souvenirs et les photos de la famille ?",
     text: "Souvenirs, personnes qui racontaient l’histoire familiale, photos vues ou conservées : tout peut aider.",
     cta: "Compléter la mémoire familiale",
     icon: BookOpen,
@@ -1201,8 +1338,10 @@ export const completionRules: CompletionRule[] = [
     key: "current_links",
     familyKnowledgeKey: "current_links",
     group: "current_links",
+    enable: true,
     eyebrow: "Famille en contact",
-    actionRapide: "Avec quelles personnes de la famille es-tu encore en contact aujourd’hui ?",
+    actionRapide:
+      "Avec quelles personnes de la famille es-tu encore en contact aujourd’hui ?",
     text: "Même une seule personne peut déjà aider à mieux comprendre les liens actuels dans la famille.",
     cta: "Compléter mes liens actuels",
     icon: Users,
@@ -1265,20 +1404,18 @@ function isCloseFamilyComplete(row: CompletionRow): boolean {
   const parentsOk = personIsConsistent(parent1) && personIsConsistent(parent2);
 
   const siblingsOk =
-    hasSiblings === "no" ||
-    (hasSiblings === "yes" && siblings.length > 0);
+    hasSiblings === "no" || (hasSiblings === "yes" && siblings.length > 0);
 
   const childrenOk =
-    hasChildren === "no" ||
-    (hasChildren === "yes" && children.length > 0);
+    hasChildren === "no" || (hasChildren === "yes" && children.length > 0);
 
   return parentsOk && siblingsOk && childrenOk;
 }
 
 function getCloseFamilyData(rowsByTable: Record<string, CompletionRow>) {
-  const row = rowsByTable["participant_family_knowledge_close_family"] as
-    | Record<string, unknown>
-    | null;
+  const row = rowsByTable[
+    "participant_family_knowledge_close_family"
+  ] as Record<string, unknown> | null;
 
   return (row?.data as Record<string, unknown> | undefined) ?? null;
 }
@@ -1340,7 +1477,9 @@ function evaluateCompletionCondition(
   }
 
   if ("and" in condition) {
-    return condition.and.every((item) => evaluateCompletionCondition(item, row));
+    return condition.and.every((item) =>
+      evaluateCompletionCondition(item, row),
+    );
   }
 
   if ("or" in condition) {
@@ -1389,6 +1528,7 @@ export function getFirstIncompleteCompletionRules(
   const firstRuleByGroup = new Set<string>();
 
   return rules
+    .filter((rule) => isCompletionRuleVisible(rule, rowsByTable))
     .filter((rule) => {
       if (rule.type === "info") {
         return true;
@@ -1412,6 +1552,19 @@ export function getFirstIncompleteCompletionRules(
     .slice(0, limit);
 }
 
+export function isCompletionRuleVisible(
+  rule: CompletionRule,
+  rowsByTable?: Record<string, CompletionRow>,
+): boolean {
+  if (!rule.enable) return false;
+
+  if (rule.isVisible) {
+    return rule.isVisible(rowsByTable ?? {});
+  }
+
+  return true;
+}
+
 export function getOnboardingCompletionRules(
   rules: CompletionRule[] = completionRules,
 ) {
@@ -1427,9 +1580,10 @@ export function getOnboardingCompletionRules(
 function getFamilyKnowledgeMemoryData(
   rowsByTable: Record<string, CompletionRow>,
 ) {
-  const row = rowsByTable["participant_family_knowledge_memory"] as
-    | Record<string, unknown>
-    | null;
+  const row = rowsByTable["participant_family_knowledge_memory"] as Record<
+    string,
+    unknown
+  > | null;
 
   return (row?.data as Record<string, unknown> | undefined) ?? null;
 }
@@ -1455,9 +1609,9 @@ function isFamilyKnowledgeMemoryComplete(row: CompletionRow): boolean {
 function getFamilyKnowledgeGrandparentsData(
   rowsByTable: Record<string, CompletionRow>,
 ) {
-  const row = rowsByTable["participant_family_knowledge_grandparents"] as
-    | Record<string, unknown>
-    | null;
+  const row = rowsByTable[
+    "participant_family_knowledge_grandparents"
+  ] as Record<string, unknown> | null;
 
   return (row?.data as Record<string, unknown> | undefined) ?? null;
 }
@@ -1570,9 +1724,10 @@ function isFamilyKnowledgeCurrentLinksComplete(row: CompletionRow): boolean {
 function getFamilyKnowledgeGodparentsData(
   rowsByTable: Record<string, CompletionRow>,
 ) {
-  const row = rowsByTable["participant_family_knowledge_godparents"] as
-    | Record<string, unknown>
-    | null;
+  const row = rowsByTable["participant_family_knowledge_godparents"] as Record<
+    string,
+    unknown
+  > | null;
 
   return (row?.data as Record<string, unknown> | undefined) ?? null;
 }
@@ -1680,8 +1835,12 @@ function isFamilyKnowledgeGodparentsComplete(
 
   const selfOk = isParrainageSectionComplete(getNestedRecord(data, "self"));
 
-  const fatherKnown = Boolean(getCloseFamilyPerson(closeFamily, "parent1")?.known);
-  const motherKnown = Boolean(getCloseFamilyPerson(closeFamily, "parent2")?.known);
+  const fatherKnown = Boolean(
+    getCloseFamilyPerson(closeFamily, "parent1")?.known,
+  );
+  const motherKnown = Boolean(
+    getCloseFamilyPerson(closeFamily, "parent2")?.known,
+  );
 
   const fatherOk =
     !fatherKnown ||
