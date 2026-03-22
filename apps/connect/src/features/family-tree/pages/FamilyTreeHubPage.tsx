@@ -173,7 +173,6 @@ export function FamilyTreeHubPage() {
           icon: Heart,
           to: hasVerifiedClaim ? `/e/${slug}/family-tree/story` : undefined,
           enabled: hasVerifiedClaim,
-          badge: hasVerifiedClaim ? undefined : "Profil à vérifier",
           featured: true,
         } satisfies TreeHubAction,
         ],
