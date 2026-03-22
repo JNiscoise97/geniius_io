@@ -23,19 +23,10 @@
                       <li> du birthYear</li>
                       <li> de la photo affichée</li>
                     </ul>
-                  </li>
-                  <li>
-                    Profil vérifié par modération
-                    <ul>
-                      <li>Notif mail approuvé</li>
-                    </ul>
-                  </li>
-                  <li>
-                    Démasquage par modération
-                    <ul>
-                      <li>Notif mail approuvé/rejeté</li>
-                      <li>Faire un label plus verbeux</li>
-                    </ul>
+                    => au moment du saveIdentity, si claim approved or ..., upsert override (firstName, lastName, nickname, birthYear)
+                    => au moment du deleteMyPersonPhoto, upsert override (photoSrc)
+                    => au moment du moderateEntity.claim, si currentPersonId et claim approved or ..., upsert override (firstName, lastName, nickname, birthYear)
+                    => au moment du moderateEntity.photo, si currentPersonId et claim approved or ... et setAsProfilePhoto, upsert override (photoSrc)
                   </li>
 
                   <li>
@@ -43,16 +34,6 @@
                     <ul>
                       <li>Notif mail approuvé/rejeté</li>
                       <li>Notif mail approuvé pour remplacer celle affichée</li>
-                      <li>Notif mail avec PJ + demande de modération</li>
-                    </ul>
-                  </li>
-
-                  <li>
-                    Photos:
-                    <ul>
-                      <li>Notif mail approuvé/rejeté</li>
-                      <li>Notif mail approuvé pour remplacer celle affichée</li>
-                      <li>Notif mail avec PJ + demande de modération</li>
                     </ul>
                   </li>
                   <li>sous condition: Fiche + icon dans le hero</li>

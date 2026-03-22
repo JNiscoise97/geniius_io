@@ -145,44 +145,43 @@ function pickSingle(place: ParsedPlace | null): string | null {
 
 export function formatPlaceTransition(
   birthPlace?: string,
+  currentPlace?: string,
   deathPlace?: string,
 ): string | null {
   const birth = normalizeTerritory(parsePlace(birthPlace));
+  const current = normalizeTerritory(parsePlace(currentPlace));
   const death = normalizeTerritory(parsePlace(deathPlace));
 
-  if (!birth && !death) return null;
-  if (!birth) return pickSingle(death);
-  if (!death) return pickSingle(birth);
+  const places = [birth, current, death].filter(
+    (place): place is ParsedPlace => Boolean(place),
+  );
 
-  const sameCountry = same(birth.country, death.country);
-  const sameRegion = same(birth.region, death.region);
-  const sameDepartment = same(birth.department, death.department);
-  const sameCity = same(birth.city, death.city);
+  if (places.length === 0) return null;
+  if (places.length === 1) return pickSingle(places[0]);
 
-  if (sameCity && sameDepartment && sameRegion && sameCountry) {
-    return pickSingle(birth);
+  function isSamePlace(a: ParsedPlace, b: ParsedPlace): boolean {
+    return (
+      same(a.city, b.city) &&
+      same(a.department, b.department) &&
+      same(a.region, b.region) &&
+      same(a.country, b.country)
+    );
   }
 
-  const birthLocal = pickSingle(birth) ?? "?";
-  const deathLocal = pickSingle(death) ?? "?";
+  const dedupedPlaces = places.filter((place, index) => {
+    if (index === 0) return true;
+    return !isSamePlace(place, places[index - 1]);
+  });
 
-  if (sameDepartment && sameRegion && sameCountry) {
-    return `${birthLocal} → ${deathLocal}`;
+  if (dedupedPlaces.length === 1) {
+    return pickSingle(dedupedPlaces[0]);
   }
 
-  if (sameRegion && sameCountry) {
-    return `${birthLocal} → ${deathLocal}`;
-  }
-
-  if (sameCountry) {
-    return `${birthLocal} → ${deathLocal}`;
-  }
-
-  return `${birthLocal} → ${deathLocal}`;
+  return dedupedPlaces.map((place) => pickSingle(place) ?? "?").join(" → ");
 }
 
 export function formatLifePath(person: PersonSummary) {
-  return formatPlaceTransition(person.birthPlace, person.deathPlace);
+  return formatPlaceTransition(person.birthPlace, person.currentPlace, person.deathPlace);
 }
 
 export function formatPersonName(person: PersonSummary) {

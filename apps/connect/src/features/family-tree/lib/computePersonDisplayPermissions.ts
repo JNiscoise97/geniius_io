@@ -1,4 +1,3 @@
-import { PERSON_UI_OVERRIDES } from "../api/uiOverrides";
 import type {
   FamilyGraphPerson,
   ParticipantTreeVisibilityPreferences,
@@ -56,6 +55,7 @@ function computeBaseCanDisplay(
 export function computePersonDisplayPermissions(
   person: FamilyGraphPerson | undefined,
   preferences?: ParticipantTreeVisibilityPreferences,
+  overridesByPersonId?: Record<string, any>,
 ): PersonDisplayPermissions {
   if (!person) {
     return {
@@ -66,7 +66,7 @@ export function computePersonDisplayPermissions(
     };
   }
 
-  const override = PERSON_UI_OVERRIDES[person.id];
+  const override = overridesByPersonId?.[person.id];
 
   const canDisplay =
     typeof override?.canDisplay === "boolean"
@@ -84,7 +84,6 @@ export function computePersonDisplayPermissions(
 
   const isPossiblyAlive = computeIsPossiblyAlive(person);
 
-  // Décédé => affichage complet par défaut
   if (isPossiblyAlive === false) {
     return {
       canDisplay: true,
@@ -103,20 +102,19 @@ export function computePersonDisplayPermissions(
     };
   }
 
-  // Vivant => affichage piloté par les consentements
   return {
     canDisplay: true,
     canDisplayName:
       typeof override?.canDisplayName === "boolean"
         ? override.canDisplayName
-        : (preferences?.allowNameInFamilyTree ?? false),
+        : preferences?.allowNameInFamilyTree ?? false,
     canDisplayPhoto:
       typeof override?.canDisplayPhoto === "boolean"
         ? override.canDisplayPhoto
-        : (preferences?.allowPhotoInFamilyTree ?? false),
+        : preferences?.allowPhotoInFamilyTree ?? false,
     canDisplayInfo:
       typeof override?.canDisplayInfo === "boolean"
         ? override.canDisplayInfo
-        : (preferences?.allowInfoInFamilyTree ?? false),
+        : preferences?.allowInfoInFamilyTree ?? false,
   };
 }

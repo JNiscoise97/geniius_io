@@ -33,6 +33,8 @@ import {
 } from "../lib/familySearchRecent";
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
 import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
+import type { PersonUiOverride } from "../api/uiOverrides";
+import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 
 function getAncestorLabel(level: number, sex?: string) {
   const isFemale = sex === "F";
@@ -276,6 +278,11 @@ export function FamilyTreeFindPersonPage() {
   const [visibilityPreferencesLoading, setVisibilityPreferencesLoading] =
     useState(true);
 
+    const [overridesByPersonId, setOverridesByPersonId] = useState<
+  Record<string, PersonUiOverride>
+>({});
+const [overridesLoading, setOverridesLoading] = useState(true);
+
   const forceDisplayedPersonIds = useMemo(() => {
     const ids: string[] = [];
 
@@ -291,9 +298,39 @@ export function FamilyTreeFindPersonPage() {
   }, [claimedPersonId, myIdentityClaimStatus]);
 
   const searchIndex = useMemo(() => {
-    return buildFamilySearchIndex(FAMILY_GRAPH, visibilityPreferencesByPersonId);
-  }, [visibilityPreferencesByPersonId]);
+    return buildFamilySearchIndex(FAMILY_GRAPH, visibilityPreferencesByPersonId, overridesByPersonId);
+  }, [visibilityPreferencesByPersonId, overridesByPersonId]);
 
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadOverrides() {
+    try {
+      setOverridesLoading(true);
+
+      const map = await getMergedPersonOverridesMap(slug);
+
+      if (!cancelled) {
+        setOverridesByPersonId(map);
+      }
+    } catch (error) {
+      console.error(error);
+      if (!cancelled) {
+        setOverridesByPersonId({});
+      }
+    } finally {
+      if (!cancelled) {
+        setOverridesLoading(false);
+      }
+    }
+  }
+
+  void loadOverrides();
+
+  return () => {
+    cancelled = true;
+  };
+}, [slug]);
   useEffect(() => {
     async function loadVisibilityPreferencesMap() {
       try {
@@ -406,7 +443,7 @@ export function FamilyTreeFindPersonPage() {
 
   const results = useMemo(() => {
     if (!canSearchInTree) return [];
-    if (visibilityPreferencesLoading) return [];
+    if (visibilityPreferencesLoading || overridesLoading) return [];
 
     if (trimmedDebouncedQuery.length < FAMILY_SEARCH_MIN_QUERY_LENGTH) {
       return [];
@@ -423,6 +460,7 @@ export function FamilyTreeFindPersonPage() {
   }, [
     canSearchInTree,
     visibilityPreferencesLoading,
+  overridesLoading,
     trimmedDebouncedQuery,
     searchIndex,
     centerId,
@@ -435,6 +473,8 @@ export function FamilyTreeFindPersonPage() {
         result.personId,
         visibilityPreferencesByPersonId,
         sosaReferencePersonId,
+        overridesByPersonId
+
       ).person;
 
       const person = getDisplaySearchPerson(rawPerson, forceDisplayedPersonIds);
@@ -442,6 +482,7 @@ export function FamilyTreeFindPersonPage() {
         centerId,
         visibilityPreferencesByPersonId,
         sosaReferencePersonId,
+        overridesByPersonId
       ).person;
 
       const path = findRelationshipPath(FAMILY_GRAPH, centerId, result.personId);
@@ -450,19 +491,6 @@ export function FamilyTreeFindPersonPage() {
         `${source.firstName} ${source.lastName}`.trim(),
         rawPerson.sex,
       );
-
-      if (result.personId === "7351") {
-        console.log("rawPerson flags", {
-          canDisplay: rawPerson.canDisplay,
-          canDisplayName: rawPerson.canDisplayName,
-          canDisplayPhoto: rawPerson.canDisplayPhoto,
-          canDisplayInfo: rawPerson.canDisplayInfo,
-        });
-        console.log("rawPerson", rawPerson);
-        console.log("displayedPerson", person);
-        console.log("relationshipSummary", relationshipSummary);
-      }
-      console.log("forceDisplayedPersonIds", forceDisplayedPersonIds);
 
       return {
         person,
@@ -476,7 +504,8 @@ export function FamilyTreeFindPersonPage() {
     centerId,
     forceDisplayedPersonIds,
     visibilityPreferencesByPersonId,
-    sosaReferencePersonId
+    sosaReferencePersonId,
+    overridesByPersonId
   ]);
 
   const recentPersons = useMemo(() => {
@@ -487,6 +516,7 @@ export function FamilyTreeFindPersonPage() {
             personId,
             visibilityPreferencesByPersonId,
             sosaReferencePersonId,
+            overridesByPersonId
           ).person;
         } catch {
           return null;
@@ -498,7 +528,7 @@ export function FamilyTreeFindPersonPage() {
         return forceDisplayedPersonIds.includes(person.id);
       })
       .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
-  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId,sosaReferencePersonId]);
+  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId,sosaReferencePersonId, overridesByPersonId]);
 
   function handleCenterPerson(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);
@@ -631,7 +661,7 @@ export function FamilyTreeFindPersonPage() {
               <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
                 {FAMILY_SEARCH_SHORT_QUERY_MESSAGE}
               </section>
-            ) : isTyping || visibilityPreferencesLoading ? (
+            ) : isTyping || visibilityPreferencesLoading || overridesLoading ? (
               <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600 shadow-sm">
                 Recherche en cours…
               </section>

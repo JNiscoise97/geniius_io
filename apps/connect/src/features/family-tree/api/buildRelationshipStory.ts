@@ -1,9 +1,7 @@
 // src/features/family-tree/api/buildRelationshipStory.ts
 
 import { getPersonContext } from "../config/configGenealogy";
-import {
-  RELATIONSHIP_STORY_PERSON_OVERRIDES,
-} from "../config/relationshipStoryConfig";
+import { RELATIONSHIP_STORY_PERSON_OVERRIDES } from "../config/relationshipStoryConfig";
 import { findRelationshipPath } from "./findRelationshipPath";
 import type {
   FamilyGraphData,
@@ -16,6 +14,9 @@ import {
   formatPersonName,
   toOrdinalFr,
 } from "../lib/genealogyUi";
+import type { PersonUiOverride } from "./uiOverrides";
+
+type PersonUiOverrideMap = Record<string, PersonUiOverride>;
 
 export type RelationshipStoryStep = {
   generationNumber: number;
@@ -40,6 +41,8 @@ export type RelationshipStory = {
 export type BuildRelationshipStoryOptions = {
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap;
   sosaReferencePersonId?: string | null;
+
+  overridesByPersonId?: PersonUiOverrideMap;
 };
 
 function getFamiliesForSpouse(graph: FamilyGraphData, personId: string) {
@@ -79,6 +82,7 @@ function getPersonSummary(
       personId,
       options?.visibilityPreferencesByPersonId,
       options?.sosaReferencePersonId,
+      options?.overridesByPersonId,
     ).person,
   );
 }
@@ -115,7 +119,11 @@ function buildDefaultIntro(params: {
   }
 
   if (spouse && childrenCount) {
-    const childLabel = getRankLabel(nextChildRank, childrenCount, nextPerson.sex);
+    const childLabel = getRankLabel(
+      nextChildRank,
+      childrenCount,
+      nextPerson.sex,
+    );
 
     return `${personName}${
       spouseName ? ` a construit sa famille avec ${spouseName}` : ""
@@ -273,7 +281,9 @@ export function buildRelationshipStory(
     };
   });
 
-  const summaryLine = steps.map((step) => formatPersonName(step.person)).join(" → ");
+  const summaryLine = steps
+    .map((step) => formatPersonName(step.person))
+    .join(" → ");
 
   return {
     source: getPersonSummary(sourcePersonId, options),

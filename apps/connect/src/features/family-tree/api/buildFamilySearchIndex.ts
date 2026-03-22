@@ -1,40 +1,62 @@
+// src/features/family-tree/api/buildFamilySearchIndex.ts
 
-import { computePersonDisplayPermissions, computeIsPossiblyAlive } from "../lib/computePersonDisplayPermissions";
+import {
+  computePersonDisplayPermissions,
+  computeIsPossiblyAlive,
+} from "../lib/computePersonDisplayPermissions";
 import { normalizeSearchText } from "../lib/normalizeSearchText";
 import type {
   FamilyGraphData,
   FamilySearchDocument,
   PersonVisibilityPreferenceMap,
 } from "../types";
+import type { PersonUiOverride } from "./uiOverrides";
+
+type PersonUiOverrideMap = Record<string, PersonUiOverride>;
 
 export function buildFamilySearchIndex(
   graph: FamilyGraphData,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+  overridesByPersonId?: PersonUiOverrideMap,
 ): FamilySearchDocument[] {
   return Object.values(graph.people).map((person): FamilySearchDocument => {
     const displayPermissions = computePersonDisplayPermissions(
       person,
       visibilityPreferencesByPersonId?.[person.id],
+      overridesByPersonId,
     );
 
+    const override = overridesByPersonId?.[person.id] ?? {};
+
+    const effectiveFirstName = override.firstName ?? person.firstName;
+    const effectiveLastName = override.lastName ?? person.lastName;
+    const effectiveNickname = override.nickname ?? person.nickname;
+    const effectiveBirthPlace = override.birthPlace ?? person.birthPlace;
+    const effectiveCurrentPlace = override.currentPlace ?? person.currentPlace;
+    const effectiveDeathPlace = override.deathPlace ?? person.deathPlace;
+    const effectiveBirthYear = override.birthYear ?? person.birthYear;
+    const effectiveDeathYear = override.deathYear ?? person.deathYear;
+    const effectiveIsPossiblyAlive =
+      override.isPossiblyAlive ?? computeIsPossiblyAlive(person);
+
     const firstNameNormalized = displayPermissions.canDisplayName
-      ? normalizeSearchText(person.firstName)
+      ? normalizeSearchText(effectiveFirstName)
       : "";
 
     const lastNameNormalized = displayPermissions.canDisplayName
-      ? normalizeSearchText(person.lastName)
+      ? normalizeSearchText(effectiveLastName)
       : "";
 
     const nicknameNormalized = displayPermissions.canDisplayName
-      ? normalizeSearchText(person.nickname)
+      ? normalizeSearchText(effectiveNickname)
       : "";
 
     const birthPlaceNormalized = displayPermissions.canDisplayInfo
-      ? normalizeSearchText(person.birthPlace)
+      ? normalizeSearchText(effectiveBirthPlace)
       : "";
 
     const deathPlaceNormalized = displayPermissions.canDisplayInfo
-      ? normalizeSearchText(person.deathPlace)
+      ? normalizeSearchText(effectiveDeathPlace)
       : "";
 
     const fullNameNormalized = [firstNameNormalized, lastNameNormalized]
@@ -48,8 +70,8 @@ export function buildFamilySearchIndex(
       fullNameNormalized,
       birthPlaceNormalized,
       deathPlaceNormalized,
-      displayPermissions.canDisplayInfo ? person.birthYear : undefined,
-      displayPermissions.canDisplayInfo ? person.deathYear : undefined,
+      displayPermissions.canDisplayInfo ? effectiveBirthYear : undefined,
+      displayPermissions.canDisplayInfo ? effectiveDeathYear : undefined,
     ]
       .filter(Boolean)
       .join(" ");
@@ -61,20 +83,23 @@ export function buildFamilySearchIndex(
     return {
       id: person.id,
       personId: person.id,
-      firstName: person.firstName,
-      lastName: person.lastName,
-      nickname: person.nickname,
+      firstName: effectiveFirstName,
+      lastName: effectiveLastName,
+      nickname: effectiveNickname,
       firstNameNormalized,
       lastNameNormalized,
       nicknameNormalized: nicknameNormalized || undefined,
       fullNameNormalized,
-      birthYear: displayPermissions.canDisplayInfo ? person.birthYear : undefined,
-      deathYear: displayPermissions.canDisplayInfo ? person.deathYear : undefined,
+      birthYear: displayPermissions.canDisplayInfo ? effectiveBirthYear : undefined,
+      deathYear: displayPermissions.canDisplayInfo ? effectiveDeathYear : undefined,
       birthPlace: displayPermissions.canDisplayInfo
-        ? person.birthPlace
+        ? effectiveBirthPlace
+        : undefined,
+      currentPlace: displayPermissions.canDisplayInfo
+        ? effectiveCurrentPlace
         : undefined,
       deathPlace: displayPermissions.canDisplayInfo
-        ? person.deathPlace
+        ? effectiveDeathPlace
         : undefined,
       birthPlaceNormalized: birthPlaceNormalized || undefined,
       deathPlaceNormalized: deathPlaceNormalized || undefined,
@@ -83,7 +108,7 @@ export function buildFamilySearchIndex(
       canDisplayName: displayPermissions.canDisplayName,
       canDisplayPhoto: displayPermissions.canDisplayPhoto,
       canDisplayInfo: displayPermissions.canDisplayInfo,
-      isPossiblyAlive: computeIsPossiblyAlive(person),
+      isPossiblyAlive: effectiveIsPossiblyAlive,
       searchableText,
       tokens,
     };

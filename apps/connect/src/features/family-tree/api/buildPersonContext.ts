@@ -1,4 +1,5 @@
-import { PERSON_UI_OVERRIDES } from "./uiOverrides";
+// src/features/family-tree/api/buildPersonContext.ts
+
 import {
   computeIsPossiblyAlive,
   computePersonDisplayPermissions,
@@ -11,6 +12,9 @@ import type {
   PersonSummary,
   PersonVisibilityPreferenceMap,
 } from "../types";
+import type { PersonUiOverride } from "./uiOverrides";
+
+type PersonUiOverrideMap = Record<string, PersonUiOverride>;
 
 function defaultSubtitleForSex(sex: FamilyGraphPerson["sex"]): string {
   if (sex === "F") return "Aïeule";
@@ -193,15 +197,17 @@ function toSummary(
   person: FamilyGraphPerson | undefined,
   subtitle: string,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
+  overridesByPersonId?: PersonUiOverrideMap,
   sosaIds?: Set<string>,
   extra?: Partial<PersonSummary>,
 ): PersonSummary | null {
   if (!person) return null;
 
-  const override = PERSON_UI_OVERRIDES[person.id] ?? {};
+  const override = overridesByPersonId?.[person.id] ?? {};
   const displayPermissions = computePersonDisplayPermissions(
     person,
     visibilityPreferencesByPersonId?.[person.id],
+    overridesByPersonId,
   );
 
   return {
@@ -214,6 +220,7 @@ function toSummary(
     birthYear: person.birthYear,
     deathYear: person.deathYear,
     birthPlace: person.birthPlace,
+    currentPlace: person.currentPlace,
     deathPlace: person.deathPlace,
     branch: person.branch,
     isPossiblyAlive: computeIsPossiblyAlive(person),
@@ -229,6 +236,7 @@ export function buildPersonContext(
   graph: FamilyGraphData,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
   sosaReferencePersonId?: string | null,
+  overridesByPersonId?: PersonUiOverrideMap,
 ): PersonContext {
   const person = graph.people[personId];
 
@@ -255,10 +263,17 @@ export function buildPersonContext(
         spouse,
         getSpouseSubtitle(spouse?.sex),
         visibilityPreferencesByPersonId,
+        overridesByPersonId,
         sosaIds,
         {
           spouseRoleLabel: fam.childIds.length
-            ? `${spouse?.sex === "F" ? "Mère" : spouse?.sex === "M" ? "Père" : "Parent"} de ${
+            ? `${
+                spouse?.sex === "F"
+                  ? "Mère"
+                  : spouse?.sex === "M"
+                    ? "Père"
+                    : "Parent"
+              } de ${
                 fam.childIds.length === 1 ? "un " : fam.childIds.length
               } enfant${fam.childIds.length > 1 ? "s" : ""}`
             : undefined,
@@ -282,12 +297,14 @@ export function buildPersonContext(
           father,
           getParentSubtitle(father?.sex),
           visibilityPreferencesByPersonId,
+          overridesByPersonId,
           sosaIds,
         ),
         toSummary(
           mother,
           getParentSubtitle(mother?.sex),
           visibilityPreferencesByPersonId,
+          overridesByPersonId,
           sosaIds,
         ),
       ];
@@ -303,11 +320,10 @@ export function buildPersonContext(
           child,
           getChildSubtitle(child?.sex),
           visibilityPreferencesByPersonId,
+          overridesByPersonId,
           sosaIds,
           {
-            linkedSpouseLabel: formatLinkedSpouseLabel(
-              spouseByFamilyId.get(fam.id),
-            ),
+            linkedSpouseLabel: formatLinkedSpouseLabel(spouseByFamilyId.get(fam.id)),
           },
         );
       }),
@@ -343,6 +359,7 @@ export function buildPersonContext(
                 graph,
               ),
               visibilityPreferencesByPersonId,
+              overridesByPersonId,
               sosaIds,
             );
           }),
@@ -368,12 +385,14 @@ export function buildPersonContext(
             grandfather,
             getGrandparentSubtitle(grandfather?.sex),
             visibilityPreferencesByPersonId,
+            overridesByPersonId,
             sosaIds,
           ),
           toSummary(
             grandmother,
             getGrandparentSubtitle(grandmother?.sex),
             visibilityPreferencesByPersonId,
+            overridesByPersonId,
             sosaIds,
           ),
         ];
@@ -387,6 +406,7 @@ export function buildPersonContext(
         person,
         defaultSubtitleForSex(person.sex),
         visibilityPreferencesByPersonId,
+        overridesByPersonId,
         sosaIds,
       ) ??
       ({
@@ -396,13 +416,20 @@ export function buildPersonContext(
         nickname: person.nickname,
         sex: person.sex,
         subtitle: defaultSubtitleForSex(person.sex),
+        birthYear: person.birthYear,
+        deathYear: person.deathYear,
+        birthPlace: person.birthPlace,
+        currentPlace: person.currentPlace,
+        deathPlace: person.deathPlace,
         branch: person.branch,
         isPossiblyAlive: computeIsPossiblyAlive(person),
         isSosa: sosaIds.has(person.id),
         ...computePersonDisplayPermissions(
           person,
           visibilityPreferencesByPersonId?.[person.id],
+          overridesByPersonId,
         ),
+        ...(overridesByPersonId?.[person.id] ?? {}),
       } satisfies PersonSummary),
     parents,
     spouses,
@@ -416,6 +443,7 @@ export function buildAllPersonContexts(
   graph: FamilyGraphData,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
   sosaReferencePersonId?: string | null,
+  overridesByPersonId?: PersonUiOverrideMap,
 ): Record<string, PersonContext> {
   const result: Record<string, PersonContext> = {};
 
@@ -425,6 +453,7 @@ export function buildAllPersonContexts(
       graph,
       visibilityPreferencesByPersonId,
       sosaReferencePersonId,
+      overridesByPersonId,
     );
   }
 

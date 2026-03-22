@@ -1,7 +1,9 @@
 import { buildPersonContext } from "../api/buildPersonContext";
 import { FAMILY_GRAPH } from "../api/loadGraph";
+import type { PersonUiOverride } from "../api/uiOverrides";
 import type { PersonVisibilityPreferenceMap } from "../types";
 
+type PersonUiOverrideMap = Record<string, PersonUiOverride>;
 type HeroTheme = {
   heroClassName: string;
   headerClassName: string;
@@ -90,12 +92,14 @@ export function getPersonContext(
   personId: string,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
   sosaReferencePersonId?: string | null,
+  overridesByPersonId?: PersonUiOverrideMap,
 ) {
   return buildPersonContext(
     personId,
     FAMILY_GRAPH,
     visibilityPreferencesByPersonId,
     sosaReferencePersonId,
+    overridesByPersonId
   );
 }
 
@@ -103,11 +107,13 @@ export function getPersonHeroConfig(
   personId: string,
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap,
   sosaReferencePersonId?: string | null,
+  overridesByPersonId?: PersonUiOverrideMap,
 ) {
   const context = getPersonContext(
     personId,
     visibilityPreferencesByPersonId,
     sosaReferencePersonId,
+    overridesByPersonId
   );
 
   const branches = context.person.branch ?? [];

@@ -101,7 +101,6 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "7351": {
     photoSrc: niscoiseJordan,
-    firstName: "Dylan"
   },
   "733728949": {
     canDisplay: true,
@@ -112,6 +111,7 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "731304634": {
     photoSrc: blukerMariot,
+    currentPlace: "Saint-Paul (Saint-Gilles)"
   },
   "7372": {
     photoSrc: blukerMichel,

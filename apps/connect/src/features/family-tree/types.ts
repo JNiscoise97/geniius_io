@@ -11,6 +11,7 @@ export type FamilyGraphPerson = {
   birthYear?: string;
   deathYear?: string;
   birthPlace?: string;
+  currentPlace?: string;
   deathPlace?: string;
   famcIds: string[]; // familles où la personne est enfant
   famsIds: string[]; // familles où la personne est conjoint
@@ -39,6 +40,7 @@ export type PersonSummary = {
   birthYear?: string;
   deathYear?: string;
   birthPlace?: string;
+  currentPlace?: string;
   deathPlace?: string;
   photoSrc?: string;
   spouseRoleLabel?: string;
@@ -77,6 +79,7 @@ export type FamilySearchDocument = {
 
   birthYear?: string;
   deathYear?: string;
+  currentPlace?: string;
   birthPlace?: string;
   deathPlace?: string;
 

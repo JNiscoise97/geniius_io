@@ -100,23 +100,107 @@ export async function processModerationEntity({
   }
 
   if (entityType === "photo") {
-    if (!status) {
-      throw new Error("Le statut est requis pour modérer une photo.");
+  if (!status) {
+    throw new Error("Le statut est requis pour modérer une photo.");
+  }
+
+  const { data: photo, error: photoReadError } = await supabase
+    .from("family_person_photos")
+    .select(
+      `
+        id,
+        event_slug,
+        person_id,
+        storage_path,
+        set_as_profile_photo
+      `,
+    )
+    .eq("event_slug", eventSlug)
+    .eq("id", entityId)
+    .single();
+
+  if (photoReadError || !photo) {
+    throw new Error("Photo introuvable.");
+  }
+
+  const { error: photoUpdateError } = await supabase
+    .from("family_person_photos")
+    .update({
+      moderation_status: status,
+      moderator_comment: moderatorComment ?? null,
+      moderated_at: getNowIso(),
+    })
+    .eq("event_slug", eventSlug)
+    .eq("id", entityId);
+
+  if (photoUpdateError) {
+    throw photoUpdateError;
+  }
+
+  if (status === "approved" && photo.set_as_profile_photo) {
+    const { data: publicUrlData } = supabase.storage
+      .from("family-person-photos")
+      .getPublicUrl(photo.storage_path);
+
+    const photoSrc = publicUrlData?.publicUrl;
+
+    if (!photoSrc) {
+      throw new Error("Impossible de construire l’URL publique de la photo.");
     }
 
-    const { error } = await supabase
-      .from("family_person_photos")
-      .update({
-        moderation_status: status,
-        moderator_comment: moderatorComment ?? null,
-        moderated_at: getNowIso(),
-      })
-      .eq("event_slug", eventSlug)
-      .eq("id", entityId);
+    const { data: existingOverrideRow, error: overrideReadError } =
+      await supabase
+        .from("person_overrides")
+        .select(
+          `
+            id,
+            overrides
+          `,
+        )
+        .eq("event_slug", eventSlug)
+        .eq("person_id", photo.person_id)
+        .maybeSingle();
 
-    if (error) throw error;
-    return;
+    if (overrideReadError) {
+      throw overrideReadError;
+    }
+
+    const nextOverrides = {
+      ...((existingOverrideRow?.overrides as Record<string, unknown> | null) ??
+        {}),
+      photoSrc,
+    };
+
+    if (existingOverrideRow?.id) {
+      const { error: overrideUpdateError } = await supabase
+        .from("person_overrides")
+        .update({
+          overrides: nextOverrides,
+          updated_at: getNowIso(),
+        })
+        .eq("id", existingOverrideRow.id);
+
+      if (overrideUpdateError) {
+        throw overrideUpdateError;
+      }
+    } else {
+      const { error: overrideInsertError } = await supabase
+        .from("person_overrides")
+        .insert({
+          event_slug: eventSlug,
+          person_id: photo.person_id,
+          overrides: nextOverrides,
+          updated_at: getNowIso(),
+        });
+
+      if (overrideInsertError) {
+        throw overrideInsertError;
+      }
+    }
   }
+
+  return;
+}
 
   if (entityType === "visibility_request") {
     if (!status) {

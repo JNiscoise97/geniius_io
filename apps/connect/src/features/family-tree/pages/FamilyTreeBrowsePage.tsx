@@ -83,6 +83,9 @@ import {
 } from "../config/configGenealogy";
 
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
+import { formatPlaceTransition } from "../lib/genealogyUi";
+import type { PersonUiOverride } from "../api/uiOverrides";
+import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 
 type BrowsePanelMode =
   | "relations"
@@ -97,13 +100,6 @@ type MemoryDraftState = {
   value: string;
   loaded: boolean;
   dirty: boolean;
-};
-
-type ParsedPlace = {
-  city?: string;
-  department?: string;
-  region?: string;
-  country?: string;
 };
 
 const EMPTY_MEMORY_DRAFT: MemoryDraftState = {
@@ -179,168 +175,8 @@ function formatYears(person: PersonSummary) {
   return birthYear ?? "?";
 }
 
-function cleanPart(value?: string): string | undefined {
-  const s = value?.trim();
-  if (!s || s === "?") return undefined;
-  return s;
-}
-
-function parsePlace(place?: string): ParsedPlace | null {
-  if (!place) return null;
-
-  const parts = place.split(",").map((p) => cleanPart(p));
-
-  if (parts.length >= 5) {
-    return {
-      city: parts[0],
-      department: parts[2],
-      region: parts[3],
-      country: parts[4],
-    };
-  }
-
-  if (parts.length === 4) {
-    return {
-      city: parts[0],
-      department: parts[1],
-      region: parts[2],
-      country: parts[3],
-    };
-  }
-
-  if (parts.length === 3) {
-    return {
-      city: parts[0],
-      region: parts[1],
-      country: parts[2],
-    };
-  }
-
-  if (parts.length === 2) {
-    return {
-      city: parts[0],
-      country: parts[1],
-    };
-  }
-
-  if (parts.length === 1) {
-    return {
-      city: parts[0],
-    };
-  }
-
-  return null;
-}
-
-function normalizeTerritory(place: ParsedPlace | null): ParsedPlace | null {
-  if (!place) return null;
-
-  const dep = place.department?.toLowerCase();
-  const reg = place.region?.toLowerCase();
-  const country = place.country?.toLowerCase();
-
-  if (dep === "réunion" && reg === "réunion" && country === "france") {
-    return {
-      ...place,
-      department: undefined,
-      region: undefined,
-      country: "LA RÉUNION",
-    };
-  }
-
-  if (dep === "guadeloupe" && reg === "guadeloupe" && country === "france") {
-    return {
-      ...place,
-      department: undefined,
-      region: undefined,
-      country: "GUADELOUPE",
-    };
-  }
-
-  return place;
-}
-
-function same(a?: string, b?: string): boolean {
-  return (a ?? "").toLowerCase() === (b ?? "").toLowerCase();
-}
-
-function shouldDisplayCountry(place: ParsedPlace): boolean {
-  return Boolean(place.country && place.country !== "LA RÉUNION");
-}
-
-function pickSingle(place: ParsedPlace | null): string | null {
-  if (!place) return null;
-
-  if (place.city) {
-    return shouldDisplayCountry(place)
-      ? [place.city, place.country].filter(Boolean).join(", ")
-      : place.city;
-  }
-
-  return place.department ?? place.region ?? place.country ?? null;
-}
-
-function formatLocal(place: ParsedPlace): string {
-  if (place.city) {
-    return shouldDisplayCountry(place)
-      ? [place.city, place.country].filter(Boolean).join(", ")
-      : place.city;
-  }
-
-  return place.department ?? place.region ?? place.country ?? "?";
-}
-
-function formatRegional(place: ParsedPlace): string {
-  const parts = shouldDisplayCountry(place)
-    ? [place.city, place.department, place.region, place.country]
-    : [place.city, place.department, place.region];
-
-  return parts.filter(Boolean).join(", ") || place.country || "?";
-}
-
-function formatInternational(place: ParsedPlace): string {
-  return (
-    [place.city, place.region, place.country].filter(Boolean).join(", ") || "?"
-  );
-}
-
-function formatPlaceTransition(
-  birthPlace?: string,
-  deathPlace?: string,
-): string | null {
-  const birth = normalizeTerritory(parsePlace(birthPlace));
-  const death = normalizeTerritory(parsePlace(deathPlace));
-
-  if (!birth && !death) return null;
-  if (!birth) return pickSingle(death);
-  if (!death) return pickSingle(birth);
-
-  const sameCountry = same(birth.country, death.country);
-  const sameRegion = same(birth.region, death.region);
-  const sameDepartment = same(birth.department, death.department);
-  const sameCity = same(birth.city, death.city);
-
-  if (sameCity && sameDepartment && sameRegion && sameCountry) {
-    return pickSingle(birth);
-  }
-
-  if (sameDepartment && sameRegion && sameCountry) {
-    return `${formatLocal(birth)} → ${formatLocal(death)}`;
-  }
-
-  if (sameRegion && sameCountry) {
-    return `${formatRegional(birth)} → ${formatRegional(death)}`;
-  }
-
-  if (sameCountry) {
-    return `${formatRegional(birth)} → ${formatRegional(death)}`;
-  }
-
-  return `${formatInternational(birth)} → ${formatInternational(death)}`;
-}
-
 function formatLifePath(person: PersonSummary) {
-  return formatPlaceTransition(person.birthPlace, person.deathPlace);
+  return formatPlaceTransition(person.birthPlace, person.currentPlace, person.deathPlace);
 }
 
 function getPluralLabel(count: number, singular: string, plural: string) {
@@ -677,6 +513,11 @@ export function FamilyTreeBrowsePage() {
   const [effectiveVisibilityLoading, setEffectiveVisibilityLoading] =
     useState(true);
 
+    const [overridesByPersonId, setOverridesByPersonId] = useState<
+  Record<string, PersonUiOverride>
+>({});
+const [overridesLoading, setOverridesLoading] = useState(true);
+
   const [touchedParticipants, setTouchedParticipants] = useState<
     TouchedParticipantItem[]
   >([]);
@@ -716,8 +557,8 @@ export function FamilyTreeBrowsePage() {
 
   const sosaReferencePersonId = sourcePersonId ?? defaultGedcomPersonId ?? null;
   const context = useMemo(
-    () => getPersonContext(centerId, visibilityPreferencesByPersonId, sosaReferencePersonId),
-    [centerId, visibilityPreferencesByPersonId,sosaReferencePersonId],
+    () => getPersonContext(centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId),
+    [centerId, visibilityPreferencesByPersonId,sosaReferencePersonId, overridesByPersonId],
   );
 
   const hasPendingClaimForCurrentPerson =
@@ -803,8 +644,9 @@ export function FamilyTreeBrowsePage() {
       centerId,
       visibilityPreferencesByPersonId,
       sosaReferencePersonId,
+      overridesByPersonId
     ),
-  [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId],
+  [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
 );
 
   const visibleOtherBranches =
@@ -839,9 +681,10 @@ export function FamilyTreeBrowsePage() {
         rootHonoredPersonId,
         visibilityPreferencesByPersonId,
         sosaReferencePersonId,
+        overridesByPersonId
       ).person,
     ),
-  [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId],
+  [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
 );
 
   const isCenteredOnMe = Boolean(sourcePersonId && centerId === sourcePersonId);
@@ -1425,57 +1268,63 @@ export function FamilyTreeBrowsePage() {
   }
 
   async function handleSavePhoto() {
-    if (!participantId) return;
+  if (!participantId) return;
 
-    if (displayPerson.isPossiblyAlive && !photoConsentObtained) {
-      return;
-    }
+  const consentIsRequired =
+    displayPerson.isPossiblyAlive === true && !isOwnProfile;
 
-    setIsSavingPhoto(true);
-
-    try {
-      if (photoEditorMode === "edit" && editingPhotoId) {
-        await updateMyPersonPhoto({
-          photoId: editingPhotoId,
-          participantId,
-          caption: photoCaption,
-          consentObtained: photoConsentObtained,
-          file: photoFile ?? undefined,
-        });
-
-        setPhotoPublishSuccessMessage(
-          "Ta photo a été mise à jour et renvoyée en modération.",
-        );
-      } else {
-        if (!photoFile) return;
-
-        await createMyPersonPhoto({
-          eventSlug: slug,
-          participantId,
-          personId: centerId,
-          file: photoFile,
-          caption: photoCaption,
-          consentObtained: photoConsentObtained,
-        });
-
-        setPhotoPublishSuccessMessage(
-          "Ta photo a bien été envoyée à la modération.",
-        );
-      }
-
-      setPhotoEditorMode("create");
-      setEditingPhotoId(null);
-      setPhotoFile(null);
-      setPhotoCaption("");
-      setPhotoConsentObtained(false);
-
-      await loadCurrentPersonData();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSavingPhoto(false);
-    }
+  if (consentIsRequired && !photoConsentObtained) {
+    return;
   }
+
+  setIsSavingPhoto(true);
+
+  try {
+    if (photoEditorMode === "edit" && editingPhotoId) {
+      await updateMyPersonPhoto({
+        photoId: editingPhotoId,
+        participantId,
+        caption: photoCaption,
+        consentObtained: photoConsentObtained,
+        file: photoFile ?? undefined,
+        setAsProfilePhoto, // <-- ajout
+      });
+
+      setPhotoPublishSuccessMessage(
+        "Ta photo a été mise à jour et renvoyée en modération.",
+      );
+    } else {
+      if (!photoFile) return;
+
+      await createMyPersonPhoto({
+        eventSlug: slug,
+        participantId,
+        personId: centerId,
+        file: photoFile,
+        caption: photoCaption,
+        consentObtained: photoConsentObtained,
+        setAsProfilePhoto, // <-- ajout
+      });
+
+      setPhotoPublishSuccessMessage(
+        "Ta photo sera publiée après validation.",
+      );
+    }
+
+    setPhotoEditorMode("create");
+    setEditingPhotoId(null);
+    setPhotoFile(null);
+    setPhotoCaption("");
+    setPhotoConsentObtained(false);
+    setSetAsProfilePhoto(false); // <-- reset important
+
+    await loadCurrentPersonData();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setIsSavingPhoto(false);
+  }
+}
 
   async function handleDeletePhoto(photoId: string) {
     if (!participantId) return;
@@ -1504,6 +1353,20 @@ export function FamilyTreeBrowsePage() {
       setDeletingPhotoId(null);
     }
   }
+
+  async function loadOverridesMap() {
+  try {
+    setOverridesLoading(true);
+
+    const map = await getMergedPersonOverridesMap(slug);
+    setOverridesByPersonId(map);
+  } catch (error) {
+    console.error(error);
+    setOverridesByPersonId({});
+  } finally {
+    setOverridesLoading(false);
+  }
+}
 
   useEffect(() => {
     void loadVisibilityPreferencesMap();
@@ -1588,6 +1451,10 @@ export function FamilyTreeBrowsePage() {
   }, [participantId, loadCurrentPersonData]);
 
   useEffect(() => {
+  void loadOverridesMap();
+}, [slug]);
+
+  useEffect(() => {
     void loadDefaultGedcomPersonId();
   }, [participantId, slug]);
 
@@ -1623,7 +1490,7 @@ export function FamilyTreeBrowsePage() {
           </div>
         </section>
 
-        {effectiveVisibilityLoading ? (
+        {effectiveVisibilityLoading || overridesLoading ? (
           <section className="mt-3">
             <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
               <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">

@@ -23,21 +23,11 @@ import {
   getPersonHeroConfig,
 } from "../config/configGenealogy";
 import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
+import { formatPlaceTransition } from "../lib/genealogyUi";
+import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
+import type { PersonUiOverride } from "../api/uiOverrides";
 
-type ParsedPlace = {
-  city?: string;
-  department?: string;
-  region?: string;
-  country?: string;
-};
-
-function PersonVisual({
-  name,
-  photoSrc,
-}: {
-  name: string;
-  photoSrc?: string;
-}) {
+function PersonVisual({ name, photoSrc }: { name: string; photoSrc?: string }) {
   if (photoSrc) {
     return (
       <div className="h-24 w-24 overflow-hidden rounded-[22px] bg-slate-100 shadow-sm">
@@ -66,7 +56,9 @@ function anonymizePerson(person: PersonSummary): PersonSummary {
   return {
     ...person,
     firstName:
-      person.canDisplay && person.canDisplayName ? person.firstName : "Personne",
+      person.canDisplay && person.canDisplayName
+        ? person.firstName
+        : "Personne",
     lastName:
       person.canDisplay && person.canDisplayName ? person.lastName : "privée",
     nickname:
@@ -97,164 +89,6 @@ function anonymizePerson(person: PersonSummary): PersonSummary {
   };
 }
 
-function cleanPart(value?: string): string | undefined {
-  const s = value?.trim();
-  if (!s || s === "?") return undefined;
-  return s;
-}
-
-function parsePlace(place?: string): ParsedPlace | null {
-  if (!place) return null;
-
-  const parts = place.split(",").map((p) => cleanPart(p));
-
-  if (parts.length >= 5) {
-    return {
-      city: parts[0],
-      department: parts[2],
-      region: parts[3],
-      country: parts[4],
-    };
-  }
-
-  if (parts.length === 4) {
-    return {
-      city: parts[0],
-      department: parts[1],
-      region: parts[2],
-      country: parts[3],
-    };
-  }
-
-  if (parts.length === 3) {
-    return {
-      city: parts[0],
-      region: parts[1],
-      country: parts[2],
-    };
-  }
-
-  if (parts.length === 2) {
-    return {
-      city: parts[0],
-      country: parts[1],
-    };
-  }
-
-  if (parts.length === 1) {
-    return {
-      city: parts[0],
-    };
-  }
-
-  return null;
-}
-
-function normalizeTerritory(place: ParsedPlace | null): ParsedPlace | null {
-  if (!place) return null;
-
-  const dep = place.department?.toLowerCase();
-  const reg = place.region?.toLowerCase();
-  const country = place.country?.toLowerCase();
-
-  if (dep === "réunion" && reg === "réunion" && country === "france") {
-    return {
-      ...place,
-      department: undefined,
-      region: undefined,
-      country: "LA RÉUNION",
-    };
-  }
-
-  if (dep === "guadeloupe" && reg === "guadeloupe" && country === "france") {
-    return {
-      ...place,
-      department: undefined,
-      region: undefined,
-      country: "GUADELOUPE",
-    };
-  }
-
-  return place;
-}
-
-function same(a?: string, b?: string): boolean {
-  return (a ?? "").toLowerCase() === (b ?? "").toLowerCase();
-}
-
-function shouldDisplayCountry(place: ParsedPlace): boolean {
-  return Boolean(place.country && place.country !== "LA RÉUNION");
-}
-
-function pickSingle(place: ParsedPlace | null): string | null {
-  if (!place) return null;
-
-  if (place.city) {
-    return shouldDisplayCountry(place)
-      ? [place.city, place.country].filter(Boolean).join(", ")
-      : place.city;
-  }
-
-  return place.department ?? place.region ?? place.country ?? null;
-}
-
-function formatLocal(place: ParsedPlace): string {
-  if (place.city) {
-    return shouldDisplayCountry(place)
-      ? [place.city, place.country].filter(Boolean).join(", ")
-      : place.city;
-  }
-
-  return place.department ?? place.region ?? place.country ?? "?";
-}
-
-function formatRegional(place: ParsedPlace): string {
-  const parts = shouldDisplayCountry(place)
-    ? [place.city, place.department, place.region, place.country]
-    : [place.city, place.department, place.region];
-
-  return parts.filter(Boolean).join(", ") || place.country || "?";
-}
-
-function formatInternational(place: ParsedPlace): string {
-  return [place.city, place.region, place.country].filter(Boolean).join(", ") || "?";
-}
-
-function formatPlaceTransition(
-  birthPlace?: string,
-  deathPlace?: string,
-): string | null {
-  const birth = normalizeTerritory(parsePlace(birthPlace));
-  const death = normalizeTerritory(parsePlace(deathPlace));
-
-  if (!birth && !death) return null;
-  if (!birth) return pickSingle(death);
-  if (!death) return pickSingle(birth);
-
-  const sameCountry = same(birth.country, death.country);
-  const sameRegion = same(birth.region, death.region);
-  const sameDepartment = same(birth.department, death.department);
-  const sameCity = same(birth.city, death.city);
-
-  if (sameCity && sameDepartment && sameRegion && sameCountry) {
-    return pickSingle(birth);
-  }
-
-  if (sameDepartment && sameRegion && sameCountry) {
-    return `${formatLocal(birth)} → ${formatLocal(death)}`;
-  }
-
-  if (sameRegion && sameCountry) {
-    return `${formatRegional(birth)} → ${formatRegional(death)}`;
-  }
-
-  if (sameCountry) {
-    return `${formatRegional(birth)} → ${formatRegional(death)}`;
-  }
-
-  return `${formatInternational(birth)} → ${formatInternational(death)}`;
-}
-
 function formatYears(person: PersonSummary) {
   const { birthYear, deathYear, isPossiblyAlive } = person;
 
@@ -265,11 +99,16 @@ function formatYears(person: PersonSummary) {
   return birthYear ?? "?";
 }
 
-function hasParticipantProfileContent(profile: PersonParticipantProfile | null) {
+function hasParticipantProfileContent(
+  profile: PersonParticipantProfile | null,
+) {
   if (!profile) return false;
 
   return Boolean(
-    profile.city || profile.occupation || profile.interests || profile.freeShare,
+    profile.city ||
+    profile.occupation ||
+    profile.interests ||
+    profile.freeShare,
   );
 }
 
@@ -289,6 +128,10 @@ export function FamilyTreePersonPage() {
     useState<PersonParticipantProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [overridesByPersonId, setOverridesByPersonId] = useState<
+    Record<string, PersonUiOverride>
+  >({});
+
   useEffect(() => {
     let cancelled = false;
 
@@ -296,27 +139,31 @@ export function FamilyTreePersonPage() {
       try {
         setIsLoading(true);
 
-        const [visibilityMap, personParticipantProfile] = await Promise.all([
-          getFamilyTreeEffectiveVisibilityMap({
-            eventSlug: slug,
-          }),
-          personId
-            ? getPersonParticipantProfile({
-                eventSlug: slug,
-                personId,
-              })
-            : Promise.resolve(null),
-        ]);
+        const [visibilityMap, personParticipantProfile, mergedOverrides] =
+          await Promise.all([
+            getFamilyTreeEffectiveVisibilityMap({
+              eventSlug: slug,
+            }),
+            personId
+              ? getPersonParticipantProfile({
+                  eventSlug: slug,
+                  personId,
+                })
+              : Promise.resolve(null),
+            getMergedPersonOverridesMap(slug),
+          ]);
 
         if (!cancelled) {
           setVisibilityPreferencesByPersonId(visibilityMap);
           setParticipantProfile(personParticipantProfile);
+          setOverridesByPersonId(mergedOverrides);
         }
       } catch (error) {
         console.error(error);
         if (!cancelled) {
           setVisibilityPreferencesByPersonId({});
           setParticipantProfile(null);
+          setOverridesByPersonId({});
         }
       } finally {
         if (!cancelled) {
@@ -336,13 +183,33 @@ export function FamilyTreePersonPage() {
 
   const context = useMemo(() => {
     if (!personExists) return null;
-    return getPersonContext(personId, visibilityPreferencesByPersonId);
-  }, [personExists, personId, visibilityPreferencesByPersonId]);
+    return getPersonContext(
+      personId,
+      visibilityPreferencesByPersonId,
+      undefined,
+      overridesByPersonId,
+    );
+  }, [
+    personExists,
+    personId,
+    visibilityPreferencesByPersonId,
+    overridesByPersonId,
+  ]);
 
   const heroConfig = useMemo(() => {
     if (!personExists) return null;
-    return getPersonHeroConfig(personId, visibilityPreferencesByPersonId);
-  }, [personExists, personId, visibilityPreferencesByPersonId]);
+    return getPersonHeroConfig(
+      personId,
+      visibilityPreferencesByPersonId,
+      undefined,
+      overridesByPersonId,
+    );
+  }, [
+    personExists,
+    personId,
+    visibilityPreferencesByPersonId,
+    overridesByPersonId,
+  ]);
 
   const displayPerson = useMemo(() => {
     if (!context) return null;
@@ -351,32 +218,37 @@ export function FamilyTreePersonPage() {
 
   const years = displayPerson ? formatYears(displayPerson) : null;
   const lifePath = displayPerson
-    ? formatPlaceTransition(displayPerson.birthPlace, displayPerson.deathPlace)
+    ? formatPlaceTransition(
+        displayPerson.birthPlace,
+        displayPerson.currentPlace,
+        displayPerson.deathPlace,
+      )
     : null;
 
-  const showParticipantProfile = hasParticipantProfileContent(participantProfile);
+  const showParticipantProfile =
+    hasParticipantProfileContent(participantProfile);
 
   function handleBack() {
     navigate(`/e/${slug}/family-tree/browse?personId=${personId}`);
   }
 
   function handleReportIssue() {
-  const params = new URLSearchParams({
-    preset: "report-person-issue",
-    personId,
-  });
+    const params = new URLSearchParams({
+      preset: "report-person-issue",
+      personId,
+    });
 
-  if (displayPerson?.canDisplayName) {
-    if (displayPerson.firstName) {
-      params.set("personFirstName", displayPerson.firstName);
+    if (displayPerson?.canDisplayName) {
+      if (displayPerson.firstName) {
+        params.set("personFirstName", displayPerson.firstName);
+      }
+      if (displayPerson.lastName) {
+        params.set("personLastName", displayPerson.lastName);
+      }
     }
-    if (displayPerson.lastName) {
-      params.set("personLastName", displayPerson.lastName);
-    }
+
+    navigate(`/e/${slug}/contact?${params.toString()}`);
   }
-
-  navigate(`/e/${slug}/contact?${params.toString()}`);
-}
 
   if (isLoading) {
     return (
@@ -518,7 +390,9 @@ export function FamilyTreePersonPage() {
               </div>
               <div className="mt-0.5 text-xs text-amber-800">
                 <ol>
-                  <li>Ajouter les informations généalogiques sur cette personne</li>
+                  <li>
+                    Informations généalogiques à venir
+                  </li>
                 </ol>
               </div>
             </div>

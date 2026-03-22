@@ -29,6 +29,8 @@ import { RelationshipStoryStepView } from "../components/RelationshipStoryStepVi
 import { RelationshipStorySummaryView } from "../components/RelationshipStorySummaryView";
 
 import type { PersonVisibilityPreferenceMap } from "../types";
+import type { PersonUiOverride } from "../api/uiOverrides";
+import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 
 type IdentityClaimStatus =
   | "pending"
@@ -55,6 +57,10 @@ export function FamilyRelationshipStoryPage() {
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
     useState<PersonVisibilityPreferenceMap>({});
   const [identityContextLoading, setIdentityContextLoading] = useState(true);
+
+  const [overridesByPersonId, setOverridesByPersonId] = useState<
+  Record<string, PersonUiOverride>
+>({});
 
   const sourcePersonId =
     myIdentityClaimStatus === "approved" ||
@@ -86,7 +92,7 @@ export function FamilyRelationshipStoryPage() {
       try {
         setIdentityContextLoading(true);
 
-        const [identityClaim, defaultPersonId, visibilityMap] =
+        const [identityClaim, defaultPersonId, visibilityMap, mergedOverrides] =
           await Promise.all([
             getMyPersonIdentityClaim({
               eventSlug: slug,
@@ -99,6 +105,7 @@ export function FamilyRelationshipStoryPage() {
             getFamilyTreeEffectiveVisibilityMap({
               eventSlug: slug,
             }),
+            getMergedPersonOverridesMap(slug),
           ]);
 
         if (isCancelled) return;
@@ -107,6 +114,7 @@ export function FamilyRelationshipStoryPage() {
         setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
         setDefaultGedcomPersonId(defaultPersonId?.trim() ? defaultPersonId : null);
         setVisibilityPreferencesByPersonId(visibilityMap);
+        setOverridesByPersonId(mergedOverrides);
       } catch (error) {
         if (!isCancelled) {
           console.error(error);
@@ -114,6 +122,7 @@ export function FamilyRelationshipStoryPage() {
           setMyIdentityClaimStatus(null);
           setDefaultGedcomPersonId(null);
           setVisibilityPreferencesByPersonId({});
+          setOverridesByPersonId({});
         }
       } finally {
         if (!isCancelled) {
@@ -135,8 +144,9 @@ export function FamilyRelationshipStoryPage() {
     return buildRelationshipStory(FAMILY_GRAPH, sourceId, targetId, {
       visibilityPreferencesByPersonId,
       sosaReferencePersonId,
+      overridesByPersonId
     });
-  }, [sourceId, targetId, visibilityPreferencesByPersonId, sosaReferencePersonId]);
+  }, [sourceId, targetId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -221,6 +231,7 @@ export function FamilyRelationshipStoryPage() {
     sourceId,
     visibilityPreferencesByPersonId,
     sosaReferencePersonId,
+    overridesByPersonId
   );
 
   const showButtonVoirDansArbre = false;
