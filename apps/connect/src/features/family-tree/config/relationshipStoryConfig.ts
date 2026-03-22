@@ -1,6 +1,6 @@
 // src/features/family-knowledge/config/relationshipStoryConfig.ts
 
-import { ORGANIZER_ID, ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
+import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 
 export type RelationshipStoryPersonOverride = {
   intro?: string;
@@ -10,7 +10,7 @@ export type RelationshipStoryPersonOverride = {
 };
 
 export const RELATIONSHIP_STORY_DEFAULT_SOURCE_ID = ROOT_HONORED_PERSON_ID;
-export const RELATIONSHIP_STORY_DEFAULT_TARGET_ID = ORGANIZER_ID;
+
 
 /**
  * Mets ici les enrichissements narratifs spécifiques quand tu en as.

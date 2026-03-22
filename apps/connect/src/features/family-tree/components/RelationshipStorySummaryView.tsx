@@ -1,4 +1,4 @@
-// src/features/family-knowledge/components/RelationshipStorySummaryView.tsx
+// src/features/family-tree/components/RelationshipStorySummaryView.tsx
 
 import { CheckCircle2, MapPin, User } from "lucide-react";
 import type { RelationshipStory } from "../api/buildRelationshipStory";
@@ -11,17 +11,19 @@ import {
 type RelationshipStorySummaryViewProps = {
   story: RelationshipStory;
   heroClassName: string;
-  onSelectStep: (index: number) => void;
+  showDetails?: boolean;
+  onSelectStep?: (index: number) => void;
 };
 
 export function RelationshipStorySummaryView({
   story,
   heroClassName,
+  showDetails = true,
   onSelectStep,
 }: RelationshipStorySummaryViewProps) {
   return (
     <section className="space-y-4">
-      <div
+      {showDetails && (<div
         className={[
           "rounded-[26px] p-4 text-white shadow-[0_18px_40px_rgba(15,23,42,0.20)]",
           heroClassName,
@@ -38,19 +40,28 @@ export function RelationshipStorySummaryView({
         <div className="mt-3 rounded-[18px] bg-white/10 px-3 py-3 text-sm font-bold leading-6 text-white/90">
           {story.summaryLine}
         </div>
-      </div>
+      </div>)}
 
       <div className="space-y-3">
         {story.steps.map((step, index) => {
           const years = formatYears(step.person);
           const lifePath = formatLifePath(step.person);
+          const isClickable = typeof onSelectStep === "function";
+
+          function handleSelectStep() {
+            if (!onSelectStep) return;
+            onSelectStep(index);
+          }
 
           return (
             <button
               key={step.person.id}
               type="button"
-              onClick={() => onSelectStep(index)}
-              className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition active:scale-[0.99]"
+              onClick={isClickable ? handleSelectStep : undefined}
+              disabled={!isClickable}
+              className={`w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition ${
+                isClickable ? "active:scale-[0.99]" : ""
+              }`}
             >
               <div className="flex items-start gap-3">
                 {step.person.photoSrc ? (
@@ -76,9 +87,11 @@ export function RelationshipStorySummaryView({
                       </div>
                     </div>
 
-                    <div className="shrink-0 text-indigo-600">
-                      <CheckCircle2 size={18} />
-                    </div>
+                    {isClickable ? (
+                      <div className="shrink-0 text-indigo-600">
+                        <CheckCircle2 size={18} />
+                      </div>
+                    ) : null}
                   </div>
 
                   {years ? (
@@ -87,16 +100,16 @@ export function RelationshipStorySummaryView({
                     </div>
                   ) : null}
 
-                  {lifePath ? (
+                  {showDetails && lifePath ? (
                     <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-[11px] font-extrabold text-slate-700">
                       <MapPin size={12} />
                       {lifePath}
                     </div>
                   ) : null}
 
-                  <p className="mt-3 text-sm font-bold leading-6 text-slate-700">
+                  {showDetails && (<p className="mt-3 text-sm font-bold leading-6 text-slate-700">
                     {step.intro}
-                  </p>
+                  </p>)}
                 </div>
               </div>
             </button>

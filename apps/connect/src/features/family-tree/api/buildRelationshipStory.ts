@@ -1,4 +1,4 @@
-// src/features/family-knowledge/api/buildRelationshipStory.ts
+// src/features/family-tree/api/buildRelationshipStory.ts
 
 import { getPersonContext } from "../config/configGenealogy";
 import {
@@ -9,8 +9,13 @@ import type {
   FamilyGraphData,
   FamilyGraphFamily,
   PersonSummary,
+  PersonVisibilityPreferenceMap,
 } from "../types";
-import { anonymizePerson, formatPersonName, toOrdinalFr } from "../lib/genealogyUi";
+import {
+  anonymizePerson,
+  formatPersonName,
+  toOrdinalFr,
+} from "../lib/genealogyUi";
 
 export type RelationshipStoryStep = {
   generationNumber: number;
@@ -32,9 +37,15 @@ export type RelationshipStory = {
   summaryLine: string;
 };
 
+export type BuildRelationshipStoryOptions = {
+  visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap;
+  sosaReferencePersonId?: string | null;
+};
+
 function getFamiliesForSpouse(graph: FamilyGraphData, personId: string) {
   const person = graph.people[personId];
   if (!person) return [];
+
   return person.famsIds
     .map((id) => graph.families[id])
     .filter((fam): fam is FamilyGraphFamily => Boolean(fam));
@@ -59,8 +70,17 @@ function getOtherSpouseId(
   return undefined;
 }
 
-function getPersonSummary(personId: string): PersonSummary {
-  return anonymizePerson(getPersonContext(personId).person);
+function getPersonSummary(
+  personId: string,
+  options?: BuildRelationshipStoryOptions,
+): PersonSummary {
+  return anonymizePerson(
+    getPersonContext(
+      personId,
+      options?.visibilityPreferencesByPersonId,
+      options?.sosaReferencePersonId,
+    ).person,
+  );
 }
 
 function getRankLabel(
@@ -147,6 +167,7 @@ function buildFacts(params: {
   if (spouse) {
     const spouseName = formatPersonName(spouse);
     const unionYear = override?.unionYear;
+
     facts.push(
       unionYear
         ? `${person.firstName} a épousé ${spouseName} en ${unionYear}.`
@@ -166,7 +187,9 @@ function buildFacts(params: {
       getRankLabel(nextChildRank, childrenCount, nextPerson.sex);
 
     if (childLabel) {
-      facts.push(`La branche continue par ${childLabel} : ${formatPersonName(nextPerson)}.`);
+      facts.push(
+        `La branche continue par ${childLabel} : ${formatPersonName(nextPerson)}.`,
+      );
     }
   }
 
@@ -181,6 +204,7 @@ export function buildRelationshipStory(
   graph: FamilyGraphData,
   sourcePersonId: string,
   targetPersonId: string,
+  options?: BuildRelationshipStoryOptions,
 ): RelationshipStory | null {
   const path = findRelationshipPath(graph, sourcePersonId, targetPersonId);
   if (!path || path.length === 0) return null;
@@ -189,9 +213,9 @@ export function buildRelationshipStory(
   const totalGenerations = onlyPersons.length;
 
   const steps: RelationshipStoryStep[] = onlyPersons.map((personId, index) => {
-    const person = getPersonSummary(personId);
+    const person = getPersonSummary(personId, options);
     const nextId = onlyPersons[index + 1];
-    const nextPerson = nextId ? getPersonSummary(nextId) : undefined;
+    const nextPerson = nextId ? getPersonSummary(nextId, options) : undefined;
 
     let family: FamilyGraphFamily | undefined;
     let spouse: PersonSummary | undefined;
@@ -200,10 +224,12 @@ export function buildRelationshipStory(
 
     if (nextId) {
       family = getFamilyProducingChild(graph, personId, nextId);
+
       if (family) {
         const spouseId = getOtherSpouseId(family, personId);
-        spouse = spouseId ? getPersonSummary(spouseId) : undefined;
+        spouse = spouseId ? getPersonSummary(spouseId, options) : undefined;
         childrenCount = family.childIds.length;
+
         const idx = family.childIds.findIndex((id) => id === nextId);
         nextChildRank = idx >= 0 ? idx + 1 : undefined;
       }
@@ -237,7 +263,11 @@ export function buildRelationshipStory(
       nextPerson,
       childrenCount,
       nextChildRank,
-      nextChildLabel: getRankLabel(nextChildRank, childrenCount, nextPerson?.sex ?? "M"),
+      nextChildLabel: getRankLabel(
+        nextChildRank,
+        childrenCount,
+        nextPerson?.sex ?? "M",
+      ),
       intro,
       facts,
     };
@@ -246,8 +276,8 @@ export function buildRelationshipStory(
   const summaryLine = steps.map((step) => formatPersonName(step.person)).join(" → ");
 
   return {
-    source: getPersonSummary(sourcePersonId),
-    target: getPersonSummary(targetPersonId),
+    source: getPersonSummary(sourcePersonId, options),
+    target: getPersonSummary(targetPersonId, options),
     steps,
     summaryLine,
   };
