@@ -15,7 +15,15 @@
                     Message "pas de conjoint / d'enfant identifié" quid de ce
                     qui n'en ont pas eu pour sur
                   </li>
-                  <li>override de la photo affichée</li>
+                  <li>table override
+                    <ul>
+                      <li> du nom</li>
+                      <li> du prénom</li>
+                      <li> du surnom</li>
+                      <li> du birthYear</li>
+                      <li> de la photo affichée</li>
+                    </ul>
+                  </li>
                   <li>
                     Profil vérifié par modération
                     <ul>
