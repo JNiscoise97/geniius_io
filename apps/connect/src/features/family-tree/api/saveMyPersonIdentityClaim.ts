@@ -16,7 +16,7 @@ async function upsertProfileNamingAndBirthYearOverride(params: {
   firstName?: string | null;
   lastName?: string | null;
   nickname?: string | null;
-  birthYear?: number | string | null;
+  birthYear?: string | null;
 }) {
   const { eventSlug, personId, firstName, lastName, nickname, birthYear } =
     params;
