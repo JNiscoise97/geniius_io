@@ -71,6 +71,7 @@ import viramaSeraphin from "../../../assets/images/virama-seraphin.jpg";
 import viramaAlbert from "../../../assets/images/virama-albert.jpg";
 import viramaAndre from "../../../assets/images/virama-andre.jpg";
 import viramaAugusta from "../../../assets/images/virama-augusta.jpg";
+import viramaAuguste from "../../../assets/images/virama-auguste.jpg";
 import viramaEtienne from "../../../assets/images/virama-etienne.jpg";
 import viramaEugenie from "../../../assets/images/virama-eugenie.jpg";
 import viramaBebe from "../../../assets/images/virama-bébé.jpg";
@@ -351,4 +352,11 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   "731270991": {
     photoSrc: viramaCharlemagne,
   },
+  "731336259": {
+    photoSrc: viramaAuguste,
+    canDisplay: true,
+    canDisplayName: true,
+    canDisplayPhoto: true,
+    canDisplayInfo: true,
+  }
 };
