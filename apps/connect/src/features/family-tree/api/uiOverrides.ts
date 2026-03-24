@@ -45,6 +45,7 @@ import poutaredyJoseph from "../../../assets/images/poutaredy-joseph.jpg";
 import poutaredyScholastique from "../../../assets/images/poutaredy-scholastique.jpg";
 import ramanyAimee from "../../../assets/images/ramany-aimee.jpg";
 import ringuinAndre from "../../../assets/images/ringuin-andre.jpg";
+import rosalieArlette from "../../../assets/images/rosalie-arlette.jpg";
 import sadeyenAngelo from "../../../assets/images/sadeyen-angelo.jpg";
 import sadeyenEmmanuel from "../../../assets/images/sadeyen-emmanuel.jpg";
 import sadeyenJosephine from "../../../assets/images/sadeyen-josephine.jpg";
@@ -351,6 +352,9 @@ export const PERSON_UI_OVERRIDES: Record<string, PersonUiOverride> = {
   },
   "731270991": {
     photoSrc: viramaCharlemagne,
+  },
+  "73305": {
+    photoSrc: rosalieArlette,
   },
   "731336259": {
     photoSrc: viramaAuguste,
