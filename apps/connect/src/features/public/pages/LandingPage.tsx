@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ArrowRight,
   CalendarCheck,
   Camera,
@@ -195,7 +196,6 @@ export function LandingPage() {
     contact: "2026-03-17",
     familyTreePerson: "2026-03-17",
 
-
     familyTree: "2026-03-22",
     warmupQuizAt: "2026-03-25",
     testimonyBefore: "2026-03-25",
@@ -228,7 +228,8 @@ export function LandingPage() {
           {
             key: "present",
             label: "Ton espace personnel",
-            description: "Ajoute quelques informations pour te présenter et créer du lien avec les cousins.",
+            description:
+              "Ajoute quelques informations pour te présenter et créer du lien avec les cousins.",
             icon: UserCircle2,
             to: `/e/${slug}/welcome`,
             enabled: features.preEvent.presentYourself,
@@ -319,7 +320,8 @@ export function LandingPage() {
           {
             key: "family-tree-person",
             label: "Gromèr Covindou",
-            description: "Découvre l'histoire et la généalogie de notre aïeule.",
+            description:
+              "Découvre l'histoire et la généalogie de notre aïeule.",
             icon: User,
             to: `/e/${slug}/fiche?id=@7398@`,
             enabled: features.core.familyTreePerson,
@@ -356,7 +358,8 @@ export function LandingPage() {
           {
             key: "tree-contrib",
             label: "Aider à compléter l’arbre familial",
-            description: "Ajoute une information utile à l’arbre de la famille.",
+            description:
+              "Ajoute une information utile à l’arbre de la famille.",
             icon: TreePine,
             to: `/e/${slug}/tree/contribute`,
             enabled: features.preEvent.enrichTree,
@@ -468,7 +471,9 @@ export function LandingPage() {
       if (!participantId) {
         if (!cancelled) {
           setGuidedPrompts(
-            participantCompletionRules.filter((rule) => rule.type === "info").slice(0, 5),
+            participantCompletionRules
+              .filter((rule) => rule.type === "info")
+              .slice(0, 5),
           );
           setLoadingGuidedPrompts(false);
         }
@@ -562,12 +567,40 @@ export function LandingPage() {
             </h1>
 
             <p className="mt-3 max-w-[38rem] text-sm font-bold leading-6 text-white/88">
-              Commence simplement avec quelques actions utiles, puis explore tout
-              l’espace famille à ton rythme.
+              Commence simplement avec quelques actions utiles, puis explore
+              tout l’espace famille à ton rythme.
             </p>
           </div>
         </section>
-
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-amber-900">
+                Chantiers en cours (25/03/2026)
+              </div>
+              <div className="mt-0.5 text-xs text-amber-800">
+                <ol>
+                  <li>Inclure les lieux de domicile dans le circuit des lieux d'une personne</li>
+                  <li>Afficher les informations généalogique d'une personne</li>
+                  <li>Identity claim à la création du compte, validation par BO</li>
+                  <li>Legacy si default_gedcom_person_id alors approved sinon pending</li>
+                  <li>Permettre d'afficher d'autres personnes de sa famille proche (enfants, conjoint, parents, grands-parents) dans l'arbre par un process assoupli de formulaire</li>
+                  <li>permettre de réagir à des photos postées par d'autres personnes</li>
+                  <li>Tes photos devient bof</li>
+                  <li>Aide à compléter l'arbre : Comparaison arbre GEDCOM et informations du Family Knownledge</li>
+                  <li>Stats</li>
+                  <li>5 questions thématiques (INDE)</li>
+                  <li>
+                    Message "pas de conjoint / d'enfant identifié" quid de ce
+                    qui n'en ont pas eu pour sur
+                  </li>
+                  <li>sous condition: Fiche + icon dans le hero</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
         <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-2 shadow-sm">
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -607,34 +640,39 @@ export function LandingPage() {
         </section>
 
         {mode === "guided" ? (
-          <><section className="mt-5 space-y-4">
-            {loadingGuidedPrompts ? (
-              <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="text-sm font-bold text-slate-700">
-                  Chargement des actions guidées...
-                </div>
-              </section>
-            ) : null}
+          <>
+            <section className="mt-5 space-y-4">
+              {loadingGuidedPrompts ? (
+                <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="text-sm font-bold text-slate-700">
+                    Chargement des actions guidées...
+                  </div>
+                </section>
+              ) : null}
 
-            {!loadingGuidedPrompts &&
-              guidedPrompts.map((prompt) => (
-                (prompt.enable && <GuidedPromptCard
-                  key={prompt.key}
-                  prompt={prompt}
-                  onClick={() => openCompletionRule(prompt)} />)
-              ))}
+              {!loadingGuidedPrompts &&
+                guidedPrompts.map(
+                  (prompt) =>
+                    prompt.enable && (
+                      <GuidedPromptCard
+                        key={prompt.key}
+                        prompt={prompt}
+                        onClick={() => openCompletionRule(prompt)}
+                      />
+                    ),
+                )}
 
-            {!loadingGuidedPrompts && guidedPrompts.length === 0 ? (
-              <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="text-sm font-bold text-slate-900">
-                  Tu es à jour pour le moment.
-                </div>
-                <p className="mt-1 text-xs font-bold leading-5 text-slate-600">
-                  Retrouve toutes les rubriques dans “Tout explorer”.
-                </p>
-              </section>
-            ) : null}
-          </section>
+              {!loadingGuidedPrompts && guidedPrompts.length === 0 ? (
+                <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="text-sm font-bold text-slate-900">
+                    Tu es à jour pour le moment.
+                  </div>
+                  <p className="mt-1 text-xs font-bold leading-5 text-slate-600">
+                    Retrouve toutes les rubriques dans “Tout explorer”.
+                  </p>
+                </section>
+              ) : null}
+            </section>
             <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm mt-3">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 rounded-2xl bg-slate-100 p-3 text-slate-900">
@@ -646,7 +684,8 @@ export function LandingPage() {
                     Voir toutes les rubriques
                   </div>
                   <p className="mt-2 text-sm font-bold leading-6 text-slate-700">
-                    Retrouve tout l’espace famille en un seul endroit, y compris les rubriques déjà remplies et celles à venir.
+                    Retrouve tout l’espace famille en un seul endroit, y compris
+                    les rubriques déjà remplies et celles à venir.
                   </p>
 
                   <button
@@ -657,7 +696,7 @@ export function LandingPage() {
                         left: 0,
                         behavior: "auto",
                       });
-                      setMode("all")
+                      setMode("all");
                     }}
                     className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-900"
                   >
@@ -666,7 +705,8 @@ export function LandingPage() {
                   </button>
                 </div>
               </div>
-            </section></>
+            </section>
+          </>
         ) : (
           <div className="mt-5 space-y-4">
             {sections.map((section) => {
@@ -802,7 +842,6 @@ function GuidedPromptCard({
     </article>
   );
 }
-
 
 function HubActionCard({
   item,
