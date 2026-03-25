@@ -1,6 +1,8 @@
 // components/tree-contribute/ComparisonFieldList.tsx
 
-import { ComparisonFieldRow, type ComparisonFieldRowData } from "./ComparisonFieldRow";
+import { ComparisonFieldRow, type ComparisonFieldRowData } from "../components/ComparisonFieldRow";
+
+
 
 type ComparisonFieldListProps = {
   title?: string;
