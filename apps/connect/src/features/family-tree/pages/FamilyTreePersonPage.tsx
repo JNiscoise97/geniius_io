@@ -244,6 +244,11 @@ export function FamilyTreePersonPage() {
       )
     : null;
 
+    const personDisplayName = [displayPerson?.firstName, displayPerson?.lastName]
+    .map((value) => value?.trim() ?? "")
+    .filter(Boolean)
+    .join(" ");
+
   const showParticipantProfile =
     hasParticipantProfileContent(participantProfile);
 
@@ -339,6 +344,17 @@ export function FamilyTreePersonPage() {
               <ShieldAlert size={14} />
               Signaler une incohérence
             </button>
+
+            <button
+  type="button"
+  onClick={() =>
+    navigate(
+      `/e/${slug}/family-tree/improve?personId=${personId}&personLabel=${encodeURIComponent(personDisplayName)}`
+    )
+  }
+>
+  Compléter / corriger cette fiche
+</button>
           </div>
         </section>
 
