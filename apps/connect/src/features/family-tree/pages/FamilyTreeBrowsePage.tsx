@@ -352,23 +352,41 @@ function summarizeRelationshipToRoot(
     : `Voici le chemin familial le plus court depuis ${rootDisplayName}.`;
 }
 
+function parseBirthYear(value?: string | number | null): number | null {
+  if (value === undefined || value === null || value === "") return null;
+
+  const year =
+    typeof value === "number" ? value : Number.parseInt(String(value), 10);
+
+  return Number.isNaN(year) ? null : year;
+}
+
 function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
-  return [...persons].sort((a, b) => {
-    const aYear = Number(a.birthYear);
-    const bYear = Number(b.birthYear);
+  return persons.reduce<PersonSummary[]>((ordered, person) => {
+    const personYear = parseBirthYear(person.birthYear);
 
-    const aHasYear = Boolean(a.birthYear && !Number.isNaN(aYear));
-    const bHasYear = Boolean(b.birthYear && !Number.isNaN(bYear));
-
-    if (aHasYear && bHasYear) {
-      return aYear - bYear;
+    // Pas de date => on garde simplement l'ordre source
+    if (personYear === null) {
+      ordered.push(person);
+      return ordered;
     }
 
-    if (aHasYear && !bHasYear) return -1;
-    if (!aHasYear && bHasYear) return 1;
+    // Date connue => on remonte uniquement avant les personnes
+    // qui ont elles aussi une date connue plus tardive.
+    // On ne force pas le passage "à la fin" des inconnus.
+    const insertAt = ordered.findIndex((candidate) => {
+      const candidateYear = parseBirthYear(candidate.birthYear);
+      return candidateYear !== null && candidateYear > personYear;
+    });
 
-    return 0;
-  });
+    if (insertAt === -1) {
+      ordered.push(person);
+    } else {
+      ordered.splice(insertAt, 0, person);
+    }
+
+    return ordered;
+  }, []);
 }
 
 function removeUniformLinkedSpouseLabel(
