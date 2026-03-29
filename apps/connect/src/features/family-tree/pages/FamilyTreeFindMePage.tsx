@@ -1,5 +1,3 @@
-// src/features/family-knowledge/pages/FamilyTreeFindMePage.tsx
-
 import {
   ArrowLeft,
   Compass,
@@ -21,6 +19,11 @@ import {
 } from "../api/getMyPersonIdentityClaim";
 import { FindMeModeCard } from "../components/FindMeModeCard";
 import { MyIdentityClaimsSection } from "../components/MyIdentityClaimsSection";
+
+function normalizePersonId(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 
 function FindMeIntroStepper() {
   const steps = [
@@ -93,9 +96,7 @@ function FindMeChoiceCard({
   return (
     <FindMeModeCard
       title={title}
-      description={
-        helper ? `${description}\n\n${helper}` : description
-      }
+      description={helper ? `${description}\n\n${helper}` : description}
       icon={icon}
       onClick={onClick}
     />
@@ -119,9 +120,19 @@ export function FamilyTreeFindMePage() {
 
   const [introAcknowledged, setIntroAcknowledged] = useState(false);
 
-  const hasApprovedClaim = useMemo(
-    () => claims.some((claim) => claim.claim_status === "approved"),
+  const visibleClaims = useMemo(
+    () => claims.filter((claim) => Boolean(normalizePersonId(claim.person_id))),
     [claims],
+  );
+
+  const hasApprovedClaim = useMemo(
+    () =>
+      visibleClaims.some(
+        (claim) =>
+          claim.claim_status === "approved" &&
+          Boolean(normalizePersonId(claim.person_id)),
+      ),
+    [visibleClaims],
   );
 
   const hasDefaultTreeEntry = Boolean(defaultGedcomPersonId);
@@ -164,7 +175,7 @@ export function FamilyTreeFindMePage() {
         participantId,
       });
 
-      setDefaultGedcomPersonId(personId?.trim() ? personId : null);
+      setDefaultGedcomPersonId(normalizePersonId(personId));
     } catch (error) {
       console.error(error);
       setDefaultGedcomPersonId(null);

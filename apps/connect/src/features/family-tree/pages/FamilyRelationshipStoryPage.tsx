@@ -1,5 +1,3 @@
-// src/features/family-tree/pages/FamilyRelationshipStoryPage.tsx
-
 import {
   ArrowLeft,
   ArrowRight,
@@ -32,12 +30,12 @@ import type { PersonVisibilityPreferenceMap } from "../types";
 import type { PersonUiOverride } from "../api/uiOverrides";
 import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 
-type IdentityClaimStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "auto_verified"
-  | null;
+type IdentityClaimStatus = "pending" | "approved" | "rejected" | null;
+
+function normalizePersonId(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 
 export function FamilyRelationshipStoryPage() {
   const navigate = useNavigate();
@@ -59,12 +57,11 @@ export function FamilyRelationshipStoryPage() {
   const [identityContextLoading, setIdentityContextLoading] = useState(true);
 
   const [overridesByPersonId, setOverridesByPersonId] = useState<
-  Record<string, PersonUiOverride>
->({});
+    Record<string, PersonUiOverride>
+  >({});
 
   const sourcePersonId =
-    myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified"
+    myIdentityClaimStatus === "approved" && claimedPersonId
       ? claimedPersonId
       : null;
 
@@ -110,9 +107,9 @@ export function FamilyRelationshipStoryPage() {
 
         if (isCancelled) return;
 
-        setClaimedPersonId(identityClaim?.person_id ?? null);
+        setClaimedPersonId(normalizePersonId(identityClaim?.person_id ?? null));
         setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
-        setDefaultGedcomPersonId(defaultPersonId?.trim() ? defaultPersonId : null);
+        setDefaultGedcomPersonId(normalizePersonId(defaultPersonId));
         setVisibilityPreferencesByPersonId(visibilityMap);
         setOverridesByPersonId(mergedOverrides);
       } catch (error) {
@@ -140,17 +137,19 @@ export function FamilyRelationshipStoryPage() {
 
   const story = useMemo(() => {
     if (!sourceId || !targetId) return null;
-    console.log("buildRelationshipStory",buildRelationshipStory(FAMILY_GRAPH, sourceId, targetId, {
-      visibilityPreferencesByPersonId,
-      sosaReferencePersonId,
-      overridesByPersonId
-    }))
+
     return buildRelationshipStory(FAMILY_GRAPH, sourceId, targetId, {
       visibilityPreferencesByPersonId,
       sosaReferencePersonId,
-      overridesByPersonId
+      overridesByPersonId,
     });
-  }, [sourceId, targetId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId]);
+  }, [
+    sourceId,
+    targetId,
+    visibilityPreferencesByPersonId,
+    sosaReferencePersonId,
+    overridesByPersonId,
+  ]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -235,7 +234,7 @@ export function FamilyRelationshipStoryPage() {
     sourceId,
     visibilityPreferencesByPersonId,
     sosaReferencePersonId,
-    overridesByPersonId
+    overridesByPersonId,
   );
 
   const showButtonVoirDansArbre = false;
@@ -329,9 +328,7 @@ export function FamilyRelationshipStoryPage() {
               heroClassName={heroConfig.heroClassName}
               showDetails={false}
               onSelectStep={
-                showSummaryOnly
-                  ? undefined
-                  : (index) => setCurrentIndex(index)
+                showSummaryOnly ? undefined : (index) => setCurrentIndex(index)
               }
             />
           ) : currentStep ? (

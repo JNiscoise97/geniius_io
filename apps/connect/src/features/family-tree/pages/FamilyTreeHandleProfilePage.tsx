@@ -67,6 +67,11 @@ const PROFILE_FIELDS: ProfileFieldConfig[] = [
   },
 ];
 
+function normalizePersonId(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
 export function FamilyTreeHandleProfilePage() {
   const nav = useNavigate();
   const { eventSlug } = useParams();
@@ -80,7 +85,7 @@ export function FamilyTreeHandleProfilePage() {
   const [verifiedPersonId, setVerifiedPersonId] = useState<string | null>(null);
 
   const [identityStatus, setIdentityStatus] = useState<
-    "pending" | "approved" | "rejected" | "auto_verified" | null
+    "pending" | "approved" | "rejected" | null
   >(null);
 
   const [stats, setStats] = useState<ProfileStats>({
@@ -92,10 +97,10 @@ export function FamilyTreeHandleProfilePage() {
   const participantId = participantSession?.participantId ?? null;
 
   const isVerified =
-    identityStatus === "approved" || identityStatus === "auto_verified";
+    identityStatus === "approved" && Boolean(verifiedPersonId);
 
   const verifiedLabel = useMemo(() => {
-    if (identityStatus === "auto_verified" || identityStatus === "approved") {
+    if (identityStatus === "approved" && verifiedPersonId) {
       return "Profil vérifié";
     }
     if (identityStatus === "pending") {
@@ -105,7 +110,7 @@ export function FamilyTreeHandleProfilePage() {
       return "Vérification refusée";
     }
     return "Profil non vérifié";
-  }, [identityStatus]);
+  }, [identityStatus, verifiedPersonId]);
 
   useEffect(() => {
     if (!participantId) return;
@@ -157,24 +162,29 @@ export function FamilyTreeHandleProfilePage() {
             allowInfoInFamilyTree: existingConsents.allowInfoInFamilyTree,
           });
         }
-        setIdentityStatus(identityClaim?.claim_status ?? null);
-        setVerifiedPersonId(identityClaim?.person_id ?? null);
 
-        const verifiedPersonId =
-          identityClaim?.claim_status === "approved" ||
-          identityClaim?.claim_status === "auto_verified"
-            ? identityClaim.person_id
+        const normalizedClaimedPersonId = normalizePersonId(
+          identityClaim?.person_id ?? null,
+        );
+
+        setIdentityStatus(identityClaim?.claim_status ?? null);
+
+        const nextVerifiedPersonId =
+          identityClaim?.claim_status === "approved" && normalizedClaimedPersonId
+            ? normalizedClaimedPersonId
             : null;
 
-        if (verifiedPersonId) {
+        setVerifiedPersonId(nextVerifiedPersonId);
+
+        if (nextVerifiedPersonId) {
           const [reactionCount, profileViewCount] = await Promise.all([
             getProfileReactionCount({
               eventSlug: slug,
-              personId: verifiedPersonId,
+              personId: nextVerifiedPersonId,
             }),
             getProfileViewCount({
               eventSlug: slug,
-              personId: verifiedPersonId,
+              personId: nextVerifiedPersonId,
             }),
           ]);
 
@@ -183,6 +193,11 @@ export function FamilyTreeHandleProfilePage() {
           setStats({
             reactionCount,
             profileViewCount,
+          });
+        } else {
+          setStats({
+            reactionCount: null,
+            profileViewCount: null,
           });
         }
       } catch (e: any) {
@@ -271,11 +286,9 @@ export function FamilyTreeHandleProfilePage() {
           {isVerified ? null : (
             <div
               className={`mt-4 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black ${
-                isVerified
-                  ? "bg-emerald-50 text-emerald-700"
-                  : identityStatus === "pending"
-                    ? "bg-amber-50 text-amber-700"
-                    : "bg-slate-100 text-slate-700"
+                identityStatus === "pending"
+                  ? "bg-amber-50 text-amber-700"
+                  : "bg-slate-100 text-slate-700"
               }`}
             >
               <BadgeCheck size={14} />
@@ -307,7 +320,7 @@ export function FamilyTreeHandleProfilePage() {
         ) : (
           <form id="handle-profile-form" onSubmit={onSubmit} className="mt-3">
             {verifiedPersonId ? (
-              <section className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
+              <section className="mb-3 mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500">
                   Accès rapides
                 </div>
@@ -338,9 +351,7 @@ export function FamilyTreeHandleProfilePage() {
                   <button
                     type="button"
                     onClick={() =>
-                      nav(
-                        `/e/${slug}/family-tree/person?id=${verifiedPersonId}`,
-                      )
+                      nav(`/e/${slug}/family-tree/person?id=${verifiedPersonId}`)
                     }
                     className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition active:scale-[0.99]"
                   >
@@ -359,6 +370,7 @@ export function FamilyTreeHandleProfilePage() {
                 </div>
               </section>
             ) : null}
+
             <section className="grid grid-cols-2 gap-3">
               <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">

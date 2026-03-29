@@ -17,12 +17,17 @@ export async function getPersonParticipantProfile({
   eventSlug,
   personId,
 }: GetPersonParticipantProfileInput): Promise<PersonParticipantProfile | null> {
+  const normalizedPersonId = personId.trim();
+  if (!normalizedPersonId) {
+    return null;
+  }
+
   const claimRes = await supabase
     .from("family_person_identity_claims")
     .select("participant_id")
     .eq("event_slug", eventSlug)
-    .eq("person_id", personId)
-    .in("claim_status", ["approved", "auto_verified"])
+    .eq("person_id", normalizedPersonId)
+    .eq("claim_status", "approved")
     .maybeSingle();
 
   if (claimRes.error) {
@@ -30,7 +35,9 @@ export async function getPersonParticipantProfile({
   }
 
   const participantId = claimRes.data?.participant_id;
-  if (!participantId) return null;
+  if (!participantId) {
+    return null;
+  }
 
   const consentRes = await supabase
     .from("participant_consents")
@@ -57,7 +64,9 @@ export async function getPersonParticipantProfile({
     throw new Error(profileRes.error.message);
   }
 
-  if (!profileRes.data) return null;
+  if (!profileRes.data) {
+    return null;
+  }
 
   const city = profileRes.data.city?.trim() ?? "";
   const occupation = profileRes.data.occupation?.trim() ?? "";

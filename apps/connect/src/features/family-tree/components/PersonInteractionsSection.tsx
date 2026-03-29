@@ -9,7 +9,7 @@ import {
   UserCheck,
   ChevronDown,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type BrowsePanelMode =
   | "relations"
@@ -29,8 +29,9 @@ function ReactionCountBadge({
 }) {
   return (
     <span
-      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-        }`}
+      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${
+        active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+      }`}
     >
       {count}
     </span>
@@ -104,6 +105,7 @@ export function PersonInteractionsSection({
   knownCount,
   heardCount,
   panelMode,
+  moderatorComment,
   onOpenMemories,
   onOpenPhotos,
   onOpenTouched,
@@ -119,6 +121,8 @@ export function PersonInteractionsSection({
 }: PersonInteractionsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const hasSelectedIdentityPerson = Boolean(sourcePersonId?.trim());
+
   const shouldShowReactSection = canDisplay;
   const shouldShowReactionButtons =
     canDisplay && !isApprovedClaimForCurrentPerson;
@@ -127,7 +131,7 @@ export function PersonInteractionsSection({
     !canDisplay && !isApprovedClaimForCurrentPerson;
 
   const shouldShowIdentityCard =
-    (isApprovedClaimForCurrentPerson || !sourcePersonId) &&
+    (isApprovedClaimForCurrentPerson || !hasSelectedIdentityPerson) &&
     (!canDisplay || isPossiblyAlive);
 
   const shouldShowIdentifySection =
@@ -174,22 +178,30 @@ export function PersonInteractionsSection({
     : "Cette fiche te correspond ?";
 
   const hiddenIdentityDescription = isApprovedClaimForCurrentPerson
-    ? "Tu peux demander désormais gérer ton profil."
+    ? "Tu peux désormais gérer cette fiche depuis ton profil."
     : "Tu peux demander une vérification si tu penses que cette personne, c’est toi.";
 
   const visibleIdentityDescription = isApprovedClaimForCurrentPerson
     ? null
     : "Si cette personne, c’est toi, tu peux demander une vérification pour rattacher cette fiche à ton profil.";
 
-  const identityStatusToneClass = isApprovedClaimForCurrentPerson
-    ? "bg-slate-100 text-slate-700"
-    : hasRejectedClaimForCurrentPerson
-      ? "bg-rose-50 text-rose-900"
-      : "bg-amber-50 text-amber-900";
+  const identityStatusToneClass = useMemo(() => {
+    if (hasRejectedClaimForCurrentPerson) {
+      return "bg-rose-50 text-rose-900";
+    }
+
+    if (hasPendingClaimForCurrentPerson) {
+      return "bg-amber-50 text-amber-900";
+    }
+
+    return "bg-slate-100 text-slate-700";
+  }, [hasPendingClaimForCurrentPerson, hasRejectedClaimForCurrentPerson]);
 
   const identityStatusLabel = hasRejectedClaimForCurrentPerson
     ? "Demande non validée"
-    : null;
+    : hasPendingClaimForCurrentPerson
+      ? "Demande envoyée"
+      : null;
 
   const isIdentityVerificationSubmitting = isSavingIdentityClaim;
   const isIdentityVerificationPending = hasPendingClaimForCurrentPerson;
@@ -207,10 +219,11 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenMemories}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
+                  panelMode === "memories"
                     ? "bg-slate-900 text-white"
                     : "text-slate-500"
-                  }`}
+                }`}
               >
                 <MessageCircle size={20} />
                 {totalMemoriesCount}
@@ -219,10 +232,11 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenPhotos}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
+                  panelMode === "photos"
                     ? "bg-slate-900 text-white"
                     : "text-slate-500"
-                  }`}
+                }`}
               >
                 <Camera size={20} />
                 {totalPhotosCount}
@@ -231,17 +245,19 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenTouched ?? onToggleTouched}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "touched"
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
+                  panelMode === "touched"
                     ? "bg-slate-900 text-white"
                     : "text-slate-500"
-                  }`}
+                }`}
               >
                 <Heart
                   size={20}
-                  className={`transition ${hasTouchedPerson
+                  className={`transition ${
+                    hasTouchedPerson
                       ? "text-red-500 scale-110"
                       : "text-slate-400"
-                    }`}
+                  }`}
                   fill={hasTouchedPerson ? "currentColor" : "none"}
                 />
                 {reactionsCount}
@@ -255,15 +271,17 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleTouched}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                    hasTouchedPerson
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-700"
-                    }`}
+                  }`}
                 >
                   <Heart
                     size={14}
-                    className={`transition ${hasTouchedPerson ? "text-red-300 scale-110" : ""
-                      }`}
+                    className={`transition ${
+                      hasTouchedPerson ? "text-red-300 scale-110" : ""
+                    }`}
                     fill={hasTouchedPerson ? "currentColor" : "none"}
                   />
                   J'aime
@@ -274,10 +292,11 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleKnown}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                    hasKnownPerson
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-700"
-                    }`}
+                  }`}
                 >
                   <UserCheck size={14} />
                   {knowLabel}
@@ -292,10 +311,11 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleHeard}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                    hasHeardOfPerson
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-700"
-                    }`}
+                  }`}
                 >
                   <Megaphone size={14} />
                   {heardLabel}
@@ -330,8 +350,9 @@ export function PersonInteractionsSection({
                     ? hiddenIdentityDescription
                     : visibleIdentityDescription}
                 </div>
+
                 <div className="mt-3 flex flex-col gap-2">
-                  {!isApprovedClaimForCurrentPerson && !sourcePersonId ? (
+                  {!isApprovedClaimForCurrentPerson && !hasSelectedIdentityPerson ? (
                     <button
                       type="button"
                       onClick={onSetAsMe}
@@ -339,17 +360,15 @@ export function PersonInteractionsSection({
                         isIdentityVerificationSubmitting ||
                         isIdentityVerificationPending
                       }
-                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isIdentityVerificationSubmitting
+                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                        isIdentityVerificationSubmitting
                           ? "bg-slate-200 text-slate-600 opacity-70"
                           : hasRejectedClaimForCurrentPerson
                             ? "bg-rose-100 text-rose-900"
                             : isIdentityVerificationPending
                               ? "bg-amber-100 text-amber-900"
                               : "bg-slate-900 text-white"
-                        } ${isIdentityVerificationSubmitting
-                          ? ""
-                          : "active:scale-[0.99]"
-                        }`}
+                      } ${isIdentityVerificationSubmitting ? "" : "active:scale-[0.99]"}`}
                     >
                       {isIdentityVerificationSubmitting ? (
                         <>
@@ -370,10 +389,10 @@ export function PersonInteractionsSection({
                     </button>
                   ) : null}
 
-                  {isIdentityVerificationPending && !sourcePersonId ? (
+                  {isIdentityVerificationPending && !hasSelectedIdentityPerson ? (
                     <div className="rounded-[12px] px-3 py-2 text-[12px] leading-5 text-amber-900">
-                      Ta demande a bien été envoyée à l’organisation. Tu
-                      recevras un mail quand ton profil sera vérifié.
+                      Ta demande a bien été envoyée à l’organisation. Tu recevras
+                      un mail quand ton profil sera vérifié.
                     </div>
                   ) : null}
 
@@ -385,7 +404,13 @@ export function PersonInteractionsSection({
                     </div>
                   ) : null}
 
-                  {hasPendingClaimForCurrentPerson && !sourcePersonId ? (
+                  {moderatorComment && hasRejectedClaimForCurrentPerson ? (
+                    <div className="rounded-[12px] bg-rose-50 px-3 py-2 text-[12px] leading-5 text-rose-900">
+                      Message de l’organisateur : {moderatorComment}
+                    </div>
+                  ) : null}
+
+                  {hasPendingClaimForCurrentPerson && !hasSelectedIdentityPerson ? (
                     <button
                       type="button"
                       onClick={onCancelIdentityClaim}
@@ -401,8 +426,6 @@ export function PersonInteractionsSection({
 
             {shouldShowProtectedCard ? (
               <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-4">
-
-                {/* HEADER = bouton */}
                 <button
                   type="button"
                   onClick={() => setIsExpanded((prev) => !prev)}
@@ -418,16 +441,16 @@ export function PersonInteractionsSection({
 
                   <ChevronDown
                     size={16}
-                    className={`ml-auto transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
-                      }`}
+                    className={`ml-auto transition-transform duration-200 ${
+                      isExpanded ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
-                {/* CONTENU EXPAND */}
                 {isExpanded ? (
                   <div className="mt-3 text-[12px] leading-5 text-slate-600">
-                    Cette fiche est protégée. Si tu connais cette personne, invite-la à créer
-                    son espace pour gérer ses informations.
+                    Cette fiche est protégée. Si tu connais cette personne,
+                    invite-la à créer son espace pour gérer ses informations.
                     <br />
                     <br />
                     Si elle ne peut pas le faire, tu peux{" "}
@@ -458,14 +481,14 @@ export function PersonInteractionsSection({
                       >
                         demander une autorisation d’accès
                       </button>
-                    )}.
+                    )}
+                    .
                     <br />
                     <br />
-                    La demande sera examinée et, si elle est acceptée, la fiche sera ouverte à
-                    l’ensemble des cousins de l’arbre.
+                    La demande sera examinée et, si elle est acceptée, la fiche
+                    sera ouverte à l’ensemble des cousins de l’arbre.
                   </div>
                 ) : null}
-
               </div>
             ) : null}
           </div>
@@ -482,10 +505,11 @@ export function PersonInteractionsSection({
             <button
               type="button"
               onClick={onOpenMemoryEditor}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                panelMode === "memory_editor"
                   ? "bg-slate-900 text-white"
                   : "bg-slate-100 text-slate-700"
-                }`}
+              }`}
             >
               <MessageCircle size={14} />
               {memoryActionLabel}
@@ -494,10 +518,11 @@ export function PersonInteractionsSection({
             <button
               type="button"
               onClick={onOpenPhotoEditor}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
+                panelMode === "photo_upload"
                   ? "bg-slate-900 text-white"
                   : "bg-slate-100 text-slate-700"
-                }`}
+              }`}
             >
               <Camera size={14} />
               {photoActionLabel}

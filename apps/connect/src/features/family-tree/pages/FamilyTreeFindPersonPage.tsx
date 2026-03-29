@@ -36,6 +36,11 @@ import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffecti
 import type { PersonUiOverride } from "../api/uiOverrides";
 import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
 
+function normalizePersonId(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
 function getAncestorLabel(level: number, sex?: string) {
   const isFemale = sex === "F";
   const isMale = sex === "M";
@@ -270,7 +275,7 @@ export function FamilyTreeFindPersonPage() {
 
   const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
   const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
-    "pending" | "approved" | "rejected" | "auto_verified" | null
+    "pending" | "approved" | "rejected" | null
   >(null);
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
@@ -278,19 +283,15 @@ export function FamilyTreeFindPersonPage() {
   const [visibilityPreferencesLoading, setVisibilityPreferencesLoading] =
     useState(true);
 
-    const [overridesByPersonId, setOverridesByPersonId] = useState<
-  Record<string, PersonUiOverride>
->({});
-const [overridesLoading, setOverridesLoading] = useState(true);
+  const [overridesByPersonId, setOverridesByPersonId] = useState<
+    Record<string, PersonUiOverride>
+  >({});
+  const [overridesLoading, setOverridesLoading] = useState(true);
 
   const forceDisplayedPersonIds = useMemo(() => {
     const ids: string[] = [];
 
-    if (
-      claimedPersonId &&
-      (myIdentityClaimStatus === "approved" ||
-        myIdentityClaimStatus === "auto_verified")
-    ) {
+    if (claimedPersonId && myIdentityClaimStatus === "approved") {
       ids.push(claimedPersonId);
     }
 
@@ -298,39 +299,44 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }, [claimedPersonId, myIdentityClaimStatus]);
 
   const searchIndex = useMemo(() => {
-    return buildFamilySearchIndex(FAMILY_GRAPH, visibilityPreferencesByPersonId, overridesByPersonId);
+    return buildFamilySearchIndex(
+      FAMILY_GRAPH,
+      visibilityPreferencesByPersonId,
+      overridesByPersonId,
+    );
   }, [visibilityPreferencesByPersonId, overridesByPersonId]);
 
   useEffect(() => {
-  let cancelled = false;
+    let cancelled = false;
 
-  async function loadOverrides() {
-    try {
-      setOverridesLoading(true);
+    async function loadOverrides() {
+      try {
+        setOverridesLoading(true);
 
-      const map = await getMergedPersonOverridesMap(slug);
+        const map = await getMergedPersonOverridesMap(slug);
 
-      if (!cancelled) {
-        setOverridesByPersonId(map);
-      }
-    } catch (error) {
-      console.error(error);
-      if (!cancelled) {
-        setOverridesByPersonId({});
-      }
-    } finally {
-      if (!cancelled) {
-        setOverridesLoading(false);
+        if (!cancelled) {
+          setOverridesByPersonId(map);
+        }
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) {
+          setOverridesByPersonId({});
+        }
+      } finally {
+        if (!cancelled) {
+          setOverridesLoading(false);
+        }
       }
     }
-  }
 
-  void loadOverrides();
+    void loadOverrides();
 
-  return () => {
-    cancelled = true;
-  };
-}, [slug]);
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
   useEffect(() => {
     async function loadVisibilityPreferencesMap() {
       try {
@@ -390,7 +396,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
           participantId,
         });
 
-        setClaimedPersonId(claim?.person_id ?? null);
+        setClaimedPersonId(normalizePersonId(claim?.person_id ?? null));
         setMyIdentityClaimStatus(claim?.claim_status ?? null);
       } catch (error) {
         console.error(error);
@@ -417,7 +423,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
           participantId,
         });
 
-        setDefaultGedcomPersonId(personId?.trim() ? personId : null);
+        setDefaultGedcomPersonId(normalizePersonId(personId));
       } catch (error) {
         console.error(error);
         setDefaultGedcomPersonId(null);
@@ -435,9 +441,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   const canSearchInTree = Boolean(defaultGedcomPersonId);
 
   const sosaReferencePersonId =
-    (myIdentityClaimStatus === "approved" ||
-      myIdentityClaimStatus === "auto_verified") &&
-      claimedPersonId
+    myIdentityClaimStatus === "approved" && claimedPersonId
       ? claimedPersonId
       : defaultGedcomPersonId ?? undefined;
 
@@ -460,7 +464,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }, [
     canSearchInTree,
     visibilityPreferencesLoading,
-  overridesLoading,
+    overridesLoading,
     trimmedDebouncedQuery,
     searchIndex,
     centerId,
@@ -473,16 +477,16 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         result.personId,
         visibilityPreferencesByPersonId,
         sosaReferencePersonId,
-        overridesByPersonId
-
+        overridesByPersonId,
       ).person;
 
       const person = getDisplaySearchPerson(rawPerson, forceDisplayedPersonIds);
-            const source = getPersonContext(
+
+      const source = getPersonContext(
         centerId,
         visibilityPreferencesByPersonId,
         sosaReferencePersonId,
-        overridesByPersonId
+        overridesByPersonId,
       ).person;
 
       const path = findRelationshipPath(FAMILY_GRAPH, centerId, result.personId);
@@ -505,18 +509,18 @@ const [overridesLoading, setOverridesLoading] = useState(true);
     forceDisplayedPersonIds,
     visibilityPreferencesByPersonId,
     sosaReferencePersonId,
-    overridesByPersonId
+    overridesByPersonId,
   ]);
 
   const recentPersons = useMemo(() => {
     return recentIds
       .map((personId) => {
         try {
-           return getPersonContext(
+          return getPersonContext(
             personId,
             visibilityPreferencesByPersonId,
             sosaReferencePersonId,
-            overridesByPersonId
+            overridesByPersonId,
           ).person;
         } catch {
           return null;
@@ -528,7 +532,13 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         return forceDisplayedPersonIds.includes(person.id);
       })
       .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
-  }, [recentIds, forceDisplayedPersonIds, visibilityPreferencesByPersonId,sosaReferencePersonId, overridesByPersonId]);
+  }, [
+    recentIds,
+    forceDisplayedPersonIds,
+    visibilityPreferencesByPersonId,
+    sosaReferencePersonId,
+    overridesByPersonId,
+  ]);
 
   function handleCenterPerson(personId: string) {
     pushRecentFamilySearch(slug, personId, FAMILY_SEARCH_RECENT_LIMIT);

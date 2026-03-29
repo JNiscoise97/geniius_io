@@ -74,7 +74,7 @@ export function ParticipantIdentityPage() {
         if (!isMounted) return;
 
         setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
-        setClaimedPersonId(identityClaim?.person_id ?? null);
+setClaimedPersonId(identityClaim?.person_id ?? null);
       } catch {
         if (!isMounted) return;
         setMyIdentityClaimStatus(null);

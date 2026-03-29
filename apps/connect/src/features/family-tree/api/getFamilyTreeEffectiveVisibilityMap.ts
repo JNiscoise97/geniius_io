@@ -12,15 +12,12 @@ export async function getFamilyTreeEffectiveVisibilityMap({
 }: {
   eventSlug: string;
 }): Promise<PersonVisibilityPreferenceMap> {
-  const [
-    claimsResult,
-    approvedVisibilityRequestsResult,
-  ] = await Promise.all([
+  const [claimsResult, approvedVisibilityRequestsResult] = await Promise.all([
     supabase
       .from("family_person_identity_claims")
       .select("participant_id, person_id")
       .eq("event_slug", eventSlug)
-      .in("claim_status", ["approved", "auto_verified"]),
+      .eq("claim_status", "approved"),
 
     supabase
       .from("family_person_visibility_requests")
@@ -42,7 +39,11 @@ export async function getFamilyTreeEffectiveVisibilityMap({
     approvedVisibilityRequestsResult.data ?? [];
 
   const participantIds = [
-    ...new Set(validatedClaims.map((claim) => claim.participant_id)),
+    ...new Set(
+      validatedClaims
+        .map((claim) => claim.participant_id)
+        .filter((value): value is string => Boolean(value)),
+    ),
   ];
 
   const result: PersonVisibilityPreferenceMap = {};
