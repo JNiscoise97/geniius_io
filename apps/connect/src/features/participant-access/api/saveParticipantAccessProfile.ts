@@ -1,5 +1,4 @@
 import { supabase } from "../../../lib/supabase/client";
-import { saveMyPersonIdentityClaim } from "../../family-tree/api/saveMyPersonIdentityClaim";
 
 export type ParticipantContactChannel = "sms" | "whatsapp" | "messenger";
 
@@ -277,16 +276,5 @@ export async function saveParticipantAccessProfile({
   if (insertRes.error) {
     throw new Error(insertRes.error.message);
   }
-
-  
-
-  await saveMyPersonIdentityClaim({
-          eventSlug: eventSlug,
-          participantId: insertRes.data.id,
-          personId: "",
-          participantFirstName: firstName,
-          participantLastName: lastName,
-        })
-
   return toResult(insertRes.data);
 }
