@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 import { saveTreeProfileConsents } from "../../participant-preferences/api/saveTreeProfileConsents";
 import { getTreeProfileConsents } from "../../participant-preferences/api/getTreeProfileConsents";
 import { supabase } from "../../../lib/supabase/client";

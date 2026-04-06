@@ -20,9 +20,9 @@ import {
   buildFindMeContactContext,
   buildFindMeIdentificationMessage,
 } from "../lib/buildFindMeIdentificationMessage";
-import type { FindMeAnswers } from "../../family-tree/lib/findMeMatching";
 import { getFamilyKnowledgeCloseFamily } from "../../family-knowledge/api/getFamilyKnowledgeCloseFamily";
 import { getFamilyKnowledgeGrandparents } from "../../family-knowledge/api/getFamilyKnowledgeGrandparents";
+import type { FindMeAnswers } from "../../family-tree/types/findMe";
 
 const INITIAL_VALUES: ContactOrganizerFormValues = {
   topic: "",

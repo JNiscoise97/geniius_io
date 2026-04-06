@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  Edit3,
   Loader2,
   MapPin,
   ShieldAlert,
@@ -12,21 +13,22 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SmartImage } from "../../../lib/media/useSmartImage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
+import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
 import {
   getPersonParticipantProfile,
   type PersonParticipantProfile,
-} from "../api/getPersonParticipantProfile";
+} from "../data/profiles/getPersonParticipantProfile";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import {
   getPersonContext,
   getPersonHeroConfig,
 } from "../config/configGenealogy";
-import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { formatPlaceTransition } from "../lib/genealogyUi";
-import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
-import type { PersonUiOverride } from "../api/uiOverrides";
+import { formatPlaceTransition } from "../domain/graph/genealogyUi";
+import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
+import type { PersonSummary } from "../types/person";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 function PersonVisual({ name, photoSrc }: { name: string; photoSrc?: string }) {
   if (photoSrc) {
@@ -134,22 +136,22 @@ export function FamilyTreePersonPage() {
   >({});
 
 
-  
-    useEffect(() => {
-      if (!participantId) return;
-  
-      const tracker = createPageTimeTracker({
-        participantId,
-        eventSlug: slug,
-        pageKey: `/e/${slug}/family-tree/person?id=${personId}`,
-      });
-  
-      tracker.start();
-  
-      return () => {
-        void tracker.stop();
-      };
-    }, [participantId, slug]);
+
+  useEffect(() => {
+    if (!participantId) return;
+
+    const tracker = createPageTimeTracker({
+      participantId,
+      eventSlug: slug,
+      pageKey: `/e/${slug}/family-tree/person?id=${personId}`,
+    });
+
+    tracker.start();
+
+    return () => {
+      void tracker.stop();
+    };
+  }, [participantId, slug]);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,9 +167,9 @@ export function FamilyTreePersonPage() {
             }),
             personId
               ? getPersonParticipantProfile({
-                  eventSlug: slug,
-                  personId,
-                })
+                eventSlug: slug,
+                personId,
+              })
               : Promise.resolve(null),
             getMergedPersonOverridesMap(slug),
           ]);
@@ -238,13 +240,13 @@ export function FamilyTreePersonPage() {
   const years = displayPerson ? formatYears(displayPerson) : null;
   const lifePath = displayPerson
     ? formatPlaceTransition(
-        displayPerson.birthPlace,
-        displayPerson.currentPlace,
-        displayPerson.deathPlace,
-      )
+      displayPerson.birthPlace,
+      displayPerson.currentPlace,
+      displayPerson.deathPlace,
+    )
     : null;
 
-    const personDisplayName = [displayPerson?.firstName, displayPerson?.lastName]
+  const personDisplayName = [displayPerson?.firstName, displayPerson?.lastName]
     .map((value) => value?.trim() ?? "")
     .filter(Boolean)
     .join(" ");
@@ -346,15 +348,17 @@ export function FamilyTreePersonPage() {
             </button>
 
             <button
-  type="button"
-  onClick={() =>
-    navigate(
-      `/e/${slug}/family-tree/improve?personId=${personId}&personLabel=${encodeURIComponent(personDisplayName)}`
-    )
-  }
->
-  Compléter / corriger cette fiche
-</button>
+              type="button"
+              className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-3 py-2 text-xs font-black text-rose-700 shadow-sm"
+              onClick={() =>
+                navigate(
+                  `/e/${slug}/family-tree/improve?personId=${personId}&personLabel=${encodeURIComponent(personDisplayName)}`
+                )
+              }
+            >
+              <Edit3 size={14} />
+              Améliorer cette fiche
+            </button>
           </div>
         </section>
 
@@ -416,29 +420,29 @@ export function FamilyTreePersonPage() {
           </div>
         </section>
 
-                  <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-  <div className="flex items-start gap-3">
-    <div className="mt-0.5 rounded-xl bg-slate-200 p-2 text-slate-700">
-      <AlertTriangle size={16} />
-    </div>
+        <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-xl bg-slate-200 p-2 text-slate-700">
+              <AlertTriangle size={16} />
+            </div>
 
-    <div className="min-w-0 flex-1">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="text-sm font-semibold text-slate-900">
-          Informations généalogiques
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-semibold text-slate-900">
+                  Informations généalogiques
+                </div>
+
+                <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-700 border border-slate-200">
+                  Bientôt disponible
+                </span>
+              </div>
+
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                Informations sur la naissance, le baptême, le mariage et le décès.
+              </p>
+            </div>
+          </div>
         </div>
-
-        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-700 border border-slate-200">
-          Bientôt disponible
-        </span>
-      </div>
-
-      <p className="mt-1 text-xs leading-5 text-slate-600">
-        Informations sur la naissance, le baptême, le mariage et le décès.
-      </p>
-    </div>
-  </div>
-</div>
 
         {showParticipantProfile ? (
           <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">

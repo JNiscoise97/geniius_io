@@ -1,6 +1,7 @@
 import type { FamilyKnowledgeCloseFamilyValues } from "../../family-knowledge/api/getFamilyKnowledgeCloseFamily";
 import type { FamilyKnowledgeGrandparentsValues } from "../../family-knowledge/api/getFamilyKnowledgeGrandparents";
-import type { FindMeAnswers } from "../../family-tree/lib/findMeMatching";
+import type { FindMeAnswers } from "../../family-tree/types/findMe";
+
 
 export type FindMeContactContext = {
   firstName?: string;

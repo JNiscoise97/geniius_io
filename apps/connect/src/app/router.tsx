@@ -64,11 +64,11 @@ import { TodoPage } from "../features/todo/pages/TodoPage";
 import { FamilyTreePersonPage } from "../features/family-tree/pages/FamilyTreePersonPage";
 import AnnouncementComposerPage from "../features/announcements/pages/AnnouncementComposerPage";
 import { FamilyTreeImproveBranchPage } from "../features/genealogy/pages/FamilyTreeImproveBranchPage";
-import { FamilyTreeContributeGroupPage } from "../features/tree-contribute/pages/FamilyTreeContributeGroupPage";
-import { FamilyTreeContributeGroupReviewPage } from "../features/tree-contribute/pages/FamilyTreeContributeGroupReviewPage";
-import { FamilyTreeContributeHubPage } from "../features/tree-contribute/pages/FamilyTreeContributeHubPage";
-import { FamilyTreeContributePersonPage } from "../features/tree-contribute/pages/FamilyTreeContributePersonPage";
-import { FamilyTreeContributeReviewPage } from "../features/tree-contribute/pages/FamilyTreeContributeReviewPage";
+import { TreeContributeGroupPage } from "../features/tree-contribute/pages/TreeContributeGroupPage";
+import { TreeContributeGroupReviewPage } from "../features/tree-contribute/pages/TreeContributeGroupReviewPage";
+import { TreeContributeHubPage } from "../features/tree-contribute/pages/TreeContributeHubPage";
+import { TreeContributePersonCasePage } from "../features/tree-contribute/pages/TreeContributePersonCasePage";
+import { TreeContributeGlobalReviewPage } from "../features/tree-contribute/pages/TreeContributeGlobalReviewPage";
 
 export const router = createBrowserRouter([
   {
@@ -225,25 +225,26 @@ export const router = createBrowserRouter([
               },
 
               // Tree contribute
+              // Tree contribute
               {
-                path: "tree/contribute",
-                element: <FamilyTreeContributeHubPage />,
+                path: "tree-contribute",
+                element: <TreeContributeHubPage />,
               },
               {
-                path: "tree/contribute/review",
-                element: <FamilyTreeContributeReviewPage />,
+                path: "tree-contribute/review",
+                element: <TreeContributeGlobalReviewPage />,
               },
               {
-                path: "tree/contribute/:groupKey",
-                element: <FamilyTreeContributeGroupPage />,
+                path: "tree-contribute/:groupKey",
+                element: <TreeContributeGroupPage />,
               },
               {
-                path: "tree/contribute/:groupKey/review",
-                element: <FamilyTreeContributeGroupReviewPage />,
+                path: "tree-contribute/:groupKey/review",
+                element: <TreeContributeGroupReviewPage />,
               },
               {
-                path: "tree/contribute/:groupKey/:personKey",
-                element: <FamilyTreeContributePersonPage />,
+                path: "tree-contribute/:groupKey/:personKey",
+                element: <TreeContributePersonCasePage />,
               },
             ],
           },

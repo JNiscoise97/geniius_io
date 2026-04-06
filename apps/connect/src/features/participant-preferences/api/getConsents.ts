@@ -1,5 +1,5 @@
 import { supabase } from "../../../lib/supabase/client";
-import type { ParticipantVisibilityPreferenceMap } from "../../family-tree/types";
+import type { ParticipantVisibilityPreferenceMap } from "../../family-tree/types/visibility";
 import type { ConsentsFormValues } from "../components/ConsentsForm";
 
 type GetConsentsInput = {

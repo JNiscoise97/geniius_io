@@ -1,8 +1,6 @@
-import type { ParticipantToPersonMap } from "../api/getApprovedPersonIdsByParticipantId";
-import type {
-  ParticipantVisibilityPreferenceMap,
-  PersonVisibilityPreferenceMap,
-} from "../types";
+import type { ParticipantToPersonMap } from "../data/identity/getApprovedPersonIdsByParticipantId";
+import type { ParticipantVisibilityPreferenceMap, PersonVisibilityPreferenceMap } from "../types/visibility";
+
 
 type BuildPersonVisibilityPreferenceMapInput = {
   participantToPersonMap: ParticipantToPersonMap;

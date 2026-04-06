@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2, Clock3, XCircle } from "lucide-react";
-import type { PersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import type { PersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 
 type Props = {
   claims: PersonIdentityClaim[];

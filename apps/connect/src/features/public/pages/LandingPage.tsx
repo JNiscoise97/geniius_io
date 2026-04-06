@@ -361,9 +361,9 @@ export function LandingPage() {
             description:
               "Ajoute une information utile à l’arbre de la famille.",
             icon: TreePine,
-            to: `/e/${slug}/tree/contribute`,
+            to: `/e/${slug}/tree-contribute`,
             enabled: features.preEvent.enrichTree,
-            status: "disabled",
+            status: "enabled",
             availableAt: timeline.contribute,
           },
           {

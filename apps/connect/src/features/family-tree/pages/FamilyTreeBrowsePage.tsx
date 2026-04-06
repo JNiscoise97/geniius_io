@@ -24,68 +24,69 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { SmartImage } from "../../../lib/media/useSmartImage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-import { createMyPersonMemory } from "../api/createMyPersonMemory";
-import { createMyPersonPhoto } from "../api/createMyPersonPhoto";
-import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim";
-import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
-import { deleteMyPersonPhoto } from "../api/deleteMyPersonPhoto";
-import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { createMyPersonMemory } from "../data/memories/createMyPersonMemory";
+import { createMyPersonPhoto } from "../data/photos/createMyPersonPhoto";
+import { deleteMyPersonIdentityClaim } from "../data/identity/deleteMyPersonIdentityClaim";
+import { deleteMyPersonMemory } from "../data/memories/deleteMyPersonMemory";
+import { deleteMyPersonPhoto } from "../data/photos/deleteMyPersonPhoto";
+import { deleteMyPersonVisibilityRequest } from "../data/visibility/deleteMyPersonVisibilityRequest";
+import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 import {
   getMyPersonMemoryModerationCounts,
   type MyPersonMemoryModerationCounts,
-} from "../api/getMyPersonMemoryModerationCounts";
+} from "../data/memories/getMyPersonMemoryModerationCounts";
 import {
   getMyPersonPhotoModerationCounts,
   type MyPersonPhotoModerationCounts,
-} from "../api/getMyPersonPhotoModerationCounts";
-import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
-import { getPersonContributionStats } from "../api/getPersonContributionStats";
-import { getPersonReactionState } from "../api/getPersonReactionState";
+} from "../data/photos/getMyPersonPhotoModerationCounts";
+import { getMyPersonVisibilityRequest } from "../data/visibility/getMyPersonVisibilityRequest";
+import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
+import { getPersonContributionStats } from "../data/reactions/getPersonContributionStats";
+import { getPersonReactionState } from "../data/reactions/getPersonReactionState";
 import {
   getVisiblePersonMemories,
   type PersonMemoryItem,
-} from "../api/getVisiblePersonMemories";
+} from "../data/memories/getVisiblePersonMemories";
 import {
   getVisiblePersonPhotos,
   type PersonPhotoItem,
-} from "../api/getVisiblePersonPhotos";
+} from "../data/photos/getVisiblePersonPhotos";
 import {
   getTouchedParticipants,
   type TouchedParticipantItem,
-} from "../api/getTouchedParticipants";
-import { updateMyPersonMemory } from "../api/updateMyPersonMemory";
-import { updateMyPersonPhoto } from "../api/updateMyPersonPhoto";
+} from "../data/reactions/getTouchedParticipants";
+import { updateMyPersonMemory } from "../data/memories/updateMyPersonMemory";
+import { updateMyPersonPhoto } from "../data/photos/updateMyPersonPhoto";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
   type RelationshipPathNode,
-} from "../api/findRelationshipPath";
+} from "../domain/graph/findRelationshipPath";
 import { FAMILY_GRAPH } from "../api/loadGraph";
-import { saveMyPersonIdentityClaim } from "../api/saveMyPersonIdentityClaim";
-import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequest";
-import { togglePersonReaction } from "../api/togglePersonReaction";
+import { saveMyPersonIdentityClaim } from "../data/identity/saveMyPersonIdentityClaim";
+import { saveMyPersonVisibilityRequest } from "../data/visibility/saveMyPersonVisibilityRequest";
+import { togglePersonReaction } from "../data/reactions/togglePersonReaction";
 
-import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
-import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
-import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
-import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
-import { PersonPhotoEditorPanel } from "../components/PersonPhotoEditorPanel";
-import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
-import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
-import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
+import { FamilyRelationsSection } from "../components/relations/FamilyRelationsSection";
+import { PersonInteractionsSection } from "../components/interactions/PersonInteractionsSection";
+import { PersonMemoriesPanel } from "../components/interactions/PersonMemoriesPanel";
+import { PersonMemoryEditorPanel } from "../components/interactions/PersonMemoryEditorPanel";
+import { PersonPhotoEditorPanel } from "../components/interactions/PersonPhotoEditorPanel";
+import { PersonPhotosPanel } from "../components/interactions/PersonPhotosPanel";
+import { PersonTouchedPanel } from "../components/interactions/PersonTouchedPanel";
+import { PersonVisibilityRequestFormPanel } from "../components/interactions/PersonVisibilityRequestFormPanel";
 
 import {
   getPersonContext,
   getPersonHeroConfig,
 } from "../config/configGenealogy";
 
-import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { formatPlaceTransition } from "../lib/genealogyUi";
-import type { PersonUiOverride } from "../api/uiOverrides";
-import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
+import { formatPlaceTransition } from "../domain/graph/genealogyUi";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
+import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
+import type { PersonSummary } from "../types/person";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 type BrowsePanelMode =
   | "relations"

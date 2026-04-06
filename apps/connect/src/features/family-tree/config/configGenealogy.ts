@@ -1,7 +1,7 @@
-import { buildPersonContext } from "../api/buildPersonContext";
+import { buildPersonContext } from "../domain/graph/buildPersonContext";
 import { FAMILY_GRAPH } from "../api/loadGraph";
-import type { PersonUiOverride } from "../api/uiOverrides";
-import type { PersonVisibilityPreferenceMap } from "../types";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 type PersonUiOverrideMap = Record<string, PersonUiOverride>;
 type HeroTheme = {

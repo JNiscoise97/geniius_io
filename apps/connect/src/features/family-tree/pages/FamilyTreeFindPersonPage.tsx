@@ -5,18 +5,18 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { useDebouncedValue } from "../../../lib/useDebouncedValue";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
-import { buildFamilySearchIndex } from "../api/buildFamilySearchIndex";
+import { buildFamilySearchIndex } from "../domain/search/buildFamilySearchIndex";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
   type RelationshipPathNode,
-} from "../api/findRelationshipPath";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
+} from "../domain/graph/findRelationshipPath";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
+import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
 import { FAMILY_GRAPH } from "../api/loadGraph";
-import { searchPeople } from "../api/searchPeople";
-import { FamilySearchInput } from "../components/FamilySearchInput";
-import { FamilySearchResultCard } from "../components/FamilySearchResultCard";
+import { searchPeople } from "../domain/search/searchPeople";
+import { FamilySearchInput } from "../components/search/FamilySearchInput";
+import { FamilySearchResultCard } from "../components/shared/FamilySearchResultCard";
 import {
   FAMILY_SEARCH_DEFAULT_LIMIT,
   FAMILY_SEARCH_EMPTY_MESSAGE,
@@ -30,11 +30,12 @@ import { getPersonContext } from "../config/configGenealogy";
 import {
   getRecentFamilySearches,
   pushRecentFamilySearch,
-} from "../lib/familySearchRecent";
-import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
-import type { PersonUiOverride } from "../api/uiOverrides";
-import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
+} from "../domain/search/familySearchRecent";
+import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
+import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
+import type { PersonSummary } from "../types/person";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 function normalizePersonId(value?: string | null): string | null {
   const trimmed = value?.trim();

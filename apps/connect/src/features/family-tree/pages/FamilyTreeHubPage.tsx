@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
+import { buildFamilyTreeMetrics } from "../domain/graph/buildFamilyTreeMetrics";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 
 type TreeHubAction = {
   key: string;

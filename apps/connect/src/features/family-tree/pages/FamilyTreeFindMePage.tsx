@@ -11,13 +11,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
+import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
 import { FIND_ME_PAGE_KEY } from "../config/findMeConfig";
 import {
   getMyPersonIdentityClaims,
   type PersonIdentityClaim,
-} from "../api/getMyPersonIdentityClaim";
-import { FindMeModeCard } from "../components/FindMeModeCard";
+} from "../data/identity/getMyPersonIdentityClaim";
+import { FindMeModeCard } from "../components/search/FindMeModeCard";
 import { MyIdentityClaimsSection } from "../components/MyIdentityClaimsSection";
 
 function normalizePersonId(value?: string | null): string | null {

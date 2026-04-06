@@ -13,22 +13,22 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
-import { buildRelationshipStory } from "../api/buildRelationshipStory";
+import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
+import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
+import { buildRelationshipStory } from "../domain/story/buildRelationshipStory";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 
 import { getPersonHeroConfig } from "../config/configGenealogy";
 import { RELATIONSHIP_STORY_DEFAULT_SOURCE_ID } from "../config/relationshipStoryConfig";
 
-import { RelationshipStoryProgress } from "../components/RelationshipStoryProgress";
-import { RelationshipStoryStepView } from "../components/RelationshipStoryStepView";
-import { RelationshipStorySummaryView } from "../components/RelationshipStorySummaryView";
+import { RelationshipStoryProgress } from "../components/story/RelationshipStoryProgress";
+import { RelationshipStoryStepView } from "../components/story/RelationshipStoryStepView";
+import { RelationshipStorySummaryView } from "../components/story/RelationshipStorySummaryView";
 
-import type { PersonVisibilityPreferenceMap } from "../types";
-import type { PersonUiOverride } from "../api/uiOverrides";
-import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
+import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 type IdentityClaimStatus = "pending" | "approved" | "rejected" | null;
 

@@ -1,6 +1,6 @@
 // src/features/family-tree/config/getMergedPersonUiOverrides.ts
 
-import { PERSON_UI_OVERRIDES, type PersonUiOverride } from "../api/uiOverrides";
+import { PERSON_UI_OVERRIDES, type PersonUiOverride } from "../data/profiles/uiOverrides";
 
 
 
