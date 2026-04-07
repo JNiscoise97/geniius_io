@@ -64,11 +64,10 @@ import { TodoPage } from "../features/todo/pages/TodoPage";
 import { FamilyTreePersonPage } from "../features/family-tree/pages/FamilyTreePersonPage";
 import AnnouncementComposerPage from "../features/announcements/pages/AnnouncementComposerPage";
 import { FamilyTreeImproveBranchPage } from "../features/genealogy/pages/FamilyTreeImproveBranchPage";
-import { TreeContributeGroupPage } from "../features/tree-contribute/pages/TreeContributeGroupPage";
-import { TreeContributeGroupReviewPage } from "../features/tree-contribute/pages/TreeContributeGroupReviewPage";
-import { TreeContributeHubPage } from "../features/tree-contribute/pages/TreeContributeHubPage";
-import { TreeContributePersonCasePage } from "../features/tree-contribute/pages/TreeContributePersonCasePage";
-import { TreeContributeGlobalReviewPage } from "../features/tree-contribute/pages/TreeContributeGlobalReviewPage";
+import { LearnActivityDebugPage } from "../features/player/experiences/learn/pages/LearnActivityDebugPage";
+import { LearnRunPage } from "../features/player/experiences/learn/pages/LearnRunPage";
+import { ActivityHubPage } from "../features/player/pages/ActivityHubPage";
+import { CollectRunPage } from "../features/player/experiences/collect/pages/CollectRunPage";
 
 export const router = createBrowserRouter([
   {
@@ -220,31 +219,25 @@ export const router = createBrowserRouter([
               },
 
               {
-                path: "announcements/new",
-                element: <AnnouncementComposerPage />,
+                path: "/e/:eventSlug/activities",
+                element: <ActivityHubPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/learn/:activitySlug",
+                element: <LearnRunPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/learn/:activitySlug/debug",
+                element: <LearnActivityDebugPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/collect/:activitySlug",
+                element: <CollectRunPage />, // si tu l’as déjà
               },
 
-              // Tree contribute
-              // Tree contribute
               {
-                path: "tree-contribute",
-                element: <TreeContributeHubPage />,
-              },
-              {
-                path: "tree-contribute/review",
-                element: <TreeContributeGlobalReviewPage />,
-              },
-              {
-                path: "tree-contribute/:groupKey",
-                element: <TreeContributeGroupPage />,
-              },
-              {
-                path: "tree-contribute/:groupKey/review",
-                element: <TreeContributeGroupReviewPage />,
-              },
-              {
-                path: "tree-contribute/:groupKey/:personKey",
-                element: <TreeContributePersonCasePage />,
+                path: "announcements/new",
+                element: <AnnouncementComposerPage />,
               },
             ],
           },
