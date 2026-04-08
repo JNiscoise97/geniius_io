@@ -363,7 +363,7 @@ export function LandingPage() {
             icon: TreePine,
             to: `/e/${slug}/tree-contribute`,
             enabled: features.preEvent.enrichTree,
-            status: "enabled",
+            status: "disabled",
             availableAt: timeline.contribute,
           },
           {
