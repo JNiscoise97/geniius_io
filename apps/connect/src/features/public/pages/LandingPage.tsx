@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowRight,
   CalendarCheck,
   Camera,
@@ -573,34 +572,8 @@ export function LandingPage() {
             </p>
           </div>
         </section>
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700" />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-amber-900">
-                Chantiers en cours (25/03/2026)
-              </div>
-              <div className="mt-0.5 text-xs text-amber-800">
-                <ol>
-                  <li>Inclure les lieux de domicile dans le circuit des lieux d'une personne</li>
-                  <li>Afficher les informations généalogique d'une personne</li>
-                  <li>Identity claim à la création du compte, validation par BO</li>
-                  <li>Legacy si default_gedcom_person_id alors approved sinon pending</li>
-                  <li>Permettre d'afficher d'autres personnes de sa famille proche (enfants, conjoint, parents, grands-parents) dans l'arbre par un process assoupli de formulaire</li>
-                  <li>permettre de réagir à des photos postées par d'autres personnes</li>
-                  <li>Tes photos devient bof</li>
-                  <li>Aide à compléter l'arbre : Comparaison arbre GEDCOM et informations du Family Knownledge</li>
-                  <li>Stats</li>
-                  <li>
-                    Message "pas de conjoint / d'enfant identifié" quid de ce
-                    qui n'en ont pas eu pour sur
-                  </li>
-                  <li>sous condition: Fiche + icon dans le hero</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
+        
+        
         <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-2 shadow-sm">
           <div className="grid grid-cols-2 gap-2">
             <button
