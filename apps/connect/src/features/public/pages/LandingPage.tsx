@@ -296,7 +296,6 @@ export function LandingPage() {
             enabled: features.preEvent.warmupQuiz,
             status: "enabled",
             availableAt: timeline.warmupQuizAt,
-            availabilityMode: "available",
           },
           {
             key: "challenges",
