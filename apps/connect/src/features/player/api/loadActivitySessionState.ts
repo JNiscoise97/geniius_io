@@ -1,5 +1,3 @@
-// src/features/player/api/loadActivitySessionState.ts
-
 import { supabase } from "../../../lib/supabase/client";
 import type { ActivitySessionRow } from "./getOrCreateActivitySession";
 
@@ -21,7 +19,6 @@ export type ActivityAnswerRow = {
   is_manual_review: boolean;
   score_delta: number;
   pending_review_score: number;
-  created_at: string;
   updated_at: string;
 };
 
@@ -44,7 +41,7 @@ export async function loadActivitySessionState(
         .from("activity_answers")
         .select("*")
         .eq("session_id", sessionId)
-        .order("created_at", { ascending: true })
+        .order("updated_at", { ascending: true })
         .returns<ActivityAnswerRow[]>(),
     ]);
 

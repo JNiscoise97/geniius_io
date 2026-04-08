@@ -20,7 +20,6 @@ export type ActivityAnswerRow = {
   is_manual_review: boolean;
   score_delta: number;
   pending_review_score: number;
-  created_at: string;
   updated_at: string;
 };
 

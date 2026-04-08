@@ -69,6 +69,7 @@ export type QuestionType =
   | "truefalse"
   | "numeric"
   | "short"
+  | "long"
   | "fill"
   | "photo"
   | "info"
@@ -182,6 +183,11 @@ export type QuestionShort = ActivityQuestionBase & {
   placeholder?: string;
 };
 
+export type QuestionLong = ActivityQuestionBase & {
+  type: "long";
+  placeholder?: string;
+};
+
 export type QuestionFill = ActivityQuestionBase & {
   type: "fill";
   placeholder?: string;
@@ -230,6 +236,7 @@ export type ActivityQuestionDefinition =
   | QuestionTrueFalse
   | QuestionNumeric
   | QuestionShort
+  | QuestionLong
   | QuestionFill
   | QuestionPhoto
   | QuestionInfo

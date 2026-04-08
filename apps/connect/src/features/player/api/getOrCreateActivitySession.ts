@@ -1,5 +1,3 @@
-// src/features/player/api/getOrCreateActivitySession.ts
-
 import { supabase } from "../../../lib/supabase/client";
 import type { ActivityMode } from "../core/activity/activityTypes";
 
@@ -31,6 +29,28 @@ export type GetOrCreateActivitySessionInput = {
   hasStarted?: boolean;
 };
 
+async function loadExistingActivitySession(
+  eventSlug: string,
+  activitySlug: string,
+  participantId: string
+): Promise<ActivitySessionRow | null> {
+  const { data, error } = await supabase
+    .from("activity_sessions")
+    .select("*")
+    .eq("event_slug", eventSlug)
+    .eq("activity_slug", activitySlug)
+    .eq("participant_id", participantId)
+    .maybeSingle<ActivitySessionRow>();
+
+  if (error) {
+    throw new Error(
+      `Impossible de charger la session d'activité: ${error.message}`
+    );
+  }
+
+  return data;
+}
+
 export async function getOrCreateActivitySession({
   eventSlug,
   activitySlug,
@@ -38,21 +58,11 @@ export async function getOrCreateActivitySession({
   mode,
   hasStarted = false,
 }: GetOrCreateActivitySessionInput): Promise<ActivitySessionRow> {
-  const { data: existing, error: selectError } = await supabase
-    .from("activity_sessions")
-    .select("*")
-    .eq("event_slug", eventSlug)
-    .eq("activity_slug", activitySlug)
-    .eq("participant_id", participantId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<ActivitySessionRow>();
-
-  if (selectError) {
-    throw new Error(
-      `Impossible de charger la session d'activité: ${selectError.message}`
-    );
-  }
+  const existing = await loadExistingActivitySession(
+    eventSlug,
+    activitySlug,
+    participantId
+  );
 
   if (existing) {
     return existing;
@@ -81,13 +91,30 @@ export async function getOrCreateActivitySession({
     .select("*")
     .single<ActivitySessionRow>();
 
-  if (insertError || !created) {
-    throw new Error(
-      `Impossible de créer la session d'activité: ${
-        insertError?.message ?? "erreur inconnue"
-      }`
-    );
+  if (!insertError && created) {
+    return created;
   }
 
-  return created;
+  // En cas de course concurrente, une autre requête a pu créer la session juste avant.
+  const isDuplicate =
+    insertError?.code === "23505" ||
+    insertError?.message.includes("duplicate key value violates unique constraint");
+
+  if (isDuplicate) {
+    const concurrent = await loadExistingActivitySession(
+      eventSlug,
+      activitySlug,
+      participantId
+    );
+
+    if (concurrent) {
+      return concurrent;
+    }
+  }
+
+  throw new Error(
+    `Impossible de créer la session d'activité: ${
+      insertError?.message ?? "erreur inconnue"
+    }`
+  );
 }

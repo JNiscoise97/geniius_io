@@ -9,6 +9,7 @@ import {
   Contact,
   Footprints,
   Gamepad2,
+  Gamepad2Icon,
   Gift,
   Hammer,
   Info,
@@ -291,10 +292,10 @@ export function LandingPage() {
             key: "quiz",
             label: "Tester sa mémoire familiale",
             description: "Réveille tes souvenirs avec un quiz rapide.",
-            icon: Sparkles,
-            to: `/e/${slug}/quiz/warmup`,
+            icon: Gamepad2Icon,
+            to: `/e/${slug}/activities`,
             enabled: features.preEvent.warmupQuiz,
-            status: "disabled",
+            status: "enabled",
             availableAt: timeline.warmupQuizAt,
             availabilityMode: "available",
           },
@@ -590,7 +591,6 @@ export function LandingPage() {
                   <li>Tes photos devient bof</li>
                   <li>Aide à compléter l'arbre : Comparaison arbre GEDCOM et informations du Family Knownledge</li>
                   <li>Stats</li>
-                  <li>5 questions thématiques (INDE)</li>
                   <li>
                     Message "pas de conjoint / d'enfant identifié" quid de ce
                     qui n'en ont pas eu pour sur

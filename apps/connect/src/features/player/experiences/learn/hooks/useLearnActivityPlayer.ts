@@ -17,6 +17,7 @@ import { getPenaltyForAttempt } from "../../../core/activity/utils/getPenaltyFor
 import { resolveNextQuestionId } from "../../../core/activity/utils/resolveNextQuestionId";
 import { getParticipantSession } from "../../../../../lib/participant-session/getActiveParticipant";
 import { resetActivitySession } from "../../../api/restActivitySession";
+import { computeSetScore } from "../../../core/activity/utils/computeSetScore";
 
 export type LearnPhotoAnswerValue = {
     file: File | null;
@@ -48,6 +49,11 @@ export type LearnQuestionResult = {
     isManualReview?: boolean;
     reviewLabel?: string;
     submittedTitle?: string;
+    setSummary?: {
+        correctSelected: number;
+        totalCorrect: number;
+        incorrectSelected: number;
+    };
 };
 
 export type LearnFlatQuestionItem = {
@@ -303,6 +309,14 @@ function evaluateQuestion(
     }
 
     let isCorrect = false;
+    let baseScoreDelta: number | null = null;
+    let setSummary:
+        | {
+              correctSelected: number;
+              totalCorrect: number;
+              incorrectSelected: number;
+          }
+        | undefined;
 
     switch (question.type) {
         case "qcu":
@@ -315,12 +329,30 @@ function evaluateQuestion(
                 ? evaluation.answer.map(String)
                 : [];
 
-            const actualSet = new Set(actual);
-            const expectedSet = new Set(expected);
+            if (evaluation.compareMode === "set") {
+                const setScoreResult = computeSetScore({
+                    selected: actual,
+                    correct: expected,
+                    points: evaluation.points ?? 0,
+                });
 
-            isCorrect =
-                actualSet.size === expectedSet.size &&
-                [...actualSet].every((item) => expectedSet.has(item));
+                baseScoreDelta = setScoreResult.score;
+                setSummary = {
+                    correctSelected: setScoreResult.correctSelected,
+                    totalCorrect: setScoreResult.totalCorrect,
+                    incorrectSelected: setScoreResult.incorrectSelected,
+                };
+
+                isCorrect = setScoreResult.score === (evaluation.points ?? 0);
+            } else {
+                const actualSet = new Set(actual);
+                const expectedSet = new Set(expected);
+
+                isCorrect =
+                    actualSet.size === expectedSet.size &&
+                    [...actualSet].every((item) => expectedSet.has(item));
+            }
+
             break;
         }
 
@@ -403,7 +435,7 @@ function evaluateQuestion(
             attemptsUsedAfterSubmit < attemptMeta.maxAttempts);
 
     if (isCorrect) {
-        const scoreDelta = evaluation.points ?? 0;
+        const scoreDelta = baseScoreDelta ?? evaluation.points ?? 0;
 
         return {
             isCorrect: true,
@@ -418,11 +450,20 @@ function evaluateQuestion(
             maxAttempts: attemptMeta.maxAttempts ?? 1,
             appliedPenalty: 0,
             attemptsUsed: attemptsUsedAfterSubmit,
+            setSummary,
         };
     }
 
     const penalty = getPenaltyForAttempt(evaluation, attemptsUsedAfterSubmit);
-    const scoreDelta = penalty > 0 ? -penalty : 0;
+
+    const rawScoreDelta =
+        baseScoreDelta !== null
+            ? baseScoreDelta - penalty
+            : penalty > 0
+              ? -penalty
+              : 0;
+
+    const scoreDelta = Math.max(0, rawScoreDelta);
 
     return {
         isCorrect: false,
@@ -437,6 +478,7 @@ function evaluateQuestion(
         maxAttempts: attemptMeta.maxAttempts ?? 1,
         appliedPenalty: penalty,
         attemptsUsed: attemptsUsedAfterSubmit,
+        setSummary,
     };
 }
 
@@ -802,7 +844,9 @@ export function useLearnActivityPlayer(
             return;
         }
 
-        if (!canQuestionBeAnswered(currentQuestion, currentAnswer)) return;
+        if (!canQuestionBeAnswered(currentQuestion, currentAnswer)) {
+            return;
+        }
 
         if (
             currentRetryEnabled &&
@@ -815,11 +859,6 @@ export function useLearnActivityPlayer(
         const attemptsUsedAfterSubmit = currentAttemptsUsed + 1;
         const previousCumulativeScoreDelta =
             scoreDeltaByQuestionId[currentQuestion.id] ?? 0;
-
-        setAttemptsByQuestionId((prev) => ({
-            ...prev,
-            [currentQuestion.id]: attemptsUsedAfterSubmit,
-        }));
 
         const result = evaluateQuestion(
             currentQuestion,
@@ -871,6 +910,18 @@ export function useLearnActivityPlayer(
                 participantId,
                 questionId: currentQuestion.id,
             });
+        }
+
+        setAttemptsByQuestionId((prev) => ({
+            ...prev,
+            [currentQuestion.id]: attemptsUsedAfterSubmit,
+        }));
+
+        const shouldSkipFeedbackScreen = currentQuestion.type === "info";
+
+        if (shouldSkipFeedbackScreen) {
+            await goToResolvedNextQuestion(nextScore);
+            return;
         }
 
         if (immediateFeedbackEnabled) {
@@ -1031,5 +1082,8 @@ export function useLearnActivityPlayer(
         goBack,
         restart,
         sessionId,
+        resultsByQuestionId,
+        scoreDeltaByQuestionId,
+        attemptsByQuestionId,
     };
 }

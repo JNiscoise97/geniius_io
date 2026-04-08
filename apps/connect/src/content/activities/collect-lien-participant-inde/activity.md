@@ -1,7 +1,7 @@
 ---
-id: inde-terre-mere-collect
-slug: inde-terre-mere-collect
-title: Inde — mémoire, récits et voyages
+id: collect-lien-participant-inde
+slug: collect-lien-participant-inde
+title: Ton lien avec l'Inde
 mode: collect
 description: Une collecte pour mieux comprendre le lien personnel et familial que chacun entretient aujourd’hui avec l’Inde.
 
@@ -25,6 +25,11 @@ persistence:
   autosave: true
   resumeAllowed: true
   saveDrafts: true
+
+availability:
+  kind: scheduled
+  opensAt: "2026-04-20T18:00:00+04:00"
+  label: "Disponible demain"
 
 sections:
   - id: s01

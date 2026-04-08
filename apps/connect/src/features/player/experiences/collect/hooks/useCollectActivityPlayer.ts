@@ -32,6 +32,7 @@ function defaultAnswerForQuestion(
     switch (question.type) {
         case "qcu":
         case "short":
+        case "long":
         case "fill":
         case "date":
         case "numeric":
@@ -80,6 +81,7 @@ function canQuestionBeAnswered(
         }
 
         case "short":
+        case "long":
         case "fill":
         case "date":
             return typeof answer === "string" && answer.trim().length > 0;
@@ -164,6 +166,7 @@ function getSubmitDelayMs(question: ActivityQuestionDefinition): number {
     if (
         question.type === "photo" ||
         question.type === "short" ||
+        question.type === "long" ||
         question.type === "fill"
     ) {
         return 600;
@@ -178,6 +181,7 @@ function getSubmittingLabel(question: ActivityQuestionDefinition | null): string
     if (
         question.type === "photo" ||
         question.type === "short" ||
+        question.type === "long" ||
         question.type === "fill"
     ) {
         return "Merci 🙌";
