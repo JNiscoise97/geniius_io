@@ -1,12 +1,12 @@
 import { ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
 import { familyTreeIntroConfig } from "../config/familyTreeIntroConfig";
-import type { FamilyTreeIntroPrefs } from "../api/getFamilyTreeIntroPrefs";
 import { useNavigate, useParams } from "react-router-dom";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { useEffect } from "react";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { IntroQuoteCard } from "../../../shared/components/IntroQuoteCard";
 import { KnownToggleField } from "../../../shared/components/KnownToggleField";
+import type { FamilyTreeIntroPrefs } from "../data/preferences/getFamilyTreeIntroPrefs";
 
 type FamilyTreeIntroViewProps = {
   values: FamilyTreeIntroPrefs;

@@ -1,6 +1,5 @@
-// MyIdentityClaimsSection.tsx
 import { ArrowRight, CheckCircle2, Clock3, XCircle } from "lucide-react";
-import type { PersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import type { PersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 
 type Props = {
   claims: PersonIdentityClaim[];
@@ -19,22 +18,16 @@ function getStatusMeta(status: PersonIdentityClaim["claim_status"]) {
         titleClassName: "text-emerald-900",
         textClassName: "text-emerald-800",
       };
-    case "auto_verified":
-      return {
-        label: "Profil confirmé",
-        icon: <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-700" />,
-        containerClassName: "border-emerald-200 bg-emerald-50",
-        titleClassName: "text-emerald-900",
-        textClassName: "text-emerald-800",
-      };
+
     case "rejected":
       return {
-        label: "Non confirmé",
+        label: "Demande non validée",
         icon: <XCircle className="mt-0.5 h-4 w-4 text-rose-700" />,
         containerClassName: "border-rose-200 bg-rose-50",
         titleClassName: "text-rose-900",
         textClassName: "text-rose-800",
       };
+
     case "pending":
     default:
       return {
@@ -57,7 +50,7 @@ function getButtonMeta(status: PersonIdentityClaim["claim_status"]) {
   }
 
   return {
-    label: "Revoir dans l’arbre",
+    label: "Voir cette fiche dans l’arbre",
     className:
       "inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99]",
   };
@@ -76,20 +69,26 @@ function formatDate(value: string | null) {
   }
 }
 
+function isVisibleClaim(claim: PersonIdentityClaim): boolean {
+  return Boolean(claim.person_id?.trim());
+}
+
 export function MyIdentityClaimsSection({
   claims,
   loading = false,
   error = null,
   onOpenPerson,
 }: Props) {
+  const visibleClaims = claims.filter(isVisibleClaim);
+
   if (loading) {
     return (
       <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
         <div className="text-sm font-semibold text-slate-900">
-          Mes signalements
+          Mon identification
         </div>
         <div className="mt-0.5 text-xs text-slate-700">
-          Chargement de tes demandes...
+          Chargement de tes informations...
         </div>
       </div>
     );
@@ -99,20 +98,21 @@ export function MyIdentityClaimsSection({
     return (
       <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
         <div className="text-sm font-semibold text-rose-900">
-          Mes signalements
+          Mon identification
         </div>
         <div className="mt-0.5 text-xs text-rose-800">{error}</div>
       </div>
     );
   }
 
-  if (claims.length === 0) {
+  if (visibleClaims.length === 0) {
     return null;
   }
 
   return (
     <div className="mt-3 space-y-3">
-      {claims.map((claim) => {
+      {visibleClaims.map((claim) => {
+        const personId = claim.person_id.trim();
         const status = getStatusMeta(claim.claim_status);
         const button = getButtonMeta(claim.claim_status);
 
@@ -129,9 +129,15 @@ export function MyIdentityClaimsSection({
                   {status.label}
                 </div>
 
-                {claim.claim_status !== "approved" ? (
+                {claim.claim_status === "pending" ? (
                   <div className={`mt-1 text-xs ${status.textClassName}`}>
-                    Tu penses avoir repéré ton profil dans l’arbre.
+                    Tu as demandé à rattacher cette fiche à ton profil.
+                  </div>
+                ) : null}
+
+                {claim.claim_status === "rejected" ? (
+                  <div className={`mt-1 text-xs ${status.textClassName}`}>
+                    Cette fiche n’a pas encore pu être confirmée comme étant la tienne.
                   </div>
                 ) : null}
 
@@ -155,7 +161,7 @@ export function MyIdentityClaimsSection({
                 {onOpenPerson ? (
                   <button
                     type="button"
-                    onClick={() => onOpenPerson(claim.person_id)}
+                    onClick={() => onOpenPerson(personId)}
                     className={`mt-3 group ${button.className}`}
                   >
                     <span>{button.label}</span>

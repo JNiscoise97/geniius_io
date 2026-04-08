@@ -276,6 +276,5 @@ export async function saveParticipantAccessProfile({
   if (insertRes.error) {
     throw new Error(insertRes.error.message);
   }
-
   return toResult(insertRes.data);
 }

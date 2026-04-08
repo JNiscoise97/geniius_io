@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  getDefaultFamilyTreeIntroPrefs,
-  getFamilyTreeIntroPrefs,
-  type FamilyTreeIntroPrefs,
-} from "../api/getFamilyTreeIntroPrefs";
-import { saveFamilyTreeIntroPrefs } from "../api/saveFamilyTreeIntroPrefs";
 import { FamilyTreeHubPage } from "./FamilyTreeHubPage";
 import { FamilyTreeIntroView } from "./FamilyTreeIntroView";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { getDefaultFamilyTreeIntroPrefs, getFamilyTreeIntroPrefs, type FamilyTreeIntroPrefs } from "../data/preferences/getFamilyTreeIntroPrefs";
+import { saveFamilyTreeIntroPrefs } from "../data/preferences/saveFamilyTreeIntroPrefs";
 
 export function FamilyTreeEntryPage() {
   const { eventSlug } = useParams();

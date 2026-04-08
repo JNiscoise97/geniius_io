@@ -11,7 +11,7 @@ import { getIdentity } from "../api/getIdentity";
 import { addStoredParticipantProfile } from "../../../lib/participant-session/addStoredParticipantProfile";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
-import { getMyPersonIdentityClaim } from "../../family-tree/api/getMyPersonIdentityClaim";
+import { getMyPersonIdentityClaim } from "../../family-tree/data/identity/getMyPersonIdentityClaim";
 
 const INITIAL_VALUES: IdentityFormValues = {
   firstName: "",
@@ -74,7 +74,7 @@ export function ParticipantIdentityPage() {
         if (!isMounted) return;
 
         setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
-        setClaimedPersonId(identityClaim?.person_id ?? null);
+setClaimedPersonId(identityClaim?.person_id ?? null);
       } catch {
         if (!isMounted) return;
         setMyIdentityClaimStatus(null);

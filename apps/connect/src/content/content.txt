@@ -1,0 +1,245 @@
+README — RÈGLES D’ÉCRITURE DES ACTIVITÉS (.md)
+
+--------------------------------------------------
+STRUCTURE DES FICHIERS
+--------------------------------------------------
+
+/src/content/activities/
+  └── <activity-slug>/
+        ├── activity.md
+        ├── s01-xxx.md
+        ├── s02-xxx.md
+        └── ...
+
+--------------------------------------------------
+1. activity.md (MANIFESTE)
+--------------------------------------------------
+
+Exemple :
+
+---
+id: famille-quiz
+slug: famille-quiz
+title: "Quiz famille — découverte"
+mode: learn
+
+description: "Un petit quiz pour se refamiliariser avec la famille."
+
+sections:
+  - id: s01
+    title: "Démo"
+    file: s01-demo.md
+---
+
+Texte d’introduction optionnel.
+
+Champs obligatoires :
+- id
+- slug
+- title
+- mode (collect | learn | play)
+- sections
+
+--------------------------------------------------
+2. FICHIER DE SECTION (s01-xxx.md)
+--------------------------------------------------
+
+Exemple :
+
+---
+id: s01
+title: "Démo"
+kind: chapter
+
+questions:
+  - id: q1
+    type: qcu
+    prompt: "Qui était en rouge ?"
+
+    options:
+      - value: a
+        label: "Coundiaman"
+      - value: b
+        label: "Covindou"
+
+    evaluation:
+      kind: auto_correct
+      answer: "b"
+      points: 10
+
+    feedback:
+      explanationMarkdown: >
+        Les rouges représentaient Covindou.
+---
+
+Texte d’intro de section optionnel.
+
+--------------------------------------------------
+RÈGLES IMPORTANTES (CRITIQUES)
+--------------------------------------------------
+
+1. TOUJOURS METTRE LES TEXTES ENTRE GUILLEMETS
+
+Mauvais :
+placeholder: Ex: Covindou
+
+Bon :
+placeholder: "Ex: Covindou"
+
+Appliquer à :
+- prompt
+- placeholder
+- label
+- answer
+- title
+- description
+
+--------------------------------------------------
+
+2. INDENTATION STRICTE
+
+- Toujours 2 espaces
+- Jamais de tabulation
+
+Mauvais :
+questions:
+ - id: q1
+
+Bon :
+questions:
+  - id: q1
+
+--------------------------------------------------
+
+3. CARACTÈRES SPÉCIAUX
+
+Si une valeur contient :
+:  #  { }  [ ]
+
+→ mettre entre guillemets
+
+Exemple :
+answer: "Covindou:1"
+
+--------------------------------------------------
+
+4. LISTES YAML
+
+Toujours bien alignées :
+
+options:
+  - value: a
+    label: "Réponse A"
+  - value: b
+    label: "Réponse B"
+
+--------------------------------------------------
+
+5. MULTI-LIGNES
+
+Utiliser :
+
+>
+
+Exemple :
+explanationMarkdown: >
+  Ligne 1
+  Ligne 2
+
+--------------------------------------------------
+TYPES DE QUESTIONS
+--------------------------------------------------
+
+qcu          → choix unique
+qcm          → choix multiple
+truefalse    → vrai / faux
+short        → réponse courte
+fill         → texte à trou
+numeric      → nombre
+photo        → envoi de photo
+info         → bloc informatif
+date         → date
+select       → liste déroulante
+
+--------------------------------------------------
+ÉVALUATION
+--------------------------------------------------
+
+Auto correction :
+evaluation:
+  kind: auto_correct
+  answer: "Covindou"
+  points: 10
+
+Collecte (pas de correction) :
+evaluation:
+  kind: submit_only
+
+Validation manuelle :
+evaluation:
+  kind: manual_review
+
+--------------------------------------------------
+FEEDBACK
+--------------------------------------------------
+
+feedback:
+  explanationMarkdown: >
+    Explication affichée après réponse.
+
+--------------------------------------------------
+NAVIGATION (OPTIONNEL)
+--------------------------------------------------
+
+Simple :
+navigation:
+  next: q2
+
+Conditionnelle :
+navigation:
+  branches:
+    - when:
+        op: equals
+        value: "yes"
+      goto: q2
+
+--------------------------------------------------
+BONNES PRATIQUES
+--------------------------------------------------
+
+Toujours :
+- Mettre les textes entre guillemets
+- Tester une section à la fois
+- Utiliser des IDs simples (q1, q2…)
+- Ajouter des explications aux réponses
+
+Éviter :
+- YAML complexe inutile
+- Mauvaise indentation
+- Champs non supportés
+
+--------------------------------------------------
+DEBUG
+--------------------------------------------------
+
+Page :
+/learn/<slug>/debug
+
+Permet de vérifier :
+- parsing OK
+- sections chargées
+- questions reconnues
+
+--------------------------------------------------
+PHILOSOPHIE
+--------------------------------------------------
+
+Le système permet :
+- écrire du contenu sans code
+- créer des quiz, formulaires et jeux
+- réutiliser les mêmes données pour :
+  → collecter
+  → apprendre
+  → jouer le jour J
+
+--------------------------------------------------

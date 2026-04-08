@@ -63,30 +63,50 @@ import { ModerationReviewPage } from "../features/moderation/pages/ModerationRev
 import { TodoPage } from "../features/todo/pages/TodoPage";
 import { FamilyTreePersonPage } from "../features/family-tree/pages/FamilyTreePersonPage";
 import AnnouncementComposerPage from "../features/announcements/pages/AnnouncementComposerPage";
+import { FamilyTreeImproveBranchPage } from "../features/genealogy/pages/FamilyTreeImproveBranchPage";
+import { LearnActivityDebugPage } from "../features/player/experiences/learn/pages/LearnActivityDebugPage";
+import { LearnRunPage } from "../features/player/experiences/learn/pages/LearnRunPage";
+import { ActivityHubPage } from "../features/player/pages/ActivityHubPage";
+import { CollectRunPage } from "../features/player/experiences/collect/pages/CollectRunPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MobileScaffold />,
     children: [
-      { index: true, element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}`} replace /> },
+      {
+        index: true,
+        element: <Navigate to={`/e/${PUBLIC_EVENT_SLUG}`} replace />,
+      },
 
       {
         path: "e/:eventSlug",
         children: [
           // Entrée unique
-          { index: true, element: <ParticipantAccessIntroPage  /> },
+          { index: true, element: <ParticipantAccessIntroPage /> },
 
           { path: "dev/todo", element: <TodoPage /> },
 
           // Access flow
           { path: "access/intro", element: <ParticipantAccessIntroPage /> },
-          { path: "access/continue", element: <ParticipantAccessContinuePage /> },
+          {
+            path: "access/continue",
+            element: <ParticipantAccessContinuePage />,
+          },
           { path: "access/options", element: <ParticipantAccessPage /> },
-          { path: "access/confirm-token", element: <ParticipantConfirmTokenPage /> },
-          { path: "access/confirm-device", element: <ParticipantConfirmDevicePage /> },
+          {
+            path: "access/confirm-token",
+            element: <ParticipantConfirmTokenPage />,
+          },
+          {
+            path: "access/confirm-device",
+            element: <ParticipantConfirmDevicePage />,
+          },
           { path: "access/recover", element: <ParticipantRecoverPage /> },
-          { path: "access/recover-confirm", element: <ParticipantRecoverConfirmPage /> },
+          {
+            path: "access/recover-confirm",
+            element: <ParticipantRecoverConfirmPage />,
+          },
           { path: "access/create", element: <ParticipantAccessCreatePage /> },
           { path: "device-profiles", element: <DeviceProfilesPage /> },
 
@@ -94,7 +114,10 @@ export const router = createBrowserRouter([
           { path: "welcome/form", element: <PreEventFormPage /> },
           { path: "welcome/identity", element: <ParticipantIdentityPage /> },
           { path: "welcome/origins", element: <ParticipantOriginsPage /> },
-          { path: "welcome/confirmation", element: <OnboardingConfirmationPage /> },
+          {
+            path: "welcome/confirmation",
+            element: <OnboardingConfirmationPage />,
+          },
 
           // Protected participant area
           {
@@ -105,7 +128,10 @@ export const router = createBrowserRouter([
               // Onboarding participant
               { path: "welcome", element: <OnboardingHubPage /> },
               { path: "welcome/profile", element: <ParticipantProfilePage /> },
-              { path: "welcome/preferences", element: <ParticipantConsentsPage /> },
+              {
+                path: "welcome/preferences",
+                element: <ParticipantConsentsPage />,
+              },
 
               // Attendance
               { path: "attendance", element: <ParticipantAttendancePage /> },
@@ -114,7 +140,10 @@ export const router = createBrowserRouter([
               { path: "contact", element: <ParticipantContactOrganizerPage /> },
 
               // Family knowledge
-              { path: "family-knowledge", element: <FamilyKnowledgeEntryPage /> },
+              {
+                path: "family-knowledge",
+                element: <FamilyKnowledgeEntryPage />,
+              },
               {
                 path: "family-knowledge/close-family",
                 element: <FamilyKnowledgeCloseFamilyPage />,
@@ -131,24 +160,47 @@ export const router = createBrowserRouter([
                 path: "family-knowledge/current-links",
                 element: <FamilyKnowledgeCurrentLinksPage />,
               },
-              { path: "family-knowledge/memory", element: <FamilyKnowledgeMemoryPage /> },
+              {
+                path: "family-knowledge/memory",
+                element: <FamilyKnowledgeMemoryPage />,
+              },
 
-              { path: "family-knowledge/photos", element: <FamilyKnowledgePhotosPage /> },
+              {
+                path: "family-knowledge/photos",
+                element: <FamilyKnowledgePhotosPage />,
+              },
 
               // Family tree
               { path: "family-tree", element: <FamilyTreeEntryPage /> },
               { path: "arbre", element: <FamilyTreeHubPage /> },
 
               { path: "family-tree/browse", element: <FamilyTreeBrowsePage /> },
-              { path: "family-tree/story", element: <FamilyRelationshipStoryPage /> },
-              { path: "family-tree/find-me", element: <FamilyTreeFindMePage />},
-              { path: "family-tree/handle-profile", element: <FamilyTreeHandleProfilePage />},
-              { path: "family-tree/find-person", element: <FamilyTreeFindPersonPage  />},
-              { path: "family-tree/person", element: <FamilyTreePersonPage  />},
+              {
+                path: "family-tree/story",
+                element: <FamilyRelationshipStoryPage />,
+              },
+              {
+                path: "family-tree/find-me",
+                element: <FamilyTreeFindMePage />,
+              },
+              {
+                path: "family-tree/handle-profile",
+                element: <FamilyTreeHandleProfilePage />,
+              },
+              {
+                path: "family-tree/find-person",
+                element: <FamilyTreeFindPersonPage />,
+              },
+              { path: "family-tree/person", element: <FamilyTreePersonPage /> },
+
+              {
+                path: "family-tree/improve",
+                element: <FamilyTreeImproveBranchPage />,
+              },
 
               { path: "fiche", element: <PersonSheetPage /> },
 
-              // Managed profiles
+              // Managed profilesa
               { path: "managed-profiles", element: <ManagedProfilesPage /> },
 
               // Existing / game routes
@@ -161,16 +213,38 @@ export const router = createBrowserRouter([
               { path: "z/:zoneId/play", element: <ZonePlayPage /> },
 
               { path: "moderation", element: <ModerationQueuePage /> },
-              { path: "moderation/:entityType/:entityId", element: <ModerationReviewPage /> },
+              {
+                path: "moderation/:entityType/:entityId",
+                element: <ModerationReviewPage />,
+              },
 
-              { path:"announcements/new", element:<AnnouncementComposerPage />},
+              {
+                path: "/e/:eventSlug/activities",
+                element: <ActivityHubPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/learn/:activitySlug",
+                element: <LearnRunPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/learn/:activitySlug/debug",
+                element: <LearnActivityDebugPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/collect/:activitySlug",
+                element: <CollectRunPage />, // si tu l’as déjà
+              },
+
+              {
+                path: "announcements/new",
+                element: <AnnouncementComposerPage />,
+              },
             ],
           },
         ],
       },
 
       { path: "question-mock", element: <QuestionScreenMock /> },
-      
     ],
   },
 

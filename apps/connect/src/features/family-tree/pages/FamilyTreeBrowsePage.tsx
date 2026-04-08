@@ -24,68 +24,69 @@ import { createPageTimeTracker } from "../../../lib/analytics/pageTimeTracker";
 import { SmartImage } from "../../../lib/media/useSmartImage";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
 
-import { createMyPersonMemory } from "../api/createMyPersonMemory";
-import { createMyPersonPhoto } from "../api/createMyPersonPhoto";
-import { deleteMyPersonIdentityClaim } from "../api/deleteMyPersonIdentityClaim";
-import { deleteMyPersonMemory } from "../api/deleteMyPersonMemory";
-import { deleteMyPersonPhoto } from "../api/deleteMyPersonPhoto";
-import { deleteMyPersonVisibilityRequest } from "../api/deleteMyPersonVisibilityRequest";
-import { getFamilyTreeEffectiveVisibilityMap } from "../api/getFamilyTreeEffectiveVisibilityMap";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { createMyPersonMemory } from "../data/memories/createMyPersonMemory";
+import { createMyPersonPhoto } from "../data/photos/createMyPersonPhoto";
+import { deleteMyPersonIdentityClaim } from "../data/identity/deleteMyPersonIdentityClaim";
+import { deleteMyPersonMemory } from "../data/memories/deleteMyPersonMemory";
+import { deleteMyPersonPhoto } from "../data/photos/deleteMyPersonPhoto";
+import { deleteMyPersonVisibilityRequest } from "../data/visibility/deleteMyPersonVisibilityRequest";
+import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 import {
   getMyPersonMemoryModerationCounts,
   type MyPersonMemoryModerationCounts,
-} from "../api/getMyPersonMemoryModerationCounts";
+} from "../data/memories/getMyPersonMemoryModerationCounts";
 import {
   getMyPersonPhotoModerationCounts,
   type MyPersonPhotoModerationCounts,
-} from "../api/getMyPersonPhotoModerationCounts";
-import { getMyPersonVisibilityRequest } from "../api/getMyPersonVisibilityRequest";
-import { getParticipantDefaultGedcomPersonId } from "../api/getParticipantDefaultGedcomPersonId";
-import { getPersonContributionStats } from "../api/getPersonContributionStats";
-import { getPersonReactionState } from "../api/getPersonReactionState";
+} from "../data/photos/getMyPersonPhotoModerationCounts";
+import { getMyPersonVisibilityRequest } from "../data/visibility/getMyPersonVisibilityRequest";
+import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
+import { getPersonContributionStats } from "../data/reactions/getPersonContributionStats";
+import { getPersonReactionState } from "../data/reactions/getPersonReactionState";
 import {
   getVisiblePersonMemories,
   type PersonMemoryItem,
-} from "../api/getVisiblePersonMemories";
+} from "../data/memories/getVisiblePersonMemories";
 import {
   getVisiblePersonPhotos,
   type PersonPhotoItem,
-} from "../api/getVisiblePersonPhotos";
+} from "../data/photos/getVisiblePersonPhotos";
 import {
   getTouchedParticipants,
   type TouchedParticipantItem,
-} from "../api/getTouchedParticipants";
-import { updateMyPersonMemory } from "../api/updateMyPersonMemory";
-import { updateMyPersonPhoto } from "../api/updateMyPersonPhoto";
+} from "../data/reactions/getTouchedParticipants";
+import { updateMyPersonMemory } from "../data/memories/updateMyPersonMemory";
+import { updateMyPersonPhoto } from "../data/photos/updateMyPersonPhoto";
 import {
   findRelationshipPath,
   type RelationshipEdgeType,
   type RelationshipPathNode,
-} from "../api/findRelationshipPath";
+} from "../domain/graph/findRelationshipPath";
 import { FAMILY_GRAPH } from "../api/loadGraph";
-import { saveMyPersonIdentityClaim } from "../api/saveMyPersonIdentityClaim";
-import { saveMyPersonVisibilityRequest } from "../api/saveMyPersonVisibilityRequest";
-import { togglePersonReaction } from "../api/togglePersonReaction";
+import { saveMyPersonIdentityClaim } from "../data/identity/saveMyPersonIdentityClaim";
+import { saveMyPersonVisibilityRequest } from "../data/visibility/saveMyPersonVisibilityRequest";
+import { togglePersonReaction } from "../data/reactions/togglePersonReaction";
 
-import { FamilyRelationsSection } from "../components/FamilyRelationsSection";
-import { PersonInteractionsSection } from "../components/PersonInteractionsSection";
-import { PersonMemoriesPanel } from "../components/PersonMemoriesPanel";
-import { PersonMemoryEditorPanel } from "../components/PersonMemoryEditorPanel";
-import { PersonPhotoEditorPanel } from "../components/PersonPhotoEditorPanel";
-import { PersonPhotosPanel } from "../components/PersonPhotosPanel";
-import { PersonTouchedPanel } from "../components/PersonTouchedPanel";
-import { PersonVisibilityRequestFormPanel } from "../components/PersonVisibilityRequestFormPanel";
+import { FamilyRelationsSection } from "../components/relations/FamilyRelationsSection";
+import { PersonInteractionsSection } from "../components/interactions/PersonInteractionsSection";
+import { PersonMemoriesPanel } from "../components/interactions/PersonMemoriesPanel";
+import { PersonMemoryEditorPanel } from "../components/interactions/PersonMemoryEditorPanel";
+import { PersonPhotoEditorPanel } from "../components/interactions/PersonPhotoEditorPanel";
+import { PersonPhotosPanel } from "../components/interactions/PersonPhotosPanel";
+import { PersonTouchedPanel } from "../components/interactions/PersonTouchedPanel";
+import { PersonVisibilityRequestFormPanel } from "../components/interactions/PersonVisibilityRequestFormPanel";
 
 import {
   getPersonContext,
   getPersonHeroConfig,
 } from "../config/configGenealogy";
 
-import type { PersonSummary, PersonVisibilityPreferenceMap } from "../types";
-import { formatPlaceTransition } from "../lib/genealogyUi";
-import type { PersonUiOverride } from "../api/uiOverrides";
-import { getMergedPersonOverridesMap } from "../api/getMergedPersonOverridesMap";
+import { formatPlaceTransition } from "../domain/graph/genealogyUi";
+import type { PersonUiOverride } from "../data/profiles/uiOverrides";
+import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
+import type { PersonSummary } from "../types/person";
+import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
 type BrowsePanelMode =
   | "relations"
@@ -107,6 +108,11 @@ const EMPTY_MEMORY_DRAFT: MemoryDraftState = {
   loaded: false,
   dirty: false,
 };
+
+function normalizePersonId(value?: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 
 function anonymizePerson(person: PersonSummary): PersonSummary {
   if (
@@ -176,7 +182,11 @@ function formatYears(person: PersonSummary) {
 }
 
 function formatLifePath(person: PersonSummary) {
-  return formatPlaceTransition(person.birthPlace, person.currentPlace, person.deathPlace);
+  return formatPlaceTransition(
+    person.birthPlace,
+    person.currentPlace,
+    person.deathPlace,
+  );
 }
 
 function getPluralLabel(count: number, singular: string, plural: string) {
@@ -207,13 +217,8 @@ function getAncestorLabel(level: number, sex?: string) {
     return "un arrière-grand-parent";
   }
 
-  if (isFemale) {
-    return `l’${"arrière-".repeat(level - 2)}grand-mère`;
-  }
-
-  if (isMale) {
-    return `l’${"arrière-".repeat(level - 2)}grand-père`;
-  }
+  if (isFemale) return `l’${"arrière-".repeat(level - 2)}grand-mère`;
+  if (isMale) return `l’${"arrière-".repeat(level - 2)}grand-père`;
 
   return `un ${"arrière-".repeat(level - 2)}grand-parent`;
 }
@@ -242,13 +247,8 @@ function getDescendantLabel(level: number, sex?: string) {
     return "un arrière-petit-enfant";
   }
 
-  if (isFemale) {
-    return `l’${"arrière-".repeat(level - 2)}petite-fille`;
-  }
-
-  if (isMale) {
-    return `l’${"arrière-".repeat(level - 2)}petit-fils`;
-  }
+  if (isFemale) return `l’${"arrière-".repeat(level - 2)}petite-fille`;
+  if (isMale) return `l’${"arrière-".repeat(level - 2)}petit-fils`;
 
   return `un ${"arrière-".repeat(level - 2)}petit-enfant`;
 }
@@ -281,13 +281,8 @@ function getSiblingDescendantLabel(level: number, sex?: string) {
     return "un arrière-petit-neveu ou une arrière-petite-nièce";
   }
 
-  if (isFemale) {
-    return `l’${"arrière-".repeat(level - 2)}petite-nièce`;
-  }
-
-  if (isMale) {
-    return `l’${"arrière-".repeat(level - 2)}petit-neveu`;
-  }
+  if (isFemale) return `l’${"arrière-".repeat(level - 2)}petite-nièce`;
+  if (isMale) return `l’${"arrière-".repeat(level - 2)}petit-neveu`;
 
   return `un ${"arrière-".repeat(level - 2)}petit-neveu ou une ${"arrière-".repeat(level - 2)}petite-nièce`;
 }
@@ -352,23 +347,37 @@ function summarizeRelationshipToRoot(
     : `Voici le chemin familial le plus court depuis ${rootDisplayName}.`;
 }
 
+function parseBirthYear(value?: string | number | null): number | null {
+  if (value === undefined || value === null || value === "") return null;
+
+  const year =
+    typeof value === "number" ? value : Number.parseInt(String(value), 10);
+
+  return Number.isNaN(year) ? null : year;
+}
+
 function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
-  return [...persons].sort((a, b) => {
-    const aYear = Number(a.birthYear);
-    const bYear = Number(b.birthYear);
+  return persons.reduce<PersonSummary[]>((ordered, person) => {
+    const personYear = parseBirthYear(person.birthYear);
 
-    const aHasYear = Boolean(a.birthYear && !Number.isNaN(aYear));
-    const bHasYear = Boolean(b.birthYear && !Number.isNaN(bYear));
-
-    if (aHasYear && bHasYear) {
-      return aYear - bYear;
+    if (personYear === null) {
+      ordered.push(person);
+      return ordered;
     }
 
-    if (aHasYear && !bHasYear) return -1;
-    if (!aHasYear && bHasYear) return 1;
+    const insertAt = ordered.findIndex((candidate) => {
+      const candidateYear = parseBirthYear(candidate.birthYear);
+      return candidateYear !== null && candidateYear > personYear;
+    });
 
-    return 0;
-  });
+    if (insertAt === -1) {
+      ordered.push(person);
+    } else {
+      ordered.splice(insertAt, 0, person);
+    }
+
+    return ordered;
+  }, []);
 }
 
 function removeUniformLinkedSpouseLabel(
@@ -406,8 +415,8 @@ export function FamilyTreeBrowsePage() {
 
   const participantFirstName =
     participantSession?.firstName?.trim() || undefined;
-
-  const participantLastName = participantSession?.lastName?.trim() || undefined;
+  const participantLastName =
+    participantSession?.lastName?.trim() || undefined;
 
   const participantDisplayName =
     participantSession?.label?.trim() ||
@@ -430,9 +439,7 @@ export function FamilyTreeBrowsePage() {
   const [photosCount, setPhotosCount] = useState(0);
   const [reactionsCount, setReactionsCount] = useState(0);
 
-  const [visibleMemories, setVisibleMemories] = useState<PersonMemoryItem[]>(
-    [],
-  );
+  const [visibleMemories, setVisibleMemories] = useState<PersonMemoryItem[]>([]);
   const [memoryCounts, setMemoryCounts] =
     useState<MyPersonMemoryModerationCounts>({
       pending: 0,
@@ -449,13 +456,11 @@ export function FamilyTreeBrowsePage() {
     useState<string | null>(null);
 
   const [visiblePhotos, setVisiblePhotos] = useState<PersonPhotoItem[]>([]);
-  const [photoCounts, setPhotoCounts] = useState<MyPersonPhotoModerationCounts>(
-    {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
-    },
-  );
+  const [photoCounts, setPhotoCounts] = useState<MyPersonPhotoModerationCounts>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
 
   const [photoEditorMode, setPhotoEditorMode] = useState<"create" | "edit">(
     "create",
@@ -474,7 +479,7 @@ export function FamilyTreeBrowsePage() {
 
   const [claimedPersonId, setClaimedPersonId] = useState<string | null>(null);
   const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
-    "pending" | "approved" | "rejected" | "auto_verified" | null
+    "pending" | "approved" | "rejected" | null
   >(null);
   const [isSavingIdentityClaim, setIsSavingIdentityClaim] = useState(false);
 
@@ -513,10 +518,10 @@ export function FamilyTreeBrowsePage() {
   const [effectiveVisibilityLoading, setEffectiveVisibilityLoading] =
     useState(true);
 
-    const [overridesByPersonId, setOverridesByPersonId] = useState<
-  Record<string, PersonUiOverride>
->({});
-const [overridesLoading, setOverridesLoading] = useState(true);
+  const [overridesByPersonId, setOverridesByPersonId] = useState<
+    Record<string, PersonUiOverride>
+  >({});
+  const [overridesLoading, setOverridesLoading] = useState(true);
 
   const [touchedParticipants, setTouchedParticipants] = useState<
     TouchedParticipantItem[]
@@ -539,8 +544,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
 
   const sourcePersonId =
-    myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified"
+    myIdentityClaimStatus === "approved" && claimedPersonId
       ? claimedPersonId
       : null;
 
@@ -556,30 +560,37 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   const [setAsProfilePhoto, setSetAsProfilePhoto] = useState(false);
 
   const sosaReferencePersonId = sourcePersonId ?? defaultGedcomPersonId ?? null;
+
   const context = useMemo(
-    () => getPersonContext(centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId),
-    [centerId, visibilityPreferencesByPersonId,sosaReferencePersonId, overridesByPersonId],
+    () =>
+      getPersonContext(
+        centerId,
+        visibilityPreferencesByPersonId,
+        sosaReferencePersonId,
+        overridesByPersonId,
+      ),
+    [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
   );
 
   const hasPendingClaimForCurrentPerson =
-    myIdentityClaimStatus === "pending" && claimedPersonId === centerId;
+    myIdentityClaimStatus === "pending" &&
+    Boolean(claimedPersonId) &&
+    claimedPersonId === centerId;
 
   const hasRejectedClaimForCurrentPerson =
-    myIdentityClaimStatus === "rejected" && claimedPersonId === centerId;
+    myIdentityClaimStatus === "rejected" &&
+    Boolean(claimedPersonId) &&
+    claimedPersonId === centerId;
 
   const isApprovedClaimForCurrentPerson =
-    (myIdentityClaimStatus === "approved" ||
-      myIdentityClaimStatus === "auto_verified") &&
+    myIdentityClaimStatus === "approved" &&
+    Boolean(claimedPersonId) &&
     claimedPersonId === centerId;
 
   const forceDisplayedPersonIds = useMemo(() => {
     const ids = new Set<string>();
 
-    if (
-      claimedPersonId &&
-      (myIdentityClaimStatus === "approved" ||
-        myIdentityClaimStatus === "auto_verified")
-    ) {
+    if (claimedPersonId && myIdentityClaimStatus === "approved") {
       ids.add(claimedPersonId);
     }
 
@@ -639,15 +650,15 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   );
 
   const heroConfig = useMemo(
-  () =>
-    getPersonHeroConfig(
-      centerId,
-      visibilityPreferencesByPersonId,
-      sosaReferencePersonId,
-      overridesByPersonId
-    ),
-  [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
-);
+    () =>
+      getPersonHeroConfig(
+        centerId,
+        visibilityPreferencesByPersonId,
+        sosaReferencePersonId,
+        overridesByPersonId,
+      ),
+    [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
+  );
 
   const visibleOtherBranches =
     displayPerson.canDisplay && displayPerson.canDisplayName
@@ -675,17 +686,17 @@ const [overridesLoading, setOverridesLoading] = useState(true);
       : null;
 
   const rootPerson = useMemo(
-  () =>
-    anonymizePerson(
-      getPersonContext(
-        rootHonoredPersonId,
-        visibilityPreferencesByPersonId,
-        sosaReferencePersonId,
-        overridesByPersonId
-      ).person,
-    ),
-  [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
-);
+    () =>
+      anonymizePerson(
+        getPersonContext(
+          rootHonoredPersonId,
+          visibilityPreferencesByPersonId,
+          sosaReferencePersonId,
+          overridesByPersonId,
+        ).person,
+      ),
+    [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
+  );
 
   const isCenteredOnMe = Boolean(sourcePersonId && centerId === sourcePersonId);
 
@@ -759,7 +770,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         participantId,
       });
 
-      setDefaultGedcomPersonId(personId?.trim() ? personId : null);
+      setDefaultGedcomPersonId(normalizePersonId(personId));
     } catch (error) {
       console.error(error);
       setDefaultGedcomPersonId(null);
@@ -853,7 +864,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
     setPhotosCount(stats.photosCount);
     setReactionsCount(stats.reactionsCount);
 
-    setClaimedPersonId(identityClaim?.person_id ?? null);
+    setClaimedPersonId(normalizePersonId(identityClaim?.person_id ?? null));
     setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
 
     setVisibleMemories(visibleMemoriesData);
@@ -935,7 +946,7 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }
 
   function openCentralPerson() {
-      navigate(`/e/${slug}/family-tree/person?id=${centerId}`);
+    navigate(`/e/${slug}/family-tree/person?id=${centerId}`);
   }
 
   function openFamilyKnowledge() {
@@ -1079,10 +1090,13 @@ const [overridesLoading, setOverridesLoading] = useState(true);
         participantId,
       });
 
+      const refreshedClaimedPersonId = normalizePersonId(
+        refreshedClaim?.person_id ?? null,
+      );
+
       const isNowVerified =
-        refreshedClaim?.person_id === centerId &&
-        (refreshedClaim?.claim_status === "approved" ||
-          refreshedClaim?.claim_status === "auto_verified");
+        refreshedClaimedPersonId === centerId &&
+        refreshedClaim?.claim_status === "approved";
 
       if (isNowVerified) {
         window.location.replace(
@@ -1108,7 +1122,6 @@ const [overridesLoading, setOverridesLoading] = useState(true);
       await deleteMyPersonIdentityClaim({
         eventSlug: slug,
         participantId,
-        personId: centerId,
       });
 
       await loadCurrentPersonData();
@@ -1268,77 +1281,77 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }
 
   async function handleSavePhoto() {
-  if (!participantId) return;
+    if (!participantId) return;
 
-  const consentIsRequired =
-    displayPerson.isPossiblyAlive === true && !isOwnProfile;
+    const consentIsRequired =
+      displayPerson.isPossiblyAlive === true && !isOwnProfile;
 
-  if (consentIsRequired && !photoConsentObtained) {
-    return;
-  }
-
-  setIsSavingPhoto(true);
-
-  try {
-    if (photoEditorMode === "edit" && editingPhotoId) {
-      await updateMyPersonPhoto({
-        photoId: editingPhotoId,
-        participantId,
-        caption: photoCaption,
-        consentObtained: photoConsentObtained,
-        file: photoFile ?? undefined,
-        setAsProfilePhoto, // <-- ajout
-        participantFirstName,
-          participantLastName,
-          participantDisplayName,
-          personFirstName: context.person.firstName,
-          personLastName: context.person.lastName,
-          personDisplayName:
-            `${context.person.firstName} ${context.person.lastName}`.trim(),
-      });
-
-      setPhotoPublishSuccessMessage(
-        "Ta photo a été mise à jour et renvoyée en modération.",
-      );
-    } else {
-      if (!photoFile) return;
-
-      await createMyPersonPhoto({
-        eventSlug: slug,
-        participantId,
-        personId: centerId,
-        file: photoFile,
-        caption: photoCaption,
-        consentObtained: photoConsentObtained,
-        setAsProfilePhoto, // <-- ajout
-        participantFirstName,
-          participantLastName,
-          participantDisplayName,
-          personFirstName: context.person.firstName,
-          personLastName: context.person.lastName,
-          personDisplayName:
-            `${context.person.firstName} ${context.person.lastName}`.trim(),
-      });
-
-      setPhotoPublishSuccessMessage(
-        "Ta photo sera publiée après validation.",
-      );
+    if (consentIsRequired && !photoConsentObtained) {
+      return;
     }
 
-    setPhotoEditorMode("create");
-    setEditingPhotoId(null);
-    setPhotoFile(null);
-    setPhotoCaption("");
-    setPhotoConsentObtained(false);
-    setSetAsProfilePhoto(false); // <-- reset important
+    setIsSavingPhoto(true);
 
-    await loadCurrentPersonData();
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setIsSavingPhoto(false);
+    try {
+      if (photoEditorMode === "edit" && editingPhotoId) {
+        await updateMyPersonPhoto({
+          photoId: editingPhotoId,
+          participantId,
+          caption: photoCaption,
+          consentObtained: photoConsentObtained,
+          file: photoFile ?? undefined,
+          setAsProfilePhoto,
+          participantFirstName,
+          participantLastName,
+          participantDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
+        });
+
+        setPhotoPublishSuccessMessage(
+          "Ta photo a été mise à jour et renvoyée en modération.",
+        );
+      } else {
+        if (!photoFile) return;
+
+        await createMyPersonPhoto({
+          eventSlug: slug,
+          participantId,
+          personId: centerId,
+          file: photoFile,
+          caption: photoCaption,
+          consentObtained: photoConsentObtained,
+          setAsProfilePhoto,
+          participantFirstName,
+          participantLastName,
+          participantDisplayName,
+          personFirstName: context.person.firstName,
+          personLastName: context.person.lastName,
+          personDisplayName:
+            `${context.person.firstName} ${context.person.lastName}`.trim(),
+        });
+
+        setPhotoPublishSuccessMessage(
+          "Ta photo sera publiée après validation.",
+        );
+      }
+
+      setPhotoEditorMode("create");
+      setEditingPhotoId(null);
+      setPhotoFile(null);
+      setPhotoCaption("");
+      setPhotoConsentObtained(false);
+      setSetAsProfilePhoto(false);
+
+      await loadCurrentPersonData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingPhoto(false);
+    }
   }
-}
 
   async function handleDeletePhoto(photoId: string) {
     if (!participantId) return;
@@ -1369,18 +1382,18 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }
 
   async function loadOverridesMap() {
-  try {
-    setOverridesLoading(true);
+    try {
+      setOverridesLoading(true);
 
-    const map = await getMergedPersonOverridesMap(slug);
-    setOverridesByPersonId(map);
-  } catch (error) {
-    console.error(error);
-    setOverridesByPersonId({});
-  } finally {
-    setOverridesLoading(false);
+      const map = await getMergedPersonOverridesMap(slug);
+      setOverridesByPersonId(map);
+    } catch (error) {
+      console.error(error);
+      setOverridesByPersonId({});
+    } finally {
+      setOverridesLoading(false);
+    }
   }
-}
 
   useEffect(() => {
     void loadVisibilityPreferencesMap();
@@ -1465,8 +1478,8 @@ const [overridesLoading, setOverridesLoading] = useState(true);
   }, [participantId, loadCurrentPersonData]);
 
   useEffect(() => {
-  void loadOverridesMap();
-}, [slug]);
+    void loadOverridesMap();
+  }, [slug]);
 
   useEffect(() => {
     void loadDefaultGedcomPersonId();

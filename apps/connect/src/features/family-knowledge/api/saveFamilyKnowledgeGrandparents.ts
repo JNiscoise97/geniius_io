@@ -1,8 +1,13 @@
+// features/family-knowledge/api/saveFamilyKnowledgeGrandparents.ts
+
 import { supabase } from "../../../lib/supabase/client";
 import type {
   FamilyKnowledgeAuntUnclePerson,
+  FamilyKnowledgeConfidence,
   FamilyKnowledgeGrandparentPerson,
   FamilyKnowledgeGrandparentsValues,
+  FamilyKnowledgeSex,
+  FamilyKnowledgeYesNo,
 } from "./getFamilyKnowledgeGrandparents";
 import {
   FATHER_SIBLING_ORDER_KEY,
@@ -19,16 +24,45 @@ function cleanText(value: string): string {
   return value.trim();
 }
 
+function normalizeYesNo(value: string): FamilyKnowledgeYesNo {
+  return value === "yes" || value === "no" ? value : "";
+}
+
+function normalizeSex(value: string): FamilyKnowledgeSex {
+  return value === "M" || value === "F" || value === "U" ? value : "";
+}
+
+function normalizeConfidence(value: string): FamilyKnowledgeConfidence {
+  return value === "low" || value === "medium" || value === "high"
+    ? value
+    : "";
+}
+
 function normalizeGrandparentPerson(
   person: FamilyKnowledgeGrandparentPerson,
 ): FamilyKnowledgeGrandparentPerson {
   return {
+    id: cleanText(person.id),
     known: person.known,
+
     firstName: cleanText(person.firstName),
     lastName: cleanText(person.lastName),
     nickname: cleanText(person.nickname),
-    isAlive: person.isAlive,
-    hasPhoto: person.hasPhoto,
+
+    sex: normalizeSex(person.sex),
+
+    birthYear: cleanText(person.birthYear),
+    deathYear: cleanText(person.deathYear),
+
+    birthPlace: cleanText(person.birthPlace),
+    currentPlace: cleanText(person.currentPlace),
+    deathPlace: cleanText(person.deathPlace),
+
+    isAlive: normalizeYesNo(person.isAlive),
+    hasPhoto: normalizeYesNo(person.hasPhoto),
+
+    confidence: normalizeConfidence(person.confidence),
+    notes: cleanText(person.notes),
   };
 }
 
@@ -36,13 +70,28 @@ function normalizeAuntUnclePerson(
   person: FamilyKnowledgeAuntUnclePerson,
 ): FamilyKnowledgeAuntUnclePerson {
   return {
-    id: person.id,
+    id: cleanText(person.id),
     known: person.known,
+
     firstName: cleanText(person.firstName),
     lastName: cleanText(person.lastName),
     nickname: cleanText(person.nickname),
-    isAlive: person.isAlive,
-    hasPhoto: person.hasPhoto,
+
+    sex: normalizeSex(person.sex),
+
+    birthYear: cleanText(person.birthYear),
+    deathYear: cleanText(person.deathYear),
+
+    birthPlace: cleanText(person.birthPlace),
+    currentPlace: cleanText(person.currentPlace),
+    deathPlace: cleanText(person.deathPlace),
+
+    isAlive: normalizeYesNo(person.isAlive),
+    hasPhoto: normalizeYesNo(person.hasPhoto),
+
+    confidence: normalizeConfidence(person.confidence),
+    notes: cleanText(person.notes),
+
     relationshipType: person.relationshipType,
   };
 }
@@ -90,7 +139,7 @@ export async function saveFamilyKnowledgeGrandparents({
     maternalGrandfather: normalizeGrandparentPerson(values.maternalGrandfather),
     maternalGrandmother: normalizeGrandparentPerson(values.maternalGrandmother),
 
-    hasPaternalAuntsUncles: values.hasPaternalAuntsUncles,
+    hasPaternalAuntsUncles: normalizeYesNo(values.hasPaternalAuntsUncles),
     paternalAuntsUncles:
       values.hasPaternalAuntsUncles === "yes"
         ? normalizedPaternalAuntsUncles
@@ -101,7 +150,7 @@ export async function saveFamilyKnowledgeGrandparents({
         : false,
     paternalSiblingOrder,
 
-    hasMaternalAuntsUncles: values.hasMaternalAuntsUncles,
+    hasMaternalAuntsUncles: normalizeYesNo(values.hasMaternalAuntsUncles),
     maternalAuntsUncles:
       values.hasMaternalAuntsUncles === "yes"
         ? normalizedMaternalAuntsUncles

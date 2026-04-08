@@ -1,38 +1,10 @@
 // findMeMatching.ts
 
-import type {
-  FamilyGraphData,
-  PersonContext,
-  PersonSummary,
-} from "../types";
-import { buildPersonContext } from "../api/buildPersonContext";
+import { buildPersonContext } from "../domain/graph/buildPersonContext";
+import type { FindMeAnswers, FindMeCandidate, FindMeCandidateReason } from "../types/findMe";
+import type { FamilyGraphData } from "../types/graph";
+import type { PersonContext, PersonSummary } from "../types/person";
 
-export type FindMeAnswers = {
-  firstName?: string;
-  lastName?: string;
-  birthYear?: string;
-  birthPlace?: string;
-  fatherQuery?: string;
-  motherQuery?: string;
-  grandparentQuery1?: string;
-  grandparentQuery2?: string;
-  grandparentQuery3?: string;
-  grandparentQuery4?: string;
-};
-
-export type FindMeCandidateReason = {
-  label: string;
-  matched: boolean;
-  weight: number;
-};
-
-export type FindMeCandidate = {
-  person: PersonSummary;
-  context: PersonContext;
-  score: number;
-  confidenceLabel: "très fort" | "fort" | "moyen" | "faible";
-  reasons: FindMeCandidateReason[];
-};
 
 function normalize(value?: string | null): string {
   return (value ?? "")

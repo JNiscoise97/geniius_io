@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { buildFamilyTreeMetrics } from "../api/buildFamilyTreeMetrics";
+import { buildFamilyTreeMetrics } from "../domain/graph/buildFamilyTreeMetrics";
 import { FAMILY_GRAPH } from "../api/loadGraph";
 import { ROOT_HONORED_PERSON_ID } from "../../../config/eventInfos";
 import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
-import { getMyPersonIdentityClaim } from "../api/getMyPersonIdentityClaim";
+import { getMyPersonIdentityClaim } from "../data/identity/getMyPersonIdentityClaim";
 
 type TreeHubAction = {
   key: string;
@@ -51,8 +51,9 @@ export function FamilyTreeHubPage() {
   const participantId = participantSession?.participantId ?? null;
 
   const [myIdentityClaimStatus, setMyIdentityClaimStatus] = useState<
-    "pending" | "approved" | "rejected" | "auto_verified" | null
+    "pending" | "approved" | "rejected" | null
   >(null);
+  const [myClaimedPersonId, setMyClaimedPersonId] = useState<string | null>(null);
   const [loadingClaim, setLoadingClaim] = useState(true);
 
   const commonAncestor = {
@@ -69,6 +70,7 @@ export function FamilyTreeHubPage() {
       if (!participantId) {
         if (isMounted) {
           setMyIdentityClaimStatus(null);
+          setMyClaimedPersonId(null);
           setLoadingClaim(false);
         }
         return;
@@ -82,10 +84,14 @@ export function FamilyTreeHubPage() {
 
         if (!isMounted) return;
 
+        const normalizedPersonId = identityClaim?.person_id?.trim() || null;
+
         setMyIdentityClaimStatus(identityClaim?.claim_status ?? null);
+        setMyClaimedPersonId(normalizedPersonId);
       } catch {
         if (!isMounted) return;
         setMyIdentityClaimStatus(null);
+        setMyClaimedPersonId(null);
       } finally {
         if (isMounted) {
           setLoadingClaim(false);
@@ -100,9 +106,10 @@ export function FamilyTreeHubPage() {
     };
   }, [participantId, slug]);
 
-  const hasVerifiedClaim =
-    myIdentityClaimStatus === "approved" ||
-    myIdentityClaimStatus === "auto_verified";
+  const hasApprovedClaim =
+    myIdentityClaimStatus === "approved" && Boolean(myClaimedPersonId);
+
+  const hasSelectedPerson = Boolean(myClaimedPersonId);
 
   const metrics = useMemo<TreeMetric[]>(() => {
     const rootPersonId = ROOT_HONORED_PERSON_ID;
@@ -135,13 +142,16 @@ export function FamilyTreeHubPage() {
         subtitle:
           "Les deux actions les plus utiles pour te repérer rapidement.",
         items: [
-          ...(!hasVerifiedClaim && !loadingClaim
+          ...(!hasApprovedClaim && !loadingClaim
             ? [
                 {
                   key: "find-me",
-                  label: "Me trouver dans l’arbre",
-                  description:
-                    "Retrouve ta place dans la famille et accède à ta branche.",
+                  label: hasSelectedPerson
+                    ? "Revoir ma fiche dans l’arbre"
+                    : "Me trouver dans l’arbre",
+                  description: hasSelectedPerson
+                    ? "Retrouve rapidement la fiche que tu as repérée."
+                    : "Retrouve ta place dans la famille et accède à ta branche.",
                   icon: UserCircle2,
                   to: `/e/${slug}/family-tree/find-me`,
                   enabled: true,
@@ -150,7 +160,7 @@ export function FamilyTreeHubPage() {
                 } satisfies TreeHubAction,
               ]
             : []),
-          ...(hasVerifiedClaim && !loadingClaim
+          ...(hasApprovedClaim && !loadingClaim
             ? [
                 {
                   key: "handle-profile",
@@ -165,16 +175,16 @@ export function FamilyTreeHubPage() {
               ]
             : []),
           {
-          key: "my-link-to-ancestor",
-          label: "Voir mon lien avec Gromèr Covindou",
-          description: hasVerifiedClaim
-            ? "Découvre comment tu descends de Gromèr."
-            : "Disponible une fois ton profil vérifié dans l’arbre.",
-          icon: Heart,
-          to: hasVerifiedClaim ? `/e/${slug}/family-tree/story` : undefined,
-          enabled: hasVerifiedClaim,
-          featured: true,
-        } satisfies TreeHubAction,
+            key: "my-link-to-ancestor",
+            label: "Voir mon lien avec Gromèr Covindou",
+            description: hasApprovedClaim
+              ? "Découvre comment tu descends de Gromèr."
+              : "Disponible une fois ton profil confirmé dans l’arbre.",
+            icon: Heart,
+            to: hasApprovedClaim ? `/e/${slug}/family-tree/story` : undefined,
+            enabled: hasApprovedClaim,
+            featured: true,
+          } satisfies TreeHubAction,
         ],
       },
       {
@@ -229,7 +239,7 @@ export function FamilyTreeHubPage() {
         ],
       },
     ],
-    [hasVerifiedClaim, loadingClaim, slug],
+    [hasApprovedClaim, hasSelectedPerson, loadingClaim, slug],
   );
 
   return (
@@ -411,9 +421,7 @@ function TreeActionCard({
             <span className="text-slate-500">Bientôt disponible</span>
           ) : item.featured ? (
             <span className="text-emerald-700">Utile pour se repérer</span>
-          ) : (
-            null
-          )}
+          ) : null}
         </div>
       </div>
     </button>

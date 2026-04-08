@@ -2,8 +2,8 @@ import { ArrowLeft, ArrowRight, BookOpenText } from "lucide-react";
 import { IntroQuoteCard } from "../../../shared/components/IntroQuoteCard";
 import { KnownToggleField } from "../../../shared/components/KnownToggleField";
 import { familyTreeIntroConfig } from "../config/familyTreeIntroConfig";
-import type { FamilyTreeIntroPrefs } from "../api/getFamilyTreeIntroPrefs";
 import { useNavigate, useParams } from "react-router-dom";
+import type { FamilyTreeIntroPrefs } from "../data/preferences/getFamilyTreeIntroPrefs";
 
 type FamilyTreeIntroViewProps = {
   values: FamilyTreeIntroPrefs;

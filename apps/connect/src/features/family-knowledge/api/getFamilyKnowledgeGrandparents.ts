@@ -1,3 +1,5 @@
+// features/family-knowledge/api/getFamilyKnowledgeGrandparents.ts
+
 import { supabase } from "../../../lib/supabase/client";
 import {
   createFamilyOrderId,
@@ -5,23 +7,57 @@ import {
   sortIdsByLegacyBirthOrder,
 } from "../lib/siblingOrder";
 
+export type FamilyKnowledgeYesNo = "" | "yes" | "no";
+export type FamilyKnowledgeSex = "" | "M" | "F" | "U";
+export type FamilyKnowledgeConfidence = "" | "low" | "medium" | "high";
+
 export type FamilyKnowledgeGrandparentPerson = {
+  id: string;
   known: boolean;
+
   firstName: string;
   lastName: string;
   nickname: string;
-  isAlive: "" | "yes" | "no";
-  hasPhoto: "" | "yes" | "no";
+
+  sex: FamilyKnowledgeSex;
+
+  birthYear: string;
+  deathYear: string;
+
+  birthPlace: string;
+  currentPlace: string;
+  deathPlace: string;
+
+  isAlive: FamilyKnowledgeYesNo;
+  hasPhoto: FamilyKnowledgeYesNo;
+
+  confidence: FamilyKnowledgeConfidence;
+  notes: string;
 };
 
 export type FamilyKnowledgeAuntUnclePerson = {
   id: string;
   known: boolean;
+
   firstName: string;
   lastName: string;
   nickname: string;
-  isAlive: "" | "yes" | "no";
-  hasPhoto: "" | "yes" | "no";
+
+  sex: FamilyKnowledgeSex;
+
+  birthYear: string;
+  deathYear: string;
+
+  birthPlace: string;
+  currentPlace: string;
+  deathPlace: string;
+
+  isAlive: FamilyKnowledgeYesNo;
+  hasPhoto: FamilyKnowledgeYesNo;
+
+  confidence: FamilyKnowledgeConfidence;
+  notes: string;
+
   relationshipType: "" | "both_parents" | "father_only" | "mother_only";
 };
 
@@ -31,12 +67,12 @@ export type FamilyKnowledgeGrandparentsValues = {
   maternalGrandfather: FamilyKnowledgeGrandparentPerson;
   maternalGrandmother: FamilyKnowledgeGrandparentPerson;
 
-  hasPaternalAuntsUncles: "" | "yes" | "no";
+  hasPaternalAuntsUncles: FamilyKnowledgeYesNo;
   paternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsFatherSiblingOrder: boolean;
   paternalSiblingOrder: string[];
 
-  hasMaternalAuntsUncles: "" | "yes" | "no";
+  hasMaternalAuntsUncles: FamilyKnowledgeYesNo;
   maternalAuntsUncles: FamilyKnowledgeAuntUnclePerson[];
   knowsMotherSiblingOrder: boolean;
   maternalSiblingOrder: string[];
@@ -53,16 +89,49 @@ type LegacyFamilyKnowledgeAuntUnclePerson = FamilyKnowledgeAuntUnclePerson & {
 export const FATHER_SIBLING_ORDER_KEY = "father";
 export const MOTHER_SIBLING_ORDER_KEY = "mother";
 
+function normalizeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeYesNo(value: unknown): FamilyKnowledgeYesNo {
+  return value === "yes" || value === "no" ? value : "";
+}
+
+function normalizeSex(value: unknown): FamilyKnowledgeSex {
+  return value === "M" || value === "F" || value === "U" ? value : "";
+}
+
+function normalizeConfidence(value: unknown): FamilyKnowledgeConfidence {
+  return value === "low" || value === "medium" || value === "high"
+    ? value
+    : "";
+}
+
 export function createEmptyFamilyKnowledgeGrandparentPerson(
   known = true,
 ): FamilyKnowledgeGrandparentPerson {
   return {
+    id: createFamilyOrderId(),
     known,
+
     firstName: "",
     lastName: "",
     nickname: "",
+
+    sex: "",
+
+    birthYear: "",
+    deathYear: "",
+
+    birthPlace: "",
+    currentPlace: "",
+    deathPlace: "",
+
     isAlive: "",
     hasPhoto: "",
+
+    confidence: "",
+    notes: "",
   };
 }
 
@@ -72,11 +141,26 @@ export function createEmptyFamilyKnowledgeAuntUnclePerson(
   return {
     id: createFamilyOrderId(),
     known,
+
     firstName: "",
     lastName: "",
     nickname: "",
+
+    sex: "",
+
+    birthYear: "",
+    deathYear: "",
+
+    birthPlace: "",
+    currentPlace: "",
+    deathPlace: "",
+
     isAlive: "",
     hasPhoto: "",
+
+    confidence: "",
+    notes: "",
+
     relationshipType: "",
   };
 }
@@ -100,37 +184,64 @@ export function getDefaultFamilyKnowledgeGrandparentsValues(): FamilyKnowledgeGr
   };
 }
 
-function normalizeYesNo(value: unknown): "" | "yes" | "no" {
-  return value === "yes" || value === "no" ? value : "";
-}
-
 function normalizeGrandparentPerson(input: any): FamilyKnowledgeGrandparentPerson {
   return {
+    id: normalizeText(input?.id) || createFamilyOrderId(),
     known: Boolean(input?.known),
-    firstName: input?.firstName ?? "",
-    lastName: input?.lastName ?? "",
-    nickname: input?.nickname ?? "",
+
+    firstName: normalizeText(input?.firstName),
+    lastName: normalizeText(input?.lastName),
+    nickname: normalizeText(input?.nickname),
+
+    sex: normalizeSex(input?.sex),
+
+    birthYear: normalizeText(input?.birthYear),
+    deathYear: normalizeText(input?.deathYear),
+
+    birthPlace: normalizeText(input?.birthPlace),
+    currentPlace: normalizeText(input?.currentPlace),
+    deathPlace: normalizeText(input?.deathPlace),
+
     isAlive: normalizeYesNo(input?.isAlive),
     hasPhoto: normalizeYesNo(input?.hasPhoto),
+
+    confidence: normalizeConfidence(input?.confidence),
+    notes: normalizeText(input?.notes),
   };
 }
 
 function normalizeAuntUnclePerson(input: any): LegacyFamilyKnowledgeAuntUnclePerson {
   return {
-    id: input?.id ?? createFamilyOrderId(),
+    id: normalizeText(input?.id) || createFamilyOrderId(),
     known: Boolean(input?.known),
-    firstName: input?.firstName ?? "",
-    lastName: input?.lastName ?? "",
-    nickname: input?.nickname ?? "",
+
+    firstName: normalizeText(input?.firstName),
+    lastName: normalizeText(input?.lastName),
+    nickname: normalizeText(input?.nickname),
+
+    sex: normalizeSex(input?.sex),
+
+    birthYear: normalizeText(input?.birthYear),
+    deathYear: normalizeText(input?.deathYear),
+
+    birthPlace: normalizeText(input?.birthPlace),
+    currentPlace: normalizeText(input?.currentPlace),
+    deathPlace: normalizeText(input?.deathPlace),
+
     isAlive: normalizeYesNo(input?.isAlive),
     hasPhoto: normalizeYesNo(input?.hasPhoto),
+
+    confidence: normalizeConfidence(input?.confidence),
+    notes: normalizeText(input?.notes),
+
     relationshipType:
       input?.relationshipType === "both_parents" ||
       input?.relationshipType === "father_only" ||
       input?.relationshipType === "mother_only"
         ? input.relationshipType
         : "",
-    birthOrder: input?.birthOrder ?? "",
+
+    birthOrder: normalizeText(input?.birthOrder),
   };
 }
 
@@ -175,11 +286,15 @@ export async function getFamilyKnowledgeGrandparents({
     .map((person) => `maternal:${person.id}`);
 
   const rawPaternalOrder = Array.isArray(raw.paternalSiblingOrder)
-    ? raw.paternalSiblingOrder.filter((value: unknown): value is string => typeof value === "string")
+    ? raw.paternalSiblingOrder.filter(
+        (value: unknown): value is string => typeof value === "string",
+      )
     : [];
 
   const rawMaternalOrder = Array.isArray(raw.maternalSiblingOrder)
-    ? raw.maternalSiblingOrder.filter((value: unknown): value is string => typeof value === "string")
+    ? raw.maternalSiblingOrder.filter(
+        (value: unknown): value is string => typeof value === "string",
+      )
     : [];
 
   const legacyPaternalOrder =
@@ -198,6 +313,7 @@ export async function getFamilyKnowledgeGrandparents({
 
   return {
     ...defaults,
+
     paternalGrandfather: normalizeGrandparentPerson(raw.paternalGrandfather),
     paternalGrandmother: normalizeGrandparentPerson(raw.paternalGrandmother),
     maternalGrandfather: normalizeGrandparentPerson(raw.maternalGrandfather),
