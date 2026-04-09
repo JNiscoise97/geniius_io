@@ -11,6 +11,7 @@ import {
   Gamepad2Icon,
   Gift,
   Hammer,
+  Heart,
   Info,
   Library,
   Lock,
@@ -366,6 +367,16 @@ export function LandingPage() {
             availableAt: timeline.contribute,
           },
           {
+            key: "family-reactions",
+            label: "Voir les réactions de la famille",
+            description:
+              "Retrouve les souvenirs, photos et réactions partagés autour des fiches individuelles.",
+            icon: Heart,
+            to: `/e/${slug}/reactions`,
+            enabled: true,
+            status: "enabled",
+          },
+          {
             key: "testimony-before",
             label: "Partager un souvenir de famille",
             description:
@@ -571,8 +582,8 @@ export function LandingPage() {
             </p>
           </div>
         </section>
-        
-        
+
+
         <section className="mt-4 rounded-[24px] border border-slate-200 bg-white p-2 shadow-sm">
           <div className="grid grid-cols-2 gap-2">
             <button

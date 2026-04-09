@@ -68,6 +68,7 @@ import { LearnActivityDebugPage } from "../features/player/experiences/learn/pag
 import { LearnRunPage } from "../features/player/experiences/learn/pages/LearnRunPage";
 import { ActivityHubPage } from "../features/player/pages/ActivityHubPage";
 import { CollectRunPage } from "../features/player/experiences/collect/pages/CollectRunPage";
+import { FamilyReactionFeedPage } from "../features/family-reactions/pages/FamilyReactionFeedPage";
 
 export const router = createBrowserRouter([
   {
@@ -238,6 +239,11 @@ export const router = createBrowserRouter([
               {
                 path: "announcements/new",
                 element: <AnnouncementComposerPage />,
+              },
+
+              {
+                path: "/e/:eventSlug/reactions",
+                element: <FamilyReactionFeedPage />,
               },
             ],
           },
