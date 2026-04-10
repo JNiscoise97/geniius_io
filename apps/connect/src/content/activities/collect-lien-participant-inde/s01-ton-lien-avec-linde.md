@@ -72,6 +72,10 @@ questions:
   - id: c5
     type: long
     prompt: Quelles villes ou régions as-tu visitées ?
+    media:
+      - kind: image
+        src: /src/content/activities/media/carte_inde.jpg
+        alt: Carte de l'Inde
     placeholder: "Ex : Chennai, Pondichéry, Mumbai, Gujarat…"
     evaluation:
       kind: submit_only

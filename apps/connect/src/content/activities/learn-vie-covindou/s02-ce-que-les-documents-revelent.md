@@ -35,7 +35,7 @@ questions:
 
         Ces deux communes sont liées aux habitations sucrières de l’ouest.
 
-  - id: info-0
+  - id: info-5
     type: info
     prompt: Une commune relativement récente
     bodyMarkdown: |
@@ -74,9 +74,9 @@ questions:
     type: info
     prompt: Etalissement Grande Ravine
     media:
-      kind: image
-      src: /src/content/activities/media/grande-ravine.jpg
-      alt: Etalissement Grande Ravine
+      - kind: image
+        src: /src/content/activities/media/grande-ravine.jpg
+        alt: Etalissement Grande Ravine
     bodyMarkdown: |
         L’établissement de **Grande Ravine**, créé en 1829, appartenait à l’origine à la famille **DEGUIGNÉ**, qui y faisait travailler près de 200 esclaves d’origines diverses.
 
@@ -127,7 +127,7 @@ questions:
 
         Elle est la déclarante pour chacun d’eux.
 
-  - id: info-2
+  - id: info-8
     type: info
     prompt: Des habitations liées aux propriétés sucrières
     bodyMarkdown: |
@@ -141,7 +141,7 @@ questions:
     evaluation:
       kind: none
 
-  - id: info-1
+  - id: info-9
     type: info
     prompt: Des lieux de vie très précis
     bodyMarkdown: |
@@ -161,7 +161,7 @@ questions:
     evaluation:
       kind: none
 
-  - id: info-3
+  - id: info-10
     type: info
     prompt: Un nom qui varie selon les actes
     bodyMarkdown: |
@@ -176,7 +176,7 @@ questions:
     evaluation:
       kind: none
 
-  - id: info-4
+  - id: info-11
     type: info
     prompt: Le matricule, un repère fiable
     bodyMarkdown: |

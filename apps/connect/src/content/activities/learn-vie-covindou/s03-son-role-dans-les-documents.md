@@ -27,7 +27,7 @@ questions:
 
         Ces activités reflètent son rôle dans le foyer et dans le travail agricole.
 
-  - id: info-1
+  - id: info-12
     type: info
     prompt: Une langue transmise autrement
     bodyMarkdown: |
@@ -55,7 +55,7 @@ questions:
 
         Cela montre une première rupture dans la transmission linguistique.
 
-  - id: info-2
+  - id: info-13
     type: info
     prompt: Une langue encore vivante
     bodyMarkdown: |
