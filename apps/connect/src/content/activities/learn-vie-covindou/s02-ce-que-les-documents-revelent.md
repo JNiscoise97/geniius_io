@@ -73,6 +73,10 @@ questions:
   - id: info-grande-ravine-1
     type: info
     prompt: Etalissement Grande Ravine
+    media:
+      kind: image
+      src: /src/content/activities/media/grande-ravine.jpg
+      alt: Etalissement Grande Ravine
     bodyMarkdown: |
         L’établissement de **Grande Ravine**, créé en 1829, appartenait à l’origine à la famille **DEGUIGNÉ**, qui y faisait travailler près de 200 esclaves d’origines diverses.
 
