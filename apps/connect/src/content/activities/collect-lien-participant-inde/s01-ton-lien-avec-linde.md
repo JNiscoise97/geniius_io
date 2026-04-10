@@ -180,7 +180,7 @@ questions:
       kind: submit_only
 
   - id: c11
-    type: short
+    type: long
     prompt: Y a-t-il une personne de la famille que je devrais interroger sur ce sujet ?
     placeholder: "Prénom, surnom, branche familiale…"
     evaluation:

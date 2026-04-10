@@ -27,7 +27,7 @@ export type CollectFlatQuestionItem = {
 };
 
 function defaultAnswerForQuestion(
-  question: ActivityQuestionDefinition,
+  question: ActivityQuestionDefinition
 ): LearnAnswerValue {
   switch (question.type) {
     case "qcu":
@@ -62,7 +62,7 @@ function defaultAnswerForQuestion(
 
 function canQuestionBeAnswered(
   question: ActivityQuestionDefinition,
-  answer: LearnAnswerValue,
+  answer: LearnAnswerValue
 ): boolean {
   switch (question.type) {
     case "qcu":
@@ -115,7 +115,7 @@ function canQuestionBeAnswered(
 }
 
 function flattenActivityQuestions(
-  activity: ActivityDefinition,
+  activity: ActivityDefinition
 ): CollectFlatQuestionItem[] {
   const items: CollectFlatQuestionItem[] = [];
 
@@ -218,10 +218,10 @@ function sanitizeAnswerForStorage(answer: LearnAnswerValue): unknown {
       ...photoAnswer,
       file: photoAnswer.file
         ? {
-          name: photoAnswer.file.name,
-          size: photoAnswer.file.size,
-          type: photoAnswer.file.type,
-        }
+            name: photoAnswer.file.name,
+            size: photoAnswer.file.size,
+            type: photoAnswer.file.type,
+          }
         : null,
     };
   }
@@ -231,7 +231,7 @@ function sanitizeAnswerForStorage(answer: LearnAnswerValue): unknown {
 
 export function useCollectActivityPlayer(
   activity: ActivityDefinition,
-  eventSlug: string,
+  eventSlug: string
 ) {
   const items = useMemo(() => flattenActivityQuestions(activity), [activity]);
 
@@ -269,7 +269,6 @@ export function useCollectActivityPlayer(
   const [submittedQuestionIds, setSubmittedQuestionIds] = useState<
     Record<string, true>
   >({});
-
   const [pendingReviewScore, setPendingReviewScore] = useState(0);
   const [historyStack, setHistoryStack] = useState<number[]>([]);
 
@@ -284,7 +283,7 @@ export function useCollectActivityPlayer(
 
   const currentAnswer = currentQuestion
     ? answersByQuestionId[currentQuestion.id] ??
-    defaultAnswerForQuestion(currentQuestion)
+      defaultAnswerForQuestion(currentQuestion)
     : null;
 
   const currentPendingReviewPoints = currentQuestion
@@ -323,35 +322,7 @@ export function useCollectActivityPlayer(
         });
 
         const loaded = await loadActivitySessionState(session.id);
-
         if (cancelled) return;
-
-        setSessionId(session.id);
-        setHasStarted(loaded.session.has_started ? true : !activity.introMarkdown);
-
-        const isCompletedSession = loaded.session.status === "completed";
-
-        if (isCompletedSession && session.id) {
-          await saveActivitySessionProgress({
-            sessionId: session.id,
-            currentQuestionId: items[0]?.question.id ?? null,
-            currentSectionId: items[0]?.section.id ?? null,
-            currentIndex: 0,
-            score: 0,
-            pendingReviewScore: loaded.session.pending_review_score ?? 0,
-            hasStarted: true,
-          });
-        }
-
-        setCurrentIndex(
-          isCompletedSession
-            ? 0
-            : typeof loaded.session.current_index === "number"
-              ? Math.min(loaded.session.current_index, items.length)
-              : 0,
-        );
-
-        setPendingReviewScore(loaded.session.pending_review_score ?? 0);
 
         const nextAnswers: Record<string, LearnAnswerValue> = {};
         items.forEach(({ question }) => {
@@ -359,7 +330,6 @@ export function useCollectActivityPlayer(
         });
 
         const nextSubmitted: Record<string, true> = {};
-
         loaded.answers.forEach((answerRow) => {
           if (answerRow.question_id in nextAnswers) {
             nextAnswers[answerRow.question_id] =
@@ -372,8 +342,25 @@ export function useCollectActivityPlayer(
           }
         });
 
+        setSessionId(session.id);
+        setHasStarted(loaded.session.has_started ? true : !activity.introMarkdown);
+        setCurrentIndex(0);
+        setHistoryStack([]);
+        setPendingReviewScore(loaded.session.pending_review_score ?? 0);
         setAnswersByQuestionId(nextAnswers);
         setSubmittedQuestionIds(nextSubmitted);
+
+        if (session.id && items.length > 0 && loaded.session.has_started) {
+          await saveActivitySessionProgress({
+            sessionId: session.id,
+            currentQuestionId: items[0]?.question.id ?? null,
+            currentSectionId: items[0]?.section.id ?? null,
+            currentIndex: 0,
+            score: 0,
+            pendingReviewScore: loaded.session.pending_review_score ?? 0,
+            hasStarted: true,
+          });
+        }
       } finally {
         if (!cancelled) {
           setIsBootstrapping(false);
@@ -434,7 +421,7 @@ export function useCollectActivityPlayer(
 
   async function persistProgress(
     nextIndex: number,
-    nextPendingReviewScore = pendingReviewScore,
+    nextPendingReviewScore = pendingReviewScore
   ) {
     if (!sessionId) return;
 
@@ -451,7 +438,7 @@ export function useCollectActivityPlayer(
   }
 
   async function goToResolvedNextQuestion(
-    nextPendingReviewScore = pendingReviewScore,
+    nextPendingReviewScore = pendingReviewScore
   ) {
     if (!currentQuestion) {
       setCurrentIndex(items.length);
@@ -462,7 +449,7 @@ export function useCollectActivityPlayer(
 
     const resolvedNextQuestionId = resolveNextQuestionId(
       currentQuestion,
-      currentAnswer,
+      currentAnswer
     );
 
     if (resolvedNextQuestionId) {
@@ -495,6 +482,7 @@ export function useCollectActivityPlayer(
     try {
       let sanitizedAnswer = sanitizeAnswerForStorage(currentAnswer);
       let answerText = getAnswerText(currentAnswer);
+
       const pendingDelta =
         !alreadySubmitted && currentQuestion.evaluation.kind === "manual_review"
           ? getPendingReviewPoints(currentQuestion)
@@ -662,18 +650,24 @@ export function useCollectActivityPlayer(
 
   async function goBack() {
     if (!canGoBack || isSubmitting || isBootstrapping) return;
-    if (historyStack.length === 0) return;
+    if (currentIndex <= 0) return;
 
-    const previousIndex = historyStack[historyStack.length - 1] ?? 0;
+    const previousIndex =
+      historyStack.length > 0
+        ? (historyStack[historyStack.length - 1] ?? 0)
+        : currentIndex - 1;
 
-    setHistoryStack((prev) => prev.slice(0, -1));
+    if (historyStack.length > 0) {
+      setHistoryStack((prev) => prev.slice(0, -1));
+    }
+
     setCurrentIndex(previousIndex);
     await persistProgress(previousIndex);
   }
 
   function goNext() {
-    if (!canSubmitCurrent) return;
-    submitCurrent();
+    if (!canSubmitCurrent()) return;
+    void submitCurrent();
   }
 
   async function editAnswers() {
@@ -681,6 +675,7 @@ export function useCollectActivityPlayer(
 
     setHasStarted(true);
     setCurrentIndex(0);
+    setHistoryStack([]);
     hasCompletedRef.current = false;
 
     await saveActivitySessionProgress({
