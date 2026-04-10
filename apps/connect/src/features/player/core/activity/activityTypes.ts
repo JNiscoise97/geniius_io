@@ -197,9 +197,10 @@ export type QuestionPhoto = ActivityQuestionBase & {
   type: "photo";
   consentText?: string;
   upload?: {
-    bucket?: string;
-    folder?: string;
-  };
+  bucket?: string;
+  folder?: string;
+  publicUrl?: boolean;
+};
   tier?: {
     label?: string;
     options: Array<{
@@ -263,6 +264,7 @@ export type ActivityDefinition = {
   slug: string;
   title: string;
   mode: ActivityMode;
+  order?: number;
   description?: string;
   introMarkdown?: string;
   outroMarkdown?: string;
@@ -282,6 +284,7 @@ export type ActivityManifestFrontmatter = {
   title: string;
   mode: ActivityMode;
   description?: string;
+  order?: number;
   visibility?: "private" | "public" | "invite_only";
   availability?: ActivityAvailability;
   participation?: ParticipationPolicy;

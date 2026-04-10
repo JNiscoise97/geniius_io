@@ -26,9 +26,9 @@ import {
 type LoadState =
   | { kind: "loading" }
   | {
-      kind: "ready";
-      sessionsByActivitySlug: Record<string, ActivitySessionHubSummary>;
-    }
+    kind: "ready";
+    sessionsByActivitySlug: Record<string, ActivitySessionHubSummary>;
+  }
   | { kind: "error"; message: string }
   | { kind: "missing_participant" };
 
@@ -66,15 +66,23 @@ function isVisibleInHub(activity: ActivityDefinition): boolean {
 }
 
 function orderActivities(activities: ActivityDefinition[]): ActivityDefinition[] {
-  const modeOrder: Record<ActivityDefinition["mode"], number> = {
-    learn: 1,
-    collect: 2,
-    play: 3,
-  };
-
   return [...activities].sort((a, b) => {
+    const aOrder = a.order ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = b.order ?? Number.MAX_SAFE_INTEGER;
+
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+
+    const modeOrder: Record<ActivityDefinition["mode"], number> = {
+      learn: 1,
+      collect: 2,
+      play: 3,
+    };
+
     const modeDiff = modeOrder[a.mode] - modeOrder[b.mode];
     if (modeDiff !== 0) return modeDiff;
+
     return a.title.localeCompare(b.title, "fr");
   });
 }
@@ -180,12 +188,36 @@ function getProgressLabel(
 ): string {
   const totalQuestions = getQuestionCount(activity);
 
+  if (activity.mode === "collect") {
+    switch (status) {
+      case "completed":
+        return "Contribution envoyée";
+      case "in_progress":
+        return "En cours";
+      case "available":
+        return "À commencer";
+      case "scheduled":
+      default:
+        return "Bientôt disponible";
+    }
+  }
+
   if (status === "completed") {
     return `${totalQuestions}/${totalQuestions} questions`;
   }
 
   const currentIndex = session?.currentIndex ?? 0;
   return `${Math.min(currentIndex, totalQuestions)}/${totalQuestions} questions`;
+}
+
+function getScopeLabel(activity: ActivityDefinition): string {
+  const totalQuestions = getQuestionCount(activity);
+
+  if (activity.mode === "collect") {
+    return `Jusqu’à ${totalQuestions} étape${totalQuestions > 1 ? "s" : ""}`;
+  }
+
+  return `${totalQuestions} question${totalQuestions > 1 ? "s" : ""}`;
 }
 
 function formatScheduledLabel(activity: ActivityDefinition): string | null {
@@ -537,7 +569,6 @@ function ActivityActionCard({
   const disabled = status === "scheduled";
   const statusMeta = getStatusMeta(status);
   const Icon = statusMeta.icon;
-  const questionCount = getQuestionCount(activity);
   const progressLabel = getProgressLabel(activity, session, status);
   const scheduledLabel = formatScheduledLabel(activity);
   const maxScore = getActivityMaxScore(activity);
@@ -604,23 +635,23 @@ function ActivityActionCard({
             </span>
 
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700">
-              {questionCount} question{questionCount > 1 ? "s" : ""}
+              {getScopeLabel(activity)}
             </span>
 
-            {typeof session?.score === "number" ? (
+            {activity.mode === "learn" && typeof session?.score === "number" ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700">
                 <Trophy size={12} />
                 {session.score} pts
               </span>
             ) : null}
 
-            {showLearnPotentialPoints ? (
+            {activity.mode === "learn" && showLearnPotentialPoints ? (
               <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700">
                 {maxScore} pts à gagner
               </span>
             ) : null}
 
-            {session?.pendingReviewScore ? (
+            {activity.mode === "collect" && session?.pendingReviewScore ? (
               <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700">
                 +{session.pendingReviewScore} en attente
               </span>

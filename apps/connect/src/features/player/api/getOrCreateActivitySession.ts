@@ -44,7 +44,7 @@ async function loadExistingActivitySession(
 
   if (error) {
     throw new Error(
-      `Impossible de charger la session d'activité: ${error.message}`
+      `Impossible de charger la session d'activité : ${error.message}`
     );
   }
 
@@ -70,24 +70,26 @@ export async function getOrCreateActivitySession({
 
   const nowIso = new Date().toISOString();
 
+  const insertPayload = {
+    event_slug: eventSlug,
+    activity_slug: activitySlug,
+    participant_id: participantId,
+    mode,
+    status: "in_progress" as const,
+    current_question_id: null,
+    current_section_id: null,
+    current_index: 0,
+    score: 0,
+    pending_review_score: 0,
+    started_at: hasStarted ? nowIso : null,
+    has_started: hasStarted,
+    last_answered_at: null,
+    completed_at: null,
+  };
+
   const { data: created, error: insertError } = await supabase
     .from("activity_sessions")
-    .insert({
-      event_slug: eventSlug,
-      activity_slug: activitySlug,
-      participant_id: participantId,
-      mode,
-      status: "in_progress",
-      current_question_id: null,
-      current_section_id: null,
-      current_index: 0,
-      score: 0,
-      pending_review_score: 0,
-      started_at: nowIso,
-      has_started: hasStarted,
-      last_answered_at: null,
-      completed_at: null,
-    })
+    .insert(insertPayload)
     .select("*")
     .single<ActivitySessionRow>();
 
@@ -95,25 +97,20 @@ export async function getOrCreateActivitySession({
     return created;
   }
 
-  // En cas de course concurrente, une autre requête a pu créer la session juste avant.
-  const isDuplicate =
-    insertError?.code === "23505" ||
-    insertError?.message.includes("duplicate key value violates unique constraint");
+  // Très important :
+  // en cas de course concurrente, on recharge systématiquement.
+  const concurrent = await loadExistingActivitySession(
+    eventSlug,
+    activitySlug,
+    participantId
+  );
 
-  if (isDuplicate) {
-    const concurrent = await loadExistingActivitySession(
-      eventSlug,
-      activitySlug,
-      participantId
-    );
-
-    if (concurrent) {
-      return concurrent;
-    }
+  if (concurrent) {
+    return concurrent;
   }
 
   throw new Error(
-    `Impossible de créer la session d'activité: ${
+    `Impossible de créer la session d'activité : ${
       insertError?.message ?? "erreur inconnue"
     }`
   );

@@ -4,6 +4,7 @@ slug: learn-vie-covindou
 title: La vie de Gromèr Covindou
 mode: learn
 description: Un quiz pour découvrir ce que les documents nous apprennent réellement sur la vie de notre aïeule commune.
+order: 2
 
 participation:
   kind: individual

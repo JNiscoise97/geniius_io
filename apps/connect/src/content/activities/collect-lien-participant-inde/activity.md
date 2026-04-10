@@ -18,18 +18,11 @@ scoring:
 
 feedback:
   kind: deferred
-  showExplanation: false
-  showExpectedAnswer: false
 
 persistence:
   autosave: true
   resumeAllowed: true
   saveDrafts: true
-
-availability:
-  kind: scheduled
-  opensAt: "2026-04-20T18:00:00+04:00"
-  label: "Disponible demain"
 
 sections:
   - id: s01
@@ -39,6 +32,7 @@ sections:
 
 Après le quiz, place à ta mémoire, à ton regard et à ton vécu.
 
-Cette collecte a un objectif simple : nous aider à reconstituer plus finement le lien entre notre famille et l’Inde aujourd’hui.
+Cette collecte a un objectif simple : nous aider à reconstituer plus finement le lien entre notre famille et l’Inde aujourd’hui.  
 Certaines réponses sont très courtes, d’autres te laissent davantage de place.
+
 Tu peux répondre librement, même si tu n’es pas sûr de tout.

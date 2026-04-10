@@ -31,9 +31,9 @@ questions:
     type: info
     prompt: Une langue transmise autrement
     bodyMarkdown: |
-      Gromèr Covindou parlait **créole**, mais aussi sa **langue maternelle indienne**, transmise par ses parents.
+      Gromèr Covindou parlait **créole**, mais aussi une **langue indienne**, très probablement le tamoul, transmise par ses parents.
 
-      Elle continuait à l’utiliser avec des membres de sa famille qui venaient lui rendre visite.
+      Elle continuait à l’utiliser avec des membres de sa communauté qui venaient lui rendre visite.
 
       Elle chantait également dans cette langue.
 

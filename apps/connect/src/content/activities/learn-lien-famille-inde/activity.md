@@ -4,6 +4,7 @@ slug: learn-lien-famille-inde
 title: Notre lien avec l’Inde 🇮🇳
 mode: learn
 description: Un quiz narratif pour comprendre comment l’histoire de notre famille s’inscrit dans l’histoire plus large de l’engagisme indien.
+order: 1
 
 participation:
   kind: individual

@@ -61,6 +61,12 @@ function withDefaults(
     title: manifest.title,
     mode: manifest.mode,
     description: manifest.description,
+    order:
+  typeof manifest.order === "number"
+    ? manifest.order
+    : typeof manifest.order === "string" && manifest.order !== ""
+      ? Number(manifest.order)
+      : undefined,
     availability: manifest.availability ?? { kind: "available" },
     visibility: manifest.visibility ?? "private",
     introMarkdown: undefined,
