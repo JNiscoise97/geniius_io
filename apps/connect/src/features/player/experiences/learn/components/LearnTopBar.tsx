@@ -49,11 +49,7 @@ export function LearnTopBar({
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center justify-between gap-3 text-xs font-extrabold text-slate-700">
-        <span>
-          Question {Math.min(currentIndex + 1, totalQuestions)}/{totalQuestions}
-        </span>
-
+      <div className="mt-3 flex items-center justify-end gap-3 text-xs font-extrabold text-slate-700">
         <div className="flex items-center gap-2">
           {remainingQuestionPoints !== undefined ? (
             <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700">
@@ -85,6 +81,12 @@ export function LearnTopBar({
               Score <span className="text-slate-900">{score}</span>
             </span>
           ) : null}
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs font-extrabold text-slate-700">
+          <span>
+            Question {Math.min(currentIndex + 1, totalQuestions)}/{totalQuestions}
+          </span>
         </div>
       </div>
 

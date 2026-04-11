@@ -70,6 +70,10 @@ import { ActivityHubPage } from "../features/player/pages/ActivityHubPage";
 import { CollectRunPage } from "../features/player/experiences/collect/pages/CollectRunPage";
 import { FamilyReactionFeedPage } from "../features/family-reactions/pages/FamilyReactionFeedPage";
 
+import { FamilyDocumentReaderPage } from "../features/family-documents/pages/FamilyDocumentReaderPage";
+import { FamilyDocumentsPage } from "../features/family-documents/pages/FamilyDocumentsPage";
+
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -244,6 +248,16 @@ export const router = createBrowserRouter([
               {
                 path: "/e/:eventSlug/reactions",
                 element: <FamilyReactionFeedPage />,
+              },
+
+              {
+                path: "/e/:eventSlug/documents",
+                element: <FamilyDocumentsPage />,
+              },
+
+              {
+                path: "/e/:eventSlug/documents/:documentSlug",
+                element: <FamilyDocumentReaderPage />,
               },
             ],
           },
