@@ -76,6 +76,7 @@ import { ActivityLeaderboardPage } from "../features/player/pages/ActivityLeader
 import { ParticipantFeedbackPage } from "../features/participant-feedback/pages/ParticipantFeedbackPage";
 import { ParticipantEventMemoryPage } from "../features/participant-event-memories/pages/ParticipantEventMemoryPage";
 import { AdminEventMemoriesPage } from "../features/participant-event-memories/pages/AdminEventMemoriesPage";
+import { AdminEventAttendancePage } from "../features/participant-attendance/pages/AdminEventAttendancePage";
 
 
 export const router = createBrowserRouter([
@@ -144,6 +145,7 @@ export const router = createBrowserRouter([
 
               // Attendance
               { path: "attendance", element: <ParticipantAttendancePage /> },
+              { path: "admin/attendance", element: <AdminEventAttendancePage /> },
 
               // Contact organizer
               { path: "contact", element: <ParticipantContactOrganizerPage /> },

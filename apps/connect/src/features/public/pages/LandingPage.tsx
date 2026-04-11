@@ -148,8 +148,8 @@ export function LandingPage() {
     prepare: true,
     discover: true,
     contribute: true,
-    dayof: false,
-    after: false,
+    dayof: true,
+    after: true,
   });
   const [guidedPrompts, setGuidedPrompts] = useState<CompletionRule[]>([]);
   const [loadingGuidedPrompts, setLoadingGuidedPrompts] = useState(true);
@@ -208,7 +208,7 @@ export function LandingPage() {
 
     teamGameAt: "2026-04-12",
     leaderboardAt: "2026-04-12",
-    photosAt: "2026-04-12",
+    photosAt: "2026-04-26",
     feedbackAt: "2026-04-12",
   };
 
