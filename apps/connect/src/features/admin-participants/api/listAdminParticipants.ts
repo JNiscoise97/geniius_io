@@ -3,6 +3,7 @@ import type { AdminParticipantListItem } from "../types/adminParticipantTypes";
 
 type ParticipantRow = {
   id: string;
+  event_slug: string;
   first_name: string | null;
   last_name: string | null;
   nickname: string | null;
@@ -19,20 +20,26 @@ type ParticipantConsentRow = {
 export async function listAdminParticipants(
   eventSlug: string
 ): Promise<AdminParticipantListItem[]> {
-  const [{ data: participants, error: participantsError }, { data: consents, error: consentsError }] =
-    await Promise.all([
-      supabase
-        .from("participants")
-        .select("id, first_name, last_name, nickname, birth_year, email, phone")
-        .eq("event_slug", eventSlug)
-        .order("last_name", { ascending: true })
-        .order("first_name", { ascending: true })
-        .returns<ParticipantRow[]>(),
-      supabase
-        .from("participant_consents")
-        .select("participant_id, allow_name_in_family_tree")
-        .returns<ParticipantConsentRow[]>(),
-    ]);
+  const [
+    { data: participants, error: participantsError },
+    { data: consents, error: consentsError },
+  ] = await Promise.all([
+    supabase
+      .from("participants")
+      .select(
+        "id, event_slug, first_name, last_name, nickname, birth_year, email, phone"
+      )
+      .eq("event_slug", eventSlug)
+      .order("last_name", { ascending: true })
+      .order("first_name", { ascending: true })
+      .returns<ParticipantRow[]>(),
+
+    supabase
+      .from("participant_consents")
+      .select("participant_id, allow_name_in_family_tree")
+      .eq("event_slug", eventSlug)
+      .returns<ParticipantConsentRow[]>(),
+  ]);
 
   if (participantsError) {
     throw new Error(
@@ -55,13 +62,14 @@ export async function listAdminParticipants(
 
     return {
       participantId: participant.id,
+      eventSlug: participant.event_slug,
       firstName: participant.first_name?.trim() ?? "",
       lastName: participant.last_name?.trim() ?? "",
       nickname: participant.nickname?.trim() || null,
       birthYear: participant.birth_year ?? null,
       email: participant.email?.trim() || null,
       phone: participant.phone?.trim() || null,
-      allowNameInFamilyTree: consent?.allow_name_in_family_tree === true,
+      allowNameInFamilyTree: consent?.allow_name_in_family_tree ?? null,
       hasConnectedIdentity: Boolean(
         participant.first_name?.trim() || participant.last_name?.trim()
       ),
