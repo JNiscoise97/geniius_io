@@ -178,7 +178,7 @@ export function LandingPage() {
     },
     postEvent: {
       testimonyAfter: true,
-      eventFeedback: false,
+      eventFeedback: true,
       photosVideos: false,
     },
     core: {
@@ -417,9 +417,7 @@ export function LandingPage() {
             icon: Star,
             to: `/e/${slug}/avis`,
             enabled: features.postEvent.eventFeedback,
-            status: "disabled",
-            availableAt: timeline.feedbackAt,
-            availabilityMode: "available",
+            status: "enabled",
           },
           {
             key: "photos",
@@ -434,14 +432,12 @@ export function LandingPage() {
           },
           {
             key: "testimony-after",
-            label: "Partager son souvenir de la cousinade",
-            description: "Raconte ce qui t’a marqué pendant la journée.",
+            label: "Voir les souvenirs de la cousinade",
+            description: "Revis la cousinade à travers les témoignages de ceux qui y étaient.",
             icon: MessageCircle,
             to: `/e/${slug}/temoignage`,
             enabled: features.postEvent.testimonyAfter,
-            status: "disabled",
-            availableAt: timeline.photosAt,
-            availabilityMode: "available",
+            status: "enabled",
           },
         ],
       },

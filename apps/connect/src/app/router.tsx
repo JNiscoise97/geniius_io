@@ -73,6 +73,9 @@ import { FamilyReactionFeedPage } from "../features/family-reactions/pages/Famil
 import { FamilyDocumentReaderPage } from "../features/family-documents/pages/FamilyDocumentReaderPage";
 import { FamilyDocumentsPage } from "../features/family-documents/pages/FamilyDocumentsPage";
 import { ActivityLeaderboardPage } from "../features/player/pages/ActivityLeaderboardPage";
+import { ParticipantFeedbackPage } from "../features/participant-feedback/pages/ParticipantFeedbackPage";
+import { ParticipantEventMemoryPage } from "../features/participant-event-memories/pages/ParticipantEventMemoryPage";
+import { AdminEventMemoriesPage } from "../features/participant-event-memories/pages/AdminEventMemoriesPage";
 
 
 export const router = createBrowserRouter([
@@ -264,6 +267,12 @@ export const router = createBrowserRouter([
                 path: "/e/:eventSlug/documents/:documentSlug",
                 element: <FamilyDocumentReaderPage />,
               },
+
+              {
+                path: "avis",
+                element: <ParticipantFeedbackPage />,
+              },
+              { path: "temoignage", element: <ParticipantEventMemoryPage /> },
             ],
           },
         ],
@@ -284,6 +293,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminHomePage /> },
           { path: "events/:eventSlug", element: <AdminEventDashboardPage /> },
+          { path: "events/:eventSlug/memories", element: <AdminEventMemoriesPage /> },
         ],
       },
     ],
