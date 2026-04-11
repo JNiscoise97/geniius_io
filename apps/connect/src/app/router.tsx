@@ -72,6 +72,7 @@ import { FamilyReactionFeedPage } from "../features/family-reactions/pages/Famil
 
 import { FamilyDocumentReaderPage } from "../features/family-documents/pages/FamilyDocumentReaderPage";
 import { FamilyDocumentsPage } from "../features/family-documents/pages/FamilyDocumentsPage";
+import { ActivityLeaderboardPage } from "../features/player/pages/ActivityLeaderboardPage";
 
 
 export const router = createBrowserRouter([
@@ -237,7 +238,11 @@ export const router = createBrowserRouter([
               },
               {
                 path: "/e/:eventSlug/activities/collect/:activitySlug",
-                element: <CollectRunPage />, // si tu l’as déjà
+                element: <CollectRunPage />,
+              },
+              {
+                path: "/e/:eventSlug/activities/classement",
+                element: <ActivityLeaderboardPage />,
               },
 
               {
