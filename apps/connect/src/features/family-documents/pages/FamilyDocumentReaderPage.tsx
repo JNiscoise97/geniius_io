@@ -13,13 +13,15 @@ import {
     User,
     type LucideIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     getFamilyDocumentBySlug,
     getFamilyDocumentCategoryMeta,
 } from "../data/familyDocumentsCatalog";
 import type { FamilyDocumentCategory } from "../data/familyDocumentTypes";
+import { getParticipantSession } from "../../../lib/participant-session/getActiveParticipant";
+import { trackFamilyDocumentEvent } from "../api/trackFamilyDocumentEvent";
 
 function getDocumentIcon(category: FamilyDocumentCategory): LucideIcon {
     switch (category) {
@@ -53,10 +55,39 @@ export function FamilyDocumentReaderPage() {
     const resolvedEventSlug = eventSlug ?? "";
     const resolvedDocumentSlug = documentSlug ?? "";
 
+    const participantSession = getParticipantSession(resolvedEventSlug);
+    const participantId = participantSession?.participantId ?? null;
+    const hasTrackedViewRef = useRef(false);
+
     const document = useMemo(
         () => getFamilyDocumentBySlug(resolvedDocumentSlug),
         [resolvedDocumentSlug],
     );
+
+    useEffect(() => {
+        if (!resolvedEventSlug || !resolvedDocumentSlug || !participantId) {
+            return;
+        }
+
+        if (hasTrackedViewRef.current) {
+            return;
+        }
+
+        hasTrackedViewRef.current = true;
+
+        void trackFamilyDocumentEvent({
+            eventSlug: resolvedEventSlug,
+            participantId,
+            documentSlug: resolvedDocumentSlug,
+            action: "view",
+            metadata: {
+                format: document?.format ?? null,
+                category: document?.category ?? null,
+            },
+        }).catch((error) => {
+            console.error("Impossible de tracer la consultation du document", error);
+        });
+    }, [resolvedEventSlug, resolvedDocumentSlug, participantId, document]);
 
     if (!resolvedEventSlug) {
         return (
@@ -156,6 +187,22 @@ export function FamilyDocumentReaderPage() {
                         <a
                             href={document.fileUrl}
                             download
+                            onClick={() => {
+                                if (!participantId) return;
+
+                                void trackFamilyDocumentEvent({
+                                    eventSlug: resolvedEventSlug,
+                                    participantId,
+                                    documentSlug: document.slug,
+                                    action: "download",
+                                    metadata: {
+                                        format: document.format,
+                                        category: document.category,
+                                    },
+                                }).catch((error) => {
+                                    console.error("Impossible de tracer le téléchargement", error);
+                                });
+                            }}
                             className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
                         >
                             <Download size={14} />

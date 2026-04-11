@@ -77,6 +77,10 @@ import { ParticipantFeedbackPage } from "../features/participant-feedback/pages/
 import { ParticipantEventMemoryPage } from "../features/participant-event-memories/pages/ParticipantEventMemoryPage";
 import { AdminEventMemoriesPage } from "../features/participant-event-memories/pages/AdminEventMemoriesPage";
 import { AdminEventAttendancePage } from "../features/participant-attendance/pages/AdminEventAttendancePage";
+import { AdminFamilyDocumentAnalyticsPage } from "../features/family-documents/pages/AdminFamilyDocumentAnalyticsPage";
+import { AdminParticipantDetailsPage } from "../features/admin-participants/pages/AdminParticipantDetailsPage";
+import { AdminParticipantsPage } from "../features/admin-participants/pages/AdminParticipantsPage";
+import { FamilyTreeBrowseTvPage } from "../features/family-tree/pages/FamilyTreeBrowseTvPage";
 
 
 export const router = createBrowserRouter([
@@ -186,6 +190,7 @@ export const router = createBrowserRouter([
               { path: "arbre", element: <FamilyTreeHubPage /> },
 
               { path: "family-tree/browse", element: <FamilyTreeBrowsePage /> },
+              { path: "/e/:eventSlug/family-tree/browse-tv", element: <FamilyTreeBrowseTvPage /> },
               {
                 path: "family-tree/story",
                 element: <FamilyRelationshipStoryPage />,
@@ -270,6 +275,7 @@ export const router = createBrowserRouter([
                 element: <FamilyDocumentReaderPage />,
               },
 
+
               {
                 path: "avis",
                 element: <ParticipantFeedbackPage />,
@@ -296,6 +302,9 @@ export const router = createBrowserRouter([
           { index: true, element: <AdminHomePage /> },
           { path: "events/:eventSlug", element: <AdminEventDashboardPage /> },
           { path: "events/:eventSlug/memories", element: <AdminEventMemoriesPage /> },
+          { path: "events/:eventSlug/documents", element: <AdminFamilyDocumentAnalyticsPage /> },
+          { path: "events/:eventSlug/participants", element: <AdminParticipantsPage /> },
+          { path: "events/:eventSlug/participants/:participantId", element: <AdminParticipantDetailsPage /> },
         ],
       },
     ],
