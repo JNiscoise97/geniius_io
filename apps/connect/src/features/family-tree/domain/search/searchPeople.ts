@@ -5,6 +5,7 @@ import {
 } from "./normalizeSearchText";
 import type { FamilyGraphData } from "../../types/graph";
 import type { FamilySearchDocument, PersonSearchMatchKey, PersonSearchResult } from "../../types/search";
+import type { FamilyTreePermissionSet } from "../../types/permissions";
 
 export type SearchPeopleInput = {
   query: string;
@@ -13,6 +14,7 @@ export type SearchPeopleInput = {
   centerPersonId?: string;
   limit?: number;
   forceDisplayedPersonIds?: string[];
+  permissions?: FamilyTreePermissionSet;
 };
 
 function addMatch(
@@ -82,6 +84,7 @@ export function searchPeople({
   centerPersonId,
   limit = 20,
   forceDisplayedPersonIds = [],
+  permissions
 }: SearchPeopleInput): PersonSearchResult[] {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return [];
@@ -95,7 +98,10 @@ export function searchPeople({
   for (const doc of documents) {
     const canForceDisplay = forceDisplayedPersonIdsSet.has(doc.personId);
 
-    if (!doc.canDisplay && !canForceDisplay) continue;
+    const canViewMaskedPeople =
+      permissions?.["family_tree.view_masked_people"] === true;
+
+    if (!doc.canDisplay && !canForceDisplay && !canViewMaskedPeople) continue;
 
     let score = 0;
     const matches = new Set<PersonSearchMatchKey>();

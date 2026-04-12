@@ -4,6 +4,7 @@ import type {
   AdminParticipantConsents,
   AdminParticipantDetails,
 } from "../types/adminParticipantTypes";
+import type { FamilyTreeRole } from "../../family-tree/types/permissions";
 
 type ParticipantRow = {
   id: string;
@@ -45,6 +46,10 @@ type ParticipantConsentsRow = {
   allow_participation_in_games: boolean | null;
 
   other_preferences: string | null;
+};
+
+type ParticipantRoleRow = {
+  role: FamilyTreeRole | null;
 };
 
 type GetAdminParticipantDetailsParams = {
@@ -90,7 +95,7 @@ export async function getAdminParticipantDetails({
   eventSlug,
   participantId,
 }: GetAdminParticipantDetailsParams): Promise<AdminParticipantDetails | null> {
-  const [participantRes, consentsRes, tracking] = await Promise.all([
+  const [participantRes, consentsRes, rolesRes, tracking] = await Promise.all([
     supabase
       .from("participants")
       .select(
@@ -129,6 +134,13 @@ export async function getAdminParticipantDetails({
       .eq("event_slug", eventSlug)
       .maybeSingle<ParticipantConsentsRow>(),
 
+    supabase
+      .from("participant_roles")
+      .select("role")
+      .eq("participant_id", participantId)
+      .eq("event_slug", eventSlug)
+      .returns<ParticipantRoleRow[]>(),
+
     getAdminParticipantTracking({
       eventSlug,
       participantId,
@@ -147,10 +159,19 @@ export async function getAdminParticipantDetails({
     );
   }
 
+  if (rolesRes.error) {
+    throw new Error(
+      `Impossible de charger les rôles : ${rolesRes.error.message}`
+    );
+  }
+
   const participant = participantRes.data;
   if (!participant) return null;
 
   const consents = mapConsents(consentsRes.data);
+  const roles = (rolesRes.data ?? [])
+    .map((row) => row.role)
+    .filter((role): role is FamilyTreeRole => Boolean(role));
 
   return {
     participantId: participant.id,
@@ -172,5 +193,6 @@ export async function getAdminParticipantDetails({
 
     consents,
     tracking,
+    roles,
   };
 }

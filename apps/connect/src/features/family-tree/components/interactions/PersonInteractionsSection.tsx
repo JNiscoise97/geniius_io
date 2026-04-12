@@ -8,17 +8,10 @@ import {
   MessageCircle,
   UserCheck,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
-type BrowsePanelMode =
-  | "relations"
-  | "memories"
-  | "memory_editor"
-  | "photo_upload"
-  | "photos"
-  | "touched"
-  | "visibility_request";
+import type { BrowsePanelMode } from "../../types/browse";
 
 function ReactionCountBadge({
   count,
@@ -29,9 +22,8 @@ function ReactionCountBadge({
 }) {
   return (
     <span
-      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${
-        active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-      }`}
+      className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+        }`}
     >
       {count}
     </span>
@@ -65,6 +57,9 @@ export type PersonInteractionsSectionProps = {
 
   panelMode: BrowsePanelMode;
   moderatorComment: string | null;
+
+  canAssistInPerson?: boolean;
+  onOpenInPersonAssist?: () => void;
 
   onOpenMemories: () => void;
   onOpenPhotos: () => void;
@@ -118,6 +113,8 @@ export function PersonInteractionsSection({
   onCancelIdentityClaim,
   onOpenVisibilityRequestForm,
   onCancelVisibilityRequest,
+  canAssistInPerson,
+  onOpenInPersonAssist
 }: PersonInteractionsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -219,11 +216,10 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenMemories}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                  panelMode === "memories"
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-500"
-                }`}
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "memories"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500"
+                  }`}
               >
                 <MessageCircle size={20} />
                 {totalMemoriesCount}
@@ -232,11 +228,10 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenPhotos}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                  panelMode === "photos"
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-500"
-                }`}
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "photos"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500"
+                  }`}
               >
                 <Camera size={20} />
                 {totalPhotosCount}
@@ -245,19 +240,17 @@ export function PersonInteractionsSection({
               <button
                 type="button"
                 onClick={onOpenTouched ?? onToggleTouched}
-                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${
-                  panelMode === "touched"
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-500"
-                }`}
+                className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 transition ${panelMode === "touched"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500"
+                  }`}
               >
                 <Heart
                   size={20}
-                  className={`transition ${
-                    hasTouchedPerson
-                      ? "text-red-500 scale-110"
-                      : "text-slate-400"
-                  }`}
+                  className={`transition ${hasTouchedPerson
+                    ? "text-red-500 scale-110"
+                    : "text-slate-400"
+                    }`}
                   fill={hasTouchedPerson ? "currentColor" : "none"}
                 />
                 {reactionsCount}
@@ -271,17 +264,15 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleTouched}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                    hasTouchedPerson
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-700"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasTouchedPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                    }`}
                 >
                   <Heart
                     size={14}
-                    className={`transition ${
-                      hasTouchedPerson ? "text-red-300 scale-110" : ""
-                    }`}
+                    className={`transition ${hasTouchedPerson ? "text-red-300 scale-110" : ""
+                      }`}
                     fill={hasTouchedPerson ? "currentColor" : "none"}
                   />
                   J'aime
@@ -292,11 +283,10 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleKnown}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                    hasKnownPerson
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-700"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasKnownPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                    }`}
                 >
                   <UserCheck size={14} />
                   {knowLabel}
@@ -311,11 +301,10 @@ export function PersonInteractionsSection({
                 <button
                   type="button"
                   onClick={onToggleHeard}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                    hasHeardOfPerson
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-700"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${hasHeardOfPerson
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700"
+                    }`}
                 >
                   <Megaphone size={14} />
                   {heardLabel}
@@ -360,15 +349,14 @@ export function PersonInteractionsSection({
                         isIdentityVerificationSubmitting ||
                         isIdentityVerificationPending
                       }
-                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                        isIdentityVerificationSubmitting
-                          ? "bg-slate-200 text-slate-600 opacity-70"
-                          : hasRejectedClaimForCurrentPerson
-                            ? "bg-rose-100 text-rose-900"
-                            : isIdentityVerificationPending
-                              ? "bg-amber-100 text-amber-900"
-                              : "bg-slate-900 text-white"
-                      } ${isIdentityVerificationSubmitting ? "" : "active:scale-[0.99]"}`}
+                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${isIdentityVerificationSubmitting
+                        ? "bg-slate-200 text-slate-600 opacity-70"
+                        : hasRejectedClaimForCurrentPerson
+                          ? "bg-rose-100 text-rose-900"
+                          : isIdentityVerificationPending
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-slate-900 text-white"
+                        } ${isIdentityVerificationSubmitting ? "" : "active:scale-[0.99]"}`}
                     >
                       {isIdentityVerificationSubmitting ? (
                         <>
@@ -441,9 +429,8 @@ export function PersonInteractionsSection({
 
                   <ChevronDown
                     size={16}
-                    className={`ml-auto transition-transform duration-200 ${
-                      isExpanded ? "rotate-180" : ""
-                    }`}
+                    className={`ml-auto transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 
@@ -505,11 +492,10 @@ export function PersonInteractionsSection({
             <button
               type="button"
               onClick={onOpenMemoryEditor}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                panelMode === "memory_editor"
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-700"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "memory_editor"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-700"
+                }`}
             >
               <MessageCircle size={14} />
               {memoryActionLabel}
@@ -518,14 +504,35 @@ export function PersonInteractionsSection({
             <button
               type="button"
               onClick={onOpenPhotoEditor}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${
-                panelMode === "photo_upload"
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-700"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "photo_upload"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-700"
+                }`}
             >
               <Camera size={14} />
               {photoActionLabel}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {canAssistInPerson ? (
+        <section className="mb-4 mt-3 rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Assistance terrain
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onOpenInPersonAssist}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold transition ${panelMode === "in_person_assist"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-700"
+                }`}
+            >
+              <Users size={14} />
+              Je suis en face de la personne
             </button>
           </div>
         </section>

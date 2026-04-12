@@ -1,13 +1,5 @@
 import { useMemo, useState } from "react";
-
-export type BrowsePanelMode =
-  | "relations"
-  | "memories"
-  | "memory_editor"
-  | "photo_upload"
-  | "photos"
-  | "touched"
-  | "visibility_request";
+import type { BrowsePanelMode } from "../../types/browse";
 
 export type MemoryDraftState = {
   value: string;

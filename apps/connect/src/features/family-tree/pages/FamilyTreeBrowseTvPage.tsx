@@ -33,12 +33,16 @@ import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOve
 import { getParticipantDefaultGedcomPersonId } from "../data/profiles/getParticipantDefaultGedcomPersonId";
 import type { PersonUiOverride } from "../data/profiles/uiOverrides";
 import { getFamilyTreeEffectiveVisibilityMap } from "../data/visibility/getFamilyTreeEffectiveVisibilityMap";
+import { findRelationshipPath } from "../domain/graph/findRelationshipPath";
 import {
-  findRelationshipPath,
-  type RelationshipEdgeType,
-  type RelationshipPathNode,
-} from "../domain/graph/findRelationshipPath";
-import { formatPlaceTransition } from "../domain/graph/genealogyUi";
+  formatBrowseLifePath,
+  formatBrowseYears,
+  getBrowseDisplayPerson,
+  getPluralLabel,
+  removeUniformLinkedSpouseLabel,
+  sortPersonsByBirthYear,
+  summarizeRelationshipToRoot,
+} from "../domain/browse/browsePersonUtils";
 import type { PersonSummary } from "../types/person";
 import type { PersonVisibilityPreferenceMap } from "../types/visibility";
 
@@ -51,6 +55,7 @@ type TvRelationSectionKey =
 
 type TvRelationGroupProps = {
   title: string;
+  subtitle: string;
   icon: LucideIcon;
   persons: PersonSummary[];
   emptyLabel: string;
@@ -62,299 +67,190 @@ function normalizePersonId(value?: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
-function anonymizePerson(person: PersonSummary): PersonSummary {
-  if (
-    person.canDisplay &&
-    person.canDisplayName &&
-    person.canDisplayPhoto &&
-    person.canDisplayInfo
-  ) {
-    return person;
+function PersonVisual({
+  person,
+  sizeClassName = "h-full w-full",
+}: {
+  person: PersonSummary;
+  sizeClassName?: string;
+}) {
+  const displayName = `${person.firstName} ${person.lastName}`.trim();
+
+  if (person.canDisplay && person.canDisplayPhoto && person.photoSrc) {
+    return (
+      <SmartImage
+        src={person.photoSrc}
+        alt={displayName || "Personne"}
+      />
+    );
   }
 
-  return {
-    ...person,
-    firstName:
-      person.canDisplay && person.canDisplayName
-        ? person.firstName
-        : "Personne",
-    lastName:
-      person.canDisplay && person.canDisplayName ? person.lastName : "privée",
-    nickname:
-      person.canDisplay && person.canDisplayName ? person.nickname : undefined,
-    photoSrc:
-      person.canDisplay && person.canDisplayPhoto ? person.photoSrc : undefined,
-    birthYear:
-      person.canDisplay && person.canDisplayInfo ? person.birthYear : undefined,
-    deathYear:
-      person.canDisplay && person.canDisplayInfo ? person.deathYear : undefined,
-    birthPlace:
-      person.canDisplay && person.canDisplayInfo
-        ? person.birthPlace
-        : undefined,
-    deathPlace:
-      person.canDisplay && person.canDisplayInfo
-        ? person.deathPlace
-        : undefined,
-    currentPlace:
-      person.canDisplay && person.canDisplayInfo
-        ? person.currentPlace
-        : undefined,
-    linkedSpouseLabel:
-      person.canDisplay && person.canDisplayInfo
-        ? person.linkedSpouseLabel
-        : undefined,
-    spouseRoleLabel:
-      person.canDisplay && person.canDisplayInfo
-        ? person.spouseRoleLabel
-        : undefined,
-    branch: person.canDisplay ? person.branch : undefined,
-  };
-}
-
-function getDisplayPerson(
-  person: PersonSummary,
-  forceDisplayedPersonIds: Set<string>,
-): PersonSummary {
-  if (forceDisplayedPersonIds.has(person.id)) {
-    return person;
-  }
-
-  return anonymizePerson(person);
-}
-
-function formatYears(person: PersonSummary): string | null {
-  const { birthYear, deathYear, isPossiblyAlive } = person;
-
-  if (!birthYear && !deathYear) return null;
-  if (birthYear && deathYear) return `${birthYear} - ${deathYear}`;
-  if (!isPossiblyAlive) return `${birthYear ?? "?"} - ?`;
-
-  return birthYear ?? "?";
-}
-
-function formatLifePath(person: PersonSummary): string | null {
-  return formatPlaceTransition(
-    person.birthPlace,
-    person.currentPlace,
-    person.deathPlace,
+  return (
+    <div
+      className={`flex items-center justify-center bg-black/10 text-white/80 ${sizeClassName}`}
+    >
+      <Users size={56} />
+    </div>
   );
 }
 
-function getPluralLabel(count: number, singular: string, plural: string) {
-  return count > 1 ? plural : singular;
-}
-
-function getAncestorLabel(level: number, sex?: string) {
-  const isFemale = sex === "F";
-  const isMale = sex === "M";
-
-  if (level <= 0) return "de la famille";
-
-  if (level === 1) {
-    if (isFemale) return "la mère";
-    if (isMale) return "le père";
-    return "un parent";
-  }
-
-  if (level === 2) {
-    if (isFemale) return "la grand-mère";
-    if (isMale) return "le grand-père";
-    return "un grand-parent";
-  }
-
-  if (level === 3) {
-    if (isFemale) return "l’arrière-grand-mère";
-    if (isMale) return "l’arrière-grand-père";
-    return "un arrière-grand-parent";
-  }
-
-  if (isFemale) return `l’${"arrière-".repeat(level - 2)}grand-mère`;
-  if (isMale) return `l’${"arrière-".repeat(level - 2)}grand-père`;
-
-  return `un ${"arrière-".repeat(level - 2)}grand-parent`;
-}
-
-function getDescendantLabel(level: number, sex?: string) {
-  const isFemale = sex === "F";
-  const isMale = sex === "M";
-
-  if (level <= 0) return "de la famille";
-
-  if (level === 1) {
-    if (isFemale) return "la fille";
-    if (isMale) return "le fils";
-    return "un enfant";
-  }
-
-  if (level === 2) {
-    if (isFemale) return "la petite-fille";
-    if (isMale) return "le petit-fils";
-    return "un petit-enfant";
-  }
-
-  if (level === 3) {
-    if (isFemale) return "l’arrière-petite-fille";
-    if (isMale) return "l’arrière-petit-fils";
-    return "un arrière-petit-enfant";
-  }
-
-  if (isFemale) return `l’${"arrière-".repeat(level - 2)}petite-fille`;
-  if (isMale) return `l’${"arrière-".repeat(level - 2)}petit-fils`;
-
-  return `un ${"arrière-".repeat(level - 2)}petit-enfant`;
-}
-
-function getSiblingDescendantLabel(level: number, sex?: string) {
-  const isFemale = sex === "F";
-  const isMale = sex === "M";
-
-  if (level <= 0) {
-    if (isFemale) return "la sœur";
-    if (isMale) return "le frère";
-    return "un frère ou une sœur";
-  }
-
-  if (level === 1) {
-    if (isFemale) return "la nièce";
-    if (isMale) return "le neveu";
-    return "un neveu ou une nièce";
-  }
-
-  if (level === 2) {
-    if (isFemale) return "la petite-nièce";
-    if (isMale) return "le petit-neveu";
-    return "un petit-neveu ou une petite-nièce";
-  }
-
-  if (level === 3) {
-    if (isFemale) return "l’arrière-petite-nièce";
-    if (isMale) return "l’arrière-petit-neveu";
-    return "un arrière-petit-neveu ou une arrière-petite-nièce";
-  }
-
-  if (isFemale) return `l’${"arrière-".repeat(level - 2)}petite-nièce`;
-  if (isMale) return `l’${"arrière-".repeat(level - 2)}petit-neveu`;
-
-  return `un ${"arrière-".repeat(level - 2)}petit-neveu ou une ${"arrière-".repeat(level - 2)}petite-nièce`;
-}
-
-function isSiblingLinePattern(moves: RelationshipEdgeType[]): boolean {
-  if (moves.length < 2) return false;
-  if (moves[0] !== "parent") return false;
-  if (moves[1] !== "child") return false;
-  return moves.slice(2).every((via) => via === "child");
-}
-
-function summarizeRelationshipToRoot(
-  path: RelationshipPathNode[] | null,
-  rootDisplayName: string,
-  isCenteredOnMe: boolean,
-  targetSex?: string,
-) {
-  if (!path) return "Aucun chemin trouvé.";
-
-  if (path.length === 1) {
-    return isCenteredOnMe
-      ? "Tu es actuellement centré sur ton point de départ."
-      : `Tu es actuellement centré sur ${rootDisplayName}.`;
-  }
-
-  const moves = path
-    .slice(1)
-    .map((node) => node.via)
-    .filter((via): via is RelationshipEdgeType => Boolean(via));
-
-  const upCount = moves.filter((via) => via === "parent").length;
-  const downCount = moves.filter((via) => via === "child").length;
-  const spouseCount = moves.filter((via) => via === "spouse").length;
-
-  if (spouseCount === 0 && upCount > 0 && downCount === 0) {
-    return isCenteredOnMe
-      ? `Tu es ${getAncestorLabel(upCount, targetSex)} de ${rootDisplayName}.`
-      : `Cette personne est ${getAncestorLabel(upCount, targetSex)} de ${rootDisplayName}.`;
-  }
-
-  if (spouseCount === 0 && downCount > 0 && upCount === 0) {
-    return isCenteredOnMe
-      ? `Tu es ${getDescendantLabel(downCount, targetSex)} de ${rootDisplayName}.`
-      : `Cette personne est ${getDescendantLabel(downCount, targetSex)} de ${rootDisplayName}.`;
-  }
-
-  if (spouseCount === 0 && isSiblingLinePattern(moves)) {
-    const level = moves.length - 2;
-    return isCenteredOnMe
-      ? `Tu es ${getSiblingDescendantLabel(level, targetSex)} de ${rootDisplayName}.`
-      : `Cette personne est ${getSiblingDescendantLabel(level, targetSex)} de ${rootDisplayName}.`;
-  }
-
-  if (spouseCount > 0) {
-    return isCenteredOnMe
-      ? `Ton lien avec ${rootDisplayName} passe par une alliance.`
-      : `Le lien avec ${rootDisplayName} passe par une alliance.`;
-  }
-
-  return isCenteredOnMe
-    ? `Voici ton chemin familial le plus court depuis ${rootDisplayName}.`
-    : `Voici le chemin familial le plus court depuis ${rootDisplayName}.`;
-}
-
-function parseBirthYear(value?: string | number | null): number | null {
-  if (value === undefined || value === null || value === "") return null;
-
-  const year =
-    typeof value === "number" ? value : Number.parseInt(String(value), 10);
-
-  return Number.isNaN(year) ? null : year;
-}
-
-function sortPersonsByBirthYear(persons: PersonSummary[]): PersonSummary[] {
-  return persons.reduce<PersonSummary[]>((ordered, person) => {
-    const personYear = parseBirthYear(person.birthYear);
-
-    if (personYear === null) {
-      ordered.push(person);
-      return ordered;
-    }
-
-    const insertAt = ordered.findIndex((candidate) => {
-      const candidateYear = parseBirthYear(candidate.birthYear);
-      return candidateYear !== null && candidateYear > personYear;
-    });
-
-    if (insertAt === -1) {
-      ordered.push(person);
-    } else {
-      ordered.splice(insertAt, 0, person);
-    }
-
-    return ordered;
-  }, []);
-}
-
-function removeUniformLinkedSpouseLabel(
-  persons: PersonSummary[],
-): PersonSummary[] {
-  const distinctLabels = Array.from(
-    new Set(
-      persons
-        .map((person) => person.linkedSpouseLabel?.trim())
-        .filter((label): label is string => Boolean(label)),
-    ),
+function ProjectionStatCard({
+  label,
+  value,
+  accent = "default",
+}: {
+  label: string;
+  value: string;
+  accent?: "default" | "soft";
+}) {
+  return (
+    <div
+      className={[
+        "rounded-[24px] border px-5 py-4 shadow-sm",
+        accent === "soft"
+          ? "border-white/15 bg-white/10 text-white"
+          : "border-slate-200 bg-white text-slate-900",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "text-[12px] font-black uppercase tracking-[0.16em]",
+          accent === "soft" ? "text-white/70" : "text-slate-500",
+        ].join(" ")}
+      >
+        {label}
+      </div>
+      <div className="mt-2 text-[28px] font-black leading-none">{value}</div>
+    </div>
   );
+}
 
-  if (distinctLabels.length !== 1) {
-    return persons;
-  }
+function ProjectionActionButton({
+  title,
+  subtitle,
+  icon: Icon,
+  onClick,
+}: {
+  title: string;
+  subtitle?: string;
+  icon: LucideIcon;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:bg-slate-50 active:scale-[0.995]"
+    >
+      <div className="flex items-center gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-800">
+          <Icon size={24} />
+        </div>
 
-  return persons.map((person) => ({
-    ...person,
-    linkedSpouseLabel: undefined,
-  }));
+        <div className="min-w-0 flex-1">
+          <div className="text-[20px] font-black text-slate-950">{title}</div>
+          {subtitle ? (
+            <div className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+              {subtitle}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="shrink-0 rounded-2xl bg-slate-100 p-3 text-slate-900">
+          <ArrowRight size={20} />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function TvPersonCard({
+  person,
+  onSelect,
+}: {
+  person: PersonSummary;
+  onSelect: () => void;
+}) {
+  const years =
+    person.canDisplay && person.canDisplayInfo ? formatBrowseYears(person) : null;
+
+  const lifePath =
+    person.canDisplay && person.canDisplayInfo ? formatBrowseLifePath(person) : null;
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="group w-full rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-slate-300 hover:bg-white active:scale-[0.995]"
+    >
+      <div className="flex items-center gap-4">
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[22px] bg-slate-200">
+          {person.canDisplay && person.canDisplayPhoto && person.photoSrc ? (
+            <SmartImage
+              src={person.photoSrc}
+              alt={`${person.firstName} ${person.lastName}`.trim()}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-slate-500">
+              <Users size={28} />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[22px] font-black tracking-tight text-slate-950">
+            {person.firstName} {person.lastName}
+          </div>
+
+          {person.nickname ? (
+            <div className="mt-1 truncate text-base font-bold text-slate-600">
+              {person.sex === "F" ? "appelée" : "appelé"} {person.nickname}
+            </div>
+          ) : null}
+
+          {person.subtitle ? (
+            <div className="mt-2 inline-flex items-center rounded-full bg-white px-3 py-1.5 text-[12px] font-black text-slate-700 shadow-sm">
+              {person.subtitle}
+            </div>
+          ) : null}
+
+          {years ? (
+            <div className="mt-2 text-base font-semibold text-slate-700">
+              {years}
+            </div>
+          ) : null}
+
+          {lifePath ? (
+            <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-slate-700 shadow-sm">
+              <MapPin size={14} />
+              <span className="truncate">{lifePath}</span>
+            </div>
+          ) : null}
+
+          {person.linkedSpouseLabel ? (
+            <div className="mt-2 text-sm font-semibold text-slate-500">
+              {person.linkedSpouseLabel}
+            </div>
+          ) : null}
+
+          {person.spouseRoleLabel ? (
+            <div className="mt-2 text-sm font-semibold text-slate-500">
+              {person.spouseRoleLabel}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="shrink-0 rounded-2xl bg-white p-3 text-slate-700 shadow-sm transition group-hover:bg-slate-900 group-hover:text-white">
+          <ChevronRight size={20} />
+        </div>
+      </div>
+    </button>
+  );
 }
 
 function TvRelationGroup({
   title,
+  subtitle,
   icon: Icon,
   persons,
   emptyLabel,
@@ -371,91 +267,23 @@ function TvRelationGroup({
           <h2 className="text-[22px] font-black tracking-tight text-slate-950">
             {title}
           </h2>
-
-          <div className="text-sm font-semibold text-slate-500">
-            {persons.length}{" "}
-            {getPluralLabel(persons.length, "personne", "personnes")}
-          </div>
+          <div className="text-sm font-semibold text-slate-500">{subtitle}</div>
         </div>
       </div>
 
       {persons.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-base font-semibold text-slate-500">
+        <div className="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-base font-semibold text-slate-500">
           {emptyLabel}
         </div>
       ) : (
         <div className="grid gap-3">
-          {persons.map((person) => {
-            const years =
-              person.canDisplay && person.canDisplayInfo
-                ? formatYears(person)
-                : null;
-
-            const lifePath =
-              person.canDisplay && person.canDisplayInfo
-                ? formatLifePath(person)
-                : null;
-
-            return (
-              <button
-                key={person.id}
-                type="button"
-                onClick={() => onSelect(person.id)}
-                className="group w-full rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-slate-300 hover:bg-white active:scale-[0.995]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-200">
-                    {person.canDisplay &&
-                    person.canDisplayPhoto &&
-                    person.photoSrc ? (
-                      <SmartImage
-                        src={person.photoSrc}
-                        alt={`${person.firstName} ${person.lastName}`}
-                      />
-                    ) : (
-                      <Users size={26} className="text-slate-500" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[22px] font-black tracking-tight text-slate-950">
-                      {person.firstName} {person.lastName}
-                    </div>
-
-                    {person.nickname ? (
-                      <div className="mt-1 truncate text-base font-bold text-slate-600">
-                        {person.sex === "F" ? "appelée" : "appelé"}{" "}
-                        {person.nickname}
-                      </div>
-                    ) : null}
-
-                    {years ? (
-                      <div className="mt-1 text-base font-semibold text-slate-600">
-                        {years}
-                      </div>
-                    ) : null}
-
-                    {lifePath ? (
-                      <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
-                        <MapPin size={14} />
-                        <span className="truncate">{lifePath}</span>
-                      </div>
-                    ) : null}
-
-                    {person.linkedSpouseLabel ? (
-                      <div className="mt-2 text-sm font-semibold text-slate-500">
-                        avec {person.linkedSpouseLabel}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="shrink-0 rounded-2xl bg-white p-3 text-slate-700 shadow-sm transition group-hover:bg-slate-900 group-hover:text-white">
-                    <ChevronRight size={20} />
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          {persons.map((person) => (
+            <TvPersonCard
+              key={person.id}
+              person={person}
+              onSelect={() => onSelect(person.id)}
+            />
+          ))}
         </div>
       )}
     </section>
@@ -475,16 +303,12 @@ export function FamilyTreeBrowseTvPage() {
 
   const rootHonoredPersonId = ROOT_HONORED_PERSON_ID;
 
-  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<
-    string | null
-  >(null);
-  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] =
-    useState(false);
+  const [defaultGedcomPersonId, setDefaultGedcomPersonId] = useState<string | null>(null);
+  const [defaultGedcomPersonLoading, setDefaultGedcomPersonLoading] = useState(false);
 
   const [visibilityPreferencesByPersonId, setVisibilityPreferencesByPersonId] =
     useState<PersonVisibilityPreferenceMap>({});
-  const [effectiveVisibilityLoading, setEffectiveVisibilityLoading] =
-    useState(true);
+  const [effectiveVisibilityLoading, setEffectiveVisibilityLoading] = useState(true);
 
   const [overridesByPersonId, setOverridesByPersonId] = useState<
     Record<string, PersonUiOverride>
@@ -501,7 +325,7 @@ export function FamilyTreeBrowseTvPage() {
   const [centerId, setCenterId] = useState<string>(initialCenterId);
 
   const sourcePersonId = defaultGedcomPersonId;
-  const sosaReferencePersonId = sourcePersonId ?? defaultGedcomPersonId ?? null;
+  const sosaReferencePersonId = sourcePersonId ?? null;
 
   const context = useMemo(
     () =>
@@ -511,25 +335,20 @@ export function FamilyTreeBrowseTvPage() {
         sosaReferencePersonId,
         overridesByPersonId,
       ),
-    [
-      centerId,
-      visibilityPreferencesByPersonId,
-      sosaReferencePersonId,
-      overridesByPersonId,
-    ],
+    [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
   );
 
   const forceDisplayedPersonIds = useMemo(() => new Set<string>(), []);
 
   const displayPerson = useMemo(
-    () => getDisplayPerson(context.person, forceDisplayedPersonIds),
+    () => getBrowseDisplayPerson(context.person, forceDisplayedPersonIds, false),
     [context.person, forceDisplayedPersonIds],
   );
 
   const displayParents = useMemo(
     () =>
       context.parents.map((person) =>
-        getDisplayPerson(person, forceDisplayedPersonIds),
+        getBrowseDisplayPerson(person, forceDisplayedPersonIds, false),
       ),
     [context.parents, forceDisplayedPersonIds],
   );
@@ -537,7 +356,7 @@ export function FamilyTreeBrowseTvPage() {
   const displaySpouses = useMemo(
     () =>
       context.spouses.map((person) =>
-        getDisplayPerson(person, forceDisplayedPersonIds),
+        getBrowseDisplayPerson(person, forceDisplayedPersonIds, false),
       ),
     [context.spouses, forceDisplayedPersonIds],
   );
@@ -546,7 +365,7 @@ export function FamilyTreeBrowseTvPage() {
     () =>
       removeUniformLinkedSpouseLabel(
         sortPersonsByBirthYear(context.children).map((person) =>
-          getDisplayPerson(person, forceDisplayedPersonIds),
+          getBrowseDisplayPerson(person, forceDisplayedPersonIds, false),
         ),
       ),
     [context.children, forceDisplayedPersonIds],
@@ -555,7 +374,7 @@ export function FamilyTreeBrowseTvPage() {
   const displaySiblings = useMemo(
     () =>
       sortPersonsByBirthYear(context.siblings).map((person) =>
-        getDisplayPerson(person, forceDisplayedPersonIds),
+        getBrowseDisplayPerson(person, forceDisplayedPersonIds, false),
       ),
     [context.siblings, forceDisplayedPersonIds],
   );
@@ -563,7 +382,7 @@ export function FamilyTreeBrowseTvPage() {
   const displayGrandparents = useMemo(
     () =>
       context.grandparents.map((person) =>
-        getDisplayPerson(person, forceDisplayedPersonIds),
+        getBrowseDisplayPerson(person, forceDisplayedPersonIds, false),
       ),
     [context.grandparents, forceDisplayedPersonIds],
   );
@@ -581,34 +400,25 @@ export function FamilyTreeBrowseTvPage() {
         sosaReferencePersonId,
         overridesByPersonId,
       ),
-    [
-      centerId,
-      visibilityPreferencesByPersonId,
-      sosaReferencePersonId,
-      overridesByPersonId,
-    ],
+    [centerId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
   );
 
   const rootPerson = useMemo(
     () =>
-      anonymizePerson(
+      getBrowseDisplayPerson(
         getPersonContext(
           rootHonoredPersonId,
           visibilityPreferencesByPersonId,
           sosaReferencePersonId,
           overridesByPersonId,
         ).person,
+        new Set<string>(),
+        false,
       ),
-    [
-      rootHonoredPersonId,
-      visibilityPreferencesByPersonId,
-      sosaReferencePersonId,
-      overridesByPersonId,
-    ],
+    [rootHonoredPersonId, visibilityPreferencesByPersonId, sosaReferencePersonId, overridesByPersonId],
   );
 
-  const isCenteredOnSource =
-    Boolean(sourcePersonId) && centerId === sourcePersonId;
+  const isCenteredOnSource = Boolean(sourcePersonId && centerId === sourcePersonId);
 
   const relationshipSummary = summarizeRelationshipToRoot(
     relationshipPath,
@@ -624,12 +434,12 @@ export function FamilyTreeBrowseTvPage() {
 
   const centerYears =
     displayPerson.canDisplay && displayPerson.canDisplayInfo
-      ? formatYears(displayPerson)
+      ? formatBrowseYears(displayPerson)
       : null;
 
   const centerPath =
     displayPerson.canDisplay && displayPerson.canDisplayInfo
-      ? formatLifePath(displayPerson)
+      ? formatBrowseLifePath(displayPerson)
       : null;
 
   const familyTreeTrackerRef = useRef<ReturnType<
@@ -796,23 +606,29 @@ export function FamilyTreeBrowseTvPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [navigate, slug, sourcePersonId]);
 
+  const relationsCount =
+    displayParents.length +
+    displaySpouses.length +
+    displayChildren.length +
+    displaySiblings.length +
+    displayGrandparents.length;
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <main className="mx-auto max-w-[1800px] px-6 pb-10 pt-6 2xl:px-8">
-        <section className="mb-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div className="flex min-w-0 items-center gap-3">
+      <main className="mx-auto max-w-[1900px] px-6 pb-10 pt-6 2xl:px-8">
+        <section className="mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div className="flex min-w-0 items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
                 <Monitor size={26} />
               </div>
 
               <div className="min-w-0">
                 <div className="text-[12px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  Mode écran large
+                  Projection famille
                 </div>
-
                 <h1 className="truncate text-[30px] font-black tracking-tight text-slate-950">
-                  Arbre familial — affichage TV
+                  Arbre familial — affichage grand écran
                 </h1>
               </div>
             </div>
@@ -848,9 +664,7 @@ export function FamilyTreeBrowseTvPage() {
               </div>
             </div>
           </section>
-        ) : !defaultGedcomPersonLoading &&
-          participantId &&
-          !hasDefaultTreeEntry ? (
+        ) : !defaultGedcomPersonLoading && participantId && !hasDefaultTreeEntry ? (
           <section>
             <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 shadow-sm">
               <div className="text-[28px] font-black tracking-tight text-amber-950">
@@ -868,25 +682,14 @@ export function FamilyTreeBrowseTvPage() {
             <section className="min-w-0">
               <div
                 className={[
-                  "rounded-[36px] p-6 text-white shadow-[0_28px_60px_rgba(15,23,42,0.22)]",
+                  "overflow-hidden rounded-[36px] text-white shadow-[0_28px_60px_rgba(15,23,42,0.22)]",
                   heroConfig.heroClassName,
                 ].join(" ")}
               >
-                <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+                <div className="grid gap-6 p-6 xl:grid-cols-[320px_minmax(0,1fr)]">
                   <div>
                     <div className="aspect-square overflow-hidden rounded-[30px] bg-white/10 ring-1 ring-white/20">
-                      {displayPerson.canDisplay &&
-                      displayPerson.canDisplayPhoto &&
-                      displayPerson.photoSrc ? (
-                        <SmartImage
-                          src={displayPerson.photoSrc}
-                          alt={`${displayPerson.firstName} ${displayPerson.lastName}`}
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-black/10">
-                          <Users size={68} className="text-white/70" />
-                        </div>
-                      )}
+                      <PersonVisual person={displayPerson} />
                     </div>
                   </div>
 
@@ -894,7 +697,7 @@ export function FamilyTreeBrowseTvPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="text-[13px] font-black uppercase tracking-[0.22em] text-white/70">
-                          Individu central
+                          Personne affichée
                         </div>
 
                         <button
@@ -902,7 +705,7 @@ export function FamilyTreeBrowseTvPage() {
                           onClick={openCentralPerson}
                           className="mt-3 text-left"
                         >
-                          <div className="text-[54px] font-black leading-[0.95] tracking-tight">
+                          <div className="text-[56px] font-black leading-[0.94] tracking-tight">
                             {displayPerson.firstName} {displayPerson.lastName}
                           </div>
 
@@ -928,7 +731,7 @@ export function FamilyTreeBrowseTvPage() {
                         ) : null}
                       </div>
 
-                      <div className="flex max-w-[40%] flex-wrap justify-end gap-2">
+                      <div className="flex max-w-[42%] flex-wrap justify-end gap-2">
                         {!displayPerson.canDisplay ? (
                           <span className="inline-flex items-center rounded-full bg-black/20 px-4 py-2 text-sm font-extrabold text-white">
                             Profil masqué
@@ -937,7 +740,7 @@ export function FamilyTreeBrowseTvPage() {
                           !displayPerson.canDisplayPhoto ||
                           !displayPerson.canDisplayInfo ? (
                           <span className="inline-flex items-center rounded-full bg-black/20 px-4 py-2 text-sm font-extrabold text-white">
-                            Profil partiellement masqué
+                            Profil partiellement visible
                           </span>
                         ) : null}
 
@@ -955,13 +758,28 @@ export function FamilyTreeBrowseTvPage() {
                       </div>
                     </div>
 
+                    <div className="mt-6 grid gap-3 md:grid-cols-3">
+                      <ProjectionStatCard
+                        label="Personnes liées"
+                        value={String(relationsCount)}
+                        accent="soft"
+                      />
+                      <ProjectionStatCard
+                        label="Parents + aïeux"
+                        value={String(displayParents.length + displayGrandparents.length)}
+                        accent="soft"
+                      />
+                      <ProjectionStatCard
+                        label="Descendance proche"
+                        value={String(displayChildren.length + displaySiblings.length)}
+                        accent="soft"
+                      />
+                    </div>
+
                     {centerId !== rootHonoredPersonId ? (
                       <div className="mt-6 rounded-[24px] bg-black/15 p-5">
                         <div className="flex items-start gap-3 text-[22px] font-black leading-snug text-white">
-                          <Heart
-                            size={22}
-                            className="mt-1 shrink-0 text-white"
-                          />
+                          <Heart size={22} className="mt-1 shrink-0 text-white" />
                           <div>{relationshipSummary}</div>
                         </div>
                       </div>
@@ -973,6 +791,11 @@ export function FamilyTreeBrowseTvPage() {
               <div className="mt-6 grid gap-6 2xl:grid-cols-2">
                 <TvRelationGroup
                   title="Parents"
+                  subtitle={`${displayParents.length} ${getPluralLabel(
+                    displayParents.length,
+                    "personne affichée",
+                    "personnes affichées",
+                  )}`}
                   icon={Users}
                   persons={displayParents}
                   emptyLabel="Aucun parent affichable."
@@ -982,11 +805,12 @@ export function FamilyTreeBrowseTvPage() {
                 />
 
                 <TvRelationGroup
-                  title={getPluralLabel(
+                  title={getPluralLabel(displaySpouses.length, "Conjoint", "Conjoints")}
+                  subtitle={`${displaySpouses.length} ${getPluralLabel(
                     displaySpouses.length,
-                    "Conjoint",
-                    "Conjoints",
-                  )}
+                    "personne affichée",
+                    "personnes affichées",
+                  )}`}
                   icon={Heart}
                   persons={displaySpouses}
                   emptyLabel="Aucun conjoint affichable."
@@ -996,11 +820,12 @@ export function FamilyTreeBrowseTvPage() {
                 />
 
                 <TvRelationGroup
-                  title={getPluralLabel(
+                  title={getPluralLabel(displayChildren.length, "Enfant", "Enfants")}
+                  subtitle={`${displayChildren.length} ${getPluralLabel(
                     displayChildren.length,
-                    "Enfant",
-                    "Enfants",
-                  )}
+                    "personne affichée",
+                    "personnes affichées",
+                  )}`}
                   icon={Compass}
                   persons={displayChildren}
                   emptyLabel="Aucun enfant affichable."
@@ -1010,11 +835,12 @@ export function FamilyTreeBrowseTvPage() {
                 />
 
                 <TvRelationGroup
-                  title={getPluralLabel(
+                  title={getPluralLabel(displaySiblings.length, "Frère / sœur", "Fratrie")}
+                  subtitle={`${displaySiblings.length} ${getPluralLabel(
                     displaySiblings.length,
-                    "Frère / sœur",
-                    "Fratrie",
-                  )}
+                    "personne affichée",
+                    "personnes affichées",
+                  )}`}
                   icon={Users}
                   persons={displaySiblings}
                   emptyLabel="Aucun frère ou sœur affichable."
@@ -1025,10 +851,15 @@ export function FamilyTreeBrowseTvPage() {
 
                 <div className="2xl:col-span-2">
                   <TvRelationGroup
-                    title="Grands-parents"
+                    title="Aïeux"
+                    subtitle={`${displayGrandparents.length} ${getPluralLabel(
+                      displayGrandparents.length,
+                      "personne affichée",
+                      "personnes affichées",
+                    )}`}
                     icon={Users}
                     persons={displayGrandparents}
-                    emptyLabel="Aucun grand-parent affichable."
+                    emptyLabel="Aucun aïeul affichable."
                     onSelect={(personId) =>
                       goToRelationPerson(personId, "grandparents_section")
                     }
@@ -1041,109 +872,47 @@ export function FamilyTreeBrowseTvPage() {
               <div className="sticky top-6 space-y-6">
                 <section className="rounded-[28px] border border-slate-300 bg-slate-900 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
                   <div className="text-[26px] font-black tracking-tight text-white">
-                    Navigation
+                    Navigation rapide
                   </div>
 
                   <div className="mt-4 grid gap-3">
                     {centerId !== rootHonoredPersonId ? (
-                      <button
-                        type="button"
+                      <ProjectionActionButton
+                        title={`Centrer sur Gromèr ${rootPerson.firstName}`}
+                        subtitle="Revenir à la racine de l’arbre affiché"
+                        icon={Heart}
                         onClick={recenterOnRoot}
-                        className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:bg-slate-50 active:scale-[0.995]"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-700">
-                            <Heart size={24} />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[20px] font-black text-slate-900">
-                              Centrer sur Gromèr {rootPerson.firstName}
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 rounded-2xl bg-slate-100 p-3 text-slate-900">
-                            <ArrowRight size={20} />
-                          </div>
-                        </div>
-                      </button>
+                      />
                     ) : null}
 
                     {sourcePersonId && centerId !== sourcePersonId ? (
-                      <button
-                        type="button"
+                      <ProjectionActionButton
+                        title="Revenir à mon point de départ"
+                        subtitle="Recentrer sur la personne de référence"
+                        icon={UserCircle2}
                         onClick={recenterOnSource}
-                        className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:bg-slate-50 active:scale-[0.995]"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700">
-                            <UserCircle2 size={24} />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[20px] font-black text-slate-900">
-                              Revenir à mon point de départ
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 rounded-2xl bg-slate-100 p-3 text-slate-900">
-                            <ArrowRight size={20} />
-                          </div>
-                        </div>
-                      </button>
+                      />
                     ) : null}
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`/e/${slug}/family-tree/find-person`)
-                      }
-                      className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:bg-slate-50 active:scale-[0.995]"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                          <Search size={24} />
-                        </div>
+                    <ProjectionActionButton
+                      title="Chercher une personne"
+                      subtitle="Ouvrir la recherche dans l’arbre"
+                      icon={Search}
+                      onClick={() => navigate(`/e/${slug}/family-tree/find-person`)}
+                    />
 
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[20px] font-black text-slate-900">
-                            Chercher une personne
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 rounded-2xl bg-slate-100 p-3 text-slate-900">
-                          <ArrowRight size={20} />
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
+                    <ProjectionActionButton
+                      title="Ouvrir la fiche complète"
+                      subtitle="Afficher la fiche détaillée de la personne centrale"
+                      icon={Compass}
                       onClick={openCentralPerson}
-                      className="w-full rounded-[24px] border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:bg-slate-50 active:scale-[0.995]"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                          <Compass size={24} />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[20px] font-black text-slate-900">
-                            Ouvrir la fiche complète
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 rounded-2xl bg-slate-100 p-3 text-slate-900">
-                          <ArrowRight size={20} />
-                        </div>
-                      </div>
-                    </button>
+                    />
                   </div>
                 </section>
 
                 <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="text-[22px] font-black tracking-tight text-slate-950">
-                    Repères
+                    Repères clavier
                   </div>
 
                   <div className="mt-4 space-y-3 text-[17px] leading-7 text-slate-700">
@@ -1163,8 +932,8 @@ export function FamilyTreeBrowseTvPage() {
                     </div>
 
                     <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                      <span className="font-black text-slate-900">Échap</span>{" "}
-                      : quitter ce mode
+                      <span className="font-black text-slate-900">Échap</span> :
+                      quitter ce mode
                     </div>
                   </div>
                 </section>

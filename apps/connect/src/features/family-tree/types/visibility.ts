@@ -15,3 +15,5 @@ export type PersonVisibilityPreferenceMap = Record<
   string,
   ParticipantTreeVisibilityPreferences | undefined
 >;
+
+export type FamilyTreeViewMode = "standard" | "helper_extended";

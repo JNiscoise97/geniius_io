@@ -36,6 +36,8 @@ import type { PersonUiOverride } from "../data/profiles/uiOverrides";
 import { getMergedPersonOverridesMap } from "../data/profiles/getMergedPersonOverridesMap";
 import type { PersonSummary } from "../types/person";
 import type { PersonVisibilityPreferenceMap } from "../types/visibility";
+import type { FamilyTreePermissionSet } from "../types/permissions";
+import { loadFamilyTreePermissions } from "../application/permissions/loadFamilyTreePermissions";
 
 function normalizePersonId(value?: string | null): string | null {
   const trimmed = value?.trim();
@@ -289,6 +291,8 @@ export function FamilyTreeFindPersonPage() {
   >({});
   const [overridesLoading, setOverridesLoading] = useState(true);
 
+  const [permissions, setPermissions] = useState<FamilyTreePermissionSet | null>(null);
+
   const forceDisplayedPersonIds = useMemo(() => {
     const ids: string[] = [];
 
@@ -436,6 +440,38 @@ export function FamilyTreeFindPersonPage() {
     void loadDefaultGedcomPersonId();
   }, [participantId, slug]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      try {
+
+        const result = await loadFamilyTreePermissions({
+          eventSlug: slug,
+          participantId,
+        });
+
+        if (!cancelled) {
+          setPermissions(result.permissions);
+        }
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) {
+          setPermissions(null);
+        }
+      } finally {
+        if (!cancelled) {
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, participantId]);
+
   const trimmedQuery = query.trim();
   const trimmedDebouncedQuery = debouncedQuery.trim();
   const isTyping = trimmedQuery !== trimmedDebouncedQuery;
@@ -461,6 +497,7 @@ export function FamilyTreeFindPersonPage() {
       centerPersonId: centerId,
       limit: FAMILY_SEARCH_DEFAULT_LIMIT,
       forceDisplayedPersonIds,
+      permissions: permissions ?? undefined,
     });
   }, [
     canSearchInTree,
@@ -530,7 +567,8 @@ export function FamilyTreeFindPersonPage() {
       .filter((person): person is PersonSummary => {
         if (!person) return false;
         if (person.canDisplay) return true;
-        return forceDisplayedPersonIds.includes(person.id);
+        if (forceDisplayedPersonIds.includes(person.id)) return true;
+        return Boolean(permissions?.["family_tree.view_masked_people"]);
       })
       .map((person) => getDisplaySearchPerson(person, forceDisplayedPersonIds));
   }, [

@@ -14,6 +14,8 @@ export type FamilyTreeActionType =
   | "review_relation"
   | "review_profile"
   | "invite_person"
+  | "assist_in_person"
+  | "check_in_person"
   | "unknown";
 
 export type FamilyTreeActionStatus =

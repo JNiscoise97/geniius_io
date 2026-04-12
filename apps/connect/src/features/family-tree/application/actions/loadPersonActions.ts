@@ -5,6 +5,7 @@ import { getPersonContributionStats } from "../../data/reactions/getPersonContri
 import { getPersonContext } from "../../config/configGenealogy";
 import type { PersonUiOverride } from "../../data/profiles/uiOverrides";
 import type { PersonVisibilityPreferenceMap } from "../../types/visibility";
+import type { FamilyTreePermissionSet } from "../../types/permissions";
 
 export type LoadPersonActionsParams = {
   eventSlug: string;
@@ -13,6 +14,7 @@ export type LoadPersonActionsParams = {
   visibilityPreferencesByPersonId?: PersonVisibilityPreferenceMap;
   sosaReferencePersonId?: string | null;
   overridesByPersonId?: Record<string, PersonUiOverride>;
+  permissions?: FamilyTreePermissionSet;
 };
 
 export async function loadPersonActions({
@@ -22,6 +24,7 @@ export async function loadPersonActions({
   visibilityPreferencesByPersonId,
   sosaReferencePersonId,
   overridesByPersonId,
+  permissions
 }: LoadPersonActionsParams): Promise<FamilyTreeAction[]> {
   const context = getPersonContext(
     personId,
@@ -58,6 +61,9 @@ export async function loadPersonActions({
 
   const actions: FamilyTreeAction[] = [];
   const normalizedClaimPersonId = claim?.person_id?.trim() ?? "";
+
+  const canAssistInPerson =
+  permissions?.["family_tree.assist_in_person"] === true;
 
   const isApprovedClaimForCurrentPerson =
     claim?.claim_status === "approved" && normalizedClaimPersonId === personId;
@@ -230,6 +236,21 @@ export async function loadPersonActions({
     priority: 40,
     source: "tree-contribute",
   });
+
+  if (canAssistInPerson) {
+  actions.push({
+    id: `person:${personId}:assist_in_person`,
+    type: "assist_in_person",
+    status: "available",
+    personId,
+    title: "Je suis en face de cette personne",
+    description:
+      "Déclare sa présence, recueille ses choix de visibilité et aide-la à apparaître dans l’arbre.",
+    ctaLabel: "Commencer",
+    priority: 110,
+    source: "family-tree",
+  });
+}
 
   return actions.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 }

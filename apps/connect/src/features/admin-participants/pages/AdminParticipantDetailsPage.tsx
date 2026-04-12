@@ -30,6 +30,10 @@ import { getFamilyKnowledgeCurrentLinks } from "../../family-knowledge/api/getFa
 import { getFamilyKnowledgeMemory } from "../../family-knowledge/api/getFamilyKnowledgeMemory";
 import { listFamilyReactionFeed } from "../../family-reactions/api/listFamilyReactionFeed";
 import type { FamilyReactionFeedItem } from "../../family-reactions/types";
+import { upsertAdminParticipantRole } from "../api/upsertAdminParticipantRole";
+import { deleteAdminParticipantRole } from "../api/deleteAdminParticipantRole";
+import { AdminParticipantRolesCard } from "../components/AdminParticipantRolesCard";
+import type { FamilyTreeRole } from "../../family-tree/types/permissions";
 
 type LoadState =
   | {
@@ -411,6 +415,11 @@ export function AdminParticipantDetailsPage() {
   const resolvedParticipantId = participantId ?? "";
 
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [selectedRole, setSelectedRole] =
+  useState<FamilyTreeRole>("family_helper");
+const [isSavingRole, setIsSavingRole] = useState(false);
+const [roleFeedback, setRoleFeedback] = useState<string | null>(null);
+const [roleError, setRoleError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -511,6 +520,86 @@ export function AdminParticipantDetailsPage() {
     };
   }, [resolvedEventSlug, resolvedParticipantId]);
 
+  async function handleAddRole() {
+  if (state.kind !== "ready" || !state.item) return;
+
+  setIsSavingRole(true);
+  setRoleFeedback(null);
+  setRoleError(null);
+
+  try {
+    await upsertAdminParticipantRole({
+      eventSlug: resolvedEventSlug,
+      participantId: resolvedParticipantId,
+      role: selectedRole,
+    });
+
+    setState((prev) => {
+      if (prev.kind !== "ready" || !prev.item) return prev;
+
+      const nextRoles = Array.from(
+        new Set([...prev.item.roles, selectedRole]),
+      ).sort() as FamilyTreeRole[];
+
+      return {
+        ...prev,
+        item: {
+          ...prev.item,
+          roles: nextRoles,
+        },
+      };
+    });
+
+    setRoleFeedback(`Rôle ajouté : ${selectedRole}`);
+  } catch (error) {
+    setRoleError(
+      error instanceof Error
+        ? error.message
+        : "Impossible d’ajouter le rôle.",
+    );
+  } finally {
+    setIsSavingRole(false);
+  }
+}
+
+async function handleRemoveRole(role: FamilyTreeRole) {
+  if (state.kind !== "ready" || !state.item) return;
+
+  setIsSavingRole(true);
+  setRoleFeedback(null);
+  setRoleError(null);
+
+  try {
+    await deleteAdminParticipantRole({
+      eventSlug: resolvedEventSlug,
+      participantId: resolvedParticipantId,
+      role,
+    });
+
+    setState((prev) => {
+      if (prev.kind !== "ready" || !prev.item) return prev;
+
+      return {
+        ...prev,
+        item: {
+          ...prev.item,
+          roles: prev.item.roles.filter((itemRole) => itemRole !== role),
+        },
+      };
+    });
+
+    setRoleFeedback(`Rôle retiré : ${role}`);
+  } catch (error) {
+    setRoleError(
+      error instanceof Error
+        ? error.message
+        : "Impossible de retirer le rôle.",
+    );
+  } finally {
+    setIsSavingRole(false);
+  }
+}
+
   const tracking = state.kind === "ready" && state.item ? state.item.tracking : null;
 
   const trackingTopPages = useMemo(() => {
@@ -605,6 +694,16 @@ export function AdminParticipantDetailsPage() {
         </button>
       </header>
 
+<AdminParticipantRolesCard
+  roles={item.roles}
+  selectedRole={selectedRole}
+  isSaving={isSavingRole}
+  feedbackMessage={roleFeedback}
+  errorMessage={roleError}
+  onChangeSelectedRole={setSelectedRole}
+  onAddRole={() => void handleAddRole()}
+  onRemoveRole={(role) => void handleRemoveRole(role)}
+/>
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-900">

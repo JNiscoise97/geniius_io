@@ -81,6 +81,7 @@ import { AdminFamilyDocumentAnalyticsPage } from "../features/family-documents/p
 import { AdminParticipantDetailsPage } from "../features/admin-participants/pages/AdminParticipantDetailsPage";
 import { AdminParticipantsPage } from "../features/admin-participants/pages/AdminParticipantsPage";
 import { FamilyTreeBrowseTvPage } from "../features/family-tree/pages/FamilyTreeBrowseTvPage";
+import { FamilyRelationshipStoryTvPage } from "../features/family-tree/pages/FamilyRelationshipStoryTvPage";
 
 
 export const router = createBrowserRouter([
@@ -195,6 +196,7 @@ export const router = createBrowserRouter([
                 path: "family-tree/story",
                 element: <FamilyRelationshipStoryPage />,
               },
+              { path: "family-tree/story-tv", element: <FamilyRelationshipStoryTvPage /> },
               {
                 path: "family-tree/find-me",
                 element: <FamilyTreeFindMePage />,
@@ -216,7 +218,7 @@ export const router = createBrowserRouter([
 
               { path: "fiche", element: <PersonSheetPage /> },
 
-              // Managed profilesa
+              // Managed profiles
               { path: "managed-profiles", element: <ManagedProfilesPage /> },
 
               // Existing / game routes

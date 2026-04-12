@@ -1,3 +1,5 @@
+import type { FamilyTreeRole } from "../../family-tree/types/permissions";
+
 export type AdminParticipantListItem = {
   participantId: string;
   eventSlug: string;
@@ -98,4 +100,6 @@ export type AdminParticipantDetails = {
   consents: AdminParticipantConsents | null;
 
   tracking: AdminParticipantTrackingSummary;
+
+  roles: FamilyTreeRole[];
 };
