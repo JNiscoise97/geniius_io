@@ -1,4 +1,4 @@
-import { Home, Users } from 'lucide-react'
+import { Compass, Home } from 'lucide-react'
 import { MiniNav } from './ui/MiniNav'
 import { PanelTitle } from './ui/PanelTitle'
 import { SummarySection } from './ui/SummarySection'
@@ -9,7 +9,7 @@ export function RightSummary() {
       <PanelTitle title="Navigation" />
 
       <div className="flex justify-center gap-3 border-b border-slate-200 p-4">
-        <MiniNav label="Famille" icon={Users} />
+        <MiniNav label="Famille" icon={Compass} />
         <MiniNav label="Lignée Sosa" icon={Home} />
       </div>
 

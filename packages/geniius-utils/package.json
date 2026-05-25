@@ -1,0 +1,9 @@
+{
+  "name": "@geniius/utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./family-graph": "./src/family-graph/index.ts"
+  }
+}

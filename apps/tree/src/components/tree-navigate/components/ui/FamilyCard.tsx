@@ -11,6 +11,7 @@ export function FamilyCard({
   label,
   subtitle,
   tag,
+  relationHint,
   empty,
   large,
   selected,
@@ -19,6 +20,7 @@ export function FamilyCard({
   label: string
   subtitle?: string
   tag?: string
+  relationHint?: string
   empty?: boolean
   large?: boolean
   selected?: boolean
@@ -33,13 +35,27 @@ export function FamilyCard({
         selected ? 'ring-2 ring-indigo-400 ring-offset-2' : '',
       ].join(' ')}
     >
+      {relationHint && (
+        <p className="mb-1 text-[9px] font-black uppercase tracking-wide opacity-50">
+          {relationHint}
+        </p>
+      )}
+
       <p className={empty ? 'text-sm font-semibold opacity-70' : 'text-sm font-black'}>
         {label}
       </p>
 
-      {subtitle && <p className="mt-1 truncate text-[12px] opacity-70">{subtitle}</p>}
+      {subtitle && (
+        <p className="mt-1 truncate text-[12px] opacity-70">
+          {subtitle}
+        </p>
+      )}
 
-      {tag && <p className="mt-2 text-right text-[11px] font-black opacity-80">{tag}</p>}
+      {tag && (
+        <p className="mt-2 text-right text-[11px] font-black opacity-80">
+          {tag}
+        </p>
+      )}
     </div>
   )
 }
