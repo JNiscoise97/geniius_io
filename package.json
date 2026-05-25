@@ -7,6 +7,7 @@
     "dev:echo": "pnpm --dir apps/echo dev:web",
     "dev:journal": "pnpm --dir apps/journal dev",
     "dev:connect": "pnpm --dir apps/connect dev",
+    "dev:tree": "pnpm --dir apps/tree dev",
     "dev": "concurrently -n REBOND,ECHO,JOURNAL,CONNECT -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\" \"pnpm dev:journal\" \"pnpm dev:connect\"",
     "build:schema": "pnpm --filter @geniius/schema build",
     "build:gedcom": "pnpm --filter @geniius/gedcom-core build",
@@ -14,6 +15,7 @@
     "build:echo": "pnpm --dir apps/echo build:web",
     "build:journal": "pnpm --dir apps/journal build",
     "build:connect": "pnpm --dir apps/connect build",
+    "build:tree": "pnpm --dir apps/tree build",
     "build:libs": "pnpm --filter @geniius/schema --filter @geniius/gedcom-core build",
     "build": "pnpm run build:libs && pnpm run build:rebond && pnpm run build:echo && pnpm run build:journal && pnpm run build:connect"
   },
