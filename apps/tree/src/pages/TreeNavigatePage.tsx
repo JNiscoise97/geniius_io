@@ -21,13 +21,17 @@ import { StatusBar } from '../components/tree-navigate/components/StatusBar'
 export default function TreeNavigatePage() {
   const [mainTab, setMainTab] = useState<MainTab>('famille')
   const [familyView, setFamilyView] = useState<FamilyView>('noyau')
+  const [selectedPersonId, setSelectedPersonId] = useState<string | undefined>()
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50/40 to-cyan-50/50 text-[12px] text-slate-950">
       <DesktopToolbar />
 
       <div className="mx-auto grid min-h-0 w-full max-w-[1680px] flex-1 grid-cols-1 border-x border-slate-200 bg-white/95 shadow-xl lg:grid-cols-[340px_minmax(0,1fr)_380px]">
-        <LeftIndex />
+        <LeftIndex
+          selectedPersonId={selectedPersonId}
+          onPersonDoubleClick={setSelectedPersonId}
+        />
 
         <main className="flex min-w-0 min-h-0 flex-col overflow-hidden border-x border-slate-200 bg-slate-50">
           <AppTabs mainTab={mainTab} setMainTab={setMainTab} />
@@ -40,7 +44,9 @@ export default function TreeNavigatePage() {
               />
 
               <div className="min-h-0 flex-1 overflow-hidden">
-                {familyView === 'noyau' && <FamilyCore />}
+                {familyView === 'noyau' && (
+                  <FamilyCore selectedPersonId={selectedPersonId} />
+                )}
                 {familyView === 'ascendance' && <AscendanceView />}
                 {familyView === 'descendance' && <DescendanceView />}
               </div>

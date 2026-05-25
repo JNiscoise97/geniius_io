@@ -20,6 +20,38 @@ import {
 } from 'lucide-react'
 
 import type { FamilyView, MainTab } from './types'
+import { FAMILY_GRAPH } from '../../features/family-tree/loadGraph'
+
+export type FamilyGraphPerson = {
+  id: string
+  firstName: string
+  lastName: string
+  nickname?: string
+  sex: 'M' | 'F' | 'U'
+  birthDate?: string
+  deathDate?: string
+  birthYear?: string
+  deathYear?: string
+  birthPlace?: string
+  deathPlace?: string
+  famcIds: string[]
+  famsIds: string[]
+  branch?: string[]
+}
+
+export type FamilyGraphFamily = {
+  id: string
+  husbandId?: string
+  wifeId?: string
+  childIds: string[]
+}
+
+export type FamilyGraphGenerated = {
+  people: Record<string, FamilyGraphPerson>
+  families: Record<string, FamilyGraphFamily>
+}
+
+export const graph = FAMILY_GRAPH
 
 export const mainTabs: { key: MainTab; label: string }[] = [
   { key: 'famille', label: 'Famille' },
@@ -56,38 +88,32 @@ export const toolbar = [
   { icon: Info, label: 'Infos' },
 ]
 
-export const people = [
-  ['TOURANGE Elina', '1844–1845', '♀'],
-  ['ARMEL Marie Eugénie', '1844–', '♀'],
-  ['ROBERT Marie Désirée Soulange', '1844–1878', '♀'],
-  ['BERNIER Privat Léonce', '1844–1847', '♂'],
-  ['TÉCHER Étienne', '1844–1899', '♂'],
-  ['PAYET Louis Alfred', '1844–1915', '♂'],
-  ['MAMMOSA Vincent', '1845–1869', '♂'],
-  ['MAMMOSA Pierre Gédéon', '1851–1899', '♂'],
-  ['MAMMOSA Marie', '1855–1894', '♀'],
-  ['AUNEILLE Louise', '1835–1899', '♀'],
-  ['JULIENNE Pierre Louis', '1776–1853', '♂'],
-  ['? SANS NOM Esther', '1775–1827', '♀'],
-]
+export const people = Object.values(graph.people)
+  .map((person) => [
+    formatPersonName(person),
+    formatYears(person),
+    formatSex(person.sex),
+    person.id,
+  ] as const)
+  .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'fr'))
 
-export const descendants = [
-  ['MAMMOSA Pierre Gédéon', 'N : 1833 · D : 1862'],
-  ['MAMMOSA Pierre Gédéon', '1851–1899'],
-  ['MAMMOSA Philippe Eugène', '1871–1881'],
-  ['MAMMOSA Aline', '1874–'],
-  ['BOURGOGNE Pierre Augustin', '1907–1958'],
-  ['DORVAL Joseph', '1932–2017'],
-  ['DORVAL Jean Hugues', '1964–'],
-  ['DORVAL Mathias', '1966–'],
-]
+export const searchResults = Object.values(graph.people)
+  .slice(0, 50)
+  .map((person) => [
+    person.lastName,
+    person.firstName,
+    person.birthDate ?? person.birthYear ?? '',
+    person.birthPlace ?? '',
+    person.deathDate ?? person.deathYear ?? '',
+    person.deathPlace ?? '',
+  ])
 
-export const searchResults = [
-  ['HADAMAR', 'Félix', '07.02.1875', 'Saint-Paul (Réunion)', '> 1927', ''],
-  ['BOISDUR', 'Joseph Léonel', '16.04.1875', 'Le Gosier (Guadeloupe)', '', ''],
-  ['HIPPOLYTE', 'Auguste', '06.01.1877', 'Saint-Paul (Réunion)', '> 1902', ''],
-  ['MAMMOSA', 'Joséphine', '17.11.1878', 'Saint-Leu (Réunion)', '> 1931', ''],
-]
+export const descendants = Object.values(graph.people)
+  .slice(0, 30)
+  .map((person) => [
+    formatPersonName(person),
+    formatPersonDetails(person),
+  ])
 
 export const events = [
   ['Naissance', '1833', '', 'Saint-Paul'],
@@ -95,3 +121,76 @@ export const events = [
   ['Mariage', '1849', '16', 'Saint-Paul'],
   ['Décès', '1862', '29', 'Saint-Paul'],
 ]
+
+export function getPerson(personId?: string) {
+  if (!personId) return undefined
+  return graph.people[personId]
+}
+
+export function getFamily(familyId?: string) {
+  if (!familyId) return undefined
+  return graph.families[familyId]
+}
+
+export function getParents(personId: string) {
+  const person = getPerson(personId)
+  const family = getFamily(person?.famcIds?.[0])
+
+  return {
+    father: getPerson(family?.husbandId),
+    mother: getPerson(family?.wifeId),
+    family,
+  }
+}
+
+export function getSpouseFamilies(personId: string) {
+  const person = getPerson(personId)
+
+  return person?.famsIds
+    .map((familyId) => graph.families[familyId])
+    .filter(Boolean) ?? []
+}
+
+export function getChildren(personId: string) {
+  return getSpouseFamilies(personId).flatMap((family) =>
+    family.childIds
+      .map((childId) => graph.people[childId])
+      .filter(Boolean),
+  )
+}
+
+export function getSpouses(personId: string) {
+  return getSpouseFamilies(personId)
+    .map((family) => {
+      const spouseId =
+        family.husbandId === personId ? family.wifeId : family.husbandId
+
+      return spouseId ? graph.people[spouseId] : undefined
+    })
+    .filter(Boolean)
+}
+
+export function formatPersonName(person: FamilyGraphPerson) {
+  return [person.lastName, person.firstName].filter(Boolean).join(' ')
+}
+
+export function formatYears(person: FamilyGraphPerson) {
+  const birth = person.birthYear ?? ''
+  const death = person.deathYear ?? ''
+
+  if (!birth && !death) return ''
+  return `${birth}–${death}`
+}
+
+export function formatSex(sex: FamilyGraphPerson['sex']) {
+  if (sex === 'M') return '♂'
+  if (sex === 'F') return '♀'
+  return '·'
+}
+
+export function formatPersonDetails(person: FamilyGraphPerson) {
+  const years = formatYears(person)
+  const birthPlace = person.birthPlace ? ` · ${person.birthPlace}` : ''
+
+  return `${years}${birthPlace}`
+}

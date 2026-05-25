@@ -1,10 +1,13 @@
 import { ChevronRight, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { useDebouncedValue } from '../../../lib/useDebouncedValue'
 import { people } from '../data'
 import { PanelTitle } from './ui/PanelTitle'
 
 type SexFilter = 'all' | '♂' | '♀'
+
+const MAX_RESULTS = 250
 
 const sexFilters: { label: string; value: SexFilter }[] = [
   { label: 'Tous', value: 'all' },
@@ -12,21 +15,48 @@ const sexFilters: { label: string; value: SexFilter }[] = [
   { label: 'Femmes', value: '♀' },
 ]
 
-export function LeftIndex() {
+export function LeftIndex({
+  selectedPersonId,
+  onPersonDoubleClick,
+}: {
+  selectedPersonId?: string
+  onPersonDoubleClick: (personId: string) => void
+}) {
   const [query, setQuery] = useState('')
   const [sexFilter, setSexFilter] = useState<SexFilter>('all')
 
-  const filteredPeople = useMemo(() => {
-    return people.filter(([name, years, sex]) => {
-      const haystack = normalize(`${name} ${years} ${sex}`)
-      const queryMatch = query.trim() === '' || haystack.includes(normalize(query))
-      const sexMatch = sexFilter === 'all' || sex === sexFilter
+  const debouncedQuery = useDebouncedValue(query, 250)
 
-      return queryMatch && sexMatch
-    })
-  }, [query, sexFilter])
+  const indexedPeople = useMemo(() => {
+    return people.map(([name, years, sex, id]) => ({
+      id,
+      name,
+      years,
+      sex,
+      searchText: normalize(`${name} ${years} ${sex}`),
+    }))
+  }, [])
+
+  const normalizedQuery = useMemo(
+    () => normalize(debouncedQuery.trim()),
+    [debouncedQuery],
+  )
+
+  const filteredPeople = useMemo(() => {
+    const hasQuery = normalizedQuery.length >= 2
+
+    return indexedPeople
+      .filter((person) => {
+        const queryMatch = !hasQuery || person.searchText.includes(normalizedQuery)
+        const sexMatch = sexFilter === 'all' || person.sex === sexFilter
+
+        return queryMatch && sexMatch
+      })
+      .slice(0, MAX_RESULTS)
+  }, [indexedPeople, normalizedQuery, sexFilter])
 
   const hasActiveSearch = query.trim() !== '' || sexFilter !== 'all'
+  const canSearch = normalizedQuery.length >= 2 || sexFilter !== 'all'
 
   return (
     <aside className="hidden h-[calc(100vh-94px)] flex-col border-r border-slate-200 bg-white lg:flex">
@@ -78,7 +108,9 @@ export function LeftIndex() {
 
         <div className="mt-3 flex items-center justify-between text-[11px]">
           <span className="font-semibold text-slate-500">
-            {filteredPeople.length} résultat{filteredPeople.length > 1 ? 's' : ''}
+            {canSearch
+              ? `${filteredPeople.length} résultat${filteredPeople.length > 1 ? 's' : ''}`
+              : 'Saisir au moins 2 caractères'}
           </span>
 
           {hasActiveSearch && (
@@ -99,13 +131,16 @@ export function LeftIndex() {
       <div className="flex-1 overflow-auto px-2 py-2">
         {filteredPeople.length > 0 ? (
           <div className="grid gap-[2px]">
-            {filteredPeople.map(([name, years, sex], index) => {
-              const isSelected = name.includes('Pierre Gédéon')
+            {filteredPeople.map(({ id, name, years, sex }) => {
+              const isSelected = id === selectedPersonId
 
               return (
                 <button
-                  key={`${name}-${years}-${index}`}
+                  key={id ?? `${name}-${years}`}
                   type="button"
+                  onDoubleClick={() => {
+                    if (id) onPersonDoubleClick(id)
+                  }}
                   className={[
                     'group flex items-center gap-2 rounded-xl px-2 py-2 text-left transition',
                     isSelected
@@ -129,34 +164,18 @@ export function LeftIndex() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p
-                      className={[
-                        'truncate text-[12px] font-bold',
-                        isSelected ? 'text-white' : 'text-slate-800',
-                      ].join(' ')}
-                    >
-                      {highlight(name, query)}
+                    <p className={['truncate text-[12px] font-bold', isSelected ? 'text-white' : 'text-slate-800'].join(' ')}>
+                      {highlight(name, debouncedQuery)}
                     </p>
 
-                    <p
-                      className={[
-                        'text-[11px]',
-                        isSelected ? 'text-slate-300' : 'text-slate-500',
-                      ].join(' ')}
-                    >
-                      {highlight(years, query)}
+                    <p className={['text-[11px]', isSelected ? 'text-slate-300' : 'text-slate-500'].join(' ')}>
+                      {highlight(years, debouncedQuery)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <span
-                      title="Source liée"
-                      className="h-2 w-2 rounded-full bg-emerald-500"
-                    />
-                    <span
-                      title="À vérifier"
-                      className="h-2 w-2 rounded-full bg-amber-400"
-                    />
+                    <span title="Source liée" className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span title="À vérifier" className="h-2 w-2 rounded-full bg-amber-400" />
                   </div>
                 </button>
               )
@@ -164,9 +183,7 @@ export function LeftIndex() {
           </div>
         ) : (
           <div className="rounded-2xl bg-slate-50 p-4 text-center">
-            <p className="text-sm font-black text-slate-700">
-              Aucun individu trouvé
-            </p>
+            <p className="text-sm font-black text-slate-700">Aucun individu trouvé</p>
             <p className="mt-1 text-xs font-medium text-slate-500">
               Essaie avec un nom, une année ou une variante.
             </p>
@@ -200,7 +217,7 @@ function normalize(value: string) {
 function highlight(text: string, query: string) {
   const trimmedQuery = query.trim()
 
-  if (!trimmedQuery) return text
+  if (trimmedQuery.length < 2) return text
 
   const normalizedText = normalize(text)
   const normalizedQuery = normalize(trimmedQuery)
@@ -208,17 +225,13 @@ function highlight(text: string, query: string) {
 
   if (index === -1) return text
 
-  const before = text.slice(0, index)
-  const match = text.slice(index, index + trimmedQuery.length)
-  const after = text.slice(index + trimmedQuery.length)
-
   return (
     <>
-      {before}
+      {text.slice(0, index)}
       <span className="rounded bg-amber-200/70 px-[2px] text-slate-950">
-        {match}
+        {text.slice(index, index + trimmedQuery.length)}
       </span>
-      {after}
+      {text.slice(index + trimmedQuery.length)}
     </>
   )
 }

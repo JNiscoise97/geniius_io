@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import {
-  BadgeCheck,
   CircleDashed,
   Crown,
   Heart,
@@ -8,102 +7,184 @@ import {
   Users,
 } from 'lucide-react'
 
+import {
+  formatPersonDetails,
+  formatPersonName,
+  getChildren,
+  getParents,
+  getPerson,
+  getSpouses,
+  type FamilyGraphPerson,
+} from '../../data'
 import { FamilyCard } from '../ui/FamilyCard'
-import { GeneBadge } from '../ui/GeneBadge'
 
-export function FamilyCore() {
+export function FamilyCore({
+  selectedPersonId,
+}: {
+  selectedPersonId?: string
+}) {
+  const fallbackPersonId = Object.keys(getAllPeople())[0]
+  const person = getPerson(selectedPersonId) ?? getPerson(fallbackPersonId)
+
+  const parents = person ? getParents(person.id) : undefined
+  const paternalGrandparents = parents?.father
+    ? getParents(parents.father.id)
+    : undefined
+
+  const maternalGrandparents = parents?.mother
+    ? getParents(parents.mother.id)
+    : undefined
+  const spouses = person ? getSpouses(person.id) : []
+  const children = person ? getChildren(person.id) : []
+
   return (
     <div className="h-full overflow-auto bg-[#f6f7fb] p-3 text-slate-950 sm:p-5">
       <div className="mx-auto grid w-full max-w-5xl gap-4 lg:min-w-[720px]">
-        <CentralPerson />
+        <CentralPerson person={person} />
 
-        <FamilySection
-          title="Parents"
-          icon={Users}
-          description="Filiation directe"
-        >
+        <FamilySection title="Parents" icon={Users} description="Filiation directe">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FamilyCard
-              label="Ajouter le père"
-              empty
+              label={parents?.father ? formatPersonName(parents.father) : 'Ajouter le père'}
+              subtitle={parents?.father ? formatPersonDetails(parents.father) : undefined}
+              empty={!parents?.father}
               relationHint="Père"
               large
-              tone="hypothesis"
+              tone={parents?.father ? 'source' : 'hypothesis'}
             />
 
             <FamilyCard
-              label="(MAMMOSA) Julie"
-              subtitle="Cultivatrice · 1807–1855"
-              tag="source solide"
+              label={parents?.mother ? formatPersonName(parents.mother) : 'Ajouter la mère'}
+              subtitle={parents?.mother ? formatPersonDetails(parents.mother) : undefined}
+              empty={!parents?.mother}
               relationHint="Mère"
               large
-              tone="source"
+              tone={parents?.mother ? 'source' : 'hypothesis'}
             />
           </div>
         </FamilySection>
 
-        <FamilySection
-          title="Grands-parents"
-          icon={Crown}
-          description="Origines familiales"
-        >
+        <FamilySection title="Grands-parents" icon={Crown} description="Origines familiales">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <FamilyCard label="Ajouter le grand-père" empty relationHint="Grand-mère paternel" tone="neutral" />
-            <FamilyCard label="Ajouter la grand-mère" empty relationHint="Grand-mère paternelle" tone="neutral" />
-            <FamilyCard label="Ajouter le grand-père" empty relationHint="Grand-père maternel" tone="neutral" />
+            <FamilyCard
+              label={
+                paternalGrandparents?.father
+                  ? formatPersonName(paternalGrandparents.father)
+                  : 'Ajouter le grand-père'
+              }
+              subtitle={
+                paternalGrandparents?.father
+                  ? formatPersonDetails(paternalGrandparents.father)
+                  : undefined
+              }
+              empty={!paternalGrandparents?.father}
+              relationHint="Grand-père paternel"
+              tone={paternalGrandparents?.father ? 'source' : 'neutral'}
+            />
 
             <FamilyCard
-              label="? SANS NOM Esther"
-              subtitle="1775–1827"
+              label={
+                paternalGrandparents?.mother
+                  ? formatPersonName(paternalGrandparents.mother)
+                  : 'Ajouter la grand-mère'
+              }
+              subtitle={
+                paternalGrandparents?.mother
+                  ? formatPersonDetails(paternalGrandparents.mother)
+                  : undefined
+              }
+              empty={!paternalGrandparents?.mother}
+              relationHint="Grand-mère paternelle"
+              tone={paternalGrandparents?.mother ? 'source' : 'neutral'}
+            />
+
+            <FamilyCard
+              label={
+                maternalGrandparents?.father
+                  ? formatPersonName(maternalGrandparents.father)
+                  : 'Ajouter le grand-père'
+              }
+              subtitle={
+                maternalGrandparents?.father
+                  ? formatPersonDetails(maternalGrandparents.father)
+                  : undefined
+              }
+              empty={!maternalGrandparents?.father}
+              relationHint="Grand-père maternel"
+              tone={maternalGrandparents?.father ? 'source' : 'neutral'}
+            />
+
+            <FamilyCard
+              label={
+                maternalGrandparents?.mother
+                  ? formatPersonName(maternalGrandparents.mother)
+                  : 'Ajouter la grand-mère'
+              }
+              subtitle={
+                maternalGrandparents?.mother
+                  ? formatPersonDetails(maternalGrandparents.mother)
+                  : undefined
+              }
+              empty={!maternalGrandparents?.mother}
               relationHint="Grand-mère maternelle"
-              tag="hypothèse"
-              tone="hypothesis"
+              tone={maternalGrandparents?.mother ? 'source' : 'neutral'}
             />
           </div>
         </FamilySection>
 
-        <FamilySection
-          title="Conjoints"
-          icon={Heart}
-          description="Unions et relations"
-        >
+        <FamilySection title="Conjoints" icon={Heart} description="Unions et relations">
           <div className="grid gap-3">
-            <RelationHeader count="1" label="conjoint connu" />
+            <RelationHeader count={String(spouses.length)} label="conjoint(s) connu(s)" />
 
-            <FamilyCard
-              label="(AUNEILLE) Louise"
-              subtitle="1835–1899 · mariage 1849"
-              tag="conjoint"
-              selected
-              tone="selected"
-            />
+            {spouses.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {spouses.map((spouse) => (
+                  <FamilyCard
+                    key={spouse.id}
+                    label={formatPersonName(spouse)}
+                    subtitle={formatPersonDetails(spouse)}
+                    relationHint="Conjoint"
+                    tag="conjoint"
+                    selected
+                    tone="selected"
+                  />
+                ))}
+              </div>
+            ) : (
+              <FamilyCard
+                label="Ajouter un conjoint"
+                empty
+                relationHint="Conjoint"
+                tone="neutral"
+              />
+            )}
           </div>
         </FamilySection>
 
-        <FamilySection
-          title="Enfants"
-          icon={UserRound}
-          description="Descendance directe"
-        >
+        <FamilySection title="Enfants" icon={UserRound} description="Descendance directe">
           <div className="grid gap-3">
-            <RelationHeader count="2" label="enfants connus" />
+            <RelationHeader count={String(children.length)} label="enfant(s) connu(s)" />
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            {children.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {children.map((child) => (
+                  <FamilyCard
+                    key={child.id}
+                    label={formatPersonName(child)}
+                    subtitle={formatPersonDetails(child)}
+                    relationHint="Enfant"
+                    tone="source"
+                  />
+                ))}
+              </div>
+            ) : (
               <FamilyCard
-                label="MAMMOSA Pierre Gédéon"
-                subtitle="1851–1899"
-                tag="fils"
-                selected
-                tone="selected"
+                label="Ajouter un enfant"
+                empty
+                relationHint="Enfant"
+                tone="neutral"
               />
-
-              <FamilyCard
-                label="MAMMOSA Marie"
-                subtitle="1855–1894"
-                tag="fille"
-                tone="source"
-              />
-            </div>
+            )}
           </div>
         </FamilySection>
       </div>
@@ -111,46 +192,57 @@ export function FamilyCore() {
   )
 }
 
-function CentralPerson() {
+function CentralPerson({
+  person,
+}: {
+  person?: FamilyGraphPerson
+}) {
+  if (!person) {
+    return (
+      <section className="rounded-[24px] bg-white p-4 shadow-sm">
+        <p className="text-sm font-black text-slate-600">
+          Aucun individu sélectionné.
+        </p>
+      </section>
+    )
+  }
+
   return (
-    <section className="rounded-[28px] bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-5 sm:flex-row">
-        <div className="mx-auto flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-slate-100 text-slate-500 sm:mx-0 sm:h-28 sm:w-24">
-          <UserRound size={52} />
+    <section className="rounded-[24px] bg-white p-4 shadow-sm">
+      <div className="flex items-start gap-4">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+          <UserRound size={34} />
         </div>
 
-        <div className="min-w-0 flex-1 text-center sm:text-left">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
                 Individu central
               </p>
 
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950">
-                (MAMMOSA) Pierre “Gédéon”
+              <h1 className="mt-1 truncate text-xl font-black tracking-tight text-slate-950">
+                {formatPersonName(person)}
               </h1>
             </div>
 
-            <span className="mx-auto inline-flex w-fit items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-black text-white sm:mx-0">
-              <BadgeCheck size={13} />
-              104 · G7
+            <span className="shrink-0 rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-black text-white">
+              ID {person.id}
             </span>
           </div>
 
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Cultivateur et charretier — né esclave de Pierre Louis JULIENNE,
-            émancipé par le décret d’abolition.
-          </p>
+          <div className="mt-3 space-y-1 text-sm font-medium leading-5 text-slate-600">
+            <p>
+              <span className="font-black text-slate-500">N :</span>{' '}
+              {person.birthDate ?? person.birthYear ?? '—'}
+              {person.birthPlace ? ` · ${person.birthPlace}` : ''}
+            </p>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <InfoChip label="Naissance" value="1833 · Saint-Paul" />
-            <InfoChip label="Décès" value="16 janvier 1862 · Saint-Paul" />
-          </div>
-
-          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
-            <GeneBadge tone="good">source directe</GeneBadge>
-            <GeneBadge tone="warn">filiation à consolider</GeneBadge>
-            <GeneBadge tone="info">personne pivot</GeneBadge>
+            <p>
+              <span className="font-black text-slate-500">D :</span>{' '}
+              {person.deathDate ?? person.deathYear ?? '—'}
+              {person.deathPlace ? ` · ${person.deathPlace}` : ''}
+            </p>
           </div>
         </div>
       </div>
@@ -180,10 +272,7 @@ function FamilySection({
           <h2 className="text-sm font-black uppercase tracking-[0.16em] text-slate-900">
             {title}
           </h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            {description}
-          </p>
+          <p className="mt-1 text-sm text-slate-500">{description}</p>
         </div>
       </div>
 
@@ -192,33 +281,7 @@ function FamilySection({
   )
 }
 
-function InfoChip({
-  label,
-  value,
-}: {
-  label: string
-  value: string
-}) {
-  return (
-    <div className="rounded-2xl bg-slate-100 px-4 py-3">
-      <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
-        {label}
-      </p>
-
-      <p className="mt-1 font-semibold text-slate-800">
-        {value}
-      </p>
-    </div>
-  )
-}
-
-function RelationHeader({
-  count,
-  label,
-}: {
-  count: string
-  label: string
-}) {
+function RelationHeader({ count, label }: { count: string; label: string }) {
   return (
     <div className="inline-flex w-fit items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
       <CircleDashed size={13} className="text-slate-400" />
@@ -226,4 +289,8 @@ function RelationHeader({
       {label}
     </div>
   )
+}
+
+function getAllPeople() {
+  return {}
 }
