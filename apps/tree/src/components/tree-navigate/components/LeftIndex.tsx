@@ -17,10 +17,10 @@ const sexFilters: { label: string; value: SexFilter }[] = [
 
 export function LeftIndex({
   selectedPersonId,
-  onPersonDoubleClick,
+  onPersonSelect,
 }: {
   selectedPersonId?: string
-  onPersonDoubleClick: (personId: string) => void
+  onPersonSelect: (personId: string) => void
 }) {
   const [query, setQuery] = useState('')
   const [sexFilter, setSexFilter] = useState<SexFilter>('all')
@@ -139,7 +139,7 @@ export function LeftIndex({
                   key={id ?? `${name}-${years}`}
                   type="button"
                   onDoubleClick={() => {
-                    if (id) onPersonDoubleClick(id)
+                    if (id) onPersonSelect(id)
                   }}
                   className={[
                     'group flex items-center gap-2 rounded-xl px-2 py-2 text-left transition',

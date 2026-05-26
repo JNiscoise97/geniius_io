@@ -17,6 +17,7 @@ import {
   Share2,
   Trash2,
   TreePine,
+  User,
 } from 'lucide-react'
 
 import type { FamilyView, MainTab } from './types'
@@ -68,6 +69,7 @@ export const familyViews: { key: FamilyView; label: string }[] = [
 ]
 
 export const toolbar = [
+  { icon: User, label: 'Sosa' },
   { icon: Cloud, label: 'Nouveautés' },
   { icon: Database, label: 'Online' },
   { icon: Share2, label: 'Publier' },

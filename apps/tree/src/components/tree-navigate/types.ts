@@ -2,4 +2,4 @@ export type MainTab = 'famille' | 'saisie' | 'histoire' | 'recherches' | 'graphi
 
 export type FamilyView = 'noyau' | 'ascendance' | 'descendance'
 
-export type Tone = 'neutral' | 'source' | 'hypothesis' | 'selected'
+export type Tone = 'neutral' | 'source' | 'hypothesis'
