@@ -59,7 +59,7 @@ export function LeftIndex({
   const canSearch = normalizedQuery.length >= 2 || sexFilter !== 'all'
 
   return (
-    <aside className="hidden h-[calc(100vh-94px)] flex-col border-r border-slate-200 bg-white lg:flex">
+    <aside className="hidden min-h-0 flex-col border-r border-slate-200 bg-white lg:flex overflow-hidden">
       <PanelTitle title="Individus" />
 
       <div className="border-b border-slate-200 p-3">

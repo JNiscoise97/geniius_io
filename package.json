@@ -9,6 +9,7 @@
     "dev:connect": "pnpm --dir apps/connect dev",
     "dev:tree": "pnpm --dir apps/tree dev",
     "generate:family-graph": "tsx scripts/generate-family-graph.ts",
+    "generate:gedcom-tag-combinations": "tsx scripts/gedcom-tag-combinations.ts",
     "dev": "concurrently -n REBOND,ECHO,JOURNAL,CONNECT -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\" \"pnpm dev:journal\" \"pnpm dev:connect\"",
     "build:schema": "pnpm --filter @geniius/schema build",
     "build:gedcom": "pnpm --filter @geniius/gedcom-core build",

@@ -20,74 +20,88 @@ import {
   User,
 } from 'lucide-react'
 
-import type { FamilyView, MainTab } from './types'
+import type { DocumentsView, FamilyView, HistoryView, MainTab } from './types'
 import { FAMILY_GRAPH } from '../../features/family-tree/loadGraph'
+import {
+  getBirth,
+  getDeath,
+  getEvent,
+  getYear,
+  formatGedcomDate,
+  type FamilyGraphPerson,
+  type FamilyGraphFamily,
+  type GedcomMedia,
+  type GedcomPlace,
+  type GedcomEvent,
+  type GedcomEventTag,
+  type GedcomDate,
+} from '@geniius/utils/family-graph'
 
-export type FamilyGraphPerson = {
-  id: string
-  firstName: string
-  lastName: string
-  nickname?: string
-  sex: 'M' | 'F' | 'U'
-  birthDate?: string
-  deathDate?: string
-  birthYear?: string
-  deathYear?: string
-  birthPlace?: string
-  deathPlace?: string
-  famcIds: string[]
-  famsIds: string[]
-  branch?: string[]
-}
-
-export type FamilyGraphFamily = {
-  id: string
-  husbandId?: string
-  wifeId?: string
-  childIds: string[]
+// ── Ré-exports ────────────────────────────────────────────────────────────────
+export type {
+  FamilyGraphPerson,
+  FamilyGraphFamily,
+  GedcomMedia,
+  GedcomPlace,
+  GedcomEvent,
+  GedcomEventTag,
+  GedcomDate,
 }
 
 export type FamilyGraphGenerated = {
   people: Record<string, FamilyGraphPerson>
   families: Record<string, FamilyGraphFamily>
+  media: Record<string, GedcomMedia>
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const graph = FAMILY_GRAPH
 
 export const mainTabs: { key: MainTab; label: string }[] = [
-  { key: 'famille', label: 'Famille' },
-  { key: 'saisie', label: 'Saisie' },
-  { key: 'histoire', label: 'Histoire' },
-  { key: 'recherches', label: 'Recherches' },
+  { key: 'famille',    label: 'Famille' },
+  { key: 'saisie',     label: 'Saisie' },
+  { key: 'histoire',   label: 'Histoire' },
+  { key: 'documents',  label: 'Documents' },
   { key: 'graphiques', label: 'Graphiques' },
 ]
 
 export const familyViews: { key: FamilyView; label: string }[] = [
-  { key: 'noyau', label: 'Noyau familial' },
-  { key: 'ascendance', label: 'Ascendance' },
+  { key: 'noyau',       label: 'Noyau familial' },
+  { key: 'ascendance',  label: 'Ascendance' },
   { key: 'descendance', label: 'Descendance' },
 ]
 
+export const documentsViews: { key: DocumentsView; label: string }[] = [
+  { key: 'medias',  label: 'Photos & Médias' },
+  { key: 'actes',   label: 'Actes & Sources' },
+  { key: 'exports', label: 'Exports' },
+]
+
+export const historyViews: { key: HistoryView; label: string }[] = [
+  { key: 'chronologie',       label: 'Chronologie' },
+]
+
 export const toolbar = [
-  { icon: User, label: 'Sosa' },
-  { icon: Cloud, label: 'Nouveautés' },
-  { icon: Database, label: 'Online' },
-  { icon: Share2, label: 'Publier' },
-  { icon: Bell, label: 'Alertes' },
-  { icon: ArrowLeft, label: 'Précédent' },
+  { icon: User,         label: 'Sosa' },
+  { icon: Cloud,        label: 'Nouveautés' },
+  { icon: Database,     label: 'Online' },
+  { icon: Share2,       label: 'Publier' },
+  { icon: Bell,         label: 'Alertes' },
+  { icon: ArrowLeft,    label: 'Précédent' },
   { icon: ChevronRight, label: 'Suivant' },
-  { icon: Home, label: 'Accueil' },
-  { icon: Plus, label: 'Ajouter' },
-  { icon: Pencil, label: 'Saisir' },
-  { icon: Trash2, label: 'Supprimer' },
+  { icon: Home,         label: 'Accueil' },
+  { icon: Plus,         label: 'Ajouter' },
+  { icon: Pencil,       label: 'Saisir' },
+  { icon: Trash2,       label: 'Supprimer' },
   { icon: CheckCircle2, label: 'Cohérence' },
-  { icon: Search, label: 'Rechercher' },
-  { icon: Archive, label: 'Archives' },
-  { icon: Library, label: 'Dictionnaires' },
-  { icon: TreePine, label: 'Arbres' },
-  { icon: FileText, label: 'Fiches' },
-  { icon: BookOpen, label: 'Livres' },
-  { icon: Info, label: 'Infos' },
+  { icon: Search,       label: 'Rechercher' },
+  { icon: Archive,      label: 'Archives' },
+  { icon: Library,      label: 'Dictionnaires' },
+  { icon: TreePine,     label: 'Arbres' },
+  { icon: FileText,     label: 'Fiches' },
+  { icon: BookOpen,     label: 'Livres' },
+  { icon: Info,         label: 'Infos' },
 ]
 
 export const people = Object.values(graph.people)
@@ -101,14 +115,18 @@ export const people = Object.values(graph.people)
 
 export const searchResults = Object.values(graph.people)
   .slice(0, 50)
-  .map((person) => [
-    person.lastName,
-    person.firstName,
-    person.birthDate ?? person.birthYear ?? '',
-    person.birthPlace ?? '',
-    person.deathDate ?? person.deathYear ?? '',
-    person.deathPlace ?? '',
-  ])
+  .map((person) => {
+    const birth = getBirth(person)
+    const death = getDeath(person)
+    return [
+      person.lastName,
+      person.firstName,
+      birth?.date ? formatGedcomDate(birth.date) : '',
+      birth?.placeBrut ?? '',
+      death?.date ? formatGedcomDate(death.date) : '',
+      death?.placeBrut ?? '',
+    ]
+  })
 
 export const descendants = Object.values(graph.people)
   .slice(0, 30)
@@ -118,18 +136,20 @@ export const descendants = Object.values(graph.people)
   ])
 
 export const events = [
-  ['Naissance', '1833', '', 'Saint-Paul'],
-  ['Émancipation par décret d’abolition', '1848', '15', 'Saint-Paul'],
-  ['Mariage', '1849', '16', 'Saint-Paul'],
-  ['Décès', '1862', '29', 'Saint-Paul'],
+  ['Naissance',                           '1833', '',   'Saint-Paul'],
+  ["Émancipation par décret d'abolition", '1848', '15', 'Saint-Paul'],
+  ['Mariage',                             '1849', '16', 'Saint-Paul'],
+  ['Décès',                               '1862', '29', 'Saint-Paul'],
 ]
 
-export function getPerson(personId?: string) {
+// ── Accesseurs ────────────────────────────────────────────────────────────────
+
+export function getPerson(personId?: string): FamilyGraphPerson | undefined {
   if (!personId) return undefined
   return graph.people[personId]
 }
 
-export function getFamily(familyId?: string) {
+export function getFamily(familyId?: string): FamilyGraphFamily | undefined {
   if (!familyId) return undefined
   return graph.families[familyId]
 }
@@ -137,7 +157,6 @@ export function getFamily(familyId?: string) {
 export function getParents(personId: string) {
   const person = getPerson(personId)
   const family = getFamily(person?.famcIds?.[0])
-
   return {
     father: getPerson(family?.husbandId),
     mother: getPerson(family?.wifeId),
@@ -145,15 +164,16 @@ export function getParents(personId: string) {
   }
 }
 
-export function getSpouseFamilies(personId: string) {
+export function getSpouseFamilies(personId: string): FamilyGraphFamily[] {
   const person = getPerson(personId)
-
-  return person?.famsIds
-    .map((familyId) => graph.families[familyId])
-    .filter(Boolean) ?? []
+  return (
+    person?.famsIds
+      .map((familyId) => graph.families[familyId])
+      .filter(Boolean) ?? []
+  )
 }
 
-export function getChildren(personId: string) {
+export function getChildren(personId: string): FamilyGraphPerson[] {
   return getSpouseFamilies(personId).flatMap((family) =>
     family.childIds
       .map((childId) => graph.people[childId])
@@ -161,38 +181,138 @@ export function getChildren(personId: string) {
   )
 }
 
-export function getSpouses(personId: string) {
+export function getSpouses(personId: string): FamilyGraphPerson[] {
   return getSpouseFamilies(personId)
     .map((family) => {
       const spouseId =
         family.husbandId === personId ? family.wifeId : family.husbandId
-
       return spouseId ? graph.people[spouseId] : undefined
     })
-    .filter(Boolean)
+    .filter((p): p is FamilyGraphPerson => p !== undefined)
 }
 
-export function formatPersonName(person: FamilyGraphPerson) {
+// ── Formatage ─────────────────────────────────────────────────────────────────
+
+export function formatPersonName(person: FamilyGraphPerson): string {
   return [person.lastName, person.firstName].filter(Boolean).join(' ')
 }
 
-export function formatYears(person: FamilyGraphPerson) {
-  const birth = person.birthYear ?? ''
-  const death = person.deathYear ?? ''
-
-  if (!birth && !death) return ''
-  return `${birth}–${death}`
+export function formatYears(person: FamilyGraphPerson): string {
+  const birthYear = getYear(getBirth(person)?.date)
+  const deathYear = getYear(getDeath(person)?.date)
+  if (!birthYear && !deathYear) return ''
+  return `${birthYear ?? ''}–${deathYear ?? ''}`
 }
 
-export function formatSex(sex: FamilyGraphPerson['sex']) {
+export function formatSex(sex: FamilyGraphPerson['sex']): string {
   if (sex === 'M') return '♂'
   if (sex === 'F') return '♀'
   return '·'
 }
 
-export function formatPersonDetails(person: FamilyGraphPerson) {
-  const years = formatYears(person)
-  const birthPlace = person.birthPlace ? ` · ${person.birthPlace}` : ''
+export function formatPersonDetails(person: FamilyGraphPerson): string {
+  const years      = formatYears(person)
+  const birthPlace = getBirth(person)?.placeBrut
+  return years + (birthPlace ? ` · ${birthPlace}` : '')
+}
 
-  return `${years}${birthPlace}`
+// ── Ascendance ────────────────────────────────────────────────────────────────
+
+export type AscendancePersonNode = {
+  id?: string
+  firstName?: string
+  lastName?: string
+  nickname?: string
+  sex?: 'M' | 'F' | 'U'
+  birthYear?: number
+  deathYear?: number
+  tone: 'neutral' | 'source' | 'hypothesis'
+  empty?: boolean
+  emptyLabel?: string
+}
+
+export type AscendanceGeneration = {
+  label: string
+  people: AscendancePersonNode[]
+}
+
+export function buildAscendanceGenerations(
+  rootPersonId?: string,
+  generationCount = 6,
+): AscendanceGeneration[] {
+  const root = getPerson(rootPersonId)
+
+  const generations: AscendanceGeneration[] = []
+  let currentGeneration: Array<FamilyGraphPerson | undefined> = [root]
+
+  for (
+    let generationIndex = 0;
+    generationIndex < generationCount;
+    generationIndex++
+  ) {
+    const generationNumber = generationIndex + 1
+
+    generations.push({
+      label: getGenerationLabel(generationNumber),
+      people: currentGeneration.map((person, index) => {
+        if (!person) {
+          return {
+            empty: true,
+            emptyLabel: `Ajouter ${getMissingAncestorLabel(generationIndex, index)}`,
+            tone: 'neutral',
+          }
+        }
+
+        return {
+          id:        person.id,
+          firstName: person.firstName,
+          lastName:  person.lastName,
+          nickname:  person.nickname,
+          sex:       person.sex,
+          birthYear: getYear(getBirth(person)?.date),
+          deathYear: getYear(getDeath(person)?.date),
+          tone: 'neutral',
+        }
+      }),
+    })
+
+    currentGeneration = currentGeneration.flatMap((person) => {
+      if (!person) return [undefined, undefined]
+      const parents = getParents(person.id)
+      return [parents.father, parents.mother]
+    })
+  }
+
+  return generations
+}
+
+function getGenerationLabel(generation: number): string {
+  if (generation === 1) return 'Génération 1'
+  if (generation === 2) return 'Parents'
+  if (generation === 3) return 'Grands-parents'
+  if (generation === 4) return 'Arrière-grands-parents'
+  return `Génération ${generation}`
+}
+
+function getMissingAncestorLabel(
+  generationIndex: number,
+  personIndex: number,
+): string {
+  if (generationIndex === 0) return "l'individu"
+  if (generationIndex === 1) return personIndex === 0 ? 'le père' : 'la mère'
+  const isMaleSlot = personIndex % 2 === 0
+  return isMaleSlot ? 'le grand-père' : 'la grand-mère'
+}
+
+// ── Médias ────────────────────────────────────────────────────────────────────
+
+const MEDIA_BASE_URL =
+  '/data/Jordan Michel Nisçoise-20260525/Jordan Michel Nisçoise-20260525-Medias'
+
+export function getPersonPrimaryPhoto(personId: string): string | undefined {
+  const person = getPerson(personId)
+  if (!person?.primaryMediaId) return undefined
+  const title = (graph as FamilyGraphGenerated).media?.[person.primaryMediaId]?.title
+  if (!title) return undefined
+  return `${MEDIA_BASE_URL}/${title}`
 }

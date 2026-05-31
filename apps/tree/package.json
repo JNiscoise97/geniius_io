@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@geniius/layout": "workspace:*",
+    "@geniius/utils": "workspace:*",
     "@supabase/supabase-js": "^2.106.1",
     "lucide-react": "^0.507.0",
     "react": "^19.2.6",
@@ -32,6 +33,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vite-plugin-static-copy": "^4.1.0"
   }
 }

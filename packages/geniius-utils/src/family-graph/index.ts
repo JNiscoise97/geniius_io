@@ -3,9 +3,26 @@ export type {
   FamilyGraphPerson,
   FamilyGraphFamily,
   FamilyGraphData,
+  GedcomMedia,
+  GedcomPlace,
+  GedcomEvent,
+  GedcomEventAssoc,
+  GedcomEventTag
+
 } from "./gedcom-parser";
 
-export { buildGraphFromGedcomText, normalizeId } from "./gedcom-parser";
+export { 
+  buildGraphFromGedcomText, 
+  normalizeId,
+  getBirth,
+  getDeath,
+  getEvent
+} from "./gedcom-parser";
+export { 
+  getYear,
+  formatGedcomDate,
+  type GedcomDate
+} from "./gedcom-date";
 
 export {
   filterGraphToBloodRelativesAndSpouses,

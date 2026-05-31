@@ -118,7 +118,7 @@ export default function AppLayout({
         )}
       </header>
 
-      <main className="g-layout-main">{children}</main>
+      <main className={`g-layout-main`}>{children}</main>
 
       <footer className="g-layout-footer">
         <p>&copy; {new Date().getFullYear()} {footerName}. Tous droits réservés.</p>

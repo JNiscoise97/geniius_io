@@ -5,7 +5,7 @@ import { SummarySection } from './ui/SummarySection'
 
 export function RightSummary() {
   return (
-    <aside className="hidden h-[calc(100vh-94px)] overflow-auto bg-white lg:block">
+    <aside className="hidden min-h-0 overflow-auto bg-white lg:block">
       <PanelTitle title="Navigation" />
 
       <div className="flex justify-center gap-3 border-b border-slate-200 p-4">

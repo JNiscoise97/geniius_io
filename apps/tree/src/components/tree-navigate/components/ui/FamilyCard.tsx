@@ -1,4 +1,6 @@
+import type { GedcomPlace } from '../../data'
 import type { Tone } from '../../types'
+import { formatGedcomPlace } from '@geniius/utils/family-graph-utils'
 
 const toneClasses: Record<Tone, string> = {
   neutral: 'border-slate-200 bg-white text-slate-950',
@@ -16,7 +18,9 @@ export function FamilyCard({
   deathDate,
   birthYear,
   deathYear,
+  birthPlaceBrut,
   birthPlace,
+  deathPlaceBrut,
   deathPlace,
   tag,
   relationHint,
@@ -35,8 +39,10 @@ export function FamilyCard({
   deathDate?: string
   birthYear?: string
   deathYear?: string
-  birthPlace?: string
-  deathPlace?: string
+  birthPlaceBrut?: string
+  birthPlace?: GedcomPlace
+  deathPlaceBrut?: string
+  deathPlace?: GedcomPlace
   tag?: string
   relationHint?: string
   emptyLabel?: string
@@ -93,15 +99,21 @@ export function FamilyCard({
             </p>
           )}
 
-          {(birthDate || birthYear || birthPlace) && (
+          {(birthDate || birthYear || birthPlace || birthPlaceBrut) && (
             <p className="block max-w-full truncate text-[12px] font-medium leading-5 opacity-75">
-              N : {formatEventLine(birthDate ?? birthYear, birthPlace)}
+              N : {formatEventLine(
+                birthDate ?? birthYear,
+                birthPlace ? formatGedcomPlace(birthPlace) : birthPlaceBrut,
+              )}
             </p>
           )}
 
-          {(deathDate || deathYear || deathPlace) ? (
+          {(deathDate || deathYear || deathPlace || deathYear) ? (
             <p className="block max-w-full truncate text-[12px] font-medium leading-5 opacity-75">
-              D : {formatEventLine(deathDate ?? deathYear, deathPlace)}
+              D : {formatEventLine(
+                deathDate ?? deathYear,
+                deathPlace ? formatGedcomPlace(deathPlace) : deathPlaceBrut,
+              )}
             </p>
           ) : (
             (birthDate || birthYear) && (
@@ -123,6 +135,7 @@ export function FamilyCard({
 }
 
 function formatEventLine(date?: string, place?: string) {
+  console.log("place",place)
   if (date && place) return `${date} - ${place}`
   return date ?? place ?? ''
 }

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./family-graph": "./src/family-graph/index.ts"
+    "./family-graph": "./src/family-graph/index.ts",
+    "./family-graph-utils": "./src/lib/index.ts"
   }
 }
