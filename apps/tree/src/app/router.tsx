@@ -4,6 +4,7 @@ import LandingPage from '../pages/LandingPage'
 import Layout from '../components/layout/Layout'
 import TreePage from '../pages/TreePage'
 import TreeNavigatePage from '../pages/TreeNavigatePage'
+import TreeStatsPage from '../pages/TreeStatsPage'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -91,4 +92,13 @@ export const router = createBrowserRouter([
       </Layout>
     ),
   },
+  {
+    path: '/trees/:treeId/stats/:section',
+    element: (
+      <Layout>
+        <TreeStatsPage />
+      </Layout>
+    ),
+  },
+
 ])

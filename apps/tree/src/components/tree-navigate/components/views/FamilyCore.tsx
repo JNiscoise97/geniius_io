@@ -15,6 +15,7 @@ import {
 import { ImageAvatar } from '../ui/ImageAvatar'
 import { CentralPerson } from '../ui/CentralPerson'
 import { formatDisplayName, formatEventLine, formatFirstName, formatFullFirstName, formatShortName, getInitials } from '../lib/formatPersonInfos'
+import { MISSING_DEATH } from '../../../../../../../packages/geniius-utils/src/lib/calculate-age'
 
 type StepKey =
   | 'overview'
@@ -75,12 +76,12 @@ function getChildRelationLabel({
 }
 
 const steps: { key: StepKey; label: string }[] = [
-  { key: 'overview',      label: "Vue d'ensemble" },
-  { key: 'parents',       label: 'Parents' },
-  { key: 'grandparents',  label: 'Grands-parents' },
-  { key: 'siblings',      label: 'Fratrie' },
-  { key: 'spouses',       label: 'Conjoints' },
-  { key: 'children',      label: 'Enfants' },
+  { key: 'overview', label: "Vue d'ensemble" },
+  { key: 'parents', label: 'Parents' },
+  { key: 'grandparents', label: 'Grands-parents' },
+  { key: 'siblings', label: 'Fratrie' },
+  { key: 'spouses', label: 'Conjoints' },
+  { key: 'children', label: 'Enfants' },
   { key: 'grandchildren', label: 'Petits-enfants' },
 ]
 
@@ -103,11 +104,11 @@ export function FamilyCore({
 
   const person = selectedPersonId ? getPerson(selectedPersonId) : undefined
 
-  const parents              = person ? getParents(person.id) : undefined
+  const parents = person ? getParents(person.id) : undefined
   const paternalGrandparents = parents?.father ? getParents(parents.father.id) : undefined
   const maternalGrandparents = parents?.mother ? getParents(parents.mother.id) : undefined
 
-  const spouses  = person ? getSpouses(person.id)  : []
+  const spouses = person ? getSpouses(person.id) : []
   const children = person ? getChildren(person.id) : []
 
   const siblings = useMemo(() => {
@@ -140,9 +141,9 @@ export function FamilyCore({
               </OverviewSection>
 
               <OverviewSection title="Grands-parents">
-                <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel"   emptyLabel="Ajouter le grand-père paternel"   onPersonSelect={onPersonSelect} />
+                <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" onPersonSelect={onPersonSelect} />
                 <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" onPersonSelect={onPersonSelect} />
-                <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel"   emptyLabel="Ajouter le grand-père maternel"   onPersonSelect={onPersonSelect} />
+                <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" onPersonSelect={onPersonSelect} />
                 <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" onPersonSelect={onPersonSelect} />
               </OverviewSection>
 
@@ -208,10 +209,10 @@ export function FamilyCore({
           {activeStep === 'grandparents' && (
             <Panel title={`${countKnown([paternalGrandparents?.father, paternalGrandparents?.mother, maternalGrandparents?.father, maternalGrandparents?.mother])} grands-parents connus sur 4`}>
               <SideLabel tone="male">Côté paternel</SideLabel>
-              <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel"   emptyLabel="Ajouter le grand-père paternel"   variant="large" onPersonSelect={onPersonSelect} />
+              <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" variant="large" onPersonSelect={onPersonSelect} />
               <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" variant="large" onPersonSelect={onPersonSelect} />
               <SideLabel tone="female">Côté maternel</SideLabel>
-              <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel"   emptyLabel="Ajouter le grand-père maternel"   variant="large" onPersonSelect={onPersonSelect} />
+              <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" variant="large" onPersonSelect={onPersonSelect} />
               <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" variant="large" onPersonSelect={onPersonSelect} />
             </Panel>
           )}
@@ -300,10 +301,10 @@ function PersonCard({
 }) {
   if (!person) return <EmptyCard label={emptyLabel ?? 'Ajouter une personne'} />
 
-  const birth   = getBirth(person)
-  const death   = getDeath(person)
+  const birth = getBirth(person)
+  const death = getDeath(person)
   const isLarge = variant === 'large'
-  const age     = calculateAge(birth?.date, death?.date)
+  const age = calculateAge(birth?.date, death?.date)
 
   return (
     <button
@@ -336,6 +337,11 @@ function PersonCard({
             <p className="mt-0.5 truncate">
               <span className="font-medium text-slate-700">D :</span>{' '}
               {formatEventLine(death?.date, death?.place) || '—'}
+            </p>
+          ) : age === MISSING_DEATH ? (
+            <p className="truncate">
+              <span className="font-medium text-slate-600">D :</span>{' '}
+              date et lieu inconnus
             </p>
           ) : (
             birth?.date && age !== '—' && (
@@ -412,9 +418,9 @@ function OverviewSection({ title, children }: { title: string; children: ReactNo
 }
 
 function PersonName({ person, large }: { person: FamilyGraphPerson; large?: boolean }) {
-  const lastName  = person.lastName && person.lastName.trim() !== '? SANS NOM' ? person.lastName : ''
+  const lastName = person.lastName && person.lastName.trim() !== '? SANS NOM' ? person.lastName : ''
   const firstName = formatFullFirstName(person.firstName)
-  const nickname  = person.nickname
+  const nickname = person.nickname
     ? `${person.sex === 'F' ? 'dite' : 'dit'} ${person.nickname}`
     : ''
 
@@ -428,7 +434,7 @@ function PersonName({ person, large }: { person: FamilyGraphPerson; large?: bool
 
   return (
     <div className="min-w-0">
-      {lastName    && <p className="truncate text-[14px] font-medium leading-5 text-slate-950">{lastName}</p>}
+      {lastName && <p className="truncate text-[14px] font-medium leading-5 text-slate-950">{lastName}</p>}
       {(firstName || nickname) && (
         <p className="truncate text-[14px] font-medium leading-5 text-slate-950">
           {[firstName, nickname].filter(Boolean).join(' ')}
@@ -442,12 +448,12 @@ function PersonName({ person, large }: { person: FamilyGraphPerson; large?: bool
 }
 
 function Avatar({ person, large }: { person: FamilyGraphPerson; large?: boolean }) {
-  const photoUrl  = getPersonPrimaryPhoto(person.id)
-  const initials  = getInitials(person)
+  const photoUrl = getPersonPrimaryPhoto(person.id)
+  const initials = getInitials(person)
   const colorClass =
     person.sex === 'F' ? 'bg-pink-100 text-pink-700'
-    : person.sex === 'M' ? 'bg-blue-100 text-blue-700'
-    : 'bg-slate-100 text-slate-500'
+      : person.sex === 'M' ? 'bg-blue-100 text-blue-700'
+        : 'bg-slate-100 text-slate-500'
   const sizeClass = large ? 'h-12 w-12 text-[14px]' : 'h-[38px] w-[38px] text-[13px]'
 
   if (photoUrl) return <ImageAvatar src={photoUrl} alt={initials} sizeClass={sizeClass} />
@@ -496,7 +502,7 @@ function UnionGroup({ label, children }: { label: string; children: ReactNode })
 // ── Logique fratrie ───────────────────────────────────────────────────────────
 
 function getSiblingGroups(person: FamilyGraphPerson): SiblingItem[] {
-  const directParents    = getParents(person.id)
+  const directParents = getParents(person.id)
   const familiesToInspect = new Set<string>()
 
   person.famcIds.forEach((id) => familiesToInspect.add(id))
@@ -506,7 +512,7 @@ function getSiblingGroups(person: FamilyGraphPerson): SiblingItem[] {
   const siblingsById = new Map<string, SiblingItem>()
 
   familiesToInspect.forEach((familyId) => {
-    const fp     = getParentsFromFamilyId(familyId)
+    const fp = getParentsFromFamilyId(familyId)
     const family = fp.family
     if (!family) return
 
@@ -553,7 +559,7 @@ function getSiblingRelationLabel({
 }) {
   if (sibling.id === currentPerson.id) return `${index + 1} · individu central`
   const base = getSiblingLabel(sibling.sex)
-  if (sharedFather && sharedMother)  return `${index + 1} · ${base}`
+  if (sharedFather && sharedMother) return `${index + 1} · ${base}`
   if (sharedFather && !sharedMother) return `${index + 1} · demi-${base.toLowerCase()} · même père`
   if (!sharedFather && sharedMother) return `${index + 1} · demi-${base.toLowerCase()} · même mère`
   return `${index + 1} · ${base} · lien à vérifier`

@@ -6,6 +6,7 @@ import { AlertTriangleIcon, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { resolveRoleLabel } from '../lib/resolveRoleLabel'
+import { MISSING_DEATH } from '../../../../../../../packages/geniius-utils/src/lib/calculate-age'
 
 // ── Avatar image avec fallback ────────────────────────────────────────────────
 
@@ -85,13 +86,13 @@ function ActorRow({
   isLast: boolean
   onPersonSelect?: (id: string) => void
 }) {
-  const person    = assoc.id ? getPerson(assoc.id) : undefined
+  const person = assoc.id ? getPerson(assoc.id) : undefined
   const roleLabel = resolveRoleLabel(assoc)
 
   // Nom affiché
   const displayName = (() => {
     if (!person) return assoc.title ?? assoc.id ?? '?'
-    const last  = person.lastName && person.lastName.trim() !== '? SANS NOM' ? person.lastName : ''
+    const last = person.lastName && person.lastName.trim() !== '? SANS NOM' ? person.lastName : ''
     const first = (() => {
       if (!person.firstName) return ''
       const t = person.firstName.trim()
@@ -105,15 +106,15 @@ function ActorRow({
   })()
 
   // Années naissance / décès
-  const birth     = person ? getBirth(person) : undefined
-  const death     = person ? getDeath(person) : undefined
+  const birth = person ? getBirth(person) : undefined
+  const death = person ? getDeath(person) : undefined
   const birthYear = getYear(birth?.date)
   const deathYear = getYear(death?.date)
-  const age       = person ? calculateAge(birth?.date, death?.date) : undefined
+  const age = person ? calculateAge(birth?.date, death?.date) : undefined
 
   // Détail GEDCOM (âge à l'acte + note)
   const detailParts: string[] = []
-  if (assoc.age)  detailParts.push(`${assoc.age} ans à l'acte`)
+  if (assoc.age) detailParts.push(`${assoc.age} ans à l'acte`)
   if (assoc.note) detailParts.push(assoc.note)
   const detail = detailParts.join(' · ')
 
@@ -153,6 +154,11 @@ function ActorRow({
                 <span className="font-medium text-slate-600">D :</span>{' '}
                 {death.date ? formatGedcomDate(death.date) : ''}
                 {death.place?.town ? ` · ${death.place.town}` : ''}
+              </p>
+            ) : age === MISSING_DEATH ? (
+              <p className="truncate">
+                <span className="font-medium text-slate-600">D :</span>{' '}
+                date et lieu inconnus
               </p>
             ) : (birthYear && age && age !== '—') ? (
               <p className="truncate">

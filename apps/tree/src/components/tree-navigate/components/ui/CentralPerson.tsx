@@ -3,6 +3,7 @@ import { calculateAge } from "@geniius/utils/family-graph-utils"
 import { getPersonPrimaryPhoto } from "../../data"
 import { ImageAvatar } from "./ImageAvatar"
 import { formatDisplayName, formatEventLine } from "../lib/formatPersonInfos"
+import { MISSING_DEATH } from "../../../../../../../packages/geniius-utils/src/lib/calculate-age"
 
 export function CentralPerson({ person }: { person?: FamilyGraphPerson }) {
   if (!person) {
@@ -13,11 +14,11 @@ export function CentralPerson({ person }: { person?: FamilyGraphPerson }) {
     )
   }
 
-  const birth    = getBirth(person)
-  const death    = getDeath(person)
+  const birth = getBirth(person)
+  const death = getDeath(person)
   const sexClass = person.sex === 'F' ? 'bg-[#D4537E]' : 'bg-[#378ADD]'
   const photoUrl = getPersonPrimaryPhoto(person.id)
-  const age      = calculateAge(birth?.date, death?.date)
+  const age = calculateAge(birth?.date, death?.date)
 
   return (
     <section className="relative rounded-[20px] border-[1.5px] border-[#378ADD] bg-white px-5 py-4">
@@ -58,6 +59,11 @@ export function CentralPerson({ person }: { person?: FamilyGraphPerson }) {
               <p className="mt-1">
                 <span className="font-medium text-slate-700">D :</span>{' '}
                 {formatEventLine(death?.date, death?.place) || '—'}
+              </p>
+            ) : age === MISSING_DEATH ? (
+              <p className="mt-1">
+                <span className="font-medium text-slate-700">D :{' '}</span>
+                date et lieu inconnus
               </p>
             ) : (
               birth?.date && age !== '—' && (

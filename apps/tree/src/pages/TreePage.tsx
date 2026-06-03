@@ -26,59 +26,79 @@ import {
   TreePine,
   UserRound,
   Users,
+  ChevronRight,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { graph } from '../components/tree-navigate/data'
+import { useTreeStats } from '../hook/useTreeStats'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Marqueur visuel — données encore statiques
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Static({ children, inline }: { children: React.ReactNode; inline?: boolean }) {
+  const Tag = inline ? 'span' : 'div'
+  return (
+    <Tag
+      title="Donnée statique — à brancher sur une logique dédiée"
+      className={inline ? 'relative inline-flex items-center gap-1' : 'relative'}
+    >
+      {children}
+      <span
+        aria-hidden
+        className={
+          inline
+            ? 'ml-1 inline-block rounded-full bg-red-500/20 px-1 text-[10px] font-black uppercase tracking-wide text-red-600'
+            : 'pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-red-400/60'
+        }
+      >
+        {inline ? '⬤' : null}
+      </span>
+    </Tag>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Lien vers une page de détail
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DetailLink({
+  to,
+  children,
+  className,
+}: {
+  to: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <Link
+      to={to}
+      className={[
+        'relative cursor-pointer transition-all hover:ring-2 hover:ring-emerald-400/60 hover:ring-offset-1',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {children}
+      <span className="absolute right-3 top-3">
+        <ChevronRight size={14} className="text-emerald-400" />
+      </span>
+    </Link>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const tabs = [
-  'Vue d’ensemble',
+  "Vue d'ensemble",
   'Recherche',
   'Collaboration',
   'Vues & sous-arbres',
   'Médias',
   'Analyse historique',
   'Power user',
-]
-
-const overviewStats = [
-  { label: 'Personnes', value: '428', icon: Users },
-  { label: 'Familles / couples', value: '132', icon: UserRound },
-  { label: 'Générations', value: '9', icon: Layers3 },
-  { label: 'Sources', value: '91', icon: FileText },
-  { label: 'Lieux', value: '37', icon: MapPin },
-  { label: 'Branches', value: '12', icon: GitBranch },
-]
-
-const completeness = [
-  { label: 'Date de naissance', value: 72 },
-  { label: 'Lieu de naissance', value: 68 },
-  { label: 'Décès renseigné', value: 54 },
-  { label: 'Parents connus', value: 61 },
-  { label: 'Au moins une source', value: 43 },
-  { label: 'Photo ou média', value: 18 },
-]
-
-const sourceTypes = [
-  { label: 'État civil', value: 46 },
-  { label: 'Notariat', value: 14 },
-  { label: 'Recensements', value: 9 },
-  { label: 'Hypothèques', value: 7 },
-  { label: 'Presse', value: 5 },
-  { label: 'Témoignages', value: 10 },
-]
-
-const qualityAlerts = [
-  { icon: AlertTriangle, title: '12 incohérences chronologiques', text: 'Événements impossibles ou dates à vérifier.' },
-  { icon: Split, title: '8 doublons potentiels', text: 'Même nom, même période, même commune.' },
-  { icon: GitBranch, title: '23 filiations faibles', text: 'Relations sans source directe ou hypothèse.' },
-  { icon: MapPin, title: '6 lieux ambigus', text: 'Toponymes à normaliser ou géocoder.' },
-]
-
-const researchBacklog = [
-  '31 personnes sans parents connus',
-  '18 individus sans source',
-  '14 actes à retrouver',
-  '9 pistes ouvertes',
-  '5 branches peu explorées',
 ]
 
 const collaborators = [
@@ -94,21 +114,11 @@ const views = [
   { name: 'Personnes nées avant 1848', count: '31 personnes', type: 'Filtre chronologique' },
 ]
 
-const mediaStats = [
-  { label: 'Photos', value: '64', icon: Camera },
-  { label: 'Scans', value: '91', icon: FileText },
-  { label: 'Témoignages', value: '12', icon: BookOpen },
-  { label: 'Cartes', value: '8', icon: MapPin },
-]
-
-const historicalStats = [
-  { label: 'Métiers recensés', value: '43' },
-  { label: 'Patronymes', value: '118' },
-  { label: 'Migrations', value: '9' },
-  { label: 'Événements historiques liés', value: '6' },
-]
-
 export default function TreePage() {
+  const { treeId } = useParams<{ treeId: string }>()
+  const stats = useTreeStats(graph)
+  const base = `/trees/${treeId}/stats`
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <section className="mx-auto w-full max-w-7xl px-0 py-6 sm:px-6 lg:px-8">
@@ -125,31 +135,25 @@ export default function TreePage() {
               <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
                 Arbre familial
               </p>
-
               <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
                 Famille TANJAMA
               </h1>
-
               <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">
                 Arbre de travail pour explorer les branches réunionnaises, indiennes,
                 malgaches et guadeloupéennes de la famille. Import GEDCOM enrichi
                 progressivement par sources, médias, hypothèses et vues dynamiques.
               </p>
-
               <div className="mt-5 flex flex-wrap gap-2">
                 <Badge icon={TreePine} text="Personne racine : Coundiaman TANJAMA" />
                 <Badge icon={Clock3} text="1670 → 2026" />
                 <Badge icon={Globe2} text="Réunion · Inde · Madagascar · Guadeloupe" />
               </div>
             </div>
-
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-              <Link
-                to="/trees/tanjama/navigate"
-              >
+              <Link to={`/trees/${treeId}/navigate`}>
                 <button className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800">
-                <Compass size={17} />
-                Naviguer dans l’arbre
+                  <Compass size={17} />
+                  Naviguer dans l'arbre
                 </button>
               </Link>
               <button className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 shadow-sm hover:bg-slate-50">
@@ -182,47 +186,91 @@ export default function TreePage() {
       </section>
 
       <main className="mx-auto w-full max-w-7xl space-y-6 px-0 pb-12 sm:px-6 lg:px-8">
-        <OverviewTab />
-        <ResearchTab />
+        <OverviewTab stats={stats} base={base} />
+        <ResearchTab stats={stats} base={base} />
         <GovernanceTab />
         <ViewsTab />
-        <MediaTab />
-        <HistoricalTab />
+        <MediaTab stats={stats} base={base} />
+        <HistoricalTab stats={stats} base={base} />
         <PowerUserTab />
       </main>
     </div>
   )
 }
 
-function OverviewTab() {
+// ─────────────────────────────────────────────────────────────────────────────
+// Sections
+// ─────────────────────────────────────────────────────────────────────────────
+
+function OverviewTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; base: string }) {
   return (
     <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <Panel title="Périmètre réel de l’arbre" subtitle="Taille, couverture et structure de base.">
+      <Panel title="Périmètre réel de l'arbre" subtitle="Taille, couverture et structure de base.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {overviewStats.map((stat) => (
-            <StatCard key={stat.label} {...stat} />
-          ))}
+          <DetailLink to={`${base}/people`} className="rounded-2xl">
+            <StatCard label="Personnes" value={String(stats.totalPeople)} icon={Users} />
+          </DetailLink>
+          <StatCard label="Familles / couples" value={String(stats.totalFamilies)} icon={UserRound} />
+          <StatCard
+            label="Générations"
+            value={<Static inline><span>{stats.totalGenerations}</span></Static>}
+            icon={Layers3}
+          />
+          <DetailLink to={`${base}/sources`} className="rounded-2xl">
+            <StatCard label="Sources" value={String(stats.totalSources)} icon={FileText} />
+          </DetailLink>
+          <DetailLink to={`${base}/places`} className="rounded-2xl">
+            <StatCard label="Lieux" value={String(stats.totalPlaces)} icon={MapPin} />
+          </DetailLink>
+          <StatCard
+            label="Branches"
+            value={<Static inline><span>{stats.totalBranches}</span></Static>}
+            icon={GitBranch}
+          />
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <InfoLine label="Individus reliés" value="403" />
-          <InfoLine label="Individus isolés" value="25" />
-          <InfoLine label="Ancêtre le plus ancien" value="Séverin AUBER · 1670 env." />
-          <InfoLine label="Lignée la plus profonde" value="9 générations" />
+          <DetailLink to={`${base}/people`} className="rounded-2xl">
+            <InfoLine label="Individus reliés" value={String(stats.connectedPeople)} />
+          </DetailLink>
+          <DetailLink to={`${base}/isolated`} className="rounded-2xl">
+            <InfoLine label="Individus isolés" value={String(stats.isolatedPeople)} />
+          </DetailLink>
+          <InfoLine
+            label="Ancêtre le plus ancien"
+            value={
+              stats.oldestAncestor
+                ? `${stats.oldestAncestor.name} · ${stats.oldestAncestor.year} env.`
+                : '—'
+            }
+          />
+          <InfoLine
+            label="Lignée la plus profonde"
+            value={<Static inline><span>{stats.deepestLineage} générations</span></Static>}
+          />
         </div>
       </Panel>
 
-      <Panel title="Complétude" subtitle="Est-ce un arbre solide ou encore vide ?">
-        <div className="space-y-4">
-          {completeness.map((item) => (
-            <ProgressLine key={item.label} {...item} />
-          ))}
-        </div>
-      </Panel>
+      <DetailLink to={`${base}/completeness`} className="rounded-none sm:rounded-3xl">
+        <Panel title="Complétude" subtitle="Cliquer pour voir le détail champ par champ.">
+          <div className="space-y-4">
+            {[
+              { label: 'Date de naissance',   value: stats.completeness.birthDate },
+              { label: 'Lieu de naissance',   value: stats.completeness.birthPlace },
+              { label: 'Décès renseigné',     value: stats.completeness.death },
+              { label: 'Parents connus',      value: stats.completeness.parentsKnown },
+              { label: 'Au moins une source', value: stats.completeness.anySource },
+              { label: 'Photo ou média',      value: stats.completeness.mediaOrPhoto },
+            ].map((item) => (
+              <ProgressLine key={item.label} label={item.label} value={item.value} />
+            ))}
+          </div>
+        </Panel>
+      </DetailLink>
 
       <Panel title="Sources documentaires" subtitle="Ce qui fonde la fiabilité historique.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sourceTypes.map((source) => (
+          {stats.sourcesByType.map((source) => (
             <div key={source.label} className="rounded-2xl bg-slate-50 p-4">
               <p className="text-2xl font-black text-slate-950">{source.value}</p>
               <p className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -231,11 +279,16 @@ function OverviewTab() {
             </div>
           ))}
         </div>
-
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <MiniAlert label="Sources liées" value="74" good />
-          <MiniAlert label="Non exploitées" value="17" />
-          <MiniAlert label="Sans validation" value="9" />
+          <DetailLink to={`${base}/sources`} className="rounded-2xl">
+            <MiniAlert label="Sources liées" value={String(stats.sourcesLinked)} good />
+          </DetailLink>
+          <Static>
+            <MiniAlert label="Non exploitées" value={String(stats.sourcesUnused)} />
+          </Static>
+          <Static>
+            <MiniAlert label="Sans validation" value={String(stats.sourcesUnvalidated)} />
+          </Static>
         </div>
       </Panel>
 
@@ -246,24 +299,46 @@ function OverviewTab() {
   )
 }
 
-function ResearchTab() {
+function ResearchTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; base: string }) {
+  const qualityAlerts = [
+    { icon: AlertTriangle, title: `${stats.chronologicalInconsistencies} incohérences chronologiques`, text: 'Événements impossibles ou dates à vérifier.' },
+    { icon: Split,         title: `${stats.potentialDuplicates} doublons potentiels`,                  text: 'Même nom, même période, même commune.' },
+    { icon: GitBranch,     title: `${stats.weakFiliations} filiations faibles`,                        text: 'Relations sans source directe ou hypothèse.' },
+    { icon: MapPin,        title: `${stats.ambiguousPlaces} lieux ambigus`,                            text: 'Toponymes à normaliser ou géocoder.' },
+  ]
+
+  const researchBacklog = [
+    { label: `${stats.peopleWithoutParents} personnes sans parents connus`, isStatic: false, href: `${base}/without-parents` },
+    { label: `${stats.peopleWithoutSource} individus sans source`,          isStatic: false, href: `${base}/without-source` },
+    { label: `${stats.actsToFind} actes à retrouver`,                       isStatic: true,  href: null },
+    { label: `${stats.openLeads} pistes ouvertes`,                          isStatic: true,  href: null },
+    { label: `${stats.unexploredBranches} branches peu explorées`,          isStatic: true,  href: null },
+  ]
+
   return (
     <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <Panel title="Cohérence & qualité" subtitle="Les zones faibles à traiter en priorité.">
         <div className="grid gap-3">
           {qualityAlerts.map((alert) => (
-            <QualityAlert key={alert.title} {...alert} />
+            <Static key={alert.title}>
+              <QualityAlert icon={alert.icon} title={alert.title} text={alert.text} />
+            </Static>
           ))}
         </div>
       </Panel>
 
       <Panel title="Backlog de recherche" subtitle="Un arbre est aussi une liste de pistes.">
         <div className="grid gap-3 sm:grid-cols-2">
-          {researchBacklog.map((item) => (
-            <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-black text-slate-800">{item}</p>
-            </div>
-          ))}
+          {researchBacklog.map(({ label, isStatic, href }) => {
+            const inner = (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-black text-slate-800">{label}</p>
+              </div>
+            )
+            if (isStatic) return <Static key={label}>{inner}</Static>
+            if (href) return <DetailLink key={label} to={href} className="rounded-2xl">{inner}</DetailLink>
+            return <div key={label}>{inner}</div>
+          })}
         </div>
       </Panel>
     </section>
@@ -273,12 +348,12 @@ function ResearchTab() {
 function GovernanceTab() {
   return (
     <section className="grid gap-6 lg:grid-cols-2">
-      <Panel title="Propriété & origine" subtitle="D’où vient l’arbre ? Qui le porte ?">
+      <Panel title="Propriété & origine" subtitle="D'où vient l'arbre ? Qui le porte ?">
         <div className="grid gap-3">
-          <InfoLine label="Créateur" value="Jordan Niscoise" />
-          <InfoLine label="Propriétaire" value="Jordan Niscoise" />
-          <InfoLine label="Origine" value="Import GEDCOM + enrichissement manuel" />
-          <InfoLine label="Fusion" value="2 arbres familiaux fusionnés" />
+          <InfoLine label="Créateur"      value="Jordan Niscoise" />
+          <InfoLine label="Propriétaire"  value="Jordan Niscoise" />
+          <InfoLine label="Origine"       value="Import GEDCOM + enrichissement manuel" />
+          <InfoLine label="Fusion"        value="2 arbres familiaux fusionnés" />
           <InfoLine label="Dernier import" value="GEDCOM · 21 mai 2026" />
         </div>
       </Panel>
@@ -286,7 +361,10 @@ function GovernanceTab() {
       <Panel title="Partage & visibilité" subtitle="Accès, droits et invitations.">
         <div className="grid gap-3">
           {collaborators.map((user) => (
-            <div key={user.name} className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+            <div
+              key={user.name}
+              className="flex items-center justify-between rounded-2xl bg-slate-50 p-4"
+            >
               <div>
                 <p className="font-black text-slate-950">{user.name}</p>
                 <p className="text-sm font-medium text-slate-600">{user.role}</p>
@@ -305,10 +383,10 @@ function GovernanceTab() {
 
       <Panel title="Sécurité" subtitle="Branches privées et visibilité fine.">
         <div className="grid gap-3 sm:grid-cols-2">
-          <MiniFeature icon={Lock} title="Branches privées" text="3 branches masquées." />
-          <MiniFeature icon={Eye} title="Version publique" text="Une vue partageable existe." />
-          <MiniFeature icon={History} title="Snapshots" text="12 sauvegardes disponibles." />
-          <MiniFeature icon={ShieldCheck} title="Restauration" text="Retour possible à une version." />
+          <MiniFeature icon={Lock}        title="Branches privées" text="3 branches masquées." />
+          <MiniFeature icon={Eye}         title="Version publique" text="Une vue partageable existe." />
+          <MiniFeature icon={History}     title="Snapshots"        text="12 sauvegardes disponibles." />
+          <MiniFeature icon={ShieldCheck} title="Restauration"     text="Retour possible à une version." />
         </div>
       </Panel>
     </section>
@@ -318,10 +396,13 @@ function GovernanceTab() {
 function ViewsTab() {
   return (
     <section className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-      <Panel title="Sous-arbres & vues dynamiques" subtitle="Comme des vues SQL appliquées à l’arbre.">
+      <Panel title="Sous-arbres & vues dynamiques" subtitle="Comme des vues SQL appliquées à l'arbre.">
         <div className="grid gap-3">
           {views.map((view) => (
-            <div key={view.name} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+            <div
+              key={view.name}
+              className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4"
+            >
               <div>
                 <p className="font-black text-slate-950">{view.name}</p>
                 <p className="mt-1 text-sm font-medium text-slate-600">{view.type}</p>
@@ -336,57 +417,99 @@ function ViewsTab() {
 
       <Panel title="Arbres dérivés" subtitle="Versions de travail, publiques ou hypothétiques.">
         <div className="grid gap-3">
-          <MiniFeature icon={Database} title="Copie de travail" text="1 version brouillon." />
-          <MiniFeature icon={Share2} title="Version publique" text="Masque les vivants." />
-          <MiniFeature icon={GitBranch} title="Branche exportable" text="Descendants TANJAMA." />
-          <MiniFeature icon={Split} title="Version hypothétique" text="Filiations à confirmer." />
+          <MiniFeature icon={Database}  title="Copie de travail"    text="1 version brouillon." />
+          <MiniFeature icon={Share2}    title="Version publique"    text="Masque les vivants." />
+          <MiniFeature icon={GitBranch} title="Branche exportable"  text="Descendants TANJAMA." />
+          <MiniFeature icon={Split}     title="Version hypothétique" text="Filiations à confirmer." />
         </div>
       </Panel>
     </section>
   )
 }
 
-function MediaTab() {
+function MediaTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; base: string }) {
   return (
     <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
       <Panel title="Médias liés" subtitle="Photos, scans, témoignages et objets.">
         <div className="grid gap-3 sm:grid-cols-2">
-          {mediaStats.map((stat) => (
-            <StatCard key={stat.label} {...stat} />
-          ))}
+          <DetailLink to={`${base}/media`} className="rounded-2xl">
+            <StatCard label="Photos" value={String(stats.totalPhotos)} icon={Camera} />
+          </DetailLink>
+          <DetailLink to={`${base}/media`} className="rounded-2xl">
+            <StatCard label="Scans" value={String(stats.totalScans)} icon={FileText} />
+          </DetailLink>
+          <StatCard
+            label="Témoignages"
+            value={<Static inline><span>{12}</span></Static>}
+            icon={BookOpen}
+          />
+          <StatCard
+            label="Cartes"
+            value={<Static inline><span>{8}</span></Static>}
+            icon={MapPin}
+          />
         </div>
       </Panel>
 
       <Panel title="À enrichir" subtitle="Les médias qui peuvent encore créer de la valeur.">
         <div className="grid gap-3 sm:grid-cols-2">
-          <MiniAlert label="Photos non identifiées" value="18" />
-          <MiniAlert label="Sources sans transcription" value="22" />
-          <MiniAlert label="Mémoires audio liées" value="7" good />
-          <MiniAlert label="Personnes sans photo" value="351" />
+          <Static>
+            <MiniAlert label="Photos non identifiées"      value={String(stats.unidentifiedPhotos)} />
+          </Static>
+          <Static>
+            <MiniAlert label="Sources sans transcription"  value={String(stats.sourcesWithoutTranscription)} />
+          </Static>
+          <Static>
+            <MiniAlert label="Mémoires audio liées"        value={String(stats.audioMemories)} good />
+          </Static>
+          <DetailLink to={`${base}/without-source`} className="rounded-2xl">
+            <MiniAlert label="Personnes sans photo" value={String(stats.peopleWithoutPhoto)} />
+          </DetailLink>
         </div>
       </Panel>
     </section>
   )
 }
 
-function HistoricalTab() {
+function HistoricalTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; base: string }) {
   return (
     <section className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
       <Panel title="Observatoire historique familial" subtitle="Répartitions et phénomènes historiques.">
         <div className="grid gap-3 sm:grid-cols-2">
-          {historicalStats.map((stat) => (
-            <div key={stat.label} className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-2xl font-black text-slate-950">{stat.value}</p>
-              <p className="mt-1 text-sm font-bold text-slate-600">{stat.label}</p>
+          <DetailLink to={`${base}/occupations`} className="rounded-2xl">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-2xl font-black text-slate-950">{stats.totalOccupations}</p>
+              <p className="mt-1 text-sm font-bold text-slate-600">Métiers recensés</p>
             </div>
-          ))}
+          </DetailLink>
+          <DetailLink to={`${base}/lastnames`} className="rounded-2xl">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-2xl font-black text-slate-950">{stats.totalLastNames}</p>
+              <p className="mt-1 text-sm font-bold text-slate-600">Patronymes</p>
+            </div>
+          </DetailLink>
+          <Static>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-2xl font-black text-slate-950">{stats.totalMigrations}</p>
+              <p className="mt-1 text-sm font-bold text-slate-600">Migrations</p>
+            </div>
+          </Static>
+          <Static>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-2xl font-black text-slate-950">{stats.historicalEvents}</p>
+              <p className="mt-1 text-sm font-bold text-slate-600">Événements historiques liés</p>
+            </div>
+          </Static>
         </div>
       </Panel>
 
       <Panel title="Événements historiques liés" subtitle="Contextualisation des parcours.">
         <div className="flex flex-wrap gap-2">
           {['Esclavage', 'Engagisme', 'Abolition', 'Migrations', 'Épidémies', 'Notariat'].map((tag) => (
-            <span key={tag} className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">
+            <span
+              key={tag}
+              className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700"
+            >
               {tag}
             </span>
           ))}
@@ -402,29 +525,33 @@ function PowerUserTab() {
       <Panel title="Interopérabilité" subtitle="Réutiliser et déplacer les données.">
         <div className="grid gap-3">
           <MiniFeature icon={Download} title="Export GEDCOM" text="Compatible logiciels classiques." />
-          <MiniFeature icon={Code2} title="Export JSON" text="Structure exploitable." />
-          <MiniFeature icon={Database} title="API" text="Accès programmatique futur." />
+          <MiniFeature icon={Code2}    title="Export JSON"   text="Structure exploitable." />
+          <MiniFeature icon={Database} title="API"           text="Accès programmatique futur." />
         </div>
       </Panel>
 
-      <Panel title="Recherche avancée" subtitle="Interroger l’arbre comme une base.">
+      <Panel title="Recherche avancée" subtitle="Interroger l'arbre comme une base.">
         <div className="grid gap-3">
-          <MiniFeature icon={Filter} title="Filtres complexes" text="Dates, lieux, statuts, sources." />
-          <MiniFeature icon={Search} title="Phonétique" text="Variantes de noms." />
+          <MiniFeature icon={Filter} title="Filtres complexes"      text="Dates, lieux, statuts, sources." />
+          <MiniFeature icon={Search} title="Phonétique"             text="Variantes de noms." />
           <MiniFeature icon={MapPin} title="Recherche géographique" text="Lieux et voisinages." />
         </div>
       </Panel>
 
       <Panel title="Graphe relationnel" subtitle="Voir les réseaux derrière les filiations.">
         <div className="grid gap-3">
-          <MiniFeature icon={Network} title="Témoins récurrents" text="Réseaux sociaux historiques." />
-          <MiniFeature icon={Users} title="Familles liées" text="Alliances et voisinages." />
-          <MiniFeature icon={BookOpen} title="Héritages" text="Liens notariés et propriétés." />
+          <MiniFeature icon={Network}  title="Témoins récurrents" text="Réseaux sociaux historiques." />
+          <MiniFeature icon={Users}    title="Familles liées"     text="Alliances et voisinages." />
+          <MiniFeature icon={BookOpen} title="Héritages"          text="Liens notariés et propriétés." />
         </div>
       </Panel>
     </section>
   )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Primitives UI
+// ─────────────────────────────────────────────────────────────────────────────
 
 function Panel({
   title,
@@ -452,7 +579,7 @@ function StatCard({
   icon: Icon,
 }: {
   label: string
-  value: string
+  value: React.ReactNode
   icon: ElementType
 }) {
   return (
@@ -478,7 +605,7 @@ function ProgressLine({ label, value }: { label: string; value: number }) {
   )
 }
 
-function InfoLine({ label, value }: { label: string; value: string }) {
+function InfoLine({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-slate-50 p-4">
       <p className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
@@ -566,7 +693,6 @@ function Timeline() {
     'Vue créée : Engagés indiens',
     'Snapshot automatique généré',
   ]
-
   return (
     <div className="space-y-3">
       {events.map((event, index) => (
@@ -577,7 +703,7 @@ function Timeline() {
           </div>
           <div className="pb-4">
             <p className="text-sm font-black text-slate-950">{event}</p>
-            <p className="mt-1 text-xs font-medium text-slate-500">Aujourd’hui · Jordan</p>
+            <p className="mt-1 text-xs font-medium text-slate-500">Aujourd'hui · Jordan</p>
           </div>
         </div>
       ))}
