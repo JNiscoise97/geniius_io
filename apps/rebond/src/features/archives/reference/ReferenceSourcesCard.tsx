@@ -342,7 +342,7 @@ function ToggleLeftPanelsButton(props: {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        {leftCollapsed ? 'Afficher Unités + Exemplaires' : 'Masquer Unités + Exemplaires'}
+        {leftCollapsed ? 'Afficher le détail' : 'Masquer le détail'}
       </TooltipContent>
     </Tooltip>
   );
@@ -473,16 +473,19 @@ export function SectionSources(props: SectionSourcesProps) {
   // ---------------------------------------------------------------------------
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerTargetIdx, setPickerTargetIdx] = useState<number | null>(null);
+  const [pickerIsNew, setPickerIsNew] = useState(false);
   const [q, setQ] = useState('');
   const [onlyOnline, setOnlyOnline] = useState(false);
 
   const closePicker = () => {
     setPickerOpen(false);
     setPickerTargetIdx(null);
+    setPickerIsNew(false);
   };
 
   const openPickerForIdx = (idx: number) => {
     setPickerTargetIdx(idx);
+    setPickerIsNew(false);
     setPickerOpen(true);
   };
 
@@ -493,6 +496,7 @@ export function SectionSources(props: SectionSourcesProps) {
     const nextIdx = sources.length;
     props.onAdd();
     setPickerTargetIdx(nextIdx);
+    setPickerIsNew(true);
     setPickerOpen(true);
   };
 
@@ -1019,7 +1023,7 @@ export function SectionSources(props: SectionSourcesProps) {
           <div className='min-w-0 basis-3/4'>
             <div className='flex flex-wrap items-center gap-2'>
               <span className='rounded-full bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white'>
-                Exemplaire #{globalNo ?? '—'}
+                Version #{globalNo ?? '—'}
               </span>
 
               {missing ? (
@@ -1073,7 +1077,7 @@ export function SectionSources(props: SectionSourcesProps) {
                       <Trash2 className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Dissocier cet exemplaire de cet acte</TooltipContent>
+                  <TooltipContent>Retirer cette version d'archive</TooltipContent>
                 </Tooltip>
               </>
             )}
@@ -1991,7 +1995,7 @@ export function SectionSources(props: SectionSourcesProps) {
                         Statut & localisation
                       </div>
                       <div className='mt-1 text-xs text-slate-600'>
-                        Renseigne la position dans l’exemplaire selon sa pagination (vues / pages /
+                        Renseigne la position dans la version selon sa pagination (vues / pages /
                         folios…).
                       </div>
                     </div>
@@ -2158,11 +2162,11 @@ export function SectionSources(props: SectionSourcesProps) {
               </div>
             </div>
 
-            {/* Bloc 2 — Observations sur l’exemplaire */}
-            <div className='rounded-xl border border-slate-200 bg-white'>
-              <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
-                <div className='text-sm font-semibold text-slate-900'>
-                  Observations sur l’exemplaire
+            {/* Bloc 2 — Observations sur la version */}
+            <div className="rounded-xl border border-slate-200 bg-white">
+              <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-sm font-semibold text-slate-900">
+                  Observations sur cette version
                 </div>
                 <div className='mt-1 text-xs text-slate-600'>
                   État, repro, dommages, écriture & lisibilité.
@@ -2500,7 +2504,7 @@ export function SectionSources(props: SectionSourcesProps) {
           <div className='min-w-0 basis-3/4'>
             <div className='flex flex-wrap items-center gap-2'>
               <span className='rounded-full bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white'>
-                Exemplaire #{globalNo ?? '—'}
+                Version #{globalNo ?? '—'}
               </span>
 
               {showNatureOrCopy ? (
@@ -2552,7 +2556,7 @@ export function SectionSources(props: SectionSourcesProps) {
                       <Trash2 className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Dissocier cet exemplaire de ce registre</TooltipContent>
+                  <TooltipContent>Retirer cette version d'archive</TooltipContent>
                 </Tooltip>
               </>
             )}
@@ -3198,7 +3202,7 @@ export function SectionSources(props: SectionSourcesProps) {
       <div className='mb-4'>
         <div className='flex items-start gap-3'>
           <h3 className='min-w-0 flex-1 text-sm font-semibold text-slate-900'>
-            Occurrences dans les archives{count > 0 ? ` (${count})` : ''}
+            {type === 'acte' ? 'Où consulter cet acte' : 'Où consulter ce registre'}{count > 0 ? ` (${count})` : ''}
           </h3>
 
           <div className='shrink-0'>
@@ -3209,32 +3213,26 @@ export function SectionSources(props: SectionSourcesProps) {
           </div>
         </div>
         {isEdit && type === 'acte' ? (
-          <>
-            <p className='mt-1 text-sm text-slate-600'>
-              Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
-              exemplaire) puis renseigne ce qui est spécifique à l’acte :{' '}
-              <span className='font-medium'>vues/pages</span>, lacunes, notes.
-            </p>
-          </>
-        ) : isEdit ? (
-          <><p className='mt-1 text-sm text-slate-600'>
-            Choisis un <span className='font-medium'>registre / unité documentaire</span> (via un
-            exemplaire) puis renseigne ce qui est spécifique au registre :{' '}
-            <span className='font-medium'>is_missing</span>, lacunes, observations (état, repro,
-            marques, écriture…).
+          <p className="mt-1 text-sm text-slate-600">
+            Indiquez dans quelle version d'archive vous avez consulté cet acte : vues, pages, lacunes, notes.
           </p>
-          </>
+        ) : isEdit ? (
+          <p className="mt-1 text-sm text-slate-600">
+            Indiquez dans quelle version d'archive vous avez consulté ce registre.
+          </p>
         ) : null}
       </div>
 
       {isEmpty ? (
         <div className='rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6'>
-          <div className='text-sm font-semibold text-slate-900'>Aucune occurrence</div>
+          <div className="text-sm font-semibold text-slate-900">
+            Aucune version d'archive connue pour {type === "acte" ? "cet acte" : "ce registre"}
+          </div>
 
           {isEdit ? (
             <div className='mt-4'>
               <Button type='button' onClick={openPickerForNew}>
-                Ajouter une occurrence
+                Ajouter une version
               </Button>
             </div>
           ) : null}
@@ -3329,8 +3327,7 @@ export function SectionSources(props: SectionSourcesProps) {
             />
           ) : (
             <div className='rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600'>
-              Sélectionne une <span className='font-medium'>unité</span> puis un{' '}
-              <span className='font-medium'>exemplaire</span> pour afficher l’éditeur.
+              Sélectionne une <span className="font-medium">collection</span> puis une <span className="font-medium">version</span> pour afficher l'éditeur.
             </div>
           )}
         </div>
@@ -3340,8 +3337,17 @@ export function SectionSources(props: SectionSourcesProps) {
         open={pickerOpen}
         onOpenChange={(v) => {
           if (!v) {
+            // Si l'utilisateur ferme sans choisir un exemplaire et que c'était un nouveau draft, on le supprime
+            if (pickerIsNew && pickerTargetIdx !== null && isEdit) {
+              assertEditMode(props);
+              const target = sources[pickerTargetIdx];
+              if (!target?.exemplaire_id) {
+                props.onRemove(pickerTargetIdx);
+              }
+            }
             setPickerOpen(false);
             setPickerTargetIdx(null);
+            setPickerIsNew(false);
             return;
           }
           setPickerOpen(true);

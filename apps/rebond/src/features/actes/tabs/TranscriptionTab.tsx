@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TranscriptionWorkflowStepper } from './TranscriptionWorkflowStepper';
+import { MarginalCrossoutFormSection } from './MarginalCrossoutFormSection';
 import {
   Dialog,
   DialogContent,
@@ -367,23 +368,27 @@ export default function TranscriptionTab({ acteId }: Props) {
   if (showLoading) {
     return <div className='p-4 text-sm text-slate-600'>Chargement…</div>;
   }
+
+  if (!t.loading && (!sources || sources.length === 0)) {
+    return (
+      <div className='p-12 flex flex-col items-center justify-center text-center gap-4'>
+        <div className='flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-slate-50'>
+          <FileText className='h-6 w-6 text-slate-400' />
+        </div>
+        <div>
+          <div className='text-sm font-semibold text-slate-800'>Aucune source enregistrée</div>
+          <p className='mt-1 text-xs text-slate-500 max-w-xs'>
+            Pour transcrire cet acte, ajoute d'abord une source dans l'onglet{' '}
+            <span className='font-medium text-slate-700'>Référence archive</span>.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='p-4 space-y-4'>
       <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-          <div className='flex items-start gap-3'>
-            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-            <div className='min-w-0'>
-              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-              <div className='mt-0.5 text-xs text-amber-800'>
-                <ol>
-                  <li>[UX] les ronds autour des icones s'écrasent</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className='flex items-start justify-between gap-4'>
           {/* Stepper */}
           <div className='min-w-0 flex-1'>
@@ -441,20 +446,6 @@ export default function TranscriptionTab({ acteId }: Props) {
           </div>
         </div>
       </div>
-
-      <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 mt-3'>
-          <div className='flex items-start gap-3'>
-            <AlertTriangle className='h-4 w-4 mt-0.5 text-amber-700' />
-            <div className='min-w-0'>
-              <div className='text-sm font-semibold text-amber-900'>Chantiers en cours</div>
-              <div className='mt-0.5 text-xs text-amber-800'>
-                <ol>
-                  <li>[UX] si pas de source, un bouton créer une transcription: permettre la selection d'une occurrence dans les archives, demander les champs du formulaire court, demander si transcription de tout ou partie du document, demander ce que je veux faire de cette transcription</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
 
       {/* Split layout */}
       <div
@@ -1620,91 +1611,22 @@ export default function TranscriptionTab({ acteId }: Props) {
                 )}
 
                 {/* Formulaire */}
-                <div className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3'>
-                  <div className='grid grid-cols-2 gap-3'>
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>Type de rature</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='rature_simple / surcharge / grattage…'
-                        value={t.mcType ?? ''}
-                        onChange={(e) => t.setMcType?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div>
-                      <div className='text-xs font-medium text-slate-700'>Cible</div>
-                      <Input
-                        className='mt-1'
-                        placeholder='mot / ligne / bloc / mention / ...'
-                        value={t.mcTarget ?? ''}
-                        onChange={(e) => t.setMcTarget?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Texte barré (si lisible)
-                      </div>
-                      <Textarea
-                        className='mt-1 min-h-[110px]'
-                        placeholder='Texte barré…'
-                        value={t.mcStruck ?? ''}
-                        onChange={(e) => t.setMcStruck?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>
-                        Remplacement (si visible)
-                      </div>
-                      <Textarea
-                        className='mt-1 min-h-[110px]'
-                        placeholder='Texte corrigé…'
-                        value={t.mcReplacement ?? ''}
-                        onChange={(e) => t.setMcReplacement?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-
-                    <div className='col-span-2'>
-                      <div className='text-xs font-medium text-slate-700'>Note</div>
-                      <Textarea
-                        className='mt-1 min-h-[90px]'
-                        placeholder='Ambiguïtés, lecture…'
-                        value={t.mcNote ?? ''}
-                        onChange={(e) => t.setMcNote?.(e.target.value)}
-                        disabled={t.loading || !t.workingVersion}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='flex items-center justify-end gap-2 pt-2'>
-                    <Button
-                      variant='outline'
-                      onClick={() => t.cancelMarginalCrossoutEdit?.() ?? t.setSheetOpen(false)}
-                      disabled={t.loading}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      onClick={() => t.saveMarginalCrossout?.()}
-                      disabled={
-                        t.loading ||
-                        !t.workingVersion ||
-                        (!(t.mcType ?? '').trim() &&
-                          !(t.mcTarget ?? '').trim() &&
-                          !(t.mcStruck ?? '').trim() &&
-                          !(t.mcReplacement ?? '').trim())
-                      }
-                    >
-                      Enregistrer
-                    </Button>
-                  </div>
-                </div>
+                <MarginalCrossoutFormSection
+                  mcType={t.mcType}
+                  setMcType={(v) => t.setMcType?.(v)}
+                  mcTarget={t.mcTarget}
+                  setMcTarget={(v) => t.setMcTarget?.(v)}
+                  mcStruck={t.mcStruck}
+                  setMcStruck={(v) => t.setMcStruck?.(v)}
+                  mcReplacement={t.mcReplacement}
+                  setMcReplacement={(v) => t.setMcReplacement?.(v)}
+                  mcNote={t.mcNote}
+                  setMcNote={(v) => t.setMcNote?.(v)}
+                  loading={t.loading}
+                  disabled={!t.workingVersion}
+                  onCancel={() => t.cancelMarginalCrossoutEdit?.() ?? t.setSheetOpen(false)}
+                  onSave={() => t.saveMarginalCrossout?.()}
+                />
               </div>
             ) : (
               <div className='text-sm text-slate-600'>

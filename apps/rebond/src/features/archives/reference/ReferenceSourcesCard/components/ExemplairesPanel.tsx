@@ -51,9 +51,9 @@ export function ExemplairesPanel<TDraft>(props: Props<TDraft>) {
       <div className='shrink-0 border-b border-slate-200 bg-slate-50 p-4'>
         <div className='flex items-center justify-between gap-3'>
           <div>
-            <div className='text-sm font-semibold text-slate-900'>Exemplaires</div>
+            <div className='text-sm font-semibold text-slate-900'>Versions</div>
             <div className='mt-1 text-xs text-slate-600'>
-              {activeUniteKey ? 'Liste des exemplaires de l’unité' : 'Sélectionne une unité'}
+              {activeUniteKey ? 'Versions de cette collection' : 'Sélectionne une collection'}
             </div>
           </div>
 
@@ -64,7 +64,7 @@ export function ExemplairesPanel<TDraft>(props: Props<TDraft>) {
                   <Plus className='h-4 w-4' />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Associer un exemplaire</TooltipContent>
+              <TooltipContent>Lier une version d'archive</TooltipContent>
             </Tooltip>
           ) : null}
         </div>
@@ -75,18 +75,16 @@ export function ExemplairesPanel<TDraft>(props: Props<TDraft>) {
           <div className='text-sm text-slate-600'>Chargement…</div>
         ) : !hasAnySelected ? (
           <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
-            Aucune référence sélectionnée.
+            Aucune version sélectionnée.
             <div className='mt-2 text-xs text-slate-600'>
-              Clique sur <span className='font-medium'>Associer un exemplaire</span> pour choisir un
-              exemplaire.
+              Clique sur <span className='font-medium'>+</span> pour lier une version d'archive.
             </div>
           </div>
         ) : items.length === 0 ? (
           <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
-            Aucun exemplaire dans cette unité.
+            Aucune version dans cette collection.
             <div className='mt-2 text-xs text-slate-600'>
-              Clique sur <span className='font-medium'>Associer un exemplaire</span> pour
-              sélectionner un exemplaire.
+              Clique sur <span className='font-medium'>+</span> pour lier une version d'archive.
             </div>
           </div>
         ) : (

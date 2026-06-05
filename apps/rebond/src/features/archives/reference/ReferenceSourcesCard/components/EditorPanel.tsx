@@ -31,7 +31,7 @@ type Props<TDraft> = {
 
 /**
  * Shell utilisé uniquement pour les états "vides".
- * Ici, on peut scroller au niveau du panel car il n’y a pas de header interne à fixer.
+ * Ici, on peut scroller au niveau du panel car il n'y a pas de header interne à fixer.
  */
 function EmptyShell(props: { title?: string; subtitle?: string; children: JSX.Element }) {
   const { title = 'Édition', subtitle, children } = props;
@@ -66,8 +66,8 @@ export function EditorPanel<TDraft>(props: Props<TDraft>) {
           <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
             Rien à éditer pour le moment.
             <div className='mt-2 text-xs text-slate-600'>
-              Ajoute un exemplaire via le bouton <span className='font-medium'>+</span> dans la
-              colonne “Exemplaires”.
+              Ajoute une version via le bouton <span className='font-medium'>+</span> dans la
+              colonne “Versions”.
             </div>
           </div>
         </div>
@@ -82,11 +82,11 @@ export function EditorPanel<TDraft>(props: Props<TDraft>) {
   // ------------------------------------------------------------
   if (!hasExemplaireId(c)) {
     return (
-        <EmptyShell subtitle='Sélectionne une unité avec au moins un exemplaire.'>
+        <EmptyShell subtitle="Sélectionne une collection avec au moins une version.">
 
         <div className='p-4'>
           <div className='rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900'>
-            Cet item n’a pas d’exemplaire associé.
+            Aucune version d'archive associée.
             <div className='mt-3'>
               <Button
                 type='button'
@@ -94,7 +94,7 @@ export function EditorPanel<TDraft>(props: Props<TDraft>) {
                 size='sm'
                 onClick={() => onOpenPickerForIdx(idx)}
               >
-                Associer un exemplaire
+                Lier une version
               </Button>
             </div>
           </div>

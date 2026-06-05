@@ -211,7 +211,7 @@ export function useActeCitationsSources(acteId: string) {
 
       if (error) {
         setErrorMsg(error.message);
-        setSources([emptyCitation(acteId)]);
+        setSources([]);
         setLoadingSources(false);
         return;
       }
@@ -220,7 +220,7 @@ export function useActeCitationsSources(acteId: string) {
       const drafts = rows.map((r) => normalizeCitationRow(r));
 
       if (!drafts.length) {
-        setSources([emptyCitation(acteId)]);
+        setSources([]);
         setLoadingSources(false);
         return;
       }
@@ -1736,6 +1736,7 @@ export function useTranscriptionTab({ acteId }: Props) {
       setDirtyState('clean');
 
       autoDraftDoneRef.current = true;
+      toast.info("Brouillon v1 créé automatiquement", { duration: 2500 });
     } catch (e) {
       console.error(e);
       // si ça échoue, on laisse l’utilisateur taper quand même (isDirty restera true)

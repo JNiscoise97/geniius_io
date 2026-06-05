@@ -96,15 +96,15 @@ function SignatureListItem({
                 {leg ? <MetaPill>Lisibilité: {leg}</MetaPill> : null}
               </div>
 
-              {Array.isArray(s.pattern) && s.pattern.length ? (
+              {s.pattern ? (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {s.pattern.map((p, i) => (
+                  {s.pattern.split(';').filter(Boolean).map((p, i) => (
                     <span
                       key={`${s.id}-p-${i}`}
                       className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] text-slate-700"
                       title="Pattern"
                     >
-                      {p}
+                      {p.trim()}
                     </span>
                   ))}
                 </div>

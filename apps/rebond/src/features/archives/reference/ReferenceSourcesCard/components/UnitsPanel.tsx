@@ -13,14 +13,14 @@ export function UnitsPanel<TDraft>(props: Props<TDraft>) {
   return (
     <div className='rounded-2xl border border-slate-200 bg-white flex flex-col min-h-0'>
       <div className='shrink-0 border-b border-slate-200 bg-slate-50 p-4'>
-        <div className='text-sm font-semibold text-slate-900'>Unités documentaires</div>
-        <div className='mt-1 text-xs text-slate-600'>Sélectionne une unité</div>
+        <div className='text-sm font-semibold text-slate-900'>Collections</div>
+        <div className='mt-1 text-xs text-slate-600'>Sélectionne une collection</div>
       </div>
 
       <div className='flex-1 min-h-0 overflow-y-auto p-3 space-y-2' id="debug-scroll-4">
         {units.length === 0 ? (
           <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
-            Aucune unité (sélectionne un exemplaire pour commencer).
+            Aucune collection (ajoute une version d'archive pour commencer).
           </div>
         ) : (
           units.map((u) => {
@@ -47,7 +47,7 @@ export function UnitsPanel<TDraft>(props: Props<TDraft>) {
                         active ? 'text-white/80' : 'text-slate-500',
                       ].join(' ')}
                     >
-                      {u.count} exemplaire{u.count > 1 ? 's' : ''}
+                      {u.count} version{u.count > 1 ? 's' : ''}
                     </div>
                   </div>
                 </div>
