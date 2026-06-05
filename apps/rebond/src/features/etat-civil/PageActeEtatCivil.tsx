@@ -199,7 +199,7 @@ export default function PageActeEtatCivil() {
                           const now = new Date().toISOString();
                           await supabase
                             .from('etat_civil_actes')
-                            .update({ statut: 'TRANSCRIBED', updated_at: now })
+                            .update({ status: 'TRANSCRIBED', updated_at: now })
                             .eq('id', acte?.id);
 
                           toast.success('Acte marqué comme transcrit');

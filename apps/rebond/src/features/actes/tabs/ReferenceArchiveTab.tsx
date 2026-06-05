@@ -1530,6 +1530,17 @@ function ReferenceArchiveTabRegistre(
 
     const r: any = data ?? {};
 
+    // Fetch bureau label
+    let bureauLabel = '';
+    if (r.bureau_id) {
+      const { data: bData } = await supabase
+        .from('etat_civil_bureaux')
+        .select('nom')
+        .eq('id', r.bureau_id)
+        .maybeSingle();
+      bureauLabel = bData?.nom ?? '';
+    }
+
     // 2) type_acte via table de jointure
     const { data: taRows, error: taErr } = await supabase
       .from('etat_civil_registres_type_acte')
@@ -1574,7 +1585,7 @@ function ReferenceArchiveTabRegistre(
     // 5) hydrate form identification
     setForm({
       bureau_id: r.bureau_id ?? null,
-      bureau_enregistrement_label: '',
+      bureau_enregistrement_label: bureauLabel,
 
       annee: r.annee != null ? String(r.annee) : '',
 

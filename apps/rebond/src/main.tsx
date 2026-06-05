@@ -24,7 +24,6 @@ import ImportEtatCivil from "./features/parameters/ImportEtatCivil"
 import PageActeEtatCivil from "./features/etat-civil/PageActeEtatCivil"
 import ImportIndividusRebond from "./features/parameters/ImportIndividusRebond"
 import IndividuList from "./features/rebond/IndividuList"
-import ActeFormPage from "./features/etat-civil/ActeFormPage"
 import IndividuMentionsTraitement from "./features/rebond/IndividuMentionsTraitement"
 import PageIndividu2 from "./features/mock-up/fiche-individu-2"
 import PageIndividu3 from "./features/mock-up/fiche-individu-3"
@@ -109,8 +108,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
           <Route path="/individus/mention" element={<IndividuMentionsTraitement />} />
 
-          <Route path="/ec-acte/new" element={<ActeFormPage />} />
-          <Route path="/ec-acte/edit2/:acteId" element={<ActeFormPage />} />
           <Route path="/ec-acte/edit/:acteId" element={<ActeEdit />} />
 
           <Route path="/lieu/:lieuId" element={<LieuPreview />} />
