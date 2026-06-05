@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getBirth, getDeath, getYear, formatGedcomDate, type GedcomEvent, type GedcomMedia } from '@geniius/utils/family-graph'
 import { getPerson, getSpouseFamilies, formatPersonName, type FamilyGraphPerson } from '../../data'
-import { assocIndex } from '../lib/assocIndex'
+import { getAssocIndex } from '../lib/assocIndex'
 import { sortKey } from '@geniius/utils/family-graph-utils'
 
 // ── Steps ─────────────────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ function collectMediaItems(person: FamilyGraphPerson): {
 
   // Médias des événements ASSO (actes tiers)
   const seenAssocEvents = new Set<GedcomEvent>()
-  for (const occ of assocIndex.get(person.id) ?? []) {
+  for (const occ of getAssocIndex().get(person.id) ?? []) {
     if (seenAssocEvents.has(occ.event)) continue
     seenAssocEvents.add(occ.event)
     const owner = occ.ownerKind === 'person' ? getPerson(occ.ownerId) : undefined

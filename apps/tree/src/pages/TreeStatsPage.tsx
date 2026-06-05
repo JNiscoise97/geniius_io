@@ -1,5 +1,5 @@
-import { ArrowLeft, MapPin, Users, FileText, Camera, Briefcase, Tag, BarChart2, Unlink, UserX, BookOpen, Search } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, MapPin, Users, FileText, Camera, Briefcase, Tag, BarChart2, Unlink, UserX, BookOpen, Search, AlertTriangle, GitBranch, Copy, ArrowRightLeft } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { graph } from '../components/tree-navigate/data'
 import {
@@ -8,54 +8,9 @@ import {
   getYear,
   formatGedcomDate,
   type FamilyGraphPerson,
-  type FamilyGraphFamily,
-  type GedcomMedia,
 } from '@geniius/utils/family-graph'
 import { treeSettings } from '../features/family-tree/types/treeSettings'
-
-type FamilyGraphData = {
-  people: Record<string, FamilyGraphPerson>
-  families: Record<string, FamilyGraphFamily>
-  media: Record<string, GedcomMedia>
-}
-
-// BFS identique à useTreeStats
-function buildBloodAndSpousesSet(graph: FamilyGraphData, rootId: string): Set<string> {
-  const bloodIds = new Set<string>()
-  const queue: string[] = [rootId]
-  while (queue.length > 0) {
-    const id = queue.shift()!
-    if (bloodIds.has(id)) continue
-    bloodIds.add(id)
-    const person = graph.people[id]
-    if (!person) continue
-    for (const famcId of person.famcIds) {
-      const fam = graph.families[famcId]
-      if (!fam) continue
-      if (fam.husbandId && !bloodIds.has(fam.husbandId)) queue.push(fam.husbandId)
-      if (fam.wifeId    && !bloodIds.has(fam.wifeId))    queue.push(fam.wifeId)
-    }
-    for (const famsId of person.famsIds) {
-      const fam = graph.families[famsId]
-      if (!fam) continue
-      for (const childId of fam.childIds) {
-        if (!bloodIds.has(childId)) queue.push(childId)
-      }
-    }
-  }
-  const result = new Set<string>(bloodIds)
-  for (const id of bloodIds) {
-    const person = graph.people[id]
-    if (!person) continue
-    for (const famsId of person.famsIds) {
-      const fam = graph.families[famsId]
-      if (!fam) continue
-      if (fam.husbandId) result.add(fam.husbandId)
-      if (fam.wifeId)    result.add(fam.wifeId)
-    }
-  }
-  return result
-}
+import { buildBloodAndSpousesSet } from '../lib/graphUtils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -88,8 +43,8 @@ type Section = {
 }
 
 function useSections(): Record<string, Section> {
-  const people = Object.values(graph.people)
-  const mediaEntries = Object.values(graph.media)
+  const people       = useMemo(() => Object.values(graph.people), [])
+  const mediaEntries = useMemo(() => Object.values(graph.media),  [])
 
   return {
     // ── Lieux ────────────────────────────────────────────────────────────────
@@ -343,6 +298,231 @@ function useSections(): Record<string, Section> {
                 getBirth(p)?.placeBrut ?? '—',
               ])}
             emptyMessage="Toutes les personnes ont au moins une source."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Doublons potentiels ───────────────────────────────────────────────────
+    duplicates: {
+      icon: Copy,
+      label: 'Doublons potentiels',
+      subtitle: 'Paires partageant le même nom, prénom et période de naissance (±2 ans)',
+      render: () => {
+        // O(n) via index — évite les ~630M itérations de la double boucle sur 35k personnes
+        const byKey = new Map<string, FamilyGraphPerson[]>()
+        for (const person of people) {
+          if (!person.lastName) continue
+          const last  = person.lastName.toLowerCase()
+          const first = (person.firstName ?? '').split(/[\s"]+/)[0]?.toLowerCase() ?? ''
+          if (!first) continue
+          const key = `${last}|${first}`
+          const arr = byKey.get(key)
+          if (arr) arr.push(person)
+          else byKey.set(key, [person])
+        }
+        const pairs: [FamilyGraphPerson, FamilyGraphPerson][] = []
+        for (const group of byKey.values()) {
+          if (group.length < 2) continue
+          for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+              const ya = getYear(getBirth(group[i])?.date)
+              const yb = getYear(getBirth(group[j])?.date)
+              if (ya && yb && Math.abs(ya - yb) <= 2) pairs.push([group[i], group[j]])
+            }
+          }
+        }
+        return (
+          <SearchableTable
+            headers={['Personne A', 'Personne B', 'Naissance A', 'Naissance B']}
+            rows={pairs.map(([a, b]) => [
+              fullName(a),
+              fullName(b),
+              String(getYear(getBirth(a)?.date) ?? '—'),
+              String(getYear(getBirth(b)?.date) ?? '—'),
+            ])}
+            emptyMessage="Aucun doublon potentiel détecté."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Incohérences chronologiques ───────────────────────────────────────────
+    inconsistencies: {
+      icon: AlertTriangle,
+      label: 'Incohérences chronologiques',
+      subtitle: 'Événements impossibles ou dates biologiquement improbables',
+      render: () => {
+        const rows: string[][] = []
+        for (const person of people) {
+          const birthYear = getYear(getBirth(person)?.date)
+          const deathYear = getYear(getDeath(person)?.date)
+
+          if (birthYear && deathYear && deathYear < birthYear) {
+            rows.push([fullName(person), 'Décès avant naissance', `† ${deathYear} < ✶ ${birthYear}`])
+            continue
+          }
+
+          if (birthYear) {
+            for (const famcId of person.famcIds) {
+              const fam = graph.families[famcId]
+              if (!fam) continue
+              for (const parentId of [fam.husbandId, fam.wifeId]) {
+                if (!parentId) continue
+                const parent = graph.people[parentId]
+                if (!parent) continue
+                const pBirth = getYear(getBirth(parent)?.date)
+                if (!pBirth) continue
+                const gap = birthYear - pBirth
+                if (gap < 12) {
+                  rows.push([fullName(person), 'Parent trop jeune', `${fullName(parent)} ✶${pBirth} → ${gap} ans d'écart`])
+                } else if (gap > 85) {
+                  rows.push([fullName(person), 'Parent trop âgé', `${fullName(parent)} ✶${pBirth} → ${gap} ans d'écart`])
+                }
+              }
+            }
+          }
+        }
+        rows.sort((a, b) => a[0].localeCompare(b[0], 'fr'))
+        return (
+          <SearchableTable
+            headers={['Personne', "Type d'incohérence", 'Détail']}
+            rows={rows}
+            emptyMessage="Aucune incohérence chronologique détectée."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Filiations faibles ────────────────────────────────────────────────────
+    'weak-filiations': {
+      icon: GitBranch,
+      label: 'Filiations faibles',
+      subtitle: 'Lien parental connu mais sans acte de naissance sourcé',
+      render: () => {
+        const weak = people.filter(p => {
+          if (p.famcIds.length === 0) return false
+          const birth = getBirth(p)
+          return !birth?.sourcePage && !birth?.sourceQuay
+        })
+        return (
+          <SearchableTable
+            headers={['Personne', 'Dates', 'Lieu de naissance']}
+            rows={[...weak]
+              .sort((a, b) => (a.lastName ?? '').localeCompare(b.lastName ?? '', 'fr'))
+              .map(p => [
+                fullName(p),
+                birthDeathLabel(p),
+                getBirth(p)?.placeBrut ?? '—',
+              ])}
+            emptyMessage="Aucune filiation faible détectée."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Migrations ────────────────────────────────────────────────────────────
+    migrations: {
+      icon: ArrowRightLeft,
+      label: 'Migrations détectées',
+      subtitle: 'Personnes nées et décédées dans des lieux différents',
+      render: () => {
+        const migrants = people.filter(p => {
+          const bp = getBirth(p)?.placeBrut
+          const dp = getDeath(p)?.placeBrut
+          return bp && dp && bp !== dp
+        })
+        return (
+          <SearchableTable
+            headers={['Personne', 'Né(e) à', 'Décédé(e) à', 'Dates']}
+            rows={[...migrants]
+              .sort((a, b) => (a.lastName ?? '').localeCompare(b.lastName ?? '', 'fr'))
+              .map(p => [
+                fullName(p),
+                getBirth(p)?.placeBrut ?? '—',
+                getDeath(p)?.placeBrut ?? '—',
+                birthDeathLabel(p),
+              ])}
+            emptyMessage="Aucune migration détectée."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Branches inexplorées ──────────────────────────────────────────────────
+    'unexplored-branches': {
+      icon: Search,
+      label: 'Branches à explorer',
+      subtitle: 'Personnes sans parents connus, nées après 1700 (pistes prioritaires)',
+      render: () => {
+        const unexplored = people.filter(p => {
+          const year = getYear(getBirth(p)?.date)
+          return p.famcIds.length === 0 && year !== undefined && year > 1700
+        })
+        return (
+          <SearchableTable
+            headers={['Nom', 'Dates', 'Lieu de naissance']}
+            rows={[...unexplored]
+              .sort((a, b) => (a.lastName ?? '').localeCompare(b.lastName ?? '', 'fr'))
+              .map(p => [
+                fullName(p),
+                birthDeathLabel(p),
+                getBirth(p)?.placeBrut ?? '—',
+              ])}
+            emptyMessage="Aucune branche inexplorée."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Lieux ambigus ─────────────────────────────────────────────────────────
+    'ambiguous-places': {
+      icon: MapPin,
+      label: 'Lieux ambigus',
+      subtitle: 'Toponymes non résolus, trop courts ou incertains',
+      render: () => {
+        const counts = new Map<string, number>()
+        people.forEach(p => p.events.forEach(e => {
+          if (e.placeBrut) counts.set(e.placeBrut, (counts.get(e.placeBrut) ?? 0) + 1)
+        }))
+        const ambiguous = [...counts.entries()].filter(([p]) => {
+          const s = p.toLowerCase().trim()
+          return s.length < 3 || s.includes('?') || s === 'inconnue' || s === 'inconnu' || s === 'unknown'
+        })
+        return (
+          <SearchableTable
+            headers={['Lieu', 'Occurrences']}
+            rows={ambiguous.sort((a, b) => b[1] - a[1]).map(([place, count]) => [place, String(count)])}
+            emptyMessage="Aucun lieu ambigu détecté."
+            searchable
+          />
+        )
+      },
+    },
+
+    // ── Photos non attribuées ─────────────────────────────────────────────────
+    'unlinked-photos': {
+      icon: Camera,
+      label: 'Photos non attribuées',
+      subtitle: 'Médias photos non liés à aucun individu',
+      render: () => {
+        const linkedIds = new Set(people.flatMap(p => p.mediaIds))
+        const unlinked = Object.entries(graph.media)
+          .filter(([id, m]) =>
+            /jpe?g|png|gif|webp/i.test(m.form ?? m.title ?? '') && !linkedIds.has(id),
+          )
+          .map(([, m]) => m)
+        return (
+          <SearchableTable
+            headers={['Titre', 'Format']}
+            rows={unlinked.map(m => [m.title ?? '—', m.form ?? '—'])}
+            emptyMessage="Toutes les photos sont attribuées à des individus."
             searchable
           />
         )

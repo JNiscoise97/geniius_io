@@ -4,7 +4,7 @@ import { getPerson, getSpouseFamilies, type GedcomPlace } from '../../data'
 import { formatGedcomPlace, sortKey, calculateAge } from '@geniius/utils/family-graph-utils'
 import { ActorBlock } from '../ui/ActorBlock'
 import { resolveRoleLabel } from '../lib/resolveRoleLabel'
-import { assocIndex, type AssocOccurrence } from '../lib/assocIndex'
+import { getAssocIndex, type AssocOccurrence } from '../lib/assocIndex'
 import { CentralPerson } from '../ui/CentralPerson'
 
 // ── Catégories visuelles ──────────────────────────────────────────────────────
@@ -539,7 +539,7 @@ export function ChronologyView({ selectedPersonId, onPersonSelect }: {
 
   // Dédoublonnage assoc
   const seenAssocEvents = new Set<GedcomEvent>()
-  const assocOccurrences = (assocIndex.get(person.id) ?? []).filter((occ) => {
+  const assocOccurrences = (getAssocIndex().get(person.id) ?? []).filter((occ) => {
     if (seenAssocEvents.has(occ.event)) return false
     seenAssocEvents.add(occ.event)
     return true

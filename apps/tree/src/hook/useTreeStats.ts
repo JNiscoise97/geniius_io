@@ -8,6 +8,7 @@ import {
   type GedcomMedia,
 } from '@geniius/utils/family-graph'
 import { treeSettings } from '../features/family-tree/types/treeSettings'
+import { buildBloodAndSpousesSet } from '../lib/graphUtils'
 
 export type FamilyGraphData = {
   people: Record<string, FamilyGraphPerson>
@@ -23,16 +24,16 @@ export type TreeStats = {
   // Périmètre
   totalPeople: number
   totalFamilies: number
-  totalGenerations: number       // STATIQUE — nécessite BFS depuis racine connue
+  totalGenerations: number
   totalSources: number
   totalPlaces: number
-  totalBranches: number          // STATIQUE — nécessite assignBranches()
+  totalBranches: number
 
   // Connectivité
   connectedPeople: number
   isolatedPeople: number
   oldestAncestor: { name: string; year: number } | null
-  deepestLineage: number         // STATIQUE — nécessite algorithme de profondeur
+  deepestLineage: number
 
   // Complétude (0–100)
   completeness: {
@@ -50,40 +51,40 @@ export type TreeStats = {
     value: number
   }[]
   sourcesLinked: number
-  sourcesUnused: number          // STATIQUE — non modélisé dans GEDCOM standard
-  sourcesUnvalidated: number     // STATIQUE — non modélisé dans GEDCOM standard
+  sourcesUnused: number
+  sourcesUnvalidated: number
 
   // Médias
   totalPhotos: number
   totalScans: number
   totalMedia: number
-  unidentifiedPhotos: number     // STATIQUE
-  sourcesWithoutTranscription: number // STATIQUE
-  audioMemories: number          // STATIQUE
+  unidentifiedPhotos: number
+  sourcesWithoutTranscription: number
+  audioMemories: number
   peopleWithoutPhoto: number
 
   // Occupations & histoire
   totalOccupations: number
   totalLastNames: number
-  totalMigrations: number        // STATIQUE
-  historicalEvents: number       // STATIQUE
+  totalMigrations: number
+  historicalEvents: number
 
   // Backlog
   peopleWithoutParents: number
   peopleWithoutSource: number
-  actsToFind: number             // STATIQUE
-  openLeads: number              // STATIQUE
-  unexploredBranches: number     // STATIQUE
+  actsToFind: number
+  openLeads: number
+  unexploredBranches: number
 
   // Qualité
-  chronologicalInconsistencies: number // STATIQUE
-  potentialDuplicates: number          // STATIQUE
-  weakFiliations: number               // STATIQUE
-  ambiguousPlaces: number              // STATIQUE
+  chronologicalInconsistencies: number
+  potentialDuplicates: number
+  weakFiliations: number
+  ambiguousPlaces: number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helper : vérifie si une personne a une source
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function hasAnySource(person: FamilyGraphPerson): boolean {
@@ -92,76 +93,203 @@ function hasAnySource(person: FamilyGraphPerson): boolean {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper : format nom complet
-// ─────────────────────────────────────────────────────────────────────────────
-
 function fullName(person: FamilyGraphPerson): string {
   return [person.lastName, person.firstName].filter(Boolean).join(' ')
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper : pct arrondi
-// ─────────────────────────────────────────────────────────────────────────────
 
 function pct(count: number, total: number): number {
   if (total === 0) return 0
   return Math.round((count / total) * 100)
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
-// BFS : construit le Set des IDs liés par le sang ou conjoint à une racine
-// Même logique que filterGraphToBloodRelativesAndSpouses du script de build
+// Profondeur ascendante (générations d'ancêtres depuis la racine)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildBloodAndSpousesSet(
-  graph: FamilyGraphData,
-  rootId: string,
-): Set<string> {
-  const bloodIds = new Set<string>()
-  const queue: string[] = [rootId]
+function computeAscendanceDepth(graph: FamilyGraphData, rootId: string): number {
+  let maxDepth = 0
+  const queue: [string, number][] = [[rootId, 1]]
+  const visited = new Set<string>()
 
-  // BFS sur les liens de sang (parents ↔ enfants)
   while (queue.length > 0) {
-    const id = queue.shift()!
-    if (bloodIds.has(id)) continue
-    bloodIds.add(id)
+    const [id, depth] = queue.shift()!
+    if (visited.has(id)) continue
+    visited.add(id)
+    if (depth > maxDepth) maxDepth = depth
 
     const person = graph.people[id]
     if (!person) continue
 
-    // Remonter vers les parents
     for (const famcId of person.famcIds) {
       const fam = graph.families[famcId]
       if (!fam) continue
-      if (fam.husbandId && !bloodIds.has(fam.husbandId)) queue.push(fam.husbandId)
-      if (fam.wifeId   && !bloodIds.has(fam.wifeId))   queue.push(fam.wifeId)
+      if (fam.husbandId && !visited.has(fam.husbandId)) queue.push([fam.husbandId, depth + 1])
+      if (fam.wifeId    && !visited.has(fam.wifeId))    queue.push([fam.wifeId,    depth + 1])
     }
+  }
 
-    // Descendre vers les enfants
+  return maxDepth
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Profondeur descendante (générations de descendants depuis la racine)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeDescendanceDepth(graph: FamilyGraphData, rootId: string): number {
+  let maxDepth = 0
+  const queue: [string, number][] = [[rootId, 1]]
+  const visited = new Set<string>()
+
+  while (queue.length > 0) {
+    const [id, depth] = queue.shift()!
+    if (visited.has(id)) continue
+    visited.add(id)
+    if (depth > maxDepth) maxDepth = depth
+
+    const person = graph.people[id]
+    if (!person) continue
+
     for (const famsId of person.famsIds) {
       const fam = graph.families[famsId]
       if (!fam) continue
       for (const childId of fam.childIds) {
-        if (!bloodIds.has(childId)) queue.push(childId)
+        if (!visited.has(childId)) queue.push([childId, depth + 1])
       }
     }
   }
 
-  // Ajouter les conjoints des personnes liées par le sang
-  const result = new Set<string>(bloodIds)
-  for (const id of bloodIds) {
+  return maxDepth
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Branches = patronymes distincts dans la lignée de sang ascendante
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeTotalBranches(graph: FamilyGraphData, rootId: string): number {
+  const surnames = new Set<string>()
+  const queue: string[] = [rootId]
+  const visited = new Set<string>()
+
+  while (queue.length > 0) {
+    const id = queue.shift()!
+    if (visited.has(id)) continue
+    visited.add(id)
+
     const person = graph.people[id]
     if (!person) continue
-    for (const famsId of person.famsIds) {
-      const fam = graph.families[famsId]
+    if (person.lastName) surnames.add(person.lastName.toUpperCase())
+
+    for (const famcId of person.famcIds) {
+      const fam = graph.families[famcId]
       if (!fam) continue
-      if (fam.husbandId) result.add(fam.husbandId)
-      if (fam.wifeId)    result.add(fam.wifeId)
+      if (fam.husbandId) queue.push(fam.husbandId)
+      if (fam.wifeId)    queue.push(fam.wifeId)
     }
   }
 
-  return result
+  return surnames.size
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Incohérences chronologiques : décès avant naissance, enfant né trop tôt/tard
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeChronologicalInconsistencies(
+  people: FamilyGraphPerson[],
+  graph: FamilyGraphData,
+): number {
+  let count = 0
+
+  for (const person of people) {
+    let bad = false
+
+    const birthYear = getYear(getBirth(person)?.date)
+    const deathYear = getYear(getDeath(person)?.date)
+
+    if (birthYear && deathYear && deathYear < birthYear) bad = true
+
+    if (!bad && birthYear) {
+      outer: for (const famcId of person.famcIds) {
+        const fam = graph.families[famcId]
+        if (!fam) continue
+
+        for (const parentId of [fam.husbandId, fam.wifeId]) {
+          if (!parentId) continue
+          const parent = graph.people[parentId]
+          if (!parent) continue
+          const pBirth = getYear(getBirth(parent)?.date)
+          if (!pBirth) continue
+
+          const gap = birthYear - pBirth
+          if (gap < 12 || gap > 85) {
+            bad = true
+            break outer
+          }
+        }
+      }
+    }
+
+    if (bad) count++
+  }
+
+  return count
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Doublons potentiels : O(n) via index (lastName|firstName) → years[]
+// Remplace la double boucle O(n²) qui gelait le tab sur 35k personnes
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computePotentialDuplicates(people: FamilyGraphPerson[]): number {
+  const byKey = new Map<string, number[]>()
+
+  for (const person of people) {
+    if (!person.lastName) continue
+    const last  = person.lastName.toLowerCase()
+    const first = (person.firstName ?? '').split(/[\s"]+/)[0]?.toLowerCase() ?? ''
+    if (!first) continue
+    const key  = `${last}|${first}`
+    const year = getYear(getBirth(person)?.date) ?? -1
+    const arr  = byKey.get(key)
+    if (arr) arr.push(year)
+    else byKey.set(key, [year])
+  }
+
+  let count = 0
+  for (const years of byKey.values()) {
+    if (years.length < 2) continue
+    for (let i = 0; i < years.length; i++) {
+      for (let j = i + 1; j < years.length; j++) {
+        const ya = years[i], yb = years[j]
+        if (ya !== -1 && yb !== -1 && Math.abs(ya - yb) <= 2) count++
+      }
+    }
+  }
+  return count
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Filiations faibles : lien parent connu mais sans acte de naissance sourcé
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeWeakFiliations(people: FamilyGraphPerson[]): number {
+  return people.filter((person) => {
+    if (person.famcIds.length === 0) return false
+    const birth = getBirth(person)
+    return !birth?.sourcePage && !birth?.sourceQuay
+  }).length
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Lieux ambigus : trop courts, inconnus ou contenant "?"
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeAmbiguousPlaces(places: Set<string>): number {
+  return [...places].filter((p) => {
+    const s = p.toLowerCase().trim()
+    return s.length < 3 || s.includes('?') || s === 'inconnue' || s === 'inconnu' || s === 'unknown'
+  }).length
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,17 +298,17 @@ function buildBloodAndSpousesSet(
 
 export function useTreeStats(graph: FamilyGraphData): TreeStats {
   return useMemo(() => {
-    const people = Object.values(graph.people)
-    const families = Object.values(graph.families)
+    const people       = Object.values(graph.people)
+    const families     = Object.values(graph.families)
     const mediaEntries = Object.values(graph.media)
-    const n = people.length
+    const n            = people.length
+    const rootId       = treeSettings.sosaReferencePersonId
 
     // ── Périmètre ────────────────────────────────────────────────────────────
 
-    const totalPeople = n
+    const totalPeople   = n
     const totalFamilies = families.length
 
-    // Lieux uniques toutes sources confondues
     const allPlaces = new Set(
       people
         .flatMap((p) => p.events)
@@ -189,21 +317,18 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
     )
     const totalPlaces = allPlaces.size
 
-    // Sources = events avec sourcePage ou sourceQuay
-    const allEvents = people.flatMap((p) => p.events)
+    const allEvents    = people.flatMap((p) => p.events)
     const sourcesLinked = allEvents.filter(
       (e) => e.sourcePage !== undefined || e.sourceQuay !== undefined,
     ).length
 
-    // Connectivité
-    // "Isolé" = pas lié par le sang à sosaReferencePersonId
-    // et pas conjoint d'une personne liée par le sang
-    const linkedIds = buildBloodAndSpousesSet(graph, treeSettings.sosaReferencePersonId)
-    const isolated = people.filter((p) => !linkedIds.has(p.id))
+    // ── Connectivité ─────────────────────────────────────────────────────────
+
+    const linkedIds     = buildBloodAndSpousesSet(graph, rootId)
+    const isolated      = people.filter((p) => !linkedIds.has(p.id))
     const isolatedPeople = isolated.length
     const connectedPeople = n - isolatedPeople
 
-    // Ancêtre le plus ancien
     const withBirthYear = people
       .map((p) => ({ p, year: getYear(getBirth(p)?.date) }))
       .filter((x): x is { p: FamilyGraphPerson; year: number } => x.year !== undefined)
@@ -214,17 +339,22 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
         ? { name: fullName(withBirthYear[0].p), year: withBirthYear[0].year }
         : null
 
+    // ── Profondeurs (dynamiques) ──────────────────────────────────────────────
+
+    const totalGenerations = computeAscendanceDepth(graph, rootId)
+    const deepestLineage   = computeDescendanceDepth(graph, rootId)
+    const totalBranches    = computeTotalBranches(graph, rootId)
+
     // ── Complétude ────────────────────────────────────────────────────────────
 
-    const withBirthDate = people.filter((p) => getBirth(p)?.date).length
+    const withBirthDate  = people.filter((p) => getBirth(p)?.date).length
     const withBirthPlace = people.filter((p) => getBirth(p)?.placeBrut).length
-    const withDeath = people.filter((p) => getDeath(p)).length
-    const withParents = people.filter((p) => p.famcIds.length > 0).length
-    const withSource = people.filter(hasAnySource).length
-    const withMedia = people.filter((p) => p.mediaIds.length > 0).length
+    const withDeath      = people.filter((p) => getDeath(p)).length
+    const withParents    = people.filter((p) => p.famcIds.length > 0).length
+    const withSource     = people.filter(hasAnySource).length
+    const withMedia      = people.filter((p) => p.mediaIds.length > 0).length
 
-    // ── Sources par type (heuristique sur sourcePage) ─────────────────────────
-    // On cherche des mots-clés dans les sourcePage pour catégoriser
+    // ── Sources par type ──────────────────────────────────────────────────────
 
     const sourcePages = allEvents
       .map((e) => e.sourcePage?.toLowerCase() ?? '')
@@ -244,15 +374,24 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
 
     // ── Médias ────────────────────────────────────────────────────────────────
 
-    const totalMedia = mediaEntries.length
-    const totalPhotos = mediaEntries.filter((m) =>
+    const totalMedia   = mediaEntries.length
+    const totalPhotos  = mediaEntries.filter((m) =>
       /jpe?g|png|gif|webp/i.test(m.form ?? m.title ?? ''),
     ).length
-    const totalScans = mediaEntries.filter((m) =>
+    const totalScans   = mediaEntries.filter((m) =>
       /pdf/i.test(m.form ?? m.title ?? ''),
     ).length
-    const peopleWithoutPhoto = people.filter(
-      (p) => p.mediaIds.length === 0,
+    const audioMemories = mediaEntries.filter((m) =>
+      /mp3|wav|ogg|aac|m4a|flac/i.test(m.form ?? m.title ?? ''),
+    ).length
+    const peopleWithoutPhoto = people.filter((p) => p.mediaIds.length === 0).length
+
+    // Photos non liées à un individu
+    const linkedMediaIds = new Set(people.flatMap((p) => p.mediaIds))
+    const unidentifiedPhotos = Object.entries(graph.media).filter(
+      ([id, m]) =>
+        /jpe?g|png|gif|webp/i.test(m.form ?? m.title ?? '') &&
+        !linkedMediaIds.has(id),
     ).length
 
     // ── Occupations & patronymes ──────────────────────────────────────────────
@@ -264,12 +403,38 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
       people.map((p) => p.lastName).filter((l): l is string => Boolean(l)),
     )
 
+    // Migrations : naissance et décès dans des lieux différents
+    const totalMigrations = people.filter((p) => {
+      const birthPlace = getBirth(p)?.placeBrut
+      const deathPlace = getDeath(p)?.placeBrut
+      return birthPlace && deathPlace && birthPlace !== deathPlace
+    }).length
+
     // ── Backlog ───────────────────────────────────────────────────────────────
 
-    const peopleWithoutParents = people.filter(
-      (p) => p.famcIds.length === 0,
-    ).length
-    const peopleWithoutSource = people.filter((p) => !hasAnySource(p)).length
+    const peopleWithoutParents = people.filter((p) => p.famcIds.length === 0).length
+    const peopleWithoutSource  = people.filter((p) => !hasAnySource(p)).length
+
+    // Actes à trouver : personnes nées après 1600 sans acte de naissance sourcé
+    const actsToFind = people.filter((p) => {
+      const birth = getBirth(p)
+      const year  = getYear(birth?.date)
+      if (!year || year < 1600) return false
+      return !birth?.sourcePage && !birth?.sourceQuay
+    }).length
+
+    // Branches inexplorées : sans parents connus, nées après 1700
+    const unexploredBranches = people.filter((p) => {
+      const year = getYear(getBirth(p)?.date)
+      return p.famcIds.length === 0 && year !== undefined && year > 1700
+    }).length
+
+    // ── Qualité ───────────────────────────────────────────────────────────────
+
+    const chronologicalInconsistencies = computeChronologicalInconsistencies(people, graph)
+    const potentialDuplicates          = computePotentialDuplicates(people)
+    const weakFiliations               = computeWeakFiliations(people)
+    const ambiguousPlaces              = computeAmbiguousPlaces(allPlaces)
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -277,16 +442,16 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
       // Périmètre
       totalPeople,
       totalFamilies,
-      totalGenerations: 9,           // STATIQUE
+      totalGenerations,
       totalSources: sourcesLinked,
       totalPlaces,
-      totalBranches: 12,             // STATIQUE
+      totalBranches,
 
       // Connectivité
       connectedPeople,
       isolatedPeople,
       oldestAncestor,
-      deepestLineage: 9,             // STATIQUE
+      deepestLineage,
 
       // Complétude
       completeness: {
@@ -301,36 +466,36 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
       // Sources
       sourcesByType,
       sourcesLinked,
-      sourcesUnused: 17,             // STATIQUE
-      sourcesUnvalidated: 9,         // STATIQUE
+      sourcesUnused:             0,  // non modélisé en GEDCOM standard
+      sourcesUnvalidated:        0,  // non modélisé en GEDCOM standard
 
       // Médias
       totalPhotos,
       totalScans,
       totalMedia,
-      unidentifiedPhotos: 18,        // STATIQUE
-      sourcesWithoutTranscription: 22, // STATIQUE
-      audioMemories: 7,              // STATIQUE
+      unidentifiedPhotos,
+      sourcesWithoutTranscription: 0, // non modélisé en GEDCOM standard
+      audioMemories,
       peopleWithoutPhoto,
 
       // Occupations & histoire
       totalOccupations: occupations.size,
       totalLastNames: lastNames.size,
-      totalMigrations: 9,            // STATIQUE
-      historicalEvents: 6,           // STATIQUE
+      totalMigrations,
+      historicalEvents: 0,           // non modélisé en GEDCOM standard
 
       // Backlog
       peopleWithoutParents,
       peopleWithoutSource,
-      actsToFind: 14,                // STATIQUE
-      openLeads: 9,                  // STATIQUE
-      unexploredBranches: 5,         // STATIQUE
+      actsToFind,
+      openLeads: 0,                  // non modélisé en GEDCOM standard
+      unexploredBranches,
 
-      // Qualité — tous statiques (algorithmes dédiés à écrire)
-      chronologicalInconsistencies: 12, // STATIQUE
-      potentialDuplicates: 8,           // STATIQUE
-      weakFiliations: 23,               // STATIQUE
-      ambiguousPlaces: 6,               // STATIQUE
+      // Qualité
+      chronologicalInconsistencies,
+      potentialDuplicates,
+      weakFiliations,
+      ambiguousPlaces,
     }
   }, [graph])
 }

@@ -211,22 +211,14 @@ function OverviewTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; 
             <StatCard label="Personnes" value={String(stats.totalPeople)} icon={Users} />
           </DetailLink>
           <StatCard label="Familles / couples" value={String(stats.totalFamilies)} icon={UserRound} />
-          <StatCard
-            label="Générations"
-            value={<Static inline><span>{stats.totalGenerations}</span></Static>}
-            icon={Layers3}
-          />
+          <StatCard label="Générations" value={String(stats.totalGenerations)} icon={Layers3} />
           <DetailLink to={`${base}/sources`} className="rounded-2xl">
             <StatCard label="Sources" value={String(stats.totalSources)} icon={FileText} />
           </DetailLink>
           <DetailLink to={`${base}/places`} className="rounded-2xl">
             <StatCard label="Lieux" value={String(stats.totalPlaces)} icon={MapPin} />
           </DetailLink>
-          <StatCard
-            label="Branches"
-            value={<Static inline><span>{stats.totalBranches}</span></Static>}
-            icon={GitBranch}
-          />
+          <StatCard label="Branches" value={String(stats.totalBranches)} icon={GitBranch} />
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -244,10 +236,7 @@ function OverviewTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; 
                 : '—'
             }
           />
-          <InfoLine
-            label="Lignée la plus profonde"
-            value={<Static inline><span>{stats.deepestLineage} générations</span></Static>}
-          />
+          <InfoLine label="Lignée la plus profonde" value={`${stats.deepestLineage} générations`} />
         </div>
       </Panel>
 
@@ -283,12 +272,8 @@ function OverviewTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; 
           <DetailLink to={`${base}/sources`} className="rounded-2xl">
             <MiniAlert label="Sources liées" value={String(stats.sourcesLinked)} good />
           </DetailLink>
-          <Static>
-            <MiniAlert label="Non exploitées" value={String(stats.sourcesUnused)} />
-          </Static>
-          <Static>
-            <MiniAlert label="Sans validation" value={String(stats.sourcesUnvalidated)} />
-          </Static>
+          <MiniAlert label="Non exploitées" value={String(stats.sourcesUnused)} />
+          <MiniAlert label="Sans validation" value={String(stats.sourcesUnvalidated)} />
         </div>
       </Panel>
 
@@ -301,18 +286,18 @@ function OverviewTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; 
 
 function ResearchTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; base: string }) {
   const qualityAlerts = [
-    { icon: AlertTriangle, title: `${stats.chronologicalInconsistencies} incohérences chronologiques`, text: 'Événements impossibles ou dates à vérifier.' },
-    { icon: Split,         title: `${stats.potentialDuplicates} doublons potentiels`,                  text: 'Même nom, même période, même commune.' },
-    { icon: GitBranch,     title: `${stats.weakFiliations} filiations faibles`,                        text: 'Relations sans source directe ou hypothèse.' },
-    { icon: MapPin,        title: `${stats.ambiguousPlaces} lieux ambigus`,                            text: 'Toponymes à normaliser ou géocoder.' },
+    { icon: AlertTriangle, title: `${stats.chronologicalInconsistencies} incohérences chronologiques`, text: 'Événements impossibles ou dates à vérifier.',    href: `${base}/inconsistencies` },
+    { icon: Split,         title: `${stats.potentialDuplicates} doublons potentiels`,                  text: 'Même nom, même période, même commune.',           href: `${base}/duplicates` },
+    { icon: GitBranch,     title: `${stats.weakFiliations} filiations faibles`,                        text: 'Relations sans source directe ou hypothèse.',     href: `${base}/weak-filiations` },
+    { icon: MapPin,        title: `${stats.ambiguousPlaces} lieux ambigus`,                            text: 'Toponymes à normaliser ou géocoder.',             href: `${base}/ambiguous-places` },
   ]
 
   const researchBacklog = [
     { label: `${stats.peopleWithoutParents} personnes sans parents connus`, isStatic: false, href: `${base}/without-parents` },
     { label: `${stats.peopleWithoutSource} individus sans source`,          isStatic: false, href: `${base}/without-source` },
-    { label: `${stats.actsToFind} actes à retrouver`,                       isStatic: true,  href: null },
+    { label: `${stats.actsToFind} actes à retrouver`,                       isStatic: false, href: `${base}/without-source` },
     { label: `${stats.openLeads} pistes ouvertes`,                          isStatic: true,  href: null },
-    { label: `${stats.unexploredBranches} branches peu explorées`,          isStatic: true,  href: null },
+    { label: `${stats.unexploredBranches} branches peu explorées`,          isStatic: false, href: `${base}/unexplored-branches` },
   ]
 
   return (
@@ -320,9 +305,9 @@ function ResearchTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; 
       <Panel title="Cohérence & qualité" subtitle="Les zones faibles à traiter en priorité.">
         <div className="grid gap-3">
           {qualityAlerts.map((alert) => (
-            <Static key={alert.title}>
+            <DetailLink key={alert.title} to={alert.href} className="rounded-2xl">
               <QualityAlert icon={alert.icon} title={alert.title} text={alert.text} />
-            </Static>
+            </DetailLink>
           ))}
         </div>
       </Panel>
@@ -453,15 +438,11 @@ function MediaTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>; bas
 
       <Panel title="À enrichir" subtitle="Les médias qui peuvent encore créer de la valeur.">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Static>
-            <MiniAlert label="Photos non identifiées"      value={String(stats.unidentifiedPhotos)} />
-          </Static>
-          <Static>
-            <MiniAlert label="Sources sans transcription"  value={String(stats.sourcesWithoutTranscription)} />
-          </Static>
-          <Static>
-            <MiniAlert label="Mémoires audio liées"        value={String(stats.audioMemories)} good />
-          </Static>
+          <DetailLink to={`${base}/unlinked-photos`} className="rounded-2xl">
+            <MiniAlert label="Photos non identifiées" value={String(stats.unidentifiedPhotos)} />
+          </DetailLink>
+          <MiniAlert label="Sources sans transcription" value={String(stats.sourcesWithoutTranscription)} />
+          <MiniAlert label="Mémoires audio liées" value={String(stats.audioMemories)} good />
           <DetailLink to={`${base}/without-source`} className="rounded-2xl">
             <MiniAlert label="Personnes sans photo" value={String(stats.peopleWithoutPhoto)} />
           </DetailLink>
@@ -488,18 +469,16 @@ function HistoricalTab({ stats, base }: { stats: ReturnType<typeof useTreeStats>
               <p className="mt-1 text-sm font-bold text-slate-600">Patronymes</p>
             </div>
           </DetailLink>
-          <Static>
+          <DetailLink to={`${base}/migrations`} className="rounded-2xl">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-2xl font-black text-slate-950">{stats.totalMigrations}</p>
               <p className="mt-1 text-sm font-bold text-slate-600">Migrations</p>
             </div>
-          </Static>
-          <Static>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-2xl font-black text-slate-950">{stats.historicalEvents}</p>
-              <p className="mt-1 text-sm font-bold text-slate-600">Événements historiques liés</p>
-            </div>
-          </Static>
+          </DetailLink>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-2xl font-black text-slate-950">{stats.historicalEvents}</p>
+            <p className="mt-1 text-sm font-bold text-slate-600">Événements historiques liés</p>
+          </div>
         </div>
       </Panel>
 

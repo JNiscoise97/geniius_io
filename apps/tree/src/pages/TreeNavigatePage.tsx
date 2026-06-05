@@ -196,7 +196,12 @@ export default function TreeNavigatePage() {
                     />
                   )}
 
-                  {familyView === 'descendance' && <DescendanceView />}
+                  {familyView === 'descendance' && (
+                    <DescendanceView
+                      selectedPersonId={selectedPersonId}
+                      onPersonSelect={navigateToPerson}
+                    />
+                  )}
                 </div>
               </>
             ) : mainTab === 'histoire' ? (

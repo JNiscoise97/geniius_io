@@ -132,10 +132,17 @@ export function AscendanceView({
     }
 
     const id = requestAnimationFrame(() => requestAnimationFrame(compute))
-    window.addEventListener('resize', compute)
+
+    let rafId: number | null = null
+    const onResize = () => {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => { compute(); rafId = null })
+    }
+    window.addEventListener('resize', onResize)
     return () => {
       cancelAnimationFrame(id)
-      window.removeEventListener('resize', compute)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', onResize)
     }
   }, [cardRefs, visibleGenerations, selectedPersonId])
 

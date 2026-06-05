@@ -2,7 +2,7 @@ import { ChevronRight, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { useDebouncedValue } from '../../../lib/useDebouncedValue'
-import { people } from '../data'
+import { getAllPeople } from '../data'
 import { PanelTitle } from './ui/PanelTitle'
 
 type SexFilter = 'all' | '♂' | '♀'
@@ -28,7 +28,7 @@ export function LeftIndex({
   const debouncedQuery = useDebouncedValue(query, 250)
 
   const indexedPeople = useMemo(() => {
-    return people.map(([name, years, sex, id]) => ({
+    return getAllPeople().map(([name, years, sex, id]) => ({
       id,
       name,
       years,

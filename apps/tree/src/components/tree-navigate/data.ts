@@ -27,7 +27,6 @@ import {
   getDeath,
   getEvent,
   getYear,
-  formatGedcomDate,
   type FamilyGraphPerson,
   type FamilyGraphFamily,
   type GedcomMedia,
@@ -104,36 +103,17 @@ export const toolbar = [
   { icon: Info,         label: 'Infos' },
 ]
 
-export const people = Object.values(graph.people)
-  .map((person) => [
-    formatPersonName(person),
-    formatYears(person),
-    formatSex(person.sex),
-    person.id,
-  ] as const)
-  .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'fr'))
-
-export const searchResults = Object.values(graph.people)
-  .slice(0, 50)
-  .map((person) => {
-    const birth = getBirth(person)
-    const death = getDeath(person)
-    return [
-      person.lastName,
-      person.firstName,
-      birth?.date ? formatGedcomDate(birth.date) : '',
-      birth?.placeBrut ?? '',
-      death?.date ? formatGedcomDate(death.date) : '',
-      death?.placeBrut ?? '',
-    ]
-  })
-
-export const descendants = Object.values(graph.people)
-  .slice(0, 30)
-  .map((person) => [
-    formatPersonName(person),
-    formatPersonDetails(person),
-  ])
+// Computed lazily at call time (after the Suspense boundary resolves the JSON)
+export function getAllPeople() {
+  return Object.values(graph.people)
+    .map((person) => [
+      formatPersonName(person),
+      formatYears(person),
+      formatSex(person.sex),
+      person.id,
+    ] as const)
+    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'fr'))
+}
 
 export const events = [
   ['Naissance',                           '1833', '',   'Saint-Paul'],
@@ -302,6 +282,53 @@ function getMissingAncestorLabel(
   if (generationIndex === 1) return personIndex === 0 ? 'le père' : 'la mère'
   const isMaleSlot = personIndex % 2 === 0
   return isMaleSlot ? 'le grand-père' : 'la grand-mère'
+}
+
+// ── Descendance ───────────────────────────────────────────────────────────────
+
+export type DescendantPersonNode = {
+  id: string
+  firstName?: string
+  lastName?: string
+  sex?: 'M' | 'F' | 'U'
+  birthYear?: number
+  deathYear?: number
+  children: DescendantPersonNode[]
+}
+
+export function buildDescendantTree(
+  personId: string | undefined,
+  maxDepth = 3,
+): DescendantPersonNode | null {
+  if (!personId) return null
+  return buildDescRec(personId, maxDepth, 0, new Set<string>())
+}
+
+function buildDescRec(
+  personId: string,
+  maxDepth: number,
+  depth: number,
+  visited: Set<string>,
+): DescendantPersonNode {
+  const person = getPerson(personId)
+  const node: DescendantPersonNode = {
+    id: personId,
+    firstName: person?.firstName,
+    lastName: person?.lastName,
+    sex: person?.sex,
+    birthYear: person ? getYear(getBirth(person)?.date) : undefined,
+    deathYear: person ? getYear(getDeath(person)?.date) : undefined,
+    children: [],
+  }
+
+  if (depth >= maxDepth || visited.has(personId)) return node
+  visited.add(personId)
+
+  node.children = getChildren(personId).map((child) =>
+    buildDescRec(child.id, maxDepth, depth + 1, visited),
+  )
+
+  return node
 }
 
 // ── Médias ────────────────────────────────────────────────────────────────────
