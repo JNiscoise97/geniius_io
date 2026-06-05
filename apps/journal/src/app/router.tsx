@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
+import LandingPage from '../pages/LandingPage'
 import JournalListPage from '../pages/JournalListPage'
 import JournalNewPage from '../pages/JournalNewPage'
 import JournalSessionPage from '../pages/JournalSessionPage'
@@ -12,6 +13,14 @@ export const router = createBrowserRouter([
   },
   {
     path: '/journal',
+    element: (
+      <Layout>
+        <LandingPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/journal/sessions',
     element: (
       <Layout>
         <JournalListPage />

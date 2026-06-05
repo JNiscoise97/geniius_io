@@ -136,7 +136,7 @@ export default function JournalProposalsPage() {
       {/* Header */}
       <div className="mb-6 flex items-start gap-3">
         <button
-          onClick={() => navigate('/journal')}
+          onClick={() => navigate('/journal/sessions')}
           className="mt-0.5 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
         >
           <ArrowLeftIcon size={18} />

@@ -161,7 +161,7 @@ export default function JournalSessionPage() {
       <div className="flex flex-col items-center py-16 text-center">
         <p className="font-semibold text-slate-500">Session introuvable</p>
         <button
-          onClick={() => navigate('/journal')}
+          onClick={() => navigate('/journal/sessions')}
           className="mt-4 text-sm text-teal-600 hover:underline"
         >
           Retour aux sessions
@@ -180,7 +180,7 @@ export default function JournalSessionPage() {
         {/* En-tête session */}
         <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-3">
           <button
-            onClick={() => navigate('/journal')}
+            onClick={() => navigate('/journal/sessions')}
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
           >
             <ArrowLeftIcon size={18} />

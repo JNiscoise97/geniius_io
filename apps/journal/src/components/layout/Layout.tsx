@@ -4,7 +4,8 @@ import { AppLayout } from '@geniius/layout'
 import '@geniius/layout/style.css'
 
 const navItems = [
-  { label: 'Sessions', to: '/journal' },
+  { label: 'Accueil', to: '/journal' },
+  { label: 'Sessions', to: '/journal/sessions' },
   { label: 'Propositions', to: '/journal/proposals' },
 ]
 
