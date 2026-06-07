@@ -476,11 +476,14 @@ export function SectionSources(props: SectionSourcesProps) {
   const [pickerIsNew, setPickerIsNew] = useState(false);
   const [q, setQ] = useState('');
   const [onlyOnline, setOnlyOnline] = useState(false);
+  const pickedSuccessfullyRef = useRef(false);
 
   const closePicker = () => {
     setPickerOpen(false);
     setPickerTargetIdx(null);
     setPickerIsNew(false);
+    // Ne pas remettre pickedSuccessfullyRef à false ici —
+    // onOpenChange le lit juste après et doit voir la vraie valeur
   };
 
   const openPickerForIdx = (idx: number) => {
@@ -579,6 +582,7 @@ export function SectionSources(props: SectionSourcesProps) {
 
     setActiveUniteKey(uniteKey);
 
+    pickedSuccessfullyRef.current = true;
     closePicker();
   };
 
@@ -3337,14 +3341,12 @@ export function SectionSources(props: SectionSourcesProps) {
         open={pickerOpen}
         onOpenChange={(v) => {
           if (!v) {
-            // Si l'utilisateur ferme sans choisir un exemplaire et que c'était un nouveau draft, on le supprime
-            if (pickerIsNew && pickerTargetIdx !== null && isEdit) {
+            // Annulation sans pick : supprimer le draft vide si c'était un nouveau
+            if (pickerIsNew && pickerTargetIdx !== null && isEdit && !pickedSuccessfullyRef.current) {
               assertEditMode(props);
-              const target = sources[pickerTargetIdx];
-              if (!target?.exemplaire_id) {
-                props.onRemove(pickerTargetIdx);
-              }
+              props.onRemove(pickerTargetIdx);
             }
+            pickedSuccessfullyRef.current = false;
             setPickerOpen(false);
             setPickerTargetIdx(null);
             setPickerIsNew(false);

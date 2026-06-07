@@ -55,7 +55,7 @@ function formatDeSerie(serie: string): string {
   // voyelles + variantes accentuées
   const startsWithVowel = /^[aeiouyàâäáæãåèêëéìîïíòôöóœùûüúÿh]/i.test(s);
 
-  return startsWithVowel ? `d’${s}` : `de ${s}`;
+  return startsWithVowel ? `d'${s}` : `de ${s}`;
 }
 
 function joinWithEt(items: string[]) {
@@ -208,7 +208,7 @@ function parseCoverage(input: string): CoverageParse {
   }
 
   // 2) Split INPUT en segments: ',' ou ';'
-  //    (segments vides filtrés comme tu l’as décrit)
+  //    (segments vides filtrés comme tu l'as décrit)
   const segments = normalized
     .split(/[;,]/)
     .map((s) => normSpaces(s))
@@ -246,7 +246,7 @@ function parseCoverage(input: string): CoverageParse {
       return n ? [frenchRepublicanYearToGregorianStart(n)] : [];
     }
 
-    // 4) mots + année (on récupère l’année)
+    // 4) mots + année (on récupère l'année)
     const y = part.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
     if (y) return [Number(y[1])];
 
@@ -262,7 +262,7 @@ function parseCoverage(input: string): CoverageParse {
     // On détecte le nombre de tirets "structurels" via split
     const dashParts = seg.split(/\s*-\s*/);
 
-    // a) Plus d’un tiret => > 2 morceaux
+    // a) Plus d'un tiret => > 2 morceaux
     if (dashParts.length > 2) {
       return {
         raw,
@@ -452,7 +452,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
 
   useEffect(() => {
     // Alimente automatiquement les champs de tri (en lecture seule)
-    // Si pas d’année détectée, on vide.
+    // Si pas d'année détectée, on vide.
     setCouvertureStart(couvertureParsed.minYear?.toString() ?? '');
     setCouvertureEnd(couvertureParsed.maxYear?.toString() ?? '');
   }, [couvertureParsed.minYear, couvertureParsed.maxYear]);
@@ -495,8 +495,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
     return serieLabel || '';
   }, [serieRef, serieLabel]);
 
-  const stepExemplairesLabel = 'Exemplaires';
-  const stepUnitesDocumentairesLabel = 'Unité documentaire';
+  const stepExemplairesLabel = 'Versions';
+  const stepUnitesDocumentairesLabel = 'Collection';
 
   const steps = useMemo(() => {
     if (effectiveMode === 'edit-exemplaire') return [stepExemplairesLabel];
@@ -530,7 +530,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
 
     const parts: string[] = [];
 
-    // [TypeUnite label] + [de/d’] + [serieLabel]
+    // [TypeUnite label] + [de/d'] + [serieLabel]
     if (typeLabel && serie) {
       parts.push(`${typeLabel} ${formatDeSerie(serieLabel)}`);
     } else if (serie) {
@@ -676,7 +676,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       // ---- EDIT: hydrate form from DB
       if (effectiveMode !== 'create') {
         if (!sourceId) {
-          toast.error('sourceId manquant pour l’édition');
+          toast.error("sourceId manquant pour l'édition");
           return;
         }
 
@@ -807,7 +807,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
               description: row.description ?? '',
               note: row.note ?? '',
               acces: (accesByExId.get(row.id) ?? []).map((a: any) => ({
-                id: a.id, // important : tu réutilises l’id DB ou un uuid, comme tu veux
+                id: a.id, // important : tu réutilises l'id DB ou un uuid, comme tu veux
                 plateforme_id: a.plateforme_id ?? null,
                 type_acces_id: a.type_acces_id ?? null,
                 url_base: a.url_base ?? '',
@@ -1008,7 +1008,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         }
       }
 
-      toast.success('Source créée');
+      toast.success('Dépôt ajouté');
       await onCreated();
     } catch (err: any) {
       console.error(err);
@@ -1068,7 +1068,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         }
       }
 
-      toast.success('Unité mise à jour');
+      toast.success('Collection mise à jour');
       await onCreated();
     } catch (err: any) {
       console.error(err);
@@ -1148,7 +1148,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         }
       }
 
-      toast.success('Exemplaires mis à jour');
+      toast.success('Versions mises à jour');
       await onCreated();
     } catch (err: any) {
       console.error(err);
@@ -1190,9 +1190,9 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   );
 
   const dialogTitle = useMemo(() => {
-    if (effectiveMode === 'edit-unite') return 'Modifier l’unité documentaire';
-    if (effectiveMode === 'edit-exemplaire') return 'Modifier les exemplaires';
-    return 'Créer une source';
+    if (effectiveMode === 'edit-unite') return 'Modifier la collection';
+    if (effectiveMode === 'edit-exemplaire') return 'Modifier les versions';
+    return 'Ajouter un dépôt';
   }, [effectiveMode]);
 
   const isSingleStep = effectiveMode === 'edit-exemplaire';
@@ -1218,8 +1218,6 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           </DialogHeader>
         </div>
 
-        {/* Body (scroll) */}
-        {/* Body */}
         <div className='flex-1 min-h-0 px-6 py-4 flex flex-col gap-4'>
           {/* Partie haute fixe */}
           <div className='shrink-0 space-y-4'>

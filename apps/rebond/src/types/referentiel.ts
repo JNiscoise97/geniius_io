@@ -58,17 +58,22 @@ export const REF_TABLES: {
   { value: 'ref_statut_juridique', label: 'Statuts juridiques' },
   { value: 'ref_statut_proprietaire', label: 'Statuts de propriété' },
   { value: 'ref_supports', label: 'Supports' },
-  { value: 'ref_handwriting_style', label: 'Style d’écriture manuscrite' },
+  { value: 'ref_handwriting_style', label: "Style d'écriture manuscrite" },
   { value: 'ref_transcription_status', label: 'Statuts de transcription' },
   { value: 'ref_registre_mode', label: 'Structuration du registre' },
   { value: 'ref_registre_pagination', label: 'Système de repérage interne' },
   { value: 'ref_registre_support', label:'Forme matérielle du registre' },
   { value: 'ref_type_acces', label: "Type d'accès" },
-  { value: 'ref_institutions_types', label: 'Types d’institutions' },
+  { value: 'ref_institutions_types', label: "Types d'institutions" },
   { value: 'ref_pagination_type', label: 'Types de pagination' },
   { value: 'ref_plateforme_type', label: 'Types de plateforme' },
   { value: 'ref_ec_registre_segment_kinds', label: 'Types de segments de registre (état-civil)', columns: { position: true } },
-  { value: 'ref_type_unite', label: 'Types d’unité documentaire' },
+  { value: 'ref_type_unite', label: "Types d'unité documentaire" },
+  // Qualité des transcriptions
+  { value: 'ref_source_lecture_kind',        label: 'Support de lecture', columns: { position: true } },
+  { value: 'ref_confidence_level',           label: 'Niveau de confiance', columns: { position: true } },
+  { value: 'ref_transcription_completeness', label: 'Complétude de la transcription', columns: { position: true } },
+  { value: 'ref_reserve_level',              label: 'Niveau de réserve', columns: { position: true } },
 ];
 
 export type RefRow = {

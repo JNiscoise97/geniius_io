@@ -473,7 +473,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
   } | null>(null);
 
   // Label (acte edit only)
-  const [labelLocked, setLabelLocked] = useState(true);
+  const [labelLocked, setLabelLocked] = useState(false);
   const [labelDraft, setLabelDraft] = useState(label);
   const labelRef = useRef<HTMLInputElement | null>(null);
 
@@ -979,20 +979,11 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       <form className='space-y-6' onSubmit={handleLegacySubmit}>
         <div className='space-y-10'>
           <div>
-            <h2 className='text-base font-semibold text-slate-900'>Référence archive</h2>
-
-            {/* intro acte */}
-            <div className='mt-1 space-y-1'>
-              <p className='text-sm leading-relaxed text-slate-700'>
-                Cet onglet vous permet de décrire l’acte en tant que document d’archive : registre,
-                date, lieu de rédaction, dépôts de conservation et état du document.
-              </p>
-              <p>
-                <span className='font-semibold text-sm text-slate-700'>
-                  Il sert à retrouver et citer précisément l’acte.
-                </span>
-              </p>
-            </div>
+            <h2 className="text-base font-semibold text-slate-900">Référence archive</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Renseigne ici où trouver l'acte (dépôt, cote, vues) et ses conditions physiques.
+              Ces informations permettent de le retrouver et de le citer précisément.
+            </p>
           </div>
 
           {/* Global sticky-ish helper (top) */}
@@ -1032,8 +1023,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           {type === 'acte' && mode === 'edit' ? (
             <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-3'>
               <SectionHeaderRow
-                title='Label'
-                subtitle='Titre court pour identifier l’acte rapidement.'
+                title="Libellé de l'acte"
+                subtitle="Nom affiché dans les listes. Modifiable si nécessaire."
                 dirty={dirty.label}
                 saving={savingBy.label}
                 savedAt={savedAtBy.label}
@@ -1042,7 +1033,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               />
 
               <div className='w-full md:max-w-xl'>
-                <label className='block text-xs font-medium text-slate-700'>Label</label>
+                
 
                 <div className='mt-1 flex items-center gap-2 w-full'>
                   <input
@@ -1059,7 +1050,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                         ? 'border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed'
                         : 'border-slate-200 bg-white text-slate-900 focus:border-slate-400',
                     ].join(' ')}
-                    placeholder='Label…'
+                    placeholder="Ex : Naissance de Marie Dupont, 12 mars 1842"
                   />
 
                   <button
@@ -1071,8 +1062,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
                         ? 'border-slate-200 bg-white hover:bg-slate-50'
                         : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
                     ].join(' ')}
-                    title={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
-                    aria-label={labelLocked ? 'Déverrouiller le label' : 'Verrouiller le label'}
+                    title={labelLocked ? "Cliquer pour modifier le libellé" : "Verrouiller le libellé"}
+                    aria-label={labelLocked ? "Cliquer pour modifier le libellé" : "Verrouiller le libellé"}
                   >
                     {labelLocked ? (
                       <Lock className='h-4 w-4 text-slate-700' />
@@ -1084,11 +1075,11 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
 
                 {labelLocked ? (
                   <p className='mt-1 text-xs text-slate-500'>
-                    Le label est verrouillé. Déverrouille-le pour le modifier.
+                    Cliquez sur le cadenas pour modifier.
                   </p>
                 ) : (
                   <p className='mt-1 text-xs text-amber-700'>
-                    Label déverrouillé : toute modification sera enregistrée.
+                    Libellé déverrouillé — pensez à enregistrer après modification.
                   </p>
                 )}
 
@@ -1107,8 +1098,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         {type === 'acte' && mode === 'edit' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title='Identification'
-              subtitle=''
+              title="Identification"
+              subtitle="Type d'acte et référence interne."
               dirty={dirty.identification}
               saving={savingBy.identification}
               savedAt={savedAtBy.identification}
@@ -1139,8 +1130,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         {type === 'acte' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title='Enregistrement de l’acte'
-              subtitle=''
+              title="Enregistrement de l'acte"
+              subtitle="Date, heure, bureau d'état civil et lieu de rédaction."
               dirty={dirty.enregistrement}
               saving={savingBy.enregistrement}
               savedAt={savedAtBy.enregistrement}
@@ -1213,8 +1204,8 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         {type === 'acte' ? (
           <div className='rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm space-y-4'>
             <SectionHeaderRow
-              title=''
-              subtitle=''
+              title="Sources d'archive"
+              subtitle="Versions physiques ou numériques (archives, microfilms, sites…) — indiquez la cote et les vues."
               dirty={dirty.sources}
               saving={savingBy.sources}
               savedAt={savedAtBy.sources}
@@ -1222,6 +1213,15 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
               disabled={loadingActesSources}
               readonly={mode === 'view'}
             />
+
+            {mode === 'edit' && !loadingActesSources && actesSources.length === 0 ? (
+              <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900'>
+                <div className='font-semibold'>Aucune source encore renseignée</div>
+                <p className='mt-1 text-xs'>
+                  Cliquez sur <strong>Ajouter une source</strong> ci-dessous pour indiquer où trouver cet acte (dépôt d'archives, site en ligne, microfilm…).
+                </p>
+              </div>
+            ) : null}
 
             {mode === 'edit' ? (
               <SectionSources

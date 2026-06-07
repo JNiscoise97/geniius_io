@@ -137,12 +137,12 @@ function bestPickPerExemplaire(picks: any[]): Map<string, ExemplairePick> {
   for (const r of picks) {
     const candidate: ExemplairePick = {
       exemplaire_id: r.exemplaire_id,
-      nature_id: r.nature_id ?? null,
+      nature_id: r.nature_ref ?? null,
       unite_id: r.unite_id ?? null,
       unite_titre: r.unite_titre ?? null,
       nature_code: r.nature_code ?? null,
       nature_label: r.nature_label ?? null,
-      support_id: r.support_id ?? null,
+      support_id: r.support_ref ?? null,
       support_code: r.support_code ?? null,
       support_label: r.support_label ?? null,
       physical_condition_ref: r.physical_condition_ref ?? null,
@@ -239,7 +239,7 @@ export function useActeCitationsSources(acteId: string) {
       const { data: pickData, error: pickErr } = await supabase
         .from('v_exemplaires_pick')
         .select(
-          'exemplaire_id,nature_id,nature_code,nature_label,support_id,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne, physical_condition_ref,physical_condition_code,physical_condition_label',
+          'exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,physical_condition_ref,physical_condition_code,physical_condition_label',
         )
         .in('exemplaire_id', manIds);
 

@@ -14,8 +14,6 @@ type BureauOption = {
   label: string;
 };
 
-type TypeActeOption = { id: string; label: string };
-
 type BureauTree = Record<string, Record<string, Record<string, BureauOption[]>>>;
 
 const UNKNOWN_REGION = '— Région inconnue —';
@@ -192,11 +190,10 @@ export function EtatCivilStep({
 
   if (!isEtatCivil) {
     return (
-      <div className='text-sm text-muted-foreground space-y-2'>
-        <div>
-          Cette étape (série <b>{serieLabel || '—'}</b>) est <b>à construire</b>.
-        </div>
-        <div>Pour l’instant, tu peux la passer.</div>
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        Aucun paramètre spécifique pour la série{" "}
+        <span className="font-medium">{serieLabel || "—"}</span>.{" "}
+        Tu peux passer à l'étape suivante.
       </div>
     );
   }
