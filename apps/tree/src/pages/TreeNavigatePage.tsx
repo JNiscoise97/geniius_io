@@ -75,6 +75,10 @@ export default function TreeNavigatePage() {
     string | undefined
   >(initialState.selectedPersonId)
 
+  const [previewPersonId, setPreviewPersonId] = useState<string | undefined>(
+    initialState.selectedPersonId,
+  )
+
   const [personHistory, setPersonHistory] = useState<string[]>(
     initialState.selectedPersonId ? [initialState.selectedPersonId] : [],
   )
@@ -100,8 +104,7 @@ export default function TreeNavigatePage() {
   }, [mainTab, familyView, historyView, documentsView, selectedPersonId])
 
   function previewPerson(personId: string) {
-    // TODO: ouvrir un popup de prévisualisation
-    alert(`[Preview] ${personId}`)
+    setPreviewPersonId(personId)
   }
 
   function navigateToPerson(personId: string) {
@@ -249,7 +252,11 @@ export default function TreeNavigatePage() {
             )}
           </main>
 
-          <RightSummary />
+          <RightSummary
+            previewPersonId={previewPersonId}
+            onPersonNavigate={navigateToPerson}
+            onPersonPreview={previewPerson}
+          />
         </div>
 
       <StatusBar selectedPersonId={selectedPersonId} />
