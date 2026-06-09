@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 import { getBirth, getDeath, getYear, formatGedcomDate, type GedcomEvent, type GedcomMedia } from '@geniius/utils/family-graph'
 import { getPerson, getSpouseFamilies, formatPersonName, type FamilyGraphPerson } from '../../data'
 import { getAssocIndex } from '../lib/assocIndex'
@@ -166,11 +167,13 @@ function MediaThumb({ item, onClick }: { item: MediaItem; onClick: () => void })
 }
 
 /** Fiche acte : vignette + métadonnées de l'événement */
-function ActeCard({ item, onPersonSelect, onClick }: {
+function ActeCard({ item, onPersonSelect, onPersonPreview, onClick }: {
   item: MediaItem
   onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
   onClick: () => void
 }) {
+  const { onClick: onOwnerClick } = usePersonClickHandlers(item.eventOwner?.id, onPersonSelect, onPersonPreview)
   const [broken, setBroken] = useState(false)
   const { event, eventOwner, media } = item
   const title = media.title ?? ''
@@ -228,7 +231,7 @@ function ActeCard({ item, onPersonSelect, onClick }: {
         {eventOwner && (
           <button
             type="button"
-            onClick={() => onPersonSelect(eventOwner.id)}
+            onClick={onOwnerClick}
             className="mt-1 text-[10px] text-slate-400 hover:text-slate-700"
           >
             → {formatPersonName(eventOwner)}
@@ -260,9 +263,10 @@ function MediaGrid({ items, onItemClick }: { items: MediaItem[]; onItemClick: (i
 }
 
 /** Liste de fiches actes */
-function ActeList({ items, onPersonSelect, onItemClick }: {
+function ActeList({ items, onPersonSelect, onPersonPreview, onItemClick }: {
   items: MediaItem[]
   onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
   onItemClick: (item: MediaItem) => void
 }) {
   if (items.length === 0) return (
@@ -271,7 +275,7 @@ function ActeList({ items, onPersonSelect, onItemClick }: {
   return (
     <div className="flex flex-col gap-2">
       {items.map((item, i) => (
-        <ActeCard key={i} item={item} onPersonSelect={onPersonSelect} onClick={() => onItemClick(item)} />
+        <ActeCard key={i} item={item} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} onClick={() => onItemClick(item)} />
       ))}
     </div>
   )
@@ -362,9 +366,10 @@ function ProgressDots({ active }: { active: MediasStep }) {
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
-export function MediasView({ selectedPersonId, onPersonSelect }: {
+export function MediasView({ selectedPersonId, onPersonSelect, onPersonPreview }: {
   selectedPersonId?: string
   onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
 }) {
   const scrollRef   = useRef<HTMLDivElement | null>(null)
   const [activeStep, setActiveStep]     = useState<MediasStep>('overview')
@@ -442,11 +447,11 @@ export function MediasView({ selectedPersonId, onPersonSelect }: {
           )}
 
           {activeStep === 'events' && (
-            <ActeList items={eventItems} onPersonSelect={onPersonSelect} onItemClick={setLightboxItem} />
+            <ActeList items={eventItems} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} onItemClick={setLightboxItem} />
           )}
 
           {activeStep === 'family' && (
-            <ActeList items={familyItems} onPersonSelect={onPersonSelect} onItemClick={setLightboxItem} />
+            <ActeList items={familyItems} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} onItemClick={setLightboxItem} />
           )}
 
         </div>

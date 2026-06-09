@@ -97,9 +97,11 @@ function drawConnectors(
 export function AscendanceView({
   selectedPersonId,
   onPersonSelect,
+  onPersonPreview,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [lines, setLines]                     = useState<LineSegment[]>([])
@@ -273,6 +275,7 @@ export function AscendanceView({
                     tone={person.tone}
                     className="static h-full w-full"
                     onPersonSelect={onPersonSelect}
+                    onPersonPreview={onPersonPreview}
                   />
                 </div>
               ))}

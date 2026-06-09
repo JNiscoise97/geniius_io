@@ -7,6 +7,7 @@ import {
   formatPersonName,
   type FamilyGraphPerson,
 } from '../../data'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -77,14 +78,84 @@ function buildFlatList(rootId: string, expanded: Set<string>): FlatNode[] {
   return result
 }
 
+// ── DescendantRow ─────────────────────────────────────────────────────────────
+
+function DescendantRow({
+  node,
+  onPersonSelect,
+  onPersonPreview,
+  onToggle,
+}: {
+  node: FlatNode
+  onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
+  onToggle: (id: string, e: React.MouseEvent) => void
+}) {
+  const { onClick } = usePersonClickHandlers(node.id, onPersonSelect, onPersonPreview)
+  const name   = formatPersonName(node.person) || 'Individu sans nom'
+  const years  = yearRange(node.person)
+  const isRoot = node.depth === 0
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-2 py-2 pr-3 text-left transition hover:bg-slate-50"
+      style={{ paddingLeft: BASE_PAD_PX + node.depth * INDENT_PX }}
+    >
+      <span
+        className="flex h-4 w-4 shrink-0 items-center justify-center"
+        onClick={(e) => { if (node.hasChildren) onToggle(node.id, e) }}
+      >
+        {node.hasChildren ? (
+          node.isExpanded
+            ? <ChevronDown size={12} className="text-slate-400" />
+            : <ChevronRight size={12} className="text-slate-400" />
+        ) : (
+          <span className="h-1 w-1 rounded-full bg-slate-300" />
+        )}
+      </span>
+
+      <span
+        className="h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ backgroundColor: sexColor(node.person.sex) }}
+      />
+
+      <span
+        className={[
+          'min-w-0 flex-1 truncate text-[12px] leading-tight',
+          isRoot ? 'font-black text-indigo-700' : 'font-bold text-slate-900',
+        ].join(' ')}
+        title={name}
+      >
+        {name}
+      </span>
+
+      {years && (
+        <span className="shrink-0 text-[10px] font-medium text-slate-400">
+          {years}
+        </span>
+      )}
+
+      {node.hasChildren && !node.isExpanded && (
+        <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-black text-slate-500">
+          +{node.childCount}
+        </span>
+      )}
+    </button>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function DescendanceView({
   selectedPersonId,
   onPersonSelect,
+  onPersonPreview,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(
     () => (selectedPersonId ? new Set([selectedPersonId]) : new Set()),
@@ -171,72 +242,15 @@ export function DescendanceView({
       {/* Tree */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="overflow-hidden rounded-[16px] border border-slate-200 bg-white divide-y divide-slate-100">
-          {flatList.map((node) => {
-            const name  = formatPersonName(node.person) || 'Individu sans nom'
-            const years = yearRange(node.person)
-            const isRoot = node.depth === 0
-
-            return (
-              <button
-                key={`${node.depth}-${node.id}`}
-                type="button"
-                onClick={() => onPersonSelect(node.id)}
-                className="flex w-full items-center gap-2 py-2 pr-3 text-left transition hover:bg-slate-50"
-                style={{ paddingLeft: BASE_PAD_PX + node.depth * INDENT_PX }}
-              >
-                {/* Expand/collapse toggle */}
-                <span
-                  className="flex h-4 w-4 shrink-0 items-center justify-center"
-                  onClick={(e) => {
-                    if (node.hasChildren) toggle(node.id, e)
-                  }}
-                >
-                  {node.hasChildren ? (
-                    node.isExpanded ? (
-                      <ChevronDown size={12} className="text-slate-400" />
-                    ) : (
-                      <ChevronRight size={12} className="text-slate-400" />
-                    )
-                  ) : (
-                    <span className="h-1 w-1 rounded-full bg-slate-300" />
-                  )}
-                </span>
-
-                {/* Sex dot */}
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: sexColor(node.person.sex) }}
-                />
-
-                {/* Name */}
-                <span
-                  className={[
-                    'min-w-0 flex-1 truncate text-[12px] leading-tight',
-                    isRoot
-                      ? 'font-black text-indigo-700'
-                      : 'font-bold text-slate-900',
-                  ].join(' ')}
-                  title={name}
-                >
-                  {name}
-                </span>
-
-                {/* Years */}
-                {years && (
-                  <span className="shrink-0 text-[10px] font-medium text-slate-400">
-                    {years}
-                  </span>
-                )}
-
-                {/* Collapsed children count */}
-                {node.hasChildren && !node.isExpanded && (
-                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-black text-slate-500">
-                    +{node.childCount}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+          {flatList.map((node) => (
+            <DescendantRow
+              key={`${node.depth}-${node.id}`}
+              node={node}
+              onPersonSelect={onPersonSelect}
+              onPersonPreview={onPersonPreview}
+              onToggle={toggle}
+            />
+          ))}
         </div>
       </div>
     </div>

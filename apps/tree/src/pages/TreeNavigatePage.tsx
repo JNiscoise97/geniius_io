@@ -99,6 +99,11 @@ export default function TreeNavigatePage() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [mainTab, familyView, historyView, documentsView, selectedPersonId])
 
+  function previewPerson(personId: string) {
+    // TODO: ouvrir un popup de prévisualisation
+    alert(`[Preview] ${personId}`)
+  }
+
   function navigateToPerson(personId: string) {
     if (!personId) return
 
@@ -168,7 +173,7 @@ export default function TreeNavigatePage() {
         <div className="mx-auto grid min-h-0 flex-1 overflow-hidden w-full max-w-[1680px] grid-cols-1 border-x border-slate-200 bg-white/95 shadow-xl lg:grid-cols-[340px_minmax(0,1fr)_380px] lg:grid-rows-1">
           <LeftIndex
             selectedPersonId={selectedPersonId}
-            onPersonSelect={navigateToPerson}
+            onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
           />
 
           <main className="flex min-h-0 min-w-0 flex-col overflow-hidden border-x border-slate-200 bg-slate-50">
@@ -185,21 +190,21 @@ export default function TreeNavigatePage() {
                   {familyView === 'noyau' && (
                     <FamilyCore
                       selectedPersonId={selectedPersonId}
-                      onPersonSelect={navigateToPerson}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                     />
                   )}
 
                   {familyView === 'ascendance' && (
                     <AscendanceView
                       selectedPersonId={selectedPersonId}
-                      onPersonSelect={navigateToPerson}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                     />
                   )}
 
                   {familyView === 'descendance' && (
                     <DescendanceView
                       selectedPersonId={selectedPersonId}
-                      onPersonSelect={navigateToPerson}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                     />
                   )}
                 </div>
@@ -215,7 +220,7 @@ export default function TreeNavigatePage() {
                   {historyView === 'chronologie' && (
                     <ChronologyView
                       selectedPersonId={selectedPersonId}
-                      onPersonSelect={navigateToPerson}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                     />
                   )}
                 </div>
@@ -231,7 +236,7 @@ export default function TreeNavigatePage() {
                   {documentsView === 'medias' && (
                     <MediasView
                       selectedPersonId={selectedPersonId}
-                      onPersonSelect={navigateToPerson}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                     />
                   )}
                 </div>

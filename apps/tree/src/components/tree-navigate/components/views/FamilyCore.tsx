@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 import { ChevronRight, Plus } from 'lucide-react'
 import { calculateAge } from '@geniius/utils/family-graph-utils'
 import { getBirth, getDeath, getYear, type GedcomDate } from '@geniius/utils/family-graph'
@@ -90,9 +91,11 @@ const steps: { key: StepKey; label: string }[] = [
 export function FamilyCore({
   selectedPersonId,
   onPersonSelect,
+  onPersonPreview,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [activeStep, setActiveStep] = useState<StepKey>('overview')
@@ -136,15 +139,15 @@ export function FamilyCore({
           {activeStep === 'overview' && (
             <Panel title="Vue d'ensemble familiale">
               <OverviewSection title="Parents">
-                <PersonCard person={parents?.father} relation="Père" emptyLabel="Ajouter le père" onPersonSelect={onPersonSelect} />
-                <PersonCard person={parents?.mother} relation="Mère" emptyLabel="Ajouter la mère" onPersonSelect={onPersonSelect} />
+                <PersonCard person={parents?.father} relation="Père" emptyLabel="Ajouter le père" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+                <PersonCard person={parents?.mother} relation="Mère" emptyLabel="Ajouter la mère" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               </OverviewSection>
 
               <OverviewSection title="Grands-parents">
-                <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" onPersonSelect={onPersonSelect} />
-                <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" onPersonSelect={onPersonSelect} />
-                <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" onPersonSelect={onPersonSelect} />
-                <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" onPersonSelect={onPersonSelect} />
+                <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+                <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+                <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+                <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               </OverviewSection>
 
               <OverviewSection title="Fratrie">
@@ -156,6 +159,7 @@ export function FamilyCore({
                       relation={getSiblingRelationLabel({ sibling: item.person, currentPerson: person, index, sharedFather: item.sharedFather, sharedMother: item.sharedMother })}
                       isCurrent={item.person.id === person.id}
                       onPersonSelect={onPersonSelect}
+                      onPersonPreview={onPersonPreview}
                     />
                   ))
                 ) : (
@@ -166,7 +170,7 @@ export function FamilyCore({
               <OverviewSection title="Conjoints">
                 {spouses.length > 0 ? (
                   spouses.map((spouse, index) => (
-                    <PersonCard key={spouse.id} person={spouse} relation={`${index + 1} · conjoint`} onPersonSelect={onPersonSelect} />
+                    <PersonCard key={spouse.id} person={spouse} relation={`${index + 1} · conjoint`} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                   ))
                 ) : (
                   <EmptyCard label="Ajouter un conjoint" />
@@ -176,7 +180,7 @@ export function FamilyCore({
               <OverviewSection title="Enfants">
                 {person && children.length > 0 ? (
                   childrenWithOtherParent(person).map((item, index) => (
-                    <PersonCard key={item.child.id} person={item.child} relation={getChildRelationLabel({ child: item.child, otherParent: item.otherParent, index })} onPersonSelect={onPersonSelect} />
+                    <PersonCard key={item.child.id} person={item.child} relation={getChildRelationLabel({ child: item.child, otherParent: item.otherParent, index })} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                   ))
                 ) : (
                   <EmptyCard label="Ajouter un enfant" />
@@ -188,7 +192,7 @@ export function FamilyCore({
                   groupGrandchildrenByParent(grandchildren).map((group) => (
                     <UnionGroup key={group.parent.id} label={`Via ${formatShortName(group.parent)}`}>
                       {group.children.map((grandchild) => (
-                        <PersonCard key={grandchild.id} person={grandchild} relation={getGrandchildLabel(grandchild.sex)} onPersonSelect={onPersonSelect} />
+                        <PersonCard key={grandchild.id} person={grandchild} relation={getGrandchildLabel(grandchild.sex)} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                       ))}
                     </UnionGroup>
                   ))
@@ -201,19 +205,19 @@ export function FamilyCore({
 
           {activeStep === 'parents' && (
             <Panel title={getKnownCountLabel([parents?.father, parents?.mother], 'parent connu', 'parents connus')}>
-              <PersonCard person={parents?.father} relation="Père" emptyLabel="Ajouter le père" variant="large" onPersonSelect={onPersonSelect} />
-              <PersonCard person={parents?.mother} relation="Mère" emptyLabel="Ajouter la mère" variant="large" onPersonSelect={onPersonSelect} />
+              <PersonCard person={parents?.father} relation="Père" emptyLabel="Ajouter le père" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+              <PersonCard person={parents?.mother} relation="Mère" emptyLabel="Ajouter la mère" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
             </Panel>
           )}
 
           {activeStep === 'grandparents' && (
             <Panel title={`${countKnown([paternalGrandparents?.father, paternalGrandparents?.mother, maternalGrandparents?.father, maternalGrandparents?.mother])} grands-parents connus sur 4`}>
               <SideLabel tone="male">Côté paternel</SideLabel>
-              <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" variant="large" onPersonSelect={onPersonSelect} />
-              <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" variant="large" onPersonSelect={onPersonSelect} />
+              <PersonCard person={paternalGrandparents?.father} relation="Grand-père paternel" emptyLabel="Ajouter le grand-père paternel" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+              <PersonCard person={paternalGrandparents?.mother} relation="Grand-mère paternelle" emptyLabel="Ajouter la grand-mère paternelle" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               <SideLabel tone="female">Côté maternel</SideLabel>
-              <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" variant="large" onPersonSelect={onPersonSelect} />
-              <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" variant="large" onPersonSelect={onPersonSelect} />
+              <PersonCard person={maternalGrandparents?.father} relation="Grand-père maternel" emptyLabel="Ajouter le grand-père maternel" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
+              <PersonCard person={maternalGrandparents?.mother} relation="Grand-mère maternelle" emptyLabel="Ajouter la grand-mère maternelle" variant="large" onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
             </Panel>
           )}
 
@@ -227,6 +231,7 @@ export function FamilyCore({
                     relation={getSiblingRelationLabel({ sibling: item.person, currentPerson: person, index, sharedFather: item.sharedFather, sharedMother: item.sharedMother })}
                     isCurrent={item.person.id === person.id}
                     onPersonSelect={onPersonSelect}
+                    onPersonPreview={onPersonPreview}
                   />
                 ))
               ) : (
@@ -239,7 +244,7 @@ export function FamilyCore({
             <Panel title={`${spouses.length} union(s)`}>
               {spouses.length > 0 ? (
                 spouses.map((spouse, index) => (
-                  <PersonCard key={spouse.id} person={spouse} relation={`${index + 1} · conjoint`} onPersonSelect={onPersonSelect} />
+                  <PersonCard key={spouse.id} person={spouse} relation={`${index + 1} · conjoint`} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                 ))
               ) : (
                 <EmptyCard label="Ajouter un conjoint" />
@@ -252,7 +257,7 @@ export function FamilyCore({
               {person && children.length > 0 ? (
                 <UnionGroup label="Descendance directe">
                   {childrenWithOtherParent(person).map((item, index) => (
-                    <PersonCard key={item.child.id} person={item.child} relation={getChildRelationLabel({ child: item.child, otherParent: item.otherParent, index })} onPersonSelect={onPersonSelect} />
+                    <PersonCard key={item.child.id} person={item.child} relation={getChildRelationLabel({ child: item.child, otherParent: item.otherParent, index })} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                   ))}
                 </UnionGroup>
               ) : (
@@ -267,7 +272,7 @@ export function FamilyCore({
                 groupGrandchildrenByParent(grandchildren).map((group) => (
                   <UnionGroup key={group.parent.id} label={`Via ${formatShortName(group.parent)}`}>
                     {group.children.map((grandchild) => (
-                      <PersonCard key={grandchild.id} person={grandchild} relation={getGrandchildLabel(grandchild.sex)} onPersonSelect={onPersonSelect} />
+                      <PersonCard key={grandchild.id} person={grandchild} relation={getGrandchildLabel(grandchild.sex)} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
                     ))}
                   </UnionGroup>
                 ))
@@ -291,6 +296,7 @@ function PersonCard({
   isCurrent,
   variant = 'compact',
   onPersonSelect,
+  onPersonPreview,
 }: {
   person?: FamilyGraphPerson
   relation?: string
@@ -298,7 +304,10 @@ function PersonCard({
   isCurrent?: boolean
   variant?: 'compact' | 'large'
   onPersonSelect: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
+  const { onClick } = usePersonClickHandlers(person?.id, onPersonSelect, onPersonPreview)
+
   if (!person) return <EmptyCard label={emptyLabel ?? 'Ajouter une personne'} />
 
   const birth = getBirth(person)
@@ -309,7 +318,7 @@ function PersonCard({
   return (
     <button
       type="button"
-      onClick={() => onPersonSelect(person.id)}
+      onClick={onClick}
       className={[
         'flex w-full items-center gap-3 rounded-[14px] border bg-white text-left transition hover:border-slate-400 hover:shadow-sm',
         isLarge ? 'px-4 py-4' : 'px-3.5 py-3',

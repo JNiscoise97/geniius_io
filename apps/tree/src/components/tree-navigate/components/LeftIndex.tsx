@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useDebouncedValue } from '../../../lib/useDebouncedValue'
 import { getAllPeople } from '../data'
 import { PanelTitle } from './ui/PanelTitle'
+import { usePersonClickHandlers } from '../../../hook/usePersonClickHandlers'
 
 type SexFilter = 'all' | '♂' | '♀'
 
@@ -15,12 +16,72 @@ const sexFilters: { label: string; value: SexFilter }[] = [
   { label: 'Femmes', value: '♀' },
 ]
 
+function PersonListItem({
+  id,
+  name,
+  years,
+  sex,
+  isSelected,
+  debouncedQuery,
+  onPersonSelect,
+  onPersonPreview,
+}: {
+  id?: string
+  name: string
+  years: string
+  sex: string
+  isSelected: boolean
+  debouncedQuery: string
+  onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
+}) {
+  const { onClick } = usePersonClickHandlers(id, onPersonSelect, onPersonPreview)
+
+  return (
+    <button
+      type="button"
+      onClick={id ? onClick : undefined}
+      className={[
+        'group flex items-center gap-2 rounded-xl px-2 py-2 text-left transition',
+        isSelected ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-100',
+      ].join(' ')}
+    >
+      <div
+        className={[
+          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black',
+          sex === '♀'
+            ? isSelected ? 'bg-fuchsia-500/20 text-fuchsia-200' : 'bg-fuchsia-100 text-fuchsia-700'
+            : isSelected ? 'bg-sky-500/20 text-sky-200' : 'bg-sky-100 text-sky-700',
+        ].join(' ')}
+      >
+        {sex}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className={['truncate text-[12px] font-bold', isSelected ? 'text-white' : 'text-slate-800'].join(' ')}>
+          {highlight(name, debouncedQuery)}
+        </p>
+        <p className={['text-[11px]', isSelected ? 'text-slate-300' : 'text-slate-500'].join(' ')}>
+          {highlight(years, debouncedQuery)}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <span title="Source liée" className="h-2 w-2 rounded-full bg-emerald-500" />
+        <span title="À vérifier" className="h-2 w-2 rounded-full bg-amber-400" />
+      </div>
+    </button>
+  )
+}
+
 export function LeftIndex({
   selectedPersonId,
   onPersonSelect,
+  onPersonPreview,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const [query, setQuery] = useState('')
   const [sexFilter, setSexFilter] = useState<SexFilter>('all')
@@ -131,55 +192,19 @@ export function LeftIndex({
       <div className="flex-1 overflow-auto px-2 py-2">
         {filteredPeople.length > 0 ? (
           <div className="grid gap-[2px]">
-            {filteredPeople.map(({ id, name, years, sex }) => {
-              const isSelected = id === selectedPersonId
-
-              return (
-                <button
-                  key={id ?? `${name}-${years}`}
-                  type="button"
-                  onDoubleClick={() => {
-                    if (id) onPersonSelect(id)
-                  }}
-                  className={[
-                    'group flex items-center gap-2 rounded-xl px-2 py-2 text-left transition',
-                    isSelected
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'hover:bg-slate-100',
-                  ].join(' ')}
-                >
-                  <div
-                    className={[
-                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black',
-                      sex === '♀'
-                        ? isSelected
-                          ? 'bg-fuchsia-500/20 text-fuchsia-200'
-                          : 'bg-fuchsia-100 text-fuchsia-700'
-                        : isSelected
-                          ? 'bg-sky-500/20 text-sky-200'
-                          : 'bg-sky-100 text-sky-700',
-                    ].join(' ')}
-                  >
-                    {sex}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className={['truncate text-[12px] font-bold', isSelected ? 'text-white' : 'text-slate-800'].join(' ')}>
-                      {highlight(name, debouncedQuery)}
-                    </p>
-
-                    <p className={['text-[11px]', isSelected ? 'text-slate-300' : 'text-slate-500'].join(' ')}>
-                      {highlight(years, debouncedQuery)}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <span title="Source liée" className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <span title="À vérifier" className="h-2 w-2 rounded-full bg-amber-400" />
-                  </div>
-                </button>
-              )
-            })}
+            {filteredPeople.map(({ id, name, years, sex }) => (
+              <PersonListItem
+                key={id ?? `${name}-${years}`}
+                id={id}
+                name={name}
+                years={years}
+                sex={sex}
+                isSelected={id === selectedPersonId}
+                debouncedQuery={debouncedQuery}
+                onPersonSelect={onPersonSelect}
+                onPersonPreview={onPersonPreview}
+              />
+            ))}
           </div>
         ) : (
           <div className="rounded-2xl bg-slate-50 p-4 text-center">

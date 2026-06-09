@@ -1,4 +1,5 @@
 import type { Tone } from '../../types'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 
 const toneStyles: Record<Tone, { card: string; text: string; sub: string; label: string }> = {
   neutral: {
@@ -34,6 +35,7 @@ export function AncestorNode({
   className,
   tone,
   onPersonSelect,
+  onPersonPreview,
 }: {
   personId?: string
   firstName?: string
@@ -47,9 +49,11 @@ export function AncestorNode({
   className: string
   tone: Tone
   onPersonSelect?: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const canNavigate = Boolean(personId && onPersonSelect)
   const styles      = toneStyles[tone]
+  const { onClick } = usePersonClickHandlers(personId, onPersonSelect, onPersonPreview)
 
   const hasLastName  = Boolean(lastName && lastName.trim() !== '? SANS NOM')
   const formattedFirst = formatFirstName(firstName)
@@ -63,8 +67,8 @@ export function AncestorNode({
 
   return (
     <div
-      onClick={() => { if (personId) onPersonSelect?.(personId) }}
-      title={canNavigate ? 'Cliquer pour centrer cette personne' : undefined}
+      onClick={canNavigate ? onClick : undefined}
+      title={canNavigate ? 'Clic : aperçu · Double-clic : centrer' : undefined}
       className={[
         'min-w-0 max-w-full overflow-hidden rounded-[14px] border transition',
         canNavigate ? 'cursor-pointer hover:border-slate-400 hover:shadow-sm' : '',

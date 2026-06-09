@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 
 import { resolveRoleLabel } from '../lib/resolveRoleLabel'
 import { MISSING_DEATH } from '../../../../../../../packages/geniius-utils/src/lib/calculate-age'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 
 // ── Avatar image avec fallback ────────────────────────────────────────────────
 
@@ -80,11 +81,13 @@ function ActorRow({
   avStyle,
   isLast,
   onPersonSelect,
+  onPersonPreview,
 }: {
   assoc: GedcomEventAssoc
   avStyle: { bg: string; color: string }
   isLast: boolean
   onPersonSelect?: (id: string) => void
+  onPersonPreview?: (id: string) => void
 }) {
   const person = assoc.id ? getPerson(assoc.id) : undefined
   const roleLabel = resolveRoleLabel(assoc)
@@ -119,6 +122,7 @@ function ActorRow({
   const detail = detailParts.join(' · ')
 
   const clickable = Boolean(person && onPersonSelect)
+  const { onClick } = usePersonClickHandlers(person?.id, onPersonSelect, onPersonPreview)
 
   const inner = (
     <>
@@ -191,7 +195,7 @@ function ActorRow({
       <button
         type="button"
         className={sharedClass}
-        onClick={() => onPersonSelect!(person!.id)}
+        onClick={onClick}
       >
         {inner}
       </button>
@@ -207,10 +211,12 @@ export function ActorBlock({
   assocs,
   avStyle,
   onPersonSelect,
+  onPersonPreview,
 }: {
   assocs: GedcomEventAssoc[]
   avStyle: { bg: string; color: string }
   onPersonSelect?: (id: string) => void
+  onPersonPreview?: (id: string) => void
 }) {
   if (assocs.length === 0) return null
 
@@ -225,6 +231,7 @@ export function ActorBlock({
           avStyle={avStyle}
           isLast={i === assocs.length - 1}
           onPersonSelect={onPersonSelect}
+          onPersonPreview={onPersonPreview}
         />
       ))}
     </div>

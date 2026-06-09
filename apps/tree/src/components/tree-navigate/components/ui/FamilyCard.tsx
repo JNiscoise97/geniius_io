@@ -1,6 +1,7 @@
 import type { GedcomPlace } from '../../data'
 import type { Tone } from '../../types'
 import { formatGedcomPlace } from '@geniius/utils/family-graph-utils'
+import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 
 const toneClasses: Record<Tone, string> = {
   neutral: 'border-slate-200 bg-white text-slate-950',
@@ -29,6 +30,7 @@ export function FamilyCard({
   large,
   tone,
   onPersonSelect,
+  onPersonPreview,
 }: {
   personId?: string
   firstName?: string
@@ -50,17 +52,17 @@ export function FamilyCard({
   large?: boolean
   tone: Tone
   onPersonSelect?: (personId: string) => void
+  onPersonPreview?: (personId: string) => void
 }) {
   const canNavigate = Boolean(personId && onPersonSelect)
+  const { onClick } = usePersonClickHandlers(personId, onPersonSelect, onPersonPreview)
   const hasLastName = Boolean(lastName && lastName.trim() !== '? SANS NOM')
   const hasFirstName = Boolean(firstName && firstName.trim())
 
   return (
     <div
-      onClick={() => {
-        if (personId) onPersonSelect?.(personId)
-      }}
-      title={canNavigate ? 'Cliquer pour centrer cette personne' : undefined}
+      onClick={canNavigate ? onClick : undefined}
+      title={canNavigate ? 'Clic : aperçu · Double-clic : centrer' : undefined}
       className={[
         'min-w-0 max-w-full overflow-hidden rounded-2xl border p-4 text-left shadow-sm transition hover:shadow-md',
         canNavigate ? 'cursor-pointer' : '',

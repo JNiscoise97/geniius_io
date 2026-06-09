@@ -144,8 +144,8 @@ function NoteBlock({ note }: { note: string }) {
  * Affiche une personne en tant qu'acteur principal d'un acte.
  * Réutilise ActorBlock pour avoir photo, N:, D:, âge — cohérent avec les autres acteurs.
  */
-function OwnerCard({ personId, sectionLabel, avStyle, onPersonSelect }: {
-  personId: string; sectionLabel: string; avStyle: { bg: string; color: string }; onPersonSelect: (id: string) => void
+function OwnerCard({ personId, sectionLabel, avStyle, onPersonSelect, onPersonPreview }: {
+  personId: string; sectionLabel: string; avStyle: { bg: string; color: string }; onPersonSelect: (id: string) => void; onPersonPreview?: (id: string) => void
 }) {
   const owner = getPerson(personId)
   if (!owner) return null
@@ -156,7 +156,7 @@ function OwnerCard({ personId, sectionLabel, avStyle, onPersonSelect }: {
   return (
     <>
       <SectionLabel>{sectionLabel}</SectionLabel>
-      <ActorBlock assocs={[assoc]} avStyle={avStyle} onPersonSelect={onPersonSelect} />
+      <ActorBlock assocs={[assoc]} avStyle={avStyle} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
     </>
   )
 }
@@ -193,8 +193,8 @@ type FamilyEventItem = {
   sortVal: number
 }
 
-function FamilyEventRow({ item, isLast, birthEvent, onPersonSelect }: {
-  item: FamilyEventItem; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void
+function FamilyEventRow({ item, isLast, birthEvent, onPersonSelect, onPersonPreview }: {
+  item: FamilyEventItem; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void; onPersonPreview?: (id: string) => void
 }) {
   const { event, spouseId } = item
   const cat   = getCat(event.tag, event.type)
@@ -224,13 +224,13 @@ function FamilyEventRow({ item, isLast, birthEvent, onPersonSelect }: {
             personId={spouse.id}
             sectionLabel={spouse.sex === 'F' ? 'Épouse' : spouse.sex === 'M' ? 'Époux' : 'Conjoint(e)'}
             avStyle={cat.av}
-            onPersonSelect={onPersonSelect}
+            onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview}
           />
         )}
         {event.assocs.length > 0 && (
           <>
             <SectionLabel>Présents à l'acte</SectionLabel>
-            <ActorBlock assocs={event.assocs} avStyle={cat.av} onPersonSelect={onPersonSelect} />
+            <ActorBlock assocs={event.assocs} avStyle={cat.av} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
           </>
         )}
         {event.note && <NoteBlock note={event.note} />}
@@ -241,8 +241,8 @@ function FamilyEventRow({ item, isLast, birthEvent, onPersonSelect }: {
 
 // ── Rows ──────────────────────────────────────────────────────────────────────
 
-function OwnEventRow({ event, isLast, birthEvent, onPersonSelect }: {
-  event: GedcomEvent; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void
+function OwnEventRow({ event, isLast, birthEvent, onPersonSelect, onPersonPreview }: {
+  event: GedcomEvent; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void; onPersonPreview?: (id: string) => void
 }) {
   const cat   = getCat(event.tag, event.type)
   const date  = formatGedcomDate(event.date)
@@ -268,7 +268,7 @@ function OwnEventRow({ event, isLast, birthEvent, onPersonSelect }: {
         {event.assocs.length > 0 && (
           <>
             <SectionLabel>Présents à l'acte</SectionLabel>
-            <ActorBlock assocs={event.assocs} avStyle={cat.av} onPersonSelect={onPersonSelect} />
+            <ActorBlock assocs={event.assocs} avStyle={cat.av} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
           </>
         )}
         {event.note && <NoteBlock note={event.note} />}
@@ -277,8 +277,8 @@ function OwnEventRow({ event, isLast, birthEvent, onPersonSelect }: {
   )
 }
 
-function AssocEventRow({ occurrence, isLast, birthEvent, onPersonSelect }: {
-  occurrence: AssocOccurrence; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void
+function AssocEventRow({ occurrence, isLast, birthEvent, onPersonSelect, onPersonPreview }: {
+  occurrence: AssocOccurrence; isLast: boolean; birthEvent?: GedcomEvent; onPersonSelect: (id: string) => void; onPersonPreview?: (id: string) => void
 }) {
   const { event, ownerId, ownerKind, assocIndex: ai } = occurrence
   const assoc      = event.assocs[ai]
@@ -315,12 +315,12 @@ function AssocEventRow({ occurrence, isLast, birthEvent, onPersonSelect }: {
         </div>
         <EventMeta date={date} year={year} ageStr={ageStr} place={place} caus={event.caus} sourcePage={event.sourcePage} />
         {ownerKind === 'person' && (
-          <OwnerCard personId={ownerId} sectionLabel={mainLabel} avStyle={cat.av} onPersonSelect={onPersonSelect} />
+          <OwnerCard personId={ownerId} sectionLabel={mainLabel} avStyle={cat.av} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
         )}
         {otherAssocs.length > 0 && (
           <>
             <SectionLabel>Autres présents</SectionLabel>
-            <ActorBlock assocs={otherAssocs} avStyle={cat.av} onPersonSelect={onPersonSelect} />
+            <ActorBlock assocs={otherAssocs} avStyle={cat.av} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
           </>
         )}
         {event.note && <NoteBlock note={event.note} />}
@@ -402,13 +402,14 @@ type OverviewItem =
   | { kind: 'assoc';  occurrence: AssocOccurrence; sortVal: number }
   | { kind: 'family'; item: FamilyEventItem;        sortVal: number }
 
-function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, onPersonSelect, onStepChange }: {
+function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, onPersonSelect, onPersonPreview, onStepChange }: {
   ownEvents: GedcomEvent[]
   assocOccurrences: AssocOccurrence[]
   familyItems: FamilyEventItem[]
   birth?: GedcomEvent
   death?: GedcomEvent
   onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
   onStepChange: (s: ChronologyStep) => void
 }) {
   const deathSortVal = death ? sortKey(death.date) : Infinity
@@ -438,7 +439,7 @@ function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, 
           event={item.event}
           isLast={isLast}
           birthEvent={birth}
-          onPersonSelect={onPersonSelect}
+          onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview}
         />
       )
     }
@@ -449,7 +450,7 @@ function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, 
           item={item.item}
           isLast={isLast}
           birthEvent={birth}
-          onPersonSelect={onPersonSelect}
+          onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview}
         />
       )
     }
@@ -459,7 +460,7 @@ function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, 
         occurrence={item.occurrence}
         isLast={isLast}
         birthEvent={birth}
-        onPersonSelect={onPersonSelect}
+        onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview}
       />
     )
   }
@@ -516,9 +517,10 @@ function OverviewStep({ ownEvents, assocOccurrences, familyItems, birth, death, 
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
-export function ChronologyView({ selectedPersonId, onPersonSelect }: {
+export function ChronologyView({ selectedPersonId, onPersonSelect, onPersonPreview }: {
   selectedPersonId?: string
   onPersonSelect: (id: string) => void
+  onPersonPreview?: (id: string) => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [activeStep, setActiveStep] = useState<ChronologyStep>('overview')
@@ -595,7 +597,7 @@ export function ChronologyView({ selectedPersonId, onPersonSelect }: {
             familyItems={familyItems}
             birth={birth ?? undefined}
             death={death ?? undefined}
-            onPersonSelect={onPersonSelect}
+            onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview}
             onStepChange={setActiveStep}
           />
         )}
@@ -610,11 +612,11 @@ export function ChronologyView({ selectedPersonId, onPersonSelect }: {
           return (
             <>
               {ante.map((event, i) => (
-                <OwnEventRow key={i} event={event} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <OwnEventRow key={i} event={event} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
               {post.length > 0 && <PostMortemSeparator count={post.length} />}
               {post.map((event, i) => (
-                <OwnEventRow key={`post-${i}`} event={event} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <OwnEventRow key={`post-${i}`} event={event} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
             </>
           )
@@ -630,11 +632,11 @@ export function ChronologyView({ selectedPersonId, onPersonSelect }: {
           return (
             <>
               {ante.map((item, i) => (
-                <FamilyEventRow key={i} item={item} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <FamilyEventRow key={i} item={item} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
               {post.length > 0 && <PostMortemSeparator count={post.length} />}
               {post.map((item, i) => (
-                <FamilyEventRow key={`post-${i}`} item={item} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <FamilyEventRow key={`post-${i}`} item={item} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
             </>
           )
@@ -650,11 +652,11 @@ export function ChronologyView({ selectedPersonId, onPersonSelect }: {
           return (
             <>
               {ante.map((occ, i) => (
-                <AssocEventRow key={i} occurrence={occ} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <AssocEventRow key={i} occurrence={occ} isLast={post.length === 0 && i === ante.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
               {post.length > 0 && <PostMortemSeparator count={post.length} />}
               {post.map((occ, i) => (
-                <AssocEventRow key={`post-${i}`} occurrence={occ} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} />
+                <AssocEventRow key={`post-${i}`} occurrence={occ} isLast={i === post.length - 1} birthEvent={birth ?? undefined} onPersonSelect={onPersonSelect} onPersonPreview={onPersonPreview} />
               ))}
             </>
           )
