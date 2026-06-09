@@ -3,6 +3,7 @@ import { usePersonClickHandlers } from '../../../../hook/usePersonClickHandlers'
 import { getBirth, getDeath, getYear, formatGedcomDate, type GedcomEvent, type GedcomMedia } from '@geniius/utils/family-graph'
 import { getPerson, getSpouseFamilies, formatPersonName, type FamilyGraphPerson } from '../../data'
 import { getAssocIndex } from '../lib/assocIndex'
+import { getEventLabel } from '../lib/eventLabels'
 import { sortKey } from '@geniius/utils/family-graph-utils'
 
 // ── Steps ─────────────────────────────────────────────────────────────────────
@@ -178,9 +179,7 @@ function ActeCard({ item, onPersonSelect, onPersonPreview, onClick }: {
   const { event, eventOwner, media } = item
   const title = media.title ?? ''
 
-  const eventLabel = event
-    ? (event.type ?? EVENT_LABELS[event.tag] ?? event.tag)
-    : ''
+  const eventLabel = event ? getEventLabel(event) : ''
   const date  = event?.date ? formatGedcomDate(event.date) : ''
   const place = event?.placeBrut ?? event?.place?.town ?? ''
   const ref   = event?.caus ?? event?.sourcePage ?? ''
@@ -242,11 +241,6 @@ function ActeCard({ item, onPersonSelect, onPersonPreview, onClick }: {
   )
 }
 
-const EVENT_LABELS: Record<string, string> = {
-  BIRT: 'Naissance', DEAT: 'Décès', BURI: 'Inhumation',
-  CHR: 'Baptême', MARR: 'Mariage', CENS: 'Recensement',
-  PROP: 'Propriété', WILL: 'Testament', EVEN: 'Événement', FACT: 'Fait',
-}
 
 /** Grille de vignettes */
 function MediaGrid({ items, onItemClick }: { items: MediaItem[]; onItemClick: (item: MediaItem) => void }) {

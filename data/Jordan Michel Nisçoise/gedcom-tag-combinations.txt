@@ -1,6 +1,6 @@
 # GEDCOM tag combinations
 # Source : Jordan Michel Nisçoise.ged
-# Total  : 592 unique paths
+# Total  : 599 unique paths
 
 FAM
 FAM._CREA
@@ -67,6 +67,13 @@ FAM.EVEN.TYPE
 FAM.EVEN.WIFE
 FAM.EVEN.WIFE.AGE
 FAM.HUSB
+FAM.MARB
+FAM.MARB._FNA
+FAM.MARB.DATE
+FAM.MARB.PLAC
+FAM.MARB.PLAC.MAP
+FAM.MARB.PLAC.MAP.LATI
+FAM.MARB.PLAC.MAP.LONG
 FAM.MARC
 FAM.MARC._ETI
 FAM.MARC._FNA

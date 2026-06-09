@@ -20,20 +20,7 @@ import { usePersonClickHandlers } from '../../../hook/usePersonClickHandlers'
 import { ImageAvatar } from './ui/ImageAvatar'
 import { PanelTitle } from './ui/PanelTitle'
 
-// ── Labels événements ─────────────────────────────────────────────────────────
-
-const EVENT_LABELS: Record<string, string> = {
-  BIRT: 'Naissance', DEAT: 'Décès',   BURI: 'Inhumation', CHR: 'Baptême',
-  MARR: 'Mariage',   CENS: 'Recens.', PROP: 'Propriété',  WILL: 'Testament',
-  EVEN: 'Événement', FACT: 'Fait',    RESI: 'Résidence',  OCCU: 'Profession',
-  EMIG: 'Émigration', IMMI: 'Immigration', NATU: 'Naturalisation',
-  DIVO: 'Divorce',
-}
-
-function eventLabel(event: GedcomEvent): string {
-  if (event.type && (event.tag === 'EVEN' || event.tag === 'FACT')) return event.type
-  return EVENT_LABELS[event.tag] ?? event.type ?? event.tag
-}
+import { getEventLabel as eventLabel } from './lib/eventLabels'
 
 // ── Nom complet ───────────────────────────────────────────────────────────────
 

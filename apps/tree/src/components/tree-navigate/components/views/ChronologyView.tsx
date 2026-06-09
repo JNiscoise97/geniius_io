@@ -5,6 +5,7 @@ import { formatGedcomPlace, sortKey, calculateAge } from '@geniius/utils/family-
 import { ActorBlock } from '../ui/ActorBlock'
 import { resolveRoleLabel } from '../lib/resolveRoleLabel'
 import { getAssocIndex, type AssocOccurrence } from '../lib/assocIndex'
+import { EVENT_LABELS } from '../lib/eventLabels'
 import { CentralPerson } from '../ui/CentralPerson'
 
 // ── Catégories visuelles ──────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ const DEFAULT_CAT: EventCategory = { label: 'Événement', dot: '#888780', line:
 function getCat(tag: string, type?: string): EventCategory {
   if (type && /notari|hypothéc|vente|achat|acte/i.test(type))
     return { label: type, dot: '#854F0B', line: '#FAC775', av: { bg: '#FAEEDA', color: '#633806' } }
-  const cat = EVENT_CATEGORIES[tag] ?? DEFAULT_CAT
+  const cat = EVENT_CATEGORIES[tag] ?? { ...DEFAULT_CAT, label: EVENT_LABELS[tag] ?? DEFAULT_CAT.label }
   return type ? { ...cat, label: type } : cat
 }
 
