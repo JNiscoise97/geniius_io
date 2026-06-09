@@ -334,7 +334,7 @@ function buildDescRec(
 // ── Médias ────────────────────────────────────────────────────────────────────
 
 const MEDIA_BASE_URL =
-  '/data/Jordan Michel Nisçoise-20260525/Jordan Michel Nisçoise-20260525-Medias'
+  '/data/Jordan Michel Nisçoise/Jordan Michel Nisçoise-Medias'
 
 export function getPersonPrimaryPhoto(personId: string): string | undefined {
   const person = getPerson(personId)

@@ -14,7 +14,7 @@ const rootDir = process.cwd();
 
 const inputPath = path.resolve(
   rootDir,
-  "data/Jordan Michel Nisçoise-20260525/Jordan Michel Nisçoise-20260525.ged",
+  "data/Jordan Michel Nisçoise/Jordan Michel Nisçoise.ged",
 );
 
 const connectOutputPath = path.resolve(

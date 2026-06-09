@@ -7,11 +7,11 @@ const rootDir = process.cwd();
 // ── Adapt this path to your GEDCOM file ──────────────────────────────────────
 const inputPath = path.resolve(
   rootDir,
-  "data/Jordan Michel Nisçoise-20260525/Jordan Michel Nisçoise-20260525.ged",
+  "data/Jordan Michel Nisçoise/Jordan Michel Nisçoise.ged",
 );
 const outputPath = path.resolve(
   rootDir,
-  "data/Jordan Michel Nisçoise-20260525/gedcom-tag-combinations.txt",
+  "data/Jordan Michel Nisçoise/gedcom-tag-combinations.txt",
 );
 // ─────────────────────────────────────────────────────────────────────────────
 

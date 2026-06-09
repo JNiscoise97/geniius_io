@@ -32,7 +32,7 @@ type MediaItem = {
 // ── Résolution URL ────────────────────────────────────────────────────────────
 
 const MEDIA_BASE_URL =
-  '/data/Jordan Michel Nisçoise-20260525/Jordan Michel Nisçoise-20260525-Medias'
+  '/data/Jordan Michel Nisçoise/Jordan Michel Nisçoise-Medias'
 
 function resolveUrl(media: GedcomMedia): string {
   if (!media.file) return ''
