@@ -3,12 +3,15 @@ import type { GedcomEvent } from '@geniius/utils/family-graph'
 export const EVENT_LABELS: Record<string, string> = {
   BIRT: 'Naissance',         DEAT: 'Décès',           BURI: 'Inhumation',
   CHR:  'Baptême',           CONF: 'Confirmation',    FCOM: 'Première communion',
-  MARR: 'Mariage',           DIVO: 'Divorce',         ENGA: 'Fiançailles',
+  MARR: 'Mariage',           DIV:  'Divorce',         ENGA: 'Fiançailles',
+  MARB: 'Publication de bans', MARC: 'Contrat de mariage',
   ADOP: 'Adoption',          NATU: 'Naturalisation',  EMIG: 'Émigration',
   IMMI: 'Immigration',       CENS: 'Recensement',     RESI: 'Résidence',
   OCCU: 'Profession',        PROP: 'Propriété',       WILL: 'Testament',
   GRAD: 'Diplôme',           HEAL: 'Santé',           DSCR: 'Description',
   EVEN: 'Événement',         FACT: 'Fait',
+  CAST: 'Caste',             EDUC: 'Éducation',       NAMR: 'Nom religieux',
+  RELI: 'Religion',          SIGN: 'Signature',
 }
 
 /**

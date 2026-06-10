@@ -30,20 +30,29 @@ export type GedcomEventTag =
   | "ADOP"   // Adoption
   | "BIRT"   // Naissance          — unique par personne
   | "BURI"   // Inhumation         — unique par personne
+  | "CAST"   // Caste
   | "CENS"   // Recensement
   | "CHR"    // Baptême
   | "CONF"   // Confirmation
   | "DEAT"   // Décès              — unique par personne
+  | "DIV"    // Divorce (FAM)
   | "DSCR"   // Description physique
+  | "EDUC"   // Éducation
+  | "ENGA"   // Fiançailles (FAM)
   | "EVEN"   // Événement générique
   | "FACT"   // Fait
   | "FCOM"   // Première communion
   | "GRAD"   // Diplôme / Remise de grade
   | "HEAL"   // Santé
+  | "MARB"   // Publication de bans (FAM)
+  | "MARC"   // Contrat de mariage (FAM)
   | "MARR"   // Mariage (FAM)
+  | "NAMR"   // Nom religieux
   | "NATU"   // Naturalisation
   | "PROP"   // Propriété
+  | "RELI"   // Religion
   | "RESI"   // Résidence
+  | "SIGN"   // Signature
   | "WILL";  // Testament
 
 const UNIQUE_EVENT_TAGS = new Set<GedcomEventTag>(["BIRT", "DEAT", "BURI"]);
@@ -105,6 +114,8 @@ export type FamilyGraphFamily = {
   wifeId?: string;
   childIds: string[];
   events: GedcomEvent[];
+  mediaIds: string[];
+  primaryMediaId?: string;
 };
 
 export type FamilyGraphData = {
@@ -413,14 +424,19 @@ function parseEventBlock(
 // ── Tables de dispatch ────────────────────────────────────────────────────────
 
 const INDI_EVENT_TAGS: Partial<Record<string, GedcomEventTag>> = {
-  ADOP: "ADOP", BIRT: "BIRT", BURI: "BURI", CENS: "CENS",
-  CHR:  "CHR",  CONF: "CONF", DEAT: "DEAT", DSCR: "DSCR",
-  EVEN: "EVEN", FACT: "FACT", FCOM: "FCOM", GRAD: "GRAD",
-  HEAL: "HEAL", NATU: "NATU", PROP: "PROP", RESI: "RESI",
-  WILL: "WILL",
+  ADOP: "ADOP", BIRT: "BIRT", BURI: "BURI", CAST: "CAST",
+  CENS: "CENS", CHR:  "CHR",  CONF: "CONF", DEAT: "DEAT",
+  DSCR: "DSCR", EDUC: "EDUC", EVEN: "EVEN", FACT: "FACT",
+  FCOM: "FCOM", GRAD: "GRAD", HEAL: "HEAL", NAMR: "NAMR",
+  NATU: "NATU", PROP: "PROP", RELI: "RELI", RESI: "RESI",
+  SIGN: "SIGN", WILL: "WILL",
 };
 
 const FAM_EVENT_TAGS: Partial<Record<string, GedcomEventTag>> = {
+  DIV:  "DIV",
+  ENGA: "ENGA",
+  MARB: "MARB",
+  MARC: "MARC",
   MARR: "MARR",
   EVEN: "EVEN",
 };
@@ -548,7 +564,7 @@ export function buildGraphFromGedcomText(
     // ── FAM ───────────────────────────────────────────────────────────────
     if (line.level === 0 && line.xrefId && line.tag === "FAM") {
       const familyId = normalizeId(line.xrefId);
-      const family: FamilyGraphFamily = { id: familyId, childIds: [], events: [] };
+      const family: FamilyGraphFamily = { id: familyId, childIds: [], events: [], mediaIds: [] };
 
       i += 1;
 
@@ -570,6 +586,17 @@ export function buildGraphFromGedcomText(
             family.wifeId = normalizeId(current.value);
           } else if (current.tag === "CHIL" && current.value) {
             family.childIds.push(normalizeId(current.value));
+          } else if (current.tag === "OBJE" && current.value) {
+            const mediaId = normalizeId(current.value);
+            family.mediaIds.push(mediaId);
+            i += 1;
+            while (i < lines.length && lines[i].level > 1) {
+              if (lines[i].tag === "_PRIM" && lines[i].value === "YES") {
+                family.primaryMediaId = mediaId;
+              }
+              i += 1;
+            }
+            continue;
           }
         }
 
