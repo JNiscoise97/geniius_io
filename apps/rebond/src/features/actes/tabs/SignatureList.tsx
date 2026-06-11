@@ -30,16 +30,18 @@ function MetaPill({
 function SignatureListItem({
   s,
   disabled,
+  showNote,
+  onToggleNote,
   onEdit,
   onDelete,
 }: {
   s: EcSignatureRow;
   disabled: boolean;
+  showNote: boolean;
+  onToggleNote: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [showNote, setShowNote] = React.useState(false);
-
   const kind = s.signature_kind_label;
   const conf = s.confidence_label;
   const leg = s.handwriting_legibility_label;
@@ -96,7 +98,7 @@ function SignatureListItem({
             <div>
               <button
                 type="button"
-                onClick={() => setShowNote((v) => !v)}
+                onClick={onToggleNote}
                 className="inline-flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-slate-900"
               >
                 <StickyNote className="h-3.5 w-3.5" />
@@ -131,6 +133,8 @@ export function SignatureList({
   onEdit: (row: EcSignatureRow) => void;
   onDelete: (id: string) => void;
 }) {
+  const [openNotes, setOpenNotes] = React.useState<Record<string, boolean>>({});
+
   return (
     <EntityListCard<EcSignatureRow>
       title="Signatures"
@@ -150,6 +154,8 @@ export function SignatureList({
           key={s.id}
           s={s}
           disabled={disabled}
+          showNote={!!openNotes[s.id]}
+          onToggleNote={() => setOpenNotes((prev) => ({ ...prev, [s.id]: !prev[s.id] }))}
           onEdit={() => onEdit(s)}
           onDelete={() => onDelete(s.id)}
         />

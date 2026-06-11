@@ -408,7 +408,6 @@ type FormStateActe = {
   date: string;
   heure: string;
 
-  auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 
   // ENREGISTREMENT / LIEU
@@ -437,7 +436,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       date: toDateInput((acte as any).date),
       heure: (acte as any).heure ?? '',
 
-      auteur_fonction: (acte as any).auteur_fonction ?? '',
       auteur_institutionnel_ref: tai?.id ? { ids: [tai.id], labels: [tai.label ?? ''] } : null,
 
       bureau_id: (acte as any).bureau_id ?? null,
@@ -986,9 +984,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
             </p>
           </div>
 
-          {/* Global sticky-ish helper (top) */}
+          {/* Global sticky helper (top) */}
           {mode === 'edit' ? (
-            <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
+            <div className='sticky top-0 z-20 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
               <div className='flex items-center justify-between gap-3'>
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-slate-900'>État des modifications</div>
@@ -1055,7 +1053,18 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
 
                   <button
                     type='button'
-                    onClick={() => setLabelLocked((v) => !v)}
+                    onClick={() => {
+                      if (labelLocked) {
+                        if (
+                          !window.confirm(
+                            'Le libellé est normalement calculé automatiquement. Voulez-vous vraiment le déverrouiller pour le modifier manuellement ?',
+                          )
+                        ) {
+                          return;
+                        }
+                      }
+                      setLabelLocked((v) => !v);
+                    }}
                     className={[
                       'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
                       labelLocked
@@ -1252,22 +1261,6 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           </div>
         ) : null}
 
-        {/* Footer global (acte edit only) */}
-        {mode === 'edit' ? (
-          <div className='flex items-center justify-end gap-3'>
-            <button
-              type='button'
-              onClick={saveAll}
-              disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
-              className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-              title={
-                isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
-              }
-            >
-              {Object.values(savingBy).some(Boolean) ? 'Enregistrement…' : 'Tout enregistrer'}
-            </button>
-          </div>
-        ) : null}
       </form>
 
       {/* DRAWERS (acte only) */}
@@ -1926,14 +1919,24 @@ function ReferenceArchiveTabRegistre(
             .update({ label: nextLabel })
             .eq('id', registreId);
 
-          if (labErr) console.warn('update default label failed', labErr);
-
-          setLabelDraft(nextLabel ?? '');
-          setLabelDefault(nextLabel ?? '');
-          setDirty((prev) => ({ ...prev, label: false }));
-          setSavedAtBy((prev) => ({ ...prev, label: Date.now() }));
-        } catch (e) {
+          if (labErr) {
+            console.warn('update default label failed', labErr);
+            setSectionError(
+              'identification',
+              `Identification enregistrée, mais le recalcul du libellé par défaut a échoué : ${labErr.message}`,
+            );
+          } else {
+            setLabelDraft(nextLabel ?? '');
+            setLabelDefault(nextLabel ?? '');
+            setDirty((prev) => ({ ...prev, label: false }));
+            setSavedAtBy((prev) => ({ ...prev, label: Date.now() }));
+          }
+        } catch (e: any) {
           console.warn('fetch default label failed', e);
+          setSectionError(
+            'identification',
+            `Identification enregistrée, mais le recalcul du libellé par défaut a échoué : ${e?.message ?? 'erreur inconnue'}`,
+          );
         }
       }
 
@@ -2286,9 +2289,9 @@ function ReferenceArchiveTabRegistre(
             </div>
           </div>
 
-          {/* Global helper (top) */}
+          {/* Global sticky helper (top) */}
           {mode === 'edit' ? (
-            <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
+            <div className='sticky top-0 z-20 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
               <div className='flex items-center justify-between gap-3'>
                 <div className='min-w-0'>
                   <div className='text-sm font-semibold text-slate-900'>État des modifications</div>
@@ -2374,7 +2377,18 @@ function ReferenceArchiveTabRegistre(
                   {/* Lock/unlock */}
                   <button
                     type='button'
-                    onClick={() => setLabelLocked((v: boolean) => !v)}
+                    onClick={() => {
+                      if (labelLocked) {
+                        if (
+                          !window.confirm(
+                            'Le libellé est normalement calculé automatiquement. Voulez-vous vraiment le déverrouiller pour le modifier manuellement ?',
+                          )
+                        ) {
+                          return;
+                        }
+                      }
+                      setLabelLocked((v: boolean) => !v);
+                    }}
                     className={[
                       'inline-flex h-9 w-9 items-center justify-center rounded-lg border shadow-sm',
                       labelLocked ? 'border-slate-200 bg-white hover:bg-slate-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100',
@@ -2482,22 +2496,6 @@ function ReferenceArchiveTabRegistre(
           </div>
         ) : null}
 
-        {/* Footer registre edit */}
-        {mode === 'edit' ? (
-          <div className='flex items-center justify-end gap-3'>
-            <button
-              type='button'
-              onClick={saveAll}
-              disabled={!isAnyDirty || Object.values(savingBy).some(Boolean)}
-              className='rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60'
-              title={
-                isAnyDirty ? 'Enregistrer toutes les sections modifiées' : 'Aucune modification'
-              }
-            >
-              {Object.values(savingBy).some(Boolean) ? 'Enregistrement…' : 'Tout enregistrer'}
-            </button>
-          </div>
-        ) : null}
       </form>
     </div>
   );

@@ -132,9 +132,9 @@ export default function TranscriptionTab({ acteId, onGoToTab }: Props) {
   const [qualiteDraft, setQualiteDraft] = useState<QualiteDraft>(QUALITE_EMPTY);
 
   // ---- Status-based rules ----
+  // Source de vérité unique : t.isEditableStatus (EDITABLE_STATUSES dans transcriptionTab.logic.ts)
   const workingStatus = t.workingVersion?.status ?? null;
-  const lockableStatuses = new Set(['TRANSCRIBED', 'IN_REVIEW', 'VALIDATED']);
-  const isLockable = lockableStatuses.has(workingStatus ?? '');
+  const isLockable = !!workingStatus && !t.isEditableStatus;
   const isFinalized = isLockable;
 
   React.useEffect(() => {
@@ -881,54 +881,50 @@ function RightPanel({ t, rep, isFinalized, canMarkTranscribed, activeSource, qua
     return <RepéragesCard rep={rep} t={t} />;
   }
 
-  if (!isFinalized) {
-    return (
-      <>
-        <RepéragesCard rep={rep} t={t} />
-        <QualiteCard draft={qualiteDraft} setDraft={setQualiteDraft} onSave={saveQualite} disabled={!t.workingVersion} loading={t.loading} />
-        <VersionHistoryCard t={t} />
-      </>
-    );
-  }
-
   return (
     <>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-        <div className="text-sm font-semibold text-slate-900">Zones specifiques</div>
-        <PartSectionCard
-          title="Mentions marginales"
-          Icon={PenLine}
-          count={(t.marginalMentions?.length ?? 0) as number}
-          total={citationTotals.marginalMentionsTotal ?? 0}
-          onAdd={() => t.openAddMarginalMention?.()}
-          onManage={() => t.openManageMarginalMentions?.()}
-          disabled={t.loading || !t.workingVersion}
-          present={activeSource?.marginal_mentions_present}
-        />
-        <PartSectionCard
-          title="Signatures"
-          Icon={Signature}
-          count={(t.signatures?.length ?? 0) as number}
-          total={citationTotals.signaturesTotal ?? 0}
-          onAdd={() => t.openAddSignature?.()}
-          onManage={() => t.openManageSignatures?.()}
-          disabled={t.loading || !t.workingVersion}
-          present={activeSource?.signatures_present}
-        />
-        <PartSectionCard
-          title="Ratures marginales"
-          Icon={Scissors}
-          count={(t.marginalCrossouts?.length ?? 0) as number}
-          total={citationTotals.marginalCrossoutsTotal ?? 0}
-          onAdd={() => t.openAddMarginalCrossout?.()}
-          onManage={() => t.openManageMarginalCrossouts?.()}
-          disabled={t.loading || !t.workingVersion}
-          present={activeSource?.marginal_crossouts_present}
-        />
-      </div>
-      <AnnotationsCard t={t} />
-      <TagsCard t={t} />
-      <NotesCard t={t} />
+      {!isFinalized ? (
+        <RepéragesCard rep={rep} t={t} />
+      ) : (
+        <>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div className="text-sm font-semibold text-slate-900">Zones specifiques</div>
+            <PartSectionCard
+              title="Mentions marginales"
+              Icon={PenLine}
+              count={(t.marginalMentions?.length ?? 0) as number}
+              total={citationTotals.marginalMentionsTotal ?? 0}
+              onAdd={() => t.openAddMarginalMention?.()}
+              onManage={() => t.openManageMarginalMentions?.()}
+              disabled={t.loading || !t.workingVersion}
+              present={activeSource?.marginal_mentions_present}
+            />
+            <PartSectionCard
+              title="Signatures"
+              Icon={Signature}
+              count={(t.signatures?.length ?? 0) as number}
+              total={citationTotals.signaturesTotal ?? 0}
+              onAdd={() => t.openAddSignature?.()}
+              onManage={() => t.openManageSignatures?.()}
+              disabled={t.loading || !t.workingVersion}
+              present={activeSource?.signatures_present}
+            />
+            <PartSectionCard
+              title="Ratures marginales"
+              Icon={Scissors}
+              count={(t.marginalCrossouts?.length ?? 0) as number}
+              total={citationTotals.marginalCrossoutsTotal ?? 0}
+              onAdd={() => t.openAddMarginalCrossout?.()}
+              onManage={() => t.openManageMarginalCrossouts?.()}
+              disabled={t.loading || !t.workingVersion}
+              present={activeSource?.marginal_crossouts_present}
+            />
+          </div>
+          <AnnotationsCard t={t} />
+          <TagsCard t={t} />
+          <NotesCard t={t} />
+        </>
+      )}
       <QualiteCard draft={qualiteDraft} setDraft={setQualiteDraft} onSave={saveQualite} disabled={!t.workingVersion} loading={t.loading} />
       <VersionHistoryCard t={t} />
     </>
@@ -1446,6 +1442,10 @@ function PartSectionCard({
   present?: boolean | null;
 }) {
   if (present === false) return null;
+  const notQualified = present === null;
+  const addTitle = notQualified
+    ? "A renseigner d'abord dans Reference archive"
+    : 'Ajouter';
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
       <div className="flex items-center justify-between gap-3">
@@ -1453,7 +1453,7 @@ function PartSectionCard({
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white shrink-0">
             <Icon className="h-3.5 w-3.5 text-slate-700" />
           </span>
-          {present === null ? (
+          {notQualified ? (
             <div className="min-w-0">
               <div className="text-xs font-semibold text-slate-900">{title}</div>
               <div className="mt-0.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 w-fit flex items-center gap-1">
@@ -1474,10 +1474,10 @@ function PartSectionCard({
           )}
         </div>
         <div className="shrink-0 flex items-center gap-1.5">
-          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onManage} disabled={disabled} title="Voir / modifier">
+          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onManage} disabled={disabled || notQualified} title="Voir / modifier">
             <Eye className="h-3.5 w-3.5" />
           </Button>
-          <Button size="sm" className="h-7 px-2 text-xs" onClick={onAdd} disabled={disabled} title="Ajouter">
+          <Button size="sm" className="h-7 px-2 text-xs" onClick={onAdd} disabled={disabled || notQualified} title={addTitle}>
             <Plus className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -1538,32 +1538,12 @@ function VersionHistoryCard({ t }: { t: ReturnType<typeof useTranscriptionTab> }
     (a, b) => (b.version ?? 0) - (a.version ?? 0),
   );
 
-  const isViewingPast = !!(
-    t.currentId &&
-    t.workingVersion &&
-    t.currentId !== t.workingVersion.id
-  );
-
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="text-sm font-semibold text-slate-900">Historique des versions</div>
         <Badge variant="secondary">{sourceVersions.length}</Badge>
       </div>
-
-      {isViewingPast && (
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 flex items-center justify-between gap-2">
-          <span>Consultation d&apos;une version ancienne.</span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs shrink-0"
-            onClick={() => t.setCurrentId(t.workingVersion!.id)}
-          >
-            Version actuelle
-          </Button>
-        </div>
-      )}
 
       <div className="mt-3 space-y-2">
         {sorted.map((v) => {

@@ -15,16 +15,18 @@ function SmallPill({ children }: { children: React.ReactNode }) {
 function MentionItem({
   m,
   disabled,
+  showNote,
+  onToggleNote,
   onEdit,
   onDelete,
 }: {
   m: EcMarginalMentionRow;
   disabled: boolean;
+  showNote: boolean;
+  onToggleNote: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [showNote, setShowNote] = React.useState(false);
-
   const title = m.type_acte_label ?? "Mention marginale";
   const date = m.mention_date_raw || m.mention_date || null;
 
@@ -61,7 +63,7 @@ function MentionItem({
                 <div className="mt-2">
                   <button
                     type="button"
-                    onClick={() => setShowNote((v) => !v)}
+                    onClick={onToggleNote}
                     className="inline-flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-slate-900"
                   >
                     <Eye className="h-3.5 w-3.5" />
@@ -107,6 +109,8 @@ export function MarginalMentionList({
   onEdit: (row: EcMarginalMentionRow) => void;
   onDelete: (id: string) => void;
 }) {
+  const [openNotes, setOpenNotes] = React.useState<Record<string, boolean>>({});
+
   return (
     <EntityListCard<EcMarginalMentionRow>
       title="Mentions marginales"
@@ -126,6 +130,8 @@ export function MarginalMentionList({
           key={m.id}
           m={m}
           disabled={disabled}
+          showNote={!!openNotes[m.id]}
+          onToggleNote={() => setOpenNotes((prev) => ({ ...prev, [m.id]: !prev[m.id] }))}
           onEdit={() => onEdit(m)}
           onDelete={() => onDelete(m.id)}
         />

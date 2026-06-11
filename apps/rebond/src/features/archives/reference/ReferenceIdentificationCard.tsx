@@ -29,7 +29,6 @@ export type ActeReferenceIdentificationFormState = {
   redaction_bureau_id: string | null;
   redaction_bureau_label: string;
 
-  auteur_fonction: string;
   auteur_institutionnel_ref: { ids: string[]; labels: string[] } | null;
 };
 
