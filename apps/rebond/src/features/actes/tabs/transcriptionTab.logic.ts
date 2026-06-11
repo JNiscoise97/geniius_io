@@ -482,15 +482,20 @@ export function useTranscriptionTab({ acteId }: Props) {
   // Form state - Signatures
   // -----------------------------
   const [sigLabel, setSigLabel] = useState<string>('');
-  const [sigKind, setSigKind] = useState<string>('');
-  const [sigConfidence, setSigConfidence] = useState<string>('');
-  const [sigLegibility, setSigLegibility] = useState<string>('');
+
+  const [sigKindRef, setSigKindRef] = useState<string | null>(null);
+  const [sigKindLabel, setSigKindLabel] = useState<string | null>(null);
+
+  const [sigConfidenceRef, setSigConfidenceRef] = useState<string | null>(null);
+  const [sigConfidenceLabel, setSigConfidenceLabel] = useState<string | null>(null);
+
   const [sigHandwritingLegibilityRef, setSigHandwritingLegibilityRef] = useState<string | null>(
     null,
   );
-  const [sigHandwritingLegibilityLabel, setSigHandwritingLegibilityLabel] = useState<string | null>(
-    null,
-  );
+  const [sigHandwritingLegibilityLabel, setSigHandwritingLegibilityLabel] = useState<
+    string | null
+  >(null);
+
   const [sigPatternRaw, setSigPatternRaw] = useState<string>(''); // "A;B;C" stocké en text
   const [sigNote, setSigNote] = useState<string>('');
 
@@ -534,12 +539,13 @@ export function useTranscriptionTab({ acteId }: Props) {
 
   function resetSignatureDraft() {
     setEditingSignatureId(null);
+    setSigLabel('');
+    setSigKindRef(null);
+    setSigKindLabel(null);
+    setSigConfidenceRef(null);
+    setSigConfidenceLabel(null);
     setSigHandwritingLegibilityRef(null);
     setSigHandwritingLegibilityLabel(null);
-    setSigLabel('');
-    setSigKind('');
-    setSigConfidence('');
-    setSigLegibility('');
     setSigPatternRaw('');
     setSigNote('');
   }
@@ -635,7 +641,20 @@ export function useTranscriptionTab({ acteId }: Props) {
 
     const q = supabase
       .from('ec_transcription_signatures')
-      .select('*')
+      .select(
+        `
+  id, acte_id, acte_source_id, transcription_id, transcription_version_id,
+  label, pattern, note, created_at, updated_at,
+
+  signature_kind_ref,
+  confidence_ref,
+  handwriting_legibility_ref,
+
+  ref_signature_kind: signature_kind_ref ( id, label ),
+  ref_confiance: confidence_ref ( id, label ),
+  ref_handwriting_legibility: handwriting_legibility_ref ( id, label )
+`,
+      )
       .eq('acte_id', acteId)
       .eq('transcription_version_id', currentPartVersionId)
       .order('created_at', { ascending: true });
@@ -648,7 +667,15 @@ export function useTranscriptionTab({ acteId }: Props) {
       setSignatures([]);
       return;
     }
-    setSignatures((res.data ?? []) as any);
+
+    const rows: EcSignatureRow[] = (res.data ?? []).map((row: any) => ({
+      ...row,
+      signature_kind_label: row.ref_signature_kind?.label ?? null,
+      confidence_label: row.ref_confiance?.label ?? null,
+      handwriting_legibility_label: row.ref_handwriting_legibility?.label ?? null,
+    }));
+
+    setSignatures(rows);
   }
 
   async function loadMarginalCrossouts() {
@@ -747,9 +774,10 @@ export function useTranscriptionTab({ acteId }: Props) {
   function startEditSignature(row: EcSignatureRow) {
     setEditingSignatureId(row.id);
     setSigLabel(row.label ?? '');
-    setSigKind(row.signature_kind ?? '');
-    setSigConfidence(row.confidence ?? '');
-    setSigLegibility(row.legibility ?? '');
+    setSigKindRef(row.signature_kind_ref ?? null);
+    setSigKindLabel(row.signature_kind_label ?? null);
+    setSigConfidenceRef(row.confidence_ref ?? null);
+    setSigConfidenceLabel(row.confidence_label ?? null);
     setSigHandwritingLegibilityRef(row.handwriting_legibility_ref ?? null);
     setSigHandwritingLegibilityLabel(row.handwriting_legibility_label ?? null);
     setSigPatternRaw((row.pattern ?? '') as any);
@@ -857,9 +885,8 @@ export function useTranscriptionTab({ acteId }: Props) {
       transcription_version_id: currentPartVersionId,
 
       label: sigLabel.trim(),
-      signature_kind: (sigKind || null) as string | null,
-      confidence: (sigConfidence || null) as string | null,
-      legibility: (sigLegibility || null) as string | null,
+      signature_kind_ref: sigKindRef,
+      confidence_ref: sigConfidenceRef,
       handwriting_legibility_ref: sigHandwritingLegibilityRef,
       pattern: (sigPatternRaw || null) as string | null,
       note: (sigNote || null) as string | null,
@@ -1617,20 +1644,20 @@ export function useTranscriptionTab({ acteId }: Props) {
       await updateTranscription(tr.id, {
         visibility: meta.visibility,
         state: meta.state,
-        source_lecture_kind: meta.source_lecture_kind,
+        source_lecture_kind_ref: meta.source_lecture_kind_ref,
         scope: meta.scope,
         scope_details: meta.scope_details,
-        langue_vue: meta.langue_vue,
-        language_confidence: meta.language_confidence,
-        handwriting_style: meta.handwriting_style,
-        handwriting_legibility: meta.handwriting_legibility,
+        langue_ref: meta.langue_ref,
+        language_confidence_ref: meta.language_confidence_ref,
+        handwriting_style_ref: meta.handwriting_style_ref,
+        handwriting_legibility_ref: meta.handwriting_legibility_ref,
         goal: meta.goal,
         normalisation_policy,
         conventions_id: meta.conventions_id,
         conventions_override_text: meta.conventions_override_text,
-        completeness: meta.completeness,
+        completeness_ref: meta.completeness_ref,
         incompleteness_reason: meta.incompleteness_reason,
-        reserve_level: meta.reserve_level,
+        reserve_level_ref: meta.reserve_level_ref,
         reserve_reason: meta.reserve_reason,
 
         // 👇 nécessitent colonnes en DB (voir SQL plus bas)
@@ -2542,12 +2569,14 @@ export function useTranscriptionTab({ acteId }: Props) {
 
     sigLabel,
     setSigLabel,
-    sigKind,
-    setSigKind,
-    sigConfidence,
-    setSigConfidence,
-    sigLegibility,
-    setSigLegibility,
+    sigKindRef,
+    setSigKindRef,
+    sigKindLabel,
+    setSigKindLabel,
+    sigConfidenceRef,
+    setSigConfidenceRef,
+    sigConfidenceLabel,
+    setSigConfidenceLabel,
     sigHandwritingLegibilityRef,
     setSigHandwritingLegibilityRef,
     sigHandwritingLegibilityLabel,

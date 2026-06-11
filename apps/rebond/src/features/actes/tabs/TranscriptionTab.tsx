@@ -54,6 +54,7 @@ import {
   splitIntoReadableBlocks,
   detectActeReperages,
   tokenizeInline,
+  transcriptionKey,
 } from './transcriptionTab.service';
 
 import { useTranscriptionTab } from './transcriptionTab.logic';
@@ -142,8 +143,27 @@ export default function TranscriptionTab({ acteId, onGoToTab }: Props) {
   }, [isLockable]);
 
   React.useEffect(() => {
-    setQualiteDraft(QUALITE_EMPTY);
-  }, [t.activeSourceId]);
+    if (!t.activeSourceId) {
+      setQualiteDraft(QUALITE_EMPTY);
+      return;
+    }
+    const tr = t.transcriptionByKey[transcriptionKey(t.activeSourceId, 'main_body')];
+    if (!tr) {
+      setQualiteDraft(QUALITE_EMPTY);
+      return;
+    }
+    setQualiteDraft({
+      source_lecture_kind_ref: tr.source_lecture_kind_ref ?? null,
+      langue_ref: tr.langue_ref ?? null,
+      language_confidence_ref: tr.language_confidence_ref ?? null,
+      handwriting_style_ref: tr.handwriting_style_ref ?? null,
+      handwriting_legibility_ref: tr.handwriting_legibility_ref ?? null,
+      completeness_ref: tr.completeness_ref ?? null,
+      incompleteness_reason: tr.incompleteness_reason ?? null,
+      reserve_level_ref: tr.reserve_level_ref ?? null,
+      reserve_reason: tr.reserve_reason ?? null,
+    });
+  }, [t.activeSourceId, t.transcriptionByKey]);
 
   const isViewingPast = !!(
     t.currentId &&
@@ -947,7 +967,7 @@ function TranscriptionSheet({ t }: { t: ReturnType<typeof useTranscriptionTab> }
 
   return (
     <Sheet open={t.sheetOpen} onOpenChange={t.setSheetOpen}>
-      <SheetContent side="right" className="!w-[480px] !max-w-none p-0 flex flex-col max-h-screen">
+      <SheetContent side="right" className="!w-[640px] !max-w-none p-0 flex flex-col max-h-screen">
         <SheetHeader className="p-4 border-b shrink-0">
           <SheetTitle>{sheetTitle}</SheetTitle>
           {sheetDesc && <SheetDescription>{sheetDesc}</SheetDescription>}
@@ -1661,7 +1681,7 @@ function QualiteCard({
       <div>
         <div className="text-xs font-medium text-slate-700 mb-1">Support de lecture</div>
         <RefSinglePickerSmart
-          table="ref_source_lecture_kind"
+          table="ref_support_lecture"
           value={draft.source_lecture_kind_ref ?? null}
           onChange={(id) => set('source_lecture_kind_ref', id ?? null)}
           mode="edit"
@@ -1683,7 +1703,7 @@ function QualiteCard({
         <div>
           <div className="text-xs font-medium text-slate-700 mb-1">Confiance</div>
           <RefSinglePickerSmart
-            table="ref_confidence_level"
+            table="ref_confiance"
             value={draft.language_confidence_ref ?? null}
             onChange={(id) => set('language_confidence_ref', id ?? null)}
             mode="edit"
@@ -1718,7 +1738,7 @@ function QualiteCard({
       <div>
         <div className="text-xs font-medium text-slate-700 mb-1">Completude</div>
         <RefSinglePickerSmart
-          table="ref_transcription_completeness"
+          table="ref_completude_transcription"
           value={draft.completeness_ref ?? null}
           onChange={(id) => set('completeness_ref', id ?? null)}
           mode="edit"
@@ -1741,7 +1761,7 @@ function QualiteCard({
       <div>
         <div className="text-xs font-medium text-slate-700 mb-1">Reserves</div>
         <RefSinglePickerSmart
-          table="ref_reserve_level"
+          table="ref_niveau_reserve"
           value={draft.reserve_level_ref ?? null}
           onChange={(id) => set('reserve_level_ref', id ?? null)}
           mode="edit"

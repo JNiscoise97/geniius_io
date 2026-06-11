@@ -70,10 +70,10 @@ export const REF_TABLES: {
   { value: 'ref_ec_registre_segment_kinds', label: 'Types de segments de registre (état-civil)', columns: { position: true } },
   { value: 'ref_type_unite', label: "Types d'unité documentaire" },
   // Qualité des transcriptions
-  { value: 'ref_source_lecture_kind',        label: 'Support de lecture', columns: { position: true } },
-  { value: 'ref_confidence_level',           label: 'Niveau de confiance', columns: { position: true } },
-  { value: 'ref_transcription_completeness', label: 'Complétude de la transcription', columns: { position: true } },
-  { value: 'ref_reserve_level',              label: 'Niveau de réserve', columns: { position: true } },
+  { value: 'ref_support_lecture',            label: 'Support de lecture', columns: { position: true, description: false, note: false } },
+  { value: 'ref_confiance',                  label: 'Niveau de confiance', columns: { code: true, description: false, note: false } },
+  { value: 'ref_completude_transcription',   label: 'Complétude de la transcription', columns: { position: true, description: false, note: false } },
+  { value: 'ref_niveau_reserve',             label: 'Niveau de réserve', columns: { position: true, description: false, note: false } },
 ];
 
 export type RefRow = {

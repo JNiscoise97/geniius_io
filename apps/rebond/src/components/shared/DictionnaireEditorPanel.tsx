@@ -25,6 +25,7 @@ import {
   fetchHandwritingLegibility,
   fetchHandwritingStyle,
   fetchLegibility,
+  fetchSignatureKind,
 } from '@/services/dictionnaires.rpc';
 import { fetchAuteurInstitutionnel } from '../../services/dictionnaires.rpc';
 
@@ -47,7 +48,8 @@ export type DictionnaireKind =
   | "confidence_ref"
   | "legibility_ref"
   | "handwriting_style_ref"
-  | "handwriting_legibility_ref";
+  | "handwriting_legibility_ref"
+  | "signature_kind_ref";
 
 export type DictionnaireEditorPanelProps = {
   title: string; // ex: "Modifier les professions"
@@ -93,6 +95,8 @@ export function DictionnaireEditorPanel({
         loader = fetchHandwritingStyle;
       } else if (kind === 'handwriting_legibility_ref') {
         loader = fetchHandwritingLegibility;
+      } else if (kind === 'signature_kind_ref') {
+        loader = fetchSignatureKind;
       } else if (kind === 'qualite_ref') {
         loader = fetchQualite;
       } else if (kind === 'situation_matrimoniale_ref') {

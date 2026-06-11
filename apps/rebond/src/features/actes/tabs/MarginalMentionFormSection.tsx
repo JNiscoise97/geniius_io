@@ -235,9 +235,6 @@ export function MarginalMentionFormSection({ t }: { t: MarginalMentionFormSlice 
           onEdit={handwritingLegibility.onEdit}
           onDelete={handwritingLegibility.onDelete}
         />
-        <Help>
-          Référentiel : <span className="font-mono">ref_handwriting_legibility</span>
-        </Help>
       </div>
 
       {/* date raw */}

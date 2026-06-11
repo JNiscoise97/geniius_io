@@ -251,8 +251,16 @@ export type EcSignatureRow = {
   signature_kind: string | null;
   confidence: string | null;
   legibility: string | null;
+
+  signature_kind_ref?: string | null;
+  signature_kind_label?: string | null;
+
+  confidence_ref?: string | null;
+  confidence_label?: string | null;
+
   handwriting_legibility_ref?: string | null;
   handwriting_legibility_label?: string | null;
+
   pattern: string | null;
   note: string | null;
 
@@ -329,6 +337,20 @@ export type TranscriptionRow = {
 
   handwriting_style: string | null; // (enum côté DB, on garde string côté TS)
   handwriting_legibility: string | null; // (enum côté DB, on garde string côté TS)
+
+  completeness: 'complete' | 'partial' | 'fragment' | null;
+  incompleteness_reason: string | null;
+  reserve_level: 'none' | 'minor' | 'major' | null;
+  reserve_reason: string | null;
+
+  // --- "Qualité de la transcription" (_ref) ---
+  source_lecture_kind_ref?: string | null;
+  langue_ref?: string | null;
+  language_confidence_ref?: string | null;
+  handwriting_style_ref?: string | null;
+  handwriting_legibility_ref?: string | null;
+  completeness_ref?: string | null;
+  reserve_level_ref?: string | null;
 
   conventions_override_text: string | null;
   gabarit_id: string | null;

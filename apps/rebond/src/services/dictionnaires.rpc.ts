@@ -65,6 +65,14 @@ export async function fetchHandwritingLegibility(): Promise<{ data: Dictionnaire
   return { data: (data as DictionnaireItem[]) ?? [], error };
 }
 
+export async function fetchSignatureKind(): Promise<{ data: DictionnaireItem[]; error: any }> {
+  const { data, error } = await supabase
+    .from("ref_signature_kind")
+    .select("id, code, label")
+    .order("position", { ascending: true });
+  return { data: (data as DictionnaireItem[]) ?? [], error };
+}
+
 export async function fetchTypeActe(): Promise<{ data: DictionnaireItem[]; error: any }> {
   const { data, error } = await supabase
     .from("ref_ec_type_acte")

@@ -1,3 +1,7 @@
+-- Fix: search_documents échouait systématiquement (erreur 42703 "column ac.statut does not exist")
+-- car la table etat_civil_actes a une colonne "status" (pas "statut", contrairement à la table actes
+-- des actes notariés). La recherche globale "Documents" ne renvoyait donc jamais de résultat.
+
 create or replace function public.search_documents(query text)
 returns table (
   acte_id uuid,
