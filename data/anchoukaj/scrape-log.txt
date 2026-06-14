@@ -1,0 +1,3398 @@
+
+> geniius_io@ scrape:anchoukaj-details C:\Users\nisco\Documents\dev\geniius_io
+> tsx scripts/anchoukaj-details.ts
+
+Total combinations : 117998
+Already fetched    : 5
+Remaining          : 117993
+Progress: 100/117993
+Progress: 200/117993
+Progress: 300/117993
+Progress: 400/117993
+Progress: 500/117993
+Progress: 600/117993
+Progress: 700/117993
+Progress: 800/117993
+Progress: 900/117993
+Progress: 1000/117993
+Progress: 1100/117993
+Progress: 1200/117993
+Progress: 1300/117993
+Progress: 1400/117993
+Progress: 1500/117993
+Progress: 1600/117993
+Progress: 1700/117993
+Progress: 1800/117993
+Progress: 1900/117993
+Progress: 2000/117993
+Progress: 2100/117993
+Progress: 2200/117993
+Progress: 2300/117993
+Progress: 2400/117993
+Progress: 2500/117993
+Progress: 2600/117993
+Progress: 2700/117993
+Progress: 2800/117993
+Progress: 2900/117993
+Progress: 3000/117993
+Progress: 3100/117993
+Progress: 3200/117993
+Progress: 3300/117993
+Progress: 3400/117993
+Progress: 3500/117993
+Progress: 3600/117993
+Progress: 3700/117993
+Progress: 3800/117993
+Progress: 3900/117993
+Progress: 4000/117993
+Progress: 4100/117993
+Progress: 4200/117993
+Progress: 4300/117993
+Progress: 4400/117993
+Progress: 4500/117993
+Progress: 4600/117993
+Progress: 4700/117993
+Progress: 4800/117993
+Progress: 4900/117993
+Progress: 5000/117993
+Progress: 5100/117993
+Progress: 5200/117993
+Progress: 5300/117993
+Progress: 5400/117993
+Progress: 5500/117993
+Progress: 5600/117993
+Progress: 5700/117993
+Progress: 5800/117993
+Progress: 5900/117993
+Progress: 6000/117993
+Progress: 6100/117993
+Progress: 6200/117993
+Progress: 6300/117993
+Progress: 6400/117993
+Progress: 6500/117993
+Progress: 6600/117993
+Progress: 6700/117993
+Progress: 6800/117993
+Progress: 6900/117993
+Progress: 7000/117993
+Progress: 7100/117993
+Progress: 7200/117993
+Progress: 7300/117993
+Progress: 7400/117993
+Progress: 7500/117993
+Progress: 7600/117993
+Progress: 7700/117993
+Progress: 7800/117993
+Progress: 7900/117993
+Progress: 8000/117993
+Progress: 8100/117993
+Progress: 8200/117993
+Progress: 8300/117993
+Progress: 8400/117993
+Progress: 8500/117993
+Progress: 8600/117993
+Progress: 8700/117993
+Progress: 8800/117993
+Progress: 8900/117993
+Progress: 9000/117993
+Progress: 9100/117993
+Progress: 9200/117993
+Progress: 9300/117993
+Progress: 9400/117993
+Progress: 9500/117993
+Progress: 9600/117993
+Progress: 9700/117993
+Progress: 9800/117993
+Progress: 9900/117993
+Progress: 10000/117993
+Progress: 10100/117993
+Progress: 10200/117993
+Progress: 10300/117993
+Progress: 10400/117993
+Progress: 10500/117993
+Progress: 10600/117993
+Progress: 10700/117993
+Progress: 10800/117993
+Progress: 10900/117993
+Progress: 11000/117993
+Progress: 11100/117993
+Progress: 11200/117993
+Progress: 11300/117993
+Progress: 11400/117993
+Progress: 11500/117993
+Progress: 11600/117993
+Progress: 11700/117993
+Progress: 11800/117993
+Progress: 11900/117993
+Progress: 12000/117993
+Progress: 12100/117993
+Progress: 12200/117993
+Progress: 12300/117993
+Progress: 12400/117993
+Progress: 12500/117993
+Progress: 12600/117993
+Progress: 12700/117993
+Progress: 12800/117993
+Progress: 12900/117993
+Progress: 13000/117993
+Progress: 13100/117993
+Progress: 13200/117993
+Progress: 13300/117993
+Progress: 13400/117993
+Progress: 13500/117993
+Progress: 13600/117993
+Progress: 13700/117993
+Progress: 13800/117993
+Progress: 13900/117993
+Progress: 14000/117993
+Progress: 14100/117993
+Progress: 14200/117993
+Progress: 14300/117993
+Progress: 14400/117993
+Progress: 14500/117993
+Progress: 14600/117993
+Progress: 14700/117993
+Progress: 14800/117993
+Progress: 14900/117993
+Progress: 15000/117993
+Progress: 15100/117993
+Progress: 15200/117993
+Progress: 15300/117993
+Progress: 15400/117993
+Progress: 15500/117993
+Progress: 15600/117993
+Progress: 15700/117993
+Progress: 15800/117993
+Progress: 15900/117993
+Progress: 16000/117993
+Progress: 16100/117993
+Progress: 16200/117993
+Progress: 16300/117993
+Progress: 16400/117993
+Progress: 16500/117993
+Progress: 16600/117993
+Progress: 16700/117993
+Progress: 16800/117993
+Progress: 16900/117993
+Progress: 17000/117993
+Progress: 17100/117993
+Progress: 17200/117993
+Progress: 17300/117993
+Progress: 17400/117993
+Progress: 17500/117993
+Progress: 17600/117993
+Progress: 17700/117993
+Progress: 17800/117993
+Progress: 17900/117993
+Progress: 18000/117993
+Progress: 18100/117993
+Progress: 18200/117993
+Progress: 18300/117993
+Progress: 18400/117993
+Progress: 18500/117993
+Progress: 18600/117993
+Progress: 18700/117993
+Progress: 18800/117993
+Progress: 18900/117993
+Progress: 19000/117993
+Progress: 19100/117993
+Progress: 19200/117993
+Progress: 19300/117993
+Progress: 19400/117993
+Progress: 19500/117993
+Progress: 19600/117993
+Progress: 19700/117993
+Progress: 19800/117993
+Progress: 19900/117993
+Progress: 20000/117993
+Progress: 20100/117993
+Progress: 20200/117993
+Progress: 20300/117993
+Progress: 20400/117993
+Progress: 20500/117993
+Progress: 20600/117993
+Progress: 20700/117993
+Progress: 20800/117993
+Progress: 20900/117993
+Progress: 21000/117993
+Progress: 21100/117993
+Progress: 21200/117993
+Progress: 21300/117993
+Progress: 21400/117993
+Progress: 21500/117993
+Progress: 21600/117993
+Progress: 21700/117993
+Progress: 21800/117993
+Progress: 21900/117993
+Progress: 22000/117993
+Progress: 22100/117993
+Progress: 22200/117993
+Progress: 22300/117993
+Progress: 22400/117993
+Progress: 22500/117993
+Progress: 22600/117993
+Progress: 22700/117993
+Progress: 22800/117993
+Progress: 22900/117993
+Progress: 23000/117993
+Progress: 23100/117993
+Progress: 23200/117993
+Progress: 23300/117993
+Progress: 23400/117993
+Progress: 23500/117993
+Progress: 23600/117993
+Progress: 23700/117993
+Progress: 23800/117993
+Progress: 23900/117993
+Progress: 24000/117993
+Progress: 24100/117993
+Progress: 24200/117993
+Progress: 24300/117993
+Progress: 24400/117993
+Progress: 24500/117993
+Progress: 24600/117993
+Progress: 24700/117993
+Progress: 24800/117993
+Progress: 24900/117993
+Progress: 25000/117993
+Progress: 25100/117993
+Progress: 25200/117993
+Progress: 25300/117993
+Progress: 25400/117993
+Progress: 25500/117993
+Progress: 25600/117993
+Progress: 25700/117993
+Progress: 25800/117993
+Progress: 25900/117993
+Progress: 26000/117993
+Progress: 26100/117993
+Progress: 26200/117993
+Progress: 26300/117993
+Progress: 26400/117993
+Progress: 26500/117993
+Progress: 26600/117993
+Progress: 26700/117993
+Progress: 26800/117993
+Progress: 26900/117993
+Progress: 27000/117993
+Progress: 27100/117993
+Progress: 27200/117993
+Progress: 27300/117993
+Progress: 27400/117993
+Progress: 27500/117993
+Progress: 27600/117993
+Progress: 27700/117993
+Progress: 27800/117993
+Progress: 27900/117993
+Progress: 28000/117993
+Progress: 28100/117993
+Progress: 28200/117993
+Progress: 28300/117993
+Progress: 28400/117993
+Progress: 28500/117993
+Progress: 28600/117993
+Progress: 28700/117993
+Progress: 28800/117993
+Progress: 28900/117993
+Progress: 29000/117993
+Progress: 29100/117993
+Progress: 29200/117993
+Progress: 29300/117993
+Progress: 29400/117993
+Progress: 29500/117993
+Progress: 29600/117993
+Progress: 29700/117993
+Progress: 29800/117993
+Progress: 29900/117993
+Progress: 30000/117993
+Progress: 30100/117993
+Progress: 30200/117993
+Progress: 30300/117993
+Progress: 30400/117993
+Progress: 30500/117993
+Progress: 30600/117993
+Progress: 30700/117993
+Progress: 30800/117993
+Progress: 30900/117993
+Progress: 31000/117993
+Progress: 31100/117993
+Progress: 31200/117993
+Progress: 31300/117993
+Progress: 31400/117993
+Progress: 31500/117993
+Progress: 31600/117993
+Progress: 31700/117993
+Progress: 31800/117993
+Progress: 31900/117993
+Progress: 32000/117993
+Progress: 32100/117993
+Progress: 32200/117993
+Progress: 32300/117993
+Progress: 32400/117993
+Progress: 32500/117993
+Progress: 32600/117993
+Progress: 32700/117993
+Progress: 32800/117993
+Progress: 32900/117993
+Progress: 33000/117993
+Progress: 33100/117993
+Progress: 33200/117993
+Progress: 33300/117993
+Progress: 33400/117993
+Progress: 33500/117993
+Progress: 33600/117993
+Progress: 33700/117993
+Progress: 33800/117993
+Progress: 33900/117993
+Progress: 34000/117993
+Progress: 34100/117993
+Progress: 34200/117993
+Progress: 34300/117993
+Progress: 34400/117993
+Progress: 34500/117993
+Progress: 34600/117993
+Progress: 34700/117993
+Progress: 34800/117993
+Progress: 34900/117993
+Progress: 35000/117993
+Progress: 35100/117993
+Progress: 35200/117993
+Progress: 35300/117993
+Progress: 35400/117993
+Progress: 35500/117993
+Progress: 35600/117993
+Progress: 35700/117993
+Progress: 35800/117993
+Progress: 35900/117993
+Progress: 36000/117993
+Progress: 36100/117993
+Progress: 36200/117993
+Progress: 36300/117993
+Progress: 36400/117993
+Progress: 36500/117993
+Progress: 36600/117993
+Progress: 36700/117993
+Progress: 36800/117993
+Progress: 36900/117993
+Progress: 37000/117993
+Progress: 37100/117993
+Progress: 37200/117993
+Progress: 37300/117993
+Progress: 37400/117993
+Progress: 37500/117993
+Progress: 37600/117993
+Progress: 37700/117993
+Progress: 37800/117993
+Progress: 37900/117993
+Progress: 38000/117993
+Progress: 38100/117993
+Progress: 38200/117993
+Progress: 38300/117993
+Progress: 38400/117993
+Progress: 38500/117993
+Progress: 38600/117993
+Progress: 38700/117993
+Progress: 38800/117993
+Progress: 38900/117993
+Progress: 39000/117993
+Progress: 39100/117993
+Progress: 39200/117993
+Progress: 39300/117993
+Progress: 39400/117993
+Progress: 39500/117993
+Progress: 39600/117993
+Progress: 39700/117993
+Progress: 39800/117993
+Progress: 39900/117993
+Progress: 40000/117993
+Progress: 40100/117993
+Progress: 40200/117993
+Progress: 40300/117993
+Progress: 40400/117993
+Progress: 40500/117993
+Progress: 40600/117993
+Progress: 40700/117993
+Progress: 40800/117993
+Progress: 40900/117993
+Progress: 41000/117993
+Progress: 41100/117993
+Progress: 41200/117993
+Progress: 41300/117993
+Progress: 41400/117993
+Progress: 41500/117993
+Progress: 41600/117993
+Progress: 41700/117993
+Progress: 41800/117993
+Progress: 41900/117993
+Progress: 42000/117993
+Progress: 42100/117993
+Progress: 42200/117993
+Progress: 42300/117993
+Progress: 42400/117993
+Progress: 42500/117993
+Progress: 42600/117993
+Progress: 42700/117993
+Progress: 42800/117993
+Progress: 42900/117993
+Progress: 43000/117993
+Progress: 43100/117993
+Progress: 43200/117993
+Progress: 43300/117993
+Progress: 43400/117993
+Progress: 43500/117993
+Progress: 43600/117993
+Progress: 43700/117993
+Progress: 43800/117993
+Progress: 43900/117993
+Progress: 44000/117993
+Progress: 44100/117993
+Progress: 44200/117993
+Progress: 44300/117993
+Progress: 44400/117993
+Progress: 44500/117993
+Progress: 44600/117993
+Progress: 44700/117993
+Progress: 44800/117993
+Progress: 44900/117993
+Progress: 45000/117993
+Progress: 45100/117993
+Progress: 45200/117993
+Progress: 45300/117993
+Progress: 45400/117993
+Progress: 45500/117993
+Progress: 45600/117993
+Progress: 45700/117993
+Progress: 45800/117993
+Progress: 45900/117993
+Progress: 46000/117993
+Progress: 46100/117993
+Progress: 46200/117993
+Progress: 46300/117993
+Progress: 46400/117993
+Progress: 46500/117993
+Progress: 46600/117993
+Progress: 46700/117993
+Progress: 46800/117993
+Progress: 46900/117993
+Progress: 47000/117993
+Progress: 47100/117993
+Progress: 47200/117993
+Progress: 47300/117993
+Progress: 47400/117993
+Progress: 47500/117993
+Progress: 47600/117993
+Progress: 47700/117993
+Progress: 47800/117993
+Progress: 47900/117993
+Progress: 48000/117993
+Progress: 48100/117993
+Progress: 48200/117993
+Progress: 48300/117993
+Progress: 48400/117993
+Progress: 48500/117993
+Progress: 48600/117993
+Progress: 48700/117993
+Progress: 48800/117993
+Progress: 48900/117993
+Progress: 49000/117993
+Progress: 49100/117993
+Progress: 49200/117993
+Progress: 49300/117993
+Progress: 49400/117993
+Progress: 49500/117993
+Progress: 49600/117993
+Progress: 49700/117993
+Progress: 49800/117993
+Progress: 49900/117993
+Progress: 50000/117993
+Progress: 50100/117993
+Progress: 50200/117993
+Progress: 50300/117993
+Progress: 50400/117993
+Progress: 50500/117993
+Progress: 50600/117993
+Progress: 50700/117993
+Progress: 50800/117993
+Progress: 50900/117993
+Progress: 51000/117993
+Progress: 51100/117993
+Progress: 51200/117993
+Progress: 51300/117993
+Progress: 51400/117993
+Progress: 51500/117993
+Progress: 51600/117993
+Progress: 51700/117993
+Progress: 51800/117993
+Progress: 51900/117993
+Progress: 52000/117993
+Progress: 52100/117993
+Progress: 52200/117993
+Progress: 52300/117993
+Progress: 52400/117993
+Progress: 52500/117993
+Progress: 52600/117993
+Progress: 52700/117993
+Progress: 52800/117993
+Progress: 52900/117993
+Progress: 53000/117993
+Progress: 53100/117993
+Progress: 53200/117993
+Progress: 53300/117993
+Progress: 53400/117993
+Progress: 53500/117993
+Progress: 53600/117993
+Progress: 53700/117993
+Progress: 53800/117993
+Progress: 53900/117993
+Progress: 54000/117993
+Progress: 54100/117993
+Progress: 54200/117993
+Progress: 54300/117993
+Progress: 54400/117993
+Progress: 54500/117993
+Progress: 54600/117993
+Progress: 54700/117993
+Progress: 54800/117993
+Progress: 54900/117993
+Progress: 55000/117993
+Progress: 55100/117993
+Progress: 55200/117993
+Progress: 55300/117993
+Progress: 55400/117993
+Progress: 55500/117993
+Progress: 55600/117993
+Progress: 55700/117993
+Progress: 55800/117993
+Progress: 55900/117993
+Progress: 56000/117993
+Progress: 56100/117993
+Progress: 56200/117993
+Progress: 56300/117993
+Progress: 56400/117993
+Progress: 56500/117993
+Progress: 56600/117993
+Progress: 56700/117993
+Progress: 56800/117993
+Progress: 56900/117993
+Progress: 57000/117993
+Progress: 57100/117993
+Progress: 57200/117993
+Progress: 57300/117993
+Progress: 57400/117993
+Progress: 57500/117993
+Progress: 57600/117993
+Progress: 57700/117993
+Progress: 57800/117993
+Progress: 57900/117993
+Progress: 58000/117993
+Progress: 58100/117993
+Progress: 58200/117993
+Progress: 58300/117993
+Progress: 58400/117993
+Progress: 58500/117993
+Progress: 58600/117993
+Progress: 58700/117993
+Progress: 58800/117993
+Progress: 58900/117993
+Progress: 59000/117993
+Progress: 59100/117993
+Progress: 59200/117993
+Progress: 59300/117993
+Progress: 59400/117993
+Progress: 59500/117993
+Progress: 59600/117993
+Progress: 59700/117993
+Progress: 59800/117993
+Progress: 59900/117993
+Progress: 60000/117993
+Progress: 60100/117993
+Progress: 60200/117993
+Progress: 60300/117993
+Progress: 60400/117993
+Progress: 60500/117993
+Progress: 60600/117993
+Progress: 60700/117993
+Progress: 60800/117993
+Progress: 60900/117993
+Progress: 61000/117993
+Progress: 61100/117993
+Progress: 61200/117993
+Progress: 61300/117993
+Progress: 61400/117993
+Progress: 61500/117993
+Progress: 61600/117993
+Progress: 61700/117993
+Progress: 61800/117993
+Progress: 61900/117993
+Progress: 62000/117993
+Progress: 62100/117993
+Progress: 62200/117993
+Progress: 62300/117993
+Progress: 62400/117993
+Progress: 62500/117993
+Progress: 62600/117993
+Progress: 62700/117993
+Progress: 62800/117993
+Progress: 62900/117993
+Progress: 63000/117993
+Progress: 63100/117993
+Progress: 63200/117993
+Progress: 63300/117993
+Progress: 63400/117993
+Progress: 63500/117993
+Progress: 63600/117993
+Progress: 63700/117993
+Progress: 63800/117993
+Progress: 63900/117993
+Progress: 64000/117993
+Progress: 64100/117993
+Progress: 64200/117993
+Progress: 64300/117993
+Progress: 64400/117993
+Progress: 64500/117993
+Progress: 64600/117993
+Progress: 64700/117993
+Progress: 64800/117993
+Progress: 64900/117993
+Progress: 65000/117993
+Progress: 65100/117993
+Progress: 65200/117993
+Failed for idre=1458&id=194342: fetch failed
+Failed for idre=1458&id=194343: fetch failed
+Failed for idre=1458&id=171984: fetch failed
+Failed for idre=1458&id=176500: fetch failed
+Failed for idre=1458&id=176499: fetch failed
+Failed for idre=1458&id=176498: fetch failed
+Progress: 65300/117993
+Progress: 65400/117993
+Progress: 65500/117993
+Progress: 65600/117993
+Progress: 65700/117993
+Progress: 65800/117993
+Progress: 65900/117993
+Progress: 66000/117993
+Progress: 66100/117993
+Progress: 66200/117993
+Progress: 66300/117993
+Progress: 66400/117993
+Progress: 66500/117993
+Progress: 66600/117993
+Progress: 66700/117993
+Progress: 66800/117993
+Progress: 66900/117993
+Progress: 67000/117993
+Progress: 67100/117993
+Progress: 67200/117993
+Progress: 67300/117993
+Progress: 67400/117993
+Progress: 67500/117993
+Progress: 67600/117993
+Progress: 67700/117993
+Progress: 67800/117993
+Progress: 67900/117993
+Progress: 68000/117993
+Progress: 68100/117993
+Progress: 68200/117993
+Progress: 68300/117993
+Progress: 68400/117993
+Progress: 68500/117993
+Progress: 68600/117993
+Progress: 68700/117993
+Progress: 68800/117993
+Progress: 68900/117993
+Progress: 69000/117993
+Progress: 69100/117993
+Progress: 69200/117993
+Progress: 69300/117993
+Progress: 69400/117993
+Progress: 69500/117993
+Progress: 69600/117993
+Progress: 69700/117993
+Progress: 69800/117993
+Progress: 69900/117993
+Progress: 70000/117993
+Progress: 70100/117993
+Progress: 70200/117993
+Progress: 70300/117993
+Progress: 70400/117993
+Progress: 70500/117993
+Progress: 70600/117993
+Progress: 70700/117993
+Progress: 70800/117993
+Progress: 70900/117993
+Progress: 71000/117993
+Progress: 71100/117993
+Progress: 71200/117993
+Progress: 71300/117993
+Progress: 71400/117993
+Progress: 71500/117993
+Progress: 71600/117993
+Progress: 71700/117993
+Progress: 71800/117993
+Progress: 71900/117993
+Progress: 72000/117993
+Progress: 72100/117993
+Progress: 72200/117993
+Progress: 72300/117993
+Progress: 72400/117993
+Progress: 72500/117993
+Progress: 72600/117993
+Progress: 72700/117993
+Progress: 72800/117993
+Progress: 72900/117993
+Progress: 73000/117993
+Progress: 73100/117993
+Progress: 73200/117993
+Progress: 73300/117993
+Progress: 73400/117993
+Progress: 73500/117993
+Progress: 73600/117993
+Progress: 73700/117993
+Progress: 73800/117993
+Progress: 73900/117993
+Progress: 74000/117993
+Progress: 74100/117993
+Progress: 74200/117993
+Progress: 74300/117993
+Progress: 74400/117993
+Progress: 74500/117993
+Progress: 74600/117993
+Progress: 74700/117993
+Progress: 74800/117993
+Progress: 74900/117993
+Progress: 75000/117993
+Progress: 75100/117993
+Progress: 75200/117993
+Progress: 75300/117993
+Progress: 75400/117993
+Progress: 75500/117993
+Progress: 75600/117993
+Progress: 75700/117993
+Progress: 75800/117993
+Progress: 75900/117993
+Progress: 76000/117993
+Progress: 76100/117993
+Progress: 76200/117993
+Progress: 76300/117993
+Progress: 76400/117993
+Progress: 76500/117993
+Progress: 76600/117993
+Progress: 76700/117993
+Progress: 76800/117993
+Progress: 76900/117993
+Progress: 77000/117993
+Progress: 77100/117993
+Progress: 77200/117993
+Progress: 77300/117993
+Progress: 77400/117993
+Progress: 77500/117993
+Progress: 77600/117993
+Progress: 77700/117993
+Progress: 77800/117993
+Progress: 77900/117993
+Progress: 78000/117993
+Progress: 78100/117993
+Progress: 78200/117993
+Progress: 78300/117993
+Progress: 78400/117993
+Progress: 78500/117993
+Progress: 78600/117993
+Progress: 78700/117993
+Progress: 78800/117993
+Progress: 78900/117993
+Progress: 79000/117993
+Progress: 79100/117993
+Progress: 79200/117993
+Progress: 79300/117993
+Progress: 79400/117993
+Progress: 79500/117993
+Progress: 79600/117993
+Progress: 79700/117993
+Progress: 79800/117993
+Progress: 79900/117993
+Progress: 80000/117993
+Progress: 80100/117993
+Progress: 80200/117993
+Progress: 80300/117993
+Progress: 80400/117993
+Progress: 80500/117993
+Progress: 80600/117993
+Progress: 80700/117993
+Progress: 80800/117993
+Progress: 80900/117993
+Progress: 81000/117993
+Progress: 81100/117993
+Progress: 81200/117993
+Progress: 81300/117993
+Progress: 81400/117993
+Progress: 81500/117993
+Progress: 81600/117993
+Progress: 81700/117993
+Progress: 81800/117993
+Progress: 81900/117993
+Progress: 82000/117993
+Progress: 82100/117993
+Progress: 82200/117993
+Progress: 82300/117993
+Progress: 82400/117993
+Progress: 82500/117993
+Progress: 82600/117993
+Progress: 82700/117993
+Progress: 82800/117993
+Progress: 82900/117993
+Progress: 83000/117993
+Progress: 83100/117993
+Progress: 83200/117993
+Progress: 83300/117993
+Progress: 83400/117993
+Progress: 83500/117993
+Progress: 83600/117993
+Progress: 83700/117993
+Progress: 83800/117993
+Progress: 83900/117993
+Progress: 84000/117993
+Progress: 84100/117993
+Progress: 84200/117993
+Progress: 84300/117993
+Progress: 84400/117993
+Progress: 84500/117993
+Progress: 84600/117993
+Progress: 84700/117993
+Progress: 84800/117993
+Progress: 84900/117993
+Progress: 85000/117993
+Progress: 85100/117993
+Progress: 85200/117993
+Progress: 85300/117993
+Progress: 85400/117993
+Progress: 85500/117993
+Progress: 85600/117993
+Progress: 85700/117993
+Progress: 85800/117993
+Progress: 85900/117993
+Progress: 86000/117993
+Progress: 86100/117993
+Progress: 86200/117993
+Progress: 86300/117993
+Progress: 86400/117993
+Progress: 86500/117993
+Progress: 86600/117993
+Progress: 86700/117993
+Progress: 86800/117993
+Progress: 86900/117993
+Progress: 87000/117993
+Progress: 87100/117993
+Progress: 87200/117993
+Progress: 87300/117993
+Progress: 87400/117993
+Progress: 87500/117993
+Progress: 87600/117993
+Progress: 87700/117993
+Progress: 87800/117993
+Progress: 87900/117993
+Progress: 88000/117993
+Progress: 88100/117993
+Progress: 88200/117993
+Progress: 88300/117993
+Progress: 88400/117993
+Progress: 88500/117993
+Progress: 88600/117993
+Progress: 88700/117993
+Progress: 88800/117993
+Progress: 88900/117993
+Progress: 89000/117993
+Progress: 89100/117993
+Progress: 89200/117993
+Progress: 89300/117993
+Progress: 89400/117993
+Progress: 89500/117993
+Progress: 89600/117993
+Progress: 89700/117993
+Progress: 89800/117993
+Progress: 89900/117993
+Progress: 90000/117993
+Progress: 90100/117993
+Progress: 90200/117993
+Progress: 90300/117993
+Progress: 90400/117993
+Progress: 90500/117993
+Progress: 90600/117993
+Progress: 90700/117993
+Progress: 90800/117993
+Progress: 90900/117993
+Progress: 91000/117993
+Progress: 91100/117993
+Progress: 91200/117993
+Progress: 91300/117993
+Progress: 91400/117993
+Progress: 91500/117993
+Progress: 91600/117993
+Progress: 91700/117993
+Progress: 91800/117993
+Progress: 91900/117993
+Progress: 92000/117993
+Progress: 92100/117993
+Progress: 92200/117993
+Progress: 92300/117993
+Progress: 92400/117993
+Progress: 92500/117993
+Progress: 92600/117993
+Progress: 92700/117993
+Progress: 92800/117993
+Progress: 92900/117993
+Progress: 93000/117993
+Progress: 93100/117993
+Progress: 93200/117993
+Progress: 93300/117993
+Progress: 93400/117993
+Progress: 93500/117993
+Progress: 93600/117993
+Progress: 93700/117993
+Progress: 93800/117993
+Progress: 93900/117993
+Progress: 94000/117993
+Progress: 94100/117993
+Progress: 94200/117993
+Progress: 94300/117993
+Progress: 94400/117993
+Progress: 94500/117993
+Progress: 94600/117993
+Progress: 94700/117993
+Progress: 94800/117993
+Progress: 94900/117993
+Progress: 95000/117993
+Failed for idre=1458&id=207294: fetch failed
+Failed for idre=1458&id=28740: fetch failed
+Failed for idre=1458&id=87154: fetch failed
+Failed for idre=1458&id=142865: fetch failed
+Failed for idre=1458&id=142878: fetch failed
+Failed for idre=1458&id=142880: fetch failed
+Failed for idre=1458&id=142919: fetch failed
+Failed for idre=1458&id=142897: fetch failed
+Failed for idre=1458&id=142923: fetch failed
+Failed for idre=1458&id=142932: fetch failed
+Failed for idre=1458&id=199704: fetch failed
+Failed for idre=1458&id=217950: fetch failed
+Failed for idre=1458&id=199706: fetch failed
+Failed for idre=1458&id=199705: fetch failed
+Failed for idre=1458&id=217712: fetch failed
+Failed for idre=1458&id=199709: fetch failed
+Failed for idre=1458&id=199707: fetch failed
+Failed for idre=1458&id=199708: fetch failed
+Failed for idre=1458&id=106555: fetch failed
+Failed for idre=1458&id=134669: fetch failed
+Failed for idre=1458&id=151452: fetch failed
+Failed for idre=1458&id=151451: fetch failed
+Failed for idre=1458&id=134545: fetch failed
+Failed for idre=1458&id=151450: fetch failed
+Failed for idre=1458&id=151534: fetch failed
+Failed for idre=1458&id=151453: fetch failed
+Failed for idre=1458&id=159113: fetch failed
+Failed for idre=1458&id=159112: fetch failed
+Failed for idre=1458&id=68766: fetch failed
+Failed for idre=1458&id=37046: fetch failed
+Failed for idre=1458&id=134242: fetch failed
+Failed for idre=1458&id=159134: fetch failed
+Failed for idre=1458&id=181586: fetch failed
+Failed for idre=1458&id=181585: fetch failed
+Failed for idre=1458&id=134243: fetch failed
+Failed for idre=1458&id=134244: fetch failed
+Failed for idre=1458&id=181236: fetch failed
+Failed for idre=1458&id=181587: fetch failed
+Failed for idre=1458&id=130305: fetch failed
+Failed for idre=1458&id=130304: fetch failed
+Failed for idre=1458&id=37439: fetch failed
+Failed for idre=1458&id=134127: fetch failed
+Failed for idre=1458&id=169658: fetch failed
+Failed for idre=1458&id=130182: fetch failed
+Failed for idre=1458&id=44460: fetch failed
+Failed for idre=1458&id=152064: fetch failed
+Failed for idre=1458&id=169659: fetch failed
+Failed for idre=1458&id=169660: fetch failed
+Failed for idre=1458&id=178787: fetch failed
+Failed for idre=1458&id=183558: fetch failed
+Failed for idre=1458&id=108718: fetch failed
+Failed for idre=1458&id=106247: fetch failed
+Failed for idre=1458&id=178788: fetch failed
+Failed for idre=1458&id=154482: fetch failed
+Failed for idre=1458&id=109304: fetch failed
+Failed for idre=1458&id=109253: fetch failed
+Failed for idre=1458&id=87304: fetch failed
+Failed for idre=1458&id=87303: fetch failed
+Failed for idre=1458&id=139013: fetch failed
+Failed for idre=1458&id=138531: fetch failed
+Failed for idre=1458&id=174205: fetch failed
+Failed for idre=1458&id=87305: fetch failed
+Failed for idre=1458&id=108291: fetch failed
+Failed for idre=1458&id=108290: fetch failed
+Failed for idre=1458&id=174206: fetch failed
+Failed for idre=1458&id=108289: fetch failed
+Failed for idre=1458&id=108205: fetch failed
+Failed for idre=1458&id=108204: fetch failed
+Failed for idre=1458&id=106163: fetch failed
+Failed for idre=1458&id=106162: fetch failed
+Failed for idre=1458&id=108206: fetch failed
+Failed for idre=1458&id=108979: fetch failed
+Failed for idre=1458&id=106480: fetch failed
+Failed for idre=1458&id=106164: fetch failed
+Failed for idre=1458&id=36186: fetch failed
+Failed for idre=1458&id=36608: fetch failed
+Failed for idre=1458&id=106482: fetch failed
+Failed for idre=1458&id=106483: fetch failed
+Failed for idre=1458&id=161761: fetch failed
+Failed for idre=1458&id=36187: fetch failed
+Failed for idre=1458&id=162291: fetch failed
+Failed for idre=1458&id=162290: fetch failed
+Failed for idre=1458&id=162288: fetch failed
+Failed for idre=1458&id=162289: fetch failed
+Failed for idre=1458&id=107521: fetch failed
+Failed for idre=1458&id=107520: fetch failed
+Failed for idre=1458&id=107519: fetch failed
+Failed for idre=1458&id=107518: fetch failed
+Failed for idre=1458&id=107522: fetch failed
+Failed for idre=1458&id=107523: fetch failed
+Failed for idre=1458&id=26775: fetch failed
+Failed for idre=1458&id=26774: fetch failed
+Failed for idre=1458&id=184154: fetch failed
+Progress: 95100/117993
+Failed for idre=1458&id=194501: fetch failed
+Failed for idre=1458&id=26776: fetch failed
+Failed for idre=1458&id=26777: fetch failed
+Failed for idre=1458&id=132898: fetch failed
+Failed for idre=1458&id=132897: fetch failed
+Failed for idre=1458&id=132902: fetch failed
+Failed for idre=1458&id=132901: fetch failed
+Failed for idre=1458&id=132899: fetch failed
+Failed for idre=1458&id=132900: fetch failed
+Failed for idre=1458&id=130073: fetch failed
+Failed for idre=1458&id=132903: fetch failed
+Failed for idre=1458&id=212118: fetch failed
+Failed for idre=1458&id=130076: fetch failed
+Failed for idre=1458&id=130074: fetch failed
+Failed for idre=1458&id=130075: fetch failed
+Failed for idre=1458&id=169741: fetch failed
+Failed for idre=1458&id=169740: fetch failed
+Failed for idre=1458&id=62259: fetch failed
+Failed for idre=1458&id=151816: fetch failed
+Failed for idre=1458&id=148708: fetch failed
+Failed for idre=1458&id=35908: fetch failed
+Failed for idre=1458&id=216389: fetch failed
+Failed for idre=1458&id=216387: fetch failed
+Failed for idre=1458&id=131261: fetch failed
+Failed for idre=1458&id=112033: fetch failed
+Failed for idre=1458&id=216390: fetch failed
+Failed for idre=1458&id=150877: fetch failed
+Failed for idre=1458&id=131263: fetch failed
+Failed for idre=1458&id=131262: fetch failed
+Failed for idre=1458&id=170212: fetch failed
+Failed for idre=1458&id=170211: fetch failed
+Failed for idre=1458&id=131264: fetch failed
+Failed for idre=1458&id=170210: fetch failed
+Failed for idre=1458&id=170214: fetch failed
+Failed for idre=1458&id=170213: fetch failed
+Failed for idre=1458&id=97567: fetch failed
+Failed for idre=1458&id=97566: fetch failed
+Failed for idre=1458&id=170215: fetch failed
+Failed for idre=1458&id=97565: fetch failed
+Failed for idre=1458&id=97569: fetch failed
+Failed for idre=1458&id=97568: fetch failed
+Failed for idre=1458&id=97573: fetch failed
+Failed for idre=1458&id=97572: fetch failed
+Failed for idre=1458&id=97570: fetch failed
+Failed for idre=1458&id=97571: fetch failed
+Failed for idre=1458&id=97578: fetch failed
+Failed for idre=1458&id=97574: fetch failed
+Failed for idre=1458&id=115496: fetch failed
+Failed for idre=1458&id=113703: fetch failed
+Failed for idre=1458&id=97600: fetch failed
+Failed for idre=1458&id=113702: fetch failed
+Failed for idre=1458&id=79161: fetch failed
+Failed for idre=1458&id=113705: fetch failed
+Failed for idre=1458&id=139125: fetch failed
+Failed for idre=1458&id=26976: fetch failed
+Failed for idre=1458&id=216388: fetch failed
+Failed for idre=1458&id=26975: fetch failed
+Failed for idre=1458&id=115951: fetch failed
+Failed for idre=1458&id=115861: fetch failed
+Failed for idre=1458&id=29371: fetch failed
+Failed for idre=1458&id=100044: fetch failed
+Failed for idre=1458&id=68313: fetch failed
+Failed for idre=1458&id=20264: fetch failed
+Failed for idre=1458&id=83715: fetch failed
+Failed for idre=1458&id=163329: fetch failed
+Failed for idre=1458&id=198782: fetch failed
+Failed for idre=1458&id=198781: fetch failed
+Failed for idre=1458&id=131207: fetch failed
+Failed for idre=1458&id=128912: fetch failed
+Failed for idre=1458&id=133458: fetch failed
+Failed for idre=1458&id=199878: fetch failed
+Failed for idre=1458&id=134064: fetch failed
+Failed for idre=1458&id=134063: fetch failed
+Failed for idre=1458&id=134061: fetch failed
+Failed for idre=1458&id=134062: fetch failed
+Failed for idre=1458&id=220034: fetch failed
+Failed for idre=1458&id=134065: fetch failed
+Failed for idre=1458&id=44187: fetch failed
+Failed for idre=1458&id=130178: fetch failed
+Failed for idre=1458&id=150825: fetch failed
+Failed for idre=1458&id=150826: fetch failed
+Failed for idre=1458&id=207233: fetch failed
+Failed for idre=1458&id=44188: fetch failed
+Failed for idre=1458&id=172496: fetch failed
+Failed for idre=1458&id=205: fetch failed
+Failed for idre=1458&id=216011: fetch failed
+Failed for idre=1458&id=204: fetch failed
+Failed for idre=1458&id=189587: fetch failed
+Failed for idre=1458&id=19466: fetch failed
+Failed for idre=1458&id=112746: fetch failed
+Failed for idre=1458&id=15127: fetch failed
+Failed for idre=1458&id=190422: fetch failed
+Failed for idre=1458&id=15126: fetch failed
+Failed for idre=1458&id=34108: fetch failed
+Failed for idre=1458&id=35313: fetch failed
+Failed for idre=1458&id=217871: fetch failed
+Failed for idre=1458&id=67521: fetch failed
+Failed for idre=1458&id=34109: fetch failed
+Failed for idre=1458&id=34110: fetch failed
+Failed for idre=1458&id=216518: fetch failed
+Progress: 95200/117993
+Failed for idre=1458&id=217872: fetch failed
+Failed for idre=1458&id=31395: fetch failed
+Failed for idre=1458&id=217675: fetch failed
+Failed for idre=1458&id=216604: fetch failed
+Failed for idre=1458&id=217674: fetch failed
+Failed for idre=1458&id=31228: fetch failed
+Failed for idre=1458&id=31396: fetch failed
+Failed for idre=1458&id=217391: fetch failed
+Failed for idre=1458&id=217390: fetch failed
+Failed for idre=1458&id=174207: fetch failed
+Failed for idre=1458&id=217397: fetch failed
+Failed for idre=1458&id=68008: fetch failed
+Failed for idre=1458&id=67442: fetch failed
+Failed for idre=1458&id=62567: fetch failed
+Failed for idre=1458&id=62566: fetch failed
+Failed for idre=1458&id=216012: fetch failed
+Failed for idre=1458&id=216013: fetch failed
+Failed for idre=1458&id=194952: fetch failed
+Failed for idre=1458&id=62568: fetch failed
+Failed for idre=1458&id=218401: fetch failed
+Failed for idre=1458&id=218399: fetch failed
+Failed for idre=1458&id=178159: fetch failed
+Failed for idre=1458&id=178161: fetch failed
+Failed for idre=1458&id=36065: fetch failed
+Failed for idre=1458&id=216014: fetch failed
+Failed for idre=1458&id=199945: fetch failed
+Failed for idre=1458&id=203619: fetch failed
+Failed for idre=1458&id=175053: fetch failed
+Failed for idre=1458&id=203618: fetch failed
+Failed for idre=1458&id=179519: fetch failed
+Failed for idre=1458&id=179517: fetch failed
+Failed for idre=1458&id=190157: fetch failed
+Failed for idre=1458&id=160970: fetch failed
+Failed for idre=1458&id=179520: fetch failed
+Failed for idre=1458&id=160969: fetch failed
+Failed for idre=1458&id=35611: fetch failed
+Failed for idre=1458&id=35610: fetch failed
+Failed for idre=1458&id=35615: fetch failed
+Failed for idre=1458&id=35614: fetch failed
+Failed for idre=1458&id=35612: fetch failed
+Failed for idre=1458&id=35613: fetch failed
+Failed for idre=1458&id=207376: fetch failed
+Failed for idre=1458&id=35616: fetch failed
+Failed for idre=1458&id=204599: fetch failed
+Failed for idre=1458&id=204598: fetch failed
+Failed for idre=1458&id=204596: fetch failed
+Failed for idre=1458&id=204597: fetch failed
+Failed for idre=1458&id=204601: fetch failed
+Failed for idre=1458&id=204600: fetch failed
+Failed for idre=1458&id=112944: fetch failed
+Failed for idre=1458&id=133475: fetch failed
+Failed for idre=1458&id=133473: fetch failed
+Failed for idre=1458&id=133474: fetch failed
+Failed for idre=1458&id=162484: fetch failed
+Failed for idre=1458&id=114516: fetch failed
+Failed for idre=1458&id=191698: fetch failed
+Failed for idre=1458&id=191697: fetch failed
+Failed for idre=1458&id=162485: fetch failed
+Failed for idre=1458&id=191696: fetch failed
+Failed for idre=1458&id=191700: fetch failed
+Failed for idre=1458&id=191699: fetch failed
+Failed for idre=1458&id=138535: fetch failed
+Failed for idre=1458&id=114357: fetch failed
+Failed for idre=1458&id=104539: fetch failed
+Failed for idre=1458&id=104566: fetch failed
+Failed for idre=1458&id=137587: fetch failed
+Failed for idre=1458&id=138343: fetch failed
+Failed for idre=1458&id=113962: fetch failed
+Failed for idre=1458&id=110882: fetch failed
+Failed for idre=1458&id=137960: fetch failed
+Failed for idre=1458&id=137961: fetch failed
+Failed for idre=1458&id=130191: fetch failed
+Failed for idre=1458&id=113098: fetch failed
+Failed for idre=1458&id=206099: fetch failed
+Failed for idre=1458&id=206098: fetch failed
+Failed for idre=1458&id=191294: fetch failed
+Failed for idre=1458&id=127741: fetch failed
+Failed for idre=1458&id=2459: fetch failed
+Failed for idre=1458&id=103760: fetch failed
+Failed for idre=1458&id=60881: fetch failed
+Failed for idre=1458&id=60880: fetch failed
+Failed for idre=1458&id=116400: fetch failed
+Failed for idre=1458&id=130765: fetch failed
+Failed for idre=1458&id=60883: fetch failed
+Failed for idre=1458&id=60882: fetch failed
+Failed for idre=1458&id=134264: fetch failed
+Failed for idre=1458&id=134263: fetch failed
+Failed for idre=1458&id=60884: fetch failed
+Failed for idre=1458&id=201179: fetch failed
+Failed for idre=1458&id=86867: fetch failed
+Failed for idre=1458&id=134265: fetch failed
+Failed for idre=1458&id=112704: fetch failed
+Failed for idre=1458&id=112703: fetch failed
+Failed for idre=1458&id=130786: fetch failed
+Failed for idre=1458&id=112694: fetch failed
+Failed for idre=1458&id=112706: fetch failed
+Failed for idre=1458&id=112705: fetch failed
+Failed for idre=1458&id=44968: fetch failed
+Failed for idre=1458&id=190957: fetch failed
+Failed for idre=1458&id=114906: fetch failed
+Progress: 95300/117993
+Failed for idre=1458&id=190956: fetch failed
+Failed for idre=1458&id=212915: fetch failed
+Failed for idre=1458&id=212914: fetch failed
+Failed for idre=1458&id=44690: fetch failed
+Failed for idre=1458&id=14973: fetch failed
+Failed for idre=1458&id=212916: fetch failed
+Failed for idre=1458&id=14672: fetch failed
+Failed for idre=1458&id=133068: fetch failed
+Failed for idre=1458&id=19624: fetch failed
+Failed for idre=1458&id=133072: fetch failed
+Failed for idre=1458&id=133071: fetch failed
+Failed for idre=1458&id=133069: fetch failed
+Failed for idre=1458&id=133070: fetch failed
+Failed for idre=1458&id=133074: fetch failed
+Failed for idre=1458&id=133073: fetch failed
+Failed for idre=1458&id=161270: fetch failed
+Failed for idre=1458&id=128915: fetch failed
+Failed for idre=1458&id=128913: fetch failed
+Failed for idre=1458&id=128914: fetch failed
+Failed for idre=1458&id=100073: fetch failed
+Failed for idre=1458&id=220118: fetch failed
+Failed for idre=1458&id=100077: fetch failed
+Failed for idre=1458&id=100076: fetch failed
+Failed for idre=1458&id=100074: fetch failed
+Failed for idre=1458&id=100075: fetch failed
+Failed for idre=1458&id=100079: fetch failed
+Failed for idre=1458&id=100078: fetch failed
+Failed for idre=1458&id=162240: fetch failed
+Failed for idre=1458&id=162239: fetch failed
+Failed for idre=1458&id=219770: fetch failed
+Failed for idre=1458&id=35760: fetch failed
+Failed for idre=1458&id=162242: fetch failed
+Failed for idre=1458&id=162241: fetch failed
+Failed for idre=1458&id=129715: fetch failed
+Failed for idre=1458&id=129714: fetch failed
+Failed for idre=1458&id=170044: fetch failed
+Failed for idre=1458&id=170045: fetch failed
+Failed for idre=1458&id=184354: fetch failed
+Failed for idre=1458&id=44515: fetch failed
+Failed for idre=1458&id=43874: fetch failed
+Failed for idre=1458&id=133456: fetch failed
+Failed for idre=1458&id=131076: fetch failed
+Failed for idre=1458&id=130944: fetch failed
+Failed for idre=1458&id=14891: fetch failed
+Failed for idre=1458&id=14890: fetch failed
+Failed for idre=1458&id=108539: fetch failed
+Failed for idre=1458&id=215290: fetch failed
+Failed for idre=1458&id=13953: fetch failed
+Failed for idre=1458&id=13954: fetch failed
+Failed for idre=1458&id=15481: fetch failed
+Failed for idre=1458&id=160791: fetch failed
+Failed for idre=1458&id=67099: fetch failed
+Failed for idre=1458&id=62829: fetch failed
+Failed for idre=1458&id=113787: fetch failed
+Failed for idre=1458&id=28951: fetch failed
+Failed for idre=1458&id=67101: fetch failed
+Failed for idre=1458&id=67100: fetch failed
+Failed for idre=1458&id=103978: fetch failed
+Failed for idre=1458&id=103977: fetch failed
+Failed for idre=1458&id=45147: fetch failed
+Failed for idre=1458&id=103976: fetch failed
+Failed for idre=1458&id=129954: fetch failed
+Failed for idre=1458&id=130138: fetch failed
+Failed for idre=1458&id=43896: fetch failed
+Failed for idre=1458&id=43895: fetch failed
+Failed for idre=1458&id=116367: fetch failed
+Failed for idre=1458&id=43894: fetch failed
+Failed for idre=1458&id=182831: fetch failed
+Failed for idre=1458&id=182830: fetch failed
+Failed for idre=1458&id=104016: fetch failed
+Failed for idre=1458&id=134683: fetch failed
+Failed for idre=1458&id=182832: fetch failed
+Failed for idre=1458&id=191607: fetch failed
+Failed for idre=1458&id=133039: fetch failed
+Failed for idre=1458&id=133038: fetch failed
+Failed for idre=1458&id=133043: fetch failed
+Failed for idre=1458&id=133042: fetch failed
+Failed for idre=1458&id=133040: fetch failed
+Failed for idre=1458&id=133041: fetch failed
+Failed for idre=1458&id=133045: fetch failed
+Failed for idre=1458&id=133044: fetch failed
+Failed for idre=1458&id=133390: fetch failed
+Failed for idre=1458&id=133389: fetch failed
+Failed for idre=1458&id=133046: fetch failed
+Failed for idre=1458&id=133388: fetch failed
+Failed for idre=1458&id=179393: fetch failed
+Failed for idre=1458&id=133391: fetch failed
+Failed for idre=1458&id=26947: fetch failed
+Failed for idre=1458&id=26946: fetch failed
+Failed for idre=1458&id=182157: fetch failed
+Failed for idre=1458&id=128918: fetch failed
+Failed for idre=1458&id=26949: fetch failed
+Failed for idre=1458&id=26948: fetch failed
+Failed for idre=1458&id=43598: fetch failed
+Failed for idre=1458&id=150690: fetch failed
+Failed for idre=1458&id=26950: fetch failed
+Failed for idre=1458&id=26951: fetch failed
+Failed for idre=1458&id=43600: fetch failed
+Failed for idre=1458&id=43599: fetch failed
+Failed for idre=1458&id=216782: fetch failed
+Progress: 95400/117993
+Failed for idre=1458&id=63759: fetch failed
+Failed for idre=1458&id=201825: fetch failed
+Failed for idre=1458&id=163565: fetch failed
+Failed for idre=1458&id=216784: fetch failed
+Failed for idre=1458&id=216783: fetch failed
+Failed for idre=1458&id=216793: fetch failed
+Failed for idre=1458&id=216789: fetch failed
+Failed for idre=1458&id=216787: fetch failed
+Failed for idre=1458&id=216788: fetch failed
+Failed for idre=1458&id=220301: fetch failed
+Failed for idre=1458&id=195809: fetch failed
+Failed for idre=1458&id=86470: fetch failed
+Failed for idre=1458&id=178559: fetch failed
+Failed for idre=1458&id=178556: fetch failed
+Failed for idre=1458&id=178558: fetch failed
+Failed for idre=1458&id=128090: fetch failed
+Failed for idre=1458&id=106860: fetch failed
+Failed for idre=1458&id=216018: fetch failed
+Failed for idre=1458&id=216017: fetch failed
+Failed for idre=1458&id=216015: fetch failed
+Failed for idre=1458&id=216016: fetch failed
+Failed for idre=1458&id=195667: fetch failed
+Failed for idre=1458&id=62423: fetch failed
+Failed for idre=1458&id=213846: fetch failed
+Failed for idre=1458&id=36914: fetch failed
+Failed for idre=1458&id=103838: fetch failed
+Failed for idre=1458&id=103839: fetch failed
+Failed for idre=1458&id=85140: fetch failed
+Failed for idre=1458&id=35634: fetch failed
+Failed for idre=1458&id=201338: fetch failed
+Failed for idre=1458&id=204153: fetch failed
+Failed for idre=1458&id=207193: fetch failed
+Failed for idre=1458&id=207194: fetch failed
+Failed for idre=1458&id=201339: fetch failed
+Failed for idre=1458&id=204154: fetch failed
+Failed for idre=1458&id=111932: fetch failed
+Failed for idre=1458&id=190190: fetch failed
+Failed for idre=1458&id=113484: fetch failed
+Failed for idre=1458&id=103312: fetch failed
+Failed for idre=1458&id=44260: fetch failed
+Failed for idre=1458&id=183416: fetch failed
+Failed for idre=1458&id=104053: fetch failed
+Failed for idre=1458&id=194877: fetch failed
+Failed for idre=1458&id=67171: fetch failed
+Failed for idre=1458&id=104621: fetch failed
+Failed for idre=1458&id=67936: fetch failed
+Failed for idre=1458&id=104054: fetch failed
+Failed for idre=1458&id=130961: fetch failed
+Failed for idre=1458&id=130826: fetch failed
+Failed for idre=1458&id=114777: fetch failed
+Failed for idre=1458&id=113756: fetch failed
+Failed for idre=1458&id=150760: fetch failed
+Failed for idre=1458&id=150759: fetch failed
+Failed for idre=1458&id=150764: fetch failed
+Failed for idre=1458&id=150763: fetch failed
+Failed for idre=1458&id=150761: fetch failed
+Failed for idre=1458&id=150762: fetch failed
+Failed for idre=1458&id=150766: fetch failed
+Failed for idre=1458&id=150765: fetch failed
+Failed for idre=1458&id=133923: fetch failed
+Failed for idre=1458&id=194948: fetch failed
+Failed for idre=1458&id=195690: fetch failed
+Failed for idre=1458&id=194947: fetch failed
+Failed for idre=1458&id=112129: fetch failed
+Failed for idre=1458&id=112128: fetch failed
+Failed for idre=1458&id=178757: fetch failed
+Failed for idre=1458&id=112132: fetch failed
+Failed for idre=1458&id=112130: fetch failed
+Failed for idre=1458&id=112131: fetch failed
+Failed for idre=1458&id=178759: fetch failed
+Failed for idre=1458&id=178758: fetch failed
+Failed for idre=1458&id=112127: fetch failed
+Failed for idre=1458&id=178762: fetch failed
+Failed for idre=1458&id=178760: fetch failed
+Failed for idre=1458&id=178761: fetch failed
+Failed for idre=1458&id=85867: fetch failed
+Failed for idre=1458&id=107347: fetch failed
+Failed for idre=1458&id=205749: fetch failed
+Failed for idre=1458&id=205748: fetch failed
+Failed for idre=1458&id=86039: fetch failed
+Failed for idre=1458&id=205747: fetch failed
+Failed for idre=1458&id=174209: fetch failed
+Failed for idre=1458&id=174208: fetch failed
+Failed for idre=1458&id=203096: fetch failed
+Failed for idre=1458&id=142048: fetch failed
+Failed for idre=1458&id=66739: fetch failed
+Failed for idre=1458&id=142023: fetch failed
+Failed for idre=1458&id=206718: fetch failed
+Failed for idre=1458&id=206717: fetch failed
+Failed for idre=1458&id=204504: fetch failed
+Failed for idre=1458&id=204503: fetch failed
+Failed for idre=1458&id=206719: fetch failed
+Failed for idre=1458&id=204502: fetch failed
+Failed for idre=1458&id=170656: fetch failed
+Failed for idre=1458&id=171125: fetch failed
+Failed for idre=1458&id=162145: fetch failed
+Failed for idre=1458&id=161577: fetch failed
+Failed for idre=1458&id=43009: fetch failed
+Failed for idre=1458&id=45119: fetch failed
+Failed for idre=1458&id=162147: fetch failed
+Progress: 95500/117993
+Failed for idre=1458&id=162146: fetch failed
+Failed for idre=1458&id=162151: fetch failed
+Failed for idre=1458&id=162150: fetch failed
+Failed for idre=1458&id=162148: fetch failed
+Failed for idre=1458&id=162149: fetch failed
+Failed for idre=1458&id=162153: fetch failed
+Failed for idre=1458&id=162152: fetch failed
+Failed for idre=1458&id=150710: fetch failed
+Failed for idre=1458&id=150709: fetch failed
+Failed for idre=1458&id=150707: fetch failed
+Failed for idre=1458&id=150708: fetch failed
+Failed for idre=1458&id=150712: fetch failed
+Failed for idre=1458&id=150711: fetch failed
+Failed for idre=1458&id=84864: fetch failed
+Failed for idre=1458&id=161532: fetch failed
+Failed for idre=1458&id=150713: fetch failed
+Failed for idre=1458&id=161523: fetch failed
+Failed for idre=1458&id=84866: fetch failed
+Failed for idre=1458&id=84865: fetch failed
+Failed for idre=1458&id=103850: fetch failed
+Failed for idre=1458&id=103849: fetch failed
+Failed for idre=1458&id=113577: fetch failed
+Failed for idre=1458&id=103848: fetch failed
+Failed for idre=1458&id=103852: fetch failed
+Failed for idre=1458&id=103851: fetch failed
+Failed for idre=1458&id=216635: fetch failed
+Failed for idre=1458&id=217856: fetch failed
+Failed for idre=1458&id=103853: fetch failed
+Failed for idre=1458&id=103854: fetch failed
+Failed for idre=1458&id=216637: fetch failed
+Failed for idre=1458&id=216636: fetch failed
+Failed for idre=1458&id=216672: fetch failed
+Failed for idre=1458&id=216671: fetch failed
+Failed for idre=1458&id=216638: fetch failed
+Failed for idre=1458&id=216645: fetch failed
+Failed for idre=1458&id=217852: fetch failed
+Failed for idre=1458&id=216673: fetch failed
+Failed for idre=1458&id=94409: fetch failed
+Failed for idre=1458&id=217855: fetch failed
+Failed for idre=1458&id=217853: fetch failed
+Failed for idre=1458&id=217854: fetch failed
+Failed for idre=1458&id=141574: fetch failed
+Failed for idre=1458&id=94410: fetch failed
+Failed for idre=1458&id=103462: fetch failed
+Failed for idre=1458&id=67333: fetch failed
+Failed for idre=1458&id=150754: fetch failed
+Failed for idre=1458&id=167730: fetch failed
+Failed for idre=1458&id=19723: fetch failed
+Failed for idre=1458&id=103554: fetch failed
+Failed for idre=1458&id=141419: fetch failed
+Failed for idre=1458&id=138842: fetch failed
+Failed for idre=1458&id=100168: fetch failed
+Failed for idre=1458&id=100169: fetch failed
+Failed for idre=1458&id=141421: fetch failed
+Failed for idre=1458&id=141420: fetch failed
+Failed for idre=1458&id=104600: fetch failed
+Failed for idre=1458&id=104596: fetch failed
+Failed for idre=1458&id=110475: fetch failed
+Failed for idre=1458&id=19597: fetch failed
+Failed for idre=1458&id=163583: fetch failed
+Failed for idre=1458&id=13550: fetch failed
+Failed for idre=1458&id=343: fetch failed
+Failed for idre=1458&id=94880: fetch failed
+Failed for idre=1458&id=161013: fetch failed
+Failed for idre=1458&id=158936: fetch failed
+Failed for idre=1458&id=94494: fetch failed
+Failed for idre=1458&id=94493: fetch failed
+Failed for idre=1458&id=94498: fetch failed
+Failed for idre=1458&id=94497: fetch failed
+Failed for idre=1458&id=94495: fetch failed
+Failed for idre=1458&id=94496: fetch failed
+Failed for idre=1458&id=114432: fetch failed
+Failed for idre=1458&id=126685: fetch failed
+Failed for idre=1458&id=114068: fetch failed
+Failed for idre=1458&id=114067: fetch failed
+Failed for idre=1458&id=114968: fetch failed
+Failed for idre=1458&id=114969: fetch failed
+Failed for idre=1458&id=68833: fetch failed
+Failed for idre=1458&id=112050: fetch failed
+Failed for idre=1458&id=218752: fetch failed
+Failed for idre=1458&id=19943: fetch failed
+Failed for idre=1458&id=61674: fetch failed
+Failed for idre=1458&id=19941: fetch failed
+Failed for idre=1458&id=161837: fetch failed
+Failed for idre=1458&id=218794: fetch failed
+Failed for idre=1458&id=182535: fetch failed
+Failed for idre=1458&id=182534: fetch failed
+Failed for idre=1458&id=161838: fetch failed
+Failed for idre=1458&id=161839: fetch failed
+Failed for idre=1458&id=182537: fetch failed
+Failed for idre=1458&id=182536: fetch failed
+Failed for idre=1458&id=85311: fetch failed
+Failed for idre=1458&id=85310: fetch failed
+Failed for idre=1458&id=85308: fetch failed
+Failed for idre=1458&id=85309: fetch failed
+Failed for idre=1458&id=85313: fetch failed
+Failed for idre=1458&id=85312: fetch failed
+Failed for idre=1458&id=182483: fetch failed
+Failed for idre=1458&id=182482: fetch failed
+Failed for idre=1458&id=85314: fetch failed
+Progress: 95600/117993
+Failed for idre=1458&id=85315: fetch failed
+Failed for idre=1458&id=204547: fetch failed
+Failed for idre=1458&id=204546: fetch failed
+Failed for idre=1458&id=78866: fetch failed
+Failed for idre=1458&id=78865: fetch failed
+Failed for idre=1458&id=101256: fetch failed
+Failed for idre=1458&id=78863: fetch failed
+Failed for idre=1458&id=206134: fetch failed
+Failed for idre=1458&id=160780: fetch failed
+Failed for idre=1458&id=66217: fetch failed
+Failed for idre=1458&id=66216: fetch failed
+Failed for idre=1458&id=161357: fetch failed
+Failed for idre=1458&id=66215: fetch failed
+Failed for idre=1458&id=161238: fetch failed
+Failed for idre=1458&id=66218: fetch failed
+Failed for idre=1458&id=97163: fetch failed
+Failed for idre=1458&id=97162: fetch failed
+Failed for idre=1458&id=165883: fetch failed
+Failed for idre=1458&id=97161: fetch failed
+Failed for idre=1458&id=97165: fetch failed
+Failed for idre=1458&id=97164: fetch failed
+Failed for idre=1458&id=97171: fetch failed
+Failed for idre=1458&id=97170: fetch failed
+Failed for idre=1458&id=97166: fetch failed
+Failed for idre=1458&id=97169: fetch failed
+Failed for idre=1458&id=97173: fetch failed
+Failed for idre=1458&id=97172: fetch failed
+Failed for idre=1458&id=182281: fetch failed
+Failed for idre=1458&id=97176: fetch failed
+Failed for idre=1458&id=97174: fetch failed
+Failed for idre=1458&id=97175: fetch failed
+Failed for idre=1458&id=182283: fetch failed
+Failed for idre=1458&id=182282: fetch failed
+Failed for idre=1458&id=182205: fetch failed
+Failed for idre=1458&id=182204: fetch failed
+Failed for idre=1458&id=182284: fetch failed
+Failed for idre=1458&id=182285: fetch failed
+Failed for idre=1458&id=182207: fetch failed
+Failed for idre=1458&id=182206: fetch failed
+Failed for idre=1458&id=79412: fetch failed
+Failed for idre=1458&id=79411: fetch failed
+Failed for idre=1458&id=182208: fetch failed
+Failed for idre=1458&id=79410: fetch failed
+Failed for idre=1458&id=95192: fetch failed
+Failed for idre=1458&id=95191: fetch failed
+Failed for idre=1458&id=95196: fetch failed
+Failed for idre=1458&id=95195: fetch failed
+Failed for idre=1458&id=95193: fetch failed
+Failed for idre=1458&id=95194: fetch failed
+Failed for idre=1458&id=95198: fetch failed
+Failed for idre=1458&id=95197: fetch failed
+Failed for idre=1458&id=103309: fetch failed
+Failed for idre=1458&id=103308: fetch failed
+Failed for idre=1458&id=183866: fetch failed
+Failed for idre=1458&id=103307: fetch failed
+Failed for idre=1458&id=15545: fetch failed
+Failed for idre=1458&id=103310: fetch failed
+Failed for idre=1458&id=31058: fetch failed
+Failed for idre=1458&id=127032: fetch failed
+Failed for idre=1458&id=15546: fetch failed
+Failed for idre=1458&id=127031: fetch failed
+Failed for idre=1458&id=201630: fetch failed
+Failed for idre=1458&id=37626: fetch failed
+Failed for idre=1458&id=132803: fetch failed
+Failed for idre=1458&id=134809: fetch failed
+Failed for idre=1458&id=201631: fetch failed
+Failed for idre=1458&id=201632: fetch failed
+Failed for idre=1458&id=132805: fetch failed
+Failed for idre=1458&id=132804: fetch failed
+Failed for idre=1458&id=97974: fetch failed
+Failed for idre=1458&id=165739: fetch failed
+Failed for idre=1458&id=132806: fetch failed
+Failed for idre=1458&id=132807: fetch failed
+Failed for idre=1458&id=97976: fetch failed
+Failed for idre=1458&id=97975: fetch failed
+Failed for idre=1458&id=61696: fetch failed
+Failed for idre=1458&id=113167: fetch failed
+Failed for idre=1458&id=97977: fetch failed
+Failed for idre=1458&id=99305: fetch failed
+Failed for idre=1458&id=19262: fetch failed
+Failed for idre=1458&id=61697: fetch failed
+Failed for idre=1458&id=203123: fetch failed
+Failed for idre=1458&id=203122: fetch failed
+Failed for idre=1458&id=20588: fetch failed
+Failed for idre=1458&id=20589: fetch failed
+Failed for idre=1458&id=19582: fetch failed
+Failed for idre=1458&id=19581: fetch failed
+Failed for idre=1458&id=68724: fetch failed
+Failed for idre=1458&id=112291: fetch failed
+Failed for idre=1458&id=19583: fetch failed
+Failed for idre=1458&id=144096: fetch failed
+Failed for idre=1458&id=68726: fetch failed
+Failed for idre=1458&id=68725: fetch failed
+Failed for idre=1458&id=98734: fetch failed
+Failed for idre=1458&id=98733: fetch failed
+Failed for idre=1458&id=104589: fetch failed
+Failed for idre=1458&id=166623: fetch failed
+Failed for idre=1458&id=98736: fetch failed
+Failed for idre=1458&id=98735: fetch failed
+Failed for idre=1458&id=126659: fetch failed
+Progress: 95700/117993
+Failed for idre=1458&id=126658: fetch failed
+Failed for idre=1458&id=126656: fetch failed
+Failed for idre=1458&id=126657: fetch failed
+Failed for idre=1458&id=126661: fetch failed
+Failed for idre=1458&id=126660: fetch failed
+Failed for idre=1458&id=179457: fetch failed
+Failed for idre=1458&id=160985: fetch failed
+Failed for idre=1458&id=114466: fetch failed
+Failed for idre=1458&id=115031: fetch failed
+Failed for idre=1458&id=179459: fetch failed
+Failed for idre=1458&id=179458: fetch failed
+Failed for idre=1458&id=159023: fetch failed
+Failed for idre=1458&id=86955: fetch failed
+Failed for idre=1458&id=179460: fetch failed
+Failed for idre=1458&id=201331: fetch failed
+Failed for idre=1458&id=148680: fetch failed
+Failed for idre=1458&id=148602: fetch failed
+Failed for idre=1458&id=143652: fetch failed
+Failed for idre=1458&id=143651: fetch failed
+Failed for idre=1458&id=215502: fetch failed
+Failed for idre=1458&id=172347: fetch failed
+Failed for idre=1458&id=143654: fetch failed
+Failed for idre=1458&id=143653: fetch failed
+Failed for idre=1458&id=143658: fetch failed
+Failed for idre=1458&id=143657: fetch failed
+Failed for idre=1458&id=143655: fetch failed
+Failed for idre=1458&id=143656: fetch failed
+Failed for idre=1458&id=143660: fetch failed
+Failed for idre=1458&id=143659: fetch failed
+Failed for idre=1458&id=143662: fetch failed
+Failed for idre=1458&id=143661: fetch failed
+Failed for idre=1458&id=143664: fetch failed
+Failed for idre=1458&id=143787: fetch failed
+Failed for idre=1458&id=43010: fetch failed
+Failed for idre=1458&id=143663: fetch failed
+Failed for idre=1458&id=86544: fetch failed
+Failed for idre=1458&id=34083: fetch failed
+Failed for idre=1458&id=43011: fetch failed
+Failed for idre=1458&id=43012: fetch failed
+Failed for idre=1458&id=44432: fetch failed
+Failed for idre=1458&id=166758: fetch failed
+Failed for idre=1458&id=37174: fetch failed
+Failed for idre=1458&id=37173: fetch failed
+Failed for idre=1458&id=44433: fetch failed
+Failed for idre=1458&id=158116: fetch failed
+Failed for idre=1458&id=201898: fetch failed
+Failed for idre=1458&id=37175: fetch failed
+Failed for idre=1458&id=43820: fetch failed
+Failed for idre=1458&id=104510: fetch failed
+Failed for idre=1458&id=111061: fetch failed
+Failed for idre=1458&id=142301: fetch failed
+Failed for idre=1458&id=81319: fetch failed
+Failed for idre=1458&id=216976: fetch failed
+Failed for idre=1458&id=142864: fetch failed
+Failed for idre=1458&id=29379: fetch failed
+Failed for idre=1458&id=142723: fetch failed
+Failed for idre=1458&id=142724: fetch failed
+Failed for idre=1458&id=142899: fetch failed
+Failed for idre=1458&id=142866: fetch failed
+Failed for idre=1458&id=150932: fetch failed
+Failed for idre=1458&id=142950: fetch failed
+Failed for idre=1458&id=142918: fetch failed
+Failed for idre=1458&id=142934: fetch failed
+Failed for idre=1458&id=178203: fetch failed
+Failed for idre=1458&id=157929: fetch failed
+Failed for idre=1458&id=85171: fetch failed
+Failed for idre=1458&id=219773: fetch failed
+Failed for idre=1458&id=29323: fetch failed
+Failed for idre=1458&id=215501: fetch failed
+Failed for idre=1458&id=81477: fetch failed
+Failed for idre=1458&id=149549: fetch failed
+Failed for idre=1458&id=183308: fetch failed
+Failed for idre=1458&id=183307: fetch failed
+Failed for idre=1458&id=98262: fetch failed
+Failed for idre=1458&id=45150: fetch failed
+Failed for idre=1458&id=219670: fetch failed
+Failed for idre=1458&id=219669: fetch failed
+Failed for idre=1458&id=219674: fetch failed
+Failed for idre=1458&id=219673: fetch failed
+Failed for idre=1458&id=219671: fetch failed
+Failed for idre=1458&id=219672: fetch failed
+Failed for idre=1458&id=219676: fetch failed
+Failed for idre=1458&id=219675: fetch failed
+Failed for idre=1458&id=219686: fetch failed
+Failed for idre=1458&id=219685: fetch failed
+Failed for idre=1458&id=219677: fetch failed
+Failed for idre=1458&id=219684: fetch failed
+Failed for idre=1458&id=219688: fetch failed
+Failed for idre=1458&id=219687: fetch failed
+Failed for idre=1458&id=219696: fetch failed
+Failed for idre=1458&id=141412: fetch failed
+Failed for idre=1458&id=219928: fetch failed
+Failed for idre=1458&id=219762: fetch failed
+Failed for idre=1458&id=219698: fetch failed
+Failed for idre=1458&id=219697: fetch failed
+Failed for idre=1458&id=219678: fetch failed
+Failed for idre=1458&id=113939: fetch failed
+Failed for idre=1458&id=219728: fetch failed
+Failed for idre=1458&id=219729: fetch failed
+Failed for idre=1458&id=219680: fetch failed
+Progress: 95800/117993
+Failed for idre=1458&id=219679: fetch failed
+Failed for idre=1458&id=219689: fetch failed
+Failed for idre=1458&id=219683: fetch failed
+Failed for idre=1458&id=219681: fetch failed
+Failed for idre=1458&id=219682: fetch failed
+Failed for idre=1458&id=219691: fetch failed
+Failed for idre=1458&id=219690: fetch failed
+Failed for idre=1458&id=219695: fetch failed
+Failed for idre=1458&id=219694: fetch failed
+Failed for idre=1458&id=219692: fetch failed
+Failed for idre=1458&id=219693: fetch failed
+Failed for idre=1458&id=219700: fetch failed
+Failed for idre=1458&id=219699: fetch failed
+Failed for idre=1458&id=98203: fetch failed
+Failed for idre=1458&id=98202: fetch failed
+Failed for idre=1458&id=101414: fetch failed
+Failed for idre=1458&id=112894: fetch failed
+Failed for idre=1458&id=84100: fetch failed
+Failed for idre=1458&id=84099: fetch failed
+Failed for idre=1458&id=84104: fetch failed
+Failed for idre=1458&id=84103: fetch failed
+Failed for idre=1458&id=84101: fetch failed
+Failed for idre=1458&id=84102: fetch failed
+Failed for idre=1458&id=84106: fetch failed
+Failed for idre=1458&id=84105: fetch failed
+Failed for idre=1458&id=84117: fetch failed
+Failed for idre=1458&id=84109: fetch failed
+Failed for idre=1458&id=84107: fetch failed
+Failed for idre=1458&id=84108: fetch failed
+Failed for idre=1458&id=84589: fetch failed
+Failed for idre=1458&id=84118: fetch failed
+Failed for idre=1458&id=84119: fetch failed
+Failed for idre=1458&id=84111: fetch failed
+Failed for idre=1458&id=84590: fetch failed
+Failed for idre=1458&id=84110: fetch failed
+Failed for idre=1458&id=84297: fetch failed
+Failed for idre=1458&id=84120: fetch failed
+Failed for idre=1458&id=84115: fetch failed
+Failed for idre=1458&id=84114: fetch failed
+Failed for idre=1458&id=84112: fetch failed
+Failed for idre=1458&id=84113: fetch failed
+Failed for idre=1458&id=165608: fetch failed
+Failed for idre=1458&id=84116: fetch failed
+Failed for idre=1458&id=219763: fetch failed
+Failed for idre=1458&id=219761: fetch failed
+Failed for idre=1458&id=37611: fetch failed
+Failed for idre=1458&id=219957: fetch failed
+Failed for idre=1458&id=216019: fetch failed
+Failed for idre=1458&id=201831: fetch failed
+Failed for idre=1458&id=45345: fetch failed
+Failed for idre=1458&id=104542: fetch failed
+Failed for idre=1458&id=86002: fetch failed
+Failed for idre=1458&id=86003: fetch failed
+Failed for idre=1458&id=184546: fetch failed
+Failed for idre=1458&id=44743: fetch failed
+Failed for idre=1458&id=178418: fetch failed
+Failed for idre=1458&id=178417: fetch failed
+Failed for idre=1458&id=219801: fetch failed
+Failed for idre=1458&id=114822: fetch failed
+Failed for idre=1458&id=178420: fetch failed
+Failed for idre=1458&id=178419: fetch failed
+Failed for idre=1458&id=87170: fetch failed
+Failed for idre=1458&id=86642: fetch failed
+Failed for idre=1458&id=172241: fetch failed
+Failed for idre=1458&id=172266: fetch failed
+Failed for idre=1458&id=84502: fetch failed
+Failed for idre=1458&id=195801: fetch failed
+Failed for idre=1458&id=143235: fetch failed
+Failed for idre=1458&id=143234: fetch failed
+Failed for idre=1458&id=84503: fetch failed
+Failed for idre=1458&id=84504: fetch failed
+Failed for idre=1458&id=143238: fetch failed
+Failed for idre=1458&id=143236: fetch failed
+Failed for idre=1458&id=143242: fetch failed
+Failed for idre=1458&id=143241: fetch failed
+Failed for idre=1458&id=143239: fetch failed
+Failed for idre=1458&id=143240: fetch failed
+Failed for idre=1458&id=168785: fetch failed
+Failed for idre=1458&id=143237: fetch failed
+Failed for idre=1458&id=103043: fetch failed
+Failed for idre=1458&id=103042: fetch failed
+Failed for idre=1458&id=67437: fetch failed
+Failed for idre=1458&id=103041: fetch failed
+Failed for idre=1458&id=161938: fetch failed
+Failed for idre=1458&id=103044: fetch failed
+Failed for idre=1458&id=130189: fetch failed
+Failed for idre=1458&id=163303: fetch failed
+Failed for idre=1458&id=161939: fetch failed
+Failed for idre=1458&id=161941: fetch failed
+Failed for idre=1458&id=103191: fetch failed
+Failed for idre=1458&id=28107: fetch failed
+Failed for idre=1458&id=192318: fetch failed
+Failed for idre=1458&id=150931: fetch failed
+Failed for idre=1458&id=103192: fetch failed
+Failed for idre=1458&id=103193: fetch failed
+Failed for idre=1458&id=111960: fetch failed
+Failed for idre=1458&id=18455: fetch failed
+Failed for idre=1458&id=128903: fetch failed
+Failed for idre=1458&id=190188: fetch failed
+Failed for idre=1458&id=111961: fetch failed
+Progress: 95900/117993
+Failed for idre=1458&id=154852: fetch failed
+Failed for idre=1458&id=128905: fetch failed
+Failed for idre=1458&id=128904: fetch failed
+Failed for idre=1458&id=184066: fetch failed
+Failed for idre=1458&id=129279: fetch failed
+Failed for idre=1458&id=128943: fetch failed
+Failed for idre=1458&id=192251: fetch failed
+Failed for idre=1458&id=171817: fetch failed
+Failed for idre=1458&id=66325: fetch failed
+Failed for idre=1458&id=171997: fetch failed
+Failed for idre=1458&id=171996: fetch failed
+Failed for idre=1458&id=19139: fetch failed
+Failed for idre=1458&id=19140: fetch failed
+Failed for idre=1458&id=171999: fetch failed
+Failed for idre=1458&id=171998: fetch failed
+Failed for idre=1458&id=205826: fetch failed
+Failed for idre=1458&id=172002: fetch failed
+Failed for idre=1458&id=172000: fetch failed
+Failed for idre=1458&id=172001: fetch failed
+Failed for idre=1458&id=205828: fetch failed
+Failed for idre=1458&id=205827: fetch failed
+Failed for idre=1458&id=171074: fetch failed
+Failed for idre=1458&id=989: fetch failed
+Failed for idre=1458&id=113082: fetch failed
+Failed for idre=1458&id=113083: fetch failed
+Failed for idre=1458&id=171076: fetch failed
+Failed for idre=1458&id=171075: fetch failed
+Failed for idre=1458&id=171146: fetch failed
+Failed for idre=1458&id=171079: fetch failed
+Failed for idre=1458&id=171077: fetch failed
+Failed for idre=1458&id=171078: fetch failed
+Failed for idre=1458&id=171148: fetch failed
+Failed for idre=1458&id=171147: fetch failed
+Failed for idre=1458&id=171152: fetch failed
+Failed for idre=1458&id=171151: fetch failed
+Failed for idre=1458&id=171149: fetch failed
+Failed for idre=1458&id=171150: fetch failed
+Failed for idre=1458&id=170144: fetch failed
+Failed for idre=1458&id=171153: fetch failed
+Failed for idre=1458&id=170730: fetch failed
+Failed for idre=1458&id=170729: fetch failed
+Failed for idre=1458&id=170145: fetch failed
+Failed for idre=1458&id=171220: fetch failed
+Failed for idre=1458&id=111436: fetch failed
+Failed for idre=1458&id=136981: fetch failed
+Failed for idre=1458&id=215180: fetch failed
+Failed for idre=1458&id=93302: fetch failed
+Failed for idre=1458&id=111437: fetch failed
+Failed for idre=1458&id=93301: fetch failed
+Failed for idre=1458&id=214927: fetch failed
+Failed for idre=1458&id=214926: fetch failed
+Failed for idre=1458&id=214933: fetch failed
+Failed for idre=1458&id=214932: fetch failed
+Failed for idre=1458&id=214930: fetch failed
+Failed for idre=1458&id=214931: fetch failed
+Failed for idre=1458&id=214935: fetch failed
+Failed for idre=1458&id=214934: fetch failed
+Failed for idre=1458&id=214939: fetch failed
+Failed for idre=1458&id=214938: fetch failed
+Failed for idre=1458&id=214936: fetch failed
+Failed for idre=1458&id=214937: fetch failed
+Failed for idre=1458&id=108466: fetch failed
+Failed for idre=1458&id=143641: fetch failed
+Failed for idre=1458&id=168555: fetch failed
+Failed for idre=1458&id=29394: fetch failed
+Failed for idre=1458&id=29392: fetch failed
+Failed for idre=1458&id=29393: fetch failed
+Failed for idre=1458&id=129326: fetch failed
+Failed for idre=1458&id=129325: fetch failed
+Failed for idre=1458&id=169854: fetch failed
+Failed for idre=1458&id=129329: fetch failed
+Failed for idre=1458&id=129327: fetch failed
+Failed for idre=1458&id=129328: fetch failed
+Failed for idre=1458&id=169856: fetch failed
+Failed for idre=1458&id=169855: fetch failed
+Failed for idre=1458&id=2722: fetch failed
+Failed for idre=1458&id=44760: fetch failed
+Failed for idre=1458&id=44308: fetch failed
+Failed for idre=1458&id=109051: fetch failed
+Failed for idre=1458&id=112839: fetch failed
+Failed for idre=1458&id=106937: fetch failed
+Failed for idre=1458&id=44306: fetch failed
+Failed for idre=1458&id=179513: fetch failed
+Failed for idre=1458&id=179511: fetch failed
+Failed for idre=1458&id=179512: fetch failed
+Failed for idre=1458&id=66814: fetch failed
+Failed for idre=1458&id=44307: fetch failed
+Failed for idre=1458&id=183239: fetch failed
+Failed for idre=1458&id=183238: fetch failed
+Failed for idre=1458&id=103941: fetch failed
+Failed for idre=1458&id=183237: fetch failed
+Failed for idre=1458&id=28255: fetch failed
+Failed for idre=1458&id=190680: fetch failed
+Failed for idre=1458&id=190074: fetch failed
+Failed for idre=1458&id=190073: fetch failed
+Failed for idre=1458&id=184260: fetch failed
+Failed for idre=1458&id=168437: fetch failed
+Failed for idre=1458&id=190076: fetch failed
+Failed for idre=1458&id=190075: fetch failed
+Failed for idre=1458&id=190080: fetch failed
+Progress: 96000/117993
+Failed for idre=1458&id=190079: fetch failed
+Failed for idre=1458&id=190077: fetch failed
+Failed for idre=1458&id=190078: fetch failed
+Failed for idre=1458&id=114231: fetch failed
+Failed for idre=1458&id=114230: fetch failed
+Failed for idre=1458&id=200804: fetch failed
+Failed for idre=1458&id=116362: fetch failed
+Failed for idre=1458&id=114233: fetch failed
+Failed for idre=1458&id=116093: fetch failed
+Failed for idre=1458&id=200806: fetch failed
+Failed for idre=1458&id=200805: fetch failed
+Failed for idre=1458&id=157431: fetch failed
+Failed for idre=1458&id=205938: fetch failed
+Failed for idre=1458&id=165561: fetch failed
+Failed for idre=1458&id=220513: fetch failed
+Failed for idre=1458&id=986: fetch failed
+Failed for idre=1458&id=35326: fetch failed
+Failed for idre=1458&id=173006: fetch failed
+Failed for idre=1458&id=171917: fetch failed
+Failed for idre=1458&id=987: fetch failed
+Failed for idre=1458&id=988: fetch failed
+Failed for idre=1458&id=183872: fetch failed
+Failed for idre=1458&id=173007: fetch failed
+Failed for idre=1458&id=18849: fetch failed
+Failed for idre=1458&id=160332: fetch failed
+Failed for idre=1458&id=160330: fetch failed
+Failed for idre=1458&id=160331: fetch failed
+Failed for idre=1458&id=18851: fetch failed
+Failed for idre=1458&id=18850: fetch failed
+Failed for idre=1458&id=18855: fetch failed
+Failed for idre=1458&id=18854: fetch failed
+Failed for idre=1458&id=18852: fetch failed
+Failed for idre=1458&id=18853: fetch failed
+Failed for idre=1458&id=93871: fetch failed
+Failed for idre=1458&id=93870: fetch failed
+Failed for idre=1458&id=159200: fetch failed
+Failed for idre=1458&id=159199: fetch failed
+Failed for idre=1458&id=111810: fetch failed
+Failed for idre=1458&id=159198: fetch failed
+Failed for idre=1458&id=99387: fetch failed
+Failed for idre=1458&id=130617: fetch failed
+Failed for idre=1458&id=2044: fetch failed
+Failed for idre=1458&id=217702: fetch failed
+Failed for idre=1458&id=99388: fetch failed
+Failed for idre=1458&id=99401: fetch failed
+Failed for idre=1458&id=2046: fetch failed
+Failed for idre=1458&id=2045: fetch failed
+Failed for idre=1458&id=33319: fetch failed
+Failed for idre=1458&id=33318: fetch failed
+Failed for idre=1458&id=2047: fetch failed
+Failed for idre=1458&id=33317: fetch failed
+Failed for idre=1458&id=33321: fetch failed
+Failed for idre=1458&id=33320: fetch failed
+Failed for idre=1458&id=171911: fetch failed
+Failed for idre=1458&id=171629: fetch failed
+Failed for idre=1458&id=33322: fetch failed
+Failed for idre=1458&id=33323: fetch failed
+Failed for idre=1458&id=151528: fetch failed
+Failed for idre=1458&id=26786: fetch failed
+Failed for idre=1458&id=129667: fetch failed
+Failed for idre=1458&id=141375: fetch failed
+Failed for idre=1458&id=151923: fetch failed
+Failed for idre=1458&id=29328: fetch failed
+Failed for idre=1458&id=141449: fetch failed
+Failed for idre=1458&id=129668: fetch failed
+Failed for idre=1458&id=132879: fetch failed
+Failed for idre=1458&id=132878: fetch failed
+Failed for idre=1458&id=131256: fetch failed
+Failed for idre=1458&id=165880: fetch failed
+Failed for idre=1458&id=132881: fetch failed
+Failed for idre=1458&id=132880: fetch failed
+Failed for idre=1458&id=132885: fetch failed
+Failed for idre=1458&id=132884: fetch failed
+Failed for idre=1458&id=132882: fetch failed
+Failed for idre=1458&id=132883: fetch failed
+Failed for idre=1458&id=133952: fetch failed
+Failed for idre=1458&id=133951: fetch failed
+Failed for idre=1458&id=203330: fetch failed
+Failed for idre=1458&id=203329: fetch failed
+Failed for idre=1458&id=204090: fetch failed
+Failed for idre=1458&id=203328: fetch failed
+Failed for idre=1458&id=203332: fetch failed
+Failed for idre=1458&id=203331: fetch failed
+Failed for idre=1458&id=107988: fetch failed
+Failed for idre=1458&id=106279: fetch failed
+Failed for idre=1458&id=207182: fetch failed
+Failed for idre=1458&id=151529: fetch failed
+Failed for idre=1458&id=107276: fetch failed
+Failed for idre=1458&id=107275: fetch failed
+Failed for idre=1458&id=66893: fetch failed
+Failed for idre=1458&id=69: fetch failed
+Failed for idre=1458&id=107277: fetch failed
+Failed for idre=1458&id=166564: fetch failed
+Failed for idre=1458&id=150691: fetch failed
+Failed for idre=1458&id=66911: fetch failed
+Failed for idre=1458&id=204816: fetch failed
+Failed for idre=1458&id=198658: fetch failed
+Failed for idre=1458&id=166803: fetch failed
+Failed for idre=1458&id=148853: fetch failed
+Failed for idre=1458&id=204818: fetch failed
+Progress: 96100/117993
+Failed for idre=1458&id=204817: fetch failed
+Failed for idre=1458&id=160310: fetch failed
+Failed for idre=1458&id=160309: fetch failed
+Failed for idre=1458&id=204819: fetch failed
+Failed for idre=1458&id=160308: fetch failed
+Failed for idre=1458&id=172123: fetch failed
+Failed for idre=1458&id=167237: fetch failed
+Failed for idre=1458&id=19875: fetch failed
+Failed for idre=1458&id=19823: fetch failed
+Failed for idre=1458&id=115803: fetch failed
+Failed for idre=1458&id=172124: fetch failed
+Failed for idre=1458&id=19877: fetch failed
+Failed for idre=1458&id=19876: fetch failed
+Failed for idre=1458&id=166624: fetch failed
+Failed for idre=1458&id=216020: fetch failed
+Failed for idre=1458&id=19878: fetch failed
+Failed for idre=1458&id=19879: fetch failed
+Failed for idre=1458&id=83198: fetch failed
+Failed for idre=1458&id=166379: fetch failed
+Failed for idre=1458&id=214831: fetch failed
+Failed for idre=1458&id=108966: fetch failed
+Failed for idre=1458&id=83199: fetch failed
+Failed for idre=1458&id=183397: fetch failed
+Failed for idre=1458&id=214833: fetch failed
+Failed for idre=1458&id=214832: fetch failed
+Failed for idre=1458&id=217925: fetch failed
+Failed for idre=1458&id=192699: fetch failed
+Failed for idre=1458&id=192697: fetch failed
+Failed for idre=1458&id=192698: fetch failed
+Failed for idre=1458&id=143160: fetch failed
+Failed for idre=1458&id=143159: fetch failed
+Failed for idre=1458&id=201675: fetch failed
+Failed for idre=1458&id=66877: fetch failed
+Failed for idre=1458&id=163401: fetch failed
+Failed for idre=1458&id=66876: fetch failed
+Failed for idre=1458&id=152036: fetch failed
+Failed for idre=1458&id=141313: fetch failed
+Failed for idre=1458&id=33350: fetch failed
+Failed for idre=1458&id=33349: fetch failed
+Failed for idre=1458&id=108485: fetch failed
+Failed for idre=1458&id=212565: fetch failed
+Failed for idre=1458&id=159772: fetch failed
+Failed for idre=1458&id=33351: fetch failed
+Failed for idre=1458&id=98057: fetch failed
+Failed for idre=1458&id=98056: fetch failed
+Failed for idre=1458&id=218362: fetch failed
+Failed for idre=1458&id=218363: fetch failed
+Failed for idre=1458&id=214782: fetch failed
+Failed for idre=1458&id=98058: fetch failed
+Failed for idre=1458&id=179321: fetch failed
+Failed for idre=1458&id=44929: fetch failed
+Failed for idre=1458&id=110964: fetch failed
+Failed for idre=1458&id=216021: fetch failed
+Failed for idre=1458&id=172481: fetch failed
+Failed for idre=1458&id=171816: fetch failed
+Failed for idre=1458&id=165519: fetch failed
+Failed for idre=1458&id=150244: fetch failed
+Failed for idre=1458&id=172482: fetch failed
+Failed for idre=1458&id=172483: fetch failed
+Failed for idre=1458&id=84941: fetch failed
+Failed for idre=1458&id=27759: fetch failed
+Failed for idre=1458&id=86885: fetch failed
+Failed for idre=1458&id=87354: fetch failed
+Failed for idre=1458&id=84944: fetch failed
+Failed for idre=1458&id=142296: fetch failed
+Failed for idre=1458&id=183231: fetch failed
+Failed for idre=1458&id=32794: fetch failed
+Failed for idre=1458&id=129239: fetch failed
+Failed for idre=1458&id=129238: fetch failed
+Failed for idre=1458&id=183232: fetch failed
+Failed for idre=1458&id=183233: fetch failed
+Failed for idre=1458&id=98888: fetch failed
+Failed for idre=1458&id=98612: fetch failed
+Failed for idre=1458&id=98892: fetch failed
+Failed for idre=1458&id=98891: fetch failed
+Failed for idre=1458&id=98889: fetch failed
+Failed for idre=1458&id=98890: fetch failed
+Failed for idre=1458&id=98894: fetch failed
+Failed for idre=1458&id=98893: fetch failed
+Failed for idre=1458&id=13603: fetch failed
+Failed for idre=1458&id=14969: fetch failed
+Failed for idre=1458&id=98909: fetch failed
+Failed for idre=1458&id=183864: fetch failed
+Failed for idre=1458&id=104006: fetch failed
+Failed for idre=1458&id=104005: fetch failed
+Failed for idre=1458&id=165573: fetch failed
+Failed for idre=1458&id=104009: fetch failed
+Failed for idre=1458&id=104007: fetch failed
+Failed for idre=1458&id=104008: fetch failed
+Failed for idre=1458&id=161679: fetch failed
+Failed for idre=1458&id=61984: fetch failed
+Failed for idre=1458&id=161763: fetch failed
+Failed for idre=1458&id=161762: fetch failed
+Failed for idre=1458&id=161680: fetch failed
+Failed for idre=1458&id=161681: fetch failed
+Failed for idre=1458&id=142102: fetch failed
+Failed for idre=1458&id=142100: fetch failed
+Failed for idre=1458&id=166971: fetch failed
+Failed for idre=1458&id=114709: fetch failed
+Failed for idre=1458&id=87169: fetch failed
+Progress: 96200/117993
+Failed for idre=1458&id=126701: fetch failed
+Failed for idre=1458&id=129438: fetch failed
+Failed for idre=1458&id=129434: fetch failed
+Failed for idre=1458&id=129444: fetch failed
+Failed for idre=1458&id=129443: fetch failed
+Failed for idre=1458&id=129439: fetch failed
+Failed for idre=1458&id=129442: fetch failed
+Failed for idre=1458&id=129446: fetch failed
+Failed for idre=1458&id=129445: fetch failed
+Failed for idre=1458&id=130438: fetch failed
+Failed for idre=1458&id=131169: fetch failed
+Failed for idre=1458&id=131259: fetch failed
+Failed for idre=1458&id=131155: fetch failed
+Failed for idre=1458&id=130440: fetch failed
+Failed for idre=1458&id=130439: fetch failed
+Failed for idre=1458&id=131363: fetch failed
+Failed for idre=1458&id=131362: fetch failed
+Failed for idre=1458&id=130441: fetch failed
+Failed for idre=1458&id=131361: fetch failed
+Failed for idre=1458&id=35633: fetch failed
+Failed for idre=1458&id=129387: fetch failed
+Failed for idre=1458&id=26935: fetch failed
+Failed for idre=1458&id=203271: fetch failed
+Failed for idre=1458&id=63535: fetch failed
+Failed for idre=1458&id=63471: fetch failed
+Failed for idre=1458&id=26937: fetch failed
+Failed for idre=1458&id=26936: fetch failed
+Failed for idre=1458&id=151583: fetch failed
+Failed for idre=1458&id=151582: fetch failed
+Failed for idre=1458&id=151580: fetch failed
+Failed for idre=1458&id=151581: fetch failed
+Failed for idre=1458&id=154741: fetch failed
+Failed for idre=1458&id=154726: fetch failed
+Failed for idre=1458&id=62030: fetch failed
+Failed for idre=1458&id=62027: fetch failed
+Failed for idre=1458&id=154742: fetch failed
+Failed for idre=1458&id=154743: fetch failed
+Failed for idre=1458&id=62708: fetch failed
+Failed for idre=1458&id=34215: fetch failed
+Failed for idre=1458&id=134352: fetch failed
+Failed for idre=1458&id=134351: fetch failed
+Failed for idre=1458&id=98850: fetch failed
+Failed for idre=1458&id=134800: fetch failed
+Failed for idre=1458&id=134354: fetch failed
+Failed for idre=1458&id=134353: fetch failed
+Failed for idre=1458&id=134358: fetch failed
+Failed for idre=1458&id=134357: fetch failed
+Failed for idre=1458&id=134355: fetch failed
+Failed for idre=1458&id=134356: fetch failed
+Failed for idre=1458&id=134360: fetch failed
+Failed for idre=1458&id=134359: fetch failed
+Failed for idre=1458&id=134364: fetch failed
+Failed for idre=1458&id=134363: fetch failed
+Failed for idre=1458&id=134361: fetch failed
+Failed for idre=1458&id=134362: fetch failed
+Failed for idre=1458&id=134366: fetch failed
+Failed for idre=1458&id=134365: fetch failed
+Failed for idre=1458&id=134370: fetch failed
+Failed for idre=1458&id=134369: fetch failed
+Failed for idre=1458&id=134367: fetch failed
+Failed for idre=1458&id=134368: fetch failed
+Failed for idre=1458&id=134372: fetch failed
+Failed for idre=1458&id=134371: fetch failed
+Failed for idre=1458&id=143764: fetch failed
+Failed for idre=1458&id=60669: fetch failed
+Failed for idre=1458&id=134373: fetch failed
+Failed for idre=1458&id=191509: fetch failed
+Failed for idre=1458&id=216022: fetch failed
+Failed for idre=1458&id=143771: fetch failed
+Failed for idre=1458&id=217049: fetch failed
+Failed for idre=1458&id=142690: fetch failed
+Failed for idre=1458&id=143770: fetch failed
+Failed for idre=1458&id=219985: fetch failed
+Failed for idre=1458&id=217083: fetch failed
+Failed for idre=1458&id=217082: fetch failed
+Failed for idre=1458&id=201864: fetch failed
+Failed for idre=1458&id=217086: fetch failed
+Failed for idre=1458&id=217084: fetch failed
+Failed for idre=1458&id=217085: fetch failed
+Failed for idre=1458&id=216023: fetch failed
+Failed for idre=1458&id=45265: fetch failed
+Failed for idre=1458&id=217364: fetch failed
+Failed for idre=1458&id=184359: fetch failed
+Failed for idre=1458&id=126856: fetch failed
+Failed for idre=1458&id=215071: fetch failed
+Failed for idre=1458&id=148935: fetch failed
+Failed for idre=1458&id=217320: fetch failed
+Failed for idre=1458&id=195144: fetch failed
+Failed for idre=1458&id=222580: fetch failed
+Failed for idre=1458&id=143465: fetch failed
+Failed for idre=1458&id=204521: fetch failed
+Failed for idre=1458&id=183026: fetch failed
+Failed for idre=1458&id=103617: fetch failed
+Failed for idre=1458&id=178815: fetch failed
+Failed for idre=1458&id=178814: fetch failed
+Failed for idre=1458&id=183027: fetch failed
+Failed for idre=1458&id=178813: fetch failed
+Failed for idre=1458&id=178817: fetch failed
+Failed for idre=1458&id=178816: fetch failed
+Failed for idre=1458&id=83172: fetch failed
+Progress: 96300/117993
+Failed for idre=1458&id=83171: fetch failed
+Failed for idre=1458&id=178818: fetch failed
+Failed for idre=1458&id=178819: fetch failed
+Failed for idre=1458&id=182975: fetch failed
+Failed for idre=1458&id=83173: fetch failed
+Failed for idre=1458&id=174211: fetch failed
+Failed for idre=1458&id=174210: fetch failed
+Failed for idre=1458&id=216846: fetch failed
+Failed for idre=1458&id=154710: fetch failed
+Failed for idre=1458&id=130638: fetch failed
+Failed for idre=1458&id=80872: fetch failed
+Failed for idre=1458&id=144534: fetch failed
+Failed for idre=1458&id=98007: fetch failed
+Failed for idre=1458&id=112216: fetch failed
+Failed for idre=1458&id=112224: fetch failed
+Failed for idre=1458&id=83328: fetch failed
+Failed for idre=1458&id=82946: fetch failed
+Failed for idre=1458&id=44098: fetch failed
+Failed for idre=1458&id=15780: fetch failed
+Failed for idre=1458&id=83329: fetch failed
+Failed for idre=1458&id=83330: fetch failed
+Failed for idre=1458&id=144130: fetch failed
+Failed for idre=1458&id=144129: fetch failed
+Failed for idre=1458&id=143903: fetch failed
+Failed for idre=1458&id=143902: fetch failed
+Failed for idre=1458&id=144103: fetch failed
+Failed for idre=1458&id=144104: fetch failed
+Failed for idre=1458&id=97347: fetch failed
+Failed for idre=1458&id=151950: fetch failed
+Failed for idre=1458&id=142323: fetch failed
+Failed for idre=1458&id=142319: fetch failed
+Failed for idre=1458&id=142359: fetch failed
+Failed for idre=1458&id=142293: fetch failed
+Failed for idre=1458&id=754: fetch failed
+Failed for idre=1458&id=753: fetch failed
+Failed for idre=1458&id=111962: fetch failed
+Failed for idre=1458&id=757: fetch failed
+Failed for idre=1458&id=755: fetch failed
+Failed for idre=1458&id=756: fetch failed
+Failed for idre=1458&id=63501: fetch failed
+Failed for idre=1458&id=216024: fetch failed
+Failed for idre=1458&id=174215: fetch failed
+Failed for idre=1458&id=174214: fetch failed
+Failed for idre=1458&id=174212: fetch failed
+Failed for idre=1458&id=174213: fetch failed
+Failed for idre=1458&id=189684: fetch failed
+Failed for idre=1458&id=174216: fetch failed
+Failed for idre=1458&id=160160: fetch failed
+Failed for idre=1458&id=113186: fetch failed
+Failed for idre=1458&id=189685: fetch failed
+Failed for idre=1458&id=189686: fetch failed
+Failed for idre=1458&id=160167: fetch failed
+Failed for idre=1458&id=160161: fetch failed
+Failed for idre=1458&id=193495: fetch failed
+Failed for idre=1458&id=193494: fetch failed
+Failed for idre=1458&id=193492: fetch failed
+Failed for idre=1458&id=193493: fetch failed
+Failed for idre=1458&id=193497: fetch failed
+Failed for idre=1458&id=193496: fetch failed
+Failed for idre=1458&id=220379: fetch failed
+Failed for idre=1458&id=86590: fetch failed
+Failed for idre=1458&id=81580: fetch failed
+Failed for idre=1458&id=81621: fetch failed
+Failed for idre=1458&id=86243: fetch failed
+Failed for idre=1458&id=219422: fetch failed
+Failed for idre=1458&id=106546: fetch failed
+Failed for idre=1458&id=106286: fetch failed
+Failed for idre=1458&id=182405: fetch failed
+Failed for idre=1458&id=182406: fetch failed
+Failed for idre=1458&id=216025: fetch failed
+Failed for idre=1458&id=20655: fetch failed
+Failed for idre=1458&id=44106: fetch failed
+Failed for idre=1458&id=44105: fetch failed
+Failed for idre=1458&id=129551: fetch failed
+Failed for idre=1458&id=129552: fetch failed
+Failed for idre=1458&id=129367: fetch failed
+Failed for idre=1458&id=44107: fetch failed
+Failed for idre=1458&id=130618: fetch failed
+Failed for idre=1458&id=130246: fetch failed
+Failed for idre=1458&id=130949: fetch failed
+Failed for idre=1458&id=129713: fetch failed
+Failed for idre=1458&id=149438: fetch failed
+Failed for idre=1458&id=142179: fetch failed
+Failed for idre=1458&id=129312: fetch failed
+Failed for idre=1458&id=190691: fetch failed
+Failed for idre=1458&id=149439: fetch failed
+Failed for idre=1458&id=149440: fetch failed
+Failed for idre=1458&id=114163: fetch failed
+Failed for idre=1458&id=114762: fetch failed
+Failed for idre=1458&id=86106: fetch failed
+Failed for idre=1458&id=159576: fetch failed
+Failed for idre=1458&id=174217: fetch failed
+Failed for idre=1458&id=159575: fetch failed
+Failed for idre=1458&id=193065: fetch failed
+Failed for idre=1458&id=207374: fetch failed
+Failed for idre=1458&id=107645: fetch failed
+Failed for idre=1458&id=207166: fetch failed
+Failed for idre=1458&id=204520: fetch failed
+Failed for idre=1458&id=98264: fetch failed
+Failed for idre=1458&id=129233: fetch failed
+Progress: 96400/117993
+Failed for idre=1458&id=106884: fetch failed
+Failed for idre=1458&id=45138: fetch failed
+Failed for idre=1458&id=60869: fetch failed
+Failed for idre=1458&id=129234: fetch failed
+Failed for idre=1458&id=129235: fetch failed
+Failed for idre=1458&id=134782: fetch failed
+Failed for idre=1458&id=81532: fetch failed
+Failed for idre=1458&id=216873: fetch failed
+Failed for idre=1458&id=219428: fetch failed
+Failed for idre=1458&id=127236: fetch failed
+Failed for idre=1458&id=217106: fetch failed
+Failed for idre=1458&id=151624: fetch failed
+Failed for idre=1458&id=216929: fetch failed
+Failed for idre=1458&id=148926: fetch failed
+Failed for idre=1458&id=31302: fetch failed
+Failed for idre=1458&id=214332: fetch failed
+Failed for idre=1458&id=31301: fetch failed
+Failed for idre=1458&id=101355: fetch failed
+Failed for idre=1458&id=201209: fetch failed
+Failed for idre=1458&id=86487: fetch failed
+Failed for idre=1458&id=86486: fetch failed
+Failed for idre=1458&id=101356: fetch failed
+Failed for idre=1458&id=37621: fetch failed
+Failed for idre=1458&id=86489: fetch failed
+Failed for idre=1458&id=86488: fetch failed
+Failed for idre=1458&id=168775: fetch failed
+Failed for idre=1458&id=102453: fetch failed
+Failed for idre=1458&id=86490: fetch failed
+Failed for idre=1458&id=86491: fetch failed
+Failed for idre=1458&id=183395: fetch failed
+Failed for idre=1458&id=183394: fetch failed
+Failed for idre=1458&id=168722: fetch failed
+Failed for idre=1458&id=103636: fetch failed
+Failed for idre=1458&id=183396: fetch failed
+Failed for idre=1458&id=182646: fetch failed
+Failed for idre=1458&id=207286: fetch failed
+Failed for idre=1458&id=114995: fetch failed
+Failed for idre=1458&id=202054: fetch failed
+Failed for idre=1458&id=202027: fetch failed
+Failed for idre=1458&id=68842: fetch failed
+Failed for idre=1458&id=219786: fetch failed
+Failed for idre=1458&id=35253: fetch failed
+Failed for idre=1458&id=87346: fetch failed
+Failed for idre=1458&id=184218: fetch failed
+Failed for idre=1458&id=183309: fetch failed
+Failed for idre=1458&id=35254: fetch failed
+Failed for idre=1458&id=183297: fetch failed
+Failed for idre=1458&id=143233: fetch failed
+Failed for idre=1458&id=143232: fetch failed
+Failed for idre=1458&id=160401: fetch failed
+Failed for idre=1458&id=160400: fetch failed
+Failed for idre=1458&id=160398: fetch failed
+Failed for idre=1458&id=160399: fetch failed
+Failed for idre=1458&id=160403: fetch failed
+Failed for idre=1458&id=160402: fetch failed
+Failed for idre=1458&id=19658: fetch failed
+Failed for idre=1458&id=142252: fetch failed
+Failed for idre=1458&id=151579: fetch failed
+Failed for idre=1458&id=128035: fetch failed
+Failed for idre=1458&id=19660: fetch failed
+Failed for idre=1458&id=19659: fetch failed
+Failed for idre=1458&id=115702: fetch failed
+Failed for idre=1458&id=167601: fetch failed
+Failed for idre=1458&id=168762: fetch failed
+Failed for idre=1458&id=656: fetch failed
+Failed for idre=1458&id=37273: fetch failed
+Failed for idre=1458&id=36849: fetch failed
+Failed for idre=1458&id=200789: fetch failed
+Failed for idre=1458&id=200788: fetch failed
+Failed for idre=1458&id=174218: fetch failed
+Failed for idre=1458&id=35669: fetch failed
+Failed for idre=1458&id=35069: fetch failed
+Failed for idre=1458&id=35068: fetch failed
+Failed for idre=1458&id=201213: fetch failed
+Failed for idre=1458&id=36376: fetch failed
+Failed for idre=1458&id=36374: fetch failed
+Failed for idre=1458&id=36375: fetch failed
+Failed for idre=1458&id=134338: fetch failed
+Failed for idre=1458&id=134337: fetch failed
+Failed for idre=1458&id=134720: fetch failed
+Failed for idre=1458&id=130891: fetch failed
+Failed for idre=1458&id=134339: fetch failed
+Failed for idre=1458&id=134340: fetch failed
+Failed for idre=1458&id=183556: fetch failed
+Failed for idre=1458&id=162880: fetch failed
+Failed for idre=1458&id=142115: fetch failed
+Failed for idre=1458&id=182697: fetch failed
+Failed for idre=1458&id=183592: fetch failed
+Failed for idre=1458&id=182696: fetch failed
+Failed for idre=1458&id=68670: fetch failed
+Failed for idre=1458&id=167956: fetch failed
+Failed for idre=1458&id=193141: fetch failed
+Failed for idre=1458&id=159044: fetch failed
+Failed for idre=1458&id=515: fetch failed
+Failed for idre=1458&id=13810: fetch failed
+Failed for idre=1458&id=158897: fetch failed
+Failed for idre=1458&id=158896: fetch failed
+Failed for idre=1458&id=161221: fetch failed
+Failed for idre=1458&id=158900: fetch failed
+Failed for idre=1458&id=158898: fetch failed
+Progress: 96500/117993
+Failed for idre=1458&id=158899: fetch failed
+Failed for idre=1458&id=207101: fetch failed
+Failed for idre=1458&id=130701: fetch failed
+Failed for idre=1458&id=195089: fetch failed
+Failed for idre=1458&id=100033: fetch failed
+Failed for idre=1458&id=157511: fetch failed
+Failed for idre=1458&id=100032: fetch failed
+Failed for idre=1458&id=212814: fetch failed
+Failed for idre=1458&id=37544: fetch failed
+Failed for idre=1458&id=86537: fetch failed
+Failed for idre=1458&id=1674: fetch failed
+Failed for idre=1458&id=212824: fetch failed
+Failed for idre=1458&id=212825: fetch failed
+Failed for idre=1458&id=86539: fetch failed
+Failed for idre=1458&id=86538: fetch failed
+Failed for idre=1458&id=198794: fetch failed
+Failed for idre=1458&id=87108: fetch failed
+Failed for idre=1458&id=215500: fetch failed
+Failed for idre=1458&id=85554: fetch failed
+Failed for idre=1458&id=198796: fetch failed
+Failed for idre=1458&id=198795: fetch failed
+Failed for idre=1458&id=28138: fetch failed
+Failed for idre=1458&id=130154: fetch failed
+Failed for idre=1458&id=198797: fetch failed
+Failed for idre=1458&id=198798: fetch failed
+Failed for idre=1458&id=34846: fetch failed
+Failed for idre=1458&id=62564: fetch failed
+Failed for idre=1458&id=111669: fetch failed
+Failed for idre=1458&id=111668: fetch failed
+Failed for idre=1458&id=34892: fetch failed
+Failed for idre=1458&id=113221: fetch failed
+Failed for idre=1458&id=113054: fetch failed
+Failed for idre=1458&id=116103: fetch failed
+Failed for idre=1458&id=36840: fetch failed
+Failed for idre=1458&id=36839: fetch failed
+Failed for idre=1458&id=36837: fetch failed
+Failed for idre=1458&id=36838: fetch failed
+Failed for idre=1458&id=36842: fetch failed
+Failed for idre=1458&id=36841: fetch failed
+Failed for idre=1458&id=36846: fetch failed
+Failed for idre=1458&id=36845: fetch failed
+Failed for idre=1458&id=36843: fetch failed
+Failed for idre=1458&id=36844: fetch failed
+Failed for idre=1458&id=36848: fetch failed
+Failed for idre=1458&id=36847: fetch failed
+Failed for idre=1458&id=141559: fetch failed
+Failed for idre=1458&id=141554: fetch failed
+Failed for idre=1458&id=141571: fetch failed
+Failed for idre=1458&id=101286: fetch failed
+Failed for idre=1458&id=177545: fetch failed
+Failed for idre=1458&id=177544: fetch failed
+Failed for idre=1458&id=106496: fetch failed
+Failed for idre=1458&id=177548: fetch failed
+Failed for idre=1458&id=177546: fetch failed
+Failed for idre=1458&id=177547: fetch failed
+Failed for idre=1458&id=107329: fetch failed
+Failed for idre=1458&id=106497: fetch failed
+Failed for idre=1458&id=168633: fetch failed
+Failed for idre=1458&id=97876: fetch failed
+Failed for idre=1458&id=34380: fetch failed
+Failed for idre=1458&id=162365: fetch failed
+Failed for idre=1458&id=113798: fetch failed
+Failed for idre=1458&id=168294: fetch failed
+Failed for idre=1458&id=87191: fetch failed
+Failed for idre=1458&id=36507: fetch failed
+Failed for idre=1458&id=2302: fetch failed
+Failed for idre=1458&id=66842: fetch failed
+Failed for idre=1458&id=20799: fetch failed
+Failed for idre=1458&id=20798: fetch failed
+Failed for idre=1458&id=205120: fetch failed
+Failed for idre=1458&id=205119: fetch failed
+Failed for idre=1458&id=207363: fetch failed
+Failed for idre=1458&id=205118: fetch failed
+Failed for idre=1458&id=67023: fetch failed
+Failed for idre=1458&id=67022: fetch failed
+Failed for idre=1458&id=67027: fetch failed
+Failed for idre=1458&id=67026: fetch failed
+Failed for idre=1458&id=67024: fetch failed
+Failed for idre=1458&id=67025: fetch failed
+Failed for idre=1458&id=33935: fetch failed
+Failed for idre=1458&id=80514: fetch failed
+Failed for idre=1458&id=204505: fetch failed
+Failed for idre=1458&id=205782: fetch failed
+Failed for idre=1458&id=35746: fetch failed
+Failed for idre=1458&id=205781: fetch failed
+Failed for idre=1458&id=204507: fetch failed
+Failed for idre=1458&id=204506: fetch failed
+Failed for idre=1458&id=213676: fetch failed
+Failed for idre=1458&id=102293: fetch failed
+Failed for idre=1458&id=204508: fetch failed
+Failed for idre=1458&id=216026: fetch failed
+Failed for idre=1458&id=36101: fetch failed
+Failed for idre=1458&id=213677: fetch failed
+Failed for idre=1458&id=207262: fetch failed
+Failed for idre=1458&id=36104: fetch failed
+Failed for idre=1458&id=36102: fetch failed
+Failed for idre=1458&id=36103: fetch failed
+Failed for idre=1458&id=220212: fetch failed
+Failed for idre=1458&id=167675: fetch failed
+Failed for idre=1458&id=192431: fetch failed
+Progress: 96600/117993
+Failed for idre=1458&id=35140: fetch failed
+Failed for idre=1458&id=200791: fetch failed
+Failed for idre=1458&id=142373: fetch failed
+Failed for idre=1458&id=130192: fetch failed
+Failed for idre=1458&id=192761: fetch failed
+Failed for idre=1458&id=63449: fetch failed
+Failed for idre=1458&id=63448: fetch failed
+Failed for idre=1458&id=192103: fetch failed
+Failed for idre=1458&id=63445: fetch failed
+Failed for idre=1458&id=113944: fetch failed
+Failed for idre=1458&id=63450: fetch failed
+Failed for idre=1458&id=114634: fetch failed
+Failed for idre=1458&id=115097: fetch failed
+Failed for idre=1458&id=115814: fetch failed
+Failed for idre=1458&id=115096: fetch failed
+Failed for idre=1458&id=114908: fetch failed
+Failed for idre=1458&id=114635: fetch failed
+Failed for idre=1458&id=15148: fetch failed
+Failed for idre=1458&id=36858: fetch failed
+Failed for idre=1458&id=111848: fetch failed
+Failed for idre=1458&id=111849: fetch failed
+Failed for idre=1458&id=193785: fetch failed
+Failed for idre=1458&id=15149: fetch failed
+Failed for idre=1458&id=192296: fetch failed
+Failed for idre=1458&id=194662: fetch failed
+Failed for idre=1458&id=36866: fetch failed
+Failed for idre=1458&id=151436: fetch failed
+Failed for idre=1458&id=192298: fetch failed
+Failed for idre=1458&id=192297: fetch failed
+Failed for idre=1458&id=192325: fetch failed
+Failed for idre=1458&id=192324: fetch failed
+Failed for idre=1458&id=195882: fetch failed
+Failed for idre=1458&id=192321: fetch failed
+Failed for idre=1458&id=14211: fetch failed
+Failed for idre=1458&id=14800: fetch failed
+Failed for idre=1458&id=148953: fetch failed
+Failed for idre=1458&id=148952: fetch failed
+Failed for idre=1458&id=111554: fetch failed
+Failed for idre=1458&id=148951: fetch failed
+Failed for idre=1458&id=30785: fetch failed
+Failed for idre=1458&id=166666: fetch failed
+Failed for idre=1458&id=32218: fetch failed
+Failed for idre=1458&id=32217: fetch failed
+Failed for idre=1458&id=95355: fetch failed
+Failed for idre=1458&id=32216: fetch failed
+Failed for idre=1458&id=697: fetch failed
+Failed for idre=1458&id=32219: fetch failed
+Failed for idre=1458&id=199584: fetch failed
+Failed for idre=1458&id=161990: fetch failed
+Failed for idre=1458&id=201778: fetch failed
+Failed for idre=1458&id=161989: fetch failed
+Failed for idre=1458&id=87176: fetch failed
+Failed for idre=1458&id=143777: fetch failed
+Failed for idre=1458&id=160473: fetch failed
+Failed for idre=1458&id=160472: fetch failed
+Failed for idre=1458&id=160470: fetch failed
+Failed for idre=1458&id=160471: fetch failed
+Failed for idre=1458&id=160475: fetch failed
+Failed for idre=1458&id=160474: fetch failed
+Failed for idre=1458&id=128928: fetch failed
+Failed for idre=1458&id=128927: fetch failed
+Failed for idre=1458&id=163282: fetch failed
+Failed for idre=1458&id=128926: fetch failed
+Failed for idre=1458&id=14294: fetch failed
+Failed for idre=1458&id=97996: fetch failed
+Failed for idre=1458&id=162246: fetch failed
+Failed for idre=1458&id=162245: fetch failed
+Failed for idre=1458&id=162243: fetch failed
+Failed for idre=1458&id=162244: fetch failed
+Failed for idre=1458&id=154365: fetch failed
+Failed for idre=1458&id=154364: fetch failed
+Failed for idre=1458&id=172429: fetch failed
+Failed for idre=1458&id=171714: fetch failed
+Failed for idre=1458&id=219789: fetch failed
+Failed for idre=1458&id=60477: fetch failed
+Failed for idre=1458&id=143969: fetch failed
+Failed for idre=1458&id=28425: fetch failed
+Failed for idre=1458&id=203755: fetch failed
+Failed for idre=1458&id=203754: fetch failed
+Failed for idre=1458&id=203752: fetch failed
+Failed for idre=1458&id=203753: fetch failed
+Failed for idre=1458&id=203757: fetch failed
+Failed for idre=1458&id=203756: fetch failed
+Failed for idre=1458&id=171798: fetch failed
+Failed for idre=1458&id=194842: fetch failed
+Failed for idre=1458&id=203758: fetch failed
+Failed for idre=1458&id=194841: fetch failed
+Failed for idre=1458&id=171800: fetch failed
+Failed for idre=1458&id=171799: fetch failed
+Failed for idre=1458&id=171691: fetch failed
+Failed for idre=1458&id=171690: fetch failed
+Failed for idre=1458&id=173097: fetch failed
+Failed for idre=1458&id=171689: fetch failed
+Failed for idre=1458&id=173258: fetch failed
+Failed for idre=1458&id=171692: fetch failed
+Failed for idre=1458&id=172776: fetch failed
+Failed for idre=1458&id=172775: fetch failed
+Failed for idre=1458&id=172773: fetch failed
+Failed for idre=1458&id=172774: fetch failed
+Failed for idre=1458&id=63353: fetch failed
+Progress: 96700/117993
+Failed for idre=1458&id=63308: fetch failed
+Failed for idre=1458&id=143379: fetch failed
+Failed for idre=1458&id=113993: fetch failed
+Failed for idre=1458&id=63354: fetch failed
+Failed for idre=1458&id=143451: fetch failed
+Failed for idre=1458&id=143381: fetch failed
+Failed for idre=1458&id=143380: fetch failed
+Failed for idre=1458&id=166043: fetch failed
+Failed for idre=1458&id=102593: fetch failed
+Failed for idre=1458&id=143324: fetch failed
+Failed for idre=1458&id=143325: fetch failed
+Failed for idre=1458&id=166045: fetch failed
+Failed for idre=1458&id=166044: fetch failed
+Failed for idre=1458&id=184494: fetch failed
+Failed for idre=1458&id=184493: fetch failed
+Failed for idre=1458&id=166047: fetch failed
+Failed for idre=1458&id=166048: fetch failed
+Failed for idre=1458&id=143066: fetch failed
+Failed for idre=1458&id=143065: fetch failed
+Failed for idre=1458&id=102061: fetch failed
+Failed for idre=1458&id=143069: fetch failed
+Failed for idre=1458&id=143067: fetch failed
+Failed for idre=1458&id=143068: fetch failed
+Failed for idre=1458&id=143634: fetch failed
+Failed for idre=1458&id=94937: fetch failed
+Failed for idre=1458&id=222490: fetch failed
+Failed for idre=1458&id=222489: fetch failed
+Failed for idre=1458&id=193546: fetch failed
+Failed for idre=1458&id=115986: fetch failed
+Failed for idre=1458&id=13368: fetch failed
+Failed for idre=1458&id=111904: fetch failed
+Failed for idre=1458&id=160731: fetch failed
+Failed for idre=1458&id=94369: fetch failed
+Failed for idre=1458&id=111945: fetch failed
+Failed for idre=1458&id=15244: fetch failed
+Failed for idre=1458&id=203656: fetch failed
+Failed for idre=1458&id=20719: fetch failed
+Failed for idre=1458&id=107535: fetch failed
+Failed for idre=1458&id=107534: fetch failed
+Failed for idre=1458&id=103518: fetch failed
+Failed for idre=1458&id=107533: fetch failed
+Failed for idre=1458&id=157404: fetch failed
+Failed for idre=1458&id=94736: fetch failed
+Failed for idre=1458&id=108607: fetch failed
+Failed for idre=1458&id=102273: fetch failed
+Failed for idre=1458&id=32803: fetch failed
+Failed for idre=1458&id=108070: fetch failed
+Failed for idre=1458&id=14765: fetch failed
+Failed for idre=1458&id=102411: fetch failed
+Failed for idre=1458&id=178058: fetch failed
+Failed for idre=1458&id=178057: fetch failed
+Failed for idre=1458&id=14766: fetch failed
+Failed for idre=1458&id=37736: fetch failed
+Failed for idre=1458&id=178060: fetch failed
+Failed for idre=1458&id=178059: fetch failed
+Failed for idre=1458&id=113195: fetch failed
+Failed for idre=1458&id=104220: fetch failed
+Failed for idre=1458&id=178061: fetch failed
+Failed for idre=1458&id=102568: fetch failed
+Failed for idre=1458&id=115099: fetch failed
+Failed for idre=1458&id=111946: fetch failed
+Failed for idre=1458&id=140868: fetch failed
+Failed for idre=1458&id=112487: fetch failed
+Failed for idre=1458&id=116171: fetch failed
+Failed for idre=1458&id=30827: fetch failed
+Failed for idre=1458&id=140941: fetch failed
+Failed for idre=1458&id=140940: fetch failed
+Failed for idre=1458&id=112133: fetch failed
+Failed for idre=1458&id=152037: fetch failed
+Failed for idre=1458&id=141465: fetch failed
+Failed for idre=1458&id=141038: fetch failed
+Failed for idre=1458&id=190967: fetch failed
+Failed for idre=1458&id=190966: fetch failed
+Failed for idre=1458&id=190971: fetch failed
+Failed for idre=1458&id=190970: fetch failed
+Failed for idre=1458&id=190968: fetch failed
+Failed for idre=1458&id=190969: fetch failed
+Failed for idre=1458&id=104281: fetch failed
+Failed for idre=1458&id=190972: fetch failed
+Failed for idre=1458&id=182864: fetch failed
+Failed for idre=1458&id=211958: fetch failed
+Failed for idre=1458&id=104189: fetch failed
+Failed for idre=1458&id=195905: fetch failed
+Failed for idre=1458&id=115460: fetch failed
+Failed for idre=1458&id=141217: fetch failed
+Failed for idre=1458&id=172126: fetch failed
+Failed for idre=1458&id=62753: fetch failed
+Failed for idre=1458&id=62749: fetch failed
+Failed for idre=1458&id=62751: fetch failed
+Failed for idre=1458&id=161768: fetch failed
+Failed for idre=1458&id=161767: fetch failed
+Failed for idre=1458&id=13701: fetch failed
+Failed for idre=1458&id=15484: fetch failed
+Failed for idre=1458&id=161769: fetch failed
+Failed for idre=1458&id=161770: fetch failed
+Failed for idre=1458&id=191526: fetch failed
+Failed for idre=1458&id=13702: fetch failed
+Failed for idre=1458&id=32316: fetch failed
+Failed for idre=1458&id=32315: fetch failed
+Failed for idre=1458&id=191527: fetch failed
+Progress: 96800/117993
+Failed for idre=1458&id=191528: fetch failed
+Failed for idre=1458&id=36674: fetch failed
+Failed for idre=1458&id=94109: fetch failed
+Failed for idre=1458&id=107504: fetch failed
+Failed for idre=1458&id=212394: fetch failed
+Failed for idre=1458&id=110690: fetch failed
+Failed for idre=1458&id=110691: fetch failed
+Failed for idre=1458&id=35884: fetch failed
+Failed for idre=1458&id=107505: fetch failed
+Failed for idre=1458&id=43189: fetch failed
+Failed for idre=1458&id=174219: fetch failed
+Failed for idre=1458&id=68148: fetch failed
+Failed for idre=1458&id=68149: fetch failed
+Failed for idre=1458&id=174220: fetch failed
+Failed for idre=1458&id=43190: fetch failed
+Failed for idre=1458&id=133916: fetch failed
+Failed for idre=1458&id=133915: fetch failed
+Failed for idre=1458&id=174221: fetch failed
+Failed for idre=1458&id=174222: fetch failed
+Failed for idre=1458&id=191076: fetch failed
+Failed for idre=1458&id=102077: fetch failed
+Failed for idre=1458&id=142164: fetch failed
+Failed for idre=1458&id=142163: fetch failed
+Failed for idre=1458&id=142161: fetch failed
+Failed for idre=1458&id=142162: fetch failed
+Failed for idre=1458&id=142166: fetch failed
+Failed for idre=1458&id=142165: fetch failed
+Failed for idre=1458&id=67603: fetch failed
+Failed for idre=1458&id=67602: fetch failed
+Failed for idre=1458&id=142167: fetch failed
+Failed for idre=1458&id=63014: fetch failed
+Failed for idre=1458&id=68693: fetch failed
+Failed for idre=1458&id=68692: fetch failed
+Failed for idre=1458&id=93283: fetch failed
+Failed for idre=1458&id=68696: fetch failed
+Failed for idre=1458&id=68694: fetch failed
+Failed for idre=1458&id=68695: fetch failed
+Failed for idre=1458&id=94442: fetch failed
+Failed for idre=1458&id=93284: fetch failed
+Failed for idre=1458&id=108139: fetch failed
+Failed for idre=1458&id=63466: fetch failed
+Failed for idre=1458&id=94443: fetch failed
+Failed for idre=1458&id=165734: fetch failed
+Failed for idre=1458&id=130399: fetch failed
+Failed for idre=1458&id=63956: fetch failed
+Failed for idre=1458&id=167947: fetch failed
+Failed for idre=1458&id=193067: fetch failed
+Failed for idre=1458&id=130201: fetch failed
+Failed for idre=1458&id=130700: fetch failed
+Failed for idre=1458&id=219916: fetch failed
+Failed for idre=1458&id=219915: fetch failed
+Failed for idre=1458&id=219920: fetch failed
+Failed for idre=1458&id=219919: fetch failed
+Failed for idre=1458&id=219917: fetch failed
+Failed for idre=1458&id=219918: fetch failed
+Failed for idre=1458&id=172800: fetch failed
+Failed for idre=1458&id=219793: fetch failed
+Failed for idre=1458&id=157252: fetch failed
+Failed for idre=1458&id=157251: fetch failed
+Failed for idre=1458&id=172801: fetch failed
+Failed for idre=1458&id=142108: fetch failed
+Failed for idre=1458&id=157254: fetch failed
+Failed for idre=1458&id=157253: fetch failed
+Failed for idre=1458&id=110677: fetch failed
+Failed for idre=1458&id=148182: fetch failed
+Failed for idre=1458&id=157255: fetch failed
+Failed for idre=1458&id=157256: fetch failed
+Failed for idre=1458&id=142660: fetch failed
+Failed for idre=1458&id=102592: fetch failed
+Failed for idre=1458&id=130719: fetch failed
+Failed for idre=1458&id=130939: fetch failed
+Failed for idre=1458&id=173338: fetch failed
+Failed for idre=1458&id=130916: fetch failed
+Failed for idre=1458&id=130721: fetch failed
+Failed for idre=1458&id=130720: fetch failed
+Failed for idre=1458&id=142638: fetch failed
+Failed for idre=1458&id=142596: fetch failed
+Failed for idre=1458&id=130722: fetch failed
+Failed for idre=1458&id=130723: fetch failed
+Failed for idre=1458&id=85812: fetch failed
+Failed for idre=1458&id=111042: fetch failed
+Failed for idre=1458&id=103449: fetch failed
+Failed for idre=1458&id=45252: fetch failed
+Failed for idre=1458&id=37587: fetch failed
+Failed for idre=1458&id=66821: fetch failed
+Failed for idre=1458&id=192255: fetch failed
+Failed for idre=1458&id=192254: fetch failed
+Failed for idre=1458&id=191272: fetch failed
+Failed for idre=1458&id=207312: fetch failed
+Failed for idre=1458&id=126850: fetch failed
+Failed for idre=1458&id=207391: fetch failed
+Failed for idre=1458&id=215162: fetch failed
+Failed for idre=1458&id=191273: fetch failed
+Failed for idre=1458&id=215166: fetch failed
+Failed for idre=1458&id=215165: fetch failed
+Failed for idre=1458&id=215163: fetch failed
+Failed for idre=1458&id=215164: fetch failed
+Failed for idre=1458&id=215168: fetch failed
+Failed for idre=1458&id=215167: fetch failed
+Failed for idre=1458&id=97631: fetch failed
+Progress: 96900/117993
+Failed for idre=1458&id=97630: fetch failed
+Failed for idre=1458&id=67347: fetch failed
+Failed for idre=1458&id=97629: fetch failed
+Failed for idre=1458&id=131167: fetch failed
+Failed for idre=1458&id=111597: fetch failed
+Failed for idre=1458&id=86945: fetch failed
+Failed for idre=1458&id=86944: fetch failed
+Failed for idre=1458&id=131168: fetch failed
+Failed for idre=1458&id=15521: fetch failed
+Failed for idre=1458&id=219730: fetch failed
+Failed for idre=1458&id=86946: fetch failed
+Failed for idre=1458&id=201496: fetch failed
+Failed for idre=1458&id=32849: fetch failed
+Failed for idre=1458&id=219731: fetch failed
+Failed for idre=1458&id=80275: fetch failed
+Failed for idre=1458&id=144143: fetch failed
+Failed for idre=1458&id=216537: fetch failed
+Failed for idre=1458&id=144551: fetch failed
+Failed for idre=1458&id=144550: fetch failed
+Failed for idre=1458&id=144152: fetch failed
+Failed for idre=1458&id=144549: fetch failed
+Failed for idre=1458&id=205320: fetch failed
+Failed for idre=1458&id=205319: fetch failed
+Failed for idre=1458&id=200793: fetch failed
+Failed for idre=1458&id=200792: fetch failed
+Failed for idre=1458&id=205321: fetch failed
+Failed for idre=1458&id=160661: fetch failed
+Failed for idre=1458&id=86970: fetch failed
+Failed for idre=1458&id=86969: fetch failed
+Failed for idre=1458&id=162356: fetch failed
+Failed for idre=1458&id=162355: fetch failed
+Failed for idre=1458&id=86971: fetch failed
+Failed for idre=1458&id=162354: fetch failed
+Failed for idre=1458&id=162985: fetch failed
+Failed for idre=1458&id=162357: fetch failed
+Failed for idre=1458&id=64052: fetch failed
+Failed for idre=1458&id=64051: fetch failed
+Failed for idre=1458&id=112862: fetch failed
+Failed for idre=1458&id=115062: fetch failed
+Failed for idre=1458&id=62606: fetch failed
+Failed for idre=1458&id=62604: fetch failed
+Failed for idre=1458&id=62610: fetch failed
+Failed for idre=1458&id=62609: fetch failed
+Failed for idre=1458&id=62607: fetch failed
+Failed for idre=1458&id=62608: fetch failed
+Failed for idre=1458&id=63891: fetch failed
+Failed for idre=1458&id=62611: fetch failed
+Failed for idre=1458&id=62614: fetch failed
+Failed for idre=1458&id=62613: fetch failed
+Failed for idre=1458&id=62612: fetch failed
+Failed for idre=1458&id=63892: fetch failed
+Failed for idre=1458&id=141105: fetch failed
+Failed for idre=1458&id=63401: fetch failed
+Failed for idre=1458&id=141253: fetch failed
+Failed for idre=1458&id=141252: fetch failed
+Failed for idre=1458&id=101287: fetch failed
+Failed for idre=1458&id=141251: fetch failed
+Failed for idre=1458&id=162378: fetch failed
+Failed for idre=1458&id=37695: fetch failed
+Failed for idre=1458&id=131031: fetch failed
+Failed for idre=1458&id=130792: fetch failed
+Failed for idre=1458&id=130790: fetch failed
+Failed for idre=1458&id=130791: fetch failed
+Failed for idre=1458&id=102953: fetch failed
+Failed for idre=1458&id=131032: fetch failed
+Failed for idre=1458&id=184269: fetch failed
+Failed for idre=1458&id=62916: fetch failed
+Failed for idre=1458&id=158887: fetch failed
+Failed for idre=1458&id=66489: fetch failed
+Failed for idre=1458&id=179333: fetch failed
+Failed for idre=1458&id=179332: fetch failed
+Failed for idre=1458&id=158547: fetch failed
+Failed for idre=1458&id=206571: fetch failed
+Failed for idre=1458&id=216863: fetch failed
+Failed for idre=1458&id=206570: fetch failed
+Failed for idre=1458&id=158549: fetch failed
+Failed for idre=1458&id=158548: fetch failed
+Failed for idre=1458&id=193669: fetch failed
+Failed for idre=1458&id=104391: fetch failed
+Failed for idre=1458&id=158550: fetch failed
+Failed for idre=1458&id=104390: fetch failed
+Failed for idre=1458&id=63827: fetch failed
+Failed for idre=1458&id=193670: fetch failed
+Failed for idre=1458&id=160592: fetch failed
+Failed for idre=1458&id=160591: fetch failed
+Failed for idre=1458&id=130238: fetch failed
+Failed for idre=1458&id=128922: fetch failed
+Failed for idre=1458&id=220311: fetch failed
+Failed for idre=1458&id=160593: fetch failed
+Failed for idre=1458&id=157331: fetch failed
+Failed for idre=1458&id=157330: fetch failed
+Failed for idre=1458&id=220559: fetch failed
+Failed for idre=1458&id=157329: fetch failed
+Failed for idre=1458&id=157333: fetch failed
+Failed for idre=1458&id=157332: fetch failed
+Failed for idre=1458&id=157337: fetch failed
+Failed for idre=1458&id=157336: fetch failed
+Failed for idre=1458&id=157334: fetch failed
+Failed for idre=1458&id=157335: fetch failed
+Failed for idre=1458&id=157339: fetch failed
+Progress: 97000/117993
+Failed for idre=1458&id=157338: fetch failed
+Failed for idre=1458&id=157343: fetch failed
+Failed for idre=1458&id=157342: fetch failed
+Failed for idre=1458&id=157340: fetch failed
+Failed for idre=1458&id=157341: fetch failed
+Failed for idre=1458&id=157345: fetch failed
+Failed for idre=1458&id=157344: fetch failed
+Failed for idre=1458&id=44710: fetch failed
+Failed for idre=1458&id=157348: fetch failed
+Failed for idre=1458&id=157346: fetch failed
+Failed for idre=1458&id=157347: fetch failed
+Failed for idre=1458&id=113773: fetch failed
+Failed for idre=1458&id=158172: fetch failed
+Failed for idre=1458&id=112295: fetch failed
+Failed for idre=1458&id=112294: fetch failed
+Failed for idre=1458&id=112292: fetch failed
+Failed for idre=1458&id=112293: fetch failed
+Failed for idre=1458&id=130139: fetch failed
+Failed for idre=1458&id=131392: fetch failed
+Failed for idre=1458&id=103071: fetch failed
+Failed for idre=1458&id=201586: fetch failed
+Failed for idre=1458&id=37369: fetch failed
+Failed for idre=1458&id=150878: fetch failed
+Failed for idre=1458&id=81183: fetch failed
+Failed for idre=1458&id=81182: fetch failed
+Failed for idre=1458&id=112837: fetch failed
+Failed for idre=1458&id=175054: fetch failed
+Failed for idre=1458&id=81184: fetch failed
+Failed for idre=1458&id=81185: fetch failed
+Failed for idre=1458&id=213257: fetch failed
+Failed for idre=1458&id=149540: fetch failed
+Failed for idre=1458&id=142381: fetch failed
+Failed for idre=1458&id=203874: fetch failed
+Failed for idre=1458&id=203872: fetch failed
+Failed for idre=1458&id=203873: fetch failed
+Failed for idre=1458&id=161996: fetch failed
+Failed for idre=1458&id=130943: fetch failed
+Failed for idre=1458&id=129415: fetch failed
+Failed for idre=1458&id=150933: fetch failed
+Failed for idre=1458&id=161997: fetch failed
+Failed for idre=1458&id=130268: fetch failed
+Failed for idre=1458&id=19897: fetch failed
+Failed for idre=1458&id=130966: fetch failed
+Failed for idre=1458&id=62789: fetch failed
+Failed for idre=1458&id=171924: fetch failed
+Failed for idre=1458&id=19898: fetch failed
+Failed for idre=1458&id=19899: fetch failed
+Failed for idre=1458&id=148250: fetch failed
+Failed for idre=1458&id=109023: fetch failed
+Failed for idre=1458&id=148254: fetch failed
+Failed for idre=1458&id=148253: fetch failed
+Failed for idre=1458&id=148251: fetch failed
+Failed for idre=1458&id=148252: fetch failed
+Failed for idre=1458&id=148459: fetch failed
+Failed for idre=1458&id=148285: fetch failed
+Failed for idre=1458&id=158568: fetch failed
+Failed for idre=1458&id=158567: fetch failed
+Failed for idre=1458&id=141115: fetch failed
+Failed for idre=1458&id=103231: fetch failed
+Failed for idre=1458&id=158570: fetch failed
+Failed for idre=1458&id=158569: fetch failed
+Failed for idre=1458&id=961: fetch failed
+Failed for idre=1458&id=960: fetch failed
+Failed for idre=1458&id=66679: fetch failed
+Failed for idre=1458&id=141221: fetch failed
+Failed for idre=1458&id=963: fetch failed
+Failed for idre=1458&id=962: fetch failed
+Failed for idre=1458&id=64813: fetch failed
+Failed for idre=1458&id=20694: fetch failed
+Failed for idre=1458&id=964: fetch failed
+Failed for idre=1458&id=18659: fetch failed
+Failed for idre=1458&id=166157: fetch failed
+Failed for idre=1458&id=64814: fetch failed
+Failed for idre=1458&id=204259: fetch failed
+Failed for idre=1458&id=130291: fetch failed
+Failed for idre=1458&id=130100: fetch failed
+Failed for idre=1458&id=130101: fetch failed
+Failed for idre=1458&id=115082: fetch failed
+Failed for idre=1458&id=115531: fetch failed
+Failed for idre=1458&id=178433: fetch failed
+Failed for idre=1458&id=178432: fetch failed
+Failed for idre=1458&id=154975: fetch failed
+Failed for idre=1458&id=154999: fetch failed
+Failed for idre=1458&id=178435: fetch failed
+Failed for idre=1458&id=178434: fetch failed
+Failed for idre=1458&id=178427: fetch failed
+Failed for idre=1458&id=178423: fetch failed
+Failed for idre=1458&id=178421: fetch failed
+Failed for idre=1458&id=178422: fetch failed
+Failed for idre=1458&id=178429: fetch failed
+Failed for idre=1458&id=178428: fetch failed
+Failed for idre=1458&id=62483: fetch failed
+Failed for idre=1458&id=93038: fetch failed
+Failed for idre=1458&id=178430: fetch failed
+Failed for idre=1458&id=178431: fetch failed
+Failed for idre=1458&id=177382: fetch failed
+Failed for idre=1458&id=177381: fetch failed
+Failed for idre=1458&id=45362: fetch failed
+Failed for idre=1458&id=62706: fetch failed
+Failed for idre=1458&id=177392: fetch failed
+Progress: 97100/117993
+Failed for idre=1458&id=177393: fetch failed
+Failed for idre=1458&id=192826: fetch failed
+Failed for idre=1458&id=130596: fetch failed
+Failed for idre=1458&id=162129: fetch failed
+Failed for idre=1458&id=162128: fetch failed
+Failed for idre=1458&id=63835: fetch failed
+Failed for idre=1458&id=162127: fetch failed
+Failed for idre=1458&id=162131: fetch failed
+Failed for idre=1458&id=162130: fetch failed
+Failed for idre=1458&id=174225: fetch failed
+Failed for idre=1458&id=174224: fetch failed
+Failed for idre=1458&id=115061: fetch failed
+Failed for idre=1458&id=174223: fetch failed
+Failed for idre=1458&id=174227: fetch failed
+Failed for idre=1458&id=174226: fetch failed
+Failed for idre=1458&id=174230: fetch failed
+Failed for idre=1458&id=174229: fetch failed
+Failed for idre=1458&id=174228: fetch failed
+Failed for idre=1458&id=150942: fetch failed
+Failed for idre=1458&id=35054: fetch failed
+Failed for idre=1458&id=211876: fetch failed
+Failed for idre=1458&id=35256: fetch failed
+Failed for idre=1458&id=35255: fetch failed
+Failed for idre=1458&id=35055: fetch failed
+Failed for idre=1458&id=144316: fetch failed
+Failed for idre=1458&id=28817: fetch failed
+Failed for idre=1458&id=35257: fetch failed
+Failed for idre=1458&id=218028: fetch failed
+Failed for idre=1458&id=218026: fetch failed
+Failed for idre=1458&id=2608: fetch failed
+Failed for idre=1458&id=2609: fetch failed
+Failed for idre=1458&id=218030: fetch failed
+Failed for idre=1458&id=218029: fetch failed
+Failed for idre=1458&id=218035: fetch failed
+Failed for idre=1458&id=218034: fetch failed
+Failed for idre=1458&id=218031: fetch failed
+Failed for idre=1458&id=218032: fetch failed
+Failed for idre=1458&id=218038: fetch failed
+Failed for idre=1458&id=218037: fetch failed
+Failed for idre=1458&id=166770: fetch failed
+Failed for idre=1458&id=218050: fetch failed
+Failed for idre=1458&id=218048: fetch failed
+Failed for idre=1458&id=218049: fetch failed
+Failed for idre=1458&id=166772: fetch failed
+Failed for idre=1458&id=166771: fetch failed
+Failed for idre=1458&id=160790: fetch failed
+Failed for idre=1458&id=81458: fetch failed
+Failed for idre=1458&id=166773: fetch failed
+Failed for idre=1458&id=166774: fetch failed
+Failed for idre=1458&id=115970: fetch failed
+Failed for idre=1458&id=144190: fetch failed
+Failed for idre=1458&id=142497: fetch failed
+Failed for idre=1458&id=142496: fetch failed
+Failed for idre=1458&id=142494: fetch failed
+Failed for idre=1458&id=142495: fetch failed
+Failed for idre=1458&id=142499: fetch failed
+Failed for idre=1458&id=142498: fetch failed
+Failed for idre=1458&id=110838: fetch failed
+Failed for idre=1458&id=142502: fetch failed
+Failed for idre=1458&id=142500: fetch failed
+Failed for idre=1458&id=142501: fetch failed
+Failed for idre=1458&id=110840: fetch failed
+Failed for idre=1458&id=110839: fetch failed
+Failed for idre=1458&id=204075: fetch failed
+Failed for idre=1458&id=84248: fetch failed
+Failed for idre=1458&id=110841: fetch failed
+Failed for idre=1458&id=60672: fetch failed
+Failed for idre=1458&id=216893: fetch failed
+Failed for idre=1458&id=203321: fetch failed
+Failed for idre=1458&id=143958: fetch failed
+Failed for idre=1458&id=190285: fetch failed
+Failed for idre=1458&id=190283: fetch failed
+Failed for idre=1458&id=190284: fetch failed
+Failed for idre=1458&id=191458: fetch failed
+Failed for idre=1458&id=222555: fetch failed
+Failed for idre=1458&id=216897: fetch failed
+Failed for idre=1458&id=216896: fetch failed
+Failed for idre=1458&id=216894: fetch failed
+Failed for idre=1458&id=216895: fetch failed
+Failed for idre=1458&id=66613: fetch failed
+Failed for idre=1458&id=142365: fetch failed
+Failed for idre=1458&id=190210: fetch failed
+Failed for idre=1458&id=43507: fetch failed
+Failed for idre=1458&id=44764: fetch failed
+Failed for idre=1458&id=43506: fetch failed
+Failed for idre=1458&id=190212: fetch failed
+Failed for idre=1458&id=190211: fetch failed
+Failed for idre=1458&id=112519: fetch failed
+Failed for idre=1458&id=112518: fetch failed
+Failed for idre=1458&id=190213: fetch failed
+Failed for idre=1458&id=112517: fetch failed
+Failed for idre=1458&id=44042: fetch failed
+Failed for idre=1458&id=114168: fetch failed
+Failed for idre=1458&id=173255: fetch failed
+Failed for idre=1458&id=173254: fetch failed
+Failed for idre=1458&id=173252: fetch failed
+Failed for idre=1458&id=173253: fetch failed
+Failed for idre=1458&id=195816: fetch failed
+Failed for idre=1458&id=192093: fetch failed
+Failed for idre=1458&id=61510: fetch failed
+Progress: 97200/117993
+Failed for idre=1458&id=163346: fetch failed
+Failed for idre=1458&id=102379: fetch failed
+Failed for idre=1458&id=102985: fetch failed
+Failed for idre=1458&id=27912: fetch failed
+Failed for idre=1458&id=163640: fetch failed
+Failed for idre=1458&id=87140: fetch failed
+Failed for idre=1458&id=87139: fetch failed
+Failed for idre=1458&id=87061: fetch failed
+Failed for idre=1458&id=87138: fetch failed
+Progress: 97300/117993
+Progress: 97400/117993
+Progress: 97500/117993
+Progress: 97600/117993
+Progress: 97700/117993
+Progress: 97800/117993
+Progress: 97900/117993
+Progress: 98000/117993
+Progress: 98100/117993
+Progress: 98200/117993
+Progress: 98300/117993
+Progress: 98400/117993
+Progress: 98500/117993
+Progress: 98600/117993
+Progress: 98700/117993
+Progress: 98800/117993
+Progress: 98900/117993
+Progress: 99000/117993
+Progress: 99100/117993
+Progress: 99200/117993
+Progress: 99300/117993
+Progress: 99400/117993
+Progress: 99500/117993
+Progress: 99600/117993
+Progress: 99700/117993
+Progress: 99800/117993
+Progress: 99900/117993
+Progress: 100000/117993
+Progress: 100100/117993
+Progress: 100200/117993
+Progress: 100300/117993
+Progress: 100400/117993
+Progress: 100500/117993
+Progress: 100600/117993
+Progress: 100700/117993
+Progress: 100800/117993
+Progress: 100900/117993
+Progress: 101000/117993
+Progress: 101100/117993
+Progress: 101200/117993
+Progress: 101300/117993
+Progress: 101400/117993
+Progress: 101500/117993
+Progress: 101600/117993
+Progress: 101700/117993
+Progress: 101800/117993
+Progress: 101900/117993
+Progress: 102000/117993
+Progress: 102100/117993
+Progress: 102200/117993
+Progress: 102300/117993
+Progress: 102400/117993
+Progress: 102500/117993
+Progress: 102600/117993
+Progress: 102700/117993
+Progress: 102800/117993
+Progress: 102900/117993
+Progress: 103000/117993
+Progress: 103100/117993
+Progress: 103200/117993
+Progress: 103300/117993
+Progress: 103400/117993
+Progress: 103500/117993
+Progress: 103600/117993
+Progress: 103700/117993
+Progress: 103800/117993
+Progress: 103900/117993
+Progress: 104000/117993
+Progress: 104100/117993
+Progress: 104200/117993
+Progress: 104300/117993
+Progress: 104400/117993
+Progress: 104500/117993
+Progress: 104600/117993
+Progress: 104700/117993
+Progress: 104800/117993
+Progress: 104900/117993
+Progress: 105000/117993
+Progress: 105100/117993
+Progress: 105200/117993
+Progress: 105300/117993
+Progress: 105400/117993
+Progress: 105500/117993
+Progress: 105600/117993
+Progress: 105700/117993
+Progress: 105800/117993
+Progress: 105900/117993
+Progress: 106000/117993
+Progress: 106100/117993
+Progress: 106200/117993
+Progress: 106300/117993
+Progress: 106400/117993
+Progress: 106500/117993
+Progress: 106600/117993
+Progress: 106700/117993
+Progress: 106800/117993
+Progress: 106900/117993
+Progress: 107000/117993
+Progress: 107100/117993
+Progress: 107200/117993
+Progress: 107300/117993
+Progress: 107400/117993
+Progress: 107500/117993
+Progress: 107600/117993
+Progress: 107700/117993
+Progress: 107800/117993
+Progress: 107900/117993
+Progress: 108000/117993
+Progress: 108100/117993
+Progress: 108200/117993
+Progress: 108300/117993
+Progress: 108400/117993
+Progress: 108500/117993
+Progress: 108600/117993
+Progress: 108700/117993
+Progress: 108800/117993
+Progress: 108900/117993
+Progress: 109000/117993
+Progress: 109100/117993
+Progress: 109200/117993
+Progress: 109300/117993
+Progress: 109400/117993
+Progress: 109500/117993
+Progress: 109600/117993
+Progress: 109700/117993
+Progress: 109800/117993
+Progress: 109900/117993
+Progress: 110000/117993
+Progress: 110100/117993
+Progress: 110200/117993
+Progress: 110300/117993
+Progress: 110400/117993
+Progress: 110500/117993
+Progress: 110600/117993
+Progress: 110700/117993
+Progress: 110800/117993
+Progress: 110900/117993
+Progress: 111000/117993
+Progress: 111100/117993
+Progress: 111200/117993
+Progress: 111300/117993
+Progress: 111400/117993
+Progress: 111500/117993
+Progress: 111600/117993
+Progress: 111700/117993
+Progress: 111800/117993
+Progress: 111900/117993
+Progress: 112000/117993
+Progress: 112100/117993
+Progress: 112200/117993
+Progress: 112300/117993
+Progress: 112400/117993
+Progress: 112500/117993
+Progress: 112600/117993
+Progress: 112700/117993
+Progress: 112800/117993
+Progress: 112900/117993
+Progress: 113000/117993
+Progress: 113100/117993
+Progress: 113200/117993
+Progress: 113300/117993
+Progress: 113400/117993
+Progress: 113500/117993
+Progress: 113600/117993
+Progress: 113700/117993
+Progress: 113800/117993
+Progress: 113900/117993
+Progress: 114000/117993
+Progress: 114100/117993
+Progress: 114200/117993
+Progress: 114300/117993
+Progress: 114400/117993
+Progress: 114500/117993
+Progress: 114600/117993
+Progress: 114700/117993
+Progress: 114800/117993
+Progress: 114900/117993
+Progress: 115000/117993
+Progress: 115100/117993
+Progress: 115200/117993
+Progress: 115300/117993
+Progress: 115400/117993
+Progress: 115500/117993
+Progress: 115600/117993
+Progress: 115700/117993
+Progress: 115800/117993
+Progress: 115900/117993
+Progress: 116000/117993
+Progress: 116100/117993
+Progress: 116200/117993
+Progress: 116300/117993
+Progress: 116400/117993
+Progress: 116500/117993
+Progress: 116600/117993
+Progress: 116700/117993
+Progress: 116800/117993
+Progress: 116900/117993
+Progress: 117000/117993
+Progress: 117100/117993
+Progress: 117200/117993
+Progress: 117300/117993
+Progress: 117400/117993
+Progress: 117500/117993
+Progress: 117600/117993
+Progress: 117700/117993
+Progress: 117800/117993
+Progress: 117900/117993
+Progress: 117993/117993
+Writing Excel file…
+
+Results written to: C:\Users\nisco\Documents\dev\geniius_io\data\anchoukaj\anchoukaj-details.xlsx

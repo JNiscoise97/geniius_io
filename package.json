@@ -10,6 +10,8 @@
     "dev:tree": "pnpm --dir apps/tree dev",
     "generate:family-graph": "tsx scripts/generate-family-graph.ts",
     "generate:gedcom-tag-combinations": "tsx scripts/gedcom-tag-combinations.ts",
+    "scrape:anchoukaj": "tsx scripts/anchoukaj-scrape.ts",
+    "scrape:anchoukaj-details": "tsx scripts/anchoukaj-details.ts",
     "dev": "concurrently -n REBOND,ECHO,JOURNAL,CONNECT -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\" \"pnpm dev:journal\" \"pnpm dev:connect\"",
     "build:schema": "pnpm --filter @geniius/schema build",
     "build:gedcom": "pnpm --filter @geniius/gedcom-core build",
@@ -25,6 +27,7 @@
     "@geniius/utils": "workspace:^",
     "@types/node": "^25.9.1",
     "concurrently": "^9.2.1",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "xlsx": "^0.18.5"
   }
 }
