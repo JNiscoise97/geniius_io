@@ -629,6 +629,24 @@ Objet autonome.
 * score
 * décision
 * justification
+* statut
+
+---
+
+### Entité liée : Critère
+
+Détail de l'évaluation par critère.
+
+#### Attributs
+
+* id
+* réconciliation_id
+* nom
+* poids
+* valeur_candidate_1
+* valeur_candidate_2
+* score_partiel
+* compatible (booléen)
 
 ---
 
@@ -636,6 +654,9 @@ Objet autonome.
 
 Réconciliation
 → compare → Entité
+
+Réconciliation
+→ évalue → N Critère
 
 Réconciliation
 → produit → Fusion
@@ -671,6 +692,52 @@ Inférence
 
 ---
 
+# 14b. Modèle de suggestion et d'extraction assistée
+
+---
+
+## SuggestionMention
+
+Proposition automatique produite par le moteur IA.
+
+### Attributs
+
+* id
+* transcription_id
+* type_suggéré
+* valeur_suggérée
+* position_début
+* position_fin
+* confiance
+* statut (EnAttente / Validée / Rejetée)
+* moteur_version
+
+### Invariant
+
+Une SuggestionMention ne devient jamais une Mention sans validation humaine.
+
+---
+
+## ExtractionAutomatique
+
+Session d'extraction automatique sur un document.
+
+### Attributs
+
+* id
+* document_id
+* date_extraction
+* moteur_version
+* nombre_suggestions
+* statut
+
+### Relations
+
+ExtractionAutomatique
+→ produit → N SuggestionMention
+
+---
+
 # 15. Répartition des stockages
 
 ## Stockage documentaire
@@ -683,24 +750,38 @@ Contient :
 
 ---
 
-## Base relationnelle
+## Base relationnelle (System of Record)
+
+Rôle : source de vérité unique.
+
+Toute écriture passe par PostgreSQL.
 
 Contient :
 
 * sources
 * documents
+* transcriptions
 * mentions
 * assertions
+* entités
 * validations
+* réconciliations
 * référentiels
+* table outbox
 
 ---
 
-## Base graphe
+## Base graphe (Projection)
+
+Rôle : projection de lecture spécialisée.
+
+Alimentée par les événements métier issus de PostgreSQL.
+
+Peut être reconstruite intégralement depuis la base relationnelle.
 
 Contient :
 
-* entités
+* entités projetées
 * relations
 * événements
 * états

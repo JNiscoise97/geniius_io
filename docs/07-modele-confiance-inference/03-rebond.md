@@ -551,7 +551,101 @@ une conclusion existante.
 
 ---
 
-# 20. Principe directeur
+# 20. Calcul de confiance
+
+## Définition
+
+Le score de confiance est un entier normalisé compris entre 0 et 100.
+
+---
+
+## Correspondance avec l'échelle qualitative
+
+| Score | Niveau        |
+| ----- | ------------- |
+| 0–19  | Réfuté        |
+| 20–39 | Douteux       |
+| 40–59 | Possible      |
+| 60–74 | Probable      |
+| 75–89 | Très probable |
+| 90+   | Certain       |
+
+---
+
+## Facteurs d'ajustement
+
+### Qualité de la source
+
+Un acte original apporte une confiance maximale.
+
+Une copie secondaire réduit la confiance.
+
+Un témoignage indirect réduit davantage.
+
+---
+
+### Cohérence contextuelle
+
+La cohérence temporelle, géographique et sociale augmente le score.
+
+Une contradiction détectée diminue le score.
+
+---
+
+### Absence de validation
+
+En l'absence de validation humaine, le score est plafonné à 89.
+
+---
+
+# 21. Agrégation des preuves
+
+## Principe
+
+Plusieurs preuves indépendantes augmentent la confiance.
+
+Des preuves dépendantes (copies d'une même source) n'augmentent pas la confiance.
+
+---
+
+## Règle d'agrégation
+
+La confiance agrégée ne peut pas dépasser 89 en l'absence de validation humaine.
+
+---
+
+## Gestion des contradictions
+
+Une contradiction entre deux preuves réduit le score de confiance.
+
+La contradiction n'est pas supprimée : elle est conservée et exposée.
+
+---
+
+# 22. Impact des validations humaines
+
+## Principe
+
+La validation humaine peut faire passer une connaissance à un niveau de confiance supérieur à ce que les preuves seules permettent.
+
+---
+
+## Règles
+
+* Une validation humaine peut confirmer un score jusqu'à 100.
+* Un refus humain peut abaisser un score jusqu'à 0.
+* Toute validation est historisée et réversible.
+* Le poids d'une validation dépend du profil du validateur.
+
+---
+
+## Priorité
+
+La validation humaine prime toujours sur le calcul automatique.
+
+---
+
+# 23. Principe directeur
 
 REBOND ne cherche pas à déterminer une vérité définitive.
 

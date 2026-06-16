@@ -384,7 +384,84 @@ Les règles métier doivent être indépendantes :
 
 ## Finalité
 
-Identifier les entités identiques.
+Identifier les entités identiques et produire des propositions de rapprochement expliquées.
+
+---
+
+## Architecture hybride
+
+Le moteur adopte une approche en quatre étapes.
+
+---
+
+### Étape 1 — Règles bloquantes
+
+Certaines incohérences rendent un rapprochement impossible.
+
+Si une règle bloquante est déclenchée, le rapprochement est refusé sans scoring.
+
+Exemples :
+
+* décès antérieur à la naissance ;
+* filiation biologiquement impossible ;
+* chronologie incompatible ;
+* contradiction majeure sur des attributs non orthographiques.
+
+---
+
+### Étape 2 — Scoring pondéré
+
+Les candidats non bloqués sont évalués à partir de critères métier pondérés.
+
+#### Exemple : Personnes
+
+| Critère            | Poids |
+| ------------------ | ----: |
+| Nom                |    20 |
+| Prénom             |    15 |
+| Âge / dates        |    15 |
+| Conjoint           |    20 |
+| Parents            |    20 |
+| Lieu               |    10 |
+| Profession         |     5 |
+| Réseau relationnel |    10 |
+| Signature          |    20 |
+
+Les pondérations varient selon le type d'entité.
+
+---
+
+### Étape 3 — Classification
+
+| Score | Résultat      |
+| ----- | ------------- |
+| 0–39  | Distinct      |
+| 40–59 | Possible      |
+| 60–74 | Probable      |
+| 75–89 | Très probable |
+| 90+   | Quasi certain |
+
+---
+
+### Étape 4 — Validation humaine
+
+Le moteur propose.
+
+L'humain décide.
+
+La décision est historisée et réversible.
+
+---
+
+## Explicabilité
+
+Toute proposition est accompagnée :
+
+* des critères utilisés ;
+* des poids appliqués ;
+* du score calculé ;
+* des éléments favorables ;
+* des contradictions observées.
 
 ---
 
@@ -406,7 +483,7 @@ Assertions.
 
 ## Sorties
 
-Propositions de rapprochement.
+Propositions de rapprochement scorées et expliquées.
 
 ---
 
@@ -543,28 +620,67 @@ Contient :
 
 ---
 
-## 12.2 Base relationnelle
+## 12.2 Base relationnelle (System of Record)
+
+Rôle : source de vérité unique.
+
+Toute écriture passe par PostgreSQL.
 
 Contient :
 
-* objets métier ;
+* objets métier (sources, documents, mentions, assertions, entités, relations, événements) ;
+* validations et historique complet ;
 * référentiels ;
-* workflows.
+* workflows ;
+* table outbox des événements.
 
 ---
 
-## 12.3 Base graphe
+## 12.3 Base graphe (Projection)
+
+Rôle : projection de lecture spécialisée.
+
+Alimentée par les événements métier issus de PostgreSQL.
+
+Peut être reconstruite intégralement à partir de la base relationnelle.
 
 Contient :
 
-* relations ;
-* réseaux ;
-* voisinages ;
-* trajectoires.
+* représentation navigable des entités et relations ;
+* réseaux, voisinages, trajectoires ;
+* projections consolidées des connaissances validées.
 
 ---
 
-## 12.4 Moteur de recherche
+## 12.4 Pattern Outbox
+
+La synchronisation entre PostgreSQL et la base graphe repose sur le pattern Outbox.
+
+### Principe
+
+Chaque opération d'écriture dans PostgreSQL produit un événement persisté dans une table `outbox`.
+
+Un processus de projection consomme ces événements et met à jour la base graphe.
+
+### Exemples d'événements
+
+* DocumentImporté
+* MentionCréée
+* AssertionValidée
+* PersonneCréée
+* RéconciliationAcceptée
+* RelationCréée
+* HypothèseConfirmée
+
+### Garanties
+
+* cohérence finale entre SQL et graphe ;
+* reconstruction possible des projections à tout moment ;
+* audit complet des synchronisations.
+
+---
+
+## 12.5 Moteur de recherche
 
 Contient :
 
@@ -691,6 +807,45 @@ Configuration.
 ---
 
 # 16. Architecture IA
+
+## Pipeline d'extraction semi-automatique
+
+### Architecture
+
+```text
+Document
+↓
+Transcription
+↓
+Détection automatique
+↓
+Suggestions
+↓
+Validation humaine
+↓
+Mention validée
+```
+
+### Capacités du moteur d'assistance
+
+Le moteur peut suggérer :
+
+* personnes ;
+* lieux ;
+* biens ;
+* organisations ;
+* événements ;
+* professions ;
+* montants ;
+* dates ;
+* rôles ;
+* relations.
+
+### Principe directeur
+
+Les propositions automatiques ne deviennent jamais des connaissances sans validation humaine.
+
+---
 
 ## Assistance à la transcription
 

@@ -535,7 +535,66 @@ Chaque nouvelle découverte modifie sa compréhension.
 
 ---
 
-# 14. Principe directeur
+# 14. Rôle du moteur IA dans la chaîne de connaissance
+
+## La chaîne complète
+
+```text
+Preuves
+↓
+Observations
+↓
+Suggestions (moteur IA)
+↓
+Connaissances validées
+↓
+Entités
+↓
+Graphe projeté
+```
+
+---
+
+## Principe
+
+Le moteur IA intervient entre les observations et les connaissances validées.
+
+Il produit des suggestions.
+
+Il ne produit pas de connaissances.
+
+---
+
+## Responsabilités du moteur IA
+
+* suggérer des mentions à partir des transcriptions ;
+* proposer des assertions à partir des mentions ;
+* recommander des rapprochements entre entités ;
+* détecter des incohérences ;
+* produire des hypothèses argumentées.
+
+---
+
+## Ce que le moteur IA ne fait pas
+
+* valider une connaissance ;
+* fusionner deux entités ;
+* créer une relation sans validation ;
+* supprimer une donnée.
+
+---
+
+## Position dans l'architecture de la connaissance
+
+Le moteur IA est un assistant.
+
+Il enrichit la couche 1 (Preuves → Observations) en produisant des suggestions structurées.
+
+La couche 2 (Faits) n'est atteinte qu'après validation humaine.
+
+---
+
+# 15. Principe directeur
 
 REBOND ne stocke pas des documents.
 

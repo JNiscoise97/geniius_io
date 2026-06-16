@@ -374,7 +374,108 @@ Date exacte ou intervalle.
 
 ---
 
-# 17. Principe directeur
+# 17. Règles de réconciliation (algorithme)
+
+## RM-1501 : Règles bloquantes
+
+Les conditions suivantes bloquent tout rapprochement, sans scoring.
+
+* Décès antérieur à la naissance.
+* Filiation biologiquement impossible.
+* Présence simultanée dans des lieux incompatibles.
+* Contradiction majeure sur des attributs non orthographiques.
+
+Si une règle bloquante est déclenchée, le rapprochement est refusé.
+
+---
+
+## RM-1502 : Critères de scoring pour les personnes
+
+| Critère            | Poids |
+| ------------------ | ----: |
+| Nom                |    20 |
+| Prénom             |    15 |
+| Âge / dates        |    15 |
+| Conjoint           |    20 |
+| Parents            |    20 |
+| Lieu               |    10 |
+| Profession         |     5 |
+| Réseau relationnel |    10 |
+| Signature          |    20 |
+
+Les pondérations varient selon le type d'entité (lieu, bien, organisation).
+
+---
+
+## RM-1503 : Seuils de classification
+
+| Score | Résultat      |
+| ----- | ------------- |
+| 0–39  | Distinct      |
+| 40–59 | Possible      |
+| 60–74 | Probable      |
+| 75–89 | Très probable |
+| 90+   | Quasi certain |
+
+---
+
+## RM-1504 : Validation obligatoire
+
+Aucun rapprochement n'est appliqué sans validation humaine explicite.
+
+---
+
+## RM-1505 : Explicabilité obligatoire
+
+Toute proposition de rapprochement doit exposer :
+
+* les critères utilisés ;
+* les poids appliqués ;
+* le score calculé ;
+* les éléments favorables ;
+* les contradictions observées.
+
+---
+
+# 18. Règles d'extraction assistée
+
+## RM-1601 : Toute suggestion est en attente de validation
+
+Une proposition automatique ne devient jamais une mention sans validation humaine.
+
+---
+
+## RM-1602 : Une suggestion rejetée est conservée
+
+Le rejet d'une suggestion est tracé.
+
+Il ne disparaît pas du système.
+
+---
+
+## RM-1603 : Une suggestion validée produit une mention
+
+La validation crée une mention rattachée à la transcription source.
+
+---
+
+## RM-1604 : Le moteur ne décide pas
+
+Le moteur d'extraction propose.
+
+L'humain arbitre.
+
+---
+
+## RM-1605 : La confiance d'une suggestion est informative
+
+Le score de confiance d'une suggestion oriente l'humain.
+
+Il ne détermine pas la décision.
+
+---
+
+# 19. Principe directeur
 
 REBOND n'est pas un moteur de stockage.
 

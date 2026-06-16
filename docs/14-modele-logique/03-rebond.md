@@ -32,19 +32,24 @@ Il servira ensuite de base :
 
 # 2. Bounded Contexts
 
-Le système est organisé autour de 11 contextes métier.
+Le système est organisé autour de 12 contextes métier.
 
 ```text
 Documentation
 Transcription
 Extraction
+Extraction Assistée
 Connaissance
+Entités
 Réconciliation
+Événements
+Relations
+Temporalité
 Inférence
+Confiance
 Validation
 Graphe
 Recherche
-Restitution
 Administration
 ```
 
@@ -172,6 +177,62 @@ Une mention possède toujours :
 * un texte observé ;
 * une localisation ;
 * une transcription source.
+
+---
+
+# 5b. Context : Extraction Assistée
+
+## Finalité
+
+Gérer les propositions automatiques de mentions et d'assertions issues du moteur IA.
+
+---
+
+## Agrégat SuggestionMention
+
+### Racine
+
+SuggestionMention
+
+---
+
+### Entités
+
+SuggestionMention
+
+---
+
+### Attributs clés
+
+* transcription_id
+* type_suggéré
+* valeur_suggérée
+* confiance
+* statut
+
+### Invariant
+
+Une SuggestionMention ne devient jamais une Mention sans validation humaine explicite.
+
+---
+
+## Agrégat SuggestionAssertion
+
+### Racine
+
+SuggestionAssertion
+
+---
+
+### Entités
+
+SuggestionAssertion
+
+---
+
+### Invariant
+
+Une SuggestionAssertion ne devient jamais une Assertion sans validation humaine.
 
 ---
 
@@ -382,6 +443,14 @@ Candidat
 
 Comparaison
 
+Score
+
+Critère
+
+Justification
+
+Décision
+
 Fusion
 
 Défusion
@@ -392,6 +461,9 @@ Défusion
 
 Réconciliation
 N → N Entité
+
+Réconciliation
+1 → N Critère
 
 ---
 
@@ -679,6 +751,12 @@ Toutes les relations métier.
 
 ---
 
+## Mécanisme
+
+Le graphe est une ProjectionGraph alimentée par les événements métier (pattern Outbox).
+
+Il peut être reconstruit intégralement depuis la base relationnelle.
+
 ## Particularité
 
 Le graphe n'est pas le référentiel principal.
@@ -753,6 +831,10 @@ TranscriptionValidée
 
 MentionCréée
 
+SuggestionMentionValidée
+
+SuggestionMentionRejetée
+
 AssertionCréée
 
 PersonneCréée
@@ -766,6 +848,8 @@ RéconciliationAcceptée
 HypothèseConfirmée
 
 ValidationEffectuée
+
+ProjectionMiseÀJour
 
 ---
 
