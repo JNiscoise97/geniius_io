@@ -28,7 +28,7 @@ import type {
   TypeActeOption,
 } from './source.types';
 
-export type SourceDialogMode = 'create' | 'edit-unite' | 'edit-exemplaire';
+export type SourceDialogMode = 'create' | 'identify' | 'edit-unite' | 'edit-exemplaire';
 
 type TypeUnite = string;
 
@@ -674,7 +674,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       if (!depotId && (s2.data?.[0]?.id ?? null)) setDepotId(s2.data![0].id);
 
       // ---- EDIT: hydrate form from DB
-      if (effectiveMode !== 'create') {
+      if (effectiveMode !== 'create' && effectiveMode !== 'identify') {
         if (!sourceId) {
           toast.error("sourceId manquant pour l'édition");
           return;
@@ -873,7 +873,12 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
       return true;
     }
 
-    // create : ton comportement actuel
+    // identify: step 2 optionnel — 0 exemplaire OK, ou tous avec depot_id
+    if (effectiveMode === 'identify' && step === 2) {
+      return exemplaires.length === 0 || exemplaires.every((e) => !!e.depot_id);
+    }
+
+    // create + identify steps 0 & 1
     if (step === 0) {
       const okBase = !!typeUniteRef && !!serieRef;
       const okCoverage = couvertureLabel.trim().length > 0 && couvertureParsed.isValid;
@@ -929,6 +934,8 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           couverture_label: couvertureLabel.trim() || null,
           couverture_sort_start: toIntOrNull(couvertureStart),
           couverture_sort_end: toIntOrNull(couvertureEnd),
+          statut: 'a_qualifier',
+          workflow_statut: 'a_transcrire',
         })
         .select('id')
         .single();
@@ -1008,7 +1015,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
         }
       }
 
-      toast.success('Dépôt ajouté');
+      toast.success(effectiveMode === 'identify' ? 'Source identifiée' : 'Dépôt ajouté');
       await onCreated();
     } catch (err: any) {
       console.error(err);
@@ -1192,6 +1199,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   const dialogTitle = useMemo(() => {
     if (effectiveMode === 'edit-unite') return 'Modifier la collection';
     if (effectiveMode === 'edit-exemplaire') return 'Modifier les versions';
+    if (effectiveMode === 'identify') return 'Identifier une source';
     return 'Ajouter un dépôt';
   }, [effectiveMode]);
 
@@ -1199,7 +1207,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
   const isLastStep = step >= steps.length - 1;
 
   const onSubmit = async () => {
-    if (effectiveMode === 'create') return submitAll();
+    if (effectiveMode === 'create' || effectiveMode === 'identify') return submitAll();
     if (effectiveMode === 'edit-unite') return submitUpdateUnite();
     if (effectiveMode === 'edit-exemplaire') return submitUpdateExemplaires();
     return;
@@ -1315,7 +1323,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
                 </Button>
               ) : (
                 <Button onClick={onSubmit} disabled={!canNext || submitting}>
-                  {effectiveMode === 'create' ? 'Créer' : 'Enregistrer'}
+                  {effectiveMode === 'create' ? 'Créer' : effectiveMode === 'identify' ? 'Identifier' : 'Enregistrer'}
                 </Button>
               )}
             </div>

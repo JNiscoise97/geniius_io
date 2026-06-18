@@ -37,13 +37,15 @@ type Section = {
 const sections: Section[] = [
   {
     id: 'sources',
-    label: 'Sources & corpus',
+    label: 'Patrimoine documentaire',
     icon: Library,
     accent: 'text-blue-600',
     bg: 'bg-blue-50',
     border: 'border-blue-100',
-    description: 'Gérer les fonds, collections et corpus documentaires',
-    items: ['Sources', 'Documents', 'Corpus', 'Importer'],
+    description: 'Sources, documents et corpus — le socle de la chaîne de connaissance',
+    items: ['En attente', 'Sources', 'Documents', 'Corpus'],
+    badge: '3',
+    badgeColor: 'bg-orange-100 text-orange-700',
     to: '/mock/sources-corpus',
   },
   {
@@ -161,14 +163,25 @@ const sections: Section[] = [
 ]
 
 const stats = [
-  { label: 'Documents', value: '—', sub: 'dans le corpus', highlight: false },
-  { label: 'Transcriptions', value: '—', sub: 'validées', highlight: false },
+  { label: 'Documents', value: '7', sub: 'référencés', highlight: false },
+  { label: 'Transcriptions', value: '2', sub: 'complètes', highlight: false },
   { label: 'Entités', value: '—', sub: 'reconstruites', highlight: false },
-  { label: 'En attente', value: '—', sub: 'de validation', highlight: true },
+  { label: 'En attente', value: '3', sub: 'tâches patrimoine', highlight: true },
 ]
 
-const tasks = [
-  { label: 'Mentions à valider', count: '—', color: 'bg-amber-50 text-amber-700' },
+type Task = {
+  label: string
+  count: string
+  color: string
+  to?: string
+  divider?: boolean
+}
+
+const tasks: Task[] = [
+  { label: 'Sources à qualifier', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
+  { label: 'Documents à rattacher', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
+  { label: 'Documents à décrire', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
+  { label: 'Mentions à valider', count: '—', color: 'bg-amber-50 text-amber-700', divider: true },
   { label: 'Propositions de réconciliation', count: '—', color: 'bg-rose-50 text-rose-700' },
   { label: 'Incohérences détectées', count: '—', color: 'bg-orange-50 text-orange-700' },
   { label: 'Hypothèses à arbitrer', count: '—', color: 'bg-purple-50 text-purple-700' },
@@ -298,18 +311,21 @@ export function DashboardV2() {
               <AlertTriangle className="w-4 h-4 text-orange-400" />
               <span className="text-sm font-medium text-gray-700">Tâches à traiter</span>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               {tasks.map(task => (
-                <div
-                  key={task.label}
-                  className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group"
-                >
-                  <span className="text-xs text-gray-700">{task.label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${task.color}`}>
-                      {task.count}
-                    </span>
-                    <ArrowRight className="w-3 h-3 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                <div key={task.label}>
+                  {task.divider && <div className="border-t border-gray-100 my-1" />}
+                  <div
+                    onClick={() => task.to && navigate(task.to)}
+                    className={`flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group ${task.to ? 'cursor-pointer' : 'cursor-default'}`}
+                  >
+                    <span className="text-xs text-gray-700">{task.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${task.color}`}>
+                        {task.count}
+                      </span>
+                      <ArrowRight className={`w-3 h-3 transition-colors ${task.to ? 'text-gray-300 group-hover:text-gray-500' : 'text-gray-200'}`} />
+                    </div>
                   </div>
                 </div>
               ))}
