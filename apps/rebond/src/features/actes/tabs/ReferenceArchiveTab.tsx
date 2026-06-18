@@ -165,47 +165,104 @@ function SectionHeaderRow(props: {
 
 type ActeCitationRow = {
   id: string;
-  acte_id: string;
+  target_id: string;
   exemplaire_id: string;
-
-  loc_start: number | null;
-  loc_end: number | null;
-  loc_raw: string | null;
-
   is_missing: boolean | null;
+  lacune: boolean | null;
+  lacune_note: string | null;
   note: string | null;
   sort_order: number;
-
   physical_condition_ref: string | null;
   repro_quality_ref: string | null;
-
-  missing_ranges: any;
-
-  damage_notes: string | null;
-  repro_notes: string | null;
-
-  marginal_mentions_present: boolean | null;
-  marginal_mentions_count: number | null;
-  signatures_present: boolean | null;
-  signatures_count: number | null;
-  marginal_crossouts_present: boolean | null;
-  marginal_crossouts_count: number | null;
-
-  langue_ref?: string | null;
-  ecriture_ref?: string | null;
-  handwriting_legibility_ref?: string | null;
-
-  document_damage_kinds_ids?: string[] | null;
-  document_readability_features_ids?: string[] | null;
-
-  anchor_hint?: string | null;
-  acte_no?: number | null;
-
-  lacune?: boolean | null;
-  lacune_note?: string | null;
-
-  marks?: string | null;
+  document_damage_kinds_ids: string[] | null;
+  document_readability_features_ids: string[] | null;
+  langue_ref: string | null;
+  marks: string | null;
+  locating: Record<string, any>;
+  marginalia: Record<string, any>;
+  writing: Record<string, any>;
 };
+
+// ── JSONB pack/unpack (citations table) ───────────────────────────────────────
+
+function unpackLocating(loc: Record<string, any> | null) {
+  const sys = (loc?.systems ?? [])[0] ?? {};
+  return {
+    loc_start:      sys.start          ?? null,
+    loc_end:        sys.end            ?? null,
+    loc_raw:        loc?.raw           ?? '',
+    missing_ranges: loc?.missing_ranges ?? [],
+    anchor_hint:    loc?.anchor_hint    ?? '',
+    acte_no:        loc?.acte_no        ?? null,
+  };
+}
+
+function packLocating(c: {
+  loc_start?: number | null; loc_end?: number | null; loc_raw?: string | null;
+  missing_ranges?: any[]; anchor_hint?: string | null; acte_no?: number | null;
+}): Record<string, any> {
+  const loc: Record<string, any> = {};
+  if (c.loc_start != null || c.loc_end != null)
+    loc.systems = [{ kind: 'vue', start: c.loc_start, end: c.loc_end }];
+  if ((c.loc_raw ?? '').trim()) loc.raw = (c.loc_raw as string).trim();
+  if (Array.isArray(c.missing_ranges) && c.missing_ranges.length) loc.missing_ranges = c.missing_ranges;
+  if ((c.anchor_hint as string)?.trim?.()) loc.anchor_hint = (c.anchor_hint as string).trim();
+  if (c.acte_no != null) loc.acte_no = c.acte_no;
+  return loc;
+}
+
+function unpackMarginalia(mar: Record<string, any> | null) {
+  const present = mar?.present ?? {};
+  const count   = mar?.count   ?? {};
+  return {
+    signatures_present:         present.signatures         ?? null,
+    signatures_count:           count.signatures           ?? null,
+    marginal_mentions_present:  present.marginal_mentions  ?? null,
+    marginal_mentions_count:    count.marginal_mentions    ?? null,
+    marginal_crossouts_present: present.marginal_crossouts ?? null,
+    marginal_crossouts_count:   count.marginal_crossouts   ?? null,
+  };
+}
+
+function packMarginalia(c: {
+  signatures_present?: boolean | null; signatures_count?: number | null;
+  marginal_mentions_present?: boolean | null; marginal_mentions_count?: number | null;
+  marginal_crossouts_present?: boolean | null; marginal_crossouts_count?: number | null;
+}): Record<string, any> {
+  return {
+    present: {
+      signatures:         toBoolOrNull(c.signatures_present),
+      marginal_mentions:  toBoolOrNull(c.marginal_mentions_present),
+      marginal_crossouts: toBoolOrNull(c.marginal_crossouts_present),
+    },
+    count: {
+      signatures:         c.signatures_present === true        ? (c.signatures_count        ?? null) : null,
+      marginal_mentions:  c.marginal_mentions_present === true  ? (c.marginal_mentions_count ?? null) : null,
+      marginal_crossouts: c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
+    },
+  };
+}
+
+function unpackWriting(wr: Record<string, any> | null) {
+  return {
+    ecriture_ref:               wr?.ecriture_ref  ?? null,
+    handwriting_legibility_ref: wr?.legibility_ref ?? null,
+    damage_notes:               wr?.damage_notes   ?? '',
+    repro_notes:                wr?.repro_notes    ?? '',
+  };
+}
+
+function packWriting(c: {
+  ecriture_ref?: string | null; handwriting_legibility_ref?: string | null;
+  damage_notes?: string | null; repro_notes?: string | null;
+}): Record<string, any> {
+  const wr: Record<string, any> = {};
+  if (c.ecriture_ref)               wr.ecriture_ref   = c.ecriture_ref;
+  if (c.handwriting_legibility_ref) wr.legibility_ref  = c.handwriting_legibility_ref;
+  if ((c.damage_notes as string)?.trim?.()) wr.damage_notes = (c.damage_notes as string).trim();
+  if ((c.repro_notes  as string)?.trim?.()) wr.repro_notes  = (c.repro_notes  as string).trim();
+  return wr;
+}
 
 function emptyActeCitation(): ActeCitationDraft {
   return {
@@ -250,54 +307,27 @@ function emptyActeCitation(): ActeCitationDraft {
 
 function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): ActeCitationDraft {
   const arrOrEmpty = (v: any) => (Array.isArray(v) ? v.filter(Boolean) : []);
+  const loc = unpackLocating(r?.locating ?? null);
+  const mar = unpackMarginalia(r?.marginalia ?? null);
+  const wr  = unpackWriting(r?.writing ?? null);
 
   return {
     id: r?.id,
     exemplaire_id: r?.exemplaire_id,
-
-    loc_start: r?.loc_start ?? null,
-    loc_end: r?.loc_end ?? null,
-    loc_raw: r?.loc_raw ?? '',
-
+    ...loc,
     is_missing: r?.is_missing,
     note: r?.note ?? '',
     sort_order: typeof r?.sort_order === 'number' ? r.sort_order : 0,
-
     physical_condition_ref: (r?.physical_condition_ref ?? null) as any,
     repro_quality_ref: (r?.repro_quality_ref ?? null) as any,
-
-    damage_notes: r?.damage_notes ?? '',
-    repro_notes: r?.repro_notes ?? '',
-
-    missing_ranges: Array.isArray(r?.missing_ranges)
-      ? (r!.missing_ranges as any[]).filter(Boolean)
-      : [],
-
-    marginal_mentions_present: r?.marginal_mentions_present ?? null,
-    marginal_mentions_count:
-      typeof r?.marginal_mentions_count === 'number' ? r.marginal_mentions_count : null,
-
-    signatures_present: r?.signatures_present ?? null,
-    signatures_count: typeof r?.signatures_count === 'number' ? r.signatures_count : null,
-
-    marginal_crossouts_present: r?.marginal_crossouts_present ?? null,
-    marginal_crossouts_count:
-      typeof r?.marginal_crossouts_count === 'number' ? r.marginal_crossouts_count : null,
-
-    langue_ref: (r as any)?.langue_ref ?? null,
-    ecriture_ref: (r as any)?.ecriture_ref ?? null,
-    handwriting_legibility_ref: (r as any)?.handwriting_legibility_ref ?? null,
-
-    document_damage_kinds_ids: arrOrEmpty((r as any)?.document_damage_kinds_ids),
-    document_readability_features_ids: arrOrEmpty((r as any)?.document_readability_features_ids),
-
-    anchor_hint: (r as any)?.anchor_hint ?? '',
-    acte_no: typeof (r as any)?.acte_no === 'number' ? (r as any).acte_no : null,
-
-    lacune: (r as any)?.lacune ?? null,
-    lacune_note: (r as any)?.lacune_note ?? '',
-
-    marks: (r as any)?.marks ?? '',
+    ...mar,
+    ...wr,
+    langue_ref: r?.langue_ref ?? null,
+    document_damage_kinds_ids: arrOrEmpty(r?.document_damage_kinds_ids),
+    document_readability_features_ids: arrOrEmpty(r?.document_readability_features_ids),
+    lacune: r?.lacune ?? null,
+    lacune_note: r?.lacune_note ?? '',
+    marks: r?.marks ?? '',
   } as any;
 }
 
@@ -307,13 +337,14 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
  * =========================================================================
  */
 
-const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
+const TABLE_REGISTRE_CITATIONS = 'citations';
 const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
 const VIEW_EXEMPLAIRES_PICK = 'v_exemplaires_pick';
 
 type RegistreCitationRow = {
   id: string;
-  registre_id: string;
+  target_id: string;
+  target_type: string;
   exemplaire_id: string;
 
   is_missing: boolean | null;
@@ -375,8 +406,8 @@ function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
     sort_order: r.sort_order ?? 0,
 
     segments: [],
-    missing_ranges: Array.isArray(r?.missing_ranges)
-      ? (r!.missing_ranges as any[]).filter(Boolean)
+    missing_ranges: Array.isArray(r?.locating?.missing_ranges)
+      ? (r.locating.missing_ranges as any[]).filter(Boolean)
       : [],
   };
 }
@@ -566,15 +597,15 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
       setSectionError('sources', null);
 
       const { data, error } = await supabase
-        .from('etat_civil_acte_citations')
+        .from('citations')
         .select(
-          'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order,' +
-          'physical_condition_ref, damage_notes, repro_quality_ref, repro_notes, missing_ranges,' +
-          'marginal_mentions_present, marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count,' +
-          'anchor_hint, acte_no, lacune, lacune_note, marks,' +
-          'langue_ref, ecriture_ref, handwriting_legibility_ref, document_damage_kinds_ids, document_readability_features_ids',
+          'id, target_id, exemplaire_id, is_missing, lacune, lacune_note, note, sort_order,' +
+          'physical_condition_ref, repro_quality_ref,' +
+          'document_damage_kinds_ids, document_readability_features_ids,' +
+          'langue_ref, marks, locating, marginalia, writing',
         )
-        .eq('acte_id', acteId)
+        .eq('target_type', 'ec_acte')
+        .eq('target_id', acteId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true })
         .returns<ActeCitationRow[]>();
@@ -751,9 +782,10 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
     const uiExistingIds = actesSources.map((s) => s.id).filter(Boolean) as string[];
 
     const { data: existing, error: errExisting } = await supabase
-      .from('etat_civil_acte_citations')
+      .from('citations')
       .select('id')
-      .eq('acte_id', acteId);
+      .eq('target_type', 'ec_acte')
+      .eq('target_id', acteId);
 
     if (errExisting) throw errExisting;
 
@@ -762,7 +794,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
 
     if (toDelete.length) {
       const { error } = await supabase
-        .from('etat_civil_acte_citations')
+        .from('citations')
         .delete()
         .in('id', toDelete);
       if (error) throw error;
@@ -773,57 +805,25 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         if (!c.exemplaire_id) return null;
 
         const base = {
-          acte_id: acteId,
+          target_type: 'ec_acte',
+          target_id: acteId,
           exemplaire_id: c.exemplaire_id,
-
-          loc_start: c.loc_start ?? null,
-          loc_end: c.loc_end ?? null,
-          loc_raw: (c.loc_raw ?? '').trim() || null,
-
           is_missing: toBoolOrNull(c.is_missing),
-          note: (c.note ?? '').trim() || null,
-
-          sort_order: idx,
-
-          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
-          repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
-
-          damage_notes: (c.damage_notes ?? '').trim() || null,
-          repro_notes: (c.repro_notes ?? '').trim() || null,
-
-          missing_ranges: Array.isArray(c.missing_ranges) ? c.missing_ranges : [],
-
-          marginal_mentions_present: toBoolOrNull(c.marginal_mentions_present),
-          marginal_mentions_count:
-            c.marginal_mentions_present === true ? (c.marginal_mentions_count ?? null) : null,
-
-          signatures_present: toBoolOrNull(c.signatures_present),
-          signatures_count: c.signatures_present === true ? (c.signatures_count ?? null) : null,
-
-          marginal_crossouts_present: toBoolOrNull(c.marginal_crossouts_present),
-          marginal_crossouts_count:
-            c.marginal_crossouts_present === true ? (c.marginal_crossouts_count ?? null) : null,
-
-          langue_ref: (c as any).langue_ref ?? null,
-          ecriture_ref: (c as any).ecriture_ref ?? null,
-          handwriting_legibility_ref: (c as any).handwriting_legibility_ref ?? null,
-
-          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
-            ? (c as any).document_damage_kinds_ids
-            : [],
-          document_readability_features_ids: Array.isArray(
-            (c as any).document_readability_features_ids,
-          )
-            ? (c as any).document_readability_features_ids
-            : [],
-
-          anchor_hint: (c as any).anchor_hint?.trim?.() || null,
-          acte_no: (c as any).acte_no ?? null,
-
           lacune: toBoolOrNull((c as any).lacune),
           lacune_note: (c as any).lacune_note?.trim?.() || null,
-
+          note: (c.note ?? '').trim() || null,
+          sort_order: idx,
+          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
+          repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
+          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
+            ? (c as any).document_damage_kinds_ids : [],
+          document_readability_features_ids: Array.isArray((c as any).document_readability_features_ids)
+            ? (c as any).document_readability_features_ids : [],
+          langue_ref: (c as any).langue_ref ?? null,
           marks: (c as any).marks?.trim?.() || null,
+          locating:   packLocating(c as any),
+          marginalia: packMarginalia(c as any),
+          writing:    packWriting(c as any),
         };
 
         return c.id ? { id: c.id, ...base } : base;
@@ -833,7 +833,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
     if (!payload.length) return;
 
     const { data: upserted, error } = await supabase
-      .from('etat_civil_acte_citations')
+      .from('citations')
       .upsert(payload, { onConflict: 'id' })
       .select('id, exemplaire_id, sort_order');
 
@@ -1630,7 +1630,7 @@ function ReferenceArchiveTabRegistre(
           .from(TABLE_REGISTRE_CITATIONS)
           .select(
             `
-              id, registre_id, exemplaire_id,
+              id, target_id, target_type, exemplaire_id,
               is_missing, lacune, lacune_note, locating,
               physical_condition_ref, repro_quality_ref,
               marks, document_damage_kinds_ids,
@@ -1638,7 +1638,8 @@ function ReferenceArchiveTabRegistre(
               missing_ranges
             `,
           )
-          .eq('registre_id', registreId)
+          .eq('target_type', 'ec_registre')
+          .eq('target_id', registreId)
           .order('sort_order', { ascending: true });
 
         if (cancelled) return;
@@ -1956,7 +1957,8 @@ function ReferenceArchiveTabRegistre(
    */
   type RegistreCitationUpsertRow = {
     id?: string;
-    registre_id: string;
+    target_type: string;
+    target_id: string;
     exemplaire_id: string;
     is_missing: boolean | null;
     lacune: boolean | null;
@@ -1968,7 +1970,6 @@ function ReferenceArchiveTabRegistre(
     document_damage_kinds_ids: string[];
     note: string | null;
     sort_order: number;
-    missing_ranges: any[];
   };
 
   type RegistreSegmentUpsertRow = {
@@ -2044,7 +2045,8 @@ function ReferenceArchiveTabRegistre(
       const { data: dbCitIdsRows, error: dbCitIdsErr } = await supabase
         .from(TABLE_REGISTRE_CITATIONS)
         .select('id')
-        .eq('registre_id', registreId);
+        .eq('target_type', 'ec_registre')
+        .eq('target_id', registreId);
 
       if (dbCitIdsErr) throw dbCitIdsErr;
 
@@ -2077,19 +2079,22 @@ function ReferenceArchiveTabRegistre(
 
           const row: RegistreCitationUpsertRow = {
             ...(c.id ? { id: c.id } : {}),
-            registre_id: registreId,
+            target_type: 'ec_registre',
+            target_id: registreId,
             exemplaire_id,
             is_missing: toBoolOrNull((c as any).is_missing),
             lacune: toBoolOrNull((c as any).lacune),
             lacune_note: normalizeTextOrNull((c as any).lacune_note),
-            locating: (c as any).locating ?? { systems: [{}] },
+            locating: {
+              ...((c as any).locating ?? { systems: [{}] }),
+              missing_ranges: normalizeArray<any>((c as any).missing_ranges),
+            },
             physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
             repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
             marks: normalizeTextOrNull((c as any).marks),
             document_damage_kinds_ids: normalizeArray<string>((c as any).document_damage_kinds_ids),
             note: normalizeTextOrNull((c as any).note),
             sort_order: idx,
-            missing_ranges: normalizeArray<any>((c as any).missing_ranges),
           };
 
           return row;

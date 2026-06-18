@@ -68,7 +68,7 @@ const SERIE_TYPE_CONFIG: Record<string, {
   ETAT_CIVIL: { label: 'État civil', Icon: ScrollText, color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-200' },
   FONCIER:    { label: 'Foncier',    Icon: Landmark,   color: 'text-rose-700',   bg: 'bg-rose-50',   border: 'border-rose-200' },
   ANNUAIRE:   { label: 'Annuaire',   Icon: Newspaper,  color: 'text-sky-700',    bg: 'bg-sky-50',    border: 'border-sky-200' },
-  NOTARIAL:   { label: 'Notarial',   Icon: FileText,   color: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200' },
+  NOTARIAT:   { label: 'Notarial',   Icon: FileText,   color: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200' },
   PAROISSIAL: { label: 'Paroissial', Icon: BookOpen,   color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-200' },
 }
 const DEFAULT_TYPE = { label: 'Source', Icon: Library, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200' }

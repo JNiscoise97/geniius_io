@@ -91,6 +91,11 @@ Ces exemplaires sont distincts au sens archivistique : cotes différentes,
 
 Le modèle doit permettre de les relier sans les fusionner.
 
+Dans l'implémentation, les exemplaires sont gérés par la table
+`ref_exemplaires`. Chaque ligne représente une copie physique rattachée
+à une `ref_unites_documentaires` (UD). Le lien entre un acte et ses
+exemplaires passe par la table `citations`.
+
 ---
 
 ## AD-008 — Instruments de recherche
@@ -251,8 +256,6 @@ instrument de recherche permettant de naviguer vers d'autres documents.
 * statut_exploitation
 * niveau_conservation — bon | moyen | dégradé | fragmentaire
 * url — pour les documents numérisés accessibles en ligne (nullable)
-* exemplaire_groupe_id — identifiant partagé entre tous les exemplaires
-  du même acte sous-jacent (nullable)
 * parent_document_id — identifiant du registre compilé contenant cet acte
   (nullable — uniquement pour les actes_primaires ; nul pour les registres
   et les instruments de recherche)
@@ -320,10 +323,12 @@ une table annuelle.
 
 ## Note sur les exemplaires
 
-Plusieurs Documents peuvent partager le même `exemplaire_groupe_id`.
+Plusieurs copies physiques d'un même document sont représentées par des
+Exemplaires distincts (voir section 4.5).
 
-Ils représentent des copies du même acte sous-jacent, conservées dans des
-Sources différentes.
+Chaque Exemplaire est conservé dans une institution différente (ADG, ANOM,
+mairie, FamilySearch…) et possède ses propres caractéristiques : cote,
+état de conservation, annotations.
 
 Les divergences entre exemplaires (orthographe, signatures, état de
 conservation) sont capturées lors de la transcription, au niveau des Mentions.
@@ -423,6 +428,103 @@ Unité physique d'un document.
 * document_id
 * numéro
 * image_url
+
+---
+
+# 4.5 Exemplaire
+
+## Définition
+
+Copie physique d'un document conservée dans une institution précise.
+
+Un même document peut exister en plusieurs exemplaires dans plusieurs
+institutions de conservation distinctes.
+
+---
+
+## Attributs
+
+* id
+* unite_documentaire_id — UD à laquelle cet exemplaire est rattaché
+* depot_id — institution de conservation (dépôt d'archives)
+* cote_locale — référence propre à cette institution
+* localisation — description complémentaire (folio, image, microfilm…)
+* statut_conservation — bon | moyen | dégradé | fragmentaire
+
+---
+
+## Relations
+
+Exemplaire
+→ appartient à → UnitéDocumentaire
+
+Citation
+→ localise un Acte dans → Exemplaire
+
+---
+
+## Contraintes
+
+Un Exemplaire appartient à une seule UnitéDocumentaire.
+
+Plusieurs Exemplaires peuvent appartenir à la même UnitéDocumentaire.
+
+---
+
+# 4.6 Citation
+
+## Définition
+
+Lien polymorphique entre un acte (état civil, notarial, ou un registre)
+et l'Exemplaire dans lequel il peut être consulté physiquement.
+
+La Citation est le pont entre la couche PREUVES (documents) et la couche
+OBSERVATIONS (actes transcrits).
+
+---
+
+## Attributs
+
+* id
+* target_type — type de l'objet cité : `ec_acte` | `ec_registre` | `ac_acte`
+* target_id — identifiant de l'objet cité
+* exemplaire_id — exemplaire dans lequel l'objet est localisé
+* locating — JSONB décrivant la localisation physique précise
+
+---
+
+## Structure du JSONB `locating`
+
+```json
+{
+  "systems": [
+    { "type": "folio", "value": "12v" }
+  ],
+  "missing_ranges": [
+    { "debut": 5, "fin": 10 }
+  ]
+}
+```
+
+Le champ `missing_ranges` enregistre les plages d'actes connues comme
+absentes de cet exemplaire (lacunes, pages arrachées, microfilm incomplet).
+
+---
+
+## Relations
+
+Citation
+→ cible (via target_type + target_id) → Acte ou Registre
+
+Citation
+→ localise dans → Exemplaire
+
+---
+
+## Contraintes
+
+La combinaison (`target_type`, `target_id`, `exemplaire_id`) est unique :
+un même objet ne peut pas être cité deux fois dans le même exemplaire.
 
 ---
 

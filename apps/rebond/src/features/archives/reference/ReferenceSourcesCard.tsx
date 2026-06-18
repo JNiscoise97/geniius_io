@@ -407,7 +407,7 @@ export function SectionSources(props: SectionSourcesProps) {
   const autoOpenedFullActeByKeyRef = useRef(new Set<string>());
   const autoOpenedFullRegistreByKeyRef = useRef(new Set<string>());
 
-  const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
+  const TABLE_REGISTRE_CITATIONS = 'citations';
   const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
 
   type RegistreCitationRow = {
@@ -775,7 +775,8 @@ export function SectionSources(props: SectionSourcesProps) {
       const { data: citRows, error: citErr } = await supabase
         .from(TABLE_REGISTRE_CITATIONS)
         .select('id, exemplaire_id')
-        .eq('registre_id', rid)
+        .eq('target_type', 'ec_registre')
+        .eq('target_id', rid)
         .order('sort_order', { ascending: true });
 
       if (cancelled) return;

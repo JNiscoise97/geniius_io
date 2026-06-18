@@ -254,9 +254,10 @@ export function ExemplairePickerDialog({
 
     (async () => {
       const { data: regCit } = await supabase
-        .from('etat_civil_registre_citations')
+        .from('citations')
         .select('exemplaire_id, sort_order')
-        .eq('registre_id', registreId)
+        .eq('target_type', 'ec_registre')
+        .eq('target_id', registreId)
         .order('sort_order', { ascending: true });
 
       if (cancelled) return;

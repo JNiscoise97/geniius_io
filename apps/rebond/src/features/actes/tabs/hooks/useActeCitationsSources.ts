@@ -29,22 +29,26 @@ export function emptyCitation(acteId: string): CitationDraft {
 }
 
 function normalizeCitationRow(r: ActeCitationRow): CitationDraft {
+  const loc     = r.locating  ?? {};
+  const sys     = (loc.systems ?? [])[0] ?? {};
+  const present = (r.marginalia?.present) ?? {};
+  const count   = (r.marginalia?.count)   ?? {};
   return {
     id: r.id,
-    acte_id: r.acte_id,
+    acte_id: r.target_id,
     exemplaire_id: r.exemplaire_id,
-    loc_start: r.loc_start,
-    loc_end: r.loc_end,
-    loc_raw: r.loc_raw,
+    loc_start: sys.start ?? null,
+    loc_end:   sys.end   ?? null,
+    loc_raw:   loc.raw   ?? null,
     is_missing: Boolean(r.is_missing),
     note: r.note,
     sort_order: r.sort_order,
-    marginal_mentions_present: r.marginal_mentions_present,
-    marginal_mentions_count: r.marginal_mentions_count,
-    signatures_present: r.signatures_present,
-    signatures_count: r.signatures_count,
-    marginal_crossouts_present: r.marginal_crossouts_present,
-    marginal_crossouts_count: r.marginal_crossouts_count,
+    marginal_mentions_present:  present.marginal_mentions  ?? null,
+    marginal_mentions_count:    count.marginal_mentions    ?? null,
+    signatures_present:         present.signatures         ?? null,
+    signatures_count:           count.signatures           ?? null,
+    marginal_crossouts_present: present.marginal_crossouts ?? null,
+    marginal_crossouts_count:   count.marginal_crossouts   ?? null,
     exemplaire: null,
   };
 }
@@ -117,11 +121,10 @@ export function useActeCitationsSources(acteId: string) {
 
       // 1) load raw citations
       const { data, error } = await supabase
-        .from('etat_civil_acte_citations')
-        .select(
-          'id, acte_id, exemplaire_id, loc_start, loc_end, loc_raw, is_missing, note, sort_order, marginal_mentions_present,marginal_mentions_count, signatures_present, signatures_count, marginal_crossouts_present, marginal_crossouts_count',
-        )
-        .eq('acte_id', acteId)
+        .from('citations')
+        .select('id, target_id, exemplaire_id, is_missing, note, sort_order, locating, marginalia')
+        .eq('target_type', 'ec_acte')
+        .eq('target_id', acteId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
 

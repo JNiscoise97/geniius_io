@@ -59,39 +59,64 @@ Administration
 
 ## Finalité
 
-Gérer les preuves documentaires.
+Gérer les preuves documentaires et leur localisation physique.
 
 ---
 
-## Agrégat Source
+## Agrégat UnitéDocumentaire
 
 ### Racine
 
-Source
+UnitéDocumentaire (UD)
 
 ### Entités
 
-Source
-Document
-Page
+UnitéDocumentaire
+Exemplaire
+Citation
+
+---
+
+### Deux types de UD
+
+**UD parente** — représente un fonds ou une collection documentaire
+(registre d'état civil, minutier notarial, collection privée).
+N'a pas de `parent_ud_id`. Créée et qualifiée par l'utilisateur.
+
+**UD d'acte** — représente un document individuel identifiable
+(acte de naissance, contrat notarial…).
+A un `parent_ud_id` pointant vers la UD parente si celle-ci est connue.
+Créée automatiquement lors du référencement d'un acte.
 
 ---
 
 ### Relations
 
-Source
-1 → N Document
+UnitéDocumentaire (parente)
+1 → N UnitéDocumentaire (enfant, via parent_ud_id)
 
-Document
-1 → N Page
+UnitéDocumentaire
+1 → N Exemplaire
+
+Exemplaire
+← N Citation
+
+Citation
+→ 1 Acte (cible polymorphique via target_type + target_id)
 
 ---
 
 ### Invariants
 
-Un document appartient à une seule source.
+Un Exemplaire appartient à une seule UnitéDocumentaire.
 
-Une page appartient à un seul document.
+Une Citation cible un objet unique et le localise dans un Exemplaire unique.
+
+La combinaison (target_type, target_id, exemplaire_id) est unique dans
+la table Citations.
+
+La création d'une Citation implique l'existence préalable ou simultanée
+d'une UD d'acte et d'un Exemplaire.
 
 ---
 

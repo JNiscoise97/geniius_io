@@ -22,13 +22,14 @@ const tabs = [{ label: 'Référence archive', icon: Archive }] as const;
 type RegistreEditTab = (typeof tabs)[number]['label'];
 
 const TABLE_REGISTRES = 'etat_civil_registres';
-const TABLE_REGISTRE_CITATIONS = 'etat_civil_registre_citations';
+const TABLE_REGISTRE_CITATIONS = 'citations';
 const TABLE_REGISTRE_SEGMENTS = 'etat_civil_registre_exemplaire_segments';
 const VIEW_EXEMPLAIRES_PICK = 'v_exemplaires_pick';
 
 type RegistreCitationRow = {
   id: string;
-  registre_id: string;
+  target_id: string;
+  target_type: string;
   exemplaire_id: string;
 
   is_missing: boolean | null;
@@ -231,14 +232,15 @@ export default function RegistreEdit() {
           .from(TABLE_REGISTRE_CITATIONS)
           .select(
             `
-            id, registre_id, exemplaire_id,
+            id, target_id, target_type, exemplaire_id,
             is_missing, lacune, lacune_note, locating,
             physical_condition_ref, repro_quality_ref,
             marks, document_damage_kinds_ids,
             note, sort_order
           `,
           )
-          .eq('registre_id', registreId)
+          .eq('target_type', 'ec_registre')
+          .eq('target_id', registreId)
           .order('sort_order', { ascending: true });
 
         if (cancelled) return;

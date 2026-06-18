@@ -161,23 +161,13 @@ export type TranscriptionTagRow = {
 
 export type ActeCitationRow = {
   id: string;
-  acte_id: string;
+  target_id: string;
   exemplaire_id: string | null;
-  loc_start: number | null;
-  loc_end: number | null;
-  loc_raw: string | null;
   is_missing: boolean | null;
   note: string | null;
   sort_order: number | null;
-
-  marginal_mentions_present: boolean | null;
-  marginal_mentions_count: number | null;
-
-  signatures_present: boolean | null;
-  signatures_count: number | null;
-
-  marginal_crossouts_present: boolean | null;
-  marginal_crossouts_count: number | null;
+  locating: Record<string, any> | null;
+  marginalia: Record<string, any> | null;
 };
 
 export type ExemplairePick = {

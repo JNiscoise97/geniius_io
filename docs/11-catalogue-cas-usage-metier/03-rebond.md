@@ -968,6 +968,71 @@ Connaissance transférable.
 
 ---
 
+# UC-020 — Référencer un acte dans un exemplaire documentaire
+
+## Acteurs
+
+Chercheur
+
+---
+
+## Déclencheur
+
+L'utilisateur souhaite relier un acte connu (état civil ou notarial) à sa
+localisation physique dans une source documentaire consultée.
+
+---
+
+## Préconditions
+
+* Au moins un dépôt de conservation est référencé dans le système.
+* La série documentaire de l'acte est identifiable (état civil, notariat…).
+
+---
+
+## Scénario nominal
+
+1. Recherche de l'acte par type, commune, période et numéro.
+2. Les résultats s'affichent cinq par cinq.
+3. Sélection de l'acte parmi les résultats, ou création d'un nouvel acte
+   si absent des résultats.
+4. Renseignement de la localisation physique : dépôt de conservation, cote,
+   folio ou image, systèmes de numérotation alternatifs, plages manquantes.
+5. Identification optionnelle de la source parente (registre ou collection) :
+   recherche parmi les UDs existantes ou saisie d'une note approximative.
+6. Validation : création automatique d'une UD d'acte (si inexistante) +
+   Exemplaire + Citation.
+
+---
+
+## Règles métier
+
+* L'acte peut être sélectionné parmi les résultats ou créé si introuvable.
+* Une UD d'acte est créée automatiquement si elle n'existe pas encore
+  (titre = label de l'acte, série déduite du type d'acte).
+* La source parente est optionnelle et peut être :
+  - une UD existante sélectionnée par recherche ;
+  - une source approximative créée en statut `en_attente` pour qualification ultérieure.
+* La combinaison (target_type, target_id, exemplaire_id) doit être unique.
+
+---
+
+## Résultat attendu
+
+Citation créée : l'acte est désormais localisable dans son exemplaire
+documentaire. Il apparaît dans le patrimoine documentaire associé.
+
+---
+
+## Erreurs possibles
+
+* Acte introuvable dans les résultats → création d'un nouvel acte possible.
+* Dépôt non référencé → à créer préalablement dans les référentiels.
+* Doublon de citation → le système refuse la création si la combinaison
+  (target_type, target_id, exemplaire_id) existe déjà.
+
+---
+
 # Principe directeur
 
 Chaque cas d'usage de REBOND poursuit le même objectif :

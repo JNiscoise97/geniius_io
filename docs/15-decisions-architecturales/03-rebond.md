@@ -294,6 +294,72 @@ L'humain arbitre.
 
 ---
 
+# DA-004 — Table `citations` polymorphique
+
+## Décision
+
+Les citations documentaires — le lien entre un acte et son exemplaire physique —
+sont stockées dans une table unique `citations` à référence polymorphique,
+plutôt que dans des tables spécialisées par type d'acte.
+
+---
+
+## Motivation
+
+Deux tables spécialisées existaient initialement :
+
+* `etat_civil_registre_citations` — pour les registres d'état civil ;
+* `etat_civil_acte_citations` — pour les actes d'état civil.
+
+Cette approche imposait une migration de schéma à chaque nouveau type
+d'acte (notarial, cadastral, paroissial, paroissial…). Elle créait
+également de la redondance et complexifiait les requêtes transversales.
+
+---
+
+## Architecture retenue
+
+```text
+citations
+├── target_type  : 'ec_acte' | 'ec_registre' | 'ac_acte'
+├── target_id    : uuid de l'objet cible
+├── exemplaire_id: uuid de ref_exemplaires
+└── locating     : JSONB (systèmes de localisation, plages manquantes)
+```
+
+Le champ `locating` est un JSONB libre permettant de décrire la localisation
+physique selon le type d'acte (folio, image, numéro d'acte, système de
+numérotation alternatif, plages d'actes absentes de l'exemplaire).
+
+---
+
+## Conséquences
+
+**Avantages :**
+
+* Un seul point d'entrée pour toutes les citations documentaires.
+* Extension sans migration de schéma : un nouveau type d'acte s'ajoute
+  en ajoutant une valeur de `target_type`.
+* Requêtes transversales simplifiées (toutes les citations d'un exemplaire,
+  quel que soit le type).
+
+**Contraintes :**
+
+* L'intégrité référentielle vers `target_id` ne peut pas être garantie
+  par une FK native : elle est assurée au niveau applicatif.
+* Les contraintes d'unicité portent sur (target_type, target_id, exemplaire_id).
+
+---
+
+## Migration effectuée
+
+Les données existantes dans `etat_civil_registre_citations` et
+`etat_civil_acte_citations` ont été migrées vers `citations` (juin 2026).
+Les FK des tables dépendantes (`ec_transcriptions`, segments d'exemplaires)
+ont été mises à jour pour pointer vers `citations.id`.
+
+---
+
 # Conclusion
 
 REBOND repose sur trois principes structurants :
