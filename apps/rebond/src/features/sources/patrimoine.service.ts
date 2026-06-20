@@ -244,6 +244,74 @@ export async function rattacherDocument(id: string, parentUdId: string) {
   return { error }
 }
 
+// ── Fetch citations avec données exemplaires (onglet Exemplaires) ─────────────
+
+export type CitationExemplaireRow = {
+  citation_id: string
+  target_type: string
+  target_id: string
+  exemplaire_id: string | null
+  is_missing: boolean | null
+  lacune: boolean | null
+  lacune_note: string | null
+  locating: Record<string, any> | null
+  marginalia: Record<string, any> | null
+  note: string | null
+  unite_titre: string | null
+  cote_locale: string | null
+  depot_nom: string | null
+  institution_nom: string | null
+  institution_sigle: string | null
+  url_base: string | null
+}
+
+export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationExemplaireRow[]; error: any }> {
+  const { data: citations, error } = await supabase
+    .from('citations')
+    .select('id, target_type, target_id, exemplaire_id, is_missing, lacune, lacune_note, locating, marginalia, note')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (error || !citations?.length) return { data: [], error }
+
+  const exemplaire_ids = [
+    ...new Set(citations.filter(c => c.exemplaire_id).map(c => c.exemplaire_id as string)),
+  ]
+
+  const exemplaireMap = new Map<string, any>()
+  if (exemplaire_ids.length) {
+    const { data: exRows } = await supabase
+      .from('v_exemplaires_pick')
+      .select('exemplaire_id, unite_titre, cote_locale, depot_nom, institution_nom, institution_sigle, url_base')
+      .in('exemplaire_id', exemplaire_ids)
+    for (const ex of exRows ?? []) exemplaireMap.set(ex.exemplaire_id, ex)
+  }
+
+  const data: CitationExemplaireRow[] = citations.map(c => {
+    const ex = c.exemplaire_id ? exemplaireMap.get(c.exemplaire_id) : null
+    return {
+      citation_id: c.id,
+      target_type: c.target_type,
+      target_id: c.target_id,
+      exemplaire_id: c.exemplaire_id,
+      is_missing: c.is_missing,
+      lacune: c.lacune,
+      lacune_note: c.lacune_note,
+      locating: c.locating,
+      marginalia: c.marginalia,
+      note: c.note,
+      unite_titre: ex?.unite_titre ?? null,
+      cote_locale: ex?.cote_locale ?? null,
+      depot_nom: ex?.depot_nom ?? null,
+      institution_nom: ex?.institution_nom ?? null,
+      institution_sigle: ex?.institution_sigle ?? null,
+      url_base: ex?.url_base ?? null,
+    }
+  })
+
+  return { data, error: null }
+}
+
 // ── Insertion rapide d'un document (dialog "Référencer") ──────
 // Pas d'exemplaire créé : cote/note stockés dans metadonnees.
 // Le user complètera depuis l'onglet "En attente".

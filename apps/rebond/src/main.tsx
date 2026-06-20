@@ -63,6 +63,9 @@ import { DashboardV2 } from "./features/accueil/DashboardV2"
 import { SourcesCorpusPage } from "./features/sources/SourcesCorpusPage"
 import { IdentifierSourcePage } from "./features/sources/IdentifierSourcePage"
 import { ReferencerDocumentPage } from "./features/sources/ReferencerDocumentPage"
+import { EnrichirExemplaireActePage } from "./features/sources/EnrichirExemplaireActePage"
+import { InstitutionDetailPage } from "./features/sources/InstitutionDetailPage"
+import { PlateformeDetailPage } from "./features/sources/PlateformeDetailPage"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -137,6 +140,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/mock/sources-corpus" element={<SourcesCorpusPage />} />
           <Route path="/mock/sources-identifier" element={<IdentifierSourcePage />} />
           <Route path="/mock/referencer-document" element={<ReferencerDocumentPage />} />
+          <Route path="/mock/enrichir-exemplaire/:citationId" element={<EnrichirExemplaireActePage />} />
+          <Route path="/mock/institution/:institutionId" element={<InstitutionDetailPage />} />
+          <Route path="/mock/plateforme/:plateformeId" element={<PlateformeDetailPage />} />
 
           <Route path="y" element={<SqlFunctionsExecutorPage />} />
           <Route path="admin/schema-sql" element={<SchemaExplorer />} />

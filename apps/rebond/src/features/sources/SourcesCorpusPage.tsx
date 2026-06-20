@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, ChevronRight, Layers, Bell, FileText, ScrollText,
+  Search, ChevronRight, ChevronDown, Layers, Bell, FileText, ScrollText,
   MoreHorizontal, CheckCircle2, Clock, AlertCircle, Plus, Filter,
   FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Globe, Copy,
   CornerDownRight, Sparkles, Library, BookOpen, X,
-  AlertTriangle, Loader2,
+  AlertTriangle, Loader2, MonitorCheck, University,
+  Lock,
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 import { usePatrimoine } from './usePatrimoine'
 import {
   qualifierSource, decrireDocument, rattacherDocument,
@@ -75,8 +78,30 @@ const CORPUS_TYPE_CONFIG: Record<CorpusType, { label: string; color: string; bg:
   communaute:   { label: 'Communauté',   color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
 }
 
-const ALL_TABS = ['En attente', 'Sources', 'Documents', 'Corpus'] as const
+const ALL_TABS = ['En attente', 'Sources', 'Documents', 'Exemplaires', 'Plateformes', 'Institutions', 'Corpus'] as const
 type Tab = typeof ALL_TABS[number]
+
+// ─── Types référentiels ───────────────────────────────────────────────────────
+
+type PlateformeRow = {
+  id: string
+  code: string
+  label: string
+  site_web: string | null
+  auth_required: boolean
+  kind_label: string | null
+}
+
+type InstitutionRow = {
+  id: string
+  nom: string
+  sigle: string | null
+  pays: string | null
+  commune: string | null
+  type_label: string | null
+  nb_depots: number
+  site_web: string | null
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,19 +111,20 @@ function pct(done: number, total: number) {
 
 // ─── SlideOver wrapper ────────────────────────────────────────────────────────
 
-function SlideOver({ open, onClose, title, subtitle, children, footer }: {
+function SlideOver({ open, onClose, title, subtitle, children, footer, wide }: {
   open: boolean
   onClose: () => void
   title: string
   subtitle?: string
   children: React.ReactNode
   footer: React.ReactNode
+  wide?: boolean
 }) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={onClose} />
-      <div className="w-full max-w-md bg-white shadow-2xl flex flex-col">
+      <div className={`w-full ${wide ? 'max-w-xl' : 'max-w-md'} bg-white shadow-2xl flex flex-col`}>
         <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
@@ -212,7 +238,7 @@ function QualifierSourceSheet({ source, onClose, onDone }: {
       </Field>
       <Field label="Rôle du document">
         <select value={role} onChange={e => setRole(e.target.value)} className={selectCls}>
-          <option value="">— Non défini</option>
+          <option value="">À préciser</option>
           {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </Field>
@@ -269,13 +295,13 @@ function DecrireDocumentSheet({ doc, onClose, onDone }: {
     >
       <Field label="Type de document">
         <select value={domaine} onChange={e => setDomaine(e.target.value)} className={selectCls} autoFocus>
-          <option value="">— Non défini</option>
+          <option value="">À préciser</option>
           {DOMAINE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </Field>
       <Field label="Rôle">
         <select value={role} onChange={e => setRole(e.target.value)} className={selectCls}>
-          <option value="">— Non défini</option>
+          <option value="">À préciser</option>
           {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </Field>
@@ -771,17 +797,357 @@ function EnAttenteTab({
   )
 }
 
+// ─── Create Plateforme Sheet ──────────────────────────────────────────────────
+
+type KindOption = { id: string; label: string; description: string | null; categorie: string | null }
+
+function SearchableKindSelect({ value, onChange, options }: {
+  value: string; onChange: (v: string) => void; options: KindOption[]
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [dropRect, setDropRect] = useState<{ top: number; left: number; width: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const dropRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (
+        btnRef.current && !btnRef.current.contains(e.target as Node) &&
+        dropRef.current && !dropRef.current.contains(e.target as Node)
+      ) { setOpen(false); setQuery('') }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [])
+
+  const openDropdown = () => {
+    if (!btnRef.current) return
+    const r = btnRef.current.getBoundingClientRect()
+    setDropRect({ top: r.bottom + 4, left: r.left, width: r.width })
+    setOpen(v => !v)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  const filtered = options.filter(o => {
+    const q = query.toLowerCase()
+    return !q || o.label.toLowerCase().includes(q) || (o.description ?? '').toLowerCase().includes(q) || (o.categorie ?? '').toLowerCase().includes(q)
+  })
+
+  const grouped = filtered.reduce<Record<string, KindOption[]>>((acc, o) => {
+    const cat = o.categorie ?? '—'
+    ;(acc[cat] ??= []).push(o)
+    return acc
+  }, {})
+
+  const selected = options.find(o => o.id === value)
+
+  return (
+    <div>
+      <button ref={btnRef} type="button" onClick={openDropdown}
+        className={`${inputCls} flex items-center justify-between gap-2 text-left`}>
+        <span className={selected ? 'text-gray-900' : 'text-gray-400'}>
+          {selected ? selected.label : 'À préciser'}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+      </button>
+      {open && dropRect && (
+        <div ref={dropRef}
+          style={{ position: 'fixed', top: dropRect.top, left: dropRect.left, width: dropRect.width }}
+          className="rounded-xl border border-gray-200 bg-white shadow-xl z-[60] overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+                placeholder="Rechercher…"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+          <div className="max-h-64 overflow-y-auto py-1">
+            <button type="button" onClick={() => { onChange(''); setOpen(false); setQuery('') }}
+              className="w-full px-3 py-2 text-sm text-left text-gray-400 italic hover:bg-gray-50 transition-colors">
+              À préciser
+            </button>
+            {filtered.length === 0 ? (
+              <p className="px-3 py-3 text-xs text-gray-400 text-center">Aucun résultat</p>
+            ) : Object.entries(grouped).map(([cat, items]) => (
+              <div key={cat}>
+                <div className="px-3 pt-2 pb-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{cat}</span>
+                </div>
+                {items.map(o => (
+                  <button key={o.id} type="button"
+                    onClick={() => { onChange(o.id); setOpen(false); setQuery('') }}
+                    className={`w-full px-3 py-2.5 text-left transition-colors hover:bg-gray-50 ${o.id === value ? 'bg-indigo-50' : ''}`}>
+                    <div className="text-sm font-medium text-gray-900">{o.label}</div>
+                    {o.description && (
+                      <div className="text-xs text-gray-400 mt-0.5 leading-relaxed">{o.description}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CreatePlateformeSheet({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [label, setLabel] = useState('')
+  const [code, setCode] = useState('')
+  const [siteWeb, setSiteWeb] = useState('')
+  const [authRequired, setAuthRequired] = useState(false)
+  const [kindRef, setKindRef] = useState('')
+  const [kindOptions, setKindOptions] = useState<KindOption[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.from('ref_plateforme_kind').select('id, label, description, categorie').order('categorie, label').then(({ data }) => {
+      if (data) setKindOptions(data.map((r: any) => ({ id: r.id, label: r.label, description: r.description ?? null, categorie: r.categorie ?? null })))
+    })
+  }, [])
+
+  async function handleSubmit() {
+    if (!label.trim() || !code.trim()) return
+    setSubmitting(true); setError(null)
+    const { error: err } = await supabase.from('ref_plateformes').insert({
+      label: label.trim(),
+      code: code.trim().toUpperCase(),
+      site_web: siteWeb.trim() || null,
+      auth_required: authRequired,
+      plateforme_kind_ref: kindRef || null,
+    })
+    setSubmitting(false)
+    if (err) { setError(err.message); return }
+    toast.success('Plateforme créée')
+    onDone()
+  }
+
+  return (
+    <SlideOver open wide title="Nouvelle plateforme" onClose={onClose}
+      footer={<>
+        <button onClick={onClose} disabled={submitting}
+          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+          Annuler
+        </button>
+        <button onClick={handleSubmit} disabled={submitting || !label.trim() || !code.trim()}
+          className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+          {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          <CheckCircle2 className="w-3.5 h-3.5" />Créer
+        </button>
+      </>}
+    >
+      <Field label="Libellé" required>
+        <input value={label} onChange={e => setLabel(e.target.value)} autoFocus
+          placeholder="ex. Généanet" className={inputCls} />
+      </Field>
+      <Field label="Code" required>
+        <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+          placeholder="ex. GENEANET" className={`${inputCls} font-mono`} />
+      </Field>
+      <Field label="Type">
+        <SearchableKindSelect value={kindRef} onChange={setKindRef} options={kindOptions} />
+      </Field>
+      <Field label="Site web">
+        <input value={siteWeb} onChange={e => setSiteWeb(e.target.value)}
+          placeholder="https://…" className={inputCls} type="url" />
+      </Field>
+      <label className="flex items-center gap-3 cursor-pointer select-none">
+        <input type="checkbox" checked={authRequired} onChange={e => setAuthRequired(e.target.checked)}
+          className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+        <span className="text-sm text-gray-700">Authentification requise</span>
+      </label>
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>
+      )}
+    </SlideOver>
+  )
+}
+
+// ─── Create Institution Sheet ─────────────────────────────────────────────────
+
+function CreateInstitutionSheet({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [nom, setNom] = useState('')
+  const [sigle, setSigle] = useState('')
+  const [typeRef, setTypeRef] = useState('')
+  const [pays, setPays] = useState('')
+  const [region, setRegion] = useState('')
+  const [departement, setDepartement] = useState('')
+  const [commune, setCommune] = useState('')
+  const [siteWeb, setSiteWeb] = useState('')
+  const [note, setNote] = useState('')
+  const [typeOptions, setTypeOptions] = useState<Array<{ id: string; label: string }>>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.from('ref_institution_type').select('id, label').order('label').then(({ data }) => {
+      if (data) setTypeOptions(data as Array<{ id: string; label: string }>)
+    })
+  }, [])
+
+  async function handleSubmit() {
+    if (!nom.trim() || !typeRef) return
+    setSubmitting(true)
+    setError(null)
+    const { error: err } = await supabase.from('ref_institutions').insert({
+      nom: nom.trim(),
+      sigle: sigle.trim() || null,
+      type_institution_ref: typeRef,
+      pays: pays.trim() || null,
+      region: region.trim() || null,
+      departement: departement.trim() || null,
+      commune: commune.trim() || null,
+      site_web: siteWeb.trim() || null,
+      note: note.trim() || null,
+    })
+    setSubmitting(false)
+    if (err) { setError(err.message); return }
+    onDone()
+  }
+
+  return (
+    <SlideOver open wide title="Nouvelle institution" onClose={onClose}
+      footer={<>
+        <button onClick={onClose} disabled={submitting}
+          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+          Annuler
+        </button>
+        <button onClick={handleSubmit} disabled={submitting || !nom.trim() || !typeRef}
+          className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+          {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          <CheckCircle2 className="w-3.5 h-3.5" />Créer
+        </button>
+      </>}
+    >
+      <Field label="Nom" required>
+        <input value={nom} onChange={e => setNom(e.target.value)} autoFocus
+          placeholder="ex. Archives départementales de la Guadeloupe" className={inputCls} />
+      </Field>
+      <Field label="Sigle">
+        <input value={sigle} onChange={e => setSigle(e.target.value)}
+          placeholder="ex. AD971" className={`${inputCls} font-mono`} />
+      </Field>
+      <Field label="Type" required>
+        <select value={typeRef} onChange={e => setTypeRef(e.target.value)} className={selectCls}>
+          <option value="">— Sélectionner…</option>
+          {typeOptions.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Pays">
+          <input value={pays} onChange={e => setPays(e.target.value)} placeholder="ex. France" className={inputCls} />
+        </Field>
+        <Field label="Région">
+          <input value={region} onChange={e => setRegion(e.target.value)} placeholder="ex. Guadeloupe" className={inputCls} />
+        </Field>
+        <Field label="Département">
+          <input value={departement} onChange={e => setDepartement(e.target.value)} placeholder="ex. Guadeloupe" className={inputCls} />
+        </Field>
+        <Field label="Commune">
+          <input value={commune} onChange={e => setCommune(e.target.value)} placeholder="ex. Basse-Terre" className={inputCls} />
+        </Field>
+      </div>
+      <Field label="Site web">
+        <input value={siteWeb} onChange={e => setSiteWeb(e.target.value)}
+          placeholder="https://…" className={inputCls} type="url" />
+      </Field>
+      <Field label="Note">
+        <textarea value={note} onChange={e => setNote(e.target.value)}
+          placeholder="Observations libres…"
+          className={`${inputCls} resize-none min-h-[80px]`} />
+      </Field>
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>
+      )}
+    </SlideOver>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function SourcesCorpusPage() {
   const navigate = useNavigate()
 
-  const { sources, docs, corpus, loading, error, refetch } = usePatrimoine()
+  const { sources, docs, corpus, citationsData, loading, error, refetch } = usePatrimoine()
 
   const [tab, setTab] = useState<Tab>('Sources')
   const [search, setSearch] = useState('')
   const [sourceDocFilter, setSourceDocFilter] = useState<string>('tous')
   const [statutDocFilter, setStatutDocFilter] = useState<DocStatut | 'tous'>('tous')
+
+  // ── Référentiels (chargés à la demande) ──────────────────────────────────
+  const [plateformes, setPlateformes] = useState<PlateformeRow[]>([])
+  const [plateformesLoading, setPlateformesLoading] = useState(false)
+  const plateformesLoaded = useRef(false)
+  const [plateformesRefreshKey, setPlateformesRefreshKey] = useState(0)
+  const reloadPlateformes = () => { plateformesLoaded.current = false; setPlateformesRefreshKey(k => k + 1) }
+
+  const [institutions, setInstitutions] = useState<InstitutionRow[]>([])
+  const [institutionsLoading, setInstitutionsLoading] = useState(false)
+  const institutionsLoaded = useRef(false)
+  const [institutionsRefreshKey, setInstitutionsRefreshKey] = useState(0)
+  const reloadInstitutions = () => { institutionsLoaded.current = false; setInstitutionsRefreshKey(k => k + 1) }
+
+  useEffect(() => {
+    if (tab !== 'Plateformes' || plateformesLoaded.current) return
+    plateformesLoaded.current = true
+    setPlateformesLoading(true)
+    supabase
+      .from('ref_plateformes')
+      .select('id, code, label, site_web, auth_required, ref_plateforme_kind!plateforme_kind_ref(label)')
+      .order('label')
+      .then(({ data }) => {
+        setPlateformes((data ?? []).map((r: any) => ({
+          id: r.id,
+          code: r.code,
+          label: r.label,
+          site_web: r.site_web ?? null,
+          auth_required: r.auth_required,
+          kind_label: r.ref_plateforme_kind?.label ?? null,
+        })))
+        setPlateformesLoading(false)
+      })
+  }, [tab, plateformesRefreshKey])
+
+  useEffect(() => {
+    if (tab !== 'Institutions' || institutionsLoaded.current) return
+    institutionsLoaded.current = true
+    setInstitutionsLoading(true)
+    Promise.all([
+      supabase.from('ref_institutions').select('id, nom, sigle, pays, commune, site_web, ref_institution_type!type_institution_ref(label)').order('nom'),
+      supabase.from('ref_depots').select('institution_id'),
+    ]).then(([instRes, depotsRes]) => {
+      const depotCounts: Record<string, number> = {}
+      for (const d of (depotsRes.data ?? [])) {
+        depotCounts[d.institution_id] = (depotCounts[d.institution_id] ?? 0) + 1
+      }
+      setInstitutions((instRes.data ?? []).map((r: any) => ({
+        id: r.id,
+        nom: r.nom,
+        sigle: r.sigle ?? null,
+        pays: r.pays ?? null,
+        commune: r.commune ?? null,
+        type_label: r.ref_institution_type?.label ?? null,
+        nb_depots: depotCounts[r.id] ?? 0,
+        site_web: r.site_web ?? null,
+      })))
+      setInstitutionsLoading(false)
+    })
+  }, [tab, institutionsRefreshKey])
+
+  const [platSearch, setPlatSearch] = useState('')
+  const [platKindFilter, setPlatKindFilter] = useState('')
+  const [showCreatePlateforme, setShowCreatePlateforme] = useState(false)
+
+  const [instSearch, setInstSearch] = useState('')
+  const [instTypeFilter, setInstTypeFilter] = useState('')
+
+  const [showCreateInstitution, setShowCreateInstitution] = useState(false)
 
   type ActiveSheet =
     | { kind: 'qualifier'; source: Source }
@@ -955,6 +1321,9 @@ export function SourcesCorpusPage() {
               t === 'En attente' ? nbAlerts :
               t === 'Sources' ? activeSources.length :
               t === 'Documents' ? activeDocs.length :
+              t === 'Exemplaires' ? citationsData.length :
+              t === 'Plateformes' ? (plateformes.length || null) :
+              t === 'Institutions' ? (institutions.length || null) :
               t === 'Corpus' ? corpus.length : null
             const isAlert = t === 'En attente'
             return (
@@ -1082,6 +1451,321 @@ export function SourcesCorpusPage() {
           </div>
         )}
 
+        {/* ── Exemplaires ── */}
+        {tab === 'Exemplaires' && (() => {
+          const ecActes = citationsData.filter(c => c.target_type === 'ec_acte')
+
+          function isShortFormComplete(c: typeof citationsData[number]): boolean {
+            if (c.is_missing === null) return false
+            if (c.lacune === null) return false
+            const loc = (c.locating ?? {}) as Record<string, any>
+            const sys0 = (Array.isArray(loc.systems) ? loc.systems[0] : {}) ?? {}
+            if (!(loc.raw?.toString().trim()) && sys0.start == null) return false
+            const present = ((c.marginalia ?? {}) as Record<string, any>).present ?? {}
+            if (present.marginal_mentions == null) return false
+            if (present.signatures == null) return false
+            if (present.marginal_crossouts == null) return false
+            return true
+          }
+
+          const ecActesComplets = ecActes.filter(isShortFormComplete)
+          const ecActesIncomplets = ecActes.filter(c => !isShortFormComplete(c))
+          const nonActes = citationsData.filter(c => c.target_type !== 'ec_acte')
+
+          function ExemplaireRow({ c }: { c: typeof citationsData[number] }) {
+            const isClickable = c.target_type === 'ec_acte'
+            const handleClick = isClickable
+              ? () => navigate(`/mock/enrichir-exemplaire/${c.citation_id}`)
+              : undefined
+            return (
+              <div
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onClick={handleClick}
+                onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') handleClick?.() } : undefined}
+                className={[
+                  'flex items-center gap-4 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors',
+                  isClickable ? 'cursor-pointer hover:bg-gray-50' : '',
+                ].join(' ')}
+              >
+                <div className="w-8 h-8 rounded-lg border bg-indigo-50 border-indigo-100 flex items-center justify-center shrink-0">
+                  <Library className="w-3.5 h-3.5 text-indigo-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {c.unite_titre ?? <span className="italic text-gray-400">Document inconnu</span>}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">{c.target_type}</p>
+                </div>
+                <div className="w-48 shrink-0">
+                  <p className="text-xs font-medium text-gray-700">{c.institution_sigle ?? c.institution_nom ?? '—'}</p>
+                  {c.depot_nom && <p className="text-xs text-gray-400">{c.depot_nom}</p>}
+                </div>
+                <div className="w-32 shrink-0">
+                  <span className="text-xs font-mono text-gray-600">{c.cote_locale ?? '—'}</span>
+                </div>
+                {isClickable && <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />}
+              </div>
+            )
+          }
+
+          function Section({ title, items, emptyLabel, accent }: {
+            title: string
+            items: typeof citationsData
+            emptyLabel: string
+            accent: 'green' | 'amber' | 'slate'
+          }) {
+            const accentMap = {
+              green: { dot: 'bg-green-400', count: 'text-green-700 bg-green-50 border-green-200' },
+              amber: { dot: 'bg-amber-400', count: 'text-amber-700 bg-amber-50 border-amber-200' },
+              slate: { dot: 'bg-slate-400', count: 'text-slate-700 bg-slate-50 border-slate-200' },
+            }
+            const a = accentMap[accent]
+            return (
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${a.dot}`} />
+                  <span className="flex-1 text-xs font-semibold text-gray-700 uppercase tracking-wide">{title}</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${a.count}`}>{items.length}</span>
+                </div>
+                {items.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-gray-400">{emptyLabel}</p>
+                  </div>
+                ) : (
+                  items.map(c => <ExemplaireRow key={c.citation_id} c={c} />)
+                )}
+              </div>
+            )
+          }
+
+          if (citationsData.length === 0) {
+            return (
+              <div className="py-16 text-center">
+                <Library className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">Aucun exemplaire référencé.</p>
+              </div>
+            )
+          }
+
+          return (
+            <div className="space-y-4">
+              <Section
+                title="Actes EC — formulaire court complété"
+                items={ecActesComplets}
+                emptyLabel="Aucun acte avec formulaire complété."
+                accent="green"
+              />
+              <Section
+                title="Actes EC — formulaire court incomplet"
+                items={ecActesIncomplets}
+                emptyLabel="Aucun acte avec formulaire incomplet."
+                accent="amber"
+              />
+              <Section
+                title="Autres (registres, actes non-EC…)"
+                items={nonActes}
+                emptyLabel="Aucun autre type d'occurrence."
+                accent="slate"
+              />
+            </div>
+          )
+        })()}
+
+        {/* ── Plateformes ── */}
+        {tab === 'Plateformes' && (
+          <div className="space-y-4">
+            {plateformesLoading ? (
+              <div className="flex items-center gap-2 py-16 justify-center text-sm text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />Chargement…
+              </div>
+            ) : (() => {
+              const platKinds = Array.from(new Set(plateformes.map(p => p.kind_label).filter(Boolean))) as string[]
+              const filtered = plateformes.filter(p => {
+                const q = platSearch.toLowerCase()
+                const matchSearch = !q || p.label.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || (p.site_web ?? '').toLowerCase().includes(q)
+                const matchKind = !platKindFilter || p.kind_label === platKindFilter
+                return matchSearch && matchKind
+              })
+              return (
+                <>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <input value={platSearch} onChange={e => setPlatSearch(e.target.value)}
+                          placeholder="Rechercher…"
+                          className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48" />
+                      </div>
+                      <button onClick={() => setPlatKindFilter('')}
+                        className={`text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
+                          !platKindFilter ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                        }`}>Tous</button>
+                      {platKinds.map(k => (
+                        <button key={k} onClick={() => setPlatKindFilter(platKindFilter === k ? '' : k)}
+                          className={`text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
+                            platKindFilter === k ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                          }`}>{k}</button>
+                      ))}
+                    </div>
+                    <button onClick={() => setShowCreatePlateforme(true)}
+                      className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors shrink-0">
+                      <Plus className="w-3.5 h-3.5" />Nouvelle plateforme
+                    </button>
+                  </div>
+                  {filtered.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <MonitorCheck className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">Aucune plateforme trouvée.</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                      <div className="grid grid-cols-12 gap-4 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                        <div className="col-span-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Type</div>
+                        <div className="col-span-7 text-xs font-medium text-gray-400 uppercase tracking-wide">Libellé</div>
+                        <div className="col-span-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Accès</div>
+                      </div>
+                      {filtered.map(p => (
+                        <div key={p.id} onClick={() => navigate(`/mock/plateforme/${p.id}`)} className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer">
+                          <div className="col-span-3 flex items-center">
+                            <span className="text-xs text-gray-500">{p.kind_label ?? '—'}</span>
+                          </div>
+                          <div className="col-span-7 flex items-center min-w-0">
+                            <p className="text-sm text-gray-800 truncate">{p.label}</p>
+                          </div>
+                          <div className="col-span-2 flex items-center gap-2">
+                            {p.site_web ? (
+                              <a href={p.site_web} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors">
+                                <ExternalLink className="w-3 h-3" />Site
+                              </a>
+                            ) : <span className="text-xs text-gray-300">—</span>}
+                            {p.auth_required && (
+                              <div className="relative group">
+                                <Lock className="w-4 h-4 text-gray-500" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 rounded-lg bg-gray-900 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                                  Authentification requise
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        )}
+
+        {/* ── Institutions ── */}
+        {tab === 'Institutions' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <input value={instSearch} onChange={e => setInstSearch(e.target.value)}
+                    placeholder="Rechercher…"
+                    className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48" />
+                </div>
+                {(() => {
+                  const types = Array.from(new Set(institutions.map(i => i.type_label).filter(Boolean))) as string[]
+                  return (
+                    <>
+                      <button onClick={() => setInstTypeFilter('')}
+                        className={`text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
+                          !instTypeFilter ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                        }`}>Tous</button>
+                      {types.map(t => (
+                        <button key={t} onClick={() => setInstTypeFilter(instTypeFilter === t ? '' : t)}
+                          className={`text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
+                            instTypeFilter === t ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                          }`}>{t}</button>
+                      ))}
+                    </>
+                  )
+                })()}
+              </div>
+              <button
+                onClick={() => setShowCreateInstitution(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors shrink-0">
+                <Plus className="w-3.5 h-3.5" />Nouvelle institution
+              </button>
+            </div>
+            {institutionsLoading ? (
+              <div className="flex items-center gap-2 py-16 justify-center text-sm text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />Chargement…
+              </div>
+            ) : (() => {
+              const filtered = institutions.filter(i => {
+                const q = instSearch.toLowerCase()
+                const matchSearch = !q || i.nom.toLowerCase().includes(q) || (i.sigle ?? '').toLowerCase().includes(q) || (i.commune ?? '').toLowerCase().includes(q)
+                const matchType = !instTypeFilter || i.type_label === instTypeFilter
+                return matchSearch && matchType
+              })
+              if (filtered.length === 0) return (
+                <div className="py-16 text-center">
+                  <University className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">Aucune institution trouvée.</p>
+                </div>
+              )
+              return (
+                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                    <div className="col-span-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Sigle</div>
+                    <div className="col-span-4 text-xs font-medium text-gray-400 uppercase tracking-wide">Nom</div>
+                    <div className="col-span-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Type</div>
+                    <div className="col-span-2 text-xs font-medium text-gray-400 uppercase tracking-wide">Commune</div>
+                    <div className="col-span-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Dépôts</div>
+                    <div className="col-span-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Site</div>
+                  </div>
+                  {filtered.map(i => (
+                    <div key={i.id} onClick={() => navigate(`/mock/institution/${i.id}`)}
+                      className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <div className="col-span-2 flex items-center">
+                        {i.sigle ? (
+                          <span className="text-xs font-mono font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5">
+                            {i.sigle}
+                          </span>
+                        ) : <span className="text-xs text-gray-300">—</span>}
+                      </div>
+                      <div className="col-span-4 flex items-center min-w-0">
+                        <p className="text-sm text-gray-800 truncate">{i.nom}</p>
+                      </div>
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-xs text-gray-500">{i.type_label ?? '—'}</span>
+                      </div>
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-xs text-gray-500">{[i.commune, i.pays].filter(Boolean).join(', ') || '—'}</span>
+                      </div>
+                      <div className="col-span-1 flex items-center">
+                        <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                          i.nb_depots > 0
+                            ? 'text-indigo-600 bg-indigo-50 border border-indigo-200'
+                            : 'text-gray-400 bg-gray-50 border border-gray-200'
+                        }`}>
+                          {i.nb_depots}
+                        </span>
+                      </div>
+                      <div className="col-span-1 flex items-center">
+                        {i.site_web ? (
+                          <a href={i.site_web} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                            className="text-gray-400 hover:text-indigo-600 transition-colors">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        ) : <span className="text-xs text-gray-300">—</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+          </div>
+        )}
+
         {/* ── Corpus ── */}
         {tab === 'Corpus' && (
           <div className="space-y-4">
@@ -1107,6 +1791,20 @@ export function SourcesCorpusPage() {
         )}
 
       </main>
+
+      {showCreatePlateforme && (
+        <CreatePlateformeSheet
+          onClose={() => setShowCreatePlateforme(false)}
+          onDone={() => { setShowCreatePlateforme(false); reloadPlateformes() }}
+        />
+      )}
+
+      {showCreateInstitution && (
+        <CreateInstitutionSheet
+          onClose={() => setShowCreateInstitution(false)}
+          onDone={() => { setShowCreateInstitution(false); reloadInstitutions() }}
+        />
+      )}
 
       {activeSheet?.kind === 'qualifier' && (
         <QualifierSourceSheet

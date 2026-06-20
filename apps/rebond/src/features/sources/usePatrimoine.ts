@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, insertDocumentUD,
-  type VSourceRow, type UDDocRow, type CorpusDBRow,
+  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, fetchCitationsWithExemplaires, insertDocumentUD,
+  type VSourceRow, type UDDocRow, type CorpusDBRow, type CitationExemplaireRow,
 } from './patrimoine.service'
 import type {
   PatrimoineSource, PatrimoineDocument, PatrimoineCorpus,
@@ -128,6 +128,7 @@ export function usePatrimoine() {
   const [sources, setSources] = useState<PatrimoineSource[]>([])
   const [docs, setDocs] = useState<PatrimoineDocument[]>([])
   const [corpus, setCorpus] = useState<PatrimoineCorpus[]>([])
+  const [citationsData, setCitationsData] = useState<CitationExemplaireRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -135,11 +136,12 @@ export function usePatrimoine() {
     setLoading(true)
     setError(null)
 
-    const [sourcesRes, docsRes, orphansRes, corpusRes] = await Promise.all([
+    const [sourcesRes, docsRes, orphansRes, corpusRes, citationsRes] = await Promise.all([
       fetchSources(),
       fetchDocuments(),
       fetchOrphans(),
       fetchCorpus(),
+      fetchCitationsWithExemplaires(),
     ])
 
     if (sourcesRes.error) {
@@ -163,6 +165,7 @@ export function usePatrimoine() {
     setSources(mappedSources)
     setDocs(mappedDocs)
     setCorpus(mappedCorpus)
+    setCitationsData(citationsRes.data ?? [])
     setLoading(false)
   }, [])
 
@@ -180,5 +183,5 @@ export function usePatrimoine() {
     await load()
   }, [load])
 
-  return { sources, docs, corpus, loading, error, refetch: load, addDoc }
+  return { sources, docs, corpus, citationsData, loading, error, refetch: load, addDoc }
 }
