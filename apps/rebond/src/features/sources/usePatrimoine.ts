@@ -62,11 +62,9 @@ function toSource(row: VSourceRow): PatrimoineSource {
     id: row.unite_documentaire_id,
     nom: row.nom,
     type: toSourceType(row.metadonnees),
-    producteur: row.producteur ?? null,
     institution_conservation:
       row.institution_conservation ?? row.depot_nom ?? 'Institution inconnue',
     localisation: row.localisation ?? [row.ville, row.pays].filter(Boolean).join(', ') ?? '',
-    territoire: row.territoire ?? null,
     periode: row.periode ?? 'non renseigné',
     niveau_fiabilite: (row.niveau_fiabilite as 'haute' | 'moyenne' | 'basse' | null) ?? null,
     acces: (row.acces as Acces) ?? 'physique',
@@ -90,14 +88,13 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
     id: row.id,
     source_id: row.parent_ud_id ?? null,
     type_document: toSourceType(row.metadonnees) as SourceType | null,
-    role: (row.role_document as DocRole | null) ?? null,
+    role: (row.ref_role_document?.code as DocRole | null) ?? null,
     cote: ex?.cote_locale ?? coteFromMeta ?? '?',
     titre: row.titre,
     date_document: row.couverture_label ?? null,
     statut: (row.workflow_statut as DocStatut) ?? 'en_attente',
     niveau_conservation: toConservation(null),
     note: ex?.note ?? noteFromMeta ?? undefined,
-    decouverte_via_id: row.decouverte_via_id ?? undefined,
   }
 }
 

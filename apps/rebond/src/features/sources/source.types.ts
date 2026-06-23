@@ -8,7 +8,7 @@ export type SourceType = 'etat-civil' | 'foncier' | 'annuaire' | 'notarial' | 'p
 export type SourceStatut = 'actif' | 'archivé' | 'incomplet' | 'a_qualifier'
 export type Acces = 'physique' | 'numerique' | 'en_ligne'
 export type DocStatut = 'transcrit' | 'en_cours' | 'a_transcrire' | 'annote' | 'en_attente'
-export type DocRole = 'acte_primaire' | 'instrument_de_recherche' | 'registre_compile'
+export type DocRole = 'ACTE_PRIMAIRE' | 'INSTRUMENT_DE_RECHERCHE' | 'REGISTRE_COMPILE'
 export type NiveauConservation = 'bon' | 'moyen' | 'degrade' | 'fragmentaire'
 export type CorpusType = 'genealogique' | 'patrimonial' | 'territorial' | 'communaute'
 
@@ -16,10 +16,8 @@ export type PatrimoineSource = {
   id: string              // unite_documentaire_id
   nom: string
   type: SourceType
-  producteur: string | null
   institution_conservation: string
   localisation: string
-  territoire: string | null
   periode: string
   niveau_fiabilite: 'haute' | 'moyenne' | 'basse' | null
   acces: Acces
@@ -46,7 +44,6 @@ export type PatrimoineDocument = {
   url?: string
   mentions_detectees?: number
   exemplaire_groupe_id?: string
-  decouverte_via_id?: string
   note?: string
 }
 

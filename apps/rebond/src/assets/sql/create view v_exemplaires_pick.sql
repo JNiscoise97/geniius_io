@@ -75,8 +75,8 @@ select
   e.id as exemplaire_id,
 
   -- flags utiles pour les filtres UI (onlyOnline etc.)
-  d.is_online as depot_is_online,
-  d.is_physical as depot_is_physical,
+  COALESCE(dt.is_online, false) as depot_is_online,
+  NOT COALESCE(dt.is_online, false) as depot_is_physical,
 
   -- exemplaire (nouveau modèle)
   e.unite_documentaire_id as unite_id,
@@ -131,6 +131,9 @@ select
   d.nom as depot_nom,
   i.nom as institution_nom,
   i.sigle as institution_sigle,
+  i.commune as institution_commune,
+  i.pays as institution_pays,
+  it.label as institution_type_label,
 
   -- URL / plateforme (best url)
   bu.url_base,
@@ -141,7 +144,9 @@ from
   join ref_unites_documentaires u on u.id = e.unite_documentaire_id
   left join ref_series_documentaires s on s.id = u.serie_ref
   join ref_depots d on d.id = e.depot_id
+  left join ref_depot_type dt on dt.id = d.type_ref
   join ref_institutions i on i.id = d.institution_id
+  left join ref_institution_type it on it.id = i.type_institution_ref
   left join ref_natures n on n.id = e.nature_ref
   left join ref_supports sup on sup.id = e.support_ref
   left join ref_pagination_type pty on pty.id = e.pagination_type_ref

@@ -12,14 +12,11 @@ export type VSourceRow = {
   nom: string
   type_unite_ref: string
   statut: string
-  role_document: string | null
   workflow_statut: string
-  territoire: string | null
   niveau_fiabilite: string | null
   periode: string | null
   couverture_sort_start: number | null
   couverture_sort_end: number | null
-  producteur: string | null
   cote: string | null
   note: string | null
   nature: string | null
@@ -46,7 +43,6 @@ export type VSourceRow = {
   a_traiter: number
   metadonnees: Record<string, unknown> | null
   parent_ud_id: string | null
-  decouverte_via_id: string | null
   created_at: string
   derniere_activite: string
 }
@@ -55,12 +51,12 @@ export type UDDocRow = {
   id: string
   parent_ud_id: string | null
   type_unite_ref: string | null
-  role_document: string | null
+  role_document_ref: string | null
+  ref_role_document: { id: string; code: string; label: string } | null
   titre: string
   couverture_label: string | null
   workflow_statut: string
   statut: string
-  decouverte_via_id: string | null
   metadonnees: Record<string, unknown> | null
   created_at: string
   updated_at: string
@@ -102,12 +98,12 @@ export async function fetchDocuments() {
       id,
       parent_ud_id,
       type_unite_ref,
-      role_document,
+      role_document_ref,
+      ref_role_document!role_document_ref ( id, code, label ),
       titre,
       couverture_label,
       workflow_statut,
       statut,
-      decouverte_via_id,
       metadonnees,
       created_at,
       updated_at,
@@ -129,12 +125,12 @@ export async function fetchOrphans() {
       id,
       parent_ud_id,
       type_unite_ref,
-      role_document,
+      role_document_ref,
+      ref_role_document!role_document_ref ( id, code, label ),
       titre,
       couverture_label,
       workflow_statut,
       statut,
-      decouverte_via_id,
       metadonnees,
       created_at,
       updated_at,
@@ -193,18 +189,16 @@ export async function identifierSource(payload: {
 // Passe statut → 'actif'. Producteur non géré ici (FK complexe).
 
 export async function qualifierSource(id: string, payload: {
-  territoire: string | null
   niveau_fiabilite: string | null
-  role_document: string | null
+  role_document_ref: string | null
   couverture_label: string | null
   metadonnees: Record<string, unknown> | null
 }) {
   const { error } = await supabase
     .from('ref_unites_documentaires')
     .update({
-      territoire: payload.territoire || null,
       niveau_fiabilite: payload.niveau_fiabilite || null,
-      role_document: payload.role_document || null,
+      role_document_ref: payload.role_document_ref || null,
       couverture_label: payload.couverture_label || null,
       statut: 'actif',
       metadonnees: payload.metadonnees,
@@ -217,20 +211,25 @@ export async function qualifierSource(id: string, payload: {
 // Passe workflow_statut → 'a_transcrire'.
 
 export async function decrireDocument(id: string, payload: {
-  role_document: string | null
+  role_document_ref: string | null
   couverture_label: string | null
   metadonnees: Record<string, unknown> | null
 }) {
   const { error } = await supabase
     .from('ref_unites_documentaires')
     .update({
-      role_document: payload.role_document || null,
+      role_document_ref: payload.role_document_ref || null,
       couverture_label: payload.couverture_label || null,
       workflow_statut: 'a_transcrire',
       metadonnees: payload.metadonnees,
     })
     .eq('id', id)
   return { error }
+}
+
+export async function fetchRoleDocumentOptions(): Promise<Array<{ id: string; code: string; label: string }>> {
+  const { data } = await supabase.from('ref_role_document').select('id, code, label').order('label')
+  return data ?? []
 }
 
 // ── Rattacher un document à une source (step 3 de P1.2) ──────

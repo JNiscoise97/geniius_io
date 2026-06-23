@@ -76,6 +76,9 @@ export type ExemplairePick = {
 
   institution_nom: string;
   institution_sigle: string | null;
+  institution_commune: string | null;
+  institution_pays: string | null;
+  institution_type_label: string | null;
 
   identifiant_interne: string | null;
   localisation_interne: string | null;
@@ -194,6 +197,9 @@ export type Exemplaire = {
 
   institution_nom?: string;
   institution_sigle?: string | null;
+  institution_commune?: string | null;
+  institution_pays?: string | null;
+  institution_type_label?: string | null;
 
   identifiant_interne: string | null;
   localisation_interne: string | null;

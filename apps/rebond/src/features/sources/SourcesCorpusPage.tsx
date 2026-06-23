@@ -4,7 +4,7 @@ import {
   Search, ChevronRight, ChevronDown, Layers, Bell, FileText, ScrollText,
   MoreHorizontal, CheckCircle2, Clock, AlertCircle, Plus, Filter,
   FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Globe, Copy,
-  CornerDownRight, Sparkles, Library, BookOpen, X,
+  Sparkles, Library, BookOpen, X,
   AlertTriangle, Loader2, MonitorCheck, University,
   Lock,
 } from 'lucide-react'
@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { usePatrimoine } from './usePatrimoine'
 import {
-  qualifierSource, decrireDocument, rattacherDocument,
+  qualifierSource, decrireDocument, rattacherDocument, fetchRoleDocumentOptions,
 } from './patrimoine.service'
 import type {
   PatrimoineSource as Source,
@@ -59,9 +59,9 @@ const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: 
 }
 
 const ROLE_CONFIG: Record<DocRole, { label: string; color: string }> = {
-  acte_primaire:           { label: 'Acte',                    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  instrument_de_recherche: { label: 'Instrument de recherche', color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  registre_compile:        { label: 'Registre',                color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
+  ACTE_PRIMAIRE:           { label: 'Acte',                    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  INSTRUMENT_DE_RECHERCHE: { label: 'Instrument de recherche', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  REGISTRE_COMPILE:        { label: 'Registre',                color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
 }
 
 const CONSERVATION_CONFIG: Record<NiveauConservation, { label: string; color: string }> = {
@@ -168,31 +168,26 @@ const DOMAINE_OPTIONS: Array<{ value: string; label: string }> = [
 
 // ─── Qualifier une source (P1.1 step 2) ──────────────────────────────────────
 
-const ROLE_OPTIONS = [
-  { value: 'registre_compile',        label: 'Registre compilé' },
-  { value: 'instrument_de_recherche', label: 'Instrument de recherche' },
-  { value: 'acte_primaire',           label: 'Acte primaire' },
-]
+type RoleOption = { id: string; code: string; label: string }
 
-function QualifierSourceSheet({ source, onClose, onDone }: {
+function QualifierSourceSheet({ source, roleOptions, onClose, onDone }: {
   source: Source
+  roleOptions: RoleOption[]
   onClose: () => void
   onDone: () => void
 }) {
-  const [territoire, setTerritoire] = useState(source.territoire ?? '')
   const [periode, setPeriode] = useState(source.periode === 'non renseigné' ? '' : source.periode)
   const [fiabilite, setFiabilite] = useState<string>(source.niveau_fiabilite ?? '')
-  const [role, setRole] = useState('')
+  const [roleRef, setRoleRef] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit() {
     setSubmitting(true)
     const { error } = await qualifierSource(source.id, {
-      territoire: territoire || null,
       niveau_fiabilite: fiabilite || null,
-      role_document: role || null,
+      role_document_ref: roleRef || null,
       couverture_label: periode || null,
-      metadonnees: { ...(source as any)._meta, territoire: territoire || undefined },
+      metadonnees: (source as any)._meta ?? null,
     })
     setSubmitting(false)
     if (!error) onDone()
@@ -212,13 +207,9 @@ function QualifierSourceSheet({ source, onClose, onDone }: {
         </button>
       </>}
     >
-      <Field label="Territoire couvert">
-        <input value={territoire} onChange={e => setTerritoire(e.target.value)}
-          placeholder="ex. Deshaies, Guadeloupe" className={inputCls} autoFocus />
-      </Field>
       <Field label="Période couverte">
         <input value={periode} onChange={e => setPeriode(e.target.value)}
-          placeholder="ex. 1860 – 1920" className={inputCls} />
+          placeholder="ex. 1860 – 1920" className={inputCls} autoFocus />
       </Field>
       <Field label="Niveau de fiabilité">
         <div className="flex gap-2">
@@ -237,27 +228,25 @@ function QualifierSourceSheet({ source, onClose, onDone }: {
         </div>
       </Field>
       <Field label="Rôle du document">
-        <select value={role} onChange={e => setRole(e.target.value)} className={selectCls}>
+        <select value={roleRef} onChange={e => setRoleRef(e.target.value)} className={selectCls}>
           <option value="">À préciser</option>
-          {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          {roleOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </Field>
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-600">
-        Le producteur et les exemplaires (dépôt, cote) se complètent dans la fiche source.
-      </div>
     </SlideOver>
   )
 }
 
 // ─── Décrire un document (P1.2 step 2) ───────────────────────────────────────
 
-function DecrireDocumentSheet({ doc, onClose, onDone }: {
+function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
   doc: Document
+  roleOptions: RoleOption[]
   onClose: () => void
   onDone: () => void
 }) {
   const [domaine, setDomaine] = useState('')
-  const [role, setRole] = useState(doc.role ?? '')
+  const [roleRef, setRoleRef] = useState('')
   const [cote, setCote] = useState(doc.cote === '?' ? '' : doc.cote)
   const [periode, setPeriode] = useState(doc.date_document ?? '')
   const [note, setNote] = useState(doc.note ?? '')
@@ -271,7 +260,7 @@ function DecrireDocumentSheet({ doc, onClose, onDone }: {
     if (domaine) meta.domaine = domaine
 
     const { error } = await decrireDocument(doc.id, {
-      role_document: role || null,
+      role_document_ref: roleRef || null,
       couverture_label: periode || null,
       metadonnees: Object.keys(meta).length ? meta : null,
     })
@@ -300,9 +289,9 @@ function DecrireDocumentSheet({ doc, onClose, onDone }: {
         </select>
       </Field>
       <Field label="Rôle">
-        <select value={role} onChange={e => setRole(e.target.value)} className={selectCls}>
+        <select value={roleRef} onChange={e => setRoleRef(e.target.value)} className={selectCls}>
           <option value="">À préciser</option>
-          {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          {roleOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </Field>
       <Field label="Cote / référence">
@@ -412,12 +401,6 @@ function SourceCard({ source }: { source: Source }) {
 
           <div className="space-y-0.5 mb-3">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xs text-gray-400 shrink-0 w-24">Producteur</span>
-              <span className="text-xs text-gray-600">
-                {source.producteur ?? <span className="italic text-gray-300">non renseigné</span>}
-              </span>
-            </div>
-            <div className="flex items-baseline gap-1.5">
               <span className="text-xs text-gray-400 shrink-0 w-24">Conservation</span>
               <span className="text-xs text-gray-600">{source.institution_conservation}</span>
               {source.localisation && <span className="text-xs text-gray-400">— {source.localisation}</span>}
@@ -425,11 +408,6 @@ function SourceCard({ source }: { source: Source }) {
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap mb-4">
-            {source.territoire && (
-              <span className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-0.5">
-                {source.territoire}
-              </span>
-            )}
             <span className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-0.5">
               {source.periode}
             </span>
@@ -518,7 +496,6 @@ function DocumentRow({ doc, depth = 0, sources, docs }: {
   const role = doc.role ? ROLE_CONFIG[doc.role] : null
   const conservation = doc.niveau_conservation ? CONSERVATION_CONFIG[doc.niveau_conservation] : null
   const source = doc.source_id ? sources.find(s => s.id === doc.source_id) : null
-  const parentDoc = doc.decouverte_via_id ? docs.find(d => d.id === doc.decouverte_via_id) : null
   const nbExemplaires = doc.exemplaire_groupe_id
     ? docs.filter(d => d.exemplaire_groupe_id === doc.exemplaire_groupe_id).length
     : 0
@@ -528,16 +505,7 @@ function DocumentRow({ doc, depth = 0, sources, docs }: {
       className={`group border-b border-gray-50 last:border-0 ${depth > 0 ? 'bg-gray-50/50' : ''}`}
       style={{ paddingLeft: depth > 0 ? `${depth * 1.5 + 1}rem` : '1rem' }}
     >
-      {parentDoc && (
-        <div className="flex items-center gap-1.5 pt-2 pb-0.5">
-          <CornerDownRight className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-xs text-gray-400">
-            Découvert via <span className="text-gray-500 font-medium">{parentDoc.titre}</span>
-          </span>
-        </div>
-      )}
-
-      <div className="flex items-start gap-4 py-3 pr-4 hover:bg-white transition-colors cursor-pointer">
+<div className="flex items-start gap-4 py-3 pr-4 hover:bg-white transition-colors cursor-pointer">
         <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 ${typeConf ? `${typeConf.bg} ${typeConf.border}` : 'bg-gray-50 border-gray-200'}`}>
           <TypeIcon className={`w-3.5 h-3.5 ${typeConf?.color ?? 'text-gray-400'}`} />
         </div>
@@ -697,8 +665,6 @@ function EnAttenteTab({
               const type = TYPE_CONFIG[source.type]
               const TypeIcon = type.icon
               const manquants = [
-                !source.producteur && 'producteur',
-                !source.territoire && 'territoire',
                 !source.niveau_fiabilite && 'fiabilité',
               ].filter((x): x is string => typeof x === 'string')
               return (
@@ -1093,6 +1059,11 @@ export function SourcesCorpusPage() {
   const [institutionsRefreshKey, setInstitutionsRefreshKey] = useState(0)
   const reloadInstitutions = () => { institutionsLoaded.current = false; setInstitutionsRefreshKey(k => k + 1) }
 
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([])
+  useEffect(() => {
+    fetchRoleDocumentOptions().then(setRoleOptions)
+  }, [])
+
   useEffect(() => {
     if (tab !== 'Plateformes' || plateformesLoaded.current) return
     plateformesLoaded.current = true
@@ -1177,7 +1148,6 @@ export function SourcesCorpusPage() {
     const q = search.toLowerCase()
     return !q || s.nom.toLowerCase().includes(q)
       || s.institution_conservation.toLowerCase().includes(q)
-      || (s.producteur?.toLowerCase().includes(q) ?? false)
   })
 
   // Filtered docs
@@ -1197,8 +1167,7 @@ export function SourcesCorpusPage() {
     return matchSource && matchStatut && matchSearch
   })
 
-  const topLevelDocs = filteredDocs.filter(d => !d.decouverte_via_id)
-  const childDocs = (parentId: string) => filteredDocs.filter(d => d.decouverte_via_id === parentId)
+  const topLevelDocs = filteredDocs
 
   if (loading) {
     return (
@@ -1434,17 +1403,7 @@ export function SourcesCorpusPage() {
                 </div>
               ) : (
                 topLevelDocs.map(doc => (
-                  <div key={doc.id}>
-                    <DocumentRow doc={doc} depth={0} sources={sources} docs={docs} />
-                    {childDocs(doc.id).map(child => (
-                      <div key={child.id}>
-                        <DocumentRow doc={child} depth={1} sources={sources} docs={docs} />
-                        {childDocs(child.id).map(grandchild => (
-                          <DocumentRow key={grandchild.id} doc={grandchild} depth={2} sources={sources} docs={docs} />
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  <DocumentRow key={doc.id} doc={doc} depth={0} sources={sources} docs={docs} />
                 ))
               )}
             </div>
@@ -1809,6 +1768,7 @@ export function SourcesCorpusPage() {
       {activeSheet?.kind === 'qualifier' && (
         <QualifierSourceSheet
           source={activeSheet.source}
+          roleOptions={roleOptions}
           onClose={closeSheet}
           onDone={onSheetDone}
         />
@@ -1816,6 +1776,7 @@ export function SourcesCorpusPage() {
       {activeSheet?.kind === 'decrire' && (
         <DecrireDocumentSheet
           doc={activeSheet.doc}
+          roleOptions={roleOptions}
           onClose={closeSheet}
           onDone={onSheetDone}
         />
