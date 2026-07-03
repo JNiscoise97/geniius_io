@@ -1119,7 +1119,6 @@ export function SourcesCorpusPage() {
   const [instTypeFilter, setInstTypeFilter] = useState('')
 
   const [showCreateInstitution, setShowCreateInstitution] = useState(false)
-
   type ActiveSheet =
     | { kind: 'qualifier'; source: Source }
     | { kind: 'decrire'; doc: Document }
@@ -1233,6 +1232,11 @@ export function SourcesCorpusPage() {
             >
               <Search className="w-4 h-4" />
               Référencer un document
+            </button>
+            <button onClick={() => navigate('/mock/referencer-wizard')}
+              className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm">
+              <BookOpen className="w-4 h-4" />
+              J'ai trouvé un document
             </button>
             <button onClick={() => navigate('/mock/sources-identifier')}
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">

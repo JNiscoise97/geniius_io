@@ -352,15 +352,8 @@ type RegistreCitationRow = {
   lacune_note: string | null;
   locating: any;
 
-  physical_condition_ref: string | null;
-  repro_quality_ref: string | null;
-  marks: string | null;
-  document_damage_kinds_ids: string[] | null;
-
   note: string | null;
   sort_order: number | null;
-
-  missing_ranges: any;
 };
 
 function emptyRegistreCitation(sort_order: number): RegistreCitationDraft {
@@ -373,11 +366,6 @@ function emptyRegistreCitation(sort_order: number): RegistreCitationDraft {
     lacune: null,
     lacune_note: null,
     locating: { systems: [{}] },
-
-    physical_condition_ref: null,
-    repro_quality_ref: null,
-    marks: '',
-    document_damage_kinds_ids: [],
 
     note: '',
     sort_order,
@@ -396,11 +384,6 @@ function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
     lacune: r.lacune,
     lacune_note: r.lacune_note,
     locating: r.locating ?? {},
-
-    physical_condition_ref: r.physical_condition_ref,
-    repro_quality_ref: r.repro_quality_ref,
-    marks: r.marks ?? '',
-    document_damage_kinds_ids: r.document_damage_kinds_ids ?? [],
 
     note: r.note ?? '',
     sort_order: r.sort_order ?? 0,
@@ -1632,10 +1615,7 @@ function ReferenceArchiveTabRegistre(
             `
               id, target_id, target_type, exemplaire_id,
               is_missing, lacune, lacune_note, locating,
-              physical_condition_ref, repro_quality_ref,
-              marks, document_damage_kinds_ids,
-              note, sort_order,
-              missing_ranges
+              note, sort_order
             `,
           )
           .eq('target_type', 'ec_registre')
@@ -1964,10 +1944,6 @@ function ReferenceArchiveTabRegistre(
     lacune: boolean | null;
     lacune_note: string | null;
     locating: any;
-    physical_condition_ref: string | null;
-    repro_quality_ref: string | null;
-    marks: string | null;
-    document_damage_kinds_ids: string[];
     note: string | null;
     sort_order: number;
   };
@@ -2089,10 +2065,6 @@ function ReferenceArchiveTabRegistre(
               ...((c as any).locating ?? { systems: [{}] }),
               missing_ranges: normalizeArray<any>((c as any).missing_ranges),
             },
-            physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
-            repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
-            marks: normalizeTextOrNull((c as any).marks),
-            document_damage_kinds_ids: normalizeArray<string>((c as any).document_damage_kinds_ids),
             note: normalizeTextOrNull((c as any).note),
             sort_order: idx,
           };

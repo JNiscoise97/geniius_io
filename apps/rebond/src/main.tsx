@@ -64,6 +64,7 @@ import { SourcesCorpusPage } from "./features/sources/SourcesCorpusPage"
 import { IdentifierSourcePage } from "./features/sources/IdentifierSourcePage"
 import { ReferencerDocumentPage } from "./features/sources/ReferencerDocumentPage"
 import { EnrichirExemplaireActePage } from "./features/sources/EnrichirExemplaireActePage"
+import { ReferenceWizardPage } from "./features/sources/ReferenceWizardPage"
 import { InstitutionDetailPage } from "./features/sources/InstitutionDetailPage"
 import { PlateformeDetailPage } from "./features/sources/PlateformeDetailPage"
 
@@ -140,6 +141,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/mock/sources-corpus" element={<SourcesCorpusPage />} />
           <Route path="/mock/sources-identifier" element={<IdentifierSourcePage />} />
           <Route path="/mock/referencer-document" element={<ReferencerDocumentPage />} />
+          <Route path="/mock/referencer-wizard" element={<ReferenceWizardPage />} />
           <Route path="/mock/enrichir-exemplaire/:citationId" element={<EnrichirExemplaireActePage />} />
           <Route path="/mock/institution/:institutionId" element={<InstitutionDetailPage />} />
           <Route path="/mock/plateforme/:plateformeId" element={<PlateformeDetailPage />} />

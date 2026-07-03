@@ -37,11 +37,6 @@ type RegistreCitationRow = {
   lacune_note: string | null;
   locating: any;
 
-  physical_condition_ref: string | null;
-  repro_quality_ref: string | null;
-  marks: string | null;
-  document_damage_kinds_ids: string[] | null;
-
   note: string | null;
   sort_order: number | null;
 };
@@ -56,11 +51,6 @@ function emptyCitation(sort_order: number): RegistreCitationDraft {
     lacune: null,
     lacune_note: null,
     locating: { systems: [{}] }, // UI lit systems[0]
-
-    physical_condition_ref: null,
-    repro_quality_ref: null,
-    marks: '',
-    document_damage_kinds_ids: [],
 
     note: '',
     sort_order,
@@ -79,11 +69,6 @@ function mapRowToDraft(r: RegistreCitationRow): RegistreCitationDraft {
     lacune: r.lacune,
     lacune_note: r.lacune_note,
     locating: r.locating ?? {},
-
-    physical_condition_ref: r.physical_condition_ref,
-    repro_quality_ref: r.repro_quality_ref,
-    marks: r.marks ?? '',
-    document_damage_kinds_ids: r.document_damage_kinds_ids ?? [],
 
     note: r.note ?? '',
     sort_order: r.sort_order ?? 0,
@@ -234,8 +219,6 @@ export default function RegistreEdit() {
             `
             id, target_id, target_type, exemplaire_id,
             is_missing, lacune, lacune_note, locating,
-            physical_condition_ref, repro_quality_ref,
-            marks, document_damage_kinds_ids,
             note, sort_order
           `,
           )

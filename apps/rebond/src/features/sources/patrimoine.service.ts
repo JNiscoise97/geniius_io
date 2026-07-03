@@ -317,6 +317,7 @@ export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationE
 
 export async function insertDocumentUD(payload: {
   titre: string
+  serie_ref: string
   parent_ud_id: string | null
   couverture_label?: string | null
   cote?: string | null
@@ -330,7 +331,7 @@ export async function insertDocumentUD(payload: {
     .from('ref_unites_documentaires')
     .insert({
       titre: payload.titre.trim() || 'Document sans titre',
-      type_unite_ref: 'autre',
+      serie_ref: payload.serie_ref,
       parent_ud_id: payload.parent_ud_id ?? null,
       workflow_statut: 'en_attente',
       statut: 'a_qualifier',

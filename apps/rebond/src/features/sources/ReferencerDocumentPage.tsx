@@ -65,8 +65,9 @@ export function ReferencerDocumentPage() {
   const [searchState,  setSearchState]  = useState<'idle' | 'loading' | 'done'>('idle')
   const [results,      setResults]      = useState<ActeSearchResult[]>([])
   const [visibleCount, setVisibleCount] = useState(5)
-  const [selectedActe, setSelectedActe] = useState<ActeSearchResult | null>(null)
-  const [createMode,   setCreateMode]   = useState(false)
+  const [selectedActe,      setSelectedActe]      = useState<ActeSearchResult | null>(null)
+  const [createMode,        setCreateMode]        = useState(false)
+  const [addExemplaireMode, setAddExemplaireMode] = useState(false)
 
   // ── Formulaire acte (create) ─────────────────────────────────────────────────
   const [serieChipsExpanded,         setSerieChipsExpanded]         = useState(false)
@@ -356,12 +357,14 @@ export function ReferencerDocumentPage() {
   function handleSelectActe(acte: ActeSearchResult) {
     setSelectedActe(acte)
     setCreateMode(false)
+    setAddExemplaireMode(false)
     setDepotId(''); setDepotSearch(''); setCoteLocale(''); setLocRaw('')
   }
 
   function handleCreateMode() {
     setCreateMode(true)
     setSelectedActe(null)
+    setAddExemplaireMode(false)
     setSerieChipsExpanded(false)
     setTypeChipsExpanded(false)
     setCreateSerieId(null)
@@ -548,7 +551,7 @@ export function ReferencerDocumentPage() {
     )
   }
 
-  const showForm = !!(selectedActe || createMode)
+  const showForm = addExemplaireMode || createMode
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -587,7 +590,7 @@ export function ReferencerDocumentPage() {
         </div>
 
         {/* ── Section 1 : Recherche ────────────────────────────────────── */}
-        {showForm ? (
+        {!!(selectedActe || createMode) ? (
           /* Collapsed : résumé de la recherche + bouton modifier */
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
@@ -602,7 +605,7 @@ export function ReferencerDocumentPage() {
               )}
             </div>
             <button
-              onClick={() => { setSelectedActe(null); setCreateMode(false) }}
+              onClick={() => { setSelectedActe(null); setCreateMode(false); setAddExemplaireMode(false) }}
               className="text-xs text-indigo-600 hover:text-indigo-800 font-medium shrink-0 transition-colors"
             >
               Modifier
@@ -659,11 +662,10 @@ export function ReferencerDocumentPage() {
         )}
 
         {/* ── Section 2 : Résultats ─────────────────────────────────────── */}
-        {searchState === 'done' && (
+        {searchState === 'done' && !selectedActe && !createMode && (
           <div className="space-y-4">
 
             {results.length === 0 ? (
-              /* Aucun résultat */
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center space-y-3">
                 <p className="text-sm font-medium text-gray-700">Aucun acte trouvé avec ces critères</p>
                 <p className="text-xs text-gray-400">Il n'existe pas encore dans la base — tu peux le créer maintenant.</p>
@@ -680,72 +682,40 @@ export function ReferencerDocumentPage() {
                   {results.length} acte{results.length > 1 ? 's' : ''} trouvé{results.length > 1 ? 's' : ''} — sélectionne le bon ou crée-en un.
                 </p>
 
-                {(selectedActe ? [selectedActe] : results.slice(0, visibleCount)).map(acte => {
+                {results.slice(0, visibleCount).map(acte => {
                   const typeLabel = typesActes.find(t => t.id === acte.type_acte_ref)?.label ?? acte.type_acte ?? '—'
-                  const isSelected = selectedActe?.id === acte.id
                   return (
                     <button
                       key={acte.id}
-                      onClick={() => isSelected ? setSelectedActe(null) : handleSelectActe(acte)}
-                      className={[
-                        'w-full text-left rounded-xl border shadow-sm p-5 transition-all space-y-4',
-                        isSelected
-                          ? 'border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-200'
-                          : 'border-gray-100 bg-white hover:border-indigo-200',
-                      ].join(' ')}
+                      onClick={() => handleSelectActe(acte)}
+                      className="w-full text-left rounded-xl border border-gray-100 bg-white shadow-sm p-4 hover:border-indigo-200 hover:shadow-md transition-all"
                     >
-                      {/* Header acte */}
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
-                            {typeLabel}
-                          </span>
-                          {acte.numero_acte && (
-                            <span className="text-xs font-mono text-gray-600">n°{acte.numero_acte}</span>
-                          )}
-                          {(acte.date ?? acte.annee) && (
-                            <span className="text-xs text-gray-500">{acte.date ?? acte.annee}</span>
-                          )}
-                          {acte.bureauNom && (
-                            <span className="text-xs text-gray-400">· {acte.bureauNom}</span>
-                          )}
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                              {typeLabel}
+                            </span>
+                            {acte.numero_acte && <span className="text-xs font-mono text-gray-600">n°{acte.numero_acte}</span>}
+                            {(acte.date ?? acte.annee) && <span className="text-xs text-gray-500">{acte.date ?? acte.annee}</span>}
+                            {acte.bureauNom && <span className="text-xs text-gray-400">· {acte.bureauNom}</span>}
+                          </div>
+                          {acte.label && <p className="text-sm font-medium text-gray-800 truncate">{acte.label}</p>}
                         </div>
-                        <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? 'rotate-90 text-indigo-500' : 'text-gray-300'}`} />
+                        <div className="flex items-center gap-2 shrink-0">
+                          {acte.exemplaires.length > 0 && (
+                            <span className="text-xs text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">
+                              {acte.exemplaires.length} ex.
+                            </span>
+                          )}
+                          <ChevronRight className="w-4 h-4 text-gray-300" />
+                        </div>
                       </div>
-
-                      {acte.label && (
-                        <p className="text-sm font-medium text-gray-800 leading-snug">{acte.label}</p>
-                      )}
-
-                      {/* Exemplaires existants */}
-                      {acte.exemplaires.length > 0 ? (
-                        <div className="space-y-2 pt-3 border-t border-gray-100">
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                            {acte.exemplaires.length} exemplaire{acte.exemplaires.length > 1 ? 's' : ''} connu{acte.exemplaires.length > 1 ? 's' : ''}
-                          </p>
-                          {acte.exemplaires.map(ex => (
-                            <div key={ex.citationId} className="flex items-start gap-2 text-xs text-gray-500">
-                              <Building2 className="w-3.5 h-3.5 shrink-0 text-gray-400 mt-0.5" />
-                              <span>
-                                <span className="font-medium text-gray-700">{ex.depotSigle ?? ex.depotNom ?? '?'}</span>
-                                {ex.cote && <span className="font-mono ml-1">· {ex.cote}</span>}
-                                {ex.loc_raw && <span className="ml-1 text-gray-400">· {ex.loc_raw}</span>}
-                                {ex.udTitre && <span className="ml-1 text-gray-400">· {ex.udTitre}</span>}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 pt-3 border-t border-gray-100 italic">
-                          Aucun exemplaire rattaché
-                        </p>
-                      )}
                     </button>
                   )
                 })}
 
-                {/* Voir plus */}
-                {!selectedActe && visibleCount < results.length && (
+                {visibleCount < results.length && (
                   <button
                     onClick={() => setVisibleCount(v => v + 5)}
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
@@ -754,16 +724,10 @@ export function ReferencerDocumentPage() {
                   </button>
                 )}
 
-                {/* Bouton créer — uniquement quand tous les résultats sont affichés et rien de sélectionné */}
-                {!selectedActe && visibleCount >= results.length && (
+                {visibleCount >= results.length && (
                   <button
                     onClick={handleCreateMode}
-                    className={[
-                      'w-full flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all',
-                      createMode
-                        ? 'border-indigo-300 bg-indigo-50/60 text-indigo-700 ring-2 ring-indigo-200'
-                        : 'border-dashed border-gray-300 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 bg-white',
-                    ].join(' ')}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-all"
                   >
                     <Plus className="w-4 h-4" />Ce n'est pas dans les résultats — créer un nouvel acte
                   </button>
@@ -773,13 +737,81 @@ export function ReferencerDocumentPage() {
           </div>
         )}
 
-        {/* ── Section 3 : Formulaire (acte sélectionné ou création) ───── */}
+        {/* ── Section 3 : UD sélectionnée ──────────────────────────────── */}
+        {selectedActe && !createMode && (
+          <div className="space-y-4">
+
+            {/* Header acte sélectionné */}
+            <div className="bg-white rounded-xl border border-indigo-100 shadow-sm p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                      {typesActes.find(t => t.id === selectedActe.type_acte_ref)?.label ?? selectedActe.type_acte ?? '—'}
+                    </span>
+                    {selectedActe.numero_acte && <span className="text-xs font-mono text-gray-600">n°{selectedActe.numero_acte}</span>}
+                    {(selectedActe.date ?? selectedActe.annee) && <span className="text-xs text-gray-500">{selectedActe.date ?? selectedActe.annee}</span>}
+                    {selectedActe.bureauNom && <span className="text-xs text-gray-400">· {selectedActe.bureauNom}</span>}
+                  </div>
+                  {selectedActe.label && <p className="text-sm font-semibold text-gray-900">{selectedActe.label}</p>}
+                </div>
+                <button
+                  onClick={() => { setSelectedActe(null); setAddExemplaireMode(false) }}
+                  className="text-xs text-gray-400 hover:text-indigo-600 font-medium shrink-0 transition-colors"
+                >
+                  ← Changer
+                </button>
+              </div>
+            </div>
+
+            {/* Exemplaires connus */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">
+                {selectedActe.exemplaires.length > 0
+                  ? `${selectedActe.exemplaires.length} exemplaire${selectedActe.exemplaires.length > 1 ? 's' : ''} connu${selectedActe.exemplaires.length > 1 ? 's' : ''}`
+                  : 'Aucun exemplaire connu'}
+              </p>
+
+              {selectedActe.exemplaires.map(ex => (
+                <div key={ex.citationId} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <span className="text-sm font-semibold text-gray-800">{ex.depotSigle ?? ex.depotNom ?? '—'}</span>
+                    {ex.depotSigle && ex.depotNom && (
+                      <span className="text-xs text-gray-400">{ex.depotNom}</span>
+                    )}
+                  </div>
+                  {ex.cote && (
+                    <p className="font-mono text-sm text-gray-700 pl-6">{ex.cote}</p>
+                  )}
+                  {ex.loc_raw && (
+                    <p className="text-xs text-gray-500 pl-6">Folio / vue : <span className="font-mono">{ex.loc_raw}</span></p>
+                  )}
+                  {ex.udTitre && (
+                    <p className="text-xs text-gray-400 italic pl-6">dans : {ex.udTitre}</p>
+                  )}
+                </div>
+              ))}
+
+              {!addExemplaireMode && (
+                <button
+                  onClick={() => setAddExemplaireMode(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-indigo-300 bg-indigo-50/50 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 transition-all"
+                >
+                  <Plus className="w-4 h-4" />Ajouter un exemplaire
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Section 4 : Formulaire exemplaire ───────────────────────── */}
         {showForm && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-gray-200" />
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">
-                {createMode ? 'Créer l\'acte + rattacher' : 'Rattacher un exemplaire'}
+                {createMode ? 'Créer l\'acte + rattacher' : 'Nouvel exemplaire'}
               </p>
               <div className="h-px flex-1 bg-gray-200" />
             </div>
