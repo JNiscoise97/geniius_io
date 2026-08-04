@@ -223,7 +223,7 @@ export function IdentifierSourceDialog({ open, onClose, onCreated }: Props) {
           serie_ref: serieRef,
           couverture_label: couverture.trim() || null,
           statut: 'a_qualifier',
-          workflow_statut: 'a_transcrire',
+          workflow_statut: 'decrit',
         })
         .select('id')
         .single()

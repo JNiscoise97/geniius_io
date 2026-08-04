@@ -1,4 +1,5 @@
 // src/pages/LandingPage.tsx
+import { Link } from 'react-router-dom';
 import { useRoleStore } from '@/store/useRoleStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +11,12 @@ export function LandingPage() {
 
   return (
     <div className="px-6 py-10 max-w-7xl mx-auto space-y-10">
-      
+
       {/* Bannière */}
-      <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow text-center">
+      <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow text-center relative">
+        <Link to="/mock/dashboard-v2" className="absolute top-4 right-4">
+          <Button variant="outline" size="sm">Dashboard v2 (mock)</Button>
+        </Link>
         <h1 className="text-3xl font-bold">
           {role === 'visiteur' && 'Bienvenue sur Rebond'}
           {role === 'utilisateur' && 'Votre généalogie évolue'}

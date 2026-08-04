@@ -83,6 +83,14 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
   const ex = row.ref_exemplaires?.[0]
   const coteFromMeta = row.metadonnees?.cote as string | undefined
   const noteFromMeta = row.metadonnees?.note as string | undefined
+  const urlBase = ex?.ref_acces_numeriques?.find(a => (a.url_base ?? '').trim())?.url_base ?? undefined
+
+  // "Vue" : la citation (ec_acte/ec_table) est la source active — c'est elle que la sheet
+  // "Décrire" met à jour. On ne retombe sur ref_exemplaires.localisation_interne (posé une
+  // seule fois par le wizard, jamais réédité) que si aucune citation n'existe (ex. un registre).
+  const citation = ex?.citations?.find(c => c.target_type === 'ec_acte' || c.target_type === 'ec_table')
+  const citationRaw = (citation?.locating as any)?.systems?.[0]?.raw
+  const vue = (typeof citationRaw === 'string' && citationRaw.trim()) ? citationRaw : (ex?.localisation_interne ?? null)
 
   return {
     id: row.id,
@@ -95,6 +103,9 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
     statut: (row.workflow_statut as DocStatut) ?? 'en_attente',
     niveau_conservation: toConservation(null),
     note: ex?.note ?? noteFromMeta ?? undefined,
+    vue,
+    en_ligne: Boolean(urlBase),
+    url: urlBase,
   }
 }
 

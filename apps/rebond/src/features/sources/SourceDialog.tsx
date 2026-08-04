@@ -935,7 +935,7 @@ export function SourceDialog({ open, onClose, onCreated, sourceId, mode }: Props
           couverture_sort_start: toIntOrNull(couvertureStart),
           couverture_sort_end: toIntOrNull(couvertureEnd),
           statut: 'a_qualifier',
-          workflow_statut: 'a_transcrire',
+          workflow_statut: 'decrit',
         })
         .select('id')
         .single();

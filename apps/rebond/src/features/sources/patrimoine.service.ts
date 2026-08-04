@@ -63,6 +63,9 @@ export type UDDocRow = {
   ref_exemplaires: Array<{
     cote_locale: string | null
     note: string | null
+    localisation_interne: string | null
+    ref_acces_numeriques: Array<{ url_base: string | null }>
+    citations: Array<{ target_type: string; locating: Record<string, unknown> | null }>
   }>
 }
 
@@ -107,7 +110,7 @@ export async function fetchDocuments() {
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires ( cote_locale, note )
+      ref_exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .not('parent_ud_id', 'is', null)
     .order('couverture_label', { ascending: true, nullsFirst: false })
@@ -134,7 +137,7 @@ export async function fetchOrphans() {
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires ( cote_locale, note )
+      ref_exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .is('parent_ud_id', null)
     .eq('workflow_statut', 'en_attente')
@@ -177,7 +180,7 @@ export async function identifierSource(payload: {
       titre: payload.titre.trim(),
       type_unite_ref: 'autre',
       statut: 'a_qualifier',
-      workflow_statut: 'a_transcrire',
+      workflow_statut: 'decrit',
       metadonnees: meta,
     })
     .select('id')
@@ -208,19 +211,32 @@ export async function qualifierSource(id: string, payload: {
 }
 
 // ── Décrire un document (step 2 de P1.2) ─────────────────────
-// Passe workflow_statut → 'a_transcrire'.
+// Description externe uniquement (forme, langue, période) —
+// pas de lecture du contenu, ça c'est le rôle de l'atelier de transcription.
+// Le producteur n'est volontairement pas ici : il se déduit/complète après transcription.
+// La description physique n'est pas ici : elle vit sur l'exemplaire (ref_exemplaires.description),
+// pas sur l'unité documentaire — deux exemplaires du même document peuvent avoir des états différents.
+// Passe workflow_statut → 'decrit'.
 
 export async function decrireDocument(id: string, payload: {
+  type_unite_ref: string | null
   role_document_ref: string | null
+  langue_ref: string | null
   couverture_label: string | null
+  identifiant_interne: string | null
+  niveau_fiabilite: string | null
   metadonnees: Record<string, unknown> | null
 }) {
   const { error } = await supabase
     .from('ref_unites_documentaires')
     .update({
+      type_unite_ref: payload.type_unite_ref || null,
       role_document_ref: payload.role_document_ref || null,
+      langue_ref: payload.langue_ref || null,
       couverture_label: payload.couverture_label || null,
-      workflow_statut: 'a_transcrire',
+      identifiant_interne: payload.identifiant_interne || null,
+      niveau_fiabilite: payload.niveau_fiabilite || null,
+      workflow_statut: 'decrit',
       metadonnees: payload.metadonnees,
     })
     .eq('id', id)
@@ -228,7 +244,8 @@ export async function decrireDocument(id: string, payload: {
 }
 
 export async function fetchRoleDocumentOptions(): Promise<Array<{ id: string; code: string; label: string }>> {
-  const { data } = await supabase.from('ref_role_document').select('id, code, label').order('label')
+  const { data, error } = await supabase.from('ref_role_document').select('id, code, label').order('label')
+  if (error) console.error('[fetchRoleDocumentOptions] error:', error.message)
   return data ?? []
 }
 

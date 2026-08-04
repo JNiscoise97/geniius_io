@@ -61,8 +61,7 @@ import { SourcesPage } from "./features/sources/SourcesPage"
 import { LandingPageV2 } from "./features/accueil/LandingPageV2"
 import { DashboardV2 } from "./features/accueil/DashboardV2"
 import { SourcesCorpusPage } from "./features/sources/SourcesCorpusPage"
-import { IdentifierSourcePage } from "./features/sources/IdentifierSourcePage"
-import { ReferencerDocumentPage } from "./features/sources/ReferencerDocumentPage"
+import { DocumentDetailPage } from "./features/sources/DocumentDetailPage"
 import { EnrichirExemplaireActePage } from "./features/sources/EnrichirExemplaireActePage"
 import { ReferenceWizardPage } from "./features/sources/ReferenceWizardPage"
 import { InstitutionDetailPage } from "./features/sources/InstitutionDetailPage"
@@ -139,8 +138,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/mock/landing-v2" element={<LandingPageV2 />} />
           <Route path="/mock/dashboard-v2" element={<DashboardV2 />} />
           <Route path="/mock/sources-corpus" element={<SourcesCorpusPage />} />
-          <Route path="/mock/sources-identifier" element={<IdentifierSourcePage />} />
-          <Route path="/mock/referencer-document" element={<ReferencerDocumentPage />} />
+          <Route path="/mock/document/:id" element={<DocumentDetailPage />} />
           <Route path="/mock/referencer-wizard" element={<ReferenceWizardPage />} />
           <Route path="/mock/enrichir-exemplaire/:citationId" element={<EnrichirExemplaireActePage />} />
           <Route path="/mock/institution/:institutionId" element={<InstitutionDetailPage />} />

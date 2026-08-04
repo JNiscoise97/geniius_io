@@ -1,6 +1,7 @@
 
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import LandingPage from '../pages/LandingPage'
+import LoginPage from '../pages/LoginPage'
 import Layout from '../components/layout/Layout'
 import TreePage from '../pages/TreePage'
 import TreeNavigatePage from '../pages/TreeNavigatePage'
@@ -25,6 +26,11 @@ export const router = createBrowserRouter([
         <LandingPage />
       </Layout>
     ),
+  },
+
+  {
+    path: '/login',
+    element: <LoginPage />,
   },
 
   {

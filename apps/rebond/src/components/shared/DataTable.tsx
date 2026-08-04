@@ -52,6 +52,7 @@ interface DataTableProps<T> {
   defaultSort?: string[];
   pageSize?: number;
   rowClassName?: (row: T) => string;
+  onRowClick?: (row: T) => void;
   onPageViewed?: (pageIndex: number) => void;
   search?: string;
   onSearchChange?: (val: string) => void;
@@ -73,6 +74,7 @@ export function DataTable<T extends Record<string, any>>({
   defaultSort,
   pageSize = 10,
   rowClassName,
+  onRowClick,
   onPageViewed,
   search,
   onSearchChange,
@@ -205,7 +207,11 @@ export function DataTable<T extends Record<string, any>>({
       </TableHeader>
       <TableBody>
         {paginated.map((row, i) => (
-          <TableRow key={i} className={rowClassName?.(row)}>
+          <TableRow
+            key={i}
+            className={[rowClassName?.(row), onRowClick ? 'cursor-pointer' : ''].filter(Boolean).join(' ')}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+          >
             {visibleColumns.map((key) => {
               const column = columns.find((c) => c.key === key);
               const content = column?.render
@@ -250,7 +256,11 @@ export function DataTable<T extends Record<string, any>>({
         </TableHeader>
         <TableBody>
           {paginated.map((row, i) => (
-            <TableRow key={i} className={rowClassName?.(row)}>
+            <TableRow
+              key={i}
+              className={[rowClassName?.(row), onRowClick ? 'cursor-pointer' : ''].filter(Boolean).join(' ')}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+            >
               {visibleColumns.map((key) => {
                 const column = columns.find((c) => c.key === key);
                 const content = column?.render

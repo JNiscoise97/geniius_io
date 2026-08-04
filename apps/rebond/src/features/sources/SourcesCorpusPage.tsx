@@ -1,16 +1,21 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search, ChevronRight, ChevronDown, Layers, Bell, FileText, ScrollText,
+  Search, ChevronRight, ChevronDown, Bell, FileText, ScrollText,
   MoreHorizontal, CheckCircle2, Clock, AlertCircle, Plus, Filter,
-  FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Globe, Copy,
-  Sparkles, Library, BookOpen, X,
+  FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Copy,
+  Library, BookOpen, File, X,
   AlertTriangle, Loader2, MonitorCheck, University,
-  Lock,
+  Lock, LayoutDashboard,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { usePatrimoine } from './usePatrimoine'
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
+import { TriStateButton } from '@/components/shared/TriStateButton'
+import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
 import {
   qualifierSource, decrireDocument, rattacherDocument, fetchRoleDocumentOptions,
 } from './patrimoine.service'
@@ -18,7 +23,7 @@ import type {
   PatrimoineSource as Source,
   PatrimoineDocument as Document,
   PatrimoineCorpus as Corpus,
-  SourceType, SourceStatut, Acces, DocStatut, DocRole, NiveauConservation, CorpusType,
+  SourceType, SourceStatut, Acces, DocStatut, DocRole, CorpusType,
 } from './source.types'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -53,7 +58,7 @@ const ACCES_CONFIG: Record<Acces, { label: string; color: string }> = {
 const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: string }> = {
   transcrit:    { label: 'Transcrit',    color: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
   en_cours:     { label: 'En cours',     color: 'text-blue-700 bg-blue-50 border-blue-200',          dot: 'bg-blue-400' },
-  a_transcrire: { label: 'À transcrire', color: 'text-gray-500 bg-gray-50 border-gray-200',          dot: 'bg-gray-300' },
+  decrit:       { label: 'Décrit',       color: 'text-gray-500 bg-gray-50 border-gray-200',          dot: 'bg-gray-300' },
   annote:       { label: 'Annoté',       color: 'text-violet-700 bg-violet-50 border-violet-200',    dot: 'bg-violet-500' },
   en_attente:   { label: 'En attente',   color: 'text-orange-700 bg-orange-50 border-orange-200',    dot: 'bg-orange-400' },
 }
@@ -62,13 +67,6 @@ const ROLE_CONFIG: Record<DocRole, { label: string; color: string }> = {
   ACTE_PRIMAIRE:           { label: 'Acte',                    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   INSTRUMENT_DE_RECHERCHE: { label: 'Instrument de recherche', color: 'text-amber-700 bg-amber-50 border-amber-200' },
   REGISTRE_COMPILE:        { label: 'Registre',                color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
-}
-
-const CONSERVATION_CONFIG: Record<NiveauConservation, { label: string; color: string }> = {
-  bon:          { label: 'Bon état',     color: 'text-emerald-600' },
-  moyen:        { label: 'État moyen',   color: 'text-amber-600' },
-  degrade:      { label: 'Dégradé',      color: 'text-orange-600' },
-  fragmentaire: { label: 'Fragmentaire', color: 'text-rose-600' },
 }
 
 const CORPUS_TYPE_CONFIG: Record<CorpusType, { label: string; color: string; bg: string; border: string }> = {
@@ -111,7 +109,7 @@ function pct(done: number, total: number) {
 
 // ─── SlideOver wrapper ────────────────────────────────────────────────────────
 
-function SlideOver({ open, onClose, title, subtitle, children, footer, wide }: {
+function SlideOver({ open, onClose, title, subtitle, children, footer, wide, maxWidthClassName }: {
   open: boolean
   onClose: () => void
   title: string
@@ -119,12 +117,13 @@ function SlideOver({ open, onClose, title, subtitle, children, footer, wide }: {
   children: React.ReactNode
   footer: React.ReactNode
   wide?: boolean
+  maxWidthClassName?: string
 }) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={onClose} />
-      <div className={`w-full ${wide ? 'max-w-xl' : 'max-w-md'} bg-white shadow-2xl flex flex-col`}>
+      <div className={`w-full ${maxWidthClassName ?? (wide ? 'max-w-xl' : 'max-w-md')} bg-white shadow-2xl flex flex-col`}>
         <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
@@ -138,6 +137,21 @@ function SlideOver({ open, onClose, title, subtitle, children, footer, wide }: {
         <div className="px-6 py-4 border-t border-gray-100 flex items-center gap-2">{footer}</div>
       </div>
     </div>
+  )
+}
+
+function IdBadge({ id }: { id: string }) {
+  function handleClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(id)
+    toast.success('ID copié dans le presse-papiers')
+  }
+  return (
+    <button type="button" onClick={handleClick} title={id}
+      className="font-mono text-[10px] text-gray-400 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5 hover:bg-gray-100 hover:text-gray-600 transition-colors inline-flex items-center gap-1 shrink-0">
+      <Copy className="w-2.5 h-2.5" />
+      {id.slice(0, 8)}
+    </button>
   )
 }
 
@@ -156,14 +170,6 @@ const inputCls = 'w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 p
 const selectCls = `${inputCls} cursor-pointer`
 
 // ─── Identifier une source (P1.1 step 1) ─────────────────────────────────────
-
-const DOMAINE_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'etat-civil',  label: 'État civil' },
-  { value: 'foncier',     label: 'Foncier' },
-  { value: 'notarial',    label: 'Notarial' },
-  { value: 'paroissial',  label: 'Paroissial' },
-  { value: 'annuaire',    label: 'Annuaire' },
-]
 
 
 // ─── Qualifier une source (P1.1 step 2) ──────────────────────────────────────
@@ -239,73 +245,629 @@ function QualifierSourceSheet({ source, roleOptions, onClose, onDone }: {
 
 // ─── Décrire un document (P1.2 step 2) ───────────────────────────────────────
 
+// ── JSONB pack/unpack pour citations.marginalia / citations.writing ──────────
+
+function unpackMarginalia(mar: Record<string, any> | null) {
+  const present = mar?.present ?? {}
+  const count = mar?.count ?? {}
+  return {
+    signatures_present: present.signatures ?? null,
+    signatures_count: count.signatures ?? null,
+    marginal_mentions_present: present.marginal_mentions ?? null,
+    marginal_mentions_count: count.marginal_mentions ?? null,
+    marginal_crossouts_present: present.marginal_crossouts ?? null,
+    marginal_crossouts_count: count.marginal_crossouts ?? null,
+  }
+}
+
+function packMarginalia(c: {
+  signatures_present: boolean | null; signatures_count: number | null
+  marginal_mentions_present: boolean | null; marginal_mentions_count: number | null
+  marginal_crossouts_present: boolean | null; marginal_crossouts_count: number | null
+}): Record<string, any> {
+  return {
+    present: {
+      signatures: c.signatures_present,
+      marginal_mentions: c.marginal_mentions_present,
+      marginal_crossouts: c.marginal_crossouts_present,
+    },
+    count: {
+      signatures: c.signatures_present === true ? c.signatures_count : null,
+      marginal_mentions: c.marginal_mentions_present === true ? c.marginal_mentions_count : null,
+      marginal_crossouts: c.marginal_crossouts_present === true ? c.marginal_crossouts_count : null,
+    },
+  }
+}
+
+function unpackWriting(wr: Record<string, any> | null) {
+  return {
+    ecriture_ref: wr?.ecriture_ref ?? null,
+    handwriting_legibility_ref: wr?.legibility_ref ?? null,
+    damage_notes: wr?.damage_notes ?? '',
+    repro_notes: wr?.repro_notes ?? '',
+  }
+}
+
+function packWriting(c: {
+  ecriture_ref: string | null; handwriting_legibility_ref: string | null
+  damage_notes: string; repro_notes: string
+}): Record<string, any> {
+  const wr: Record<string, any> = {}
+  if (c.ecriture_ref) wr.ecriture_ref = c.ecriture_ref
+  if (c.handwriting_legibility_ref) wr.legibility_ref = c.handwriting_legibility_ref
+  if (c.damage_notes.trim()) wr.damage_notes = c.damage_notes.trim()
+  if (c.repro_notes.trim()) wr.repro_notes = c.repro_notes.trim()
+  return wr
+}
+
+function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white">
+      <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="text-sm font-semibold text-slate-900">{title}</div>
+        {subtitle && <div className="mt-1 text-xs text-slate-600">{subtitle}</div>}
+      </div>
+      <div className="p-4 space-y-4">{children}</div>
+    </div>
+  )
+}
+
 function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
   doc: Document
   roleOptions: RoleOption[]
   onClose: () => void
   onDone: () => void
 }) {
-  const [domaine, setDomaine] = useState('')
-  const [roleRef, setRoleRef] = useState('')
-  const [cote, setCote] = useState(doc.cote === '?' ? '' : doc.cote)
-  const [periode, setPeriode] = useState(doc.date_document ?? '')
-  const [note, setNote] = useState(doc.note ?? '')
-  const [submitting, setSubmitting] = useState(false)
+  const [typeUniteRef,       setTypeUniteRef]       = useState<string | null>(null)
+  const [roleRef,            setRoleRef]            = useState('')
+  const [langueRef,          setLangueRef]          = useState<string | null>(null)
+  const [periode,            setPeriode]            = useState(doc.date_document ?? '')
+  const [identifiantInterne, setIdentifiantInterne] = useState('')
+  const [description,        setDescription]        = useState('')
+  const [niveauFiabilite,    setNiveauFiabilite]    = useState<'haute' | 'moyenne' | 'basse' | null>(null)
+  const [note,               setNote]               = useState(doc.note ?? '')
+  const [submitting,         setSubmitting]         = useState(false)
+
+  // Exemplaire (forme physique/numérique de cette copie) — ref_exemplaires
+  const [exemplaireId,         setExemplaireId]         = useState<string | null>(null)
+  const [natureRef,            setNatureRef]            = useState<string | null>(null)
+  const [supportRef,           setSupportRef]           = useState<string | null>(null)
+  const [paginationTypeRef,    setPaginationTypeRef]    = useState<string | null>(null)
+  const [nbPages,               setNbPages]              = useState('')
+  const [conditionnement,      setConditionnement]      = useState('')
+  const [physicalConditionRef, setPhysicalConditionRef] = useState<string | null>(null)
+
+  // Statut, localisation & observations de la citation (uniquement pertinent pour un acte) —
+  // même donnée que le "formulaire complet" de l'atelier de transcription (/ec-acte/edit).
+  const [citationId,      setCitationId]      = useState<string | null>(null)
+  const [acteIsMissing,   setActeIsMissing]   = useState<boolean | null>(null)
+  const [acteLacune,      setActeLacune]      = useState<boolean | null>(null)
+  const [acteLacuneNote,  setActeLacuneNote]  = useState('')
+  const [actePosition,    setActePosition]    = useState('')
+  const [reproQualityRef, setReproQualityRef] = useState<string | null>(null)
+  const [marks,           setMarks]           = useState('')
+  const [citationNote,    setCitationNote]    = useState('')
+  const [ecritureRef,               setEcritureRef]               = useState<string | null>(null)
+  const [handwritingLegibilityRef,  setHandwritingLegibilityRef]  = useState<string | null>(null)
+  const [damageNotes,               setDamageNotes]               = useState('')
+  const [reproNotes,                setReproNotes]                = useState('')
+  const [signaturesPresent,          setSignaturesPresent]          = useState<boolean | null>(null)
+  const [signaturesCount,            setSignaturesCount]            = useState<number | null>(null)
+  const [marginalMentionsPresent,    setMarginalMentionsPresent]    = useState<boolean | null>(null)
+  const [marginalMentionsCount,      setMarginalMentionsCount]      = useState<number | null>(null)
+  const [marginalCrossoutsPresent,   setMarginalCrossoutsPresent]   = useState<boolean | null>(null)
+  const [marginalCrossoutsCount,     setMarginalCrossoutsCount]     = useState<number | null>(null)
+  const [loadingActeInfo, setLoadingActeInfo] = useState(true)
+  const [acteFormVariant, setActeFormVariant] = useState<'short' | 'full'>('short')
+
+  // Hiérarchie parent/enfant — purement informatif, lecture seule.
+  const [ancestors, setAncestors] = useState<Array<{ id: string; titre: string }>>([])
+  const [children,  setChildren]  = useState<Array<{ id: string; titre: string }>>([])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadHierarchy() {
+      const chain: Array<{ id: string; titre: string }> = []
+      let currentId: string | null = doc.source_id
+      for (let i = 0; i < 6 && currentId; i++) {
+        const { data } = await supabase.from('ref_unites_documentaires')
+          .select('id, titre, parent_ud_id').eq('id', currentId).maybeSingle()
+        if (!data) break
+        chain.push({ id: data.id, titre: data.titre })
+        currentId = data.parent_ud_id
+      }
+      if (!cancelled) setAncestors(chain.reverse())
+
+      const { data: kids } = await supabase.from('ref_unites_documentaires')
+        .select('id, titre').eq('parent_ud_id', doc.id).order('titre')
+      if (!cancelled) setChildren(kids ?? [])
+    }
+    loadHierarchy()
+    return () => { cancelled = true }
+  }, [doc.id])
+
+  const isActe = roleOptions.find(o => o.id === roleRef)?.code === 'ACTE_PRIMAIRE'
+  const isTable = roleOptions.find(o => o.id === roleRef)?.code === 'INSTRUMENT_DE_RECHERCHE'
+  const showStatutSection = isActe || isTable
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoadingActeInfo(true)
+      const { data: ex } = await supabase.from('ref_exemplaires')
+        .select('id, nature_ref, support_ref, pagination_type_ref, nb_pages, conditionnement, physical_condition_ref, description')
+        .eq('unite_documentaire_id', doc.id).limit(1).maybeSingle()
+      if (cancelled) return
+      if (!ex?.id) { setLoadingActeInfo(false); return }
+      setExemplaireId(ex.id)
+      setNatureRef(ex.nature_ref ?? null)
+      setSupportRef(ex.support_ref ?? null)
+      setPaginationTypeRef(ex.pagination_type_ref ?? null)
+      setNbPages(ex.nb_pages != null ? String(ex.nb_pages) : '')
+      setConditionnement(ex.conditionnement ?? '')
+      setPhysicalConditionRef(ex.physical_condition_ref ?? null)
+      setDescription(ex.description ?? '')
+
+      // Une citation ec_acte ou ec_table (selon le rôle du document) — jamais les deux à la fois.
+      const { data: cit } = await supabase.from('citations')
+        .select('id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
+        .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table']).maybeSingle()
+      if (cancelled) return
+      if (cit) {
+        setCitationId(cit.id)
+        setActeIsMissing(cit.is_missing ?? null)
+        setActeLacune(cit.lacune ?? null)
+        setActeLacuneNote(cit.lacune_note ?? '')
+        const raw = (cit.locating as any)?.systems?.[0]?.raw
+        setActePosition(typeof raw === 'string' ? raw : '')
+        setReproQualityRef(cit.repro_quality_ref ?? null)
+        setMarks(cit.marks ?? '')
+        setCitationNote(cit.note ?? '')
+        const wr = unpackWriting(cit.writing ?? null)
+        setEcritureRef(wr.ecriture_ref)
+        setHandwritingLegibilityRef(wr.handwriting_legibility_ref)
+        setDamageNotes(wr.damage_notes)
+        setReproNotes(wr.repro_notes)
+        const mar = unpackMarginalia(cit.marginalia ?? null)
+        setSignaturesPresent(mar.signatures_present)
+        setSignaturesCount(mar.signatures_count)
+        setMarginalMentionsPresent(mar.marginal_mentions_present)
+        setMarginalMentionsCount(mar.marginal_mentions_count)
+        setMarginalCrossoutsPresent(mar.marginal_crossouts_present)
+        setMarginalCrossoutsCount(mar.marginal_crossouts_count)
+      }
+      setLoadingActeInfo(false)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [doc.id])
+
+  // Auto-complétion quand le rôle choisi est "Acte primaire" : type d'unité = Pièce.
+  // Ne joue que si le champ n'a pas déjà été renseigné.
+  useEffect(() => {
+    if (!isActe || typeUniteRef) return
+    let cancelled = false
+    supabase.from('ref_type_unite').select('id').eq('code', 'piece').maybeSingle()
+      .then(({ data }) => { if (!cancelled && data?.id) setTypeUniteRef(data.id) })
+    return () => { cancelled = true }
+  }, [isActe, typeUniteRef])
+
+  // Auto-complétion de la couverture temporelle dès qu'un rôle est choisi (peu importe lequel) :
+  // on remonte la chaîne parent_ud_id jusqu'au registre racine et on reprend son couverture_label.
+  // Ne joue que si le champ n'a pas déjà été renseigné.
+  useEffect(() => {
+    if (!roleRef || periode.trim()) return
+    let cancelled = false
+    ;(async () => {
+      let currentId: string | null = doc.source_id
+      let lastCouverture: string | null = null
+      for (let i = 0; i < 5 && currentId; i++) {
+        const { data } = await supabase.from('ref_unites_documentaires')
+          .select('parent_ud_id, couverture_label').eq('id', currentId).maybeSingle()
+        if (!data) break
+        lastCouverture = data.couverture_label
+        currentId = data.parent_ud_id
+      }
+      if (!cancelled && lastCouverture) setPeriode(lastCouverture)
+    })()
+    return () => { cancelled = true }
+  }, [roleRef])
+
+  const acteFormComplete = !showStatutSection || (
+    acteIsMissing !== null && (acteIsMissing === true || actePosition.trim().length > 0)
+  )
+
+  const canSubmit = !!typeUniteRef && !!roleRef && periode.trim().length > 0 && acteFormComplete && !submitting
+
+  function toIntOrNull(v: string): number | null {
+    const s = v.trim()
+    if (!s || !/^\d+$/.test(s)) return null
+    return Number(s)
+  }
 
   async function handleSubmit() {
+    if (!canSubmit) return
     setSubmitting(true)
     const meta: Record<string, unknown> = {}
-    if (cote.trim()) meta.cote = cote.trim()
     if (note.trim()) meta.note = note.trim()
-    if (domaine) meta.domaine = domaine
 
     const { error } = await decrireDocument(doc.id, {
+      type_unite_ref: typeUniteRef,
       role_document_ref: roleRef || null,
+      langue_ref: langueRef,
       couverture_label: periode || null,
+      identifiant_interne: identifiantInterne.trim() || null,
+      niveau_fiabilite: niveauFiabilite,
       metadonnees: Object.keys(meta).length ? meta : null,
     })
+
+    if (!error && exemplaireId) {
+      await supabase.from('ref_exemplaires').update({
+        nature_ref: natureRef,
+        support_ref: supportRef,
+        pagination_type_ref: paginationTypeRef,
+        nb_pages: toIntOrNull(nbPages),
+        conditionnement: conditionnement.trim() || null,
+        physical_condition_ref: physicalConditionRef,
+        description: description.trim() || null,
+      }).eq('id', exemplaireId)
+    }
+
+    if (!error && showStatutSection && citationId) {
+      await supabase.from('citations').update({
+        is_missing: acteIsMissing,
+        lacune: acteLacune,
+        lacune_note: acteLacune ? (acteLacuneNote.trim() || null) : null,
+        locating: acteIsMissing ? {} : { systems: [{ raw: actePosition.trim() }] },
+        repro_quality_ref: reproQualityRef,
+        marks: marks.trim() || null,
+        note: citationNote.trim() || null,
+        writing: packWriting({
+          ecriture_ref: ecritureRef,
+          handwriting_legibility_ref: handwritingLegibilityRef,
+          damage_notes: damageNotes,
+          repro_notes: reproNotes,
+        }),
+        marginalia: packMarginalia({
+          signatures_present: signaturesPresent,
+          signatures_count: signaturesCount,
+          marginal_mentions_present: marginalMentionsPresent,
+          marginal_mentions_count: marginalMentionsCount,
+          marginal_crossouts_present: marginalCrossoutsPresent,
+          marginal_crossouts_count: marginalCrossoutsCount,
+        }),
+      }).eq('id', citationId)
+    }
+
     setSubmitting(false)
     if (!error) onDone()
   }
 
   return (
     <SlideOver open title="Décrire le document" subtitle={doc.titre} onClose={onClose}
+      maxWidthClassName="max-w-4xl"
       footer={<>
         <button onClick={onClose} disabled={submitting}
           className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
           Annuler
         </button>
-        <button onClick={handleSubmit} disabled={submitting}
+        <button onClick={handleSubmit} disabled={!canSubmit}
           className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
           {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          <CheckCircle2 className="w-3.5 h-3.5" />Décrire
+          <CheckCircle2 className="w-3.5 h-3.5" />Marquer comme décrit
         </button>
       </>}
     >
-      <Field label="Type de document">
-        <select value={domaine} onChange={e => setDomaine(e.target.value)} className={selectCls} autoFocus>
-          <option value="">À préciser</option>
-          {DOMAINE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      </Field>
-      <Field label="Rôle">
-        <select value={roleRef} onChange={e => setRoleRef(e.target.value)} className={selectCls}>
-          <option value="">À préciser</option>
-          {roleOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-        </select>
-      </Field>
-      <Field label="Cote / référence">
-        <input value={cote} onChange={e => setCote(e.target.value)}
-          placeholder="ex. EC DESHAIES 1889 N" className={`${inputCls} font-mono`} />
-      </Field>
-      <Field label="Couverture temporelle">
-        <input value={periode} onChange={e => setPeriode(e.target.value)}
-          placeholder="ex. 1889 ou 1880–1920" className={inputCls} />
-      </Field>
-      <Field label="Note">
-        <input value={note} onChange={e => setNote(e.target.value)}
-          placeholder="Observations sur ce document…" className={inputCls} />
-      </Field>
+      <p className="text-xs text-gray-500 -mt-1">
+        Décris uniquement ce que tu observes de l'objet — sa forme, sa langue, la période qu'il couvre.
+        Le contenu (actes, mentions…) se transcrit plus tard, dans l'atelier documentaire.
+      </p>
+
+      {(ancestors.length > 0 || children.length > 0) && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-xs text-gray-600 space-y-2">
+          {ancestors.length > 0 && (
+            <div>
+              <div className="font-semibold text-gray-400 uppercase tracking-wide text-[10px] mb-1">Hiérarchie</div>
+              <div className="flex flex-wrap items-center gap-1">
+                {ancestors.map(a => (
+                  <span key={a.id} className="flex items-center gap-1">
+                    <span className="text-gray-700">{a.titre}</span>
+                    <ChevronRight className="w-3 h-3 text-gray-300" />
+                  </span>
+                ))}
+                <span className="font-medium text-indigo-700">{doc.titre} (ce document)</span>
+              </div>
+            </div>
+          )}
+          {children.length > 0 && (
+            <div>
+              <div className="font-semibold text-gray-400 uppercase tracking-wide text-[10px] mb-1">
+                Documents enfants ({children.length})
+              </div>
+              <ul className="list-disc list-inside text-gray-700 space-y-0.5">
+                {children.slice(0, 5).map(c => <li key={c.id}>{c.titre}</li>)}
+                {children.length > 5 && <li className="text-gray-400">… et {children.length - 5} autre(s)</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      <SectionCard title="Identification" subtitle="Nature intellectuelle du document et informations générales.">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Rôle" required>
+            <select value={roleRef} onChange={e => setRoleRef(e.target.value)} className={selectCls} autoFocus>
+              <option value="">À préciser</option>
+              {roleOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          </Field>
+
+          <Field label="Type d'unité" required>
+            <RefSinglePickerSmart
+              table="ref_type_unite" mode="edit" actionsInvisible={false}
+              value={typeUniteRef}
+              onChange={next => setTypeUniteRef(next ? String(next) : null)}
+            />
+          </Field>
+
+          <Field label="Couverture temporelle" required>
+            <input value={periode} onChange={e => setPeriode(e.target.value)}
+              placeholder="ex. 1889 ou 1880–1920" className={inputCls} />
+          </Field>
+
+          <Field label="Langue">
+            <RefSinglePickerSmart
+              table="ref_langues" mode="edit" actionsInvisible={false}
+              value={langueRef}
+              onChange={next => setLangueRef(next ? String(next) : null)}
+            />
+          </Field>
+
+          <Field label="Identifiant interne">
+            <input value={identifiantInterne} onChange={e => setIdentifiantInterne(e.target.value)}
+              placeholder="ex. DOC-2026-0147 (référence interne, pas la cote d'archives)" className={`${inputCls} font-mono`} />
+          </Field>
+
+          <Field label="Note">
+            <input value={note} onChange={e => setNote(e.target.value)}
+              placeholder="Observations sur ce document…" className={inputCls} />
+          </Field>
+        </div>
+
+        <Field label="Fiabilité">
+          <div className="flex gap-2">
+            {(['haute', 'moyenne', 'basse'] as const).map(niveau => (
+              <button key={niveau} type="button"
+                onClick={() => setNiveauFiabilite(niveauFiabilite === niveau ? null : niveau)}
+                className={`flex-1 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+                  niveauFiabilite === niveau ? FIABILITE_CONFIG[niveau].color : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}>
+                {FIABILITE_CONFIG[niveau].label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      </SectionCard>
+
+      {!loadingActeInfo && exemplaireId && (
+        <SectionCard title="Exemplaire" subtitle="La forme physique ou numérique de cette copie précise.">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Nature">
+              <RefSinglePickerSmart
+                table="ref_natures" mode="edit" actionsInvisible={false}
+                value={natureRef}
+                onChange={next => setNatureRef(next ? String(next) : null)}
+              />
+            </Field>
+
+            <Field label="Support">
+              <RefSinglePickerSmart
+                table="ref_supports" mode="edit" actionsInvisible={false}
+                value={supportRef}
+                onChange={next => setSupportRef(next ? String(next) : null)}
+              />
+            </Field>
+
+            <Field label="Type de pagination">
+              <RefSinglePickerSmart
+                table="ref_pagination_type" mode="edit" actionsInvisible={false}
+                value={paginationTypeRef}
+                onChange={next => setPaginationTypeRef(next ? String(next) : null)}
+              />
+            </Field>
+
+            {!isActe && (
+              <>
+                <Field label="Nombre de pages">
+                  <input value={nbPages} onChange={e => setNbPages(e.target.value)} inputMode="numeric"
+                    placeholder="ex. 250" className={inputCls} />
+                </Field>
+
+                <Field label="Conditionnement">
+                  <input value={conditionnement} onChange={e => setConditionnement(e.target.value)}
+                    placeholder="Contenant de rangement : ex. boîte d'archives n°12, chemise cartonnée…" className={inputCls} />
+                </Field>
+              </>
+            )}
+
+            <Field label="Condition physique">
+              <RefSinglePickerSmart
+                table="ref_physical_condition" mode="edit" actionsInvisible={false}
+                value={physicalConditionRef}
+                onChange={next => setPhysicalConditionRef(next ? String(next) : null)}
+              />
+            </Field>
+          </div>
+
+          <Field label="Description physique">
+            <textarea value={description} onChange={e => setDescription(e.target.value)}
+              placeholder="Apparence de cet exemplaire : reliure, nombre de folios, page de titre…" className={`${inputCls} min-h-[70px] resize-none`} />
+          </Field>
+        </SectionCard>
+      )}
+
+      {showStatutSection && !loadingActeInfo && exemplaireId && (() => {
+        const statutEtLocalisation = (
+          <>
+            <p className="text-xs text-slate-600">
+              <strong className="text-slate-800">Document manquant</strong> : ce document n'existe pas du tout à cet endroit (page absente, jamais transcrit ici). <strong className="text-slate-800">Lacune</strong> : le document est bien présent, mais une partie est illisible, endommagée ou incomplète.
+            </p>
+            <div className="space-y-3">
+              <TriStateButton
+                label="Document manquant *"
+                yesLabel="Oui"
+                noLabel="Non"
+                mode="edit"
+                value={acteIsMissing}
+                onChange={v => setActeIsMissing(v ?? null)}
+              />
+              <TriStateButton
+                label="Lacune"
+                yesLabel="Oui"
+                noLabel="Non"
+                mode="edit"
+                value={acteLacune}
+                onChange={v => setActeLacune(v ?? null)}
+              />
+            </div>
+            {acteIsMissing === true ? (
+              <p className="text-xs text-amber-600">Document déclaré manquant — la localisation n'est pas requise.</p>
+            ) : (
+              <Field label="Localisation (vue / folio)" required>
+                <input value={actePosition} onChange={e => setActePosition(e.target.value)}
+                  placeholder="Ex. vue 23 ; f°12r" className={inputCls} />
+              </Field>
+            )}
+            {acteLacune === true && (
+              <Field label="Détail lacune">
+                <textarea value={acteLacuneNote} onChange={e => setActeLacuneNote(e.target.value)}
+                  placeholder="Ex. vues 120–140 absentes…" className={`${inputCls} min-h-[60px] resize-none`} />
+              </Field>
+            )}
+          </>
+        )
+
+        return (
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Statut & localisation {isActe ? "de l'acte" : 'de la table'}
+            </p>
+
+            <Tabs value={acteFormVariant} onValueChange={v => setActeFormVariant(v as 'short' | 'full')}>
+              <TabsList>
+                <TabsTrigger value="short" className="text-xs">Formulaire court</TabsTrigger>
+                <TabsTrigger value="full" className="text-xs">Formulaire complet</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="short" className="pt-4">
+                <SectionCard title="Statut" subtitle="Champs minimum requis pour valider l'occurrence.">
+                  {statutEtLocalisation}
+                </SectionCard>
+              </TabsContent>
+
+              <TabsContent value="full" className="pt-4 space-y-4">
+                <SectionCard title="Statut" subtitle="Champs minimum requis pour valider l'occurrence.">
+                  {statutEtLocalisation}
+                </SectionCard>
+
+                <SectionCard title="Observations sur cette version" subtitle="État, reproduction, dommages, écriture & lisibilité.">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">État, reproduction & dommages</div>
+                    <div className="mt-3 grid grid-cols-2 gap-4">
+                      <Field label="Qualité de reproduction">
+                        <RefSinglePickerSmart
+                          table="ref_repro_quality" mode="edit" actionsInvisible={false}
+                          value={reproQualityRef}
+                          onChange={next => setReproQualityRef(next ? String(next) : null)}
+                        />
+                      </Field>
+                      <Field label="Marques particulières">
+                        <input value={marks} onChange={e => setMarks(e.target.value)}
+                          placeholder="Ex. tampon, cachet, sceau… (hors mentions marginales, voir plus bas)" className={inputCls} />
+                      </Field>
+                    </div>
+                    <div className="mt-4 space-y-4">
+                      <Field label="Notes sur la reproduction">
+                        <textarea value={reproNotes} onChange={e => setReproNotes(e.target.value)}
+                          placeholder="Ex. scan flou, contraste insuffisant…" className={`${inputCls} min-h-[60px] resize-none`} />
+                      </Field>
+                      <Field label="Notes sur les dommages">
+                        <textarea value={damageNotes} onChange={e => setDamageNotes(e.target.value)}
+                          placeholder="Ex. coin déchiré, encre passée, taches d'humidité…" className={`${inputCls} min-h-[60px] resize-none`} />
+                      </Field>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">Écriture & lisibilité</div>
+                    <div className="mt-3 grid grid-cols-2 gap-4">
+                      <Field label="Écriture">
+                        <RefSinglePickerSmart
+                          table="ref_ecritures" mode="edit" actionsInvisible={false}
+                          value={ecritureRef}
+                          onChange={next => setEcritureRef(next ? String(next) : null)}
+                        />
+                      </Field>
+                      <Field label="Lisibilité">
+                        <RefSinglePickerSmart
+                          table="ref_handwriting_legibility" mode="edit" actionsInvisible={false}
+                          value={handwritingLegibilityRef}
+                          onChange={next => setHandwritingLegibilityRef(next ? String(next) : null)}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {isActe && (
+                    <>
+                      <Separator />
+
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">Marques & signes</div>
+                        <div className="mt-3 space-y-3">
+                          <TriStateButton label="Signatures" yesLabel="Présentes" noLabel="Absentes" mode="edit"
+                            value={signaturesPresent} onChange={v => setSignaturesPresent(v ?? null)} />
+                          {signaturesPresent === true && (
+                            <Field label="Nombre de signatures">
+                              <input value={signaturesCount ?? ''} onChange={e => setSignaturesCount(toIntOrNull(e.target.value))}
+                                inputMode="numeric" className={inputCls} />
+                            </Field>
+                          )}
+
+                          <TriStateButton label="Mentions marginales" yesLabel="Présentes" noLabel="Absentes" mode="edit"
+                            value={marginalMentionsPresent} onChange={v => setMarginalMentionsPresent(v ?? null)} />
+                          {marginalMentionsPresent === true && (
+                            <Field label="Nombre de mentions marginales">
+                              <input value={marginalMentionsCount ?? ''} onChange={e => setMarginalMentionsCount(toIntOrNull(e.target.value))}
+                                inputMode="numeric" className={inputCls} />
+                            </Field>
+                          )}
+
+                          <TriStateButton label="Ratures marginales" yesLabel="Présentes" noLabel="Absentes" mode="edit"
+                            value={marginalCrossoutsPresent} onChange={v => setMarginalCrossoutsPresent(v ?? null)} />
+                          {marginalCrossoutsPresent === true && (
+                            <Field label="Nombre de ratures marginales">
+                              <input value={marginalCrossoutsCount ?? ''} onChange={e => setMarginalCrossoutsCount(toIntOrNull(e.target.value))}
+                                inputMode="numeric" className={inputCls} />
+                            </Field>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </SectionCard>
+
+                <Field label="Note sur cette citation">
+                  <input value={citationNote} onChange={e => setCitationNote(e.target.value)}
+                    placeholder="Observations propres à cette occurrence…" className={inputCls} />
+                </Field>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )
+      })()}
     </SlideOver>
   )
 }
@@ -482,85 +1044,6 @@ function SourceCard({ source }: { source: Source }) {
   )
 }
 
-// ─── Document row ─────────────────────────────────────────────────────────────
-
-function DocumentRow({ doc, depth = 0, sources, docs }: {
-  doc: Document
-  depth?: number
-  sources: Source[]
-  docs: Document[]
-}) {
-  const typeConf = doc.type_document ? TYPE_CONFIG[doc.type_document] : null
-  const TypeIcon = typeConf?.icon ?? FileText
-  const statut = STATUT_DOC_CONFIG[doc.statut]
-  const role = doc.role ? ROLE_CONFIG[doc.role] : null
-  const conservation = doc.niveau_conservation ? CONSERVATION_CONFIG[doc.niveau_conservation] : null
-  const source = doc.source_id ? sources.find(s => s.id === doc.source_id) : null
-  const nbExemplaires = doc.exemplaire_groupe_id
-    ? docs.filter(d => d.exemplaire_groupe_id === doc.exemplaire_groupe_id).length
-    : 0
-
-  return (
-    <div
-      className={`group border-b border-gray-50 last:border-0 ${depth > 0 ? 'bg-gray-50/50' : ''}`}
-      style={{ paddingLeft: depth > 0 ? `${depth * 1.5 + 1}rem` : '1rem' }}
-    >
-<div className="flex items-start gap-4 py-3 pr-4 hover:bg-white transition-colors cursor-pointer">
-        <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 ${typeConf ? `${typeConf.bg} ${typeConf.border}` : 'bg-gray-50 border-gray-200'}`}>
-          <TypeIcon className={`w-3.5 h-3.5 ${typeConf?.color ?? 'text-gray-400'}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-sm font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">
-              {doc.titre}
-            </span>
-            {role && (
-              <span className={`text-xs font-medium rounded border px-1.5 py-0.5 shrink-0 ${role.color}`}>
-                {role.label}
-              </span>
-            )}
-            {nbExemplaires > 1 && (
-              <span className="text-xs font-medium text-violet-600 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5 flex items-center gap-1 shrink-0">
-                <Copy className="w-3 h-3" />{nbExemplaires} exemplaires
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-gray-400 font-mono">{doc.cote}</span>
-            {source && <><span className="text-gray-200">·</span><span className="text-xs text-gray-400">{source.institution_conservation}</span></>}
-            {doc.note && <><span className="text-gray-200">·</span><span className="text-xs text-gray-400 italic">{doc.note}</span></>}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs text-gray-400 w-20 text-right">{doc.date_document ?? '—'}</span>
-          {conservation && (
-            <span className={`text-xs ${conservation.color} w-20 text-right`}>{conservation.label}</span>
-          )}
-          {doc.mentions_detectees != null ? (
-            <span className="text-xs text-gray-500 w-24 text-right flex items-center justify-end gap-1">
-              <Sparkles className="w-3 h-3 text-amber-400" />{doc.mentions_detectees} mentions
-            </span>
-          ) : <span className="w-24" />}
-          <span className={`text-xs font-medium rounded-full border px-2.5 py-0.5 flex items-center gap-1.5 w-28 ${statut.color}`}>
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statut.dot}`} />{statut.label}
-          </span>
-          <div className="flex items-center gap-1.5 w-16 justify-end">
-            {doc.url && (
-              <a href={doc.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                className="text-gray-300 hover:text-indigo-500 transition-colors">
-                <Globe className="w-3.5 h-3.5" />
-              </a>
-            )}
-            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Corpus card ──────────────────────────────────────────────────────────────
 
 function CorpusCard({ corpus, sources }: { corpus: Corpus; sources: Source[] }) {
@@ -710,7 +1193,10 @@ function EnAttenteTab({
                   <FileText className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 mb-0.5">{doc.titre}</p>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-sm font-medium text-gray-900">{doc.titre}</p>
+                    <IdBadge id={doc.id} />
+                  </div>
                   {doc.date_document && <p className="text-xs text-gray-500">{doc.date_document}</p>}
                   {doc.note && <p className="text-xs text-gray-400 italic mt-1">{doc.note}</p>}
                 </div>
@@ -742,7 +1228,10 @@ function EnAttenteTab({
                     <FileText className="w-4 h-4 text-gray-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 mb-0.5">{doc.titre}</p>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-medium text-gray-900">{doc.titre}</p>
+                      <IdBadge id={doc.id} />
+                    </div>
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                       <span className="font-mono">{doc.cote}</span>
                       {source && <><span className="text-gray-200">·</span><span>{source.institution_conservation}</span></>}
@@ -1065,7 +1554,7 @@ export function SourcesCorpusPage() {
   }, [])
 
   useEffect(() => {
-    if (tab !== 'Plateformes' || plateformesLoaded.current) return
+    if (plateformesLoaded.current) return
     plateformesLoaded.current = true
     setPlateformesLoading(true)
     supabase
@@ -1083,10 +1572,10 @@ export function SourcesCorpusPage() {
         })))
         setPlateformesLoading(false)
       })
-  }, [tab, plateformesRefreshKey])
+  }, [plateformesRefreshKey])
 
   useEffect(() => {
-    if (tab !== 'Institutions' || institutionsLoaded.current) return
+    if (institutionsLoaded.current) return
     institutionsLoaded.current = true
     setInstitutionsLoading(true)
     Promise.all([
@@ -1109,7 +1598,7 @@ export function SourcesCorpusPage() {
       })))
       setInstitutionsLoading(false)
     })
-  }, [tab, institutionsRefreshKey])
+  }, [institutionsRefreshKey])
 
   const [platSearch, setPlatSearch] = useState('')
   const [platKindFilter, setPlatKindFilter] = useState('')
@@ -1155,7 +1644,7 @@ export function SourcesCorpusPage() {
     { key: 'transcrit', label: 'Transcrits' },
     { key: 'annote', label: 'Annotés' },
     { key: 'en_cours', label: 'En cours' },
-    { key: 'a_transcrire', label: 'À transcrire' },
+    { key: 'decrit', label: 'Décrits' },
   ]
 
   const filteredDocs = activeDocs.filter(d => {
@@ -1167,6 +1656,85 @@ export function SourcesCorpusPage() {
   })
 
   const topLevelDocs = filteredDocs
+
+  const documentColumns = useMemo<ColumnDef<Document>[]>(() => [
+    {
+      key: 'titre',
+      label: 'Titre',
+      render: (doc) => (
+        <div className="space-y-0.5">
+          <span className="text-sm font-medium text-gray-900">{doc.titre}</span>
+          {doc.note && <p className="text-xs text-gray-400 italic">{doc.note}</p>}
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      label: 'Rôle',
+      columnWidth: '160px',
+      render: (doc) => {
+        const role = doc.role ? ROLE_CONFIG[doc.role] : null
+        return role
+          ? <span className={`text-xs font-medium rounded border px-1.5 py-0.5 w-fit ${role.color}`}>{role.label}</span>
+          : <span className="text-xs text-gray-300">—</span>
+      },
+    },
+    {
+      key: 'cote',
+      label: 'Cote',
+      columnWidth: '140px',
+      render: (doc) => (
+        <span className="text-xs text-gray-500 font-mono">{doc.cote === '?' ? '—' : doc.cote}</span>
+      ),
+    },
+    {
+      key: 'source_id',
+      label: 'Source',
+      columnWidth: '220px',
+      render: (doc) => {
+        const source = doc.source_id ? sources.find(s => s.id === doc.source_id) : null
+        return <span className="text-xs text-gray-500">{source ? source.institution_conservation : '—'}</span>
+      },
+    },
+    {
+      key: 'date_document',
+      label: 'Période',
+      columnWidth: '110px',
+      render: (doc) => <span className="text-xs text-gray-500">{doc.date_document ?? '—'}</span>,
+    },
+    {
+      key: 'vue',
+      label: 'Vue',
+      columnWidth: '90px',
+      render: (doc) => <span className="text-xs text-gray-500 font-mono">{doc.vue ?? '—'}</span>,
+    },
+    {
+      key: 'en_ligne',
+      label: 'En ligne',
+      columnWidth: '90px',
+      render: (doc) => doc.url
+        ? (
+          <a href={doc.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors" title="Ouvrir en ligne">
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        )
+        : <span className="text-xs text-gray-300">—</span>,
+    },
+    {
+      key: 'statut',
+      label: 'Statut',
+      columnWidth: '130px',
+      render: (doc) => {
+        const statut = STATUT_DOC_CONFIG[doc.statut]
+        return (
+          <span className={`text-xs font-medium rounded-full border px-2.5 py-0.5 flex items-center gap-1.5 w-fit ${statut.color}`}>
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statut.dot}`} />{statut.label}
+          </span>
+        )
+      },
+    },
+  ], [sources])
 
   if (loading) {
     return (
@@ -1197,10 +1765,9 @@ export function SourcesCorpusPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Layers className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-base font-semibold text-gray-900 tracking-tight">REBOND</span>
+          <button onClick={() => navigate('/mock/dashboard-v2')} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
+            <LayoutDashboard className="w-4 h-4" />Dashboard
+          </button>
           <span className="text-gray-300 text-sm">/</span>
           <span className="text-sm text-gray-500 flex items-center gap-1.5">
             <Library className="w-4 h-4" />Patrimoine documentaire
@@ -1226,22 +1793,10 @@ export function SourcesCorpusPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/mock/referencer-document')}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
-            >
-              <Search className="w-4 h-4" />
-              Référencer un document
-            </button>
             <button onClick={() => navigate('/mock/referencer-wizard')}
-              className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm">
-              <BookOpen className="w-4 h-4" />
-              J'ai trouvé un document
-            </button>
-            <button onClick={() => navigate('/mock/sources-identifier')}
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
-              <Plus className="w-4 h-4" />
-              Créer une source
+              <File className="w-4 h-4" />
+              J'ai trouvé un document
             </button>
           </div>
         </div>
@@ -1390,26 +1945,15 @@ export function SourcesCorpusPage() {
               ))}
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              <div className="flex items-center gap-4 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-                <div className="w-8 shrink-0" />
-                <div className="flex-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Titre / Cote</div>
-                <div className="text-xs font-medium text-gray-400 uppercase tracking-wide w-20 text-right">Date</div>
-                <div className="text-xs font-medium text-gray-400 uppercase tracking-wide w-20 text-right">Conservation</div>
-                <div className="text-xs font-medium text-gray-400 uppercase tracking-wide w-24 text-right">Mentions</div>
-                <div className="text-xs font-medium text-gray-400 uppercase tracking-wide w-28">Statut</div>
-                <div className="w-16" />
-              </div>
-              {topLevelDocs.length === 0 ? (
-                <div className="py-12 text-center">
-                  <FileText className="w-6 h-6 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">Aucun document trouvé.</p>
-                </div>
-              ) : (
-                topLevelDocs.map(doc => (
-                  <DocumentRow key={doc.id} doc={doc} depth={0} sources={sources} docs={docs} />
-                ))
-              )}
+            <div className="bg-white rounded-xl border border-gray-100 p-4">
+              <DataTable
+                title="Documents"
+                data={topLevelDocs}
+                columns={documentColumns}
+                pageSize={15}
+                defaultSort={['titre']}
+                onRowClick={(doc) => navigate(`/mock/document/${doc.id}`)}
+              />
             </div>
           </div>
         )}

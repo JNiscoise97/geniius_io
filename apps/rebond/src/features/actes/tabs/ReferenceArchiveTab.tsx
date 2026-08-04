@@ -172,11 +172,7 @@ type ActeCitationRow = {
   lacune_note: string | null;
   note: string | null;
   sort_order: number;
-  physical_condition_ref: string | null;
   repro_quality_ref: string | null;
-  document_damage_kinds_ids: string[] | null;
-  document_readability_features_ids: string[] | null;
-  langue_ref: string | null;
   marks: string | null;
   locating: Record<string, any>;
   marginalia: Record<string, any>;
@@ -306,7 +302,6 @@ function emptyActeCitation(): ActeCitationDraft {
 }
 
 function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): ActeCitationDraft {
-  const arrOrEmpty = (v: any) => (Array.isArray(v) ? v.filter(Boolean) : []);
   const loc = unpackLocating(r?.locating ?? null);
   const mar = unpackMarginalia(r?.marginalia ?? null);
   const wr  = unpackWriting(r?.writing ?? null);
@@ -318,13 +313,16 @@ function normalizeCitationRow(r: Partial<ActeCitationRow> | null | undefined): A
     is_missing: r?.is_missing,
     note: r?.note ?? '',
     sort_order: typeof r?.sort_order === 'number' ? r.sort_order : 0,
-    physical_condition_ref: (r?.physical_condition_ref ?? null) as any,
+    // physical_condition_ref / langue_ref / document_damage_kinds_ids / document_readability_features_ids :
+    // colonnes retirées de `citations` — champs gardés dans le draft (toujours vides) pour ne pas casser
+    // les pickers de ReferenceSourcesCard, mais plus jamais lus ni sauvegardés en base.
+    physical_condition_ref: null,
     repro_quality_ref: (r?.repro_quality_ref ?? null) as any,
     ...mar,
     ...wr,
-    langue_ref: r?.langue_ref ?? null,
-    document_damage_kinds_ids: arrOrEmpty(r?.document_damage_kinds_ids),
-    document_readability_features_ids: arrOrEmpty(r?.document_readability_features_ids),
+    langue_ref: null,
+    document_damage_kinds_ids: [],
+    document_readability_features_ids: [],
     lacune: r?.lacune ?? null,
     lacune_note: r?.lacune_note ?? '',
     marks: r?.marks ?? '',
@@ -583,9 +581,7 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
         .from('citations')
         .select(
           'id, target_id, exemplaire_id, is_missing, lacune, lacune_note, note, sort_order,' +
-          'physical_condition_ref, repro_quality_ref,' +
-          'document_damage_kinds_ids, document_readability_features_ids,' +
-          'langue_ref, marks, locating, marginalia, writing',
+          'repro_quality_ref, marks, locating, marginalia, writing',
         )
         .eq('target_type', 'ec_acte')
         .eq('target_id', acteId)
@@ -796,13 +792,9 @@ function ReferenceArchiveTabActe(props: Extract<ReferenceArchiveTabProps, { type
           lacune_note: (c as any).lacune_note?.trim?.() || null,
           note: (c.note ?? '').trim() || null,
           sort_order: idx,
-          physical_condition_ref: toUuidOrNull((c as any).physical_condition_ref),
+          // physical_condition_ref / document_damage_kinds_ids / document_readability_features_ids / langue_ref :
+          // colonnes retirées de `citations`, ne plus les envoyer (cf. normalizeCitationRow).
           repro_quality_ref: toUuidOrNull((c as any).repro_quality_ref),
-          document_damage_kinds_ids: Array.isArray((c as any).document_damage_kinds_ids)
-            ? (c as any).document_damage_kinds_ids : [],
-          document_readability_features_ids: Array.isArray((c as any).document_readability_features_ids)
-            ? (c as any).document_readability_features_ids : [],
-          langue_ref: (c as any).langue_ref ?? null,
           marks: (c as any).marks?.trim?.() || null,
           locating:   packLocating(c as any),
           marginalia: packMarginalia(c as any),

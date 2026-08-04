@@ -3,10 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Layers, Library, Bell, ChevronLeft, Loader2, CheckCircle2,
-  AlertTriangle, X, Building2,
+  AlertTriangle, X, Building2, Plus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { insertDocumentUD } from './patrimoine.service'
+import { useEtatCivilStore } from '@/store/etatcivil'
+import { BureauCreateModal } from '@/features/etat-civil/suivi/BureauCreateModal'
+import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import type { EtatCivilBureau } from '@/types/etatcivil'
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
+import { normalizeDateString, isValidDateString, formatDateToFrench } from '@/utils/date'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -185,6 +192,9 @@ function getVocab(code: string | null): SerieVocab {
   return VOCAB[code] ?? DEFAULT_VOCAB
 }
 
+// id du type d'accès "URL" dans ref_type_acces_numerique
+const TYPE_ACCES_URL_ID = '1f6de1f1-9167-4b82-a3f1-1cdb7ae756e1'
+
 // target_type de citation correspondant à chaque série (null = pas encore de domaine métier)
 const SERIE_TARGET_TYPE: Record<string, string> = {
   ETAT_CIVIL:  'ec_acte',
@@ -220,6 +230,11 @@ function computeActesLabel(ids: string[], ecTypeActes: EcTypeActe[]): string {
   return `des actes de ${labels.slice(0, -1).join(', ')} et ${labels[labels.length - 1]}`
 }
 
+function lieuLabel(serieCode: string | null, lieu: string): string {
+  if (!lieu.trim()) return ''
+  return serieCode === 'PAROISSIAL' ? ` de la paroisse ${lieu.trim()}` : ` de la commune de ${lieu.trim()}`
+}
+
 function computeTableIntitule(
   periodicite: string | null,
   classement: string | null,
@@ -228,12 +243,13 @@ function computeTableIntitule(
   anneeDebut: string,
   anneeFin: string,
   lieu: string,
+  serieCode: string | null,
 ): string | null {
   if (!periodicite || !anneeDebut.trim()) return null
   const periLabel  = TABLE_PERIODICITE.find(t => t.value === periodicite)?.label.toLowerCase() ?? periodicite
   const classLabel = classement ? ` ${TABLE_CLASSEMENT.find(t => t.value === classement)?.label.toLowerCase() ?? classement}` : ''
   const actesLabel = computeActesLabel(typeActeIds, ecTypeActes)
-  const lieuPart   = lieu.trim() ? ` de la commune de ${lieu.trim()}` : ''
+  const lieuPart   = lieuLabel(serieCode, lieu)
   const debut = anneeDebut.trim()
   const fin   = anneeFin.trim()
   const annees = fin && fin !== debut ? ` pour les années ${debut}–${fin}` : ` pour l'année ${debut}`
@@ -246,10 +262,11 @@ function computeRegistreIntitule(
   anneeDebut: string,
   anneeFin: string,
   lieu: string,
+  serieCode: string | null,
 ): string | null {
   if (!anneeDebut.trim()) return null
   const actesLabel = computeActesLabel(typeActeIds, ecTypeActes)
-  const lieuPart   = lieu.trim() ? ` de la paroisse ${lieu.trim()}` : ''
+  const lieuPart   = lieuLabel(serieCode, lieu)
   const debut = anneeDebut.trim()
   const fin   = anneeFin.trim()
   const annees = fin && fin !== debut ? `${debut}–${fin}` : debut
@@ -268,6 +285,13 @@ function Field({ label, required, children }: { label: string; required?: boolea
     </div>
   )
 }
+
+const chipCls = (active: boolean) => [
+  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+  active
+    ? 'bg-indigo-600 border-indigo-600 text-white'
+    : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600',
+].join(' ')
 
 const inputCls = 'w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
 
@@ -522,6 +546,121 @@ function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, hasRegistre, 
   )
 }
 
+// Sélecteur de bureau d'état civil : recherche live, avec repli sur la liste
+// complète (même table que /ec-bureaux/liste) et création à la volée.
+function BureauField({
+  bureauQuery, setBureauQuery, bureauResults, bureauSearching, selectedBureau, setSelectedBureau,
+}: {
+  bureauQuery: string; setBureauQuery: (v: string) => void
+  bureauResults: Array<{ id: string; nom: string; commune: string | null }>
+  bureauSearching: boolean
+  selectedBureau: { id: string; nom: string; commune: string | null } | null
+  setSelectedBureau: (v: { id: string; nom: string; commune: string | null } | null) => void
+}) {
+  const [browseOpen, setBrowseOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const bureaux = useEtatCivilStore(s => s.bureaux)
+  const fetchBureaux = useEtatCivilStore(s => s.fetchBureaux)
+
+  useEffect(() => {
+    if (browseOpen && bureaux.length === 0) void fetchBureaux()
+  }, [browseOpen])
+
+  function pick(b: { id: string; nom: string; commune: string | null }) {
+    setSelectedBureau(b)
+    setBureauQuery('')
+    setBrowseOpen(false)
+  }
+
+  const columns: ColumnDef<EtatCivilBureau>[] = [
+    { key: 'nom', label: "Bureau d'état civil" },
+    { key: 'commune', label: 'Commune' },
+    { key: 'departement', label: 'Département' },
+    {
+      key: 'action', label: '',
+      render: row => (
+        <button onClick={() => pick({ id: row.id, nom: row.nom, commune: row.commune })}
+          className="text-xs font-medium text-indigo-600 hover:text-indigo-800 whitespace-nowrap">
+          Sélectionner
+        </button>
+      ),
+    },
+  ]
+
+  if (selectedBureau) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2">
+        <span className="flex-1 text-sm text-gray-800">
+          {selectedBureau.nom}
+          {selectedBureau.commune && selectedBureau.commune !== selectedBureau.nom && (
+            <span className="text-gray-500 ml-1">({selectedBureau.commune})</span>
+          )}
+        </span>
+        <button onClick={() => { setSelectedBureau(null); setBureauQuery('') }} className="text-gray-400 hover:text-gray-600">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="relative">
+        <input value={bureauQuery} onChange={e => setBureauQuery(e.target.value)}
+          placeholder="Rechercher un bureau…" className={inputCls} />
+        {bureauSearching && (
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
+        )}
+        {bureauResults.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+            {bureauResults.map(b => (
+              <button key={b.id} onClick={() => pick(b)}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-baseline gap-2">
+                <span className="font-medium text-gray-800">{b.nom}</span>
+                {b.commune && <span className="text-xs text-gray-400">{b.commune}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <button type="button" onClick={() => setBrowseOpen(true)}
+        className="text-xs text-indigo-600 hover:text-indigo-800 transition-colors">
+        Je ne trouve pas le bureau que je recherche
+      </button>
+
+      <Dialog open={browseOpen} onOpenChange={setBrowseOpen}>
+        <DialogContent className="p-0 overflow-hidden flex flex-col" style={{ width: '70vw', maxWidth: 'none', height: '85vh' }}>
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <DialogTitle>Tous les bureaux d'état civil</DialogTitle>
+              <button onClick={() => setCreateOpen(true)}
+                className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                <Plus className="w-4 h-4" />Ajouter un bureau
+              </button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <DataTable
+              title="Bureaux d'état civil"
+              data={bureaux}
+              columns={columns}
+              pageSize={15}
+              defaultSort={['nom']}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <BureauCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        bureauxExistants={bureaux}
+        onBureauCreated={b => pick({ id: b.id, nom: b.nom, commune: b.commune })}
+      />
+    </div>
+  )
+}
+
 function RWStepDescribeTableEC({
   ecTypeActes, serieCode,
   tablePeriodicite, setTablePeriodicite,
@@ -562,13 +701,7 @@ function RWStepDescribeTableEC({
   const visibleTypes = serieCode === 'PAROISSIAL'
     ? ecTypeActes.filter(t => PAROISSIAL_TYPE_CODES.has(t.code))
     : ecTypeActes
-
-  const chipCls = (active: boolean) => [
-    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-    active
-      ? 'bg-indigo-600 border-indigo-600 text-white'
-      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600',
-  ].join(' ')
+  const lieuValue = serieCode === 'ETAT_CIVIL' ? (selectedBureau?.commune ?? selectedBureau?.nom ?? '') : tableLieu
 
   return (
     <div className="space-y-5">
@@ -618,38 +751,11 @@ function RWStepDescribeTableEC({
           </Field>
           {serieCode === 'ETAT_CIVIL' ? (
             <Field label="Bureau d'état civil" required>
-              {selectedBureau ? (
-                <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2">
-                  <span className="flex-1 text-sm text-gray-800">
-                    {selectedBureau.nom}
-                    {selectedBureau.commune && selectedBureau.commune !== selectedBureau.nom && (
-                      <span className="text-gray-500 ml-1">({selectedBureau.commune})</span>
-                    )}
-                  </span>
-                  <button onClick={() => { setSelectedBureau(null); setBureauQuery('') }} className="text-gray-400 hover:text-gray-600">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="relative">
-                  <input value={bureauQuery} onChange={e => setBureauQuery(e.target.value)}
-                    placeholder="Rechercher un bureau…" className={inputCls} />
-                  {bureauSearching && (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
-                  )}
-                  {bureauResults.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                      {bureauResults.map(b => (
-                        <button key={b.id} onClick={() => { setSelectedBureau(b); setBureauQuery('') }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-baseline gap-2">
-                          <span className="font-medium text-gray-800">{b.nom}</span>
-                          {b.commune && <span className="text-xs text-gray-400">{b.commune}</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <BureauField
+                bureauQuery={bureauQuery} setBureauQuery={setBureauQuery}
+                bureauResults={bureauResults} bureauSearching={bureauSearching}
+                selectedBureau={selectedBureau} setSelectedBureau={setSelectedBureau}
+              />
             </Field>
           ) : (
             <Field label="Paroisse">
@@ -720,7 +826,7 @@ function RWStepDescribeTableEC({
                   </div>
                 </div>
               )}
-              {!tableUdSearching && tableIntitule && tableUdMatches.length === 0 && (
+              {!tableUdSearching && tableIntitule && lieuValue.trim() && tableUdMatches.length === 0 && (
                 <p className="text-xs text-emerald-600 px-1 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />Aucune table similaire trouvée
                 </p>
@@ -770,6 +876,8 @@ function RWStepDescribeRegistreEC({
   registreAnneeFin, setRegistreAnneeFin,
   registreLieu, setRegistreLieu,
   bureauQuery, setBureauQuery, bureauResults, bureauSearching, selectedBureau, setSelectedBureau,
+  registreModeRef, setRegistreModeRef,
+  registreOrdreNumerotationRef, setRegistreOrdreNumerotationRef,
   registreIntitule,
   depotQuery, setDepotQuery, depotResults, depotSearching, selectedDepot, setSelectedDepot,
   level, patch,
@@ -784,6 +892,8 @@ function RWStepDescribeRegistreEC({
   bureauSearching: boolean
   selectedBureau: { id: string; nom: string; commune: string | null } | null
   setSelectedBureau: (v: { id: string; nom: string; commune: string | null } | null) => void
+  registreModeRef: string | null; setRegistreModeRef: (v: string | null) => void
+  registreOrdreNumerotationRef: string | null; setRegistreOrdreNumerotationRef: (v: string | null) => void
   registreIntitule: string | null
   depotQuery: string; setDepotQuery: (v: string) => void
   depotResults: DepotOption[]; depotSearching: boolean
@@ -793,10 +903,6 @@ function RWStepDescribeRegistreEC({
   const visibleTypes = serieCode === 'PAROISSIAL'
     ? ecTypeActes.filter(t => PAROISSIAL_TYPE_CODES.has(t.code))
     : ecTypeActes
-  const chipCls = (active: boolean) => [
-    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-    active ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600',
-  ].join(' ')
 
   return (
     <div className="space-y-5">
@@ -821,37 +927,29 @@ function RWStepDescribeRegistreEC({
             </div>
           </Field>
           {serieCode === 'ETAT_CIVIL' ? (
-            <Field label="Bureau d'état civil" required>
-              {selectedBureau ? (
-                <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2">
-                  <span className="flex-1 text-sm text-gray-800">
-                    {selectedBureau.nom}
-                    {selectedBureau.commune && selectedBureau.commune !== selectedBureau.nom && (
-                      <span className="text-gray-500 ml-1">({selectedBureau.commune})</span>
-                    )}
-                  </span>
-                  <button onClick={() => { setSelectedBureau(null); setBureauQuery('') }} className="text-gray-400 hover:text-gray-600">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="relative">
-                  <input value={bureauQuery} onChange={e => setBureauQuery(e.target.value)} placeholder="Rechercher un bureau…" className={inputCls} />
-                  {bureauSearching && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />}
-                  {bureauResults.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                      {bureauResults.map(b => (
-                        <button key={b.id} onClick={() => { setSelectedBureau(b); setBureauQuery('') }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-baseline gap-2">
-                          <span className="font-medium text-gray-800">{b.nom}</span>
-                          {b.commune && <span className="text-xs text-gray-400">{b.commune}</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </Field>
+            <>
+              <Field label="Bureau d'état civil" required>
+                <BureauField
+                  bureauQuery={bureauQuery} setBureauQuery={setBureauQuery}
+                  bureauResults={bureauResults} bureauSearching={bureauSearching}
+                  selectedBureau={selectedBureau} setSelectedBureau={setSelectedBureau}
+                />
+              </Field>
+              <Field label="Mode de constitution du registre" required>
+                <RefSinglePickerSmart
+                  table="ref_registre_mode" mode="edit" actionsInvisible={false}
+                  value={registreModeRef}
+                  onChange={next => setRegistreModeRef(next ? String(next) : null)}
+                />
+              </Field>
+              <Field label="Règle d'attribution des numéros d'actes" required>
+                <RefSinglePickerSmart
+                  table="ref_registre_ordre_numerotation" mode="edit" actionsInvisible={false}
+                  value={registreOrdreNumerotationRef}
+                  onChange={next => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
+                />
+              </Field>
+            </>
           ) : (
             <Field label="Paroisse">
               <input value={registreLieu} onChange={e => setRegistreLieu(e.target.value)} placeholder="Ex. Paroisse Saint-François…" className={inputCls} />
@@ -919,6 +1017,12 @@ export function ReferenceWizardPage() {
   const [serieId,     setSerieId]     = useState<string | null>(null)
   const [findType,    setFindType]    = useState<'acte' | 'table' | 'registre'>('acte')
   const [acte,        setActe]        = useState<RWLevel>({ ...RW_EMPTY })
+  const [acteTypeActeId, setActeTypeActeId] = useState<string | null>(null)
+  const [acteDateInput, setActeDateInput] = useState('')
+  const [acteDateISO,   setActeDateISO]   = useState('')
+  const [acteDateError, setActeDateError] = useState(false)
+  const [acteNumero,    setActeNumero]    = useState('')
+  const [acteNatureRef, setActeNatureRef] = useState<string | null>(null)
   const [hasTable,         setHasTable]         = useState<boolean | null>(null)
   const [table,            setTable]            = useState<RWLevel>({ ...RW_EMPTY })
   const [tablePeriodicite, setTablePeriodicite] = useState<string | null>(null)
@@ -940,6 +1044,8 @@ export function ReferenceWizardPage() {
   const [registreAnneeDebut,  setRegistreAnneeDebut]  = useState('')
   const [registreAnneeFin,    setRegistreAnneeFin]    = useState('')
   const [registreLieu,        setRegistreLieu]        = useState('')
+  const [registreModeRef,               setRegistreModeRef]               = useState<string | null>(null)
+  const [registreOrdreNumerotationRef,  setRegistreOrdreNumerotationRef]  = useState<string | null>(null)
   const [saving,      setSaving]      = useState(false)
 
   // Dedup state
@@ -955,11 +1061,14 @@ export function ReferenceWizardPage() {
 
   // IDs des entités persistées au fil des étapes
   const [savedActeId,            setSavedActeId]            = useState<string | null>(null)
+  const [savedActeExemplaireId,  setSavedActeExemplaireId]  = useState<string | null>(null)
   const [savedTableId,           setSavedTableId]           = useState<string | null>(null)
   const [savedEcTableId,         setSavedEcTableId]         = useState<string | null>(null)
   const [savedTableExemplaireId, setSavedTableExemplaireId] = useState<string | null>(null)
   const [savedRegistreId,           setSavedRegistreId]           = useState<string | null>(null)
   const [savedRegistreExemplaireId, setSavedRegistreExemplaireId] = useState<string | null>(null)
+  const [savedRegistreDomainId,     setSavedRegistreDomainId]     = useState<string | null>(null)
+  const [savedActeDomainId,         setSavedActeDomainId]         = useState<string | null>(null)
   const [stepping,                  setStepping]                  = useState(false)
 
   useEffect(() => {
@@ -984,12 +1093,12 @@ export function ReferenceWizardPage() {
   const tableLieuForTitle = serieCode === 'ETAT_CIVIL'
     ? (selectedBureau?.commune ?? selectedBureau?.nom ?? '')
     : tableLieu
-  const tableIntitule = computeTableIntitule(tablePeriodicite, tableClassement, tableTypeActeIds, ecTypeActes, tableAnneeDebut, tableAnneeFin, tableLieuForTitle)
+  const tableIntitule = computeTableIntitule(tablePeriodicite, tableClassement, tableTypeActeIds, ecTypeActes, tableAnneeDebut, tableAnneeFin, tableLieuForTitle, serieCode)
   const registreLieuForTitle = serieCode === 'ETAT_CIVIL'
     ? (selectedBureau?.commune ?? selectedBureau?.nom ?? '')
     : registreLieu
   const registreIntitule = useStructuredTable
-    ? computeRegistreIntitule(registreTypeActeIds, ecTypeActes, registreAnneeDebut, registreAnneeFin, registreLieuForTitle)
+    ? computeRegistreIntitule(registreTypeActeIds, ecTypeActes, registreAnneeDebut, registreAnneeFin, registreLieuForTitle, serieCode)
     : null
 
   // Recherche dynamique de bureau état civil
@@ -1099,9 +1208,18 @@ export function ReferenceWizardPage() {
       })
   }, [selectedExemplaireId, selectedUd])
 
-  // Dedup search pour la table (déclenché quand l'intitulé est généré)
+  // Dedup search pour la table (déclenché seulement une fois bureau/paroisse ET date renseignés).
+  // Une table n'est "similaire" que si : bureau identique, période recherchée incluse dans la
+  // période de la table existante, et types d'actes recherchés couverts par la table existante.
   useEffect(() => {
-    if (step !== 'table' || !serieId || !tableIntitule) {
+    if (step !== 'table' || !serieId || !tableIntitule || !tableLieuForTitle.trim()) {
+      setTableUdMatches([])
+      setTableUdSearching(false)
+      return
+    }
+    const anneeDebutNum = parseInt(tableAnneeDebut.trim(), 10)
+    const anneeFinNum = tableAnneeFin.trim() ? parseInt(tableAnneeFin.trim(), 10) : anneeDebutNum
+    if (Number.isNaN(anneeDebutNum) || Number.isNaN(anneeFinNum)) {
       setTableUdMatches([])
       setTableUdSearching(false)
       return
@@ -1109,14 +1227,31 @@ export function ReferenceWizardPage() {
     setTableUdSearching(true)
     const t = setTimeout(async () => {
       try {
-        const { data } = await supabase
-          .from('ref_unites_documentaires')
-          .select('id, titre, workflow_statut, statut')
-          .eq('serie_ref', serieId)
-          .ilike('titre', `%${tableIntitule.slice(0, 40)}%`)
-          .order('updated_at', { ascending: false })
-          .limit(5)
-        setTableUdMatches((data ?? []) as any[])
+        let q = supabase
+          .from('ec_tables')
+          .select('annee_debut, annee_fin, type_acte_ids, ud:ref_unites_documentaires!unite_documentaire_id ( id, titre, workflow_statut, statut )')
+          .lte('annee_debut', anneeDebutNum)
+        if (serieCode === 'ETAT_CIVIL' && selectedBureau) {
+          q = q.eq('bureau_id', selectedBureau.id)
+        }
+        const { data, error } = await q.limit(20)
+        if (error) throw error
+
+        const searchedTypeIds = tableTypeActeIds.filter(id => id !== 'tous')
+        const mapped = (data ?? [])
+          .map((row: any) => ({ ...row, ud: Array.isArray(row.ud) ? row.ud[0] : row.ud }))
+          .filter((row: any) => {
+            if (!row.ud) return false
+            if (row.annee_fin != null && row.annee_fin < anneeFinNum) return false
+            if (searchedTypeIds.length === 0) return true
+            const existingIds: string[] = row.type_acte_ids ?? []
+            if (existingIds.length === 0) return true // la table existante couvre "tous types"
+            return searchedTypeIds.every(id => existingIds.includes(id))
+          })
+          .slice(0, 5)
+          .map((row: any) => ({ id: row.ud.id, titre: row.ud.titre, workflow_statut: row.ud.workflow_statut, statut: row.ud.statut }))
+
+        setTableUdMatches(mapped)
       } catch (err) {
         console.error('table dedup', err)
       } finally {
@@ -1124,7 +1259,7 @@ export function ReferenceWizardPage() {
       }
     }, 400)
     return () => clearTimeout(t)
-  }, [tableIntitule, step, serieId])
+  }, [tableIntitule, step, serieId, tableLieuForTitle, serieCode, selectedBureau, tableAnneeDebut, tableAnneeFin, tableTypeActeIds])
 
   // Live dedup search while typing in the acte step
   useEffect(() => {
@@ -1284,34 +1419,63 @@ export function ReferenceWizardPage() {
   const patch = (setter: React.Dispatch<React.SetStateAction<RWLevel>>) =>
     (f: keyof RWLevel, v: string) => setter(prev => ({ ...prev, [f]: v }))
 
+  function validateActeDate() {
+    const raw = acteDateInput.trim()
+    if (!raw) { setActeDateISO(''); setActeDateError(false); return false }
+    const normalized = normalizeDateString(raw)
+    if (normalized && isValidDateString(normalized)) {
+      setActeDateISO(normalized)
+      setActeDateInput(formatDateToFrench(normalized))
+      setActeDateError(false)
+      return true
+    }
+    setActeDateISO('')
+    setActeDateError(true)
+    return false
+  }
+
   async function saveActeStep(): Promise<boolean> {
     if (!serieId) return false
     if (selectedUd) { setSavedActeId(selectedUd.id); return true }
     const acteTitle = acte.intitule.trim() || 'Document sans titre'
+    const insertActeExemplaire = async (udId: string) => {
+      if (!selectedDepot) return null
+      const { data: ex, error: exErr } = await supabase.from('ref_exemplaires')
+        .insert({
+          unite_documentaire_id: udId, depot_id: selectedDepot.id,
+          cote_locale: acte.cote || null, localisation_interne: acte.position || null,
+          nature_ref: acteNatureRef,
+        })
+        .select('id').single()
+      if (exErr) throw exErr
+      const exId = ex?.id ?? null
+      if (exId && acte.url.trim()) {
+        await supabase.from('ref_acces_numeriques').insert({
+          exemplaire_id: exId, url_base: acte.url.trim(),
+          type_acces_id: TYPE_ACCES_URL_ID,
+        })
+      }
+      return exId
+    }
     try {
       if (savedActeId) {
         await supabase.from('ref_unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
+        if (!savedActeExemplaireId) {
+          const exId = await insertActeExemplaire(savedActeId)
+          setSavedActeExemplaireId(exId)
+        }
         toast.success('Acte mis à jour')
       } else {
         const { data, error } = await insertDocumentUD({
           titre: acteTitle, serie_ref: serieId, parent_ud_id: null,
           cote: acte.cote || null,
-          note: [acte.position && `Vue : ${acte.position}`, acte.url, acte.notes].filter(Boolean).join(' · ') || null,
+          note: acte.notes.trim() || null,
         })
         if (error) throw error
         const newId = data?.id ?? null
         setSavedActeId(newId)
-        if (newId && selectedDepot) {
-          const { data: ex } = await supabase.from('ref_exemplaires')
-            .insert({ unite_documentaire_id: newId, depot_id: selectedDepot.id, cote_locale: acte.cote || null, localisation_interne: acte.position || null })
-            .select('id').single()
-          if (ex?.id && acte.url.trim()) {
-            await supabase.from('ref_acces_numeriques').insert({
-              exemplaire_id: ex.id, url_base: acte.url.trim(),
-              type_acces_id: '1f6de1f1-9167-4b82-a3f1-1cdb7ae756e1',
-            })
-          }
-        }
+        const exId = newId ? await insertActeExemplaire(newId) : null
+        setSavedActeExemplaireId(exId)
         toast.success('Acte enregistré')
       }
       return true
@@ -1326,7 +1490,6 @@ export function ReferenceWizardPage() {
       return true
     }
     const tableTitre = useStructuredTable ? tableIntitule : table.intitule.trim()
-    console.log('[saveTableStep]', { tableTitre, useStructuredTable, tableIntitule, tablePeriodicite, tableAnneeDebut })
     if (!tableTitre) {
       toast.error("Intitulé de table manquant — vérifie la périodicité et l'année")
       return false
@@ -1362,7 +1525,7 @@ export function ReferenceWizardPage() {
         if (exId && table.url.trim()) {
           await supabase.from('ref_acces_numeriques').insert({
             exemplaire_id: exId, url_base: table.url.trim(),
-            type_acces_id: '1f6de1f1-9167-4b82-a3f1-1cdb7ae756e1',
+            type_acces_id: TYPE_ACCES_URL_ID,
           })
         }
         return exId
@@ -1434,6 +1597,42 @@ export function ReferenceWizardPage() {
     }
   }
 
+  // Crée le vrai registre métier (etat_civil_registres + pivot types d'actes + label calculé)
+  // — condition sine qua non pour pouvoir ensuite créer un etat_civil_actes (registre_id NOT NULL).
+  async function ensureRegistreDomain() {
+    if (savedRegistreDomainId || serieCode !== 'ETAT_CIVIL' || !selectedBureau || !registreModeRef || !registreOrdreNumerotationRef) return
+    const anneeInt = parseInt(registreAnneeDebut.trim(), 10)
+    if (!Number.isFinite(anneeInt)) return
+    const typeIds = registreTypeActeIds.includes('tous') ? ecTypeActes.map(t => t.id) : registreTypeActeIds
+    const typeLabels = ecTypeActes.filter(t => typeIds.includes(t.id)).map(t => t.label)
+
+    const { data: regData, error: regErr } = await supabase.from('etat_civil_registres').insert({
+      bureau_id: selectedBureau.id,
+      annee: anneeInt,
+      type_acte: typeLabels.join('|'),
+      registre_mode_ref: registreModeRef,
+      registre_ordre_numerotation_ref: registreOrdreNumerotationRef,
+    }).select('id').single()
+    if (regErr) throw regErr
+    const domainId = regData?.id ?? null
+
+    if (domainId && typeIds.length) {
+      const { error: pivotErr } = await supabase.from('etat_civil_registres_type_acte')
+        .insert(typeIds.map(typeId => ({ registre_id: domainId, type_acte_id: typeId })))
+      if (pivotErr) throw pivotErr
+    }
+    if (domainId) {
+      try {
+        const { data: def } = await supabase.rpc('create_registre_label', { p_registre_id: domainId })
+        const nextLabel = String(def ?? '').trim()
+        if (nextLabel) await supabase.from('etat_civil_registres').update({ label: nextLabel }).eq('id', domainId)
+      } catch (e) {
+        console.warn('[ensureRegistreDomain] échec calcul label', e)
+      }
+    }
+    setSavedRegistreDomainId(domainId)
+  }
+
   async function saveRegistreStep(): Promise<boolean> {
     if (!serieId || !hasRegistre) return true
     const titre = (useStructuredTable ? registreIntitule : null) ?? registre.intitule.trim()
@@ -1452,7 +1651,7 @@ export function ReferenceWizardPage() {
       if (exId && registre.url.trim()) {
         await supabase.from('ref_acces_numeriques').insert({
           exemplaire_id: exId, url_base: registre.url.trim(),
-          type_acces_id: '1f6de1f1-9167-4b82-a3f1-1cdb7ae756e1',
+          type_acces_id: TYPE_ACCES_URL_ID,
         })
       }
       return exId
@@ -1465,6 +1664,7 @@ export function ReferenceWizardPage() {
           const exId = await insertExemplaireRegistre(savedRegistreId)
           setSavedRegistreExemplaireId(exId)
         }
+        await ensureRegistreDomain()
         toast.success('Registre mis à jour')
       } else {
         const { data, error } = await insertDocumentUD({
@@ -1479,6 +1679,7 @@ export function ReferenceWizardPage() {
         setSavedRegistreId(registreId)
         const exId = registreId ? await insertExemplaireRegistre(registreId) : null
         setSavedRegistreExemplaireId(exId)
+        await ensureRegistreDomain()
         toast.success('Registre enregistré')
       }
       return true
@@ -1493,7 +1694,22 @@ export function ReferenceWizardPage() {
 
   async function goNext() {
     if (step === 'serie')        { setStep('type'); return }
-    if (step === 'type')         { setStep(findType === 'acte' ? 'acte' : findType === 'table' ? 'table' : 'registre'); return }
+    if (step === 'type') {
+      // findType === 'table'/'registre' saute l'étape ask-* correspondante :
+      // on positionne nous-mêmes le flag, sinon saveTableStep/saveRegistreStep
+      // le voient à `null` et n'enregistrent rien.
+      if (findType === 'acte') {
+        setHasTable(null); setHasRegistre(null)
+        setStep('acte')
+      } else if (findType === 'table') {
+        setHasTable(true)
+        setStep('table')
+      } else {
+        setHasTable(false); setHasRegistre(true)
+        setStep('registre')
+      }
+      return
+    }
     if (step === 'acte') {
       setStepping(true)
       const ok = await saveActeStep()
@@ -1523,11 +1739,21 @@ export function ReferenceWizardPage() {
     if (step === 'type')         { setStep('serie'); return }
     if (step === 'acte')         { setSelectedUd(null); setUdMatches([]); setSelectedExemplaireId(null); setShowNewExemplaire(false); setStep('type'); return }
     if (step === 'ask-table')    { setStep('acte'); return }
-    if (step === 'table')        { setStep('ask-table'); return }
+    if (step === 'table')        { setStep(findType === 'table' ? 'type' : 'ask-table'); return }
     if (step === 'ask-registre') { setStep(hasTable ? 'table' : findType === 'acte' ? 'ask-table' : 'type'); return }
-    if (step === 'registre')     { setStep('ask-registre'); return }
+    if (step === 'registre')     { setStep(findType === 'registre' ? 'type' : 'ask-registre'); return }
     if (step === 'summary')      { setStep(hasRegistre ? 'registre' : 'ask-registre'); return }
     setStep('serie')
+  }
+
+  async function ensureActeCitation(acteDomainId: string, exemplaireId: string) {
+    const { data: existing } = await supabase.from('citations')
+      .select('id').eq('exemplaire_id', exemplaireId).eq('target_type', 'ec_acte').eq('target_id', acteDomainId).maybeSingle()
+    if (existing) return
+    await supabase.from('citations').insert({
+      exemplaire_id: exemplaireId, target_type: 'ec_acte', target_id: acteDomainId,
+      locating: acte.position ? { systems: [{ raw: acte.position }] } : {}, is_missing: false,
+    })
   }
 
   async function handleSave() {
@@ -1547,11 +1773,37 @@ export function ReferenceWizardPage() {
           .update({ parent_ud_id: acteParentId }).eq('id', savedActeId)
       }
 
-      // Mettre à jour dans_table / dans_registre sur l'exemplaire existant
-      if (selectedExemplaireId) {
+      // Mettre à jour dans_table / dans_registre sur l'exemplaire de l'acte
+      // (celui d'un acte existant sélectionné, ou celui du nouvel acte créé)
+      const acteExemplaireId = selectedExemplaireId ?? savedActeExemplaireId
+      if (acteExemplaireId) {
         const { error } = await supabase.from('ref_exemplaires')
-          .update({ dans_table: hasTable, dans_registre: hasRegistre }).eq('id', selectedExemplaireId)
+          .update({ dans_table: hasTable, dans_registre: hasRegistre }).eq('id', acteExemplaireId)
         if (error) throw error
+      }
+
+      // Création de l'acte métier (etat_civil_actes) + citation. Impossible sans un registre
+      // métier réel (registre_id NOT NULL) — donc seulement si un registre a été créé dans cette session.
+      if (serieCode === 'ETAT_CIVIL' && savedActeId && !selectedUd && savedRegistreDomainId && selectedBureau && acteTypeActeId && acteDateISO) {
+        let acteDomainId = savedActeDomainId
+        if (!acteDomainId) {
+          const { data: newActe, error: acteErr } = await supabase.from('etat_civil_actes').insert({
+            bureau_id: selectedBureau.id,
+            registre_id: savedRegistreDomainId,
+            type_acte_ref: acteTypeActeId,
+            date: acteDateISO,
+            annee: parseInt(acteDateISO.slice(0, 4), 10),
+            numero_acte: acteNumero.trim() || null,
+            label: acte.intitule.trim() || 'Acte sans titre',
+            status: 'DRAFT',
+          }).select('id').single()
+          if (acteErr) throw acteErr
+          acteDomainId = newActe?.id ?? null
+          setSavedActeDomainId(acteDomainId)
+        }
+        if (acteDomainId && acteExemplaireId) {
+          await ensureActeCitation(acteDomainId, acteExemplaireId)
+        }
       }
 
       toast.success(selectedUd ? 'Document retrouvé — à compléter depuis sa fiche' : 'Document référencé')
@@ -1562,15 +1814,64 @@ export function ReferenceWizardPage() {
     }
   }
 
+  // Supprime les UD/exemplaires créés pendant le wizard mais jamais reliés (abandon en cours de route).
+  // Ne touche jamais un document retrouvé via la recherche (selectedUd / selectedTableUd).
+  async function cleanupUnfinished() {
+    try {
+      if (savedRegistreId) {
+        if (savedRegistreExemplaireId) {
+          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedRegistreExemplaireId)
+          await supabase.from('citations').delete().eq('exemplaire_id', savedRegistreExemplaireId)
+          await supabase.from('ref_exemplaires').delete().eq('id', savedRegistreExemplaireId)
+        }
+        if (savedRegistreDomainId) {
+          await supabase.from('etat_civil_registres_type_acte').delete().eq('registre_id', savedRegistreDomainId)
+          await supabase.from('etat_civil_registres').delete().eq('id', savedRegistreDomainId)
+        }
+        await supabase.from('ref_unites_documentaires').delete().eq('id', savedRegistreId)
+      }
+      if (savedTableId && !selectedTableUd) {
+        if (savedTableExemplaireId) {
+          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedTableExemplaireId)
+          await supabase.from('citations').delete().eq('exemplaire_id', savedTableExemplaireId)
+          await supabase.from('ref_exemplaires').delete().eq('id', savedTableExemplaireId)
+        }
+        if (savedEcTableId) await supabase.from('ec_tables').delete().eq('id', savedEcTableId)
+        await supabase.from('ref_unites_documentaires').delete().eq('id', savedTableId)
+      }
+      if (savedActeId && !selectedUd) {
+        if (savedActeExemplaireId) {
+          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedActeExemplaireId)
+          await supabase.from('citations').delete().eq('exemplaire_id', savedActeExemplaireId)
+          await supabase.from('ref_exemplaires').delete().eq('id', savedActeExemplaireId)
+        }
+        if (savedActeDomainId) {
+          await supabase.from('etat_civil_actes').delete().eq('id', savedActeDomainId)
+        }
+        await supabase.from('ref_unites_documentaires').delete().eq('id', savedActeId)
+      }
+    } catch (err) {
+      console.error('[cleanupUnfinished] error:', err)
+    }
+  }
+
+  async function leaveWizard() {
+    await cleanupUnfinished()
+    navigate('/mock/sources-corpus')
+  }
+
   const canContinue =
     (step === 'serie'        && serieId !== null) ||
     step === 'type' ||
-    (step === 'acte'         && (selectedUd !== null || acte.intitule.trim().length > 0)) ||
+    (step === 'acte'         && (selectedUd !== null || (
+      acte.intitule.trim().length > 0 && selectedDepot !== null && acteNatureRef !== null &&
+      (serieCode !== 'ETAT_CIVIL' || (acteDateISO.trim().length > 0 && !acteDateError))
+    ))) ||
     step === 'ask-table' ||
     (step === 'table'        && (useStructuredTable ? (tablePeriodicite !== null && tableAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || selectedBureau !== null)) : table.intitule.trim().length > 0)) ||
     step === 'ask-registre' ||
     (step === 'registre'     && (useStructuredTable
-      ? (registreAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || selectedBureau !== null))
+      ? (registreAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || (selectedBureau !== null && registreModeRef !== null && registreOrdreNumerotationRef !== null)))
       : registre.intitule.trim().length > 0)) ||
     step === 'summary'
 
@@ -1643,6 +1944,39 @@ export function ReferenceWizardPage() {
               <input value={acte.intitule} onChange={e => patchActe('intitule', e.target.value)}
                 placeholder={vocab.level1.placeholder} className={inputCls} autoFocus />
             </Field>
+
+            {(serieCode === 'ETAT_CIVIL' || serieCode === 'PAROISSIAL') && (
+              <Field label="Type d'acte">
+                <div className="flex flex-wrap gap-2">
+                  {(serieCode === 'PAROISSIAL' ? ecTypeActes.filter(t => PAROISSIAL_TYPE_CODES.has(t.code)) : ecTypeActes).map(t => (
+                    <button key={t.id}
+                      onClick={() => setActeTypeActeId(acteTypeActeId === t.id ? null : t.id)}
+                      className={chipCls(acteTypeActeId === t.id)}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+
+            {serieCode === 'ETAT_CIVIL' && (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Date de l'acte" required>
+                  <input value={acteDateInput}
+                    onChange={e => setActeDateInput(e.target.value)}
+                    onBlur={validateActeDate}
+                    placeholder="Ex. 12 mars 1905 ou 12/03/1905"
+                    className={`${inputCls} ${acteDateError ? 'border-red-400' : ''}`} />
+                  {acteDateError && (
+                    <p className="text-xs text-red-500 mt-1">Format non reconnu — essaie "12/03/1905" ou "12 mars 1905".</p>
+                  )}
+                </Field>
+                <Field label="Numéro d'acte">
+                  <input value={acteNumero} onChange={e => setActeNumero(e.target.value)}
+                    placeholder="Ex. 12" className={inputCls} />
+                </Field>
+              </div>
+            )}
 
             {/* Résultats de recherche dedup */}
             {udSearching && (
@@ -1782,11 +2116,23 @@ export function ReferenceWizardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <Field label="Dépôt / institution">
+              <Field label="Dépôt / institution" required>
                 <DepotPicker
                   depotQuery={depotQuery} setDepotQuery={setDepotQuery}
                   depotResults={depotResults} depotSearching={depotSearching}
                   selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
+                />
+                {!selectedDepot && (
+                  <p className="text-xs text-amber-600 mt-1.5">
+                    Sans dépôt, aucun exemplaire ne sera créé — la cote et la vue ne seront pas enregistrées.
+                  </p>
+                )}
+              </Field>
+              <Field label="Nature de l'exemplaire" required>
+                <RefSinglePickerSmart
+                  table="ref_natures" mode="edit" actionsInvisible={false}
+                  value={acteNatureRef}
+                  onChange={next => setActeNatureRef(next ? String(next) : null)}
                 />
               </Field>
               <Field label="Cote">
@@ -1853,6 +2199,8 @@ export function ReferenceWizardPage() {
           bureauQuery={bureauQuery} setBureauQuery={setBureauQuery}
           bureauResults={bureauResults} bureauSearching={bureauSearching}
           selectedBureau={selectedBureau} setSelectedBureau={setSelectedBureau}
+          registreModeRef={registreModeRef} setRegistreModeRef={setRegistreModeRef}
+          registreOrdreNumerotationRef={registreOrdreNumerotationRef} setRegistreOrdreNumerotationRef={setRegistreOrdreNumerotationRef}
           registreIntitule={registreIntitule}
           depotQuery={depotQuery} setDepotQuery={setDepotQuery}
           depotResults={depotResults} depotSearching={depotSearching}
@@ -1884,7 +2232,7 @@ export function ReferenceWizardPage() {
           </div>
           <span className="text-base font-semibold text-gray-900 tracking-tight">REBOND</span>
           <span className="text-gray-300 text-sm">/</span>
-          <button onClick={() => navigate('/mock/sources-corpus')} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
+          <button onClick={() => void leaveWizard()} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
             <Library className="w-4 h-4" />Patrimoine documentaire
           </button>
           <span className="text-gray-300 text-sm">/</span>
@@ -1899,7 +2247,7 @@ export function ReferenceWizardPage() {
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/mock/sources-corpus')} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={() => void leaveWizard()} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors">
             <ChevronLeft className="w-4 h-4" />Retour
           </button>
           <div>
