@@ -92,10 +92,14 @@ export function FamilyCore({
   selectedPersonId,
   onPersonSelect,
   onPersonPreview,
+  referencePersonId,
+  onSetReference,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
   onPersonPreview?: (personId: string) => void
+  referencePersonId?: string
+  onSetReference?: (personId: string) => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [activeStep, setActiveStep] = useState<StepKey>('overview')
@@ -131,7 +135,11 @@ export function FamilyCore({
       className="h-full w-full overflow-auto overflow-x-hidden bg-[#f1f5f9] p-4 text-slate-950"
     >
       <div className="mx-auto flex w-full max-w-[100%] flex-col gap-4">
-        <CentralPerson person={person} />
+        <CentralPerson
+          person={person}
+          isReference={Boolean(person && referencePersonId && person.id === referencePersonId)}
+          onSetAsReference={person && onSetReference ? () => onSetReference(person.id) : undefined}
+        />
         <StepNav activeStep={activeStep} onChange={setActiveStep} />
         <ProgressDots activeStep={activeStep} />
 

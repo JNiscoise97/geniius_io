@@ -1,4 +1,5 @@
 
+import { Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import LandingPage from '../pages/LandingPage'
 import LoginPage from '../pages/LoginPage'
@@ -8,6 +9,8 @@ import TreeNavigatePage from '../pages/TreeNavigatePage'
 import TreeStatsPage from '../pages/TreeStatsPage'
 import TreesListPage from '../pages/TreesListPage'
 import ImportPage from '../pages/ImportPage'
+import { GraphBootstrap } from '../components/GraphBootstrap'
+import { LoadingScreen } from '../components/layout/LoadingScreen'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -88,7 +91,11 @@ export const router = createBrowserRouter([
     path: '/trees/:treeId',
     element: (
       <Layout>
-        <TreePage />
+        <Suspense fallback={<LoadingScreen />}>
+          <GraphBootstrap>
+            <TreePage />
+          </GraphBootstrap>
+        </Suspense>
       </Layout>
     ),
   },
@@ -96,7 +103,11 @@ export const router = createBrowserRouter([
     path: '/trees/:treeId/navigate',
     element: (
       <Layout>
-        <TreeNavigatePage />
+        <Suspense fallback={<LoadingScreen />}>
+          <GraphBootstrap>
+            <TreeNavigatePage />
+          </GraphBootstrap>
+        </Suspense>
       </Layout>
     ),
   },
@@ -104,7 +115,11 @@ export const router = createBrowserRouter([
     path: '/trees/:treeId/stats/:section',
     element: (
       <Layout>
-        <TreeStatsPage />
+        <Suspense fallback={<LoadingScreen />}>
+          <GraphBootstrap>
+            <TreeStatsPage />
+          </GraphBootstrap>
+        </Suspense>
       </Layout>
     ),
   },

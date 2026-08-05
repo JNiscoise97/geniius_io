@@ -1,11 +1,20 @@
 import { type FamilyGraphPerson, getBirth, getDeath } from "@geniius/utils/family-graph"
 import { calculateAge } from "@geniius/utils/family-graph-utils"
+import { Star } from "lucide-react"
 import { getPersonPrimaryPhoto } from "../../data"
 import { ImageAvatar } from "./ImageAvatar"
 import { formatDisplayName, formatEventLine } from "../lib/formatPersonInfos"
 import { MISSING_DEATH } from "../../../../../../../packages/geniius-utils/src/lib/calculate-age"
 
-export function CentralPerson({ person }: { person?: FamilyGraphPerson }) {
+export function CentralPerson({
+  person,
+  isReference,
+  onSetAsReference,
+}: {
+  person?: FamilyGraphPerson
+  isReference?: boolean
+  onSetAsReference?: () => void
+}) {
   if (!person) {
     return (
       <section className="rounded-[20px] border border-slate-200 bg-white px-5 py-4">
@@ -22,9 +31,30 @@ export function CentralPerson({ person }: { person?: FamilyGraphPerson }) {
 
   return (
     <section className="relative rounded-[20px] border-[1.5px] border-[#378ADD] bg-white px-5 py-4">
-      <span className="absolute right-4 top-3 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-500">
-        ID {person.id}
-      </span>
+      <div className="absolute right-4 top-3 flex flex-col items-end gap-1.5">
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-500">
+          ID {person.id}
+        </span>
+
+        {isReference ? (
+          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700">
+            <Star size={11} className="fill-amber-500 text-amber-500" />
+            Personne source
+          </span>
+        ) : (
+          onSetAsReference && (
+            <button
+              type="button"
+              onClick={onSetAsReference}
+              title="Centrer l'arbre par défaut sur cette personne"
+              className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-500 transition hover:border-amber-300 hover:text-amber-700"
+            >
+              <Star size={11} />
+              Définir comme personne source
+            </button>
+          )
+        )}
+      </div>
 
       <div className="flex items-start gap-4">
         {photoUrl && (

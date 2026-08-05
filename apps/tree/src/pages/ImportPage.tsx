@@ -1,13 +1,69 @@
-import { useEffect, useState, type ChangeEvent, type ElementType, type ReactNode } from 'react'
+import { useEffect, useState, type DragEvent, type ElementType, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
-import { CheckCircle2, FileText, Image, Loader2, LogIn, TreePine, UploadCloud } from 'lucide-react'
+import { CheckCircle2, FileText, FolderUp, Image, Loader2, LogIn, TreePine, UploadCloud } from 'lucide-react'
 import { supabase } from '../lib/supabase/client'
 
 const BUCKET = 'tree-files'
 
 type Tree = { id: string; name: string }
 type StoredFile = { id: string | null; name: string }
+type FileWithRelPath = File & { webkitRelativePath?: string }
+
+// ── Extraction de fichiers depuis un drop (supporte les dossiers) ──────────────
+
+function readEntry(entry: FileSystemEntry): Promise<File[]> {
+  return new Promise((resolve) => {
+    if (entry.isFile) {
+      ;(entry as FileSystemFileEntry).file((file) => resolve([file]))
+      return
+    }
+
+    if (entry.isDirectory) {
+      const reader = (entry as FileSystemDirectoryEntry).createReader()
+      const collected: FileSystemEntry[] = []
+
+      const readBatch = () => {
+        reader.readEntries(async (batch) => {
+          if (batch.length === 0) {
+            const nested = await Promise.all(collected.map(readEntry))
+            resolve(nested.flat())
+            return
+          }
+          collected.push(...batch)
+          readBatch()
+        })
+      }
+
+      readBatch()
+      return
+    }
+
+    resolve([])
+  })
+}
+
+async function filesFromDataTransfer(dataTransfer: DataTransfer): Promise<File[]> {
+  const items = dataTransfer.items
+
+  if (items && items.length > 0 && typeof items[0].webkitGetAsEntry === 'function') {
+    const entries = Array.from(items)
+      .map((item) => item.webkitGetAsEntry())
+      .filter((entry): entry is FileSystemEntry => entry !== null)
+
+    if (entries.length > 0) {
+      const results = await Promise.all(entries.map(readEntry))
+      return results.flat()
+    }
+  }
+
+  return Array.from(dataTransfer.files)
+}
+
+function pathFor(kind: 'gedcom' | 'media', treeId: string, file: FileWithRelPath) {
+  const relative = file.webkitRelativePath
+  return `${treeId}/${kind}/${relative && relative.length > 0 ? relative : file.name}`
+}
 
 export default function ImportPage() {
   const [searchParams] = useSearchParams()
@@ -62,52 +118,39 @@ export default function ImportPage() {
     setMediaFiles(mediaRes.data ?? [])
   }
 
-  async function uploadGedcom(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    if (!file || !selectedTreeId) return
+  async function uploadFiles(kind: 'gedcom' | 'media', incoming: File[]) {
+    if (!selectedTreeId || incoming.length === 0) return
 
-    setUploading('gedcom')
+    const files = kind === 'gedcom' ? incoming.slice(0, 1) : incoming
+
+    setUploading(kind)
     setError(null)
     setNotice(null)
 
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(`${selectedTreeId}/gedcom/${file.name}`, file, { upsert: true })
+    let failed = false
 
-    setUploading(null)
-    event.target.value = ''
-
-    if (uploadError) {
-      setError(uploadError.message)
-      return
-    }
-
-    setNotice('Fichier GEDCOM déposé — il sera analysé dans une prochaine étape.')
-    refreshFileLists(selectedTreeId)
-  }
-
-  async function uploadMedia(event: ChangeEvent<HTMLInputElement>) {
-    const files = event.target.files
-    if (!files || files.length === 0 || !selectedTreeId) return
-
-    setUploading('media')
-    setError(null)
-    setNotice(null)
-
-    for (const file of Array.from(files)) {
+    for (const file of files) {
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
-        .upload(`${selectedTreeId}/media/${file.name}`, file, { upsert: true })
+        .upload(pathFor(kind, selectedTreeId, file), file, { upsert: true })
 
       if (uploadError) {
         setError(uploadError.message)
+        failed = true
         break
       }
     }
 
     setUploading(null)
-    setNotice(`${files.length} fichier(s) déposé(s) — ils seront rattachés aux personnes dans une prochaine étape.`)
-    event.target.value = ''
+
+    if (!failed) {
+      setNotice(
+        kind === 'gedcom'
+          ? 'Fichier GEDCOM déposé — il sera analysé dans une prochaine étape.'
+          : `${files.length} fichier(s) déposé(s) — ils seront rattachés aux personnes dans une prochaine étape.`,
+      )
+    }
+
     refreshFileLists(selectedTreeId)
   }
 
@@ -194,21 +237,23 @@ export default function ImportPage() {
         <UploadCard
           icon={FileText}
           title="Fichier GEDCOM"
-          hint=".ged — un seul fichier"
+          hint=".ged — un seul fichier, glissez-le ici"
           accept=".ged"
           multiple={false}
+          folder={false}
           uploading={uploading === 'gedcom'}
-          onChange={uploadGedcom}
+          onFiles={(files) => uploadFiles('gedcom', files)}
           files={gedcomFiles}
         />
         <UploadCard
           icon={Image}
           title="Médias"
-          hint="Photos et scans — plusieurs fichiers possibles"
+          hint="Photos et scans — fichiers ou dossier entier"
           accept="image/*"
           multiple
+          folder
           uploading={uploading === 'media'}
-          onChange={uploadMedia}
+          onFiles={(files) => uploadFiles('media', files)}
           files={mediaFiles}
         />
       </div>
@@ -222,8 +267,9 @@ function UploadCard({
   hint,
   accept,
   multiple,
+  folder,
   uploading,
-  onChange,
+  onFiles,
   files,
 }: {
   icon: ElementType
@@ -231,10 +277,21 @@ function UploadCard({
   hint: string
   accept: string
   multiple: boolean
+  folder: boolean
   uploading: boolean
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void
+  onFiles: (files: File[]) => void
   files: StoredFile[]
 }) {
+  const [dragging, setDragging] = useState(false)
+
+  async function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setDragging(false)
+    if (uploading) return
+    const dropped = await filesFromDataTransfer(event.dataTransfer)
+    if (dropped.length > 0) onFiles(dropped)
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="flex items-center gap-2.5">
@@ -247,23 +304,71 @@ function UploadCard({
         </div>
       </div>
 
-      <label
+      <div
+        onDragOver={(event) => {
+          event.preventDefault()
+          if (!uploading) setDragging(true)
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
         className={[
-          'mt-4 flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm font-bold text-slate-500 transition',
-          uploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-indigo-300 hover:text-indigo-700',
+          'mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition',
+          uploading
+            ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-60'
+            : dragging
+              ? 'border-indigo-400 bg-indigo-50'
+              : 'border-slate-300 bg-slate-50',
         ].join(' ')}
       >
-        {uploading ? <Loader2 size={16} className="animate-spin" /> : <UploadCloud size={16} />}
-        {uploading ? 'Envoi…' : 'Choisir un fichier'}
-        <input
-          type="file"
-          accept={accept}
-          multiple={multiple}
-          onChange={onChange}
-          disabled={uploading}
-          className="hidden"
-        />
-      </label>
+        {uploading ? (
+          <Loader2 size={18} className="animate-spin text-slate-400" />
+        ) : (
+          <UploadCloud size={18} className={dragging ? 'text-indigo-600' : 'text-slate-400'} />
+        )}
+
+        <p className="text-xs font-medium text-slate-400">
+          {uploading ? 'Envoi…' : dragging ? 'Déposez ici' : 'Glissez-déposez, ou'}
+        </p>
+
+        {!uploading && (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <label className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700">
+              Choisir un fichier
+              <input
+                type="file"
+                accept={accept}
+                multiple={multiple}
+                onChange={(event) => {
+                  const picked = event.target.files ? Array.from(event.target.files) : []
+                  if (picked.length > 0) onFiles(picked)
+                  event.target.value = ''
+                }}
+                className="hidden"
+              />
+            </label>
+
+            {folder && (
+              <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700">
+                <FolderUp size={13} />
+                Choisir un dossier
+                <input
+                  type="file"
+                  // @ts-expect-error — attribut non standard mais largement supporté (Chrome, Edge, Firefox, Safari)
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={(event) => {
+                    const picked = event.target.files ? Array.from(event.target.files) : []
+                    if (picked.length > 0) onFiles(picked)
+                    event.target.value = ''
+                  }}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+        )}
+      </div>
 
       {files.length > 0 && (
         <ul className="mt-4 space-y-1.5">

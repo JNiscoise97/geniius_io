@@ -144,11 +144,15 @@ export function DescriptionView({
   onPersonSelect,
   onPersonPreview,
   onPlaceSelect,
+  referencePersonId,
+  onSetReference,
 }: {
   selectedPersonId?: string
   onPersonSelect: (personId: string) => void
   onPersonPreview?: (personId: string) => void
   onPlaceSelect?: (query: string) => void
+  referencePersonId?: string
+  onSetReference?: (personId: string) => void
 }) {
   const person = selectedPersonId ? getPerson(selectedPersonId) : undefined
   const paragraphs = person ? buildPersonDescription(person) : []
@@ -156,7 +160,11 @@ export function DescriptionView({
   return (
     <div className="h-full w-full overflow-auto overflow-x-hidden bg-[#f1f5f9] p-4 text-slate-950">
       <div className="mx-auto flex w-full max-w-[720px] flex-col gap-4">
-        <CentralPerson person={person} />
+        <CentralPerson
+          person={person}
+          isReference={Boolean(person && referencePersonId && person.id === referencePersonId)}
+          onSetAsReference={person && onSetReference ? () => onSetReference(person.id) : undefined}
+        />
 
         <section className="rounded-[20px] border border-slate-200 bg-white px-6 py-5">
           <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">

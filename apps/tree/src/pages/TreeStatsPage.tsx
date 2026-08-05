@@ -1,5 +1,5 @@
 import { ArrowLeft, MapPin, Users, FileText, Camera, Briefcase, Tag, BarChart2, Unlink, UserX, BookOpen, Search, AlertTriangle, GitBranch, Copy, ArrowRightLeft } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { graph } from '../components/tree-navigate/data'
 import {
@@ -9,8 +9,8 @@ import {
   formatGedcomDate,
   type FamilyGraphPerson,
 } from '@geniius/utils/family-graph'
-import { treeSettings } from '../features/family-tree/types/treeSettings'
 import { buildBloodAndSpousesSet } from '../lib/graphUtils'
+import { supabase } from '../lib/supabase/client'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -42,7 +42,7 @@ type Section = {
   render: () => React.ReactNode
 }
 
-function useSections(): Record<string, Section> {
+function useSections(rootId?: string): Record<string, Section> {
   const people       = useMemo(() => Object.values(graph.people), [])
   const mediaEntries = useMemo(() => Object.values(graph.media),  [])
 
@@ -237,7 +237,7 @@ function useSections(): Record<string, Section> {
       label: 'Individus isolés',
       subtitle: `Personnes sans lien de sang ni de mariage avec la personne de référence`,
       render: () => {
-        const linkedIds = buildBloodAndSpousesSet(graph, treeSettings.sosaReferencePersonId)
+        const linkedIds = rootId ? buildBloodAndSpousesSet(graph, rootId) : new Set<string>()
         const isolated = people.filter((p) => !linkedIds.has(p.id))
         return (
           <SearchableTable
@@ -655,7 +655,24 @@ function SearchableTable({
 
 export default function TreeStatsPage() {
   const { treeId, section } = useParams<{ treeId: string; section: string }>()
-  const sections = useSections()
+
+  const [referencePersonId, setReferencePersonId] = useState<string | undefined>(undefined)
+  const [treeName, setTreeName] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!treeId) return
+    supabase
+      .from('trees')
+      .select('name, reference_person_id')
+      .eq('id', treeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setReferencePersonId(data?.reference_person_id ?? undefined)
+        setTreeName(data?.name ?? null)
+      })
+  }, [treeId])
+
+  const sections = useSections(referencePersonId)
   const current = section ? sections[section] : undefined
 
   if (!current) {
@@ -697,7 +714,7 @@ export default function TreeStatsPage() {
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
-                Famille TANJAMA
+                {treeName ?? 'Arbre'}
               </p>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
                 {current.label}

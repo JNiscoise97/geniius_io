@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 import type { DocumentsView, FamilyView, HistoryView, IndividuView, MainTab } from '../components/tree-navigate/types'
 import { AscendanceView } from '../components/tree-navigate/components/views/AscendanceView'
@@ -13,7 +14,7 @@ import { IndividuSubTabs } from '../components/tree-navigate/components/Individu
 import { LeftIndex } from '../components/tree-navigate/components/LeftIndex'
 import { RightSummary } from '../components/tree-navigate/components/RightSummary'
 import { StatusBar } from '../components/tree-navigate/components/StatusBar'
-import { treeSettings } from '../features/family-tree/types/treeSettings'
+import { supabase } from '../lib/supabase/client'
 import { HistorySubTabs } from '../components/tree-navigate/components/HistorySubTabs'
 import { ChronologyView } from '../components/tree-navigate/components/views/ChronologyView'
 import { DocumentsSubTabs } from '../components/tree-navigate/components/DocumentsSubTabs'
@@ -21,8 +22,11 @@ import { MediasView } from '../components/tree-navigate/components/views/MediasV
 import { DescriptionView } from '../components/tree-navigate/components/views/DescriptionView'
 import { AnalyseView } from '../components/tree-navigate/components/views/AnalyseView'
 
-const STORAGE_KEY = 'geniius-tree-navigation-state'
 const MAX_HISTORY_SIZE = 20
+
+function storageKey(treeId?: string) {
+  return `geniius-tree-navigation-state-${treeId ?? 'unknown'}`
+}
 
 type NavigationState = {
   mainTab: MainTab
@@ -33,18 +37,18 @@ type NavigationState = {
   selectedPersonId?: string
 }
 
-function getInitialState(): NavigationState {
+function getInitialState(treeId?: string): NavigationState {
   const fallback: NavigationState = {
     mainTab: 'famille',
     individuView: 'description',
     familyView: 'noyau',
     historyView: 'chronologie',
     documentsView: 'medias',
-    selectedPersonId: treeSettings.sosaReferencePersonId,
+    selectedPersonId: undefined,
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const raw = window.localStorage.getItem(storageKey(treeId))
     if (!raw) return fallback
 
     const parsed = JSON.parse(raw) as Partial<NavigationState>
@@ -64,7 +68,10 @@ function getInitialState(): NavigationState {
 }
 
 export default function TreeNavigatePage() {
-  const initialState = getInitialState()
+  const { treeId } = useParams<{ treeId: string }>()
+  const initialState = getInitialState(treeId)
+
+  const [referencePersonId, setReferencePersonId] = useState<string | undefined>(undefined)
 
   const [mainTab, setMainTab] = useState<MainTab>(initialState.mainTab)
   const [individuView, setIndividuView] = useState<IndividuView>(
@@ -112,8 +119,40 @@ export default function TreeNavigatePage() {
       selectedPersonId,
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }, [mainTab, individuView, familyView, historyView, documentsView, selectedPersonId])
+    window.localStorage.setItem(storageKey(treeId), JSON.stringify(state))
+  }, [treeId, mainTab, individuView, familyView, historyView, documentsView, selectedPersonId])
+
+  // Charge la personne de référence de cet arbre, et centre dessus si rien
+  // n'était déjà sélectionné (nouvel arbre, ou pas encore d'historique local).
+  useEffect(() => {
+    if (!treeId) return
+
+    supabase
+      .from('trees')
+      .select('reference_person_id')
+      .eq('id', treeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const refId = data?.reference_person_id ?? undefined
+        setReferencePersonId(refId)
+        if (!refId) return
+
+        setSelectedPersonId((current) => current ?? refId)
+        setPreviewPersonId((current) => current ?? refId)
+        setPersonHistory((current) => (current.length > 0 ? current : [refId]))
+        setHistoryIndex((current) => (current >= 0 ? current : 0))
+      })
+  }, [treeId])
+
+  async function setPersonAsReference(personId: string) {
+    if (!treeId) return
+    const { error } = await supabase
+      .from('trees')
+      .update({ reference_person_id: personId })
+      .eq('id', treeId)
+
+    if (!error) setReferencePersonId(personId)
+  }
 
   function previewPerson(personId: string) {
     setPreviewPersonId(personId)
@@ -174,9 +213,10 @@ export default function TreeNavigatePage() {
   }
 
   function goToSosa() {
+    if (!referencePersonId) return
     setMainTab('famille')
     setFamilyView('noyau')
-    navigateToPerson(treeSettings.sosaReferencePersonId)
+    navigateToPerson(referencePersonId)
   }
 
   return (
@@ -213,6 +253,8 @@ export default function TreeNavigatePage() {
                       selectedPersonId={selectedPersonId}
                       onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
                       onPlaceSelect={selectPlace}
+                      referencePersonId={referencePersonId}
+                      onSetReference={setPersonAsReference}
                     />
                   )}
 
@@ -231,6 +273,8 @@ export default function TreeNavigatePage() {
                     <FamilyCore
                       selectedPersonId={selectedPersonId}
                       onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
+                      referencePersonId={referencePersonId}
+                      onSetReference={setPersonAsReference}
                     />
                   )}
 

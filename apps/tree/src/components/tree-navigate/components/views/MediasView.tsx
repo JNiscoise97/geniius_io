@@ -37,8 +37,11 @@ const MEDIA_BASE_URL =
   '/data/Jordan Michel Nisçoise/Jordan Michel Nisçoise-Medias'
 
 function resolveUrl(media: GedcomMedia): string {
+  // Arbre importé : URL déjà résolue (Supabase Storage) par loadGraphForTree.
+  if (media.url) return media.url
+
+  // Graphe de démo : construite depuis le fichier statique historique.
   if (!media.file) return ''
-  // Normalise les séparateurs
   const normalized = media.file.replace(/\\/g, '/')
   const segments   = normalized.split('/')
   const idx        = segments.findIndex(s => /medias/i.test(s))
@@ -48,16 +51,12 @@ function resolveUrl(media: GedcomMedia): string {
   return `${MEDIA_BASE_URL}/${relative}`
 }
 
-function getMedia(graph: ReturnType<typeof import('../../data').graph['people'] extends Record<string, infer P> ? () => { people: Record<string, P>; media: Record<string, GedcomMedia> } : never>, id: string): GedcomMedia | undefined {
-  return (graph as any).media?.[id]
+function mediaById(id: string): GedcomMedia | undefined {
+  return graph.media?.[id]
 }
 
 // Import direct du graph pour accéder aux médias
 import { graph } from '../../data'
-
-function mediaById(id: string): GedcomMedia | undefined {
-  return (graph as any).media?.[id]
-}
 
 // ── Collecte des médias ───────────────────────────────────────────────────────
 

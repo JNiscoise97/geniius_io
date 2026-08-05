@@ -12,6 +12,12 @@ export type GedcomMedia = {
   title?: string;
   file?: string;
   form?: string;
+  /**
+   * URL utilisable directement dans un <img>, résolue à l'exécution pour un
+   * arbre importé (fichier retrouvé dans Supabase Storage et signé). Absent
+   * pour le graphe de démo, qui construit son URL autrement (MEDIA_BASE_URL).
+   */
+  url?: string;
 };
 
 export type GedcomPlace = {

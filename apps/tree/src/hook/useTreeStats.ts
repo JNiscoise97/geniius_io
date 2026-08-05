@@ -7,7 +7,6 @@ import {
   type FamilyGraphFamily,
   type GedcomMedia,
 } from '@geniius/utils/family-graph'
-import { treeSettings } from '../features/family-tree/types/treeSettings'
 import { buildBloodAndSpousesSet } from '../lib/graphUtils'
 
 export type FamilyGraphData = {
@@ -296,13 +295,12 @@ function computeAmbiguousPlaces(places: Set<string>): number {
 // Hook principal
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useTreeStats(graph: FamilyGraphData): TreeStats {
+export function useTreeStats(graph: FamilyGraphData, rootId?: string): TreeStats {
   return useMemo(() => {
     const people       = Object.values(graph.people)
     const families     = Object.values(graph.families)
     const mediaEntries = Object.values(graph.media)
     const n            = people.length
-    const rootId       = treeSettings.sosaReferencePersonId
 
     // ── Périmètre ────────────────────────────────────────────────────────────
 
@@ -324,7 +322,7 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
 
     // ── Connectivité ─────────────────────────────────────────────────────────
 
-    const linkedIds     = buildBloodAndSpousesSet(graph, rootId)
+    const linkedIds     = rootId ? buildBloodAndSpousesSet(graph, rootId) : new Set<string>()
     const isolated      = people.filter((p) => !linkedIds.has(p.id))
     const isolatedPeople = isolated.length
     const connectedPeople = n - isolatedPeople
@@ -341,9 +339,9 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
 
     // ── Profondeurs (dynamiques) ──────────────────────────────────────────────
 
-    const totalGenerations = computeAscendanceDepth(graph, rootId)
-    const deepestLineage   = computeDescendanceDepth(graph, rootId)
-    const totalBranches    = computeTotalBranches(graph, rootId)
+    const totalGenerations = rootId ? computeAscendanceDepth(graph, rootId) : 0
+    const deepestLineage   = rootId ? computeDescendanceDepth(graph, rootId) : 0
+    const totalBranches    = rootId ? computeTotalBranches(graph, rootId) : 0
 
     // ── Complétude ────────────────────────────────────────────────────────────
 
@@ -497,5 +495,5 @@ export function useTreeStats(graph: FamilyGraphData): TreeStats {
       weakFiliations,
       ambiguousPlaces,
     }
-  }, [graph])
+  }, [graph, rootId])
 }

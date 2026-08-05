@@ -345,7 +345,11 @@ const MEDIA_BASE_URL =
 export function getPersonPrimaryPhoto(personId: string): string | undefined {
   const person = getPerson(personId)
   if (!person?.primaryMediaId) return undefined
-  const title = (graph as FamilyGraphGenerated).media?.[person.primaryMediaId]?.title
-  if (!title) return undefined
-  return `${MEDIA_BASE_URL}/${title}`
+  const media = (graph as FamilyGraphGenerated).media?.[person.primaryMediaId]
+  if (!media) return undefined
+  // Arbre importé : URL déjà résolue (Supabase Storage) par loadGraphForTree.
+  if (media.url) return media.url
+  // Graphe de démo : construite depuis le fichier statique historique.
+  if (!media.title) return undefined
+  return `${MEDIA_BASE_URL}/${media.title}`
 }
