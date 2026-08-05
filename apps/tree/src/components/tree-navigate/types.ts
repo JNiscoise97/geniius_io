@@ -1,4 +1,6 @@
-export type MainTab = 'famille' | 'saisie' | 'histoire' | 'documents' | 'graphiques'
+export type MainTab = 'individu' | 'famille' | 'saisie' | 'histoire' | 'documents' | 'graphiques'
+
+export type IndividuView = 'description' | 'analyse'
 
 export type FamilyView = 'noyau' | 'ascendance' | 'descendance'
 

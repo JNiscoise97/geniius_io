@@ -1,8 +1,9 @@
 import { ChevronRight, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { getBirth, getDeath } from '@geniius/utils/family-graph'
 
 import { useDebouncedValue } from '../../../lib/useDebouncedValue'
-import { getAllPeople } from '../data'
+import { getAllPeople, getPerson } from '../data'
 import { PanelTitle } from './ui/PanelTitle'
 import { usePersonClickHandlers } from '../../../hook/usePersonClickHandlers'
 
@@ -76,26 +77,35 @@ function PersonListItem({
 
 export function LeftIndex({
   selectedPersonId,
+  query,
+  onQueryChange,
   onPersonSelect,
   onPersonPreview,
 }: {
   selectedPersonId?: string
+  query: string
+  onQueryChange: (query: string) => void
   onPersonSelect: (personId: string) => void
   onPersonPreview?: (personId: string) => void
 }) {
-  const [query, setQuery] = useState('')
   const [sexFilter, setSexFilter] = useState<SexFilter>('all')
 
   const debouncedQuery = useDebouncedValue(query, 250)
 
   const indexedPeople = useMemo(() => {
-    return getAllPeople().map(([name, years, sex, id]) => ({
-      id,
-      name,
-      years,
-      sex,
-      searchText: normalize(`${name} ${years} ${sex}`),
-    }))
+    return getAllPeople().map(([name, years, sex, id]) => {
+      const person = id ? getPerson(id) : undefined
+      const birthPlace = person ? getBirth(person)?.place?.raw ?? getBirth(person)?.placeBrut ?? '' : ''
+      const deathPlace = person ? getDeath(person)?.place?.raw ?? getDeath(person)?.placeBrut ?? '' : ''
+
+      return {
+        id,
+        name,
+        years,
+        sex,
+        searchText: normalize(`${name} ${years} ${sex} ${birthPlace} ${deathPlace}`),
+      }
+    })
   }, [])
 
   const normalizedQuery = useMemo(
@@ -132,15 +142,15 @@ export function LeftIndex({
 
           <input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Nom, prénom, année..."
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Nom, prénom, année, lieu..."
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-9 text-[13px] font-medium outline-none transition focus:border-slate-400 focus:bg-white"
           />
 
           {query && (
             <button
               type="button"
-              onClick={() => setQuery('')}
+              onClick={() => onQueryChange('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
               aria-label="Effacer la recherche"
             >
@@ -178,7 +188,7 @@ export function LeftIndex({
             <button
               type="button"
               onClick={() => {
-                setQuery('')
+                onQueryChange('')
                 setSexFilter('all')
               }}
               className="font-bold text-slate-500 hover:text-slate-900"

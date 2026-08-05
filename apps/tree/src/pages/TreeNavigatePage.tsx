@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import type { DocumentsView, FamilyView, HistoryView, MainTab } from '../components/tree-navigate/types'
+import type { DocumentsView, FamilyView, HistoryView, IndividuView, MainTab } from '../components/tree-navigate/types'
 import { AscendanceView } from '../components/tree-navigate/components/views/AscendanceView'
 import { DescendanceView } from '../components/tree-navigate/components/views/DescendanceView'
 import { FamilyCore } from '../components/tree-navigate/components/views/FamilyCore'
@@ -9,6 +9,7 @@ import { SaisieView } from '../components/tree-navigate/components/views/SaisieV
 import { AppTabs } from '../components/tree-navigate/components/AppTabs'
 import { DesktopToolbar } from '../components/tree-navigate/components/DesktopToolbar'
 import { FamilySubTabs } from '../components/tree-navigate/components/FamilySubTabs'
+import { IndividuSubTabs } from '../components/tree-navigate/components/IndividuSubTabs'
 import { LeftIndex } from '../components/tree-navigate/components/LeftIndex'
 import { RightSummary } from '../components/tree-navigate/components/RightSummary'
 import { StatusBar } from '../components/tree-navigate/components/StatusBar'
@@ -17,12 +18,15 @@ import { HistorySubTabs } from '../components/tree-navigate/components/HistorySu
 import { ChronologyView } from '../components/tree-navigate/components/views/ChronologyView'
 import { DocumentsSubTabs } from '../components/tree-navigate/components/DocumentsSubTabs'
 import { MediasView } from '../components/tree-navigate/components/views/MediasView'
+import { DescriptionView } from '../components/tree-navigate/components/views/DescriptionView'
+import { AnalyseView } from '../components/tree-navigate/components/views/AnalyseView'
 
 const STORAGE_KEY = 'geniius-tree-navigation-state'
 const MAX_HISTORY_SIZE = 20
 
 type NavigationState = {
   mainTab: MainTab
+  individuView: IndividuView
   familyView: FamilyView
   historyView: HistoryView
   documentsView: DocumentsView
@@ -32,6 +36,7 @@ type NavigationState = {
 function getInitialState(): NavigationState {
   const fallback: NavigationState = {
     mainTab: 'famille',
+    individuView: 'description',
     familyView: 'noyau',
     historyView: 'chronologie',
     documentsView: 'medias',
@@ -46,6 +51,7 @@ function getInitialState(): NavigationState {
 
     return {
       mainTab: parsed.mainTab ?? fallback.mainTab,
+      individuView: parsed.individuView ?? fallback.individuView,
       familyView: parsed.familyView ?? fallback.familyView,
       historyView: parsed.historyView ?? fallback.historyView,
       documentsView: parsed.documentsView ?? fallback.documentsView,
@@ -61,6 +67,9 @@ export default function TreeNavigatePage() {
   const initialState = getInitialState()
 
   const [mainTab, setMainTab] = useState<MainTab>(initialState.mainTab)
+  const [individuView, setIndividuView] = useState<IndividuView>(
+    initialState.individuView,
+  )
   const [familyView, setFamilyView] = useState<FamilyView>(
     initialState.familyView,
   )
@@ -79,6 +88,8 @@ export default function TreeNavigatePage() {
     initialState.selectedPersonId,
   )
 
+  const [peopleQuery, setPeopleQuery] = useState('')
+
   const [personHistory, setPersonHistory] = useState<string[]>(
     initialState.selectedPersonId ? [initialState.selectedPersonId] : [],
   )
@@ -94,6 +105,7 @@ export default function TreeNavigatePage() {
   useEffect(() => {
     const state: NavigationState = {
       mainTab,
+      individuView,
       familyView,
       historyView,
       documentsView,
@@ -101,7 +113,7 @@ export default function TreeNavigatePage() {
     }
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }, [mainTab, familyView, historyView, documentsView, selectedPersonId])
+  }, [mainTab, individuView, familyView, historyView, documentsView, selectedPersonId])
 
   function previewPerson(personId: string) {
     setPreviewPersonId(personId)
@@ -157,6 +169,10 @@ export default function TreeNavigatePage() {
     setSelectedPersonId(personId)
   }
 
+  function selectPlace(placeQuery: string) {
+    setPeopleQuery(placeQuery)
+  }
+
   function goToSosa() {
     setMainTab('famille')
     setFamilyView('noyau')
@@ -176,13 +192,34 @@ export default function TreeNavigatePage() {
         <div className="mx-auto grid min-h-0 flex-1 overflow-hidden w-full max-w-[1680px] grid-cols-1 border-x border-slate-200 bg-white/95 shadow-xl lg:grid-cols-[340px_minmax(0,1fr)_380px] lg:grid-rows-1">
           <LeftIndex
             selectedPersonId={selectedPersonId}
+            query={peopleQuery}
+            onQueryChange={setPeopleQuery}
             onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
           />
 
           <main className="flex min-h-0 min-w-0 flex-col overflow-hidden border-x border-slate-200 bg-slate-50">
             <AppTabs mainTab={mainTab} setMainTab={setMainTab} />
 
-            {mainTab === 'famille' ? (
+            {mainTab === 'individu' ? (
+              <>
+                <IndividuSubTabs
+                  individuView={individuView}
+                  setIndividuView={setIndividuView}
+                />
+
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  {individuView === 'description' && (
+                    <DescriptionView
+                      selectedPersonId={selectedPersonId}
+                      onPersonSelect={navigateToPerson} onPersonPreview={previewPerson}
+                      onPlaceSelect={selectPlace}
+                    />
+                  )}
+
+                  {individuView === 'analyse' && <AnalyseView />}
+                </div>
+              </>
+            ) : mainTab === 'famille' ? (
               <>
                 <FamilySubTabs
                   familyView={familyView}

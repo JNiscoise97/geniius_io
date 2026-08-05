@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { LeafIcon, Mail, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase/client'
 
@@ -31,83 +32,98 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-6">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-900/5">
-        <div className="mb-7 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50">
-            <LeafIcon size={22} className="text-indigo-700" />
-          </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-wide text-indigo-700">
-              Geniius.io
-            </p>
-            <h1 className="text-lg font-black text-slate-950">Tree</h1>
-          </div>
+    <div className="flex min-h-screen flex-col items-center bg-white px-6 py-16">
+      <Link to="/" className="mb-14 flex items-center gap-2.5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50">
+          <LeafIcon size={18} className="text-indigo-700" />
         </div>
+        <span className="text-sm font-black text-indigo-700">Geniius.io | Tree</span>
+      </Link>
 
+      <div className="w-full max-w-xl text-center">
         {sent ? (
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
-              <CheckCircle2 size={24} className="text-emerald-700" />
+          <>
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+              <CheckCircle2 size={26} className="text-emerald-700" />
             </div>
-            <h2 className="text-xl font-black text-slate-950">Vérifiez vos e-mails</h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
-              Un lien de connexion a été envoyé à <strong>{email}</strong>. Cliquez dessus
-              pour accéder à votre arbre.
+
+            <h1 className="text-3xl font-black leading-[1.1] tracking-tight text-slate-950 sm:text-4xl">
+              Vérifiez vos e-mails.
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-md text-base font-medium leading-7 text-slate-600">
+              Un lien de connexion a été envoyé à <strong className="text-slate-950">{email}</strong>.
+              Cliquez dessus pour accéder à votre arbre.
             </p>
+
             <button
               type="button"
               onClick={() => setSent(false)}
-              className="mt-6 text-sm font-black text-indigo-700 hover:text-indigo-800"
+              className="mt-7 text-sm font-black text-indigo-700 hover:text-indigo-800"
             >
               Utiliser une autre adresse
             </button>
-          </div>
+          </>
         ) : (
           <>
-            <h2 className="text-xl font-black text-slate-950">Connexion</h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-slate-600">
-              Recevez un lien de connexion par e-mail, sans mot de passe.
+            <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
+              Concentrez-vous sur vos ancêtres.
+              <br />
+              On s'occupe du reste.
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-md text-base font-medium leading-7 text-slate-600">
+              Recevez un lien de connexion par e-mail — aucun mot de passe à retenir.
             </p>
 
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-700">
-                  Adresse e-mail
-                </label>
-                <div className="relative">
-                  <Mail
-                    size={17}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    autoFocus
-                    placeholder="vous@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white"
-                  />
-                </div>
+            <form
+              onSubmit={onSubmit}
+              className="mx-auto mt-8 flex max-w-lg flex-col gap-3 sm:flex-row"
+            >
+              <div className="relative flex-1">
+                <Mail
+                  size={17}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  autoFocus
+                  placeholder="vous@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-full border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white"
+                />
               </div>
-
-              {error && (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                  {error}
-                </div>
-              )}
 
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? 'Envoi du lien…' : 'Recevoir le lien de connexion'}
+                {loading ? 'Envoi…' : 'Recevoir le lien'}
                 {!loading && <ArrowRight size={17} />}
               </button>
             </form>
+
+            {error && (
+              <div className="mx-auto mt-4 max-w-lg rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm font-medium text-red-700">
+                {error}
+              </div>
+            )}
+
+            <p className="mx-auto mt-6 max-w-md text-xs font-medium leading-5 text-slate-400">
+              En vous connectant, vous acceptez nos{' '}
+              <Link to="/mentions-legales" className="underline hover:text-slate-600">
+                Conditions d'utilisation
+              </Link>{' '}
+              et notre{' '}
+              <Link to="/mentions-legales" className="underline hover:text-slate-600">
+                Politique de confidentialité
+              </Link>
+              .
+            </p>
           </>
         )}
       </div>

@@ -13,6 +13,7 @@
     "scrape:anchoukaj": "tsx scripts/anchoukaj-scrape.ts",
     "scrape:anchoukaj-details": "tsx scripts/anchoukaj-details.ts",
     "dev": "concurrently -n REBOND,ECHO,JOURNAL,CONNECT -c auto \"pnpm dev:rebond\" \"pnpm dev:echo\" \"pnpm dev:journal\" \"pnpm dev:connect\"",
+    "dev:tree-rebond": "concurrently -n TREE,REBOND -c auto \"pnpm dev:tree\" \"pnpm dev:rebond\"",
     "build:schema": "pnpm --filter @geniius/schema build",
     "build:gedcom": "pnpm --filter @geniius/gedcom-core build",
     "build:rebond": "pnpm --dir apps/rebond build",

@@ -20,7 +20,7 @@ import {
   User,
 } from 'lucide-react'
 
-import type { DocumentsView, FamilyView, HistoryView, MainTab } from './types'
+import type { DocumentsView, FamilyView, HistoryView, IndividuView, MainTab } from './types'
 import { FAMILY_GRAPH } from '../../features/family-tree/loadGraph'
 import {
   getBirth,
@@ -58,11 +58,17 @@ export type FamilyGraphGenerated = {
 export const graph = FAMILY_GRAPH
 
 export const mainTabs: { key: MainTab; label: string }[] = [
+  { key: 'individu',   label: 'Individu' },
   { key: 'famille',    label: 'Famille' },
   { key: 'saisie',     label: 'Saisie' },
   { key: 'histoire',   label: 'Histoire' },
   { key: 'documents',  label: 'Documents' },
   { key: 'graphiques', label: 'Graphiques' },
+]
+
+export const individuViews: { key: IndividuView; label: string }[] = [
+  { key: 'description', label: 'Description' },
+  { key: 'analyse',     label: 'Analyse' },
 ]
 
 export const familyViews: { key: FamilyView; label: string }[] = [

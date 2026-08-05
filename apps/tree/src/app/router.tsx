@@ -6,6 +6,8 @@ import Layout from '../components/layout/Layout'
 import TreePage from '../pages/TreePage'
 import TreeNavigatePage from '../pages/TreeNavigatePage'
 import TreeStatsPage from '../pages/TreeStatsPage'
+import TreesListPage from '../pages/TreesListPage'
+import ImportPage from '../pages/ImportPage'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -37,7 +39,7 @@ export const router = createBrowserRouter([
     path: '/trees',
     element: (
       <Layout>
-        <PlaceholderPage title="Mes arbres" />
+        <TreesListPage />
       </Layout>
     ),
   },
@@ -46,7 +48,7 @@ export const router = createBrowserRouter([
     path: '/import',
     element: (
       <Layout>
-        <PlaceholderPage title="Importer un arbre" />
+        <ImportPage />
       </Layout>
     ),
   },
