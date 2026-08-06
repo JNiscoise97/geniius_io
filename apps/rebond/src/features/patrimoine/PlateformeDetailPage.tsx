@@ -5,7 +5,7 @@ import {
   Save, AlertTriangle, CheckCircle2, Pencil, Settings, Trash2, Search, UserCircle,
   Lock, LayoutDashboard, Library,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -251,10 +251,10 @@ export function PlateformeDetailPage() {
     async function load() {
       setLoading(true); setError(null)
       const [platRes, kindsRes] = await Promise.all([
-        supabase.from('ref_plateformes')
+        supabaseRebond.from('ref_plateformes')
           .select('id, label, code, site_web, auth_required, plateforme_kind_ref, ref_plateforme_kind!plateforme_kind_ref(label, description, categorie)')
           .eq('id', plateformeId).single(),
-        supabase.from('ref_plateforme_kind').select('id, label, description, categorie').order('categorie, label'),
+        supabaseRebond.from('ref_plateforme_kind').select('id, label, description, categorie').order('categorie, label'),
       ])
       if (cancelled) return
       if (platRes.error) { setError(platRes.error.message); setLoading(false); return }
@@ -303,7 +303,7 @@ export function PlateformeDetailPage() {
       auth_required: form.auth_required,
       plateforme_kind_ref: form.kind_ref || null,
     }
-    const { error } = await supabase.from('ref_plateformes').update(patch).eq('id', plateformeId)
+    const { error } = await supabaseRebond.from('ref_plateformes').update(patch).eq('id', plateformeId)
     setSaving(false)
     if (error) { setSaveError(error.message); return }
     const kind = kindOptions.find(k => k.id === form.kind_ref) ?? null
@@ -326,7 +326,7 @@ export function PlateformeDetailPage() {
     if (!plateformeId) return
     if (!window.confirm(`Supprimer "${plateforme?.label}" ?`)) return
     setMenuOpen(false); setDeleting(true)
-    const { error } = await supabase.from('ref_plateformes').delete().eq('id', plateformeId)
+    const { error } = await supabaseRebond.from('ref_plateformes').delete().eq('id', plateformeId)
     setDeleting(false)
     if (error) { toast.error('Erreur lors de la suppression'); return }
     toast.success('Plateforme supprimée'); navigate(-1)

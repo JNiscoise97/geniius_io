@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronRight, Loader2, Save, LayoutDashboard, Library } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
 import { TriStateButton } from '@/components/shared/TriStateButton'
@@ -187,7 +187,7 @@ export function DocumentDetailPage() {
       if (cancelled) return
       setRoleOptions(roles)
 
-      const { data: doc } = await supabase.from('ref_unites_documentaires')
+      const { data: doc } = await supabaseRebond.from('unites_documentaires')
         .select('id, titre, type_unite_ref, role_document_ref, couverture_label, langue_ref, identifiant_interne, niveau_fiabilite, metadonnees, parent_ud_id')
         .eq('id', id).maybeSingle()
       if (cancelled) return
@@ -202,7 +202,7 @@ export function DocumentDetailPage() {
       setNiveauFiabilite((doc.niveau_fiabilite as 'haute' | 'moyenne' | 'basse' | null) ?? null)
       setNote((doc.metadonnees as any)?.note ?? '')
 
-      const { data: ex } = await supabase.from('ref_exemplaires')
+      const { data: ex } = await supabaseRebond.from('exemplaires')
         .select('id, nature_ref, support_ref, pagination_type_ref, nb_pages, conditionnement, physical_condition_ref, description')
         .eq('unite_documentaire_id', id).limit(1).maybeSingle()
       if (cancelled) return
@@ -218,7 +218,7 @@ export function DocumentDetailPage() {
         setDescription(ex.description ?? '')
 
         // Une citation ec_acte ou ec_table (selon le rôle du document) — jamais les deux à la fois.
-        const { data: cit } = await supabase.from('citations')
+        const { data: cit } = await supabaseRebond.from('citations')
           .select('id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
           .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table']).maybeSingle()
         if (cancelled) return
@@ -251,7 +251,7 @@ export function DocumentDetailPage() {
       const chain: Array<{ id: string; titre: string }> = []
       let currentId: string | null = doc.parent_ud_id
       for (let i = 0; i < 6 && currentId; i++) {
-        const { data } = await supabase.from('ref_unites_documentaires')
+        const { data } = await supabaseRebond.from('unites_documentaires')
           .select('id, titre, parent_ud_id').eq('id', currentId).maybeSingle()
         if (!data) break
         chain.push({ id: data.id, titre: data.titre })
@@ -259,7 +259,7 @@ export function DocumentDetailPage() {
       }
       if (!cancelled) setAncestors(chain.reverse())
 
-      const { data: kids } = await supabase.from('ref_unites_documentaires')
+      const { data: kids } = await supabaseRebond.from('unites_documentaires')
         .select('id, titre').eq('parent_ud_id', id).order('titre')
       if (!cancelled) setChildren(kids ?? [])
 
@@ -284,7 +284,7 @@ export function DocumentDetailPage() {
       const meta: Record<string, unknown> = {}
       if (note.trim()) meta.note = note.trim()
 
-      const { error } = await supabase.from('ref_unites_documentaires').update({
+      const { error } = await supabaseRebond.from('unites_documentaires').update({
         type_unite_ref: typeUniteRef,
         role_document_ref: roleRef || null,
         langue_ref: langueRef,
@@ -296,7 +296,7 @@ export function DocumentDetailPage() {
       if (error) throw error
 
       if (exemplaireId) {
-        const { error: exErr } = await supabase.from('ref_exemplaires').update({
+        const { error: exErr } = await supabaseRebond.from('exemplaires').update({
           nature_ref: natureRef,
           support_ref: supportRef,
           pagination_type_ref: paginationTypeRef,
@@ -309,7 +309,7 @@ export function DocumentDetailPage() {
       }
 
       if (showStatutSection && citationId) {
-        const { error: citErr } = await supabase.from('citations').update({
+        const { error: citErr } = await supabaseRebond.from('citations').update({
           is_missing: acteIsMissing,
           lacune: acteLacune,
           lacune_note: acteLacune ? (acteLacuneNote.trim() || null) : null,

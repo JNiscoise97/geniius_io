@@ -2,7 +2,7 @@
 // Requêtes Supabase pour la page Patrimoine documentaire.
 // Toutes les fonctions retournent { data, error } sans throw.
 
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 
 // ── Types DB bruts ────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ export type CorpusDBRow = {
 // ── Fetch sources (top-level UDs avec exemplaires) ────────────
 
 export async function fetchSources() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseRebond
     .from('v_sources')
     .select('*')
     .is('parent_ud_id', null)
@@ -95,8 +95,8 @@ export async function fetchSources() {
 // ── Fetch documents enfants (parent_ud_id IS NOT NULL) ────────
 
 export async function fetchDocuments() {
-  const { data, error } = await supabase
-    .from('ref_unites_documentaires')
+  const { data, error } = await supabaseRebond
+    .from('unites_documentaires')
     .select(`
       id,
       parent_ud_id,
@@ -105,12 +105,12 @@ export async function fetchDocuments() {
       ref_role_document!role_document_ref ( id, code, label ),
       titre,
       couverture_label,
-      workflow_statut,
-      statut,
+      workflow_statut:statut_document,
+      statut:statut_source,
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
+      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .not('parent_ud_id', 'is', null)
     .order('couverture_label', { ascending: true, nullsFirst: false })
@@ -122,8 +122,8 @@ export async function fetchDocuments() {
 // UD sans parent_ud_id ET en_attente = "document à rattacher"
 
 export async function fetchOrphans() {
-  const { data, error } = await supabase
-    .from('ref_unites_documentaires')
+  const { data, error } = await supabaseRebond
+    .from('unites_documentaires')
     .select(`
       id,
       parent_ud_id,
@@ -132,15 +132,15 @@ export async function fetchOrphans() {
       ref_role_document!role_document_ref ( id, code, label ),
       titre,
       couverture_label,
-      workflow_statut,
-      statut,
+      workflow_statut:statut_document,
+      statut:statut_source,
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
+      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .is('parent_ud_id', null)
-    .eq('workflow_statut', 'en_attente')
+    .eq('statut_document', 'en_attente')
     .order('created_at', { ascending: false })
   return { data: data as UDDocRow[] | null, error }
 }
@@ -148,7 +148,7 @@ export async function fetchOrphans() {
 // ── Fetch corpus ──────────────────────────────────────────────
 
 export async function fetchCorpus() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseRebond
     .from('corpus')
     .select(`
       id,
@@ -174,13 +174,13 @@ export async function identifierSource(payload: {
   const meta: Record<string, string> = { domaine: payload.domaine }
   if (payload.institution_saisie?.trim()) meta.institution_saisie = payload.institution_saisie.trim()
 
-  const { data, error } = await supabase
-    .from('ref_unites_documentaires')
+  const { data, error } = await supabaseRebond
+    .from('unites_documentaires')
     .insert({
       titre: payload.titre.trim(),
       type_unite_ref: 'autre',
-      statut: 'a_qualifier',
-      workflow_statut: 'decrit',
+      statut_source: 'a_qualifier',
+      statut_document: 'decrit',
       metadonnees: meta,
     })
     .select('id')
@@ -197,13 +197,13 @@ export async function qualifierSource(id: string, payload: {
   couverture_label: string | null
   metadonnees: Record<string, unknown> | null
 }) {
-  const { error } = await supabase
-    .from('ref_unites_documentaires')
+  const { error } = await supabaseRebond
+    .from('unites_documentaires')
     .update({
       niveau_fiabilite: payload.niveau_fiabilite || null,
       role_document_ref: payload.role_document_ref || null,
       couverture_label: payload.couverture_label || null,
-      statut: 'actif',
+      statut_source: 'actif',
       metadonnees: payload.metadonnees,
     })
     .eq('id', id)
@@ -227,8 +227,8 @@ export async function decrireDocument(id: string, payload: {
   niveau_fiabilite: string | null
   metadonnees: Record<string, unknown> | null
 }) {
-  const { error } = await supabase
-    .from('ref_unites_documentaires')
+  const { error } = await supabaseRebond
+    .from('unites_documentaires')
     .update({
       type_unite_ref: payload.type_unite_ref || null,
       role_document_ref: payload.role_document_ref || null,
@@ -236,7 +236,7 @@ export async function decrireDocument(id: string, payload: {
       couverture_label: payload.couverture_label || null,
       identifiant_interne: payload.identifiant_interne || null,
       niveau_fiabilite: payload.niveau_fiabilite || null,
-      workflow_statut: 'decrit',
+      statut_document: 'decrit',
       metadonnees: payload.metadonnees,
     })
     .eq('id', id)
@@ -244,7 +244,7 @@ export async function decrireDocument(id: string, payload: {
 }
 
 export async function fetchRoleDocumentOptions(): Promise<Array<{ id: string; code: string; label: string }>> {
-  const { data, error } = await supabase.from('ref_role_document').select('id, code, label').order('label')
+  const { data, error } = await supabaseRebond.from('ref_role_document').select('id, code, label').order('label')
   if (error) console.error('[fetchRoleDocumentOptions] error:', error.message)
   return data ?? []
 }
@@ -253,8 +253,8 @@ export async function fetchRoleDocumentOptions(): Promise<Array<{ id: string; co
 // Définit parent_ud_id → le doc passe de "à rattacher" à "à décrire".
 
 export async function rattacherDocument(id: string, parentUdId: string) {
-  const { error } = await supabase
-    .from('ref_unites_documentaires')
+  const { error } = await supabaseRebond
+    .from('unites_documentaires')
     .update({ parent_ud_id: parentUdId })
     .eq('id', id)
   return { error }
@@ -282,7 +282,7 @@ export type CitationExemplaireRow = {
 }
 
 export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationExemplaireRow[]; error: any }> {
-  const { data: citations, error } = await supabase
+  const { data: citations, error } = await supabaseRebond
     .from('citations')
     .select('id, target_type, target_id, exemplaire_id, is_missing, lacune, lacune_note, locating, marginalia, note')
     .order('created_at', { ascending: false })
@@ -296,7 +296,7 @@ export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationE
 
   const exemplaireMap = new Map<string, any>()
   if (exemplaire_ids.length) {
-    const { data: exRows } = await supabase
+    const { data: exRows } = await supabaseRebond
       .from('v_exemplaires_pick')
       .select('exemplaire_id, unite_titre, cote_locale, depot_nom, institution_nom, institution_sigle, url_base')
       .in('exemplaire_id', exemplaire_ids)
@@ -344,18 +344,18 @@ export async function insertDocumentUD(payload: {
   if (payload.cote?.trim()) meta.cote = payload.cote.trim()
   if (payload.note?.trim()) meta.note = payload.note.trim()
 
-  const { data, error } = await supabase
-    .from('ref_unites_documentaires')
+  const { data, error } = await supabaseRebond
+    .from('unites_documentaires')
     .insert({
       titre: payload.titre.trim() || 'Document sans titre',
       serie_ref: payload.serie_ref,
       parent_ud_id: payload.parent_ud_id ?? null,
-      workflow_statut: 'en_attente',
-      statut: 'a_qualifier',
+      statut_document: 'en_attente',
+      statut_source: 'a_qualifier',
       couverture_label: payload.couverture_label?.trim() || null,
       metadonnees: Object.keys(meta).length ? meta : null,
     })
-    .select('id, titre, parent_ud_id, workflow_statut, statut, metadonnees, created_at, updated_at')
+    .select('id, titre, parent_ud_id, workflow_statut:statut_document, statut:statut_source, metadonnees, created_at, updated_at')
     .single()
 
   return { data, error }

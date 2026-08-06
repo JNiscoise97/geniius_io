@@ -5,7 +5,7 @@ import {
   Library, ChevronLeft, Loader2, CheckCircle2,
   AlertTriangle, X, Building2, Plus, LayoutDashboard,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { insertDocumentUD } from './patrimoine.service'
 import { useEtatCivilStore } from '@/store/etatcivil'
 import { BureauCreateModal } from '@/features/etat-civil/suivi/BureauCreateModal'
@@ -937,14 +937,14 @@ function RWStepDescribeRegistreEC({
               </Field>
               <Field label="Mode de constitution du registre" required>
                 <RefSinglePickerSmart
-                  table="ref_registre_mode" mode="edit" actionsInvisible={false}
+                  table="ref_etat_civil_registre_mode" mode="edit" actionsInvisible={false}
                   value={registreModeRef}
                   onChange={next => setRegistreModeRef(next ? String(next) : null)}
                 />
               </Field>
               <Field label="Règle d'attribution des numéros d'actes" required>
                 <RefSinglePickerSmart
-                  table="ref_registre_ordre_numerotation" mode="edit" actionsInvisible={false}
+                  table="ref_etat_civil_registre_ordre_numerotation" mode="edit" actionsInvisible={false}
                   value={registreOrdreNumerotationRef}
                   onChange={next => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
                 />
@@ -1072,7 +1072,7 @@ export function ReferenceWizardPage() {
   const [stepping,                  setStepping]                  = useState(false)
 
   useEffect(() => {
-    void supabase
+    void supabaseRebond
       .from('ref_series_documentaires')
       .select('id, code, label')
       .order('label')
@@ -1080,8 +1080,8 @@ export function ReferenceWizardPage() {
   }, [])
 
   useEffect(() => {
-    void supabase
-      .from('ref_ec_type_acte')
+    void supabaseRebond
+      .from('ref_etat_civil_type_acte')
       .select('id, code, label, label_pluriel')
       .order('position')
       .then(({ data }) => setEcTypeActes((data ?? []) as EcTypeActe[]))
@@ -1108,7 +1108,7 @@ export function ReferenceWizardPage() {
     setBureauSearching(true)
     const t = setTimeout(async () => {
       try {
-        const { data } = await supabase
+        const { data } = await supabaseRebond
           .from('etat_civil_bureaux')
           .select('id, nom, commune')
           .or(`nom.ilike.%${q}%,commune.ilike.%${q}%`)
@@ -1144,7 +1144,7 @@ export function ReferenceWizardPage() {
           }
         }
 
-        const { data: instData } = await supabase
+        const { data: instData } = await supabaseRebond
           .from('ref_institutions')
           .select('id')
           .or(`nom.ilike.%${q}%,sigle.ilike.%${q}%`)
@@ -1152,7 +1152,7 @@ export function ReferenceWizardPage() {
         const instIds = (instData ?? []).map((i: any) => i.id as string)
         if (instIds.length === 0) { setDepotResults([]); return }
 
-        const { data: depotData } = await supabase
+        const { data: depotData } = await supabaseRebond
           .from('ref_depots')
           .select(`
             id,
@@ -1181,7 +1181,7 @@ export function ReferenceWizardPage() {
     if (!selectedUd || selectedDepot) return
     const ex = selectedUd.exemplaires.find(e => e.id === selectedExemplaireId)
     if (!ex?.depot_id) return
-    void supabase
+    void supabaseRebond
       .from('ref_depots')
       .select(`
         id,
@@ -1227,9 +1227,9 @@ export function ReferenceWizardPage() {
     setTableUdSearching(true)
     const t = setTimeout(async () => {
       try {
-        let q = supabase
-          .from('ec_tables')
-          .select('annee_debut, annee_fin, type_acte_ids, ud:ref_unites_documentaires!unite_documentaire_id ( id, titre, workflow_statut, statut )')
+        let q = supabaseRebond
+          .from('etat_civil_repertoires')
+          .select('annee_debut, annee_fin, type_acte_ids, ud:unites_documentaires!unite_documentaire_id ( id, titre, workflow_statut:statut_document, statut:statut_source )')
           .lte('annee_debut', anneeDebutNum)
         if (serieCode === 'ETAT_CIVIL' && selectedBureau) {
           q = q.eq('bureau_id', selectedBureau.id)
@@ -1275,13 +1275,13 @@ export function ReferenceWizardPage() {
         const targetType = SERIE_TARGET_TYPE[serieCode ?? ''] ?? null
 
         // Requête 1 : UDs + exemplaires + citations + dépôts
-        const { data: udData, error: udError } = await supabase
-          .from('ref_unites_documentaires')
+        const { data: udData, error: udError } = await supabaseRebond
+          .from('unites_documentaires')
           .select(`
-            id, titre, workflow_statut, statut,
-            ref_exemplaires (
+            id, titre, workflow_statut:statut_document, statut:statut_source,
+            ref_exemplaires:exemplaires (
               id, cote_locale,
-              parent_exemplaire:ref_exemplaires!parent_exemplaire_id (
+              parent_exemplaire:exemplaires!parent_exemplaire_id (
                 id, cote_locale,
                 ref_depots ( nom, ref_institutions ( nom, sigle ) )
               ),
@@ -1322,7 +1322,7 @@ export function ReferenceWizardPage() {
 
           if (targetIds.length > 0) {
             if (targetType === 'ec_acte') {
-              const { data: ecData } = await supabase
+              const { data: ecData } = await supabaseRebond
                 .from('etat_civil_actes')
                 .select('id, type_acte, date, annee, numero_acte, bureau:etat_civil_bureaux!bureau_id(nom, commune)')
                 .in('id', targetIds)
@@ -1338,8 +1338,8 @@ export function ReferenceWizardPage() {
                 })
               }
             } else if (targetType === 'ac_acte') {
-              const { data: acData } = await supabase
-                .from('actes')
+              const { data: acData } = await supabaseRebond
+                .from('notariat_actes')
                 .select('id, label')
                 .in('id', targetIds)
               for (const a of (acData ?? []) as any[]) {
@@ -1440,7 +1440,7 @@ export function ReferenceWizardPage() {
     const acteTitle = acte.intitule.trim() || 'Document sans titre'
     const insertActeExemplaire = async (udId: string) => {
       if (!selectedDepot) return null
-      const { data: ex, error: exErr } = await supabase.from('ref_exemplaires')
+      const { data: ex, error: exErr } = await supabaseRebond.from('exemplaires')
         .insert({
           unite_documentaire_id: udId, depot_id: selectedDepot.id,
           cote_locale: acte.cote || null, localisation_interne: acte.position || null,
@@ -1450,7 +1450,7 @@ export function ReferenceWizardPage() {
       if (exErr) throw exErr
       const exId = ex?.id ?? null
       if (exId && acte.url.trim()) {
-        await supabase.from('ref_acces_numeriques').insert({
+        await supabaseRebond.from('ref_acces_numeriques').insert({
           exemplaire_id: exId, url_base: acte.url.trim(),
           type_acces_id: TYPE_ACCES_URL_ID,
         })
@@ -1459,7 +1459,7 @@ export function ReferenceWizardPage() {
     }
     try {
       if (savedActeId) {
-        await supabase.from('ref_unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
+        await supabaseRebond.from('unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
         if (!savedActeExemplaireId) {
           const exId = await insertActeExemplaire(savedActeId)
           setSavedActeExemplaireId(exId)
@@ -1509,21 +1509,21 @@ export function ReferenceWizardPage() {
       }
       const insertExemplaireAndLinks = async (udId: string, ecTableId: string | null) => {
         if (!selectedDepot) return null
-        const { data: exTbl, error: exErr } = await supabase.from('ref_exemplaires').insert({
+        const { data: exTbl, error: exErr } = await supabaseRebond.from('exemplaires').insert({
           unite_documentaire_id: udId, depot_id: selectedDepot.id,
           cote_locale: table.cote || null, localisation_interne: table.position || null,
         }).select('id').single()
         if (exErr) throw exErr
         const exId = exTbl?.id ?? null
         if (exId && ecTableId) {
-          const { error: citErr } = await supabase.from('citations').insert({
+          const { error: citErr } = await supabaseRebond.from('citations').insert({
             exemplaire_id: exId, target_type: 'ec_table', target_id: ecTableId,
             locating: table.position ? { systems: [{ raw: table.position }] } : {}, is_missing: false,
           })
           if (citErr) throw citErr
         }
         if (exId && table.url.trim()) {
-          await supabase.from('ref_acces_numeriques').insert({
+          await supabaseRebond.from('ref_acces_numeriques').insert({
             exemplaire_id: exId, url_base: table.url.trim(),
             type_acces_id: TYPE_ACCES_URL_ID,
           })
@@ -1533,15 +1533,15 @@ export function ReferenceWizardPage() {
 
       if (savedTableId) {
         // Mise à jour du titre UD
-        await supabase.from('ref_unites_documentaires').update({ titre: tableTitre }).eq('id', savedTableId)
+        await supabaseRebond.from('unites_documentaires').update({ titre: tableTitre }).eq('id', savedTableId)
 
         let ecTableId = savedEcTableId
         if (useStructuredTable) {
           if (savedEcTableId) {
-            await supabase.from('ec_tables').update(buildEcTablePayload(savedTableId)).eq('id', savedEcTableId)
+            await supabaseRebond.from('etat_civil_repertoires').update(buildEcTablePayload(savedTableId)).eq('id', savedEcTableId)
           } else {
-            // ec_tables absent (échec partiel précédent) — on le crée
-            const { data: ecTbl, error: ecErr } = await supabase.from('ec_tables')
+            // etat_civil_repertoires absent (échec partiel précédent) — on le crée
+            const { data: ecTbl, error: ecErr } = await supabaseRebond.from('etat_civil_repertoires')
               .insert(buildEcTablePayload(savedTableId)).select('id').single()
             if (ecErr) throw ecErr
             ecTableId = ecTbl?.id ?? null
@@ -1571,7 +1571,7 @@ export function ReferenceWizardPage() {
 
         let ecTableId: string | null = null
         if (tableId && useStructuredTable) {
-          const { data: ecTbl, error: ecErr } = await supabase.from('ec_tables')
+          const { data: ecTbl, error: ecErr } = await supabaseRebond.from('etat_civil_repertoires')
             .insert(buildEcTablePayload(tableId)).select('id').single()
           if (ecErr) throw ecErr
           ecTableId = ecTbl?.id ?? null
@@ -1606,7 +1606,7 @@ export function ReferenceWizardPage() {
     const typeIds = registreTypeActeIds.includes('tous') ? ecTypeActes.map(t => t.id) : registreTypeActeIds
     const typeLabels = ecTypeActes.filter(t => typeIds.includes(t.id)).map(t => t.label)
 
-    const { data: regData, error: regErr } = await supabase.from('etat_civil_registres').insert({
+    const { data: regData, error: regErr } = await supabaseRebond.from('etat_civil_registres').insert({
       bureau_id: selectedBureau.id,
       annee: anneeInt,
       type_acte: typeLabels.join('|'),
@@ -1617,15 +1617,15 @@ export function ReferenceWizardPage() {
     const domainId = regData?.id ?? null
 
     if (domainId && typeIds.length) {
-      const { error: pivotErr } = await supabase.from('etat_civil_registres_type_acte')
+      const { error: pivotErr } = await supabaseRebond.from('etat_civil_registres_type_acte')
         .insert(typeIds.map(typeId => ({ registre_id: domainId, type_acte_id: typeId })))
       if (pivotErr) throw pivotErr
     }
     if (domainId) {
       try {
-        const { data: def } = await supabase.rpc('create_registre_label', { p_registre_id: domainId })
+        const { data: def } = await supabaseRebond.rpc('create_registre_label', { p_registre_id: domainId })
         const nextLabel = String(def ?? '').trim()
-        if (nextLabel) await supabase.from('etat_civil_registres').update({ label: nextLabel }).eq('id', domainId)
+        if (nextLabel) await supabaseRebond.from('etat_civil_registres').update({ label: nextLabel }).eq('id', domainId)
       } catch (e) {
         console.warn('[ensureRegistreDomain] échec calcul label', e)
       }
@@ -1640,7 +1640,7 @@ export function ReferenceWizardPage() {
 
     const insertExemplaireRegistre = async (udId: string) => {
       if (!selectedDepot) return null
-      const { data: exReg, error: exErr } = await supabase.from('ref_exemplaires').insert({
+      const { data: exReg, error: exErr } = await supabaseRebond.from('exemplaires').insert({
         unite_documentaire_id: udId,
         depot_id: selectedDepot.id,
         cote_locale: registre.cote || null,
@@ -1649,7 +1649,7 @@ export function ReferenceWizardPage() {
       if (exErr) throw exErr
       const exId = exReg?.id ?? null
       if (exId && registre.url.trim()) {
-        await supabase.from('ref_acces_numeriques').insert({
+        await supabaseRebond.from('ref_acces_numeriques').insert({
           exemplaire_id: exId, url_base: registre.url.trim(),
           type_acces_id: TYPE_ACCES_URL_ID,
         })
@@ -1659,7 +1659,7 @@ export function ReferenceWizardPage() {
 
     try {
       if (savedRegistreId) {
-        await supabase.from('ref_unites_documentaires').update({ titre }).eq('id', savedRegistreId)
+        await supabaseRebond.from('unites_documentaires').update({ titre }).eq('id', savedRegistreId)
         if (!savedRegistreExemplaireId) {
           const exId = await insertExemplaireRegistre(savedRegistreId)
           setSavedRegistreExemplaireId(exId)
@@ -1747,10 +1747,10 @@ export function ReferenceWizardPage() {
   }
 
   async function ensureActeCitation(acteDomainId: string, exemplaireId: string) {
-    const { data: existing } = await supabase.from('citations')
+    const { data: existing } = await supabaseRebond.from('citations')
       .select('id').eq('exemplaire_id', exemplaireId).eq('target_type', 'ec_acte').eq('target_id', acteDomainId).maybeSingle()
     if (existing) return
-    await supabase.from('citations').insert({
+    await supabaseRebond.from('citations').insert({
       exemplaire_id: exemplaireId, target_type: 'ec_acte', target_id: acteDomainId,
       locating: acte.position ? { systems: [{ raw: acte.position }] } : {}, is_missing: false,
     })
@@ -1762,14 +1762,14 @@ export function ReferenceWizardPage() {
     try {
       // Lier table → registre
       if (savedTableId && savedRegistreId) {
-        await supabase.from('ref_unites_documentaires')
+        await supabaseRebond.from('unites_documentaires')
           .update({ parent_ud_id: savedRegistreId }).eq('id', savedTableId)
       }
 
       // Lier acte (nouveau) → table ou registre
       const acteParentId = savedTableId ?? savedRegistreId ?? null
       if (savedActeId && !selectedUd && acteParentId) {
-        await supabase.from('ref_unites_documentaires')
+        await supabaseRebond.from('unites_documentaires')
           .update({ parent_ud_id: acteParentId }).eq('id', savedActeId)
       }
 
@@ -1777,7 +1777,7 @@ export function ReferenceWizardPage() {
       // (celui d'un acte existant sélectionné, ou celui du nouvel acte créé)
       const acteExemplaireId = selectedExemplaireId ?? savedActeExemplaireId
       if (acteExemplaireId) {
-        const { error } = await supabase.from('ref_exemplaires')
+        const { error } = await supabaseRebond.from('exemplaires')
           .update({ dans_table: hasTable, dans_registre: hasRegistre }).eq('id', acteExemplaireId)
         if (error) throw error
       }
@@ -1787,7 +1787,7 @@ export function ReferenceWizardPage() {
       if (serieCode === 'ETAT_CIVIL' && savedActeId && !selectedUd && savedRegistreDomainId && selectedBureau && acteTypeActeId && acteDateISO) {
         let acteDomainId = savedActeDomainId
         if (!acteDomainId) {
-          const { data: newActe, error: acteErr } = await supabase.from('etat_civil_actes').insert({
+          const { data: newActe, error: acteErr } = await supabaseRebond.from('etat_civil_actes').insert({
             bureau_id: selectedBureau.id,
             registre_id: savedRegistreDomainId,
             type_acte_ref: acteTypeActeId,
@@ -1820,35 +1820,35 @@ export function ReferenceWizardPage() {
     try {
       if (savedRegistreId) {
         if (savedRegistreExemplaireId) {
-          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedRegistreExemplaireId)
-          await supabase.from('citations').delete().eq('exemplaire_id', savedRegistreExemplaireId)
-          await supabase.from('ref_exemplaires').delete().eq('id', savedRegistreExemplaireId)
+          await supabaseRebond.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedRegistreExemplaireId)
+          await supabaseRebond.from('citations').delete().eq('exemplaire_id', savedRegistreExemplaireId)
+          await supabaseRebond.from('exemplaires').delete().eq('id', savedRegistreExemplaireId)
         }
         if (savedRegistreDomainId) {
-          await supabase.from('etat_civil_registres_type_acte').delete().eq('registre_id', savedRegistreDomainId)
-          await supabase.from('etat_civil_registres').delete().eq('id', savedRegistreDomainId)
+          await supabaseRebond.from('etat_civil_registres_type_acte').delete().eq('registre_id', savedRegistreDomainId)
+          await supabaseRebond.from('etat_civil_registres').delete().eq('id', savedRegistreDomainId)
         }
-        await supabase.from('ref_unites_documentaires').delete().eq('id', savedRegistreId)
+        await supabaseRebond.from('unites_documentaires').delete().eq('id', savedRegistreId)
       }
       if (savedTableId && !selectedTableUd) {
         if (savedTableExemplaireId) {
-          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedTableExemplaireId)
-          await supabase.from('citations').delete().eq('exemplaire_id', savedTableExemplaireId)
-          await supabase.from('ref_exemplaires').delete().eq('id', savedTableExemplaireId)
+          await supabaseRebond.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedTableExemplaireId)
+          await supabaseRebond.from('citations').delete().eq('exemplaire_id', savedTableExemplaireId)
+          await supabaseRebond.from('exemplaires').delete().eq('id', savedTableExemplaireId)
         }
-        if (savedEcTableId) await supabase.from('ec_tables').delete().eq('id', savedEcTableId)
-        await supabase.from('ref_unites_documentaires').delete().eq('id', savedTableId)
+        if (savedEcTableId) await supabaseRebond.from('etat_civil_repertoires').delete().eq('id', savedEcTableId)
+        await supabaseRebond.from('unites_documentaires').delete().eq('id', savedTableId)
       }
       if (savedActeId && !selectedUd) {
         if (savedActeExemplaireId) {
-          await supabase.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedActeExemplaireId)
-          await supabase.from('citations').delete().eq('exemplaire_id', savedActeExemplaireId)
-          await supabase.from('ref_exemplaires').delete().eq('id', savedActeExemplaireId)
+          await supabaseRebond.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedActeExemplaireId)
+          await supabaseRebond.from('citations').delete().eq('exemplaire_id', savedActeExemplaireId)
+          await supabaseRebond.from('exemplaires').delete().eq('id', savedActeExemplaireId)
         }
         if (savedActeDomainId) {
-          await supabase.from('etat_civil_actes').delete().eq('id', savedActeDomainId)
+          await supabaseRebond.from('etat_civil_actes').delete().eq('id', savedActeDomainId)
         }
-        await supabase.from('ref_unites_documentaires').delete().eq('id', savedActeId)
+        await supabaseRebond.from('unites_documentaires').delete().eq('id', savedActeId)
       }
     } catch (err) {
       console.error('[cleanupUnfinished] error:', err)

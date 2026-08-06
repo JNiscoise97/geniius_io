@@ -1,6 +1,6 @@
 // RefSinglePickerSmart.tsx
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { resolveRefTableClient } from '@/lib/supabase/refSchemaRouting';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -235,7 +235,7 @@ export function RefSinglePickerSmart(props: Props) {
 
       if (!isMulti) {
         const id = ids[0];
-        const { data, error } = await supabase
+        const { data, error } = await resolveRefTableClient(table)
           .from(table)
           .select(selectCols)
           .eq('id', id)
@@ -256,7 +256,7 @@ export function RefSinglePickerSmart(props: Props) {
         return;
       }
 
-      const { data, error } = await supabase.from(table).select(selectCols).in('id', ids).limit(ids.length);
+      const { data, error } = await resolveRefTableClient(table).from(table).select(selectCols).in('id', ids).limit(ids.length);
 
       if (cancelled) return;
 
@@ -299,7 +299,7 @@ export function RefSinglePickerSmart(props: Props) {
 
       setLoadingList(true);
 
-      let query = supabase.from(table).select(selectCols).limit(limit);
+      let query = resolveRefTableClient(table).from(table).select(selectCols).limit(limit);
 
       if (resolvedColumns.position) {
         query = query.order('position', { ascending: true });

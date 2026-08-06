@@ -8,7 +8,7 @@ import {
   AlertTriangle, Loader2, MonitorCheck, University,
   Lock, LayoutDashboard,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { usePatrimoine } from './usePatrimoine'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
@@ -370,7 +370,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       const chain: Array<{ id: string; titre: string }> = []
       let currentId: string | null = doc.source_id
       for (let i = 0; i < 6 && currentId; i++) {
-        const { data } = await supabase.from('ref_unites_documentaires')
+        const { data } = await supabaseRebond.from('unites_documentaires')
           .select('id, titre, parent_ud_id').eq('id', currentId).maybeSingle()
         if (!data) break
         chain.push({ id: data.id, titre: data.titre })
@@ -378,7 +378,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       }
       if (!cancelled) setAncestors(chain.reverse())
 
-      const { data: kids } = await supabase.from('ref_unites_documentaires')
+      const { data: kids } = await supabaseRebond.from('unites_documentaires')
         .select('id, titre').eq('parent_ud_id', doc.id).order('titre')
       if (!cancelled) setChildren(kids ?? [])
     }
@@ -394,7 +394,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     let cancelled = false
     async function load() {
       setLoadingActeInfo(true)
-      const { data: ex } = await supabase.from('ref_exemplaires')
+      const { data: ex } = await supabaseRebond.from('exemplaires')
         .select('id, nature_ref, support_ref, pagination_type_ref, nb_pages, conditionnement, physical_condition_ref, description')
         .eq('unite_documentaire_id', doc.id).limit(1).maybeSingle()
       if (cancelled) return
@@ -409,7 +409,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       setDescription(ex.description ?? '')
 
       // Une citation ec_acte ou ec_table (selon le rôle du document) — jamais les deux à la fois.
-      const { data: cit } = await supabase.from('citations')
+      const { data: cit } = await supabaseRebond.from('citations')
         .select('id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
         .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table']).maybeSingle()
       if (cancelled) return
@@ -447,7 +447,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
   useEffect(() => {
     if (!isActe || typeUniteRef) return
     let cancelled = false
-    supabase.from('ref_type_unite').select('id').eq('code', 'piece').maybeSingle()
+    supabaseRebond.from('ref_type_unite').select('id').eq('code', 'piece').maybeSingle()
       .then(({ data }) => { if (!cancelled && data?.id) setTypeUniteRef(data.id) })
     return () => { cancelled = true }
   }, [isActe, typeUniteRef])
@@ -462,7 +462,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       let currentId: string | null = doc.source_id
       let lastCouverture: string | null = null
       for (let i = 0; i < 5 && currentId; i++) {
-        const { data } = await supabase.from('ref_unites_documentaires')
+        const { data } = await supabaseRebond.from('unites_documentaires')
           .select('parent_ud_id, couverture_label').eq('id', currentId).maybeSingle()
         if (!data) break
         lastCouverture = data.couverture_label
@@ -502,7 +502,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     })
 
     if (!error && exemplaireId) {
-      await supabase.from('ref_exemplaires').update({
+      await supabaseRebond.from('exemplaires').update({
         nature_ref: natureRef,
         support_ref: supportRef,
         pagination_type_ref: paginationTypeRef,
@@ -514,7 +514,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     }
 
     if (!error && showStatutSection && citationId) {
-      await supabase.from('citations').update({
+      await supabaseRebond.from('citations').update({
         is_missing: acteIsMissing,
         lacune: acteLacune,
         lacune_note: acteLacune ? (acteLacuneNote.trim() || null) : null,
@@ -1361,7 +1361,7 @@ function CreatePlateformeSheet({ onClose, onDone }: { onClose: () => void; onDon
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from('ref_plateforme_kind').select('id, label, description, categorie').order('categorie, label').then(({ data }) => {
+    supabaseRebond.from('ref_plateforme_kind').select('id, label, description, categorie').order('categorie, label').then(({ data }) => {
       if (data) setKindOptions(data.map((r: any) => ({ id: r.id, label: r.label, description: r.description ?? null, categorie: r.categorie ?? null })))
     })
   }, [])
@@ -1369,7 +1369,7 @@ function CreatePlateformeSheet({ onClose, onDone }: { onClose: () => void; onDon
   async function handleSubmit() {
     if (!label.trim() || !code.trim()) return
     setSubmitting(true); setError(null)
-    const { error: err } = await supabase.from('ref_plateformes').insert({
+    const { error: err } = await supabaseRebond.from('ref_plateformes').insert({
       label: label.trim(),
       code: code.trim().toUpperCase(),
       site_web: siteWeb.trim() || null,
@@ -1440,7 +1440,7 @@ function CreateInstitutionSheet({ onClose, onDone }: { onClose: () => void; onDo
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from('ref_institution_type').select('id, label').order('label').then(({ data }) => {
+    supabaseRebond.from('ref_institution_type').select('id, label').order('label').then(({ data }) => {
       if (data) setTypeOptions(data as Array<{ id: string; label: string }>)
     })
   }, [])
@@ -1449,7 +1449,7 @@ function CreateInstitutionSheet({ onClose, onDone }: { onClose: () => void; onDo
     if (!nom.trim() || !typeRef) return
     setSubmitting(true)
     setError(null)
-    const { error: err } = await supabase.from('ref_institutions').insert({
+    const { error: err } = await supabaseRebond.from('ref_institutions').insert({
       nom: nom.trim(),
       sigle: sigle.trim() || null,
       type_institution_ref: typeRef,
@@ -1557,7 +1557,7 @@ export function PatrimoineDocumentairePage() {
     if (plateformesLoaded.current) return
     plateformesLoaded.current = true
     setPlateformesLoading(true)
-    supabase
+    supabaseRebond
       .from('ref_plateformes')
       .select('id, code, label, site_web, auth_required, ref_plateforme_kind!plateforme_kind_ref(label)')
       .order('label')
@@ -1579,8 +1579,8 @@ export function PatrimoineDocumentairePage() {
     institutionsLoaded.current = true
     setInstitutionsLoading(true)
     Promise.all([
-      supabase.from('ref_institutions').select('id, nom, sigle, pays, commune, site_web, ref_institution_type!type_institution_ref(label)').order('nom'),
-      supabase.from('ref_depots').select('institution_id'),
+      supabaseRebond.from('ref_institutions').select('id, nom, sigle, pays, commune, site_web, ref_institution_type!type_institution_ref(label)').order('nom'),
+      supabaseRebond.from('ref_depots').select('institution_id'),
     ]).then(([instRes, depotsRes]) => {
       const depotCounts: Record<string, number> = {}
       for (const d of (depotsRes.data ?? [])) {

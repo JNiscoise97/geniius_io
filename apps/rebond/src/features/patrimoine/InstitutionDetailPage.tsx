@@ -6,7 +6,7 @@ import {
   Save, AlertTriangle, CheckCircle2, Pencil, Settings, Trash2, Plus,
   Calendar, Check, X, LayoutDashboard, Library,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -553,16 +553,16 @@ export function InstitutionDetailPage() {
       setLoading(true); setError(null)
 
       const [instRes, depotsRes, instTypesRes, depotTypesRes, modeAccesRes, platOptRes] = await Promise.all([
-        supabase.from('ref_institutions')
+        supabaseRebond.from('ref_institutions')
           .select('id, nom, sigle, pays, region, departement, commune, note, type_institution_ref, ref_institution_type!type_institution_ref(label, description, categorie), plateforme_ref, ref_plateformes!plateforme_ref(label, site_web, ref_plateforme_kind!plateforme_kind_ref(label))')
           .eq('id', institutionId).single(),
-        supabase.from('ref_depots')
+        supabaseRebond.from('ref_depots')
           .select('id, nom, type_ref, ref_depot_type!type_ref(code, label, is_online), meme_adresse_institution, adresse, ville, code_postal, pays, note, conditions_communication, modalites_repro, delais_communication, mode_acces_ref, ref_mode_acces!mode_acces_ref(code, label), plateforme_ref, ref_plateformes!plateforme_ref(label, site_web, ref_plateforme_kind!plateforme_kind_ref(label))')
           .eq('institution_id', institutionId).order('nom'),
-        supabase.from('ref_institution_type').select('id, label, description, categorie').order('categorie, label'),
-        supabase.from('ref_depot_type').select('id, code, label, is_online').order('label'),
-        supabase.from('ref_mode_acces').select('id, code, label').order('label'),
-        supabase.from('ref_plateformes').select('id, code, label, site_web, ref_plateforme_kind!plateforme_kind_ref(label)').order('label'),
+        supabaseRebond.from('ref_institution_type').select('id, label, description, categorie').order('categorie, label'),
+        supabaseRebond.from('ref_depot_type').select('id, code, label, is_online').order('label'),
+        supabaseRebond.from('ref_mode_acces').select('id, code, label').order('label'),
+        supabaseRebond.from('ref_plateformes').select('id, code, label, site_web, ref_plateforme_kind!plateforme_kind_ref(label)').order('label'),
       ])
 
       if (cancelled) return
@@ -650,7 +650,7 @@ export function InstitutionDetailPage() {
       region: form.region.trim() || null, pays: form.pays.trim() || null,
       note: form.note.trim() || null,
     }
-    const { error } = await supabase.from('ref_institutions').update(patch).eq('id', institutionId)
+    const { error } = await supabaseRebond.from('ref_institutions').update(patch).eq('id', institutionId)
     setSaving(false)
     if (error) { setSaveError(error.message); return }
     const selectedType = institutionTypes.find(t => t.id === form.type_ref) ?? null
@@ -719,7 +719,7 @@ export function InstitutionDetailPage() {
     if (!dirtyDepots) return
     setSavingDepots(true); setSaveDepotError(null)
     for (const f of depotForms) {
-      const { error } = await supabase.from('ref_depots').update(buildDepotPatch(f)).eq('id', f.id)
+      const { error } = await supabaseRebond.from('ref_depots').update(buildDepotPatch(f)).eq('id', f.id)
       if (error) { setSaveDepotError(error.message); setSavingDepots(false); return }
     }
     setDepots(prev => prev.map(d => {
@@ -737,7 +737,7 @@ export function InstitutionDetailPage() {
 
   const deleteDepot = async (id: string, nom: string | null) => {
     if (!window.confirm(`Supprimer "${nom ?? 'ce dépôt'}" ?`)) return
-    const { error } = await supabase.from('ref_depots').delete().eq('id', id)
+    const { error } = await supabaseRebond.from('ref_depots').delete().eq('id', id)
     if (error) { toast.error(error.message); return }
     setDepots(prev => prev.filter(d => d.id !== id))
     if (isEditingDepots) setDepotForms(prev => prev.filter(f => f.id !== id))
@@ -747,7 +747,7 @@ export function InstitutionDetailPage() {
   const createDepot = async () => {
     if (!institutionId || !newDepot.type_ref) return
     setSavingNewDepot(true)
-    const { data, error } = await supabase.from('ref_depots')
+    const { data, error } = await supabaseRebond.from('ref_depots')
       .insert({ institution_id: institutionId, ...buildDepotPatch(newDepot) })
       .select('id').single()
     setSavingNewDepot(false)
@@ -783,8 +783,8 @@ export function InstitutionDetailPage() {
     if (!institutionId) return
     if (!window.confirm(`Supprimer "${institution?.nom}" ainsi que ses dépôts associés ?`)) return
     setMenuOpen(false); setDeleting(true)
-    await supabase.from('ref_depots').delete().eq('institution_id', institutionId)
-    const { error } = await supabase.from('ref_institutions').delete().eq('id', institutionId)
+    await supabaseRebond.from('ref_depots').delete().eq('institution_id', institutionId)
+    const { error } = await supabaseRebond.from('ref_institutions').delete().eq('id', institutionId)
     setDeleting(false)
     if (error) { toast.error('Erreur lors de la suppression'); return }
     toast.success('Institution supprimée'); navigate(-1)

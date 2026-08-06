@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
+import { supabaseRebond } from '@/lib/supabase';
 import type { EtatCivilBureau } from '@/types/etatcivil';
 import { Building2, MapPin, AlertTriangle } from 'lucide-react';
 
@@ -272,7 +272,7 @@ export function BureauCreateModal({
                       region: region.trim() ? region.trim() : null,
                     };
 
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseRebond
                       .from('etat_civil_bureaux')
                       .insert([payload])
                       .select()

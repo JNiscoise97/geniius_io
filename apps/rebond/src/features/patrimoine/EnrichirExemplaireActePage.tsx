@@ -5,7 +5,7 @@ import {
   University, AlertTriangle, CheckCircle2, Pencil, Plus, Trash2,
   Tag, FileText, PenLine, Eye, Lock, Unlock, Save, LayoutDashboard, Library,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
 import type { ActeCitationDraft } from '@/features/archives/reference/types'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -318,8 +318,8 @@ export function EnrichirExemplaireActePage() {
       setLoading(true); setError(null)
 
       const [ptRes, citRes] = await Promise.all([
-        supabase.from('ref_pagination_type').select('id, code, label'),
-        supabase.from('citations')
+        supabaseRebond.from('ref_pagination_type').select('id, code, label'),
+        supabaseRebond.from('citations')
           .select('id, target_id, exemplaire_id, is_missing, lacune, lacune_note, note, sort_order, repro_quality_ref, marks, locating, marginalia, writing')
           .eq('id', citationId).single(),
       ])
@@ -330,7 +330,7 @@ export function EnrichirExemplaireActePage() {
 
       let pick: any = null
       if (citRes.data.exemplaire_id) {
-        const { data } = await supabase
+        const { data } = await supabaseRebond
           .from('v_exemplaires_pick')
           .select('exemplaire_id,nature_ref,nature_code,nature_label,support_ref,support_code,support_label,unite_id,unite_titre,cote_locale,pagination_type_ref,pagination_type_code,pagination_type_label,nb_pages,depot_nom,depot_is_online,depot_is_physical,institution_nom,institution_sigle,institution_commune,institution_pays,institution_type_label,url_base,plateforme_code,source_exemplaire_id,identifiant_interne,localisation_interne,physical_condition_ref,physical_condition_code,physical_condition_label')
           .eq('exemplaire_id', citRes.data.exemplaire_id)
@@ -340,8 +340,8 @@ export function EnrichirExemplaireActePage() {
 
       let couvertureLabel: string | null = null
       if (citRes.data.exemplaire_id) {
-        const { data: exRow } = await supabase
-          .from('ref_exemplaires').select('couverture_label')
+        const { data: exRow } = await supabaseRebond
+          .from('exemplaires').select('couverture_label')
           .eq('id', citRes.data.exemplaire_id).maybeSingle()
         couvertureLabel = exRow?.couverture_label ?? null
       }
@@ -384,7 +384,7 @@ export function EnrichirExemplaireActePage() {
     if (!draft?.exemplaire_id) return
     setSavingLabel(true)
     const couvertureToSave = couvertureLabelLocked ? null : (couvertureLabelDraft.trim() || null)
-    const { error: err } = await supabase.from('ref_exemplaires')
+    const { error: err } = await supabaseRebond.from('exemplaires')
       .update({ couverture_label: couvertureToSave }).eq('id', draft.exemplaire_id)
     setSavingLabel(false)
     if (err) { toast.error(err.message); return }
@@ -416,7 +416,7 @@ export function EnrichirExemplaireActePage() {
     if (!draft || !citationId) return
     setSavingStatLoc(true)
     const c = draft as any
-    const { error: err } = await supabase.from('citations').update({
+    const { error: err } = await supabaseRebond.from('citations').update({
       is_missing: toBoolOrNull(c.is_missing),
       lacune: toBoolOrNull(c.lacune),
       lacune_note: (c.lacune_note ?? '').trim() || null,
@@ -465,7 +465,7 @@ export function EnrichirExemplaireActePage() {
     if (!draft || !citationId) return
     setSavingMarques(true)
     const c = draft as any
-    const { error: err } = await supabase.from('citations').update({
+    const { error: err } = await supabaseRebond.from('citations').update({
       marginalia: packMarginalia(c),
       marks: (c.marks ?? '').trim() || null,
       note: (draft.note ?? '').trim() || null,
@@ -503,16 +503,16 @@ export function EnrichirExemplaireActePage() {
     const unite_id = (draft as any)?.exemplaire?.unite_id
 
     const [citErr, exErr, udErr] = await Promise.all([
-      supabase.from('citations').update({
+      supabaseRebond.from('citations').update({
         repro_quality_ref: toUuidOrNull(c.repro_quality_ref),
         writing: packWriting(c),
       }).eq('id', citationId).then(r => r.error),
-      exemplaire_id ? supabase.from('ref_exemplaires').update({
+      exemplaire_id ? supabaseRebond.from('exemplaires').update({
         physical_condition_ref: toUuidOrNull(c.physical_condition_ref),
         document_damage_kinds_ids: Array.isArray(c.document_damage_kinds_ids) ? c.document_damage_kinds_ids : [],
         document_readability_features_ids: Array.isArray(c.document_readability_features_ids) ? c.document_readability_features_ids : [],
       }).eq('id', exemplaire_id).then(r => r.error) : Promise.resolve(null),
-      unite_id ? supabase.from('ref_unites_documentaires').update({
+      unite_id ? supabaseRebond.from('unites_documentaires').update({
         langue_ref: toUuidOrNull(c.langue_ref),
       }).eq('id', unite_id).then(r => r.error) : Promise.resolve(null),
     ])

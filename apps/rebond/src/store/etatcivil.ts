@@ -1,6 +1,6 @@
 // @/store/etatcivil.ts
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { supabaseRebond } from '@/lib/supabase';
 import type { EtatCivilBureau, EtatCivilRegistre } from '@/types/etatcivil';
 
 type BureauStats = {
@@ -25,7 +25,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
   fetchBureaux: async () => {
     set({ loading: true });
 
-    const { data: rawBureaux, error: errorBureaux } = await supabase
+    const { data: rawBureaux, error: errorBureaux } = await supabaseRebond
       .from('etat_civil_bureaux')
       .select('id, nom, commune, departement, region');
 
@@ -35,7 +35,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
       return;
     }
 
-    const { data: stats, error: errorStats } = await supabase.rpc('get_bureau_stats');
+    const { data: stats, error: errorStats } = await supabaseRebond.rpc('get_bureau_stats');
 
     if (!stats || errorStats) {
       console.error('Erreur RPC get_bureau_stats :', errorStats?.message);
@@ -81,7 +81,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
   fetchBureau: async (id: string): Promise<EtatCivilBureau | undefined> => {
     set({ loading: true });
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseRebond
       .from('etat_civil_bureaux')
       .select('id, nom, commune, departement, region')
       .eq('id', id)
@@ -93,7 +93,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
       return undefined;
     }
 
-    const { data: stat, error: errorStat } = await supabase
+    const { data: stat, error: errorStat } = await supabaseRebond
       .rpc('get_bureau_stats')
       .eq('bureau_id', id);
 
@@ -103,7 +103,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
       return undefined;
     }
 
-    const { data: registres, error: errorRegistres } = await supabase
+    const { data: registres, error: errorRegistres } = await supabaseRebond
       .from('etat_civil_registres')
       .select(
         `
@@ -186,7 +186,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
   fetchRegistre: async (id: string): Promise<EtatCivilRegistre | undefined> => {
     set({ loading: true });
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseRebond
       .from('etat_civil_registres')
       .select(
         `
@@ -206,7 +206,7 @@ export const useEtatCivilStore = create<EtatCivilStore>((set) => ({
     registre_norme_ref,
         nombre_actes_estime,
         actes:etat_civil_actes (
-          id, bureau_id, registre_id, date, heure, annee, source, type_acte, numero_acte, comparution_mairie, label, status, transcription,auteur_institutionnel_ref,type_acte_ref, type_acte_ref_obj:ref_ec_type_acte ( id, code, label, color )
+          id, bureau_id, registre_id, date, heure, annee, source, type_acte, numero_acte, comparution_mairie, label, status, transcription,auteur_institutionnel_ref,type_acte_ref, type_acte_ref_obj:ref_etat_civil_type_acte ( id, code, label, color )
         )
       `
       )
