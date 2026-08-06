@@ -7,7 +7,7 @@
 export type SourceType = 'etat-civil' | 'foncier' | 'annuaire' | 'notarial' | 'paroissial'
 export type SourceStatut = 'actif' | 'archivé' | 'incomplet' | 'a_qualifier'
 export type Acces = 'physique' | 'numerique' | 'en_ligne'
-export type DocStatut = 'transcrit' | 'en_cours' | 'decrit' | 'annote' | 'en_attente'
+export type DocStatut = 'transcrit' | 'en_cours' | 'decrit' | 'annote' | 'en_attente' | 'a_transcrire'
 export type DocRole = 'ACTE_PRIMAIRE' | 'INSTRUMENT_DE_RECHERCHE' | 'REGISTRE_COMPILE'
 export type NiveauConservation = 'bon' | 'moyen' | 'degrade' | 'fragmentaire'
 export type CorpusType = 'genealogique' | 'patrimonial' | 'territorial' | 'communaute'

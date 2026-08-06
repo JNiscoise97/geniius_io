@@ -671,7 +671,7 @@ function RWStepDescribeTableEC({
   tableLieu, setTableLieu,
   bureauQuery, setBureauQuery, bureauResults, bureauSearching, selectedBureau, setSelectedBureau,
   tableIntitule,
-  tableUdSearching, tableUdMatches,
+  tableUdSearching, tableUdMatches, tableUdSearchError,
   selectedTableUd, setSelectedTableUd,
   depotQuery, setDepotQuery, depotResults, depotSearching, selectedDepot, setSelectedDepot,
   level, patch,
@@ -691,6 +691,7 @@ function RWStepDescribeTableEC({
   tableIntitule: string | null
   tableUdSearching: boolean
   tableUdMatches: Array<{ id: string; titre: string; statut: string | null; workflow_statut: string }>
+  tableUdSearchError: boolean
   selectedTableUd: { id: string; titre: string } | null
   setSelectedTableUd: (v: { id: string; titre: string } | null) => void
   depotQuery: string; setDepotQuery: (v: string) => void
@@ -826,7 +827,12 @@ function RWStepDescribeTableEC({
                   </div>
                 </div>
               )}
-              {!tableUdSearching && tableIntitule && lieuValue.trim() && tableUdMatches.length === 0 && (
+              {!tableUdSearching && tableUdSearchError && (
+                <p className="text-xs text-red-600 px-1 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />La recherche de tables similaires a échoué — vérifie manuellement avant de créer
+                </p>
+              )}
+              {!tableUdSearching && !tableUdSearchError && tableIntitule && lieuValue.trim() && tableUdMatches.length === 0 && (
                 <p className="text-xs text-emerald-600 px-1 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />Aucune table similaire trouvée
                 </p>
@@ -1038,6 +1044,7 @@ export function ReferenceWizardPage() {
   const [selectedTableUd,  setSelectedTableUd]  = useState<{ id: string; titre: string } | null>(null)
   const [tableUdMatches,   setTableUdMatches]   = useState<Array<{ id: string; titre: string; statut: string | null; workflow_statut: string }>>([])
   const [tableUdSearching, setTableUdSearching] = useState(false)
+  const [tableUdSearchError, setTableUdSearchError] = useState(false)
   const [hasRegistre,         setHasRegistre]         = useState<boolean | null>(null)
   const [registre,            setRegistre]            = useState<RWLevel>({ ...RW_EMPTY })
   const [registreTypeActeIds, setRegistreTypeActeIds] = useState<string[]>([])
@@ -1054,6 +1061,7 @@ export function ReferenceWizardPage() {
   const [showNewExemplaire,    setShowNewExemplaire]    = useState(false)
   const [udMatches,            setUdMatches]            = useState<UDMatch[]>([])
   const [udSearching,          setUdSearching]          = useState(false)
+  const [udSearchError,        setUdSearchError]        = useState(false)
   const [depotQuery,     setDepotQuery]     = useState('')
   const [depotResults,   setDepotResults]   = useState<DepotOption[]>([])
   const [depotSearching, setDepotSearching] = useState(false)
@@ -1215,6 +1223,7 @@ export function ReferenceWizardPage() {
     if (step !== 'table' || !serieId || !tableIntitule || !tableLieuForTitle.trim()) {
       setTableUdMatches([])
       setTableUdSearching(false)
+      setTableUdSearchError(false)
       return
     }
     const anneeDebutNum = parseInt(tableAnneeDebut.trim(), 10)
@@ -1222,9 +1231,11 @@ export function ReferenceWizardPage() {
     if (Number.isNaN(anneeDebutNum) || Number.isNaN(anneeFinNum)) {
       setTableUdMatches([])
       setTableUdSearching(false)
+      setTableUdSearchError(false)
       return
     }
     setTableUdSearching(true)
+    setTableUdSearchError(false)
     const t = setTimeout(async () => {
       try {
         let q = supabaseRebond
@@ -1254,6 +1265,8 @@ export function ReferenceWizardPage() {
         setTableUdMatches(mapped)
       } catch (err) {
         console.error('table dedup', err)
+        setTableUdMatches([])
+        setTableUdSearchError(true)
       } finally {
         setTableUdSearching(false)
       }
@@ -1267,9 +1280,11 @@ export function ReferenceWizardPage() {
     if (step !== 'acte' || !serieId || q.length < 3) {
       setUdMatches([])
       setUdSearching(false)
+      setUdSearchError(false)
       return
     }
     setUdSearching(true)
+    setUdSearchError(false)
     const t = setTimeout(async () => {
       try {
         const targetType = SERIE_TARGET_TYPE[serieCode ?? ''] ?? null
@@ -1409,6 +1424,8 @@ export function ReferenceWizardPage() {
         setUdMatches(mapped)
       } catch (err) {
         console.error('dedup search', err)
+        setUdMatches([])
+        setUdSearchError(true)
       } finally {
         setUdSearching(false)
       }
@@ -1450,16 +1467,18 @@ export function ReferenceWizardPage() {
       if (exErr) throw exErr
       const exId = ex?.id ?? null
       if (exId && acte.url.trim()) {
-        await supabaseRebond.from('ref_acces_numeriques').insert({
+        const { error: accesErr } = await supabaseRebond.from('ref_acces_numeriques').insert({
           exemplaire_id: exId, url_base: acte.url.trim(),
           type_acces_id: TYPE_ACCES_URL_ID,
         })
+        if (accesErr) throw accesErr
       }
       return exId
     }
     try {
       if (savedActeId) {
-        await supabaseRebond.from('unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
+        const { error: titreErr } = await supabaseRebond.from('unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
+        if (titreErr) throw titreErr
         if (!savedActeExemplaireId) {
           const exId = await insertActeExemplaire(savedActeId)
           setSavedActeExemplaireId(exId)
@@ -1523,17 +1542,19 @@ export function ReferenceWizardPage() {
           if (citErr) throw citErr
         }
         if (exId && table.url.trim()) {
-          await supabaseRebond.from('ref_acces_numeriques').insert({
+          const { error: accesErr } = await supabaseRebond.from('ref_acces_numeriques').insert({
             exemplaire_id: exId, url_base: table.url.trim(),
             type_acces_id: TYPE_ACCES_URL_ID,
           })
+          if (accesErr) throw accesErr
         }
         return exId
       }
 
       if (savedTableId) {
         // Mise à jour du titre UD
-        await supabaseRebond.from('unites_documentaires').update({ titre: tableTitre }).eq('id', savedTableId)
+        const { error: titreErr } = await supabaseRebond.from('unites_documentaires').update({ titre: tableTitre }).eq('id', savedTableId)
+        if (titreErr) throw titreErr
 
         let ecTableId = savedEcTableId
         if (useStructuredTable) {
@@ -1649,17 +1670,19 @@ export function ReferenceWizardPage() {
       if (exErr) throw exErr
       const exId = exReg?.id ?? null
       if (exId && registre.url.trim()) {
-        await supabaseRebond.from('ref_acces_numeriques').insert({
+        const { error: accesErr } = await supabaseRebond.from('ref_acces_numeriques').insert({
           exemplaire_id: exId, url_base: registre.url.trim(),
           type_acces_id: TYPE_ACCES_URL_ID,
         })
+        if (accesErr) throw accesErr
       }
       return exId
     }
 
     try {
       if (savedRegistreId) {
-        await supabaseRebond.from('unites_documentaires').update({ titre }).eq('id', savedRegistreId)
+        const { error: titreErr } = await supabaseRebond.from('unites_documentaires').update({ titre }).eq('id', savedRegistreId)
+        if (titreErr) throw titreErr
         if (!savedRegistreExemplaireId) {
           const exId = await insertExemplaireRegistre(savedRegistreId)
           setSavedRegistreExemplaireId(exId)
@@ -2045,7 +2068,12 @@ export function ReferenceWizardPage() {
                 </div>
               </div>
             )}
-            {!udSearching && acte.intitule.trim().length >= 3 && udMatches.length === 0 && (
+            {!udSearching && udSearchError && (
+              <p className="text-xs text-red-600 px-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />La recherche de doublons a échoué — vérifie manuellement avant de créer
+              </p>
+            )}
+            {!udSearching && !udSearchError && acte.intitule.trim().length >= 3 && udMatches.length === 0 && (
               <p className="text-xs text-emerald-600 px-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />Aucun doublon trouvé
               </p>
@@ -2184,7 +2212,7 @@ export function ReferenceWizardPage() {
           bureauResults={bureauResults}     bureauSearching={bureauSearching}
           selectedBureau={selectedBureau}   setSelectedBureau={setSelectedBureau}
           tableIntitule={tableIntitule}
-          tableUdSearching={tableUdSearching} tableUdMatches={tableUdMatches}
+          tableUdSearching={tableUdSearching} tableUdMatches={tableUdMatches} tableUdSearchError={tableUdSearchError}
           selectedTableUd={selectedTableUd}   setSelectedTableUd={setSelectedTableUd}
           depotQuery={depotQuery}         setDepotQuery={setDepotQuery}
           depotResults={depotResults}     depotSearching={depotSearching}

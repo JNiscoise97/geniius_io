@@ -18,9 +18,9 @@ référencement pour adapter son vocabulaire selon la série choisie.
 
 ## Relations
 
-Référencée par `public.ref_unites_documentaires.serie_ref` (table pas encore
-migrée) — par valeur d'id scalaire, aucune jointure embarquée dans le code
-actuel.
+Référencée par `rebond.unites_documentaires.serie_ref` (renommée depuis
+`public.ref_unites_documentaires`) — par valeur d'id scalaire, aucune
+jointure embarquée dans le code actuel.
 
 ## Trigger
 

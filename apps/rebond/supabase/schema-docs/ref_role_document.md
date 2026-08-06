@@ -18,12 +18,11 @@ Qualifie `ref_unites_documentaires.role_document_ref`.
 
 ## Relations
 
-Référencée par `public.ref_unites_documentaires.role_document_ref` (table pas
-encore migrée) — y compris via une jointure embarquée PostgREST
-(`ref_role_document!role_document_ref(...)`) dans `patrimoine.service.ts`.
-Cette jointure continue de fonctionner sans modification : elle s'exécute
-contre `public.ref_unites_documentaires`, et `public.ref_role_document`
-n'est ni supprimée ni renommée par la migration (additive).
+Référencée par `rebond.unites_documentaires.role_document_ref` (renommée
+depuis `public.ref_unites_documentaires`, voir schema-docs/unites_documentaires.md)
+— y compris via une jointure embarquée PostgREST
+(`ref_role_document!role_document_ref(...)`) dans `patrimoine.service.ts`,
+qui s'exécute désormais entièrement contre le schéma `rebond`.
 
 ## Trigger
 

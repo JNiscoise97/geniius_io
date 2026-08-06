@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, fetchCitationsWithExemplaires, insertDocumentUD,
+  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, fetchCitationsWithExemplaires,
   type VSourceRow, type UDDocRow, type CorpusDBRow, type CitationExemplaireRow,
 } from './patrimoine.service'
 import type {
@@ -89,7 +89,7 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
   // "Décrire" met à jour. On ne retombe sur ref_exemplaires.localisation_interne (posé une
   // seule fois par le wizard, jamais réédité) que si aucune citation n'existe (ex. un registre).
   const citation = ex?.citations?.find(c => c.target_type === 'ec_acte' || c.target_type === 'ec_table')
-  const citationRaw = (citation?.locating as any)?.systems?.[0]?.raw
+  const citationRaw = citation?.locating?.systems?.[0]?.raw
   const vue = (typeof citationRaw === 'string' && citationRaw.trim()) ? citationRaw : (ex?.localisation_interne ?? null)
 
   return {
@@ -179,17 +179,5 @@ export function usePatrimoine() {
 
   useEffect(() => { load() }, [load])
 
-  const addDoc = useCallback(async (payload: {
-    titre: string
-    parent_ud_id: string | null
-    couverture_label?: string | null
-    cote?: string | null
-    note?: string | null
-  }) => {
-    const { error } = await insertDocumentUD(payload)
-    if (error) throw error
-    await load()
-  }, [load])
-
-  return { sources, docs, corpus, citationsData, loading, error, refetch: load, addDoc }
+  return { sources, docs, corpus, citationsData, loading, error, refetch: load }
 }

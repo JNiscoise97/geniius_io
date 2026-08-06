@@ -3,6 +3,7 @@
 // Toutes les fonctions retournent { data, error } sans throw.
 
 import { supabaseRebond } from '@/lib/supabase'
+import type { LocatingJson, MarginaliaJson } from './citationJsonb'
 
 // ── Types DB bruts ────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ export type UDDocRow = {
     note: string | null
     localisation_interne: string | null
     ref_acces_numeriques: Array<{ url_base: string | null }>
-    citations: Array<{ target_type: string; locating: Record<string, unknown> | null }>
+    citations: Array<{ target_type: string; locating: LocatingJson | null }>
   }>
 }
 
@@ -115,6 +116,7 @@ export async function fetchDocuments() {
     .not('parent_ud_id', 'is', null)
     .order('couverture_label', { ascending: true, nullsFirst: false })
     .order('titre', { ascending: true })
+    .order('created_at', { ascending: true, foreignTable: 'ref_exemplaires' })
   return { data: data as UDDocRow[] | null, error }
 }
 
@@ -142,6 +144,7 @@ export async function fetchOrphans() {
     .is('parent_ud_id', null)
     .eq('statut_document', 'en_attente')
     .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true, foreignTable: 'ref_exemplaires' })
   return { data: data as UDDocRow[] | null, error }
 }
 
@@ -162,30 +165,6 @@ export async function fetchCorpus() {
     `)
     .order('created_at', { ascending: false })
   return { data: data as CorpusDBRow[] | null, error }
-}
-
-// ── Identifier une source (step 1 de P1.1) ───────────────────
-
-export async function identifierSource(payload: {
-  domaine: string
-  titre: string
-  institution_saisie?: string
-}) {
-  const meta: Record<string, string> = { domaine: payload.domaine }
-  if (payload.institution_saisie?.trim()) meta.institution_saisie = payload.institution_saisie.trim()
-
-  const { data, error } = await supabaseRebond
-    .from('unites_documentaires')
-    .insert({
-      titre: payload.titre.trim(),
-      type_unite_ref: 'autre',
-      statut_source: 'a_qualifier',
-      statut_document: 'decrit',
-      metadonnees: meta,
-    })
-    .select('id')
-    .single()
-  return { data, error }
 }
 
 // ── Qualifier une source (step 2 de P1.1) ────────────────────
@@ -270,8 +249,8 @@ export type CitationExemplaireRow = {
   is_missing: boolean | null
   lacune: boolean | null
   lacune_note: string | null
-  locating: Record<string, any> | null
-  marginalia: Record<string, any> | null
+  locating: LocatingJson | null
+  marginalia: MarginaliaJson | null
   note: string | null
   unite_titre: string | null
   cote_locale: string | null

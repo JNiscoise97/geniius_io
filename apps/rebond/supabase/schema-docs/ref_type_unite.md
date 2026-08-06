@@ -17,9 +17,9 @@ Qualifie `ref_unites_documentaires.type_unite_ref`.
 
 ## Relations
 
-Référencée par `public.ref_unites_documentaires.type_unite_ref` (table pas
-encore migrée) — par valeur d'id scalaire, aucune jointure embarquée dans le
-code actuel.
+Référencée par `rebond.unites_documentaires.type_unite_ref` (renommée depuis
+`public.ref_unites_documentaires`) — par valeur d'id scalaire, aucune
+jointure embarquée dans le code actuel.
 
 ## Écarts vs `public.ref_type_unite`
 

@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   qualifierSource, decrireDocument, rattacherDocument, fetchRoleDocumentOptions,
 } from './patrimoine.service'
+import { unpackMarginalia, packMarginalia, unpackWriting, packWriting, toIntOrNull } from './citationJsonb'
 import type {
   PatrimoineSource as Source,
   PatrimoineDocument as Document,
@@ -56,12 +57,14 @@ const ACCES_CONFIG: Record<Acces, { label: string; color: string }> = {
 }
 
 const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: string }> = {
+  a_transcrire: { label: 'À transcrire', color: 'text-slate-600 bg-slate-50 border-slate-200',       dot: 'bg-slate-400' },
   transcrit:    { label: 'Transcrit',    color: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
   en_cours:     { label: 'En cours',     color: 'text-blue-700 bg-blue-50 border-blue-200',          dot: 'bg-blue-400' },
   decrit:       { label: 'Décrit',       color: 'text-gray-500 bg-gray-50 border-gray-200',          dot: 'bg-gray-300' },
   annote:       { label: 'Annoté',       color: 'text-violet-700 bg-violet-50 border-violet-200',    dot: 'bg-violet-500' },
   en_attente:   { label: 'En attente',   color: 'text-orange-700 bg-orange-50 border-orange-200',    dot: 'bg-orange-400' },
 }
+const STATUT_DOC_FALLBACK = { label: 'Statut inconnu', color: 'text-gray-500 bg-gray-50 border-gray-200', dot: 'bg-gray-300' }
 
 const ROLE_CONFIG: Record<DocRole, { label: string; color: string }> = {
   ACTE_PRIMAIRE:           { label: 'Acte',                    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
@@ -169,9 +172,6 @@ function Field({ label, required, children }: { label: string; required?: boolea
 const inputCls = 'w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
 const selectCls = `${inputCls} cursor-pointer`
 
-// ─── Identifier une source (P1.1 step 1) ─────────────────────────────────────
-
-
 // ─── Qualifier une source (P1.1 step 2) ──────────────────────────────────────
 
 type RoleOption = { id: string; code: string; label: string }
@@ -196,7 +196,8 @@ function QualifierSourceSheet({ source, roleOptions, onClose, onDone }: {
       metadonnees: (source as any)._meta ?? null,
     })
     setSubmitting(false)
-    if (!error) onDone()
+    if (error) { toast.error(error.message); return }
+    onDone()
   }
 
   return (
@@ -244,61 +245,6 @@ function QualifierSourceSheet({ source, roleOptions, onClose, onDone }: {
 }
 
 // ─── Décrire un document (P1.2 step 2) ───────────────────────────────────────
-
-// ── JSONB pack/unpack pour citations.marginalia / citations.writing ──────────
-
-function unpackMarginalia(mar: Record<string, any> | null) {
-  const present = mar?.present ?? {}
-  const count = mar?.count ?? {}
-  return {
-    signatures_present: present.signatures ?? null,
-    signatures_count: count.signatures ?? null,
-    marginal_mentions_present: present.marginal_mentions ?? null,
-    marginal_mentions_count: count.marginal_mentions ?? null,
-    marginal_crossouts_present: present.marginal_crossouts ?? null,
-    marginal_crossouts_count: count.marginal_crossouts ?? null,
-  }
-}
-
-function packMarginalia(c: {
-  signatures_present: boolean | null; signatures_count: number | null
-  marginal_mentions_present: boolean | null; marginal_mentions_count: number | null
-  marginal_crossouts_present: boolean | null; marginal_crossouts_count: number | null
-}): Record<string, any> {
-  return {
-    present: {
-      signatures: c.signatures_present,
-      marginal_mentions: c.marginal_mentions_present,
-      marginal_crossouts: c.marginal_crossouts_present,
-    },
-    count: {
-      signatures: c.signatures_present === true ? c.signatures_count : null,
-      marginal_mentions: c.marginal_mentions_present === true ? c.marginal_mentions_count : null,
-      marginal_crossouts: c.marginal_crossouts_present === true ? c.marginal_crossouts_count : null,
-    },
-  }
-}
-
-function unpackWriting(wr: Record<string, any> | null) {
-  return {
-    ecriture_ref: wr?.ecriture_ref ?? null,
-    handwriting_legibility_ref: wr?.legibility_ref ?? null,
-    damage_notes: wr?.damage_notes ?? '',
-    repro_notes: wr?.repro_notes ?? '',
-  }
-}
-
-function packWriting(c: {
-  ecriture_ref: string | null; handwriting_legibility_ref: string | null
-  damage_notes: string; repro_notes: string
-}): Record<string, any> {
-  const wr: Record<string, any> = {}
-  if (c.ecriture_ref) wr.ecriture_ref = c.ecriture_ref
-  if (c.handwriting_legibility_ref) wr.legibility_ref = c.handwriting_legibility_ref
-  if (c.damage_notes.trim()) wr.damage_notes = c.damage_notes.trim()
-  if (c.repro_notes.trim()) wr.repro_notes = c.repro_notes.trim()
-  return wr
-}
 
 function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
@@ -479,68 +425,70 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
 
   const canSubmit = !!typeUniteRef && !!roleRef && periode.trim().length > 0 && acteFormComplete && !submitting
 
-  function toIntOrNull(v: string): number | null {
-    const s = v.trim()
-    if (!s || !/^\d+$/.test(s)) return null
-    return Number(s)
-  }
-
   async function handleSubmit() {
     if (!canSubmit) return
     setSubmitting(true)
-    const meta: Record<string, unknown> = {}
-    if (note.trim()) meta.note = note.trim()
+    try {
+      const meta: Record<string, unknown> = {}
+      if (note.trim()) meta.note = note.trim()
 
-    const { error } = await decrireDocument(doc.id, {
-      type_unite_ref: typeUniteRef,
-      role_document_ref: roleRef || null,
-      langue_ref: langueRef,
-      couverture_label: periode || null,
-      identifiant_interne: identifiantInterne.trim() || null,
-      niveau_fiabilite: niveauFiabilite,
-      metadonnees: Object.keys(meta).length ? meta : null,
-    })
+      const { error } = await decrireDocument(doc.id, {
+        type_unite_ref: typeUniteRef,
+        role_document_ref: roleRef || null,
+        langue_ref: langueRef,
+        couverture_label: periode || null,
+        identifiant_interne: identifiantInterne.trim() || null,
+        niveau_fiabilite: niveauFiabilite,
+        metadonnees: Object.keys(meta).length ? meta : null,
+      })
+      if (error) throw error
 
-    if (!error && exemplaireId) {
-      await supabaseRebond.from('exemplaires').update({
-        nature_ref: natureRef,
-        support_ref: supportRef,
-        pagination_type_ref: paginationTypeRef,
-        nb_pages: toIntOrNull(nbPages),
-        conditionnement: conditionnement.trim() || null,
-        physical_condition_ref: physicalConditionRef,
-        description: description.trim() || null,
-      }).eq('id', exemplaireId)
+      if (exemplaireId) {
+        const { error: exErr } = await supabaseRebond.from('exemplaires').update({
+          nature_ref: natureRef,
+          support_ref: supportRef,
+          pagination_type_ref: paginationTypeRef,
+          nb_pages: toIntOrNull(nbPages),
+          conditionnement: conditionnement.trim() || null,
+          physical_condition_ref: physicalConditionRef,
+          description: description.trim() || null,
+        }).eq('id', exemplaireId)
+        if (exErr) throw exErr
+      }
+
+      if (showStatutSection && citationId) {
+        const { error: citErr } = await supabaseRebond.from('citations').update({
+          is_missing: acteIsMissing,
+          lacune: acteLacune,
+          lacune_note: acteLacune ? (acteLacuneNote.trim() || null) : null,
+          locating: acteIsMissing ? {} : { systems: [{ raw: actePosition.trim() }] },
+          repro_quality_ref: reproQualityRef,
+          marks: marks.trim() || null,
+          note: citationNote.trim() || null,
+          writing: packWriting({
+            ecriture_ref: ecritureRef,
+            handwriting_legibility_ref: handwritingLegibilityRef,
+            damage_notes: damageNotes,
+            repro_notes: reproNotes,
+          }),
+          marginalia: packMarginalia({
+            signatures_present: signaturesPresent,
+            signatures_count: signaturesCount,
+            marginal_mentions_present: marginalMentionsPresent,
+            marginal_mentions_count: marginalMentionsCount,
+            marginal_crossouts_present: marginalCrossoutsPresent,
+            marginal_crossouts_count: marginalCrossoutsCount,
+          }),
+        }).eq('id', citationId)
+        if (citErr) throw citErr
+      }
+
+      onDone()
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erreur lors de l'enregistrement")
+    } finally {
+      setSubmitting(false)
     }
-
-    if (!error && showStatutSection && citationId) {
-      await supabaseRebond.from('citations').update({
-        is_missing: acteIsMissing,
-        lacune: acteLacune,
-        lacune_note: acteLacune ? (acteLacuneNote.trim() || null) : null,
-        locating: acteIsMissing ? {} : { systems: [{ raw: actePosition.trim() }] },
-        repro_quality_ref: reproQualityRef,
-        marks: marks.trim() || null,
-        note: citationNote.trim() || null,
-        writing: packWriting({
-          ecriture_ref: ecritureRef,
-          handwriting_legibility_ref: handwritingLegibilityRef,
-          damage_notes: damageNotes,
-          repro_notes: reproNotes,
-        }),
-        marginalia: packMarginalia({
-          signatures_present: signaturesPresent,
-          signatures_count: signaturesCount,
-          marginal_mentions_present: marginalMentionsPresent,
-          marginal_mentions_count: marginalMentionsCount,
-          marginal_crossouts_present: marginalCrossoutsPresent,
-          marginal_crossouts_count: marginalCrossoutsCount,
-        }),
-      }).eq('id', citationId)
-    }
-
-    setSubmitting(false)
-    if (!error) onDone()
   }
 
   return (
@@ -890,7 +838,8 @@ function RattacherDocumentSheet({ doc, sources, onClose, onDone }: {
     setSubmitting(true)
     const { error } = await rattacherDocument(doc.id, parentId)
     setSubmitting(false)
-    if (!error) onDone()
+    if (error) { toast.error(error.message); return }
+    onDone()
   }
 
   return (
@@ -1726,7 +1675,7 @@ export function PatrimoineDocumentairePage() {
       label: 'Statut',
       columnWidth: '130px',
       render: (doc) => {
-        const statut = STATUT_DOC_CONFIG[doc.statut]
+        const statut = STATUT_DOC_CONFIG[doc.statut] ?? STATUT_DOC_FALLBACK
         return (
           <span className={`text-xs font-medium rounded-full border px-2.5 py-0.5 flex items-center gap-1.5 w-fit ${statut.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statut.dot}`} />{statut.label}
