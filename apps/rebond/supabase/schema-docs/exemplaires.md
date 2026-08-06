@@ -21,8 +21,8 @@ l'unité documentaire abstraite.
 | `physical_condition_ref` | uuid | nullable, FK → `ref_physical_condition` | État physique |
 | `document_damage_kinds_ids` / `document_readability_features_ids` | uuid[] | nullable | Voir note |
 | `parent_exemplaire_id` / `source_exemplaire_id` | uuid | nullable, FK → elle-même | Hiérarchie/dérivation d'exemplaires |
-| `cote_locale`, `identifiant_interne`, `localisation_interne`, `conditionnement` | text | nullable | Localisation et conditionnement |
-| `couverture_label`, `couverture_sort_start`, `couverture_sort_end` | — | nullable | Couverture temporelle, CHECK cohérence start/end |
+| `cote_locale`, `identifiant_interne`, `localisation_interne`, `conditionnement` | text | nullable | Localisation et conditionnement — `identifiant_interne` est l'identifiant interne de cette copie précise (ex. `DOC-2026-0147`), distinct du titre/type du document |
+| `couverture_label` | text | nullable | Étiquette de substitution optionnelle pour cette copie précise (verrouillable/déverrouillable côté `EnrichirExemplaireActePage`), sinon celle de l'unité documentaire fait foi |
 | `nb_pages` | integer | nullable | Nombre de pages |
 | `dans_table` / `dans_registre` | boolean | nullable | Appartenance à un répertoire/registre |
 | `note` / `description` | text | nullable | Notes libres |
@@ -47,6 +47,23 @@ l'unité documentaire abstraite.
 ## Écarts vs `public.ref_exemplaires`
 
 Renommage de la table uniquement. Noms d'index alignés sur le nouveau nom.
+
+## Ajout du 2026-08-06 : `est_reference`
+
+Un document peut avoir plusieurs exemplaires (copies dans des dépôts ou sous
+des formes différentes). `est_reference` (boolean, défaut `false`) désigne
+lequel fait autorité. Un index unique partiel sur `unite_documentaire_id`
+(condition `where est_reference`) garantit au plus un exemplaire de référence
+par document — pas de contrainte imposant qu'il y en ait un.
+
+## Nettoyage du 2026-08-06 : `couverture_sort_start`/`couverture_sort_end` supprimées
+
+Jamais écrites par le code (0 ligne en prod), contrairement à
+`couverture_label` qui a un vrai usage de substitution ponctuelle. La
+contrainte `exemplaires_couverture_sort_chk` a été supprimée avec elles. Le
+tri chronologique reste porté par `unites_documentaires.couverture_sort_start/end`
+uniquement — voir `20260806100101_update_view_v_exemplaires_pick_drop_sort_override.sql`
+et `20260806100102_drop_dead_duplicate_columns.sql`.
 
 ## Note (non corrigée)
 

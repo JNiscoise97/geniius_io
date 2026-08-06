@@ -29,6 +29,8 @@ export type PatrimoineSource = {
   statut: SourceStatut
   derniere_activite: string
   copies_connues: number
+  vue_range: string | null
+  a_rattacher: boolean
 }
 
 export type PatrimoineDocument = {
@@ -46,7 +48,10 @@ export type PatrimoineDocument = {
   exemplaire_groupe_id?: string
   note?: string
   vue: string | null
+  serie: string | null
   en_ligne: boolean
+  a_rattacher: boolean
+  exemplaire_count: number
 }
 
 export type PatrimoineCorpus = {

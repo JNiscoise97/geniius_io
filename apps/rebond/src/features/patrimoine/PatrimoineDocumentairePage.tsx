@@ -20,6 +20,7 @@ import {
   qualifierSource, decrireDocument, rattacherDocument, fetchRoleDocumentOptions,
 } from './patrimoine.service'
 import { unpackMarginalia, packMarginalia, unpackWriting, packWriting, toIntOrNull } from './citationJsonb'
+import { vueMax, formatVue } from './vueFormat'
 import type {
   PatrimoineSource as Source,
   PatrimoineDocument as Document,
@@ -341,7 +342,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     async function load() {
       setLoadingActeInfo(true)
       const { data: ex } = await supabaseRebond.from('exemplaires')
-        .select('id, nature_ref, support_ref, pagination_type_ref, nb_pages, conditionnement, physical_condition_ref, description')
+        .select('id, nature_ref, support_ref, pagination_type_ref, nb_pages, conditionnement, physical_condition_ref, description, identifiant_interne')
         .eq('unite_documentaire_id', doc.id).limit(1).maybeSingle()
       if (cancelled) return
       if (!ex?.id) { setLoadingActeInfo(false); return }
@@ -353,6 +354,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       setConditionnement(ex.conditionnement ?? '')
       setPhysicalConditionRef(ex.physical_condition_ref ?? null)
       setDescription(ex.description ?? '')
+      setIdentifiantInterne(ex.identifiant_interne ?? '')
 
       // Une citation ec_acte ou ec_table (selon le rôle du document) — jamais les deux à la fois.
       const { data: cit } = await supabaseRebond.from('citations')
@@ -437,7 +439,6 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
         role_document_ref: roleRef || null,
         langue_ref: langueRef,
         couverture_label: periode || null,
-        identifiant_interne: identifiantInterne.trim() || null,
         niveau_fiabilite: niveauFiabilite,
         metadonnees: Object.keys(meta).length ? meta : null,
       })
@@ -452,6 +453,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
           conditionnement: conditionnement.trim() || null,
           physical_condition_ref: physicalConditionRef,
           description: description.trim() || null,
+          identifiant_interne: identifiantInterne.trim() || null,
         }).eq('id', exemplaireId)
         if (exErr) throw exErr
       }
@@ -571,11 +573,6 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
             />
           </Field>
 
-          <Field label="Identifiant interne">
-            <input value={identifiantInterne} onChange={e => setIdentifiantInterne(e.target.value)}
-              placeholder="ex. DOC-2026-0147 (référence interne, pas la cote d'archives)" className={`${inputCls} font-mono`} />
-          </Field>
-
           <Field label="Note">
             <input value={note} onChange={e => setNote(e.target.value)}
               placeholder="Observations sur ce document…" className={inputCls} />
@@ -622,6 +619,11 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
                 value={paginationTypeRef}
                 onChange={next => setPaginationTypeRef(next ? String(next) : null)}
               />
+            </Field>
+
+            <Field label="Identifiant interne">
+              <input value={identifiantInterne} onChange={e => setIdentifiantInterne(e.target.value)}
+                placeholder="ex. DOC-2026-0147 (référence interne à cette copie, pas la cote d'archives)" className={`${inputCls} font-mono`} />
             </Field>
 
             {!isActe && (
@@ -1067,6 +1069,7 @@ function EnAttenteTab({
   sourcesAQualifier,
   docsARattacher,
   docsADecrire,
+  mentionsByDoc,
   sources,
   onQualifier,
   onRattacher,
@@ -1075,6 +1078,7 @@ function EnAttenteTab({
   sourcesAQualifier: Source[]
   docsARattacher: Document[]
   docsADecrire: Document[]
+  mentionsByDoc: Map<string, Array<{ id: string; titre: string }>>
   sources: Source[]
   onQualifier: (source: Source) => void
   onRattacher: (doc: Document) => void
@@ -1170,21 +1174,36 @@ function EnAttenteTab({
           </div>
           <div className="space-y-2">
             {docsADecrire.map(doc => {
-              const source = doc.source_id ? sources.find(s => s.id === doc.source_id) : null
+              const { tables, registre } = resolveAncestors(doc, sources, mentionsByDoc)
+              const vueLine = doc.vue ? formatVue(doc.vue, registre ? vueMax(registre.vue_range) : null) : null
               return (
                 <div key={doc.id} className="bg-white rounded-xl border border-orange-100 p-4 flex items-start gap-4">
                   <div className="w-9 h-9 rounded-lg border bg-gray-50 border-gray-200 flex items-center justify-center shrink-0">
                     <FileText className="w-4 h-4 text-gray-400" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-gray-900">{doc.titre}</p>
                       <IdBadge id={doc.id} />
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                      <span className="font-mono">{doc.cote}</span>
-                      {source && <><span className="text-gray-200">·</span><span>{source.institution_conservation}</span></>}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+                      {vueLine && <span className="font-mono">{vueLine}</span>}
+                      {doc.cote && doc.cote !== '?' && <span className="font-mono">{doc.cote}</span>}
+                      {doc.en_ligne && (
+                        <a href={doc.url} target="_blank" rel="noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors">
+                          <ExternalLink className="w-3 h-3" />En ligne
+                        </a>
+                      )}
                     </div>
+                    {registre && <p className="text-xs text-gray-400">{registre.nom}</p>}
+                    {tables.length > 0 && (
+                      <p className="text-xs text-gray-400">mentionné dans <span className="text-gray-500">{tables.map(t => t.titre).join(', ')}</span></p>
+                    )}
+                    {registre?.institution_conservation && (
+                      <p className="text-xs text-gray-400">{registre.institution_conservation}</p>
+                    )}
                     {doc.note && <p className="text-xs text-gray-400 italic mt-1">{doc.note}</p>}
                   </div>
                   <button onClick={() => onDecrire(doc)}
@@ -1472,12 +1491,27 @@ function CreateInstitutionSheet({ onClose, onDone }: { onClose: () => void; onDo
   )
 }
 
+// Remonte la hiérarchie d'un document (parent_ud_id) jusqu'à sa source
+// racine (le registre, forcément dans `sources` puisque sans parent) en
+// passant au maximum par un niveau intermédiaire (la table/répertoire, dans
+// `docs` puisqu'elle a elle-même un parent). Un acte référencé directement
+// sous un registre (sans table) n'a donc pas de `table`.
+// Le registre est le vrai parent physique (source_id/parent_ud_id — l'acte
+// est enregistré dans le registre). Les tables ne contiennent pas l'acte,
+// elles le mentionnent (rebond.unites_documentaires_mentions) — relation
+// N:M distincte, jamais dérivable de source_id.
+function resolveAncestors(doc: Document, sources: Source[], mentionsByDoc: Map<string, Array<{ id: string; titre: string }>>): { tables: Array<{ id: string; titre: string }>; registre: Source | null } {
+  const registre = doc.source_id ? sources.find(s => s.id === doc.source_id) ?? null : null
+  const tables = mentionsByDoc.get(doc.id) ?? []
+  return { tables, registre }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function PatrimoineDocumentairePage() {
   const navigate = useNavigate()
 
-  const { sources, docs, corpus, citationsData, loading, error, refetch } = usePatrimoine()
+  const { sources, docs, corpus, citationsData, mentionsByDoc, loading, error, refetch } = usePatrimoine()
 
   const [tab, setTab] = useState<Tab>('Sources')
   const [search, setSearch] = useState('')
@@ -1567,8 +1601,13 @@ export function PatrimoineDocumentairePage() {
   async function onSheetDone() { closeSheet(); await refetch() }
 
   // Alerts
-  const sourcesAQualifier = sources.filter(s => s.statut === 'a_qualifier')
-  const docsARattacher = docs.filter(d => !d.source_id && d.statut === 'en_attente')
+  // a_rattacher (metadonnees.a_rattacher, posé par le wizard de référencement
+  // quand hasTable/hasRegistre est resté à "je ne sais pas") distingue une
+  // racine délibérée (un registre, ou un acte/table confirmé sans parent —
+  // va dans "Sources à qualifier") d'une racine par indécision (va dans
+  // "Documents à rattacher", en attendant que la question soit retranchée).
+  const sourcesAQualifier = sources.filter(s => s.statut === 'a_qualifier' && !s.a_rattacher)
+  const docsARattacher = docs.filter(d => !d.source_id && d.statut === 'en_attente' && d.a_rattacher)
   const docsADecrire = docs.filter(d => d.source_id && d.statut === 'en_attente')
   const nbAlerts = sourcesAQualifier.length + docsARattacher.length + docsADecrire.length
 
@@ -1629,33 +1668,27 @@ export function PatrimoineDocumentairePage() {
       },
     },
     {
-      key: 'cote',
-      label: 'Cote',
-      columnWidth: '140px',
+      key: 'exemplaire_count',
+      label: 'Exemplaires',
+      columnWidth: '100px',
       render: (doc) => (
-        <span className="text-xs text-gray-500 font-mono">{doc.cote === '?' ? '—' : doc.cote}</span>
+        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+          <Copy className="w-3 h-3 text-gray-300 shrink-0" />
+          {doc.exemplaire_count}
+        </span>
       ),
     },
     {
-      key: 'source_id',
-      label: 'Source',
-      columnWidth: '220px',
-      render: (doc) => {
-        const source = doc.source_id ? sources.find(s => s.id === doc.source_id) : null
-        return <span className="text-xs text-gray-500">{source ? source.institution_conservation : '—'}</span>
-      },
-    },
-    {
       key: 'date_document',
-      label: 'Période',
+      label: 'Date',
       columnWidth: '110px',
       render: (doc) => <span className="text-xs text-gray-500">{doc.date_document ?? '—'}</span>,
     },
     {
-      key: 'vue',
-      label: 'Vue',
-      columnWidth: '90px',
-      render: (doc) => <span className="text-xs text-gray-500 font-mono">{doc.vue ?? '—'}</span>,
+      key: 'serie',
+      label: 'Série documentaire',
+      columnWidth: '160px',
+      render: (doc) => <span className="text-xs text-gray-500">{doc.serie ?? '—'}</span>,
     },
     {
       key: 'en_ligne',
@@ -1683,7 +1716,7 @@ export function PatrimoineDocumentairePage() {
         )
       },
     },
-  ], [sources])
+  ], [])
 
   if (loading) {
     return (
@@ -1729,7 +1762,7 @@ export function PatrimoineDocumentairePage() {
             </div>
             <h1 className="text-xl font-semibold text-gray-900">Patrimoine documentaire</h1>
             <p className="text-sm text-gray-500 mt-1">
-              Sources, documents et corpus — le socle de toute connaissance dans REBOND.
+              Du document brut à la source exploitable.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1823,6 +1856,7 @@ export function PatrimoineDocumentairePage() {
             sourcesAQualifier={sourcesAQualifier}
             docsARattacher={docsARattacher}
             docsADecrire={docsADecrire}
+            mentionsByDoc={mentionsByDoc}
             sources={sources}
             onQualifier={source => setActiveSheet({ kind: 'qualifier', source })}
             onRattacher={doc => setActiveSheet({ kind: 'rattacher', doc })}
@@ -1907,7 +1941,12 @@ export function PatrimoineDocumentairePage() {
             if (c.lacune === null) return false
             const loc = (c.locating ?? {}) as Record<string, any>
             const sys0 = (Array.isArray(loc.systems) ? loc.systems[0] : {}) ?? {}
-            if (!(loc.raw?.toString().trim()) && sys0.start == null) return false
+            // locating a deux formes en usage (voir citationJsonb.ts) :
+            // { raw, systems: [{ start }] } (EnrichirExemplaireActePage) et
+            // { systems: [{ raw }] } (DecrireDocumentSheet/DocumentDetailPage/
+            // ReferenceWizardPage) — les deux comptent comme localisation renseignée.
+            const hasLocating = Boolean(loc.raw?.toString().trim()) || sys0.start != null || Boolean(sys0.raw?.toString().trim())
+            if (!hasLocating) return false
             const present = ((c.marginalia ?? {}) as Record<string, any>).present ?? {}
             if (present.marginal_mentions == null) return false
             if (present.signatures == null) return false
@@ -1920,9 +1959,9 @@ export function PatrimoineDocumentairePage() {
           const nonActes = citationsData.filter(c => c.target_type !== 'ec_acte')
 
           function ExemplaireRow({ c }: { c: typeof citationsData[number] }) {
-            const isClickable = c.target_type === 'ec_acte'
+            const isClickable = c.target_type === 'ec_acte' && Boolean(c.unite_id)
             const handleClick = isClickable
-              ? () => navigate(`/exemplaires/${c.citation_id}`)
+              ? () => navigate(`/documents/${c.unite_id}`)
               : undefined
             return (
               <div

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { supabaseRebond } from '@/lib/supabase'
 import { insertDocumentUD } from './patrimoine.service'
+import { vueMax, formatVue } from './vueFormat'
 import { useEtatCivilStore } from '@/store/etatcivil'
 import { BureauCreateModal } from '@/features/etat-civil/suivi/BureauCreateModal'
 import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
@@ -499,44 +500,95 @@ function DepotPicker({ depotQuery, setDepotQuery, depotResults, depotSearching, 
   )
 }
 
-function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, hasRegistre, registre }: {
+function RWBadge({ existing }: { existing: boolean }) {
+  return existing
+    ? <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium shrink-0">existant</span>
+    : <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium shrink-0">nouveau</span>
+}
+
+function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, tableIntitule, selectedTableUd, hasRegistre, registre, registreIntitule, selectedRegistreUd }: {
   vocab: SerieVocab; acte: RWLevel; selectedUd: UDMatch | null
-  hasTable: boolean | null; table: RWLevel; hasRegistre: boolean | null; registre: RWLevel
+  hasTable: boolean | null; table: RWLevel; tableIntitule: string | null; selectedTableUd: { id: string; titre: string } | null
+  hasRegistre: boolean | null; registre: RWLevel; registreIntitule: string | null; selectedRegistreUd: { id: string; titre: string } | null
 }) {
+  // Le titre affiché doit être celui de l'objet réellement réutilisé quand il
+  // y en a un (selectedTableUd/selectedRegistreUd) — sinon on affichait
+  // l'intitulé recalculé à partir des critères de recherche courants, qui
+  // peut différer du vrai titre enregistré (ex. "actes couverts" pas coché
+  // pareil que lors de la création d'origine) et laisse croire qu'un nouvel
+  // objet va être créé alors qu'un existant a été sélectionné.
+  const registreTitle = selectedRegistreUd ? selectedRegistreUd.titre : (registreIntitule ?? '(sans titre)')
+  const tableTitle     = selectedTableUd    ? selectedTableUd.titre    : (tableIntitule ?? '(sans titre)')
   const acteTitle   = selectedUd ? selectedUd.titre : (acte.intitule || '(sans titre)')
   const acteDetails = selectedUd
     ? selectedUd.exemplaires.map(ex => [ex.institution_sigle ?? ex.depot_nom, ex.cote_locale].filter(Boolean).join(' ')).filter(Boolean).join(', ')
     : [acte.institution, acte.cote].filter(Boolean).join(' · ')
+  // Pas de vue_range disponible pour un registre réutilisé (ses propres
+  // champs de position ne sont pas re-saisis) — la fraction ne s'affiche que
+  // pour un nouveau registre, dont on connaît la position tout juste saisie.
+  const registreMaxVue = hasRegistre && !selectedRegistreUd ? vueMax(registre.position) : null
+
+  const operations = [
+    hasRegistre && (selectedRegistreUd
+      ? `Registre « ${registreTitle} » : réutilisé tel quel, rien à créer.`
+      : `Registre « ${registreTitle} » : nouveau, sera créé.`),
+    hasTable && (selectedTableUd
+      ? `Table « ${tableTitle} » : réutilisée telle quelle, rien à créer.`
+      : `Table « ${tableTitle} » : nouvelle, sera créée.`),
+    selectedUd
+      ? `Acte « ${acteTitle} » : document existant retrouvé, sera complété (pas de nouvelle fiche).`
+      : `Acte « ${acteTitle} » : nouveau, sera créé.`,
+  ].filter(Boolean) as string[]
+
   return (
     <div className="space-y-4">
       <p className="text-sm font-medium text-gray-700">Récapitulatif</p>
       <div className="rounded-xl border border-gray-200 overflow-hidden text-sm divide-y divide-gray-100">
-        {hasRegistre && registre.intitule && (
+        {hasRegistre && registreIntitule && (
           <div className="px-4 py-3 bg-gray-50">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-0.5">{vocab.level3.label}</div>
-            <div className="font-medium text-gray-800">{registre.intitule}</div>
-            {(registre.institution || registre.cote) && (
+            <div className="flex items-center gap-2 mb-0.5">
+              <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">{vocab.level3.label}</div>
+              <RWBadge existing={Boolean(selectedRegistreUd)} />
+            </div>
+            <div className="font-medium text-gray-800">{registreTitle}</div>
+            {!selectedRegistreUd && (registre.institution || registre.cote) && (
               <div className="text-xs text-gray-500 mt-0.5">{[registre.institution, registre.cote].filter(Boolean).join(' · ')}</div>
             )}
+            {!selectedRegistreUd && registre.position && <div className="text-xs text-gray-500 mt-0.5">{formatVue(registre.position, null)}</div>}
           </div>
         )}
-        {hasTable && table.intitule && (
-          <div className={`px-4 py-3 ${hasRegistre && registre.intitule ? 'pl-8' : ''}`}>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-0.5">{vocab.level2.label}</div>
-            <div className="font-medium text-gray-800">{table.intitule}</div>
-            {table.position && <div className="text-xs text-gray-500 mt-0.5">Position : {table.position}</div>}
+        {hasTable && tableIntitule && (
+          <div className={`px-4 py-3 ${hasRegistre && registreIntitule ? 'pl-8' : ''}`}>
+            <div className="flex items-center gap-2 mb-0.5">
+              <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">{vocab.level2.label}</div>
+              <RWBadge existing={Boolean(selectedTableUd)} />
+            </div>
+            <div className="font-medium text-gray-800">{tableTitle}</div>
+            {!selectedTableUd && table.position && <div className="text-xs text-gray-500 mt-0.5">{formatVue(table.position, registreMaxVue)}</div>}
           </div>
         )}
-        <div className={`px-4 py-3 ${hasTable && table.intitule ? (hasRegistre && registre.intitule ? 'pl-12' : 'pl-8') : ''}`}>
+        <div className={`px-4 py-3 ${hasTable && tableIntitule ? (hasRegistre && registreIntitule ? 'pl-12' : 'pl-8') : ''}`}>
           <div className="flex items-center gap-2 mb-0.5">
             <div className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">{vocab.level1.label}</div>
-            {selectedUd && <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">existant</span>}
+            <RWBadge existing={Boolean(selectedUd)} />
           </div>
           <div className="font-medium text-gray-800">{acteTitle}</div>
           {acteDetails && <div className="text-xs text-gray-500 mt-0.5">{acteDetails}</div>}
-          {!selectedUd && acte.position && <div className="text-xs text-gray-500">Vue {acte.position}</div>}
+          {!selectedUd && acte.position && <div className="text-xs text-gray-500">{formatVue(acte.position, registreMaxVue)}</div>}
         </div>
       </div>
+
+      <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Ce qui sera fait en cliquant sur "Référencer ce document"</p>
+        <ul className="space-y-1.5">
+          {operations.map((op, i) => (
+            <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+              <span className="text-gray-300 mt-0.5">—</span>{op}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <p className="text-xs text-gray-400">
         {selectedUd
           ? 'Document existant — un nouvel exemplaire et les informations de localisation seront complétés depuis sa fiche.'
@@ -703,6 +755,11 @@ function RWStepDescribeTableEC({
     ? ecTypeActes.filter(t => PAROISSIAL_TYPE_CODES.has(t.code))
     : ecTypeActes
   const lieuValue = serieCode === 'ETAT_CIVIL' ? (selectedBureau?.commune ?? selectedBureau?.nom ?? '') : tableLieu
+  // "C'est où ?" ne sert à rien tant que la recherche de tables existantes
+  // n'a pas abouti (champs manquants, ou recherche encore en cours) — pas la
+  // peine de faire remplir dépôt/cote/vues avant de savoir si une table
+  // similaire existe déjà.
+  const tableUdSearchResolved = Boolean(tableIntitule) && lieuValue.trim().length > 0 && !tableUdSearching
 
   return (
     <div className="space-y-5">
@@ -792,85 +849,107 @@ function RWStepDescribeTableEC({
                   <p className="text-sm font-semibold text-slate-800">{tableIntitule}</p>
                 </div>
               )}
-              {tableUdSearching && (
-                <div className="flex items-center gap-2 text-xs text-gray-400 px-1">
-                  <Loader2 className="w-3 h-3 animate-spin" />Recherche de doublons…
-                </div>
-              )}
-              {!tableUdSearching && tableUdMatches.length > 0 && (
-                <div className="rounded-xl border border-amber-200 overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <p className="text-xs font-medium text-amber-700">
-                      {tableUdMatches.length} table{tableUdMatches.length > 1 ? 's similaires trouvées' : ' similaire trouvée'} — vérifie avant de créer
+              <div className="rounded-xl border border-gray-200 overflow-hidden">
+                {(!tableIntitule || !lieuValue.trim()) && (() => {
+                  const missing = [
+                    !tablePeriodicite && 'la périodicité',
+                    !tableAnneeDebut.trim() && "l'année",
+                    serieCode === 'ETAT_CIVIL' && !selectedBureau && 'le bureau',
+                  ].filter(Boolean).join(', ')
+                  return (
+                    <p className="px-4 py-3 text-xs text-gray-400 bg-gray-50">
+                      Renseigne {missing} pour rechercher les tables existantes.
                     </p>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {tableUdMatches.map(ud => {
-                      const s = ud.statut
-                      const badgeCls = s === 'actif'       ? 'bg-green-100 text-green-700 border-green-200'
-                                     : s === 'a_qualifier' ? 'bg-amber-100 text-amber-700 border-amber-200'
-                                     :                       'bg-gray-100 text-gray-600 border-gray-200'
-                      return (
-                        <div key={ud.id} className="flex items-center gap-3 px-3 py-2.5 bg-white hover:bg-gray-50">
-                          <div className="flex-1 min-w-0 space-y-0.5">
-                            <p className="text-sm font-medium text-gray-800">{ud.titre}</p>
-                            {s && <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${badgeCls}`}>{s.replace(/_/g, ' ')}</span>}
+                  )
+                })()}
+                {tableUdSearching && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-gray-400 bg-gray-50">
+                    <Loader2 className="w-3 h-3 animate-spin" />Recherche de tables existantes…
+                  </p>
+                )}
+                {!tableUdSearching && tableUdMatches.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <p className="text-xs font-medium text-amber-700">
+                        {tableUdMatches.length} table{tableUdMatches.length > 1 ? 's similaires trouvées' : ' similaire trouvée'} — vérifie avant de créer
+                      </p>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {tableUdMatches.map(ud => {
+                        const s = ud.statut
+                        const badgeCls = s === 'actif'       ? 'bg-green-100 text-green-700 border-green-200'
+                                       : s === 'a_qualifier' ? 'bg-amber-100 text-amber-700 border-amber-200'
+                                       :                       'bg-gray-100 text-gray-600 border-gray-200'
+                        return (
+                          <div key={ud.id} className="flex items-center gap-3 px-3 py-2.5 bg-white hover:bg-gray-50">
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <p className="text-sm font-medium text-gray-800">{ud.titre}</p>
+                              {s && <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${badgeCls}`}>{s.replace(/_/g, ' ')}</span>}
+                            </div>
+                            <button onClick={() => setSelectedTableUd({ id: ud.id, titre: ud.titre })}
+                              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0 transition-colors">
+                              Sélectionner
+                            </button>
                           </div>
-                          <button onClick={() => setSelectedTableUd({ id: ud.id, titre: ud.titre })}
-                            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0 transition-colors">
-                            Sélectionner
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              {!tableUdSearching && tableUdSearchError && (
-                <p className="text-xs text-red-600 px-1 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />La recherche de tables similaires a échoué — vérifie manuellement avant de créer
-                </p>
-              )}
-              {!tableUdSearching && !tableUdSearchError && tableIntitule && lieuValue.trim() && tableUdMatches.length === 0 && (
-                <p className="text-xs text-emerald-600 px-1 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />Aucune table similaire trouvée
-                </p>
-              )}
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+                {!tableUdSearching && tableUdSearchError && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-red-700 bg-red-50">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />La recherche de tables similaires a échoué — vérifie manuellement avant de créer
+                  </p>
+                )}
+                {!tableUdSearching && !tableUdSearchError && tableIntitule && lieuValue.trim() && tableUdMatches.length === 0 && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Aucune table similaire trouvée — tu peux continuer.
+                  </p>
+                )}
+              </div>
             </>
           )}
         </div>
       </div>
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">C'est où ?</p>
-        <div className="space-y-3">
-          <Field label="Dépôt / institution">
-            <DepotPicker
-              depotQuery={depotQuery} setDepotQuery={setDepotQuery}
-              depotResults={depotResults} depotSearching={depotSearching}
-              selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
-            />
-          </Field>
-          <Field label="Cote">
-            <input value={level.cote} onChange={e => patch('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />
-          </Field>
-          <Field label="Vues (début – fin)">
-            <input value={level.position} onChange={e => patch('position', e.target.value)} placeholder="Ex. 1–45" className={inputCls} />
-          </Field>
-        </div>
-      </div>
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Comment y accéder ?</p>
-        <Field label="URL">
-          <input value={level.url} onChange={e => patch('url', e.target.value)} placeholder="https://…" className={inputCls} />
-        </Field>
-      </div>
-      <div className="border-t border-slate-100 pt-4">
-        <Field label="Notes (optionnel)">
-          <textarea value={level.notes} onChange={e => patch('notes', e.target.value)}
-            placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
-        </Field>
-      </div>
+      {selectedTableUd ? (
+        <p className="text-xs text-gray-400 px-1">
+          Dépôt, cote, vues, accès et notes ont déjà été renseignés lors de la création de cette table — rien à compléter ici.
+        </p>
+      ) : !tableUdSearchResolved ? null : (
+        <>
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">C'est où ?</p>
+            <div className="space-y-3">
+              <Field label="Dépôt / institution">
+                <DepotPicker
+                  depotQuery={depotQuery} setDepotQuery={setDepotQuery}
+                  depotResults={depotResults} depotSearching={depotSearching}
+                  selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
+                />
+              </Field>
+              <Field label="Cote">
+                <input value={level.cote} onChange={e => patch('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />
+              </Field>
+              <Field label="Vues (début – fin)">
+                <input value={level.position} onChange={e => patch('position', e.target.value)} placeholder="Ex. 1–45" className={inputCls} />
+              </Field>
+            </div>
+          </div>
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Comment y accéder ?</p>
+            <Field label="URL">
+              <input value={level.url} onChange={e => patch('url', e.target.value)} placeholder="https://…" className={inputCls} />
+            </Field>
+          </div>
+          <div className="border-t border-slate-100 pt-4">
+            <Field label="Notes (optionnel)">
+              <textarea value={level.notes} onChange={e => patch('notes', e.target.value)}
+                placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
+            </Field>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -884,7 +963,10 @@ function RWStepDescribeRegistreEC({
   bureauQuery, setBureauQuery, bureauResults, bureauSearching, selectedBureau, setSelectedBureau,
   registreModeRef, setRegistreModeRef,
   registreOrdreNumerotationRef, setRegistreOrdreNumerotationRef,
+  registreStatutJuridiqueRef, setRegistreStatutJuridiqueRef,
   registreIntitule,
+  registreUdSearching, registreUdMatches, registreUdSearchError,
+  selectedRegistreUd, setSelectedRegistreUd,
   depotQuery, setDepotQuery, depotResults, depotSearching, selectedDepot, setSelectedDepot,
   level, patch,
 }: {
@@ -900,7 +982,13 @@ function RWStepDescribeRegistreEC({
   setSelectedBureau: (v: { id: string; nom: string; commune: string | null } | null) => void
   registreModeRef: string | null; setRegistreModeRef: (v: string | null) => void
   registreOrdreNumerotationRef: string | null; setRegistreOrdreNumerotationRef: (v: string | null) => void
+  registreStatutJuridiqueRef: string | null; setRegistreStatutJuridiqueRef: (v: string | null) => void
   registreIntitule: string | null
+  registreUdSearching: boolean
+  registreUdMatches: Array<{ id: string; titre: string; statut: string | null; workflow_statut: string }>
+  registreUdSearchError: boolean
+  selectedRegistreUd: { id: string; titre: string } | null
+  setSelectedRegistreUd: (v: { id: string; titre: string } | null) => void
   depotQuery: string; setDepotQuery: (v: string) => void
   depotResults: DepotOption[]; depotSearching: boolean
   selectedDepot: DepotOption | null; setSelectedDepot: (v: DepotOption | null) => void
@@ -909,6 +997,8 @@ function RWStepDescribeRegistreEC({
   const visibleTypes = serieCode === 'PAROISSIAL'
     ? ecTypeActes.filter(t => PAROISSIAL_TYPE_CODES.has(t.code))
     : ecTypeActes
+  const registreLieuValue = serieCode === 'ETAT_CIVIL' ? (selectedBureau?.commune ?? selectedBureau?.nom ?? '') : registreLieu
+  const registreUdSearchResolved = Boolean(registreIntitule) && registreLieuValue.trim().length > 0 && !registreUdSearching
 
   return (
     <div className="space-y-5">
@@ -955,6 +1045,13 @@ function RWStepDescribeRegistreEC({
                   onChange={next => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
                 />
               </Field>
+              <Field label="Cadre juridique et population concernée" required>
+                <RefSinglePickerSmart
+                  table="ref_etat_civil_registre_statut_juridique" mode="edit" actionsInvisible={false}
+                  value={registreStatutJuridiqueRef}
+                  onChange={next => setRegistreStatutJuridiqueRef(next ? String(next) : null)}
+                />
+              </Field>
             </>
           ) : (
             <Field label="Paroisse">
@@ -968,42 +1065,123 @@ function RWStepDescribeRegistreEC({
               <input value={registreAnneeFin} onChange={e => setRegistreAnneeFin(e.target.value)} placeholder="1880" maxLength={4} className={`${inputCls} w-24`} />
             </div>
           </Field>
-          {registreIntitule && (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Intitulé généré</p>
-              <p className="text-sm font-semibold text-slate-800">{registreIntitule}</p>
+          {selectedRegistreUd ? (
+            <div className="flex items-start gap-3 rounded-xl border border-indigo-200 bg-indigo-50/60 px-4 py-3">
+              <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">{selectedRegistreUd.titre}</p>
+                <p className="text-xs text-indigo-600 mt-0.5">Registre existant sélectionné</p>
+              </div>
+              <button onClick={() => setSelectedRegistreUd(null)} className="p-1 text-gray-400 hover:text-gray-600 shrink-0">
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
+          ) : (
+            <>
+              {registreIntitule && (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Intitulé généré</p>
+                  <p className="text-sm font-semibold text-slate-800">{registreIntitule}</p>
+                </div>
+              )}
+              <div className="rounded-xl border border-gray-200 overflow-hidden">
+                {(!registreIntitule || !registreLieuValue.trim()) && (() => {
+                  const missing = [
+                    !registreAnneeDebut.trim() && "l'année",
+                    serieCode === 'ETAT_CIVIL' && !selectedBureau && 'le bureau',
+                  ].filter(Boolean).join(', ')
+                  return (
+                    <p className="px-4 py-3 text-xs text-gray-400 bg-gray-50">
+                      Renseigne {missing} pour rechercher les registres existants.
+                    </p>
+                  )
+                })()}
+                {registreUdSearching && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-gray-400 bg-gray-50">
+                    <Loader2 className="w-3 h-3 animate-spin" />Recherche de registres existants…
+                  </p>
+                )}
+                {!registreUdSearching && registreUdMatches.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <p className="text-xs font-medium text-amber-700">
+                        {registreUdMatches.length} registre{registreUdMatches.length > 1 ? 's similaires trouvés' : ' similaire trouvé'} — vérifie avant de créer
+                      </p>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {registreUdMatches.map(ud => {
+                        const s = ud.statut
+                        const badgeCls = s === 'actif'       ? 'bg-green-100 text-green-700 border-green-200'
+                                       : s === 'a_qualifier' ? 'bg-amber-100 text-amber-700 border-amber-200'
+                                       :                       'bg-gray-100 text-gray-600 border-gray-200'
+                        return (
+                          <div key={ud.id} className="flex items-center gap-3 px-3 py-2.5 bg-white hover:bg-gray-50">
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <p className="text-sm font-medium text-gray-800">{ud.titre}</p>
+                              {s && <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${badgeCls}`}>{s.replace(/_/g, ' ')}</span>}
+                            </div>
+                            <button onClick={() => setSelectedRegistreUd({ id: ud.id, titre: ud.titre })}
+                              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0 transition-colors">
+                              Sélectionner
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+                {!registreUdSearching && registreUdSearchError && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-red-700 bg-red-50">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />La recherche de registres similaires a échoué — vérifie manuellement avant de créer
+                  </p>
+                )}
+                {!registreUdSearching && !registreUdSearchError && registreIntitule && registreLieuValue.trim() && registreUdMatches.length === 0 && (
+                  <p className="px-4 py-3 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />Aucun registre similaire trouvé — tu peux continuer.
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">C'est où ?</p>
-        <div className="space-y-3">
-          <Field label="Dépôt / institution">
-            <DepotPicker depotQuery={depotQuery} setDepotQuery={setDepotQuery}
-              depotResults={depotResults} depotSearching={depotSearching}
-              selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot} />
-          </Field>
-          <Field label="Cote">
-            <input value={level.cote} onChange={e => patch('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />
-          </Field>
-          <Field label="Vues (début – fin)">
-            <input value={level.position} onChange={e => patch('position', e.target.value)} placeholder="Ex. 1–250" className={inputCls} />
-          </Field>
-        </div>
-      </div>
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Comment y accéder ?</p>
-        <Field label="URL">
-          <input value={level.url} onChange={e => patch('url', e.target.value)} placeholder="https://…" className={inputCls} />
-        </Field>
-      </div>
-      <div className="border-t border-slate-100 pt-4">
-        <Field label="Notes (optionnel)">
-          <textarea value={level.notes} onChange={e => patch('notes', e.target.value)}
-            placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
-        </Field>
-      </div>
+      {selectedRegistreUd ? (
+        <p className="text-xs text-gray-400 px-1">
+          Dépôt, cote, vues, accès et notes ont déjà été renseignés lors de la création de ce registre — rien à compléter ici.
+        </p>
+      ) : !registreUdSearchResolved ? null : (
+        <>
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">C'est où ?</p>
+            <div className="space-y-3">
+              <Field label="Dépôt / institution">
+                <DepotPicker depotQuery={depotQuery} setDepotQuery={setDepotQuery}
+                  depotResults={depotResults} depotSearching={depotSearching}
+                  selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot} />
+              </Field>
+              <Field label="Cote">
+                <input value={level.cote} onChange={e => patch('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />
+              </Field>
+              <Field label="Vues (début – fin)">
+                <input value={level.position} onChange={e => patch('position', e.target.value)} placeholder="Ex. 1–250" className={inputCls} />
+              </Field>
+            </div>
+          </div>
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Comment y accéder ?</p>
+            <Field label="URL">
+              <input value={level.url} onChange={e => patch('url', e.target.value)} placeholder="https://…" className={inputCls} />
+            </Field>
+          </div>
+          <div className="border-t border-slate-100 pt-4">
+            <Field label="Notes (optionnel)">
+              <textarea value={level.notes} onChange={e => patch('notes', e.target.value)}
+                placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
+            </Field>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1051,8 +1229,13 @@ export function ReferenceWizardPage() {
   const [registreAnneeDebut,  setRegistreAnneeDebut]  = useState('')
   const [registreAnneeFin,    setRegistreAnneeFin]    = useState('')
   const [registreLieu,        setRegistreLieu]        = useState('')
+  const [selectedRegistreUd,  setSelectedRegistreUd]  = useState<{ id: string; titre: string } | null>(null)
+  const [registreUdMatches,   setRegistreUdMatches]   = useState<Array<{ id: string; titre: string; statut: string | null; workflow_statut: string }>>([])
+  const [registreUdSearching, setRegistreUdSearching] = useState(false)
+  const [registreUdSearchError, setRegistreUdSearchError] = useState(false)
   const [registreModeRef,               setRegistreModeRef]               = useState<string | null>(null)
   const [registreOrdreNumerotationRef,  setRegistreOrdreNumerotationRef]  = useState<string | null>(null)
+  const [registreStatutJuridiqueRef,    setRegistreStatutJuridiqueRef]    = useState<string | null>(null)
   const [saving,      setSaving]      = useState(false)
 
   // Dedup state
@@ -1217,8 +1400,10 @@ export function ReferenceWizardPage() {
   }, [selectedExemplaireId, selectedUd])
 
   // Dedup search pour la table (déclenché seulement une fois bureau/paroisse ET date renseignés).
-  // Une table n'est "similaire" que si : bureau identique, période recherchée incluse dans la
-  // période de la table existante, et types d'actes recherchés couverts par la table existante.
+  // Une table est "similaire" dès que sa période chevauche la période recherchée (pas besoin que
+  // l'une contienne intégralement l'autre — chercher 1874-1876 doit remonter une table de 1875
+  // seule aussi bien qu'une table 1874-1876), bureau identique, et types d'actes recherchés
+  // couverts par la table existante.
   useEffect(() => {
     if (step !== 'table' || !serieId || !tableIntitule || !tableLieuForTitle.trim()) {
       setTableUdMatches([])
@@ -1241,7 +1426,7 @@ export function ReferenceWizardPage() {
         let q = supabaseRebond
           .from('etat_civil_repertoires')
           .select('annee_debut, annee_fin, type_acte_ids, ud:unites_documentaires!unite_documentaire_id ( id, titre, workflow_statut:statut_document, statut:statut_source )')
-          .lte('annee_debut', anneeDebutNum)
+          .lte('annee_debut', anneeFinNum)
         if (serieCode === 'ETAT_CIVIL' && selectedBureau) {
           q = q.eq('bureau_id', selectedBureau.id)
         }
@@ -1253,7 +1438,7 @@ export function ReferenceWizardPage() {
           .map((row: any) => ({ ...row, ud: Array.isArray(row.ud) ? row.ud[0] : row.ud }))
           .filter((row: any) => {
             if (!row.ud) return false
-            if (row.annee_fin != null && row.annee_fin < anneeFinNum) return false
+            if ((row.annee_fin ?? row.annee_debut) < anneeDebutNum) return false
             if (searchedTypeIds.length === 0) return true
             const existingIds: string[] = row.type_acte_ids ?? []
             if (existingIds.length === 0) return true // la table existante couvre "tous types"
@@ -1273,6 +1458,60 @@ export function ReferenceWizardPage() {
     }, 400)
     return () => clearTimeout(t)
   }, [tableIntitule, step, serieId, tableLieuForTitle, serieCode, selectedBureau, tableAnneeDebut, tableAnneeFin, tableTypeActeIds])
+
+  // Dedup search pour le registre (bureau + toutes les années de la période
+  // recherchée — un registre ne couvre qu'une seule année chacun
+  // (etat_civil_registres.annee, entier simple, pas de plage), donc une
+  // recherche 1874-1876 doit remonter jusqu'à 3 registres distincts s'ils
+  // existent : un par année couverte, pas seulement l'année de début.
+  useEffect(() => {
+    if (step !== 'registre' || !serieId || !registreIntitule || !registreLieuForTitle.trim()) {
+      setRegistreUdMatches([])
+      setRegistreUdSearching(false)
+      setRegistreUdSearchError(false)
+      return
+    }
+    const anneeDebutNum = parseInt(registreAnneeDebut.trim(), 10)
+    const anneeFinNum = registreAnneeFin.trim() ? parseInt(registreAnneeFin.trim(), 10) : anneeDebutNum
+    if (Number.isNaN(anneeDebutNum) || Number.isNaN(anneeFinNum)) {
+      setRegistreUdMatches([])
+      setRegistreUdSearching(false)
+      setRegistreUdSearchError(false)
+      return
+    }
+    setRegistreUdSearching(true)
+    setRegistreUdSearchError(false)
+    const t = setTimeout(async () => {
+      try {
+        let q = supabaseRebond
+          .from('etat_civil_registres')
+          .select('annee, ud:unites_documentaires!unite_documentaire_id ( id, titre, workflow_statut:statut_document, statut:statut_source )')
+          .gte('annee', anneeDebutNum)
+          .lte('annee', anneeFinNum)
+          .order('annee', { ascending: true })
+        if (serieCode === 'ETAT_CIVIL' && selectedBureau) {
+          q = q.eq('bureau_id', selectedBureau.id)
+        }
+        const { data, error } = await q.limit(20)
+        if (error) throw error
+
+        const mapped = (data ?? [])
+          .map((row: any) => ({ ...row, ud: Array.isArray(row.ud) ? row.ud[0] : row.ud }))
+          .filter((row: any) => row.ud)
+          .slice(0, 5)
+          .map((row: any) => ({ id: row.ud.id, titre: row.ud.titre, workflow_statut: row.ud.workflow_statut, statut: row.ud.statut }))
+
+        setRegistreUdMatches(mapped)
+      } catch (err) {
+        console.error('registre dedup', err)
+        setRegistreUdMatches([])
+        setRegistreUdSearchError(true)
+      } finally {
+        setRegistreUdSearching(false)
+      }
+    }, 400)
+    return () => clearTimeout(t)
+  }, [registreIntitule, step, serieId, registreLieuForTitle, serieCode, selectedBureau, registreAnneeDebut, registreAnneeFin])
 
   // Live dedup search while typing in the acte step
   useEffect(() => {
@@ -1620,8 +1859,8 @@ export function ReferenceWizardPage() {
 
   // Crée le vrai registre métier (etat_civil_registres + pivot types d'actes + label calculé)
   // — condition sine qua non pour pouvoir ensuite créer un etat_civil_actes (registre_id NOT NULL).
-  async function ensureRegistreDomain() {
-    if (savedRegistreDomainId || serieCode !== 'ETAT_CIVIL' || !selectedBureau || !registreModeRef || !registreOrdreNumerotationRef) return
+  async function ensureRegistreDomain(udId: string | null) {
+    if (savedRegistreDomainId || serieCode !== 'ETAT_CIVIL' || !selectedBureau || !registreModeRef || !registreOrdreNumerotationRef || !registreStatutJuridiqueRef || !udId) return
     const anneeInt = parseInt(registreAnneeDebut.trim(), 10)
     if (!Number.isFinite(anneeInt)) return
     const typeIds = registreTypeActeIds.includes('tous') ? ecTypeActes.map(t => t.id) : registreTypeActeIds
@@ -1633,6 +1872,8 @@ export function ReferenceWizardPage() {
       type_acte: typeLabels.join('|'),
       registre_mode_ref: registreModeRef,
       registre_ordre_numerotation_ref: registreOrdreNumerotationRef,
+      registre_statut_juridique_ref: registreStatutJuridiqueRef,
+      unite_documentaire_id: udId,
     }).select('id').single()
     if (regErr) throw regErr
     const domainId = regData?.id ?? null
@@ -1656,6 +1897,16 @@ export function ReferenceWizardPage() {
 
   async function saveRegistreStep(): Promise<boolean> {
     if (!serieId || !hasRegistre) return true
+    if (selectedRegistreUd) {
+      setSavedRegistreId(selectedRegistreUd.id)
+      if (!savedRegistreDomainId) {
+        const { data: existingDomain } = await supabaseRebond.from('etat_civil_registres')
+          .select('id').eq('unite_documentaire_id', selectedRegistreUd.id).maybeSingle()
+        if (existingDomain?.id) setSavedRegistreDomainId(existingDomain.id)
+      }
+      toast.info('Registre existant sélectionné — aucune insertion')
+      return true
+    }
     const titre = (useStructuredTable ? registreIntitule : null) ?? registre.intitule.trim()
     if (!titre) return true
 
@@ -1687,7 +1938,7 @@ export function ReferenceWizardPage() {
           const exId = await insertExemplaireRegistre(savedRegistreId)
           setSavedRegistreExemplaireId(exId)
         }
-        await ensureRegistreDomain()
+        await ensureRegistreDomain(savedRegistreId)
         toast.success('Registre mis à jour')
       } else {
         const { data, error } = await insertDocumentUD({
@@ -1702,7 +1953,7 @@ export function ReferenceWizardPage() {
         setSavedRegistreId(registreId)
         const exId = registreId ? await insertExemplaireRegistre(registreId) : null
         setSavedRegistreExemplaireId(exId)
-        await ensureRegistreDomain()
+        await ensureRegistreDomain(registreId)
         toast.success('Registre enregistré')
       }
       return true
@@ -1758,6 +2009,16 @@ export function ReferenceWizardPage() {
     }
   }
 
+  // Équivalent explicite à "Je ne sais pas" + Continuer, en un clic — état
+  // volontairement calculé ici plutôt que via setHasTable/setHasRegistre +
+  // goNext() pour éviter de lire une valeur pas encore à jour (closure figée
+  // sur le render courant) si l'utilisateur avait déjà répondu Oui/Non avant
+  // de finalement passer.
+  function passStep() {
+    if (step === 'ask-table')    { setHasTable(null); setStep('ask-registre'); return }
+    if (step === 'ask-registre') { setHasRegistre(null); setStep('summary'); return }
+  }
+
   function goBack() {
     if (step === 'type')         { setStep('serie'); return }
     if (step === 'acte')         { setSelectedUd(null); setUdMatches([]); setSelectedExemplaireId(null); setShowNewExemplaire(false); setStep('type'); return }
@@ -1779,21 +2040,55 @@ export function ReferenceWizardPage() {
     })
   }
 
+  // Marque une racine (rien au-dessus dans la hiérarchie) comme "à rattacher"
+  // plutôt que "source confirmée" quand elle l'est par indécision (question
+  // ask-table/ask-registre laissée à "je ne sais pas", donc restée à null)
+  // plutôt que par réponse explicite "non". Fusionne dans les metadonnees
+  // existantes (cote/note éventuelles) au lieu de les écraser.
+  async function flagIfUndecided(udId: string, undecided: boolean) {
+    if (!undecided) return
+    const { data } = await supabaseRebond.from('unites_documentaires').select('metadonnees').eq('id', udId).single()
+    await supabaseRebond.from('unites_documentaires')
+      .update({ metadonnees: { ...(data?.metadonnees ?? {}), a_rattacher: true } })
+      .eq('id', udId)
+  }
+
   async function handleSave() {
     if (!serieId) return
     setSaving(true)
     try {
-      // Lier table → registre
+      // Lier table → registre (containment physique réel : la table est
+      // matériellement reliée dans le même volume que le registre).
       if (savedTableId && savedRegistreId) {
         await supabaseRebond.from('unites_documentaires')
           .update({ parent_ud_id: savedRegistreId }).eq('id', savedTableId)
       }
 
-      // Lier acte (nouveau) → table ou registre
-      const acteParentId = savedTableId ?? savedRegistreId ?? null
-      if (savedActeId && !selectedUd && acteParentId) {
+      // Lier acte (nouveau) → registre uniquement. Une table ne contient pas
+      // physiquement l'acte (il est écrit dans le registre, pas "dans" la
+      // table) — elle le mentionne pour la recherche, voir plus bas.
+      if (savedActeId && !selectedUd) {
         await supabaseRebond.from('unites_documentaires')
-          .update({ parent_ud_id: acteParentId }).eq('id', savedActeId)
+          .update({ parent_ud_id: savedRegistreId ?? null }).eq('id', savedActeId)
+      }
+
+      // Table → acte : relation "mentionné dans" (unites_documentaires_mentions),
+      // distincte du containment. Enregistrée que l'acte soit nouveau ou
+      // retrouvé (selectedUd) — la mention reste une info valable dans les deux cas.
+      const acteId = selectedUd?.id ?? savedActeId
+      if (savedTableId && acteId) {
+        const { error: mentionErr } = await supabaseRebond.from('unites_documentaires_mentions')
+          .upsert({ mentionnant_id: savedTableId, mentionne_id: acteId }, { onConflict: 'mentionnant_id,mentionne_id', ignoreDuplicates: true })
+        if (mentionErr) throw mentionErr
+      }
+
+      // Racine par indécision → "à rattacher" plutôt que "source à qualifier".
+      // Ne dépend que du registre désormais : une table ne fait plus office
+      // de parent, donc son statut ne détermine plus si l'acte est racine.
+      if (savedTableId && !savedRegistreId && !selectedTableUd) {
+        await flagIfUndecided(savedTableId, hasRegistre !== false)
+      } else if (savedActeId && !selectedUd && !savedRegistreId) {
+        await flagIfUndecided(savedActeId, hasRegistre !== false)
       }
 
       // Mettre à jour dans_table / dans_registre sur l'exemplaire de l'acte
@@ -1838,10 +2133,10 @@ export function ReferenceWizardPage() {
   }
 
   // Supprime les UD/exemplaires créés pendant le wizard mais jamais reliés (abandon en cours de route).
-  // Ne touche jamais un document retrouvé via la recherche (selectedUd / selectedTableUd).
+  // Ne touche jamais un document retrouvé via la recherche (selectedUd / selectedTableUd / selectedRegistreUd).
   async function cleanupUnfinished() {
     try {
-      if (savedRegistreId) {
+      if (savedRegistreId && !selectedRegistreUd) {
         if (savedRegistreExemplaireId) {
           await supabaseRebond.from('ref_acces_numeriques').delete().eq('exemplaire_id', savedRegistreExemplaireId)
           await supabaseRebond.from('citations').delete().eq('exemplaire_id', savedRegistreExemplaireId)
@@ -1896,10 +2191,10 @@ export function ReferenceWizardPage() {
       (serieCode !== 'ETAT_CIVIL' || (acteDateISO.trim().length > 0 && !acteDateError))
     ))) ||
     step === 'ask-table' ||
-    (step === 'table'        && (useStructuredTable ? (tablePeriodicite !== null && tableAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || selectedBureau !== null)) : table.intitule.trim().length > 0)) ||
+    (step === 'table'        && (useStructuredTable ? (tablePeriodicite !== null && tableAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || selectedBureau !== null) && !tableUdSearching) : table.intitule.trim().length > 0)) ||
     step === 'ask-registre' ||
-    (step === 'registre'     && (useStructuredTable
-      ? (registreAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || (selectedBureau !== null && registreModeRef !== null && registreOrdreNumerotationRef !== null)))
+    (step === 'registre'     && (selectedRegistreUd ? true : useStructuredTable
+      ? (registreAnneeDebut.trim().length > 0 && (serieCode !== 'ETAT_CIVIL' || (selectedBureau !== null && registreModeRef !== null && registreOrdreNumerotationRef !== null && registreStatutJuridiqueRef !== null)) && !registreUdSearching)
       : registre.intitule.trim().length > 0)) ||
     step === 'summary'
 
@@ -2233,14 +2528,20 @@ export function ReferenceWizardPage() {
           selectedBureau={selectedBureau} setSelectedBureau={setSelectedBureau}
           registreModeRef={registreModeRef} setRegistreModeRef={setRegistreModeRef}
           registreOrdreNumerotationRef={registreOrdreNumerotationRef} setRegistreOrdreNumerotationRef={setRegistreOrdreNumerotationRef}
+          registreStatutJuridiqueRef={registreStatutJuridiqueRef} setRegistreStatutJuridiqueRef={setRegistreStatutJuridiqueRef}
           registreIntitule={registreIntitule}
+          registreUdSearching={registreUdSearching} registreUdMatches={registreUdMatches} registreUdSearchError={registreUdSearchError}
+          selectedRegistreUd={selectedRegistreUd} setSelectedRegistreUd={setSelectedRegistreUd}
           depotQuery={depotQuery} setDepotQuery={setDepotQuery}
           depotResults={depotResults} depotSearching={depotSearching}
           selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
           level={registre} patch={patch(setRegistre)}
         />
       : <RWStepDescribe kind="registre" placeholder={vocab.level3.placeholder} level={registre} patch={patch(setRegistre)} />
-    return <RWStepSummary vocab={vocab} acte={acte} selectedUd={selectedUd} hasTable={hasTable} table={table} hasRegistre={hasRegistre} registre={registre} />
+    return <RWStepSummary vocab={vocab} acte={acte} selectedUd={selectedUd}
+      hasTable={hasTable} table={table} tableIntitule={useStructuredTable ? tableIntitule : table.intitule} selectedTableUd={selectedTableUd}
+      hasRegistre={hasRegistre} registre={registre} registreIntitule={useStructuredTable ? registreIntitule : registre.intitule} selectedRegistreUd={selectedRegistreUd}
+    />
   }
 
   if (loadingSeries) {
@@ -2308,6 +2609,12 @@ export function ReferenceWizardPage() {
             </button>
           )}
           <div className="flex-1" />
+          {(step === 'ask-table' || step === 'ask-registre') && (
+            <button onClick={passStep} disabled={stepping}
+              className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-500 disabled:opacity-40 transition-colors">
+              Passer
+            </button>
+          )}
           {step !== 'summary' ? (
             <button onClick={goNext} disabled={!canContinue || stepping}
               className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">

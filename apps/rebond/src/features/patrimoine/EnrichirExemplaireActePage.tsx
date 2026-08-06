@@ -34,12 +34,16 @@ function toIntOrNull(s: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+// locating.systems[0].raw est la forme canonique (partagée avec DecrireDocumentSheet,
+// DocumentDetailPage, ReferenceWizardPage — voir citationJsonb.ts). La lecture retombe
+// sur l'ancien loc.raw à la racine pour rester compatible avec les citations déjà
+// enregistrées avant ce correctif.
 function unpackLocating(loc: Record<string, any> | null) {
   const sys = (loc?.systems ?? [])[0] ?? {}
   return {
     loc_start: sys.start ?? null,
     loc_end: sys.end ?? null,
-    loc_raw: loc?.raw ?? '',
+    loc_raw: sys.raw ?? loc?.raw ?? '',
     loc_kind: (sys.kind as string) ?? null,
     missing_ranges: loc?.missing_ranges ?? [],
   }
@@ -47,9 +51,15 @@ function unpackLocating(loc: Record<string, any> | null) {
 
 function packLocating(c: any): Record<string, any> {
   const loc: Record<string, any> = {}
-  if (c.loc_start != null || c.loc_end != null)
-    loc.systems = [{ kind: c.loc_kind ?? 'vue', start: c.loc_start, end: c.loc_end }]
-  if ((c.loc_raw ?? '').trim()) loc.raw = String(c.loc_raw).trim()
+  const raw = String(c.loc_raw ?? '').trim()
+  if (c.loc_start != null || c.loc_end != null || raw) {
+    loc.systems = [{
+      kind: c.loc_kind ?? 'vue',
+      ...(c.loc_start != null ? { start: c.loc_start } : {}),
+      ...(c.loc_end != null ? { end: c.loc_end } : {}),
+      ...(raw ? { raw } : {}),
+    }]
+  }
   if (Array.isArray(c.missing_ranges) && c.missing_ranges.length) loc.missing_ranges = c.missing_ranges
   return loc
 }

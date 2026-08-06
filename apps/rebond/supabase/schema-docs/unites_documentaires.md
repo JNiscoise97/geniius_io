@@ -14,8 +14,6 @@ actes individuels qu'il contient).
 | `id` | uuid | PK, défaut `gen_random_uuid()` | Identifiant |
 | `titre` | text | not null | Titre affiché |
 | `titre_norm` | text | not null | Titre normalisé (minuscule, espaces réduits) — généré automatiquement |
-| `identifiant_interne` | text | nullable | Identifiant interne libre |
-| `description` | text | nullable | Description |
 | `couverture_label`, `couverture_sort_start`, `couverture_sort_end` | — | nullable | Couverture temporelle affichée et bornes de tri |
 | `type_unite_ref` | uuid | nullable, FK → `ref_type_unite` | Type d'unité (pièce, dossier, registre...) |
 | `statut_source` | text | not null, défaut `'a_qualifier'` | **Renommée** (ex `statut`) — voir section dédiée |
@@ -81,3 +79,13 @@ serait jamais égal à lui-même dans un index unique).
 - Noms d'index alignés sur le nouveau nom de table (`idx_ud_*` →
   `idx_unites_documentaires_*`, etc.). Aucun changement de colonnes ni de
   logique de contrainte au-delà du renommage.
+
+## Nettoyage du 2026-08-06 : `identifiant_interne` et `description` supprimées
+
+Ces deux colonnes existaient en doublon avec `rebond.exemplaires`, mais
+seul le côté exemplaire était réellement écrit par le code (`identifiant_interne`
+n'avait jamais de valeur côté UD — 0 ligne en prod ; `description` non plus
+côté UD, malgré 2 lignes de seed/démo perdues intentionnellement). Un
+document a un titre/type/rôle intellectuels ; l'identifiant interne et la
+description physique varient par copie, donc appartiennent à l'exemplaire,
+pas à l'unité documentaire. Voir `20260806100102_drop_dead_duplicate_columns.sql`.

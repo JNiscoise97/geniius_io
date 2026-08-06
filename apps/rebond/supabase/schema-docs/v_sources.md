@@ -21,13 +21,14 @@ de ses documents enfants.
 |---|---|---|
 | `statut` | `unites_documentaires.statut_source` | Ré-aliasée pour garder le même nom en sortie |
 | `workflow_statut` | `unites_documentaires.statut_document` | Idem |
-| `conditions_communication` | — | Toujours `null` (voir note) |
+| `conditions_communication` | `ref_depots.conditions_communication` | Voir note plus bas |
 | `acces` | calculé | `en_ligne` / `physique` / `numerique` selon le meilleur exemplaire |
+| `vue_range` | `exemplaires.localisation_interne` | Plage de vues du meilleur exemplaire (ex. `1-250` pour un registre numérisé). Sert de dénominateur pour situer une table/un acte dans l'étendue totale du registre (carte "Documents à décrire", récapitulatif du wizard). |
 
 ## Dépendances
 
-Toutes les tables sous-jacentes sont dans `rebond`, sauf `ref_natures`
-(pas encore migrée) — jointure cross-schema vers `public.ref_natures`.
+Toutes les tables sous-jacentes sont dans `rebond` — plus aucune trace de
+cross-schema depuis la migration de `ref_natures`/`ref_supports`.
 
 ## Écarts vs `public.v_sources`
 

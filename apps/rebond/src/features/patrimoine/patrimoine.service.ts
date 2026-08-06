@@ -46,6 +46,7 @@ export type VSourceRow = {
   parent_ud_id: string | null
   created_at: string
   derniere_activite: string
+  vue_range: string | null
 }
 
 export type UDDocRow = {
@@ -54,6 +55,8 @@ export type UDDocRow = {
   type_unite_ref: string | null
   role_document_ref: string | null
   ref_role_document: { id: string; code: string; label: string } | null
+  serie_ref: string | null
+  ref_series_documentaires: { label: string | null } | null
   titre: string
   couverture_label: string | null
   workflow_statut: string
@@ -65,6 +68,7 @@ export type UDDocRow = {
     cote_locale: string | null
     note: string | null
     localisation_interne: string | null
+    est_reference: boolean
     ref_acces_numeriques: Array<{ url_base: string | null }>
     citations: Array<{ target_type: string; locating: LocatingJson | null }>
   }>
@@ -104,6 +108,8 @@ export async function fetchDocuments() {
       type_unite_ref,
       role_document_ref,
       ref_role_document!role_document_ref ( id, code, label ),
+      serie_ref,
+      ref_series_documentaires!serie_ref ( label ),
       titre,
       couverture_label,
       workflow_statut:statut_document,
@@ -111,7 +117,7 @@ export async function fetchDocuments() {
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
+      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, est_reference, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .not('parent_ud_id', 'is', null)
     .order('couverture_label', { ascending: true, nullsFirst: false })
@@ -132,6 +138,8 @@ export async function fetchOrphans() {
       type_unite_ref,
       role_document_ref,
       ref_role_document!role_document_ref ( id, code, label ),
+      serie_ref,
+      ref_series_documentaires!serie_ref ( label ),
       titre,
       couverture_label,
       workflow_statut:statut_document,
@@ -139,7 +147,7 @@ export async function fetchOrphans() {
       metadonnees,
       created_at,
       updated_at,
-      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
+      ref_exemplaires:exemplaires ( cote_locale, note, localisation_interne, est_reference, ref_acces_numeriques ( url_base ), citations ( target_type, locating ) )
     `)
     .is('parent_ud_id', null)
     .eq('statut_document', 'en_attente')
@@ -165,6 +173,22 @@ export async function fetchCorpus() {
     `)
     .order('created_at', { ascending: false })
   return { data: data as CorpusDBRow[] | null, error }
+}
+
+// ── Fetch "mentionné dans" (tables → actes, cf. unites_documentaires_mentions) ──
+// Distinct du containment porté par parent_ud_id : une table ne contient pas
+// physiquement l'acte, elle le référence pour la recherche.
+
+export type MentionRow = {
+  mentionne_id: string
+  mentionnant: { id: string; titre: string } | null
+}
+
+export async function fetchMentions() {
+  const { data, error } = await supabaseRebond
+    .from('unites_documentaires_mentions')
+    .select('mentionne_id, mentionnant:unites_documentaires!mentionnant_id ( id, titre )')
+  return { data: data as unknown as MentionRow[] | null, error }
 }
 
 // ── Qualifier une source (step 2 de P1.1) ────────────────────
@@ -193,8 +217,10 @@ export async function qualifierSource(id: string, payload: {
 // Description externe uniquement (forme, langue, période) —
 // pas de lecture du contenu, ça c'est le rôle de l'atelier de transcription.
 // Le producteur n'est volontairement pas ici : il se déduit/complète après transcription.
-// La description physique n'est pas ici : elle vit sur l'exemplaire (ref_exemplaires.description),
+// La description physique n'est pas ici : elle vit sur l'exemplaire (exemplaires.description),
 // pas sur l'unité documentaire — deux exemplaires du même document peuvent avoir des états différents.
+// Idem pour identifiant_interne, désormais uniquement sur l'exemplaire
+// (deux copies du même document peuvent avoir des cotes/identifiants internes distincts).
 // Passe workflow_statut → 'decrit'.
 
 export async function decrireDocument(id: string, payload: {
@@ -202,7 +228,6 @@ export async function decrireDocument(id: string, payload: {
   role_document_ref: string | null
   langue_ref: string | null
   couverture_label: string | null
-  identifiant_interne: string | null
   niveau_fiabilite: string | null
   metadonnees: Record<string, unknown> | null
 }) {
@@ -213,7 +238,6 @@ export async function decrireDocument(id: string, payload: {
       role_document_ref: payload.role_document_ref || null,
       langue_ref: payload.langue_ref || null,
       couverture_label: payload.couverture_label || null,
-      identifiant_interne: payload.identifiant_interne || null,
       niveau_fiabilite: payload.niveau_fiabilite || null,
       statut_document: 'decrit',
       metadonnees: payload.metadonnees,
@@ -252,6 +276,7 @@ export type CitationExemplaireRow = {
   locating: LocatingJson | null
   marginalia: MarginaliaJson | null
   note: string | null
+  unite_id: string | null
   unite_titre: string | null
   cote_locale: string | null
   depot_nom: string | null
@@ -277,7 +302,7 @@ export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationE
   if (exemplaire_ids.length) {
     const { data: exRows } = await supabaseRebond
       .from('v_exemplaires_pick')
-      .select('exemplaire_id, unite_titre, cote_locale, depot_nom, institution_nom, institution_sigle, url_base')
+      .select('exemplaire_id, unite_id, unite_titre, cote_locale, depot_nom, institution_nom, institution_sigle, url_base')
       .in('exemplaire_id', exemplaire_ids)
     for (const ex of exRows ?? []) exemplaireMap.set(ex.exemplaire_id, ex)
   }
@@ -295,6 +320,7 @@ export async function fetchCitationsWithExemplaires(): Promise<{ data: CitationE
       locating: c.locating,
       marginalia: c.marginalia,
       note: c.note,
+      unite_id: ex?.unite_id ?? null,
       unite_titre: ex?.unite_titre ?? null,
       cote_locale: ex?.cote_locale ?? null,
       depot_nom: ex?.depot_nom ?? null,

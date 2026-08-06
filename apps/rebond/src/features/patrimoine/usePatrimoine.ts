@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, fetchCitationsWithExemplaires,
+  fetchSources, fetchDocuments, fetchOrphans, fetchCorpus, fetchCitationsWithExemplaires, fetchMentions,
   type VSourceRow, type UDDocRow, type CorpusDBRow, type CitationExemplaireRow,
 } from './patrimoine.service'
 import type {
@@ -76,11 +76,16 @@ function toSource(row: VSourceRow): PatrimoineSource {
     statut: (row.statut as SourceStatut) ?? 'actif',
     derniere_activite: relativeTime(row.derniere_activite),
     copies_connues: row.copies_connues ?? 0,
+    vue_range: row.vue_range ?? null,
+    a_rattacher: row.metadonnees?.a_rattacher === true,
   }
 }
 
 function toDocument(row: UDDocRow): PatrimoineDocument {
-  const ex = row.ref_exemplaires?.[0]
+  const exemplaires = row.ref_exemplaires ?? []
+  // L'exemplaire de référence fait foi pour cote/vue quand il y en a
+  // plusieurs — à défaut (aucun désigné), on retombe sur le premier connu.
+  const ex = exemplaires.find(e => e.est_reference) ?? exemplaires[0]
   const coteFromMeta = row.metadonnees?.cote as string | undefined
   const noteFromMeta = row.metadonnees?.note as string | undefined
   const urlBase = ex?.ref_acces_numeriques?.find(a => (a.url_base ?? '').trim())?.url_base ?? undefined
@@ -89,8 +94,16 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
   // "Décrire" met à jour. On ne retombe sur ref_exemplaires.localisation_interne (posé une
   // seule fois par le wizard, jamais réédité) que si aucune citation n'existe (ex. un registre).
   const citation = ex?.citations?.find(c => c.target_type === 'ec_acte' || c.target_type === 'ec_table')
-  const citationRaw = citation?.locating?.systems?.[0]?.raw
-  const vue = (typeof citationRaw === 'string' && citationRaw.trim()) ? citationRaw : (ex?.localisation_interne ?? null)
+  const sys0 = citation?.locating?.systems?.[0]
+  // raw texte libre en priorité (forme canonique systems[0].raw, avec repli sur l'ancien
+  // locating.raw à la racine pour les citations enregistrées avant le correctif de forme) ;
+  // à défaut, plage numérique start–end si c'est ce qui a été saisi (ex. "vue 12–14").
+  const rawText = (sys0?.raw ?? citation?.locating?.raw)?.trim() || undefined
+  const rangeText = sys0?.start != null
+    ? (sys0.end != null && sys0.end !== sys0.start ? `${sys0.start}–${sys0.end}` : String(sys0.start))
+    : undefined
+  const citationRaw = rawText ?? rangeText
+  const vue = citationRaw ?? (ex?.localisation_interne ?? null)
 
   return {
     id: row.id,
@@ -104,8 +117,11 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
     niveau_conservation: toConservation(null),
     note: ex?.note ?? noteFromMeta ?? undefined,
     vue,
+    serie: row.ref_series_documentaires?.label ?? null,
     en_ligne: Boolean(urlBase),
     url: urlBase,
+    a_rattacher: row.metadonnees?.a_rattacher === true,
+    exemplaire_count: exemplaires.length,
   }
 }
 
@@ -137,6 +153,10 @@ export function usePatrimoine() {
   const [docs, setDocs] = useState<PatrimoineDocument[]>([])
   const [corpus, setCorpus] = useState<PatrimoineCorpus[]>([])
   const [citationsData, setCitationsData] = useState<CitationExemplaireRow[]>([])
+  // "Mentionné dans" (unites_documentaires_mentions) : clé = id de l'acte
+  // mentionné, valeur = les tables qui le mentionnent. Distinct du
+  // containment porté par parent_ud_id/source_id.
+  const [mentionsByDoc, setMentionsByDoc] = useState<Map<string, Array<{ id: string; titre: string }>>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -144,12 +164,13 @@ export function usePatrimoine() {
     setLoading(true)
     setError(null)
 
-    const [sourcesRes, docsRes, orphansRes, corpusRes, citationsRes] = await Promise.all([
+    const [sourcesRes, docsRes, orphansRes, corpusRes, citationsRes, mentionsRes] = await Promise.all([
       fetchSources(),
       fetchDocuments(),
       fetchOrphans(),
       fetchCorpus(),
       fetchCitationsWithExemplaires(),
+      fetchMentions(),
     ])
 
     if (sourcesRes.error) {
@@ -170,14 +191,30 @@ export function usePatrimoine() {
     ]
     const mappedCorpus = corpusRows.map(row => toCorpus(row, mappedSources))
 
+    const mentionsMap = new Map<string, Array<{ id: string; titre: string }>>()
+    for (const m of mentionsRes.data ?? []) {
+      if (!m.mentionnant) continue
+      const list = mentionsMap.get(m.mentionne_id) ?? []
+      list.push(m.mentionnant)
+      mentionsMap.set(m.mentionne_id, list)
+    }
+
+    // Un document encore en_attente n'a pas fini "Décrire" — pas la peine de
+    // le montrer dans l'onglet Exemplaires, il est déjà dans "Documents à
+    // décrire" (En attente). Évite qu'un même document soit actionnable
+    // depuis deux endroits avec deux notions de complétude différentes.
+    const enAttenteIds = new Set(mappedDocs.filter(d => d.statut === 'en_attente').map(d => d.id))
+    const filteredCitations = (citationsRes.data ?? []).filter(c => !c.unite_id || !enAttenteIds.has(c.unite_id))
+
     setSources(mappedSources)
     setDocs(mappedDocs)
     setCorpus(mappedCorpus)
-    setCitationsData(citationsRes.data ?? [])
+    setCitationsData(filteredCitations)
+    setMentionsByDoc(mentionsMap)
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  return { sources, docs, corpus, citationsData, loading, error, refetch: load }
+  return { sources, docs, corpus, citationsData, mentionsByDoc, loading, error, refetch: load }
 }

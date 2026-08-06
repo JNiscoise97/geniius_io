@@ -40,7 +40,7 @@ const sections: Section[] = [
     accent: 'text-blue-600',
     bg: 'bg-blue-50',
     border: 'border-blue-100',
-    description: 'Sources, documents et corpus — le socle de la chaîne de connaissance',
+    description: 'Du document brut à la source exploitable',
     items: ['En attente', 'Sources', 'Documents', 'Corpus'],
     badge: '3',
     badgeColor: 'bg-orange-100 text-orange-700',
