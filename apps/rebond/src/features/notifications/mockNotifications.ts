@@ -12,7 +12,7 @@ export const mockNotifications: Notification[] = [
     description: 'Un acte de mariage de 1861 a été importé et attend une qualification.',
     createdAt: minutesAgo(12),
     read: false,
-    to: '/mock/sources-corpus',
+    to: '/patrimoine-documentaire',
   },
   {
     id: '2',

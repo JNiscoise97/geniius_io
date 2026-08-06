@@ -44,7 +44,7 @@ const sections: Section[] = [
     items: ['En attente', 'Sources', 'Documents', 'Corpus'],
     badge: '3',
     badgeColor: 'bg-orange-100 text-orange-700',
-    to: '/mock/sources-corpus',
+    to: '/patrimoine-documentaire',
   },
   {
     id: 'atelier',
@@ -176,9 +176,9 @@ type Task = {
 }
 
 const tasks: Task[] = [
-  { label: 'Sources à qualifier', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
-  { label: 'Documents à rattacher', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
-  { label: 'Documents à décrire', count: '1', color: 'bg-orange-50 text-orange-700', to: '/mock/sources-corpus' },
+  { label: 'Sources à qualifier', count: '1', color: 'bg-orange-50 text-orange-700', to: '/patrimoine-documentaire' },
+  { label: 'Documents à rattacher', count: '1', color: 'bg-orange-50 text-orange-700', to: '/patrimoine-documentaire' },
+  { label: 'Documents à décrire', count: '1', color: 'bg-orange-50 text-orange-700', to: '/patrimoine-documentaire' },
   { label: 'Mentions à valider', count: '—', color: 'bg-amber-50 text-amber-700', divider: true },
   { label: 'Propositions de réconciliation', count: '—', color: 'bg-rose-50 text-rose-700' },
   { label: 'Incohérences détectées', count: '—', color: 'bg-orange-50 text-orange-700' },
