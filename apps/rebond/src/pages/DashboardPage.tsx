@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, LogIn, ScrollText } from 'lucide-react'
 import { useSession } from '../lib/supabase/useSession'
-import { DashboardV2 } from '../features/accueil/DashboardV2'
+import { Dashboard } from '../features/accueil/Dashboard'
 
 export default function DashboardPage() {
   // undefined = session pas encore résolue, null = déconnecté
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     )
   }
 
-  return <DashboardV2 />
+  return <Dashboard />
 }
 
 function CenteredState({ children }: { children: ReactNode }) {

@@ -185,10 +185,10 @@ const tasks: Task[] = [
   { label: 'Hypothèses à arbitrer', count: '—', color: 'bg-purple-50 text-purple-700' },
 ]
 
-export function DashboardV2() {
+export function Dashboard() {
   const navigate = useNavigate()
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
 
@@ -210,7 +210,7 @@ export function DashboardV2() {
               className={`rounded-xl border px-5 py-4 ${
                 s.highlight
                   ? 'bg-orange-50 border-orange-200'
-                  : 'bg-white border-gray-100'
+                  : 'bg-white border-gray-200 shadow-sm'
               }`}
             >
               <div className={`text-2xl font-bold tabular-nums ${s.highlight ? 'text-orange-600' : 'text-gray-900'}`}>
@@ -230,7 +230,11 @@ export function DashboardV2() {
               <div
                 key={section.id}
                 onClick={() => section.to && navigate(section.to)}
-                className={`bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-300 hover:shadow-sm transition-all group ${section.to ? 'cursor-pointer' : 'cursor-default opacity-70'}`}
+                className={`rounded-xl border p-5 transition-all group ${
+                  section.to
+                    ? 'bg-white border-gray-200 shadow-sm cursor-pointer hover:border-gray-300 hover:shadow-md'
+                    : 'bg-gray-50 border-dashed border-gray-300 cursor-default'
+                }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className={`w-9 h-9 rounded-lg ${section.bg} border ${section.border} flex items-center justify-center shrink-0`}>
@@ -242,18 +246,26 @@ export function DashboardV2() {
                         {section.badge}
                       </span>
                     )}
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                    {section.to ? (
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                    ) : (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        Bientôt
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="text-sm font-medium text-gray-900 mb-1">{section.label}</div>
+                <div className={`text-sm font-medium mb-1 ${section.to ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {section.label}
+                </div>
                 <div className="text-xs text-gray-500 mb-3 leading-relaxed">{section.description}</div>
 
                 <div className="flex flex-wrap gap-1.5">
                   {section.items.map(item => (
                     <span
                       key={item}
-                      className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded px-2 py-0.5"
+                      className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-0.5"
                     >
                       {item}
                     </span>
@@ -268,15 +280,15 @@ export function DashboardV2() {
         <div className="grid grid-cols-2 gap-3">
 
           {/* Recent activity */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-700">Activité récente</span>
             </div>
             <div className="flex flex-col gap-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gray-200 shrink-0" />
+                <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
                   <span className="text-xs text-gray-400">Les actions apparaîtront ici</span>
                 </div>
               ))}
@@ -284,7 +296,7 @@ export function DashboardV2() {
           </div>
 
           {/* Tasks */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-4 h-4 text-orange-400" />
               <span className="text-sm font-medium text-gray-700">Tâches à traiter</span>
@@ -295,7 +307,7 @@ export function DashboardV2() {
                   {task.divider && <div className="border-t border-gray-100 my-1" />}
                   <div
                     onClick={() => task.to && navigate(task.to)}
-                    className={`flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group ${task.to ? 'cursor-pointer' : 'cursor-default'}`}
+                    className={`flex items-center justify-between py-2 px-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors group ${task.to ? 'cursor-pointer' : 'cursor-default'}`}
                   >
                     <span className="text-xs text-gray-700">{task.label}</span>
                     <div className="flex items-center gap-2">
