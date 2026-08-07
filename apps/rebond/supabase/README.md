@@ -155,6 +155,33 @@ Scripts exécutés manuellement via l'éditeur SQL du dashboard Supabase, schém
 entre `public.*` et `rebond.*` pour toutes les tables listées (via l'API REST,
 clé service_role).
 
+## Tables nouvelles (sans équivalent `public`)
+
+Tables créées directement dans `rebond`, sans donnée `public` à migrer :
+
+| Table | Créée | Code branché |
+|---|---|---|
+| `rebond.transcriptions` | ✅ | ✅ (atelier documentaire) |
+| `rebond.transcription_versions` | ✅ | ✅ (atelier documentaire) |
+| `rebond.transcription_commentaires` | ✅ | ✅ (atelier documentaire) |
+| `rebond.ref_transcription_zone_types` | ✅ | ✅ (atelier documentaire) |
+| `rebond.transcription_zones` | ✅ | ✅ (atelier documentaire) |
+
+`rebond.transcriptions` — contenu (Tiptap JSON) par exemplaire, générique à
+tous les types de documents. Voir `schema-docs/transcriptions.md` pour le
+détail et pourquoi elle ne réutilise pas `etat_civil_transcriptions`.
+
+`rebond.transcription_versions` — historique de versions nommées
+(checkpoints explicites, pas à chaque auto-save). `rebond.transcription_commentaires` —
+commentaires ancrés au texte via une marque Tiptap plutôt que par
+relocalisation de citation. Voir `schema-docs/transcription_versions.md` et
+`schema-docs/transcription_commentaires.md`.
+
+`rebond.transcription_zones` (+ `ref_transcription_zone_types`) — "zones
+spécifiques" (mentions marginales, signatures, ratures marginales),
+génériques à tous les types de documents contrairement à l'ancien modèle de
+`rebond_deprecated`. Voir `schema-docs/transcription_zones.md`.
+
 ## Comment le code choisit le bon schéma
 
 Deux cas de figure :

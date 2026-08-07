@@ -55,6 +55,7 @@ const sections: Section[] = [
     border: 'border-violet-100',
     description: 'Transcrire, annoter, relire et versionner',
     items: ['À transcrire', 'Transcription', 'Annotation', 'Versions'],
+    to: '/atelier-documentaire',
   },
   {
     id: 'extraction',

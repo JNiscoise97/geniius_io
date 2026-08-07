@@ -1,0 +1,39 @@
+-- RLS pour rebond.transcriptions, même policy ouverte que le reste du schéma.
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'transcriptions'
+  ]
+  loop
+    execute format('alter table rebond.%I enable row level security', t);
+
+    execute format('drop policy if exists "%s_public_select" on rebond.%I', t, t);
+    execute format(
+      'create policy "%s_public_select" on rebond.%I for select to anon, authenticated using (true)',
+      t, t
+    );
+
+    execute format('drop policy if exists "%s_public_insert" on rebond.%I', t, t);
+    execute format(
+      'create policy "%s_public_insert" on rebond.%I for insert to anon, authenticated with check (true)',
+      t, t
+    );
+
+    execute format('drop policy if exists "%s_public_update" on rebond.%I', t, t);
+    execute format(
+      'create policy "%s_public_update" on rebond.%I for update to anon, authenticated using (true) with check (true)',
+      t, t
+    );
+
+    execute format('drop policy if exists "%s_public_delete" on rebond.%I', t, t);
+    execute format(
+      'create policy "%s_public_delete" on rebond.%I for delete to anon, authenticated using (true)',
+      t, t
+    );
+
+    execute format('grant all on rebond.%I to anon, authenticated, service_role', t);
+  end loop;
+end $$;

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Search, ChevronRight, ChevronDown, FileText, ScrollText,
-  MoreHorizontal, CheckCircle2, Clock, AlertCircle, Plus, Filter,
+  CheckCircle2, Clock, AlertCircle, Plus, Filter,
   FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Copy,
   Library, BookOpen, File, X,
   AlertTriangle, Loader2, MonitorCheck, University,
@@ -30,7 +30,7 @@ import type {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const TYPE_CONFIG: Record<SourceType, { label: string; icon: React.ElementType; color: string; bg: string; border: string }> = {
+export const TYPE_CONFIG: Record<SourceType, { label: string; icon: React.ElementType; color: string; bg: string; border: string }> = {
   'etat-civil': { label: 'État civil', icon: ScrollText, color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-200' },
   foncier:      { label: 'Foncier',    icon: Landmark,   color: 'text-rose-700',   bg: 'bg-rose-50',   border: 'border-rose-200' },
   annuaire:     { label: 'Annuaire',   icon: Newspaper,  color: 'text-sky-700',    bg: 'bg-sky-50',    border: 'border-sky-200' },
@@ -57,7 +57,7 @@ const ACCES_CONFIG: Record<Acces, { label: string; color: string }> = {
   en_ligne:  { label: 'En ligne', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
 }
 
-const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: string }> = {
+export const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: string }> = {
   a_transcrire: { label: 'À transcrire', color: 'text-slate-600 bg-slate-50 border-slate-200',       dot: 'bg-slate-400' },
   transcrit:    { label: 'Transcrit',    color: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
   en_cours:     { label: 'En cours',     color: 'text-blue-700 bg-blue-50 border-blue-200',          dot: 'bg-blue-400' },
@@ -65,9 +65,9 @@ const STATUT_DOC_CONFIG: Record<DocStatut, { label: string; color: string; dot: 
   annote:       { label: 'Annoté',       color: 'text-violet-700 bg-violet-50 border-violet-200',    dot: 'bg-violet-500' },
   en_attente:   { label: 'En attente',   color: 'text-orange-700 bg-orange-50 border-orange-200',    dot: 'bg-orange-400' },
 }
-const STATUT_DOC_FALLBACK = { label: 'Statut inconnu', color: 'text-gray-500 bg-gray-50 border-gray-200', dot: 'bg-gray-300' }
+export const STATUT_DOC_FALLBACK = { label: 'Statut inconnu', color: 'text-gray-500 bg-gray-50 border-gray-200', dot: 'bg-gray-300' }
 
-const ROLE_CONFIG: Record<DocRole, { label: string; color: string }> = {
+export const ROLE_CONFIG: Record<DocRole, { label: string; color: string }> = {
   ACTE_PRIMAIRE:           { label: 'Acte',                    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   INSTRUMENT_DE_RECHERCHE: { label: 'Instrument de recherche', color: 'text-amber-700 bg-amber-50 border-amber-200' },
   REGISTRE_COMPILE:        { label: 'Registre',                color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
@@ -881,7 +881,8 @@ function RattacherDocumentSheet({ doc, sources, onClose, onDone }: {
 
 // ─── Source card ──────────────────────────────────────────────────────────────
 
-function SourceCard({ source }: { source: Source }) {
+function SourceCard({ source, onViewDocuments }: { source: Source; onViewDocuments: (sourceId: string) => void }) {
+  const navigate = useNavigate()
   const type = TYPE_CONFIG[source.type]
   const TypeIcon = type.icon
   const fiabilite = source.niveau_fiabilite ? FIABILITE_CONFIG[source.niveau_fiabilite] : null
@@ -891,25 +892,25 @@ function SourceCard({ source }: { source: Source }) {
   const progress = pct(source.transcris, source.total_documents)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-200 hover:shadow-sm transition-all group cursor-pointer">
+    <div
+      role="button" tabIndex={0}
+      onClick={() => navigate(`/documents/${source.id}`)}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/documents/${source.id}`) }}
+      className="bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-200 hover:shadow-sm transition-all group cursor-pointer"
+    >
       <div className="flex items-start gap-4">
         <div className={`w-11 h-11 rounded-xl border ${type.bg} ${type.border} flex items-center justify-center shrink-0 mt-0.5`}>
           <TypeIcon className={`w-5 h-5 ${type.color}`} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
-                {source.nom}
-              </h3>
-              <span className={`text-xs font-medium rounded border px-2 py-0.5 ${type.bg} ${type.color} ${type.border}`}>
-                {type.label}
-              </span>
-            </div>
-            <button className="p-1 rounded text-gray-300 hover:text-gray-500 transition-colors shrink-0">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+              {source.nom}
+            </h3>
+            <span className={`text-xs font-medium rounded border px-2 py-0.5 ${type.bg} ${type.color} ${type.border}`}>
+              {type.label}
+            </span>
           </div>
 
           <div className="space-y-0.5 mb-3">
@@ -939,10 +940,10 @@ function SourceCard({ source }: { source: Source }) {
                 <ExternalLink className="w-3 h-3" />Accès en ligne
               </a>
             )}
-            {source.copies_connues > 0 && (
+            {source.copies_connues > 1 && (
               <span className="text-xs font-medium text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2.5 py-0.5 flex items-center gap-1">
                 <Copy className="w-3 h-3" />
-                {source.copies_connues} autre{source.copies_connues > 1 ? 's' : ''} exemplaire{source.copies_connues > 1 ? 's' : ''}
+                {source.copies_connues} exemplaires
               </span>
             )}
           </div>
@@ -987,7 +988,9 @@ function SourceCard({ source }: { source: Source }) {
               ? `${source.a_traiter} document${source.a_traiter > 1 ? 's' : ''} non traité${source.a_traiter > 1 ? 's' : ''}`
               : 'Entièrement transcrit'}
         </div>
-        <button className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1 transition-colors">
+        <button
+          onClick={e => { e.stopPropagation(); onViewDocuments(source.id) }}
+          className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1 transition-colors">
           Voir les documents <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -1884,7 +1887,8 @@ export function PatrimoineDocumentairePage() {
             ) : (
               <div className="space-y-3">
                 {filteredSources.map(source => (
-                  <SourceCard key={source.id} source={source} />
+                  <SourceCard key={source.id} source={source}
+                    onViewDocuments={id => { setSourceDocFilter(id); setTab('Documents') }} />
                 ))}
               </div>
             )}
