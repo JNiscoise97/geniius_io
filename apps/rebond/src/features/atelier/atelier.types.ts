@@ -21,11 +21,30 @@ export type AtelierDocumentHeader = {
   couvertureLabel: string | null
 }
 
+// Résultat de recherche pour "Comparer avec un autre exemplaire" — juste
+// de quoi afficher une liste sélectionnable (le contenu complet n'est
+// chargé qu'à la sélection, via fetchTranscription).
+export type TranscriptionSearchResult = {
+  exemplaireId: string
+  documentId: string
+  documentTitre: string
+  coteLocale: string | null
+  statut: TranscriptionStatut
+  updatedAt: string
+}
+
+// Instantané dénormalisé des zones à l'intérieur d'une version — pas les
+// mêmes objets que TranscriptionZone (pas d'id/createdAt propres à la
+// version, juste ce qui définit le fait relevé).
+export type ZoneSnapshotEntry = { zoneTypeId: string; contenu: string }
+
 export type TranscriptionVersion = {
   id: string
   version: number
   contenu: unknown
   changeSummary: string | null
+  zonesSnapshot: ZoneSnapshotEntry[]
+  qualiteSnapshot: TranscriptionQualite
   createdAt: string
 }
 
@@ -74,4 +93,18 @@ export type TranscriptionQualite = {
   completenessNote: string | null
   reserveLevel: ReserveLevel
   reserveReason: string | null
+}
+
+// Valeur par défaut — sert à la fois d'état initial du formulaire et de
+// "baseline" de comparaison pour isDirty quand aucune version n'existe
+// encore (cf. computeIsDirty dans TranscriptionEditorPage.tsx).
+export const QUALITE_VIDE: TranscriptionQualite = {
+  sourceLectureKind: null,
+  langueRef: null,
+  ecritureRef: null,
+  handwritingLegibilityRef: null,
+  completeness: 'complete',
+  completenessNote: null,
+  reserveLevel: 'aucune',
+  reserveReason: null,
 }

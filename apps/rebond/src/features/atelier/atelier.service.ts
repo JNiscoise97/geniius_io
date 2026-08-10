@@ -1,21 +1,27 @@
 // atelier.service.ts — accès données pour l'atelier documentaire (transcription).
 //
-// TODO module (à reprendre) :
-// - Revoir le versionning + l'enregistrement (auto-save différée, création
-//   de version, ensureTranscriptionRow — cf. bug du brouillon vide corrigé
-//   le 2026-08-07, potentiellement d'autres cas limites à couvrir).
+// Modèle brouillon/version (refondu le 2026-08-08) : rebond.transcriptions
+// (contenu, zones, qualité) est le brouillon vivant, mis à jour en continu
+// (auto-save texte, écriture immédiate pour zones/qualité) ;
+// rebond.transcription_versions est un instantané figé des TROIS facettes
+// (texte + zones_snapshot + qualite_snapshot), créé explicitement via
+// "Enregistrer une version". Les commentaires ancrés sont exclus de ce
+// mécanisme (fil de discussion continu, pas un fait documentaire versionné) —
+// voir TranscriptionEditorPage.tsx pour le calcul d'isDirty côté frontend.
+//
+// TODO module restant (à reprendre) :
 // - Ajout d'une section "non transcrite" (marquer un passage comme non
 //   transcrit, distinct d'un texte vide).
 // - Ajout d'une suite de mots illisibles (marqueur dédié dans l'éditeur,
 //   façon [ILLISIBLE...] de l'ancien système mais pensé pour Tiptap).
-// - Revoir le chargement de la dernière version à l'ouverture de la page.
-// - Revoir le comportement du clic sur "Marquer comme transcrit".
 
 import { supabase, supabaseRebond } from '@/lib/supabase'
 import { unpackMarginalia } from '../patrimoine/citationJsonb'
+import { QUALITE_VIDE } from './atelier.types'
 import type {
   AtelierExemplaire, TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, CommentaireStatut,
-  TranscriptionZoneType, TranscriptionZone, TranscriptionQualite, ZoneAttendu,
+  TranscriptionZoneType, TranscriptionZone, TranscriptionQualite, ZoneAttendu, ZoneSnapshotEntry,
+  TranscriptionSearchResult,
 } from './atelier.types'
 
 type TranscriptionQualiteRow = {
@@ -42,6 +48,222 @@ function toQualite(row: TranscriptionQualiteRow): TranscriptionQualite {
   }
 }
 
+// Métadonnées de hiérarchisation pour AtelierDocumentairePage.tsx (regroupement
+// série > région > département > commune > bureau > année > registre).
+// Volontairement séparé de patrimoine.service.ts (fetchDocuments) : ce sont
+// des besoins spécifiques à cette vue, pas au reste du module Patrimoine —
+// éviter d'alourdir sa requête partagée avec des jointures qu'elle n'utilise
+// pas ailleurs.
+//
+// Chemin de données (important, pas celui qu'on imaginerait au premier
+// abord) : un document (unite_documentaire) n'a PAS de bureau/registre
+// directement, ni via unites_documentaires_bureaux/_types_actes (ces deux
+// tables pivot existent mais ne sont quasi pas peuplées — 4-5 lignes au
+// total sur toute la base, essai initial qui donnait une hiérarchie vide en
+// usage réel). Le vrai chemin, richement peuplé (4200+ lignes) :
+// unites_documentaires -> exemplaires -> citations (target_type='ec_acte')
+// -> etat_civil_actes (bureau_id not null, annee, registre_id, numero_acte)
+// -> etat_civil_bureaux / etat_civil_registres.
+//
+// Le registre lui-même n'a pas d'ordre propre en base — demandé
+// explicitement : le trier par la même position que son type d'acte
+// principal (ref_etat_civil_type_acte.position, via le pivot
+// etat_civil_registres_type_acte — un registre peut mélanger plusieurs
+// types, on garde la position minimale rencontrée).
+// registreId séparé de registreLabel : le label est généré automatiquement
+// à partir du seul type d'acte (cf. etat_civil_registres.md) — deux
+// registres distincts (bureaux ou années différentes) peuvent porter le
+// même libellé générique ("Registre des décès"). Le regroupement dans
+// AtelierDocumentairePage.tsx doit se faire sur l'id réel, pas sur le
+// texte affiché, pour ne pas fusionner à tort deux registres différents.
+export type DocHierarchyMeta = {
+  region: string | null
+  departement: string | null
+  commune: string | null
+  bureauLabel: string | null
+  sortYear: number | null
+  registreId: string | null
+  registreLabel: string | null
+  registreSortPosition: number | null
+  numeroActe: string | null
+}
+
+export async function fetchDocumentsHierarchyMeta(documentIds: string[]): Promise<Map<string, DocHierarchyMeta>> {
+  const result = new Map<string, DocHierarchyMeta>()
+  if (documentIds.length === 0) return result
+  for (const id of documentIds) {
+    result.set(id, {
+      region: null, departement: null, commune: null, bureauLabel: null,
+      sortYear: null, registreId: null, registreLabel: null, registreSortPosition: null, numeroActe: null,
+    })
+  }
+
+  // couverture_sort_start reste un repli de tri (toujours renseigné, même
+  // pour un document non état-civil) — etat_civil_actes.annee (plus précis,
+  // spécifique à l'acte) prend le dessus plus bas quand il existe.
+  const { data: unites } = await supabaseRebond.from('unites_documentaires')
+    .select('id, couverture_sort_start')
+    .in('id', documentIds)
+  for (const u of unites ?? []) {
+    const meta = result.get(u.id)
+    if (meta) meta.sortYear = u.couverture_sort_start
+  }
+
+  const { data: exemplaires } = await supabaseRebond.from('exemplaires')
+    .select('id, unite_documentaire_id')
+    .in('unite_documentaire_id', documentIds)
+  const docIdByExemplaire = new Map((exemplaires ?? []).map(e => [e.id, e.unite_documentaire_id]))
+  const exemplaireIds = [...docIdByExemplaire.keys()]
+  if (exemplaireIds.length === 0) return result
+
+  // ec_acte = un acte individuel ; ec_table = un répertoire/table de
+  // dépouillement (etat_civil_repertoires, "table annuelle/décennale") —
+  // demandé explicitement : les tables doivent aussi se placer sous leur
+  // bureau/année/registre, pas rester à plat sous la série.
+  const { data: citations } = await supabaseRebond.from('citations')
+    .select('exemplaire_id, target_id, target_type')
+    .in('target_type', ['ec_acte', 'ec_table'])
+    .in('exemplaire_id', exemplaireIds)
+  // Un document peut avoir plusieurs exemplaires/citations (rare) — on garde
+  // la première rencontrée comme représentante dans la hiérarchie.
+  const citationByDoc = new Map<string, { targetType: 'ec_acte' | 'ec_table'; targetId: string }>()
+  for (const c of citations ?? []) {
+    const docId = docIdByExemplaire.get(c.exemplaire_id)
+    if (docId && !citationByDoc.has(docId)) {
+      citationByDoc.set(docId, { targetType: c.target_type as 'ec_acte' | 'ec_table', targetId: c.target_id })
+    }
+  }
+  const acteIdByDoc = new Map<string, string>()
+  const tableIdByDoc = new Map<string, string>()
+  for (const [docId, c] of citationByDoc) {
+    if (c.targetType === 'ec_acte') acteIdByDoc.set(docId, c.targetId)
+    else tableIdByDoc.set(docId, c.targetId)
+  }
+  const acteIds = [...new Set(acteIdByDoc.values())]
+  const tableIds = [...new Set(tableIdByDoc.values())]
+  if (acteIds.length === 0 && tableIds.length === 0) return result
+
+  const { data: actes } = acteIds.length
+    ? await supabaseRebond.from('etat_civil_actes').select('id, bureau_id, annee, registre_id, numero_acte').in('id', acteIds)
+    : { data: [] as Array<{ id: string; bureau_id: string | null; annee: number | null; registre_id: string | null; numero_acte: string | null }> }
+  const acteById = new Map((actes ?? []).map(a => [a.id, a]))
+
+  // Un répertoire (etat_civil_repertoires) n'a pas de registre_id direct —
+  // seulement bureau_id + annee_debut/fin + type_acte_ids. On le rattache
+  // au registre correspondant (même bureau, même année, type d'acte en
+  // commun) plus bas, une fois les registres candidats de son bureau connus.
+  type TableRow = { id: string; bureau_id: string | null; annee_debut: number; annee_fin: number | null; type_acte_ids: string[] }
+  const { data: tables } = tableIds.length
+    ? await supabaseRebond.from('etat_civil_repertoires').select('id, bureau_id, annee_debut, annee_fin, type_acte_ids').in('id', tableIds).returns<TableRow[]>()
+    : { data: [] as TableRow[] }
+  const tableById = new Map((tables ?? []).map(t => [t.id, t]))
+
+  const bureauIds = [...new Set([
+    ...(actes ?? []).map(a => a.bureau_id),
+    ...(tables ?? []).map(t => t.bureau_id),
+  ].filter((v): v is string => !!v))]
+  const { data: bureaux } = bureauIds.length
+    ? await supabaseRebond.from('etat_civil_bureaux').select('id, nom, commune, departement, region').in('id', bureauIds)
+    : { data: [] as Array<{ id: string; nom: string; commune: string | null; departement: string | null; region: string | null }> }
+  const bureauById = new Map((bureaux ?? []).map(b => [b.id, b]))
+
+  // Registres directement référencés par un acte, + tous les registres des
+  // bureaux ayant une table à rattacher (candidats pour le matching bureau
+  // + année + type d'acte ci-dessous).
+  const tableBureauIds = [...new Set((tables ?? []).map(t => t.bureau_id).filter((v): v is string => !!v))]
+  const [{ data: registresParActe }, { data: registresParBureau }] = await Promise.all([
+    (async () => {
+      const ids = [...new Set((actes ?? []).map(a => a.registre_id).filter((v): v is string => !!v))]
+      return ids.length
+        ? supabaseRebond.from('etat_civil_registres').select('id, bureau_id, annee, label').in('id', ids)
+        : { data: [] as Array<{ id: string; bureau_id: string; annee: number; label: string }> }
+    })(),
+    tableBureauIds.length
+      ? supabaseRebond.from('etat_civil_registres').select('id, bureau_id, annee, label').in('bureau_id', tableBureauIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; bureau_id: string; annee: number; label: string }> }),
+  ])
+  const registreById = new Map<string, { id: string; bureau_id: string; annee: number; label: string }>()
+  for (const r of [...(registresParActe ?? []), ...(registresParBureau ?? [])]) registreById.set(r.id, r)
+  const registreIds = [...registreById.keys()]
+
+  // Position de tri d'un registre = position minimale, parmi ses types
+  // d'acte associés, dans ref_etat_civil_type_acte. Sert aussi à connaître
+  // l'ensemble des type_acte_id d'un registre pour le matching des tables.
+  const { data: registreTypesActes } = registreIds.length
+    ? await supabaseRebond.from('etat_civil_registres_type_acte')
+      .select('registre_id, type_acte_id, ref_etat_civil_type_acte ( position )')
+      .in('registre_id', registreIds)
+    : { data: [] as Array<{ registre_id: string; type_acte_id: string; ref_etat_civil_type_acte: { position: number | null } | { position: number | null }[] | null }> }
+  const minPositionByRegistre = new Map<string, number>()
+  const typeActeIdsByRegistre = new Map<string, Set<string>>()
+  for (const row of registreTypesActes ?? []) {
+    const t = Array.isArray(row.ref_etat_civil_type_acte) ? row.ref_etat_civil_type_acte[0] : row.ref_etat_civil_type_acte
+    const position = t?.position ?? null
+    if (position != null) {
+      const current = minPositionByRegistre.get(row.registre_id)
+      if (current == null || position < current) minPositionByRegistre.set(row.registre_id, position)
+    }
+    const set = typeActeIdsByRegistre.get(row.registre_id) ?? new Set<string>()
+    set.add(row.type_acte_id)
+    typeActeIdsByRegistre.set(row.registre_id, set)
+  }
+
+  function applyBureau(meta: DocHierarchyMeta, bureauId: string | null) {
+    const bureau = bureauId ? bureauById.get(bureauId) : null
+    if (bureau) {
+      meta.bureauLabel = bureau.nom
+      meta.commune = bureau.commune
+      meta.departement = bureau.departement
+      meta.region = bureau.region
+    }
+  }
+
+  function applyRegistre(meta: DocHierarchyMeta, registreId: string) {
+    const registre = registreById.get(registreId)
+    if (!registre) return
+    meta.registreId = registre.id
+    meta.registreLabel = registre.label
+    meta.registreSortPosition = minPositionByRegistre.get(registreId) ?? null
+  }
+
+  for (const [docId, acteId] of acteIdByDoc) {
+    const meta = result.get(docId)
+    const acte = acteById.get(acteId)
+    if (!meta || !acte) continue
+    meta.numeroActe = acte.numero_acte
+    if (acte.annee != null) meta.sortYear = acte.annee
+    applyBureau(meta, acte.bureau_id)
+    if (acte.registre_id) applyRegistre(meta, acte.registre_id)
+  }
+
+  // Une table (répertoire) ne cible qu'un seul registre si elle couvre une
+  // seule année (periodicite "annuelle" en pratique) — une table décennale/
+  // générale (annee_fin renseigné et différent) n'a pas de registre unique,
+  // on la laisse sous bureau/année sans niveau registre (repli "Non
+  // renseigné" au lieu d'un rattachement arbitraire/faux).
+  for (const [docId, tableId] of tableIdByDoc) {
+    const meta = result.get(docId)
+    const table = tableById.get(tableId)
+    if (!meta || !table) continue
+    meta.sortYear = table.annee_debut
+    applyBureau(meta, table.bureau_id)
+    const singleYear = table.annee_fin == null || table.annee_fin === table.annee_debut
+    if (singleYear && table.bureau_id) {
+      const candidates = [...registreById.values()].filter(r =>
+        r.bureau_id === table.bureau_id
+        && r.annee === table.annee_debut
+        && table.type_acte_ids.some(id => typeActeIdsByRegistre.get(r.id)?.has(id)),
+      )
+      if (candidates.length > 0) {
+        candidates.sort((a, b) => (minPositionByRegistre.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (minPositionByRegistre.get(b.id) ?? Number.MAX_SAFE_INTEGER))
+        applyRegistre(meta, candidates[0].id)
+      }
+    }
+  }
+
+  return result
+}
+
 export async function fetchDocumentHeader(documentId: string) {
   const { data: doc, error } = await supabaseRebond.from('unites_documentaires')
     .select('id, titre, couverture_label, parent_ud_id')
@@ -57,6 +279,40 @@ export async function fetchDocumentHeader(documentId: string) {
   }
 
   return { data: { ...doc, registreName }, error: null }
+}
+
+// Recherche pour "Comparer avec un autre exemplaire" (TranscriptionEditorPage) :
+// on ramène un lot borné des transcriptions les plus récemment touchées
+// (en_cours/termine — non_commence n'a jamais de contenu réel) et le
+// filtrage texte se fait ensuite côté client sur ce lot, comme la
+// recherche de AtelierDocumentairePage — l'échelle du module ne justifie
+// pas une recherche plein texte côté serveur.
+export async function searchTranscribedExemplaires(excludeExemplaireId: string): Promise<TranscriptionSearchResult[]> {
+  const { data, error } = await supabaseRebond.from('transcriptions')
+    .select(`
+      exemplaire_id, statut, updated_at,
+      exemplaires ( id, cote_locale, unite_documentaire_id, unites_documentaires ( id, titre ) )
+    `)
+    .neq('exemplaire_id', excludeExemplaireId)
+    .in('statut', ['en_cours', 'termine'])
+    .order('updated_at', { ascending: false })
+    .limit(300)
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row: any) => {
+      const ex = Array.isArray(row.exemplaires) ? row.exemplaires[0] : row.exemplaires
+      const doc = ex ? (Array.isArray(ex.unites_documentaires) ? ex.unites_documentaires[0] : ex.unites_documentaires) : null
+      return {
+        exemplaireId: row.exemplaire_id as string,
+        documentId: ex?.unite_documentaire_id ?? null,
+        documentTitre: doc?.titre ?? 'Document',
+        coteLocale: ex?.cote_locale ?? null,
+        statut: row.statut as TranscriptionStatut,
+        updatedAt: row.updated_at as string,
+      }
+    })
+    .filter((r): r is TranscriptionSearchResult => !!r.documentId)
 }
 
 export async function fetchExemplairesForDocument(documentId: string): Promise<{ data: AtelierExemplaire[]; error: Error | null }> {
@@ -161,7 +417,7 @@ export async function ensureTranscriptionId(exemplaireId: string): Promise<strin
 
 export async function fetchVersions(transcriptionId: string): Promise<TranscriptionVersion[]> {
   const { data, error } = await supabaseRebond.from('transcription_versions')
-    .select('id, version, contenu, change_summary, created_at')
+    .select('id, version, contenu, change_summary, zones_snapshot, qualite_snapshot, created_at')
     .eq('transcription_id', transcriptionId)
     .order('version', { ascending: false })
   if (error) throw error
@@ -170,14 +426,33 @@ export async function fetchVersions(transcriptionId: string): Promise<Transcript
     version: v.version,
     contenu: v.contenu,
     changeSummary: v.change_summary,
+    zonesSnapshot: (v.zones_snapshot ?? []) as ZoneSnapshotEntry[],
+    qualiteSnapshot: (v.qualite_snapshot && Object.keys(v.qualite_snapshot as object).length > 0
+      ? v.qualite_snapshot
+      : QUALITE_VIDE) as TranscriptionQualite,
     createdAt: v.created_at,
   }))
 }
 
-export async function createVersionSnapshot(transcriptionId: string, contenu: unknown, changeSummary: string | null): Promise<TranscriptionVersion> {
+// zonesSnapshot/qualiteSnapshot : l'état des zones et de la qualité au
+// moment du clic, fourni par l'appelant (page) qui a déjà cet état en
+// mémoire — une version fige les trois facettes ensemble (voir en-tête).
+export async function createVersionSnapshot(
+  transcriptionId: string,
+  contenu: unknown,
+  changeSummary: string | null,
+  zonesSnapshot: ZoneSnapshotEntry[],
+  qualiteSnapshot: TranscriptionQualite,
+): Promise<TranscriptionVersion> {
   const { data, error } = await supabaseRebond.from('transcription_versions')
-    .insert({ transcription_id: transcriptionId, contenu, change_summary: changeSummary })
-    .select('id, version, contenu, change_summary, created_at')
+    .insert({
+      transcription_id: transcriptionId,
+      contenu,
+      change_summary: changeSummary,
+      zones_snapshot: zonesSnapshot,
+      qualite_snapshot: qualiteSnapshot,
+    })
+    .select('id, version, contenu, change_summary, zones_snapshot, qualite_snapshot, created_at')
     .single()
   if (error) throw error
   return {
@@ -185,6 +460,8 @@ export async function createVersionSnapshot(transcriptionId: string, contenu: un
     version: data.version,
     contenu: data.contenu,
     changeSummary: data.change_summary,
+    zonesSnapshot: (data.zones_snapshot ?? []) as ZoneSnapshotEntry[],
+    qualiteSnapshot: (data.qualite_snapshot ?? QUALITE_VIDE) as TranscriptionQualite,
     createdAt: data.created_at,
   }
 }
@@ -274,6 +551,24 @@ export async function updateZone(zoneId: string, contenu: string) {
 export async function deleteZone(zoneId: string) {
   const { error } = await supabaseRebond.from('transcription_zones').delete().eq('id', zoneId)
   if (error) throw error
+}
+
+// Remplace intégralement les zones du brouillon par celles d'un instantané
+// de version — utilisé pour "Restaurer dans le brouillon" / "Annuler le
+// brouillon" (cf. TranscriptionEditorPage.tsx, applyVersionToDraft). Pas de
+// diff fin zone par zone : plus simple et sans ambiguïté qu'un merge, cohérent
+// avec le fait qu'une restauration remplace tout le brouillon, pas juste une
+// partie.
+export async function replaceZones(transcriptionId: string, zonesSnapshot: ZoneSnapshotEntry[]): Promise<TranscriptionZone[]> {
+  const { error: delErr } = await supabaseRebond.from('transcription_zones').delete().eq('transcription_id', transcriptionId)
+  if (delErr) throw delErr
+  if (zonesSnapshot.length === 0) return []
+
+  const { data, error } = await supabaseRebond.from('transcription_zones')
+    .insert(zonesSnapshot.map(z => ({ transcription_id: transcriptionId, zone_type_id: z.zoneTypeId, contenu: z.contenu })))
+    .select('id, zone_type_id, contenu, created_at')
+  if (error) throw error
+  return (data ?? []).map(z => ({ id: z.id, zoneTypeId: z.zone_type_id, contenu: z.contenu, createdAt: z.created_at }))
 }
 
 // Ce qui est "attendu" par zone (mention marginale / signature / rature),

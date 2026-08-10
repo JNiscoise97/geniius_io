@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Library,
@@ -17,6 +18,7 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-react'
+import { fetchDashboardMetrics, type DashboardMetrics } from './dashboard.service'
 
 type Section = {
   id: string
@@ -32,63 +34,92 @@ type Section = {
   to?: string
 }
 
-const sections: Section[] = [
-  {
-    id: 'sources',
-    label: 'Patrimoine documentaire',
-    icon: Library,
-    accent: 'text-blue-600',
-    bg: 'bg-blue-50',
-    border: 'border-blue-100',
-    description: 'Du document brut à la source exploitable',
-    items: ['En attente', 'Sources', 'Documents', 'Corpus'],
-    badge: '3',
-    badgeColor: 'bg-orange-100 text-orange-700',
-    to: '/patrimoine-documentaire',
-  },
-  {
-    id: 'atelier',
-    label: 'Atelier documentaire',
-    icon: FileEdit,
-    accent: 'text-violet-600',
-    bg: 'bg-violet-50',
-    border: 'border-violet-100',
-    description: 'Transcrire, annoter, relire et versionner',
-    items: ['À transcrire', 'Transcription', 'Annotation', 'Versions'],
-    to: '/atelier-documentaire',
-  },
-  {
-    id: 'extraction',
-    label: 'Extraction',
-    icon: Sparkles,
-    accent: 'text-amber-600',
-    bg: 'bg-amber-50',
-    border: 'border-amber-100',
-    description: 'Identifier les mentions et produire des assertions',
-    items: ['Mentions détectées', 'Suggestions IA', 'À valider', 'Assertions'],
-    badge: 'IA',
-    badgeColor: 'bg-amber-100 text-amber-700',
-  },
-  {
-    id: 'entites',
-    label: 'Entités',
-    icon: Users2,
-    accent: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-100',
-    description: 'Personnes, lieux, biens, organisations et contrats',
-    items: ['Personnes', 'Lieux', 'Biens', 'Organisations'],
-  },
-  {
-    id: 'reconciliation',
-    label: 'Réconciliation',
-    icon: GitMerge,
-    accent: 'text-rose-600',
-    bg: 'bg-rose-50',
-    border: 'border-rose-100',
-    description: 'Rapprocher et fusionner les entités identiques',
-    items: ['Propositions', 'Personnes', 'Lieux', 'Biens'],
-  },
+// Les 3 premières cartes reflètent des modules construits : leurs "items"
+// sont de vraies métriques (comptages en base), pas des catégories
+// statiques — d'où la construction en fonction du dernier fetch plutôt
+// qu'un tableau figé. Description au format "Du départ au résultat"
+// (uniformisé le 2026-08-08, sur le modèle de Patrimoine documentaire).
+function buildLiveSections(m: DashboardMetrics | null): Section[] {
+  const dash = (n: number) => (m ? String(n) : '—')
+  return [
+    {
+      id: 'sources',
+      label: 'Patrimoine documentaire',
+      icon: Library,
+      accent: 'text-blue-600',
+      bg: 'bg-blue-50',
+      border: 'border-blue-100',
+      description: 'Du document brut à la source exploitable',
+      items: [
+        `${dash(m?.patrimoine.sources ?? 0)} sources`,
+        `${dash(m?.patrimoine.documents ?? 0)} documents`,
+        `${dash(m?.patrimoine.enAttente ?? 0)} en attente`,
+        `${dash(m?.patrimoine.corpus ?? 0)} corpus`,
+      ],
+      badge: m && m.patrimoine.enAttente > 0 ? String(m.patrimoine.enAttente) : undefined,
+      badgeColor: 'bg-orange-100 text-orange-700',
+      to: '/patrimoine-documentaire',
+    },
+    {
+      id: 'atelier',
+      label: 'Atelier documentaire',
+      icon: FileEdit,
+      accent: 'text-violet-600',
+      bg: 'bg-violet-50',
+      border: 'border-violet-100',
+      description: 'Du document numérisé à la transcription validée',
+      items: [
+        `${dash(m?.atelier.transcrits ?? 0)} actes transcrits`,
+        `${dash(m?.atelier.aTranscrire ?? 0)} à transcrire`,
+      ],
+      badge: m && m.atelier.aTranscrire > 0 ? String(m.atelier.aTranscrire) : undefined,
+      badgeColor: 'bg-violet-100 text-violet-700',
+      to: '/atelier-documentaire',
+    },
+    {
+      id: 'extraction',
+      label: 'Extraction',
+      icon: Sparkles,
+      accent: 'text-amber-600',
+      bg: 'bg-amber-50',
+      border: 'border-amber-100',
+      description: 'De la transcription validée aux assertions documentaires',
+      items: [
+        `${dash(m?.extraction.extraits ?? 0)} actes extraits`,
+        `${dash(m?.extraction.aExtraire ?? 0)} à extraire`,
+      ],
+      badge: 'IA',
+      badgeColor: 'bg-amber-100 text-amber-700',
+      to: '/extraction',
+    },
+    {
+      id: 'entites',
+      label: 'Entités',
+      icon: Users2,
+      accent: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-100',
+      description: 'Des mentions éparpillées par acte à une fiche par personne ou par lieu',
+      items: [`${dash(m?.entites.total ?? 0)} fiches`],
+      to: '/entites',
+    },
+    {
+      id: 'reconciliation',
+      label: 'Réconciliation',
+      icon: GitMerge,
+      accent: 'text-rose-600',
+      bg: 'bg-rose-50',
+      border: 'border-rose-100',
+      description: 'Des doublons détectés à une fiche fusionnée',
+      items: [`${dash(m?.reconciliation.groupes ?? 0)} groupes à revoir`],
+      badge: m && m.reconciliation.groupes > 0 ? String(m.reconciliation.groupes) : undefined,
+      badgeColor: 'bg-rose-100 text-rose-700',
+      to: '/reconciliation',
+    },
+  ]
+}
+
+const staticSections: Section[] = [
   {
     id: 'graphe',
     label: 'Graphe historique',
@@ -116,8 +147,8 @@ const sections: Section[] = [
     accent: 'text-orange-600',
     bg: 'bg-orange-50',
     border: 'border-orange-100',
-    description: 'Valider les connaissances, corriger les incohérences',
-    items: ['À valider', 'Incohérences', 'Doublons', 'Décisions'],
+    description: 'Des faits isolés à des connaissances cohérentes entre documents',
+    items: ['Incohérences', 'Décisions'],
   },
   {
     id: 'recherche',
@@ -188,6 +219,14 @@ const tasks: Task[] = [
 
 export function Dashboard() {
   const navigate = useNavigate()
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+
+  useEffect(() => {
+    fetchDashboardMetrics().then(setMetrics).catch(() => {})
+  }, [])
+
+  const sections = [...buildLiveSections(metrics), ...staticSections]
+
   return (
     <div className="min-h-screen bg-gray-100">
 

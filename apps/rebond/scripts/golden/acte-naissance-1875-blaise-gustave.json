@@ -1,0 +1,6 @@
+{
+  "label": "Acte de naissance 1875 — Blaise Gustave (Deshayes, Guadeloupe) — premier golden test",
+  "versionId": "e36c6e1e-5a0b-4ecd-a7a0-3290d4a9b80b",
+  "expected": null,
+  "_note": "expected volontairement null : à figer après confirmation humaine du prochain run (post-correction witness + act_place, cf. README.md de ce dossier). Tant que expected est null, le script se contente d'afficher la capture brute sans comparer. versionId mis à jour le 2026-08-08 : l'ancien id (6d4542ba-...) a été supprimé lors d'un reset de l'historique de versions (refonte brouillon/version) — les 63 assertions qui y étaient liées ont été perdues (cascade FK), l'extraction sur ce nouvel id est donc à refaire avant de figer un golden test."
+}

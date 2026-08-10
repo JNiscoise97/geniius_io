@@ -33,6 +33,17 @@ migration de code. Seedée avec 3 types au lancement : `mention_marginale`,
 | `created_at` / `created_by` | timestamptz / uuid | — |
 | `updated_at` / `updated_by` | timestamptz / uuid | `updated_at` maintenu par `trg_transcription_zones_touch`. |
 
+## Rôle de "brouillon" dans le modèle brouillon/version (2026-08-08)
+
+Ces lignes sont le brouillon vivant des zones (écriture immédiate à
+l'ajout/suppression, cf. `handleAddZone`/`handleDeleteZone` dans
+`TranscriptionEditorPage.tsx`) — `rebond.transcription_versions.zones_snapshot`
+en garde un instantané figé à chaque "Enregistrer une version". Restaurer
+une version (`applyVersionToDraft`, service `replaceZones`) **remplace
+intégralement** les lignes de cette table pour la transcription concernée :
+suppression totale puis réinsertion depuis le snapshot, pas de diff fin par
+zone. Voir `transcription_versions.md` pour le modèle complet.
+
 ## Écart volontaire vs `rebond_deprecated`
 
 L'ancien modèle (`ec_transcription_annotations`-adjacent, câblé en dur dans

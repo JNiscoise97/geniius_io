@@ -166,6 +166,9 @@ Tables créées directement dans `rebond`, sans donnée `public` à migrer :
 | `rebond.transcription_commentaires` | ✅ | ✅ (atelier documentaire) |
 | `rebond.ref_transcription_zone_types` | ✅ | ✅ (atelier documentaire) |
 | `rebond.transcription_zones` | ✅ | ✅ (atelier documentaire) |
+| `rebond.ref_assertion_predicates` | ✅ | ✅ (module Extraction) |
+| `rebond.transcription_entities` | ✅ | ✅ (module Extraction) |
+| `rebond.transcription_assertions` | ✅ | ✅ (module Extraction) |
 
 `rebond.transcriptions` — contenu (Tiptap JSON) par exemplaire, générique à
 tous les types de documents. Voir `schema-docs/transcriptions.md` pour le
@@ -176,6 +179,11 @@ détail et pourquoi elle ne réutilise pas `etat_civil_transcriptions`.
 commentaires ancrés au texte via une marque Tiptap plutôt que par
 relocalisation de citation. Voir `schema-docs/transcription_versions.md` et
 `schema-docs/transcription_commentaires.md`.
+
+`rebond.transcription_entities` / `ref_assertion_predicates` /
+`transcription_assertions` — module Extraction : assertions documentaires
+atomiques générées par agent IA (Anthropic) à partir d'une version de
+transcription figée. Voir `schema-docs/transcription_assertions.md`.
 
 `rebond.transcription_zones` (+ `ref_transcription_zone_types`) — "zones
 spécifiques" (mentions marginales, signatures, ratures marginales),

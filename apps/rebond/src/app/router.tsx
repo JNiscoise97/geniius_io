@@ -11,6 +11,11 @@ import InstitutionDetailPage from '../pages/InstitutionDetailPage'
 import AtelierDocumentairePage from '../pages/AtelierDocumentairePage'
 import AtelierExemplairesPage from '../pages/AtelierExemplairesPage'
 import TranscriptionEditorPage from '../pages/TranscriptionEditorPage'
+import ExtractionPage from '../pages/ExtractionPage'
+import ExtractionHubPage from '../pages/ExtractionHubPage'
+import EntitesHubPage from '../pages/EntitesHubPage'
+import EntiteDetailPage from '../pages/EntiteDetailPage'
+import ReconciliationPage from '../pages/ReconciliationPage'
 import Layout from '../components/layout/Layout'
 
 export const router = createBrowserRouter([
@@ -103,6 +108,46 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <TranscriptionEditorPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/atelier-documentaire/exemplaires/:exemplaireId/versions/:versionId/extraction',
+    element: (
+      <Layout>
+        <ExtractionPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/extraction',
+    element: (
+      <Layout>
+        <ExtractionHubPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/entites',
+    element: (
+      <Layout>
+        <EntitesHubPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/entites/:entityId',
+    element: (
+      <Layout>
+        <EntiteDetailPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/reconciliation',
+    element: (
+      <Layout>
+        <ReconciliationPage />
       </Layout>
     ),
   },

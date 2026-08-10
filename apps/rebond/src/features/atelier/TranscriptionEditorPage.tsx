@@ -1,13 +1,27 @@
 // TranscriptionEditorPage.tsx
 // Troisième étape de l'atelier documentaire : éditeur de transcription
 // "confluence-like" pour un exemplaire précis (rebond.transcriptions,
-// contenu en JSON Tiptap). Sauvegarde automatique du brouillon, sans bouton
-// "Enregistrer" — l'historique de versions et les commentaires ancrés sont
-// des actions explicites à côté de cet auto-save (voir panneau latéral).
+// contenu en JSON Tiptap).
 //
-// Voir atelier.service.ts pour la TODO du module.
+// Modèle brouillon/version (refondu le 2026-08-08) — analogie git :
+// - Le "brouillon" (texte + zones + qualité) s'enregistre en continu, sans
+//   bouton (auto-save 1,2s pour le texte, écriture immédiate pour zones et
+//   qualité) — c'est le "working tree".
+// - "Enregistrer une version" fige un instantané des trois facettes dans
+//   transcription_versions — c'est un "commit". Les commentaires ancrés en
+//   sont exclus (fil de discussion continu, pas un fait versionné).
+// - isDirty (computeIsDirty ci-dessous) compare le brouillon courant à la
+//   dernière version enregistrée. Tant que c'est dirty : "Marquer comme
+//   transcrit" est indisponible (il faut d'abord enregistrer une version) et
+//   "Annuler le brouillon" permet de revenir à cette dernière version.
+// - Éditer après un état propre (dernière version enregistrée OU transcrit
+//   déverrouillé) repasse naturellement en dirty au prochain caractère tapé —
+//   pas de logique spéciale nécessaire, c'est la conséquence directe de la
+//   comparaison brouillon/dernière version.
+//
+// Voir atelier.service.ts pour la TODO du module restant (hors ce modèle).
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -15,31 +29,78 @@ import {
   LayoutDashboard, FileEdit, Loader2, Bold, Italic, Strikethrough, List, ListOrdered,
   Quote, Undo2, Redo2, Minus, Cloud, CloudOff, MessageSquarePlus, History, Save,
   CheckCircle2, RotateCcw, Trash2, Plus, Tag, PenLine, FileSignature, Eraser, Layers, Gauge,
-  ChevronDown, ChevronRight, AlertTriangle, Lock, Unlock, BadgeCheck,
+  ChevronDown, ChevronRight, AlertTriangle, Lock, Unlock, BadgeCheck, Undo, GitCompare,
+  Search, Copy, Replace,
 } from 'lucide-react'
+import { diffWordsWithSpace } from 'diff'
 import { CommentMark } from './tiptap/CommentMark'
+import { tiptapJsonToPlainText } from './tiptap/tiptapText'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import {
   fetchExemplaireContext, fetchTranscription, saveTranscription, ensureTranscriptionId,
   fetchVersions, createVersionSnapshot, fetchComments, createComment, setCommentStatut, deleteComment,
-  fetchZoneTypes, fetchZones, createZone, deleteZone, fetchZonesAttendu, updateQualite,
-  markAsTranscrit, revertToEnCours,
+  fetchZoneTypes, fetchZones, createZone, deleteZone, replaceZones, fetchZonesAttendu, updateQualite,
+  markAsTranscrit, revertToEnCours, searchTranscribedExemplaires,
 } from './atelier.service'
+import { QUALITE_VIDE } from './atelier.types'
 import type {
   TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, TranscriptionZoneType, TranscriptionZone,
-  TranscriptionQualite, SourceLectureKind, Completeness, ReserveLevel, ZoneAttendu,
+  TranscriptionQualite, SourceLectureKind, Completeness, ReserveLevel, ZoneAttendu, ZoneSnapshotEntry,
+  TranscriptionSearchResult,
 } from './atelier.types'
 
-const QUALITE_VIDE: TranscriptionQualite = {
-  sourceLectureKind: null,
-  langueRef: null,
-  ecritureRef: null,
-  handwritingLegibilityRef: null,
-  completeness: 'complete',
-  completenessNote: null,
-  reserveLevel: 'aucune',
-  reserveReason: null,
+// Comparaison "métier" des zones : par contenu (type + texte relevé), pas
+// par id — un id de ligne DB n'a pas de sens à comparer entre un brouillon
+// et un instantané de version qui n'a jamais eu de lignes propres.
+function canonicalZones(list: { zoneTypeId: string; contenu: string }[]): string {
+  return JSON.stringify(
+    [...list]
+      .map(z => ({ zoneTypeId: z.zoneTypeId, contenu: z.contenu }))
+      .sort((a, b) => (a.zoneTypeId + a.contenu).localeCompare(b.zoneTypeId + b.contenu)),
+  )
+}
+
+// Ordre de clés FIXE, pas celui de l'objet JS ni celui rendu par Postgres —
+// jsonb ne préserve pas l'ordre d'insertion des clés d'un objet (contrairement
+// à json) : qualite_snapshot revient de la base avec des clés dans un ordre
+// différent de l'objet qualite construit côté client, ce qui faisait
+// échouer une comparaison JSON.stringify naïve même quand les valeurs sont
+// rigoureusement identiques (vu en usage réel).
+const QUALITE_KEY_ORDER: (keyof TranscriptionQualite)[] = [
+  'sourceLectureKind', 'langueRef', 'ecritureRef', 'handwritingLegibilityRef',
+  'completeness', 'completenessNote', 'reserveLevel', 'reserveReason',
+]
+function canonicalQualite(q: TranscriptionQualite): string {
+  return JSON.stringify(QUALITE_KEY_ORDER.map(k => q[k] ?? null))
+}
+
+// isDirty = le brouillon courant (texte + zones + qualité) diffère de la
+// dernière version enregistrée. Sans version du tout, la "baseline" est un
+// éditeur vide/zones vides/qualité par défaut — éditer quoi que ce soit
+// rend alors immédiatement dirty (il faut enregistrer une première version).
+//
+// Comparaison du texte en TEXTE BRUT (tiptapJsonToPlainText), pas en JSON
+// brut : un round-trip setContent()->getJSON() ne redonne pas forcément un
+// JSON strictement identique octet pour octet (normalisation d'attrs par
+// ProseMirror) même quand le texte affiché est rigoureusement le même — vu
+// en usage réel (brouillon affiché à l'identique de la version, mais
+// signalé dirty). Le texte brut est la même représentation stable déjà
+// utilisée par le module Extraction pour ne dépendre d'aucun détail interne
+// du schéma Tiptap.
+function computeIsDirty(
+  editor: Editor,
+  zones: TranscriptionZone[],
+  qualite: TranscriptionQualite,
+  latestVersion: TranscriptionVersion | null,
+): boolean {
+  if (!latestVersion) {
+    return !editor.isEmpty || zones.length > 0 || canonicalQualite(qualite) !== canonicalQualite(QUALITE_VIDE)
+  }
+  if (tiptapJsonToPlainText(editor.getJSON()) !== tiptapJsonToPlainText(latestVersion.contenu)) return true
+  if (canonicalZones(zones) !== canonicalZones(latestVersion.zonesSnapshot)) return true
+  if (canonicalQualite(qualite) !== canonicalQualite(latestVersion.qualiteSnapshot)) return true
+  return false
 }
 
 const ZONE_ICONS: Record<string, React.ElementType> = {
@@ -491,32 +552,179 @@ function QualitePanel({ qualite, onChange, locked }: {
   )
 }
 
-function HistoryPanel({ versions, onSave, onRestore, saving, locked }: {
+// Diff mot-à-mot en texte brut (tiptapJsonToPlainText) — même raison que
+// pour isDirty : comparer le JSON Tiptap est trop sensible aux détails de
+// sérialisation internes de ProseMirror, le texte est la représentation
+// stable pertinente ici.
+function DiffView({ oldText, newText }: { oldText: string; newText: string }) {
+  const parts = diffWordsWithSpace(oldText, newText)
+  if (parts.every(p => !p.added && !p.removed)) {
+    return <p className="text-sm text-gray-500 italic">Aucune différence de texte.</p>
+  }
+  return (
+    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+      {parts.map((part, i) => {
+        if (part.added) return <mark key={i} className="bg-emerald-100 text-emerald-900 rounded-sm">{part.value}</mark>
+        if (part.removed) return <mark key={i} className="bg-rose-100 text-rose-900 line-through rounded-sm">{part.value}</mark>
+        return <span key={i}>{part.value}</span>
+      })}
+    </div>
+  )
+}
+
+// Diff des zones : pas d'édition en place possible (seulement ajout/
+// suppression, cf. ZonesPanel), donc une différence d'ensemble par
+// (zoneTypeId, contenu) suffit à représenter fidèlement ce qui a changé —
+// pas besoin d'un diff mot-à-mot comme pour le texte.
+type ZoneDiffEntry = { key: string; label: string; contenu: string }
+
+function normalizeZonesForDiff(
+  list: { zoneTypeId: string; contenu: string }[],
+  zoneTypes: TranscriptionZoneType[],
+): ZoneDiffEntry[] {
+  const labelByType = new Map(zoneTypes.map(zt => [zt.id, zt.label]))
+  return list.map(z => ({ key: `${z.zoneTypeId}|${z.contenu}`, label: labelByType.get(z.zoneTypeId) ?? 'Zone', contenu: z.contenu }))
+}
+
+function ZonesDiffView({ oldZones, newZones, zoneTypes }: {
+  oldZones: ZoneSnapshotEntry[]
+  newZones: TranscriptionZone[]
+  zoneTypes: TranscriptionZoneType[]
+}) {
+  const oldEntries = normalizeZonesForDiff(oldZones, zoneTypes)
+  const newEntries = normalizeZonesForDiff(newZones.map(z => ({ zoneTypeId: z.zoneTypeId, contenu: z.contenu })), zoneTypes)
+  const oldKeys = new Set(oldEntries.map(e => e.key))
+  const newKeys = new Set(newEntries.map(e => e.key))
+  const removed = oldEntries.filter(e => !newKeys.has(e.key))
+  const added = newEntries.filter(e => !oldKeys.has(e.key))
+  const unchanged = oldEntries.filter(e => newKeys.has(e.key))
+
+  if (removed.length === 0 && added.length === 0) {
+    return <p className="text-sm text-gray-500 italic">Aucune différence de zones.</p>
+  }
+  return (
+    <div className="space-y-1.5 text-sm">
+      {unchanged.map(e => (
+        <div key={e.key} className="text-gray-500 px-2 py-1"><span className="font-medium">{e.label} :</span> {e.contenu}</div>
+      ))}
+      {removed.map(e => (
+        <div key={e.key} className="bg-rose-100 text-rose-900 line-through rounded-sm px-2 py-1"><span className="font-medium">{e.label} :</span> {e.contenu}</div>
+      ))}
+      {added.map(e => (
+        <div key={e.key} className="bg-emerald-100 text-emerald-900 rounded-sm px-2 py-1"><span className="font-medium">{e.label} :</span> {e.contenu}</div>
+      ))}
+    </div>
+  )
+}
+
+// Diff de qualité : les champs "select" ont un vocabulaire fixe (mêmes
+// libellés que les <option> de QualitePanel), les champs "ref" pointent
+// vers une table de référence (résolus via RefSinglePickerSmart en mode
+// lecture seule, qui sait déjà résoudre un id en libellé), les champs
+// "text" sont déjà lisibles tels quels.
+const SOURCE_LECTURE_LABELS: Record<string, string> = {
+  image_originale: 'Image originale', microfilm: 'Microfilm',
+  transcription_secondaire: 'Transcription secondaire', autre: 'Autre',
+}
+const COMPLETENESS_LABELS: Record<string, string> = { complete: 'Complète', partielle: 'Partielle', fragment: 'Fragment' }
+const RESERVE_LEVEL_LABELS: Record<string, string> = { aucune: 'Aucune', mineure: 'Mineure', majeure: 'Majeure' }
+
+type QualiteFieldMeta =
+  | { key: keyof TranscriptionQualite; label: string; kind: 'select'; labels: Record<string, string> }
+  | { key: keyof TranscriptionQualite; label: string; kind: 'ref'; table: string }
+  | { key: keyof TranscriptionQualite; label: string; kind: 'text' }
+
+const QUALITE_FIELDS: QualiteFieldMeta[] = [
+  { key: 'sourceLectureKind', label: 'Source de lecture', kind: 'select', labels: SOURCE_LECTURE_LABELS },
+  { key: 'langueRef', label: 'Langue', kind: 'ref', table: 'ref_langues' },
+  { key: 'ecritureRef', label: 'Écriture', kind: 'ref', table: 'ref_ecritures' },
+  { key: 'handwritingLegibilityRef', label: 'Lisibilité', kind: 'ref', table: 'ref_handwriting_legibility' },
+  { key: 'completeness', label: 'Complétude', kind: 'select', labels: COMPLETENESS_LABELS },
+  { key: 'completenessNote', label: 'Note de complétude', kind: 'text' },
+  { key: 'reserveLevel', label: 'Niveau de réserve', kind: 'select', labels: RESERVE_LEVEL_LABELS },
+  { key: 'reserveReason', label: 'Raison de la réserve', kind: 'text' },
+]
+
+function QualiteFieldValue({ meta, value }: { meta: QualiteFieldMeta; value: string | null }) {
+  if (!value) return <span className="italic text-gray-400">—</span>
+  if (meta.kind === 'select') return <>{meta.labels[value] ?? value}</>
+  if (meta.kind === 'ref') return <RefSinglePickerSmart table={meta.table} mode="view" actionsInvisible value={value} />
+  return <>{value}</>
+}
+
+function QualiteDiffView({ oldQualite, newQualite }: { oldQualite: TranscriptionQualite; newQualite: TranscriptionQualite }) {
+  const changed = QUALITE_FIELDS.filter(f => (oldQualite[f.key] ?? null) !== (newQualite[f.key] ?? null))
+  if (changed.length === 0) return <p className="text-sm text-gray-500 italic">Aucune différence de qualité.</p>
+  return (
+    <div className="space-y-2.5">
+      {changed.map(f => (
+        <div key={f.key} className="text-sm">
+          <span className="font-medium text-gray-700">{f.label}</span>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="bg-rose-100 text-rose-900 line-through rounded-sm px-1.5 py-0.5">
+              <QualiteFieldValue meta={f} value={oldQualite[f.key] ?? null} />
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="bg-emerald-100 text-emerald-900 rounded-sm px-1.5 py-0.5">
+              <QualiteFieldValue meta={f} value={newQualite[f.key] ?? null} />
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function HistoryPanel({ versions, isDirty, discarding, onSave, onRestore, onDiscard, onCompare, saving, locked }: {
   versions: TranscriptionVersion[]
+  isDirty: boolean
+  discarding: boolean
   onSave: (changeSummary: string) => void
   onRestore: (version: TranscriptionVersion) => void
+  onDiscard: () => void
+  onCompare: (version: TranscriptionVersion) => void
   saving: boolean
   locked: boolean
 }) {
   const [summary, setSummary] = useState('')
+  const hasSavedVersion = versions.length > 0
 
   return (
     <div className="space-y-4">
       <fieldset disabled={locked} className="contents">
       <div className="rounded-lg border border-gray-100 bg-white p-3 space-y-2">
+        <p className={`text-xs font-medium flex items-center gap-1.5 ${isDirty ? 'text-amber-700' : 'text-emerald-700'}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${isDirty ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+          {isDirty
+            ? (hasSavedVersion ? 'Brouillon modifié depuis la dernière version' : 'Brouillon — aucune version enregistrée')
+            : (hasSavedVersion ? `À jour avec la version ${versions[0].version}` : 'Rien à enregistrer')}
+        </p>
         <input
           value={summary}
           onChange={e => setSummary(e.target.value)}
           placeholder="Résumé du changement (optionnel)…"
           className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <button
-          onClick={() => { onSave(summary.trim()); setSummary('') }}
-          disabled={saving}
-          className="w-full flex items-center justify-center gap-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-2 hover:bg-indigo-700 disabled:opacity-40 transition-colors">
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          Enregistrer une version
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { onSave(summary.trim()); setSummary('') }}
+            disabled={saving || !isDirty}
+            title={!isDirty ? 'Rien à enregistrer — le brouillon est déjà à jour avec la dernière version' : undefined}
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-2 hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Enregistrer une version
+          </button>
+          {hasSavedVersion && (
+            <button
+              onClick={onDiscard}
+              disabled={discarding || !isDirty}
+              title={!isDirty ? 'Rien à annuler' : 'Revenir au contenu de la dernière version'}
+              className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+              {discarding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Undo className="w-3.5 h-3.5" />}
+              Annuler le brouillon
+            </button>
+          )}
+        </div>
       </div>
       </fieldset>
 
@@ -531,15 +739,158 @@ function HistoryPanel({ versions, onSave, onRestore, saving, locked }: {
                 <span className="text-[11px] text-gray-400">{relativeTime(v.createdAt)}</span>
               </div>
               {v.changeSummary && <p className="text-xs text-gray-500">{v.changeSummary}</p>}
-              <button onClick={() => onRestore(v)} disabled={locked}
-                className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors pt-1">
-                <RotateCcw className="w-3.5 h-3.5" />Restaurer dans le brouillon
-              </button>
+              <div className="flex items-center gap-3 pt-1">
+                <button onClick={() => onRestore(v)} disabled={locked}
+                  className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  <RotateCcw className="w-3.5 h-3.5" />Restaurer dans le brouillon
+                </button>
+                <button onClick={() => onCompare(v)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors">
+                  <GitCompare className="w-3.5 h-3.5" />Comparer avec la version actuelle
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+// Comparer/copier/adapter depuis un AUTRE exemplaire déjà transcrit — pas
+// une version de CE brouillon (cf. HistoryPanel/compareVersion) mais un
+// document différent, ex. un acte au libellé très proche pour réutiliser
+// sa formulation. Liste chargée une fois à l'ouverture (lot borné, cf.
+// searchTranscribedExemplaires), filtrée côté client par titre/cote.
+function CompareExemplaireDialog({ open, onOpenChange, exemplaireId, currentPlainText, editorIsEmpty, onInsert }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  exemplaireId: string
+  currentPlainText: string
+  editorIsEmpty: boolean
+  onInsert: (contenu: unknown) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<TranscriptionSearchResult[]>([])
+  const [loadingResults, setLoadingResults] = useState(false)
+  const [selected, setSelected] = useState<TranscriptionSearchResult | null>(null)
+  const [selectedContenu, setSelectedContenu] = useState<unknown | null>(null)
+  const [loadingSelected, setLoadingSelected] = useState(false)
+  const [confirmingInsert, setConfirmingInsert] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (!open) { setQuery(''); setSelected(null); setSelectedContenu(null); setConfirmingInsert(false); return }
+    setLoadingResults(true)
+    searchTranscribedExemplaires(exemplaireId).then(setResults).finally(() => setLoadingResults(false))
+  }, [open, exemplaireId])
+
+  async function handleSelect(r: TranscriptionSearchResult) {
+    setSelected(r)
+    setSelectedContenu(null)
+    setConfirmingInsert(false)
+    setLoadingSelected(true)
+    const { data } = await fetchTranscription(r.exemplaireId)
+    setSelectedContenu(data?.contenu ?? null)
+    setLoadingSelected(false)
+  }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return results
+    return results.filter(r => r.documentTitre.toLowerCase().includes(q) || (r.coteLocale ?? '').toLowerCase().includes(q))
+  }, [results, query])
+
+  const selectedPlainText = selectedContenu ? tiptapJsonToPlainText(selectedContenu) : ''
+
+  async function handleCopy() {
+    if (!selectedPlainText) return
+    await navigator.clipboard.writeText(selectedPlainText)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  function handleInsertClick() {
+    if (!selectedContenu) return
+    if (!editorIsEmpty && !confirmingInsert) { setConfirmingInsert(true); return }
+    onInsert(selectedContenu)
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Comparer avec un autre exemplaire</DialogTitle>
+          <DialogDescription>
+            Recherche un exemplaire déjà transcrit pour comparer son texte avec le brouillon actuel, le copier ou l'utiliser comme point de départ.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex items-center gap-2">
+          <Search className="w-4 h-4 text-gray-400 shrink-0" />
+          <input
+            autoFocus
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Rechercher par titre de document ou cote…"
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div className="flex gap-4 min-h-[320px]">
+          <div className="w-64 shrink-0 border border-gray-100 rounded-lg overflow-y-auto max-h-[420px] divide-y divide-gray-50">
+            {loadingResults ? (
+              <div className="p-3 text-xs text-gray-400 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement…</div>
+            ) : filtered.length === 0 ? (
+              <p className="p-3 text-xs text-gray-400 italic">Aucun exemplaire transcrit trouvé.</p>
+            ) : filtered.map(r => (
+              <button
+                key={r.exemplaireId}
+                onClick={() => handleSelect(r)}
+                className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors ${selected?.exemplaireId === r.exemplaireId ? 'bg-indigo-50' : ''}`}
+              >
+                <p className="text-xs font-medium text-gray-800 truncate">{r.documentTitre}</p>
+                <p className="text-[11px] text-gray-400 truncate">{r.coteLocale || 'Sans cote'} · {r.statut === 'termine' ? 'Transcrit' : 'En cours'}</p>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {!selected ? (
+              <p className="text-sm text-gray-400 italic">Sélectionne un exemplaire à gauche.</p>
+            ) : loadingSelected ? (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement du texte…</div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={handleCopy}
+                    className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition-colors">
+                    <Copy className="w-3.5 h-3.5" />{copied ? 'Copié !' : 'Copier le texte'}
+                  </button>
+                  {!confirmingInsert ? (
+                    <button onClick={handleInsertClick}
+                      className="flex items-center gap-1.5 text-xs font-medium text-violet-600 border border-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors">
+                      <Replace className="w-3.5 h-3.5" />Utiliser comme point de départ
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-amber-700">Remplace le brouillon actuel —</span>
+                      <button onClick={handleInsertClick} className="font-medium text-white bg-rose-600 rounded-lg px-2.5 py-1 hover:bg-rose-700 transition-colors">Confirmer</button>
+                      <button onClick={() => setConfirmingInsert(false)} className="font-medium text-gray-500 hover:text-gray-700">Annuler</button>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Texte — différences avec le brouillon actuel</h3>
+                  <DiffView oldText={selectedPlainText} newText={currentPlainText} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -554,7 +905,7 @@ export function TranscriptionEditorPage() {
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [hasSelection, setHasSelection] = useState(false)
 
-  const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['historique']))
+  const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['zones']))
   const [zonesAttendu, setZonesAttendu] = useState<Record<string, ZoneAttendu>>({})
   const [comments, setComments] = useState<TranscriptionCommentaire[]>([])
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
@@ -571,12 +922,39 @@ export function TranscriptionEditorPage() {
   const [marqueTranscritParEmail, setMarqueTranscritParEmail] = useState<string | null>(null)
   const [marqueTranscritLe, setMarqueTranscritLe] = useState<string | null>(null)
 
+  // Le contenu Tiptap est un état mutable interne à ProseMirror, pas du
+  // state React — ce compteur force un re-render à chaque frappe pour que
+  // isDirty (calculé dans le corps du composant via editor.getJSON()) reste
+  // à jour. Voir computeIsDirty en tête de fichier.
+  const [contentTick, setContentTick] = useState(0)
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false)
+  const [discarding, setDiscarding] = useState(false)
+  const [compareVersion, setCompareVersion] = useState<TranscriptionVersion | null>(null)
+  const [compareExemplaireOpen, setCompareExemplaireOpen] = useState(false)
+
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const qualiteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const qualitePendingRef = useRef<Partial<TranscriptionQualite>>({})
   const statutRef = useRef(statut)
   statutRef.current = statut
   const transcriptionIdRef = useRef<string | null>(null)
+  // Passe à true seulement quand load() a fini de poser le vrai contenu
+  // initial dans l'éditeur. Tant que c'est faux, onUpdate n'auto-sauvegarde
+  // rien — sans ça, un cycle mount/cleanup/remount de React.StrictMode (actif
+  // en dev, cf. main.tsx) peut recréer l'éditeur pendant que le chargement
+  // asynchrone est encore en vol et déclencher une sauvegarde du contenu
+  // encore vide/pas-à-jour de l'éditeur, écrasant le vrai brouillon — bug
+  // observé en usage réel (éditeur vide à l'ouverture malgré un contenu
+  // réel en base juste avant).
+  const hasLoadedRef = useRef(false)
+  // Garde-fou structurel, en plus de hasLoadedRef : le brouillon vidé s'est
+  // reproduit malgré ce premier fix (constaté en usage réel — le brouillon
+  // devenait vide en revenant sur la page après un aller-retour vers
+  // Extraction, mécanisme précis non confirmé). Plutôt que de continuer à
+  // chasser la course exacte, on empêche structurellement l'auto-save
+  // d'écraser un brouillon qu'on SAIT avoir eu du contenu au chargement —
+  // vrai à false uniquement pour un exemplaire réellement vierge. Voir doSave().
+  const draftHadContentRef = useRef(false)
 
   const editor = useEditor({
     extensions: [StarterKit, CommentMark],
@@ -595,7 +973,7 @@ export function TranscriptionEditorPage() {
           + '[&_mark.transcription-comment-mark]:bg-amber-100 [&_mark.transcription-comment-mark]:rounded-sm [&_mark.transcription-comment-mark]:cursor-pointer',
       },
     },
-    onUpdate: () => scheduleSave(),
+    onUpdate: () => { if (hasLoadedRef.current) scheduleSave(); setContentTick(t => t + 1) },
     onSelectionUpdate: ({ editor }) => {
       setHasSelection(!editor.state.selection.empty)
       const attrs = editor.getAttributes('commentaire')
@@ -610,6 +988,16 @@ export function TranscriptionEditorPage() {
       return next
     })
   }
+
+  const latestVersion = versions[0] ?? null
+  const hasSavedVersion = versions.length > 0
+  const isDirty = useMemo(
+    () => (editor ? computeIsDirty(editor, zones, qualite, latestVersion) : false),
+    // contentTick est le proxy pour "le contenu Tiptap a changé" (voir onUpdate) —
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editor, zones, qualite, latestVersion, contentTick],
+  )
+  const canMarkAsTranscrit = hasSavedVersion && !isDirty && !locked && statut !== 'termine'
 
   useEffect(() => {
     if (!activeCommentId) return
@@ -628,6 +1016,14 @@ export function TranscriptionEditorPage() {
 
   async function doSave() {
     if (!exemplaireId || !editor) return
+    // Garde-fou structurel (voir draftHadContentRef) : ce brouillon avait du
+    // contenu au chargement, l'éditeur est maintenant vide — refuse
+    // d'écraser plutôt que de risquer de persister une course/un état
+    // transitoire. Un vidage réellement voulu par l'utilisateur (tout
+    // sélectionner + supprimer) n'est pas encore couvert par une action
+    // explicite ; ce cas restera simplement "non sauvegardé" pour l'instant,
+    // ce qui est le compromis le plus sûr des deux.
+    if (editor.isEmpty && draftHadContentRef.current) return
     setSaveState('saving')
     try {
       const { data, error } = await saveTranscription(exemplaireId, editor.getJSON(), statutRef.current)
@@ -660,16 +1056,15 @@ export function TranscriptionEditorPage() {
     return id
   }
 
+  // Ne peut être appelé que quand canMarkAsTranscrit est vrai (bouton
+  // désactivé sinon) : le brouillon est alors déjà identique à la dernière
+  // version enregistrée, donc déjà persisté — pas besoin de force-save ici,
+  // contrairement à l'ancien comportement qui sauvegardait puis marquait.
   async function handleMarkAsTranscrit() {
-    if (!editor || marking) return
+    if (!canMarkAsTranscrit || marking || !transcriptionIdRef.current) return
     setMarking(true)
     try {
-      // Force-flush le brouillon avant de marquer, pour ne pas laisser une
-      // frappe récente hors de la version verrouillée.
-      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
-      await doSave()
-      const id = await ensureTranscriptionRow()
-      const { email, le } = await markAsTranscrit(id)
+      const { email, le } = await markAsTranscrit(transcriptionIdRef.current)
       setStatut('termine')
       statutRef.current = 'termine'
       setMarqueTranscritParEmail(email)
@@ -677,6 +1072,44 @@ export function TranscriptionEditorPage() {
       setLocked(true)
     } finally {
       setMarking(false)
+    }
+  }
+
+  // Applique le texte + les zones + la qualité d'une version au brouillon —
+  // utilisé à la fois par "Restaurer dans le brouillon" (n'importe quelle
+  // version) et par "Annuler le brouillon" (implicitement la dernière
+  // version). Les commentaires ne sont volontairement pas touchés (fil de
+  // discussion continu, hors du modèle de version — cf. en-tête de fichier).
+  async function applyVersionToDraft(version: TranscriptionVersion) {
+    if (!editor) return
+    const transcriptionId = await ensureTranscriptionRow()
+    editor.commands.setContent(version.contenu as any)
+    draftHadContentRef.current = !editor.isEmpty
+    const newZones = await replaceZones(transcriptionId, version.zonesSnapshot)
+    setZones(newZones)
+    await updateQualite(transcriptionId, version.qualiteSnapshot)
+    setQualite(version.qualiteSnapshot)
+  }
+
+  // "Utiliser comme point de départ" (CompareExemplaireDialog) : remplace le
+  // texte du brouillon par celui d'un AUTRE exemplaire — zones/qualité non
+  // touchées (spécifiques à CET exemplaire, pas transposables). setContent
+  // émet un update Tiptap par défaut (Tiptap v3), donc l'auto-save habituel
+  // prend le relais — pas besoin d'appeler doSave() ici.
+  function handleInsertFromOtherExemplaire(contenu: unknown) {
+    if (!editor) return
+    editor.commands.setContent(contenu as any)
+    draftHadContentRef.current = !editor.isEmpty
+  }
+
+  async function handleDiscardDraft() {
+    setConfirmDiscardOpen(false)
+    if (!latestVersion || discarding) return
+    setDiscarding(true)
+    try {
+      await applyVersionToDraft(latestVersion)
+    } finally {
+      setDiscarding(false)
     }
   }
 
@@ -725,11 +1158,12 @@ export function TranscriptionEditorPage() {
   }
 
   async function handleSaveVersion(changeSummary: string) {
-    if (!editor || savingVersion) return
+    if (!editor || savingVersion || !isDirty) return
     setSavingVersion(true)
     try {
       const transcriptionId = await ensureTranscriptionRow()
-      const version = await createVersionSnapshot(transcriptionId, editor.getJSON(), changeSummary || null)
+      const zonesSnapshot: ZoneSnapshotEntry[] = zones.map(z => ({ zoneTypeId: z.zoneTypeId, contenu: z.contenu }))
+      const version = await createVersionSnapshot(transcriptionId, editor.getJSON(), changeSummary || null, zonesSnapshot, qualite)
       setVersions(prev => [version, ...prev])
     } finally {
       setSavingVersion(false)
@@ -737,8 +1171,7 @@ export function TranscriptionEditorPage() {
   }
 
   function handleRestoreVersion(version: TranscriptionVersion) {
-    if (!editor) return
-    editor.commands.setContent(version.contenu as any)
+    applyVersionToDraft(version)
   }
 
   async function handleAddZone(zoneTypeId: string, contenu: string) {
@@ -772,11 +1205,19 @@ export function TranscriptionEditorPage() {
   useEffect(() => {
     if (!exemplaireId || !editor) return
     let cancelled = false
+    // Nouveau cycle de chargement (y compris un remount d'éditeur déclenché
+    // par React.StrictMode en dev) : re-verrouille l'auto-save tant que ce
+    // cycle n'a pas fini de poser le vrai contenu, et annule tout save
+    // différé hérité d'un cycle précédent (référencerait un éditeur/contenu
+    // périmé).
+    hasLoadedRef.current = false
+    draftHadContentRef.current = false
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
     async function load() {
       setLoading(true)
       const { data: exCtx } = await fetchExemplaireContext(exemplaireId!)
       if (cancelled) return
-      if (!exCtx) { setNotFound(true); setLoading(false); return }
+      if (!exCtx) { setNotFound(true); setLoading(false); hasLoadedRef.current = true; return }
 
       const docRel = Array.isArray((exCtx as any).unites_documentaires) ? (exCtx as any).unites_documentaires[0] : (exCtx as any).unites_documentaires
       const depot = Array.isArray((exCtx as any).ref_depots) ? (exCtx as any).ref_depots[0] : (exCtx as any).ref_depots
@@ -805,6 +1246,11 @@ export function TranscriptionEditorPage() {
         if (tr.contenu && Object.keys(tr.contenu as object).length > 0) {
           editor.commands.setContent(tr.contenu as any)
         }
+        // editor.isEmpty (vraie vacuité du doc), pas juste "l'objet JSON a
+        // des clés" — {type:'doc',content:[{type:'paragraph'}]} a des clés
+        // mais est vide au sens utile, c'est justement la forme qui a
+        // corrompu des brouillons par le passé.
+        draftHadContentRef.current = !editor.isEmpty
 
         const [versionsList, commentsList, zonesList] = await Promise.all([
           fetchVersions(tr.id),
@@ -818,6 +1264,7 @@ export function TranscriptionEditorPage() {
         if ((tr as any).qualite) setQualite((tr as any).qualite)
       }
       setLoading(false)
+      if (!cancelled) hasLoadedRef.current = true
     }
     load()
     return () => { cancelled = true }
@@ -887,6 +1334,12 @@ export function TranscriptionEditorPage() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <SaveIndicator state={saveState} />
+            {!locked && (
+              <span className={`hidden sm:flex items-center gap-1.5 text-xs ${isDirty ? 'text-amber-600' : 'text-emerald-600'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isDirty ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                {isDirty ? 'Brouillon non enregistré' : hasSavedVersion ? `À jour · v${latestVersion!.version}` : 'Rien à enregistrer'}
+              </span>
+            )}
             {marqueTranscritParEmail && (
               <span
                 className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400"
@@ -899,13 +1352,25 @@ export function TranscriptionEditorPage() {
             {!locked && statut !== 'termine' && (
               <button
                 onClick={handleMarkAsTranscrit}
-                disabled={marking}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                disabled={!canMarkAsTranscrit || marking}
+                title={
+                  !hasSavedVersion ? 'Enregistre au moins une version avant de marquer comme transcrit'
+                    : isDirty ? 'Enregistre une version — le brouillon a changé depuis la dernière version'
+                    : undefined
+                }
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {marking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                 Marquer comme transcrit
               </button>
             )}
+            <button
+              onClick={() => setCompareExemplaireOpen(true)}
+              title="Comparer avec un autre exemplaire"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <GitCompare className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => locked ? setConfirmUnlockOpen(true) : setLocked(true)}
               title={locked ? 'Déverrouiller pour modifier' : 'Verrouiller'}
@@ -941,6 +1406,71 @@ export function TranscriptionEditorPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Annuler le brouillon ?</DialogTitle>
+            <DialogDescription>
+              Le texte, les zones spécifiques et la qualité repassent au contenu de la version {latestVersion?.version} —
+              tes modifications non enregistrées depuis cette version sont perdues. Les commentaires ne sont pas concernés.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button onClick={() => setConfirmDiscardOpen(false)}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button onClick={handleDiscardDraft}
+              className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 transition-colors">
+              <Undo className="w-3.5 h-3.5" />Revenir à la version {latestVersion?.version}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!compareVersion} onOpenChange={open => !open && setCompareVersion(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Version {compareVersion?.version} vs actuelle</DialogTitle>
+            <DialogDescription>
+              Texte, zones spécifiques et qualité de la version {compareVersion?.version} comparés au brouillon
+              actuel (pas nécessairement enregistré). <mark className="bg-rose-100 text-rose-900 line-through rounded-sm px-0.5">Supprimé</mark>{' '}
+              <mark className="bg-emerald-100 text-emerald-900 rounded-sm px-0.5">ajouté</mark>.
+            </DialogDescription>
+          </DialogHeader>
+          {editor && compareVersion && (
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Texte</h3>
+                <DiffView
+                  oldText={tiptapJsonToPlainText(compareVersion.contenu)}
+                  newText={tiptapJsonToPlainText(editor.getJSON())}
+                />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Zones spécifiques</h3>
+                <ZonesDiffView oldZones={compareVersion.zonesSnapshot} newZones={zones} zoneTypes={zoneTypes} />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Qualité</h3>
+                <QualiteDiffView oldQualite={compareVersion.qualiteSnapshot} newQualite={qualite} />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {exemplaireId && (
+        <CompareExemplaireDialog
+          open={compareExemplaireOpen}
+          onOpenChange={setCompareExemplaireOpen}
+          exemplaireId={exemplaireId}
+          currentPlainText={tiptapJsonToPlainText(editor.getJSON())}
+          editorIsEmpty={editor.isEmpty}
+          onInsert={handleInsertFromOtherExemplaire}
+        />
+      )}
+
       <main className="max-w-7xl mx-auto px-6 py-8 flex items-start gap-6">
         <div className="flex-1 min-w-0 max-w-4xl">
           {ctx.depotLabel && <p className="text-xs text-gray-400 mb-3">{ctx.depotLabel}</p>}
@@ -966,6 +1496,11 @@ export function TranscriptionEditorPage() {
               />
             </AccordionSection>
 
+            <AccordionSection title="Qualité" icon={Gauge}
+              open={openSections.has('qualite')} onToggle={() => toggleSection('qualite')}>
+              <QualitePanel qualite={qualite} onChange={handleQualiteChange} locked={locked} />
+            </AccordionSection>
+
             <AccordionSection title="Commentaires" icon={MessageSquarePlus} count={openCommentsCount}
               open={openSections.has('commentaires')} onToggle={() => toggleSection('commentaires')}>
               <CommentsPanel
@@ -985,16 +1520,15 @@ export function TranscriptionEditorPage() {
               open={openSections.has('historique')} onToggle={() => toggleSection('historique')}>
               <HistoryPanel
                 versions={versions}
+                isDirty={isDirty}
+                discarding={discarding}
                 onSave={handleSaveVersion}
                 onRestore={handleRestoreVersion}
+                onDiscard={() => setConfirmDiscardOpen(true)}
+                onCompare={setCompareVersion}
                 saving={savingVersion}
                 locked={locked}
               />
-            </AccordionSection>
-
-            <AccordionSection title="Qualité" icon={Gauge}
-              open={openSections.has('qualite')} onToggle={() => toggleSection('qualite')}>
-              <QualitePanel qualite={qualite} onChange={handleQualiteChange} locked={locked} />
             </AccordionSection>
           </div>
         </aside>
