@@ -90,10 +90,12 @@ function toDocument(row: UDDocRow): PatrimoineDocument {
   const noteFromMeta = row.metadonnees?.note as string | undefined
   const urlBase = ex?.ref_acces_numeriques?.find(a => (a.url_base ?? '').trim())?.url_base ?? undefined
 
-  // "Vue" : la citation (ec_acte/ec_table) est la source active — c'est elle que la sheet
-  // "Décrire" met à jour. On ne retombe sur ref_exemplaires.localisation_interne (posé une
-  // seule fois par le wizard, jamais réédité) que si aucune citation n'existe (ex. un registre).
-  const citation = ex?.citations?.find(c => c.target_type === 'ec_acte' || c.target_type === 'ec_table')
+  // "Vue" : la citation (ec_acte/ec_table/hyp_acte — hyp_acte ajouté le
+  // 2026-08-10, module Hypothèques) est la source active — c'est elle que la
+  // sheet "Décrire" met à jour. On ne retombe sur
+  // ref_exemplaires.localisation_interne (posé une seule fois par le wizard,
+  // jamais réédité) que si aucune citation n'existe (ex. un registre).
+  const citation = ex?.citations?.find(c => c.target_type === 'ec_acte' || c.target_type === 'ec_table' || c.target_type === 'hyp_acte')
   const sys0 = citation?.locating?.systems?.[0]
   // raw texte libre en priorité (forme canonique systems[0].raw, avec repli sur l'ancien
   // locating.raw à la racine pour les citations enregistrées avant le correctif de forme) ;

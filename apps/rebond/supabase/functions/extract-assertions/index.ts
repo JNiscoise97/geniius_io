@@ -102,6 +102,20 @@
 // sujet réellement le document). reading déplacé dans document_context
 // (renforce explicitement "sujet=document" au modèle à chaque appel),
 // retiré de l'exemple event, et describeAssertion corrigé côté frontend.
+//
+// Douzième affinage (2026-08-10) : le transcripteur reproduit fidèlement
+// dans l'éditeur des éléments de mise en forme réellement présents dans
+// l'acte (gras sur un patronyme mis en évidence par le scribe, texte barré
+// pour une rature/correction, titres), plus un nouveau bloc repère "passage
+// non transcrit" (NonTranscritNode.ts, atelier) pour signaler une lacune
+// volontaire. tiptapJsonToPlainText (frontend) encode désormais tout ça en
+// Markdown (gras/barré/titres + "[passage non transcrit]" littéral) dans le
+// MÊME texte brut envoyé ici ET affiché à l'écran pour le surlignage
+// (contrainte déjà existante, pas de désync d'offsets à introduire) — le
+// prompt système doit donc savoir interpréter ces marqueurs plutôt que les
+// prendre pour du texte d'acte ordinaire ou les ignorer sans le dire
+// (risque : citer un passage barré comme fait réel, ou halluciner un sens
+// au texte "[passage non transcrit]").
 
 import Anthropic from 'npm:@anthropic-ai/sdk@0.32.1'
 
@@ -161,6 +175,15 @@ Décomposer la transcription en assertions atomiques. Une assertion = un seul fa
 Une assertion documentaire atomique est la représentation minimale d'une information explicitement portée par la transcription, quelle que soit sa valeur généalogique. L'ensemble des assertions doit permettre de reconstruire sémantiquement presque tout ce que le document affirme, sans ajouter d'information extérieure. Le "presque" concerne uniquement les éléments purement grammaticaux (articles, conjonctions, ponctuation) qui n'ajoutent aucun sens documentaire.
 
 Parcours la transcription de gauche à droite. Pour chaque groupe de mots porteur d'information, vérifie qu'au moins une assertion en conserve le contenu. N'ignore aucune information sous prétexte qu'elle est administrative, stylistique, sociale, procédurale, redondante ou apparemment sans intérêt généalogique — titres ("sieur", "dame"), qualificatifs de lieu ("hameau", "section"), formules procédurales ("interpellé de signer", "lecture donnée"), présence à plusieurs étapes d'un même acte (déclaration ET présentation si les deux sont nommées) sont tous des faits documentaires à part entière.
+
+## Conventions de mise en forme du texte transcrit — à interpréter, pas à reproduire
+Le texte fourni n'est pas un texte brut neutre : le transcripteur y a reproduit fidèlement des éléments de mise en forme réellement présents dans l'acte original (pas de la décoration ajoutée après coup). Quatre conventions, toutes en Markdown :
+- **\`**mot**\`** (gras) : le mot était mis en évidence dans l'acte original (ex. un patronyme souligné/mis en gras par le scribe — convention fréquente pour le rendre repérable). N'extrais pas le fait "ce mot est en gras" en tant que tel — ce n'est pas une assertion à part entière — mais garde en tête que le gras désigne souvent le terme que le scribe jugeait le plus important à retrouver (typiquement un nom de famille), utile pour lever une ambiguïté de lecture si le texte est par ailleurs difficile à interpréter.
+- **\`~~mot~~\`** (barré) : le mot ou le passage était rayé/raturé dans l'acte original — une correction du rédacteur, pas le texte finalement retenu par l'acte. N'utilise PAS un passage barré comme source d'un fait normal (ex. n'extrais pas un nom barré comme le nom réel de la personne). Si la rature elle-même semble notable (ex. elle révèle qu'un nom ou une date a été corrigé), tu peux la signaler via "other" (ex. raw_relation = "nom initialement écrit rayé et corrigé"), mais ce n'est pas obligatoire — ne force pas une assertion sur chaque rature mineure.
+- **\`# \`, \`## \`, \`### \`** en début de ligne (titre, sous-titre) : une ligne de titre telle qu'elle apparaît dans l'acte (ex. un intitulé de section). Traite-la comme le texte qu'elle contient, replacé dans son contexte — le niveau de titre n'a pas de règle d'extraction dédiée, c'est juste une indication de structure.
+- **\`[passage non transcrit]\`** (texte littéral, sans astérisque ni tilde) : n'est PAS du texte de l'acte — c'est un repère posé par le transcripteur pour signaler un passage qu'il n'a délibérément pas retranscrit (illisible, omis...). N'en déduis RIEN, ne le cite jamais comme "source_text", et ne comble pas la lacune par supposition.
+
+Pour "source_text", cite le texte tel qu'il apparaît RÉELLEMENT dans la transcription fournie (les caractères \`**\`/\`~~\`/\`#\` en font partie s'ils encadrent le passage cité) — ne les retire pas et ne les ajoute pas de ton propre chef.
 
 ## Atomicité stricte — éclate les listes composées
 Si une valeur contient plusieurs éléments coordonnés par "et", une virgule ou une énumération, produis une assertion DISTINCTE par élément, sauf si l'expression forme un syntagme figé insécable.

@@ -201,7 +201,15 @@ const SERIE_TARGET_TYPE: Record<string, string> = {
   ETAT_CIVIL:  'ec_acte',
   PAROISSIAL:  'ec_acte',
   NOTARIAT:    'ac_acte',
+  HYPOTHEQUES: 'hyp_acte',
 }
+
+// Série HYPOTHEQUES : branche entièrement séparée (HypothequesWizardBody,
+// juste avant le composant principal), pas la même forme que le modèle
+// générique acte ⊂ table ⊂ registre — voir échange utilisateur du 2026-08-10
+// (une table alphabétique n'est pas imbriquée DANS un registre des
+// transcriptions, contrairement à une table décennale d'état civil).
+const HYPOTHEQUES_REGIONS = ['Guadeloupe', 'La Réunion'] as const
 
 // ── Table structurée ─────────────────────────────────────────────────────────
 
@@ -1182,6 +1190,607 @@ function RWStepDescribeRegistreEC({
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+// ── Hypothèques (branche séparée, cf. note plus haut) ──────────────────────────
+
+type HypStep = 'find-type' | 'bureau' | 'registre' | 'acte' | 'summary'
+type HypTypeRegistre = { id: string; code: string; label: string; famille: 'formalites' | 'ordre' }
+type HypTypeActe = { id: string; code: string; label: string }
+type HypBureauOption = { id: string; nom: string; conservationNom: string; conservationRegion: string; isNew: boolean }
+
+// Sélecteur conservation + bureau — sur le modèle de DepotPicker (recherche
+// live autonome, pas de store dédié comme BureauField/BureauCreateModal côté
+// état civil, volontairement plus léger pour ce premier passage). Un bureau
+// sans conservation distincte dans la source (cas Saint-Paul/Saint-Pierre à
+// La Réunion) est créé quand même, au même nom que sa conservation —
+// convention actée avec l'utilisateur.
+function HypBureauField({ selected, onSelect, onClear }: {
+  selected: HypBureauOption | null
+  onSelect: (b: HypBureauOption) => void
+  onClear: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<HypBureauOption[]>([])
+  const [searching, setSearching] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newConservationNom, setNewConservationNom] = useState('')
+  const [newRegion, setNewRegion] = useState<string | null>(null)
+  const [newBureauNom, setNewBureauNom] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) { setResults([]); setSearching(false); return }
+    setSearching(true)
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await supabaseRebond.from('hypotheques_bureaux')
+          .select('id, nom, hypotheques_conservations ( nom, region )')
+          .ilike('nom', `%${q}%`)
+          .limit(10)
+        setResults((data ?? []).map((b: any) => {
+          const cons = Array.isArray(b.hypotheques_conservations) ? b.hypotheques_conservations[0] : b.hypotheques_conservations
+          return { id: b.id, nom: b.nom, conservationNom: cons?.nom ?? '', conservationRegion: cons?.region ?? '', isNew: false }
+        }))
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  async function createConservationAndBureau() {
+    if (!newConservationNom.trim() || !newRegion || !newBureauNom.trim()) return
+    setSaving(true)
+    try {
+      const { data: cons, error: consErr } = await supabaseRebond.from('hypotheques_conservations')
+        .upsert({ nom: newConservationNom.trim(), region: newRegion }, { onConflict: 'nom,region' })
+        .select('id').single()
+      if (consErr) throw consErr
+      const { data: bureau, error: bureauErr } = await supabaseRebond.from('hypotheques_bureaux')
+        .upsert({ conservation_id: cons.id, nom: newBureauNom.trim() }, { onConflict: 'conservation_id,nom' })
+        .select('id').single()
+      if (bureauErr) throw bureauErr
+      onSelect({ id: bureau.id, nom: newBureauNom.trim(), conservationNom: newConservationNom.trim(), conservationRegion: newRegion, isNew: true })
+      setCreating(false); setNewConservationNom(''); setNewRegion(null); setNewBureauNom('')
+    } catch {
+      toast.error('Erreur lors de la création de la conservation / du bureau')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (selected) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2">
+        <span className="flex-1 text-sm text-gray-800">
+          {selected.nom}
+          <span className="text-gray-500 ml-1">({selected.conservationNom} — {selected.conservationRegion})</span>
+        </span>
+        <button onClick={onClear} className="text-gray-400 hover:text-gray-600">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="relative">
+        <input value={query} onChange={e => setQuery(e.target.value)}
+          placeholder="Rechercher un bureau de conservation…" className={inputCls} />
+        {searching && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />}
+        {results.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+            {results.map(b => (
+              <button key={b.id} onClick={() => { onSelect(b); setQuery('') }}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-baseline gap-2">
+                <span className="font-medium text-gray-800">{b.nom}</span>
+                <span className="text-xs text-gray-400">{b.conservationNom} — {b.conservationRegion}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {!creating ? (
+        <button type="button" onClick={() => setCreating(true)} className="text-xs text-indigo-600 hover:text-indigo-800 transition-colors">
+          + Créer une nouvelle conservation et un bureau
+        </button>
+      ) : (
+        <div className="rounded-xl border border-gray-200 px-4 py-3 space-y-3 mt-2">
+          <Field label="Nom de la conservation" required>
+            <input value={newConservationNom} onChange={e => setNewConservationNom(e.target.value)}
+              placeholder="Ex. Conservation de Basse-Terre" className={inputCls} autoFocus />
+          </Field>
+          <Field label="Région" required>
+            <div className="flex flex-wrap gap-2">
+              {HYPOTHEQUES_REGIONS.map(r => (
+                <button key={r} onClick={() => setNewRegion(r)} className={chipCls(newRegion === r)}>{r}</button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Nom du bureau" required>
+            <input value={newBureauNom} onChange={e => setNewBureauNom(e.target.value)}
+              placeholder="Ex. Bureau de Basse-Terre" className={inputCls} />
+          </Field>
+          <div className="flex items-center gap-2">
+            <button onClick={createConservationAndBureau}
+              disabled={saving || !newConservationNom.trim() || !newRegion || !newBureauNom.trim()}
+              className="text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+              {saving ? 'Création…' : 'Créer'}
+            </button>
+            <button onClick={() => setCreating(false)} className="text-xs font-medium text-gray-500 hover:text-gray-700">Annuler</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function HypothequesWizardBody({ serieId, onExit }: { serieId: string; onExit: () => void }) {
+  const navigate = useNavigate()
+  const [step, setStep] = useState<HypStep>('find-type')
+  const [findType, setFindType] = useState<'acte' | 'registre' | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const [typesRegistre, setTypesRegistre] = useState<HypTypeRegistre[]>([])
+  const [typesActe, setTypesActe] = useState<HypTypeActe[]>([])
+  useEffect(() => {
+    void supabaseRebond.from('ref_hypotheques_type_registre').select('id, code, label, famille').order('famille').order('position')
+      .then(({ data }) => setTypesRegistre((data ?? []) as HypTypeRegistre[]))
+    void supabaseRebond.from('ref_hypotheques_type_acte').select('id, code, label').order('position')
+      .then(({ data }) => setTypesActe((data ?? []) as HypTypeActe[]))
+  }, [])
+
+  const [selectedBureau, setSelectedBureau] = useState<HypBureauOption | null>(null)
+
+  const [selectedTypeRegistreId, setSelectedTypeRegistreId] = useState<string | null>(null)
+  const [numeroVolume, setNumeroVolume] = useState('')
+  const [periodeDebut, setPeriodeDebut] = useState('')
+  const [periodeFin, setPeriodeFin] = useState('')
+  const [registreCote, setRegistreCote] = useState('')
+  const [registreUrl, setRegistreUrl] = useState('')
+  const [registreVue, setRegistreVue] = useState('')
+  const [registreNotes, setRegistreNotes] = useState('')
+
+  const [acteIntitule, setActeIntitule] = useState('')
+  const [selectedTypeActeId, setSelectedTypeActeId] = useState<string | null>(null)
+  const [numeroActe, setNumeroActe] = useState('')
+  const [acteCote, setActeCote] = useState('')
+  const [acteUrl, setActeUrl] = useState('')
+  const [acteVue, setActeVue] = useState('')
+  const [acteNotes, setActeNotes] = useState('')
+
+  const [depotQuery, setDepotQuery] = useState('')
+  const [depotResults, setDepotResults] = useState<DepotOption[]>([])
+  const [depotSearching, setDepotSearching] = useState(false)
+  const [selectedDepot, setSelectedDepot] = useState<DepotOption | null>(null)
+
+  useEffect(() => {
+    const q = depotQuery.trim()
+    if (q.length < 2 || selectedDepot) { setDepotResults([]); setDepotSearching(false); return }
+    setDepotSearching(true)
+    const t = setTimeout(async () => {
+      try {
+        const toOption = (d: any): DepotOption => {
+          const inst  = Array.isArray(d.ref_institutions) ? d.ref_institutions[0] : d.ref_institutions
+          const dtype = Array.isArray(d.ref_depot_type)   ? d.ref_depot_type[0]   : d.ref_depot_type
+          const plat  = Array.isArray(d.ref_plateformes)  ? d.ref_plateformes[0]  : d.ref_plateformes
+          return {
+            id: d.id, institution_sigle: inst?.sigle ?? null, institution_nom: inst?.nom ?? null,
+            type_code: dtype?.code ?? null, type_label: dtype?.label ?? null,
+            plateforme_label: plat?.label ?? null, is_online: dtype?.is_online ?? false,
+          }
+        }
+        const { data: instData } = await supabaseRebond.from('ref_institutions')
+          .select('id').or(`nom.ilike.%${q}%,sigle.ilike.%${q}%`).limit(20)
+        const instIds = (instData ?? []).map((i: any) => i.id as string)
+        if (instIds.length === 0) { setDepotResults([]); return }
+        const { data: depotData } = await supabaseRebond.from('ref_depots')
+          .select(`id, ref_institutions!institution_id(nom, sigle), ref_depot_type!type_ref(code, label, is_online), ref_plateformes!plateforme_ref(code, label)`)
+          .in('institution_id', instIds).order('institution_id').limit(20)
+        setDepotResults((depotData ?? []).map(toOption).slice(0, 10))
+      } finally {
+        setDepotSearching(false)
+      }
+    }, 300)
+    return () => clearTimeout(t)
+  }, [depotQuery, selectedDepot])
+
+  const selectedTypeRegistre = typesRegistre.find(t => t.id === selectedTypeRegistreId) ?? null
+  const visibleTypesRegistre = findType === 'acte' ? typesRegistre.filter(t => t.famille === 'formalites') : typesRegistre
+  const showTypeActeField = selectedTypeRegistre?.code === 'transcription'
+
+  function computeRegistreLabelPreview(): string {
+    let label = `${selectedTypeRegistre?.label ?? 'Registre'} — vol. ${numeroVolume.trim()}`
+    const pd = periodeDebut.trim(), pf = periodeFin.trim()
+    if (pd) label += ` (${pd}${pf && pf !== pd ? `-${pf}` : ''})`
+    return label
+  }
+
+  // Aperçu existant/nouveau pour l'écran récapitulatif — repose sur les
+  // mêmes contraintes uniques que handleSubmit (lecture seule, aucun insert
+  // ici), calculé seulement à l'arrivée sur 'summary' pour ne pas refaire une
+  // requête à chaque frappe des écrans précédents.
+  const [registrePreview, setRegistrePreview] = useState<{ label: string; isNew: boolean } | null>(null)
+  const [actePreview, setActePreview] = useState<{ isNew: boolean } | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  useEffect(() => {
+    if (step !== 'summary' || !selectedBureau || !selectedTypeRegistreId || !numeroVolume.trim()) return
+    setPreviewLoading(true)
+    const numVol = parseInt(numeroVolume.trim(), 10)
+    void (async () => {
+      const { data: existingRegistre } = await supabaseRebond.from('hypotheques_registres')
+        .select('id, label')
+        .eq('bureau_id', selectedBureau.id).eq('type_registre_ref', selectedTypeRegistreId).eq('numero_volume', numVol)
+        .maybeSingle()
+
+      if (existingRegistre) {
+        setRegistrePreview({ label: existingRegistre.label, isNew: false })
+        if (findType === 'acte' && numeroActe.trim()) {
+          const { data: existingActe } = await supabaseRebond.from('hypotheques_actes')
+            .select('id').eq('registre_id', existingRegistre.id).eq('numero_acte', numeroActe.trim()).maybeSingle()
+          setActePreview({ isNew: !existingActe })
+        } else {
+          setActePreview(null)
+        }
+      } else {
+        setRegistrePreview({ label: computeRegistreLabelPreview(), isNew: true })
+        setActePreview(findType === 'acte' ? { isNew: true } : null)
+      }
+      setPreviewLoading(false)
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
+
+  async function createExemplaire(udId: string, cote: string, url: string, vue: string) {
+    if (!selectedDepot) return null
+    const { data: ex, error } = await supabaseRebond.from('exemplaires')
+      .insert({ unite_documentaire_id: udId, depot_id: selectedDepot.id, cote_locale: cote || null, localisation_interne: vue || null })
+      .select('id').single()
+    if (error) throw error
+    if (ex?.id && url.trim()) {
+      await supabaseRebond.from('ref_acces_numeriques').insert({
+        exemplaire_id: ex.id, url_base: url.trim(), type_acces_id: TYPE_ACCES_URL_ID,
+      })
+    }
+    return ex?.id ?? null
+  }
+
+  async function handleSubmit() {
+    if (!selectedBureau || !selectedTypeRegistreId || !numeroVolume.trim()) return
+    setSaving(true)
+    try {
+      const numVol = parseInt(numeroVolume.trim(), 10)
+      const pDebut = periodeDebut.trim() ? parseInt(periodeDebut.trim(), 10) : null
+      const pFin = periodeFin.trim() ? parseInt(periodeFin.trim(), 10) : null
+
+      // Registre : réutilise l'existant si (bureau, type, volume) matche déjà
+      // (contrainte unique) — sinon crée le registre puis l'UD associée.
+      const { data: existingRegistre } = await supabaseRebond.from('hypotheques_registres')
+        .select('id, label, unite_documentaire_id')
+        .eq('bureau_id', selectedBureau.id).eq('type_registre_ref', selectedTypeRegistreId).eq('numero_volume', numVol)
+        .maybeSingle()
+
+      let registreId: string
+      let registreUdId: string | null
+      let registreLabel: string
+
+      if (existingRegistre) {
+        registreId = existingRegistre.id
+        registreLabel = existingRegistre.label
+        registreUdId = existingRegistre.unite_documentaire_id
+      } else {
+        const { data: newRegistre, error: regErr } = await supabaseRebond.from('hypotheques_registres')
+          .insert({ bureau_id: selectedBureau.id, type_registre_ref: selectedTypeRegistreId, numero_volume: numVol, periode_debut: pDebut, periode_fin: pFin })
+          .select('id, label').single()
+        if (regErr) throw regErr
+        registreId = newRegistre.id
+        registreLabel = newRegistre.label
+        registreUdId = null
+      }
+
+      if (!registreUdId) {
+        const { data: ud, error: udErr } = await insertDocumentUD({
+          titre: registreLabel, serie_ref: serieId, parent_ud_id: null,
+          cote: registreCote || null, note: registreNotes.trim() || null,
+        })
+        if (udErr) throw udErr
+        registreUdId = ud?.id ?? null
+        if (registreUdId) {
+          await supabaseRebond.from('hypotheques_registres').update({ unite_documentaire_id: registreUdId }).eq('id', registreId)
+          await createExemplaire(registreUdId, registreCote, registreUrl, registreVue)
+        }
+      }
+
+      if (findType === 'acte') {
+        if (!numeroActe.trim()) { toast.error('Numéro d\'acte manquant'); setSaving(false); return }
+        const { data: existingActe } = await supabaseRebond.from('hypotheques_actes')
+          .select('id').eq('registre_id', registreId).eq('numero_acte', numeroActe.trim()).maybeSingle()
+
+        let acteId: string
+        if (existingActe) {
+          acteId = existingActe.id
+        } else {
+          const { data: newActe, error: acteErr } = await supabaseRebond.from('hypotheques_actes')
+            .insert({
+              registre_id: registreId, numero_acte: numeroActe.trim(),
+              type_acte_ref: showTypeActeField ? selectedTypeActeId : null,
+              label: acteIntitule.trim() || null,
+            })
+            .select('id').single()
+          if (acteErr) throw acteErr
+          acteId = newActe.id
+        }
+
+        const { data: acteUd, error: acteUdErr } = await insertDocumentUD({
+          titre: acteIntitule.trim() || `${selectedTypeRegistre?.label ?? 'Acte'} n°${numeroActe.trim()}`,
+          serie_ref: serieId, parent_ud_id: registreUdId,
+          cote: acteCote || null, note: acteNotes.trim() || null,
+        })
+        if (acteUdErr) throw acteUdErr
+        const acteUdId = acteUd?.id ?? null
+        if (acteUdId) {
+          const exId = await createExemplaire(acteUdId, acteCote, acteUrl, acteVue)
+          if (exId) {
+            await supabaseRebond.from('citations').insert({
+              exemplaire_id: exId, target_type: 'hyp_acte', target_id: acteId, is_missing: false,
+              locating: acteVue.trim() ? { systems: [{ raw: acteVue.trim() }] } : {},
+            })
+          }
+        }
+      }
+
+      toast.success('Document référencé')
+      navigate('/patrimoine-documentaire')
+    } catch (err) {
+      console.error('[HypothequesWizardBody] erreur', err)
+      toast.error("Erreur lors de l'enregistrement")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const canContinue =
+    (step === 'find-type' && findType !== null) ||
+    (step === 'bureau'    && selectedBureau !== null) ||
+    (step === 'registre'  && selectedTypeRegistreId !== null && numeroVolume.trim().length > 0) ||
+    (step === 'acte'      && numeroActe.trim().length > 0)
+
+  function goNext() {
+    if (step === 'find-type') { setStep('bureau'); return }
+    if (step === 'bureau')    { setStep('registre'); return }
+    if (step === 'registre')  { setStep(findType === 'acte' ? 'acte' : 'summary'); return }
+    if (step === 'acte')      { setStep('summary'); return }
+  }
+  function goBack() {
+    if (step === 'bureau')    { setStep('find-type'); return }
+    if (step === 'registre')  { setStep('bureau'); return }
+    if (step === 'acte')      { setStep('registre'); return }
+    if (step === 'summary')   { setStep(findType === 'acte' ? 'acte' : 'registre'); return }
+    onExit()
+  }
+
+  const stepLabel: Record<HypStep, string> = {
+    'find-type': 'Qu\'as-tu trouvé ?',
+    bureau: 'Conservation et bureau',
+    registre: 'Registre',
+    acte: 'Acte',
+    summary: 'Récapitulatif',
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <button onClick={onExit} className="flex items-center gap-1.5 hover:text-gray-700 transition-colors">
+            <Library className="w-4 h-4" />Patrimoine documentaire
+          </button>
+          <span className="text-gray-300">/</span>
+          <span>J'ai trouvé un document</span>
+        </div>
+
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">J'ai trouvé un document</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Série : <span className="font-medium text-gray-700">Hypothèques / publicité foncière</span></p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{stepLabel[step]}</p>
+
+          {step === 'find-type' && (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">As-tu trouvé un acte précis, ou juste le registre/volume ?</p>
+              <div className="space-y-2">
+                <button onClick={() => setFindType('acte')}
+                  className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${findType === 'acte' ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                  <div className={`text-sm font-medium ${findType === 'acte' ? 'text-indigo-700' : 'text-gray-800'}`}>Une transcription / inscription / dépôt</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Un acte précis, avec son numéro dans le volume</div>
+                </button>
+                <button onClick={() => setFindType('registre')}
+                  className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${findType === 'registre' ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                  <div className={`text-sm font-medium ${findType === 'registre' ? 'text-indigo-700' : 'text-gray-800'}`}>Un registre / volume entier</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Table alphabétique, répertoire des formalités, registre des transcriptions…</div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'bureau' && (
+            <Field label="Conservation / bureau" required>
+              <HypBureauField selected={selectedBureau} onSelect={setSelectedBureau} onClear={() => setSelectedBureau(null)} />
+            </Field>
+          )}
+
+          {step === 'registre' && (
+            <div className="space-y-4">
+              <Field label="Type de registre" required>
+                <div className="flex flex-wrap gap-2">
+                  {visibleTypesRegistre.map(t => (
+                    <button key={t.id} onClick={() => { setSelectedTypeRegistreId(t.id); if (t.code !== 'transcription') setSelectedTypeActeId(null) }}
+                      className={chipCls(selectedTypeRegistreId === t.id)}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Numéro de volume" required>
+                <input value={numeroVolume} onChange={e => setNumeroVolume(e.target.value)} placeholder="Ex. 593" className={`${inputCls} w-32`} />
+              </Field>
+              <Field label="Période (années couvertes)">
+                <div className="flex items-center gap-2">
+                  <input value={periodeDebut} onChange={e => setPeriodeDebut(e.target.value)} placeholder="1945" maxLength={4} className={`${inputCls} w-24`} />
+                  <span className="text-gray-400">–</span>
+                  <input value={periodeFin} onChange={e => setPeriodeFin(e.target.value)} placeholder="1945" maxLength={4} className={`${inputCls} w-24`} />
+                </div>
+              </Field>
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">C'est où ?</p>
+                <Field label="Dépôt / institution">
+                  <DepotPicker depotQuery={depotQuery} setDepotQuery={setDepotQuery} depotResults={depotResults}
+                    depotSearching={depotSearching} selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot} />
+                </Field>
+                <Field label="Cote">
+                  <input value={registreCote} onChange={e => setRegistreCote(e.target.value)} placeholder="Ex. 4 Q 1990" className={inputCls} />
+                </Field>
+                <Field label="Vues (plage totale du volume numérisé)">
+                  <input value={registreVue} onChange={e => setRegistreVue(e.target.value)} placeholder="Ex. 1-450" className={inputCls} />
+                </Field>
+                <Field label="URL">
+                  <input value={registreUrl} onChange={e => setRegistreUrl(e.target.value)} placeholder="https://…" className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Notes (optionnel)">
+                <textarea value={registreNotes} onChange={e => setRegistreNotes(e.target.value)} placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
+              </Field>
+            </div>
+          )}
+
+          {step === 'acte' && (
+            <div className="space-y-4">
+              <Field label="Intitulé" required>
+                <input value={acteIntitule} onChange={e => setActeIntitule(e.target.value)}
+                  placeholder="Ex. Transcription — Vente parcelle n°42" className={inputCls} autoFocus />
+              </Field>
+              <Field label="Numéro d'acte" required>
+                <input value={numeroActe} onChange={e => setNumeroActe(e.target.value)} placeholder="Ex. 2" className={`${inputCls} w-32`} />
+              </Field>
+              {showTypeActeField && (
+                <Field label="Type d'acte">
+                  <div className="flex flex-wrap gap-2">
+                    {typesActe.map(t => (
+                      <button key={t.id} onClick={() => setSelectedTypeActeId(selectedTypeActeId === t.id ? null : t.id)}
+                        className={chipCls(selectedTypeActeId === t.id)}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              )}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">C'est où ?</p>
+                <Field label="Cote">
+                  <input value={acteCote} onChange={e => setActeCote(e.target.value)} placeholder="Ex. 4 Q 1990" className={inputCls} />
+                </Field>
+                <Field label="Vues (plage propre à cet acte)">
+                  <input value={acteVue} onChange={e => setActeVue(e.target.value)} placeholder="Ex. 12-14" className={inputCls} />
+                </Field>
+                <Field label="URL">
+                  <input value={acteUrl} onChange={e => setActeUrl(e.target.value)} placeholder="https://…" className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Notes (optionnel)">
+                <textarea value={acteNotes} onChange={e => setActeNotes(e.target.value)} placeholder="Observations…" className={`${inputCls} min-h-[60px] resize-none`} />
+              </Field>
+            </div>
+          )}
+
+          {step === 'summary' && (
+            <div className="space-y-4">
+              {previewLoading ? (
+                <div className="flex items-center gap-2 text-xs text-gray-400"><Loader2 className="w-3.5 h-3.5 animate-spin" />Vérification des doublons éventuels…</div>
+              ) : (
+                <div className="rounded-xl border border-gray-200 overflow-hidden text-sm divide-y divide-gray-100">
+                  <div className="px-4 py-3 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Bureau</div>
+                      <RWBadge existing={selectedBureau ? !selectedBureau.isNew : false} />
+                    </div>
+                    <div className="font-medium text-gray-800">{selectedBureau?.nom}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{selectedBureau?.conservationNom} ({selectedBureau?.conservationRegion})</div>
+                  </div>
+                  {registrePreview && (
+                    <div className="px-4 py-3 pl-8">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Registre</div>
+                        <RWBadge existing={!registrePreview.isNew} />
+                      </div>
+                      <div className="font-medium text-gray-800">{registrePreview.label}</div>
+                      {registreVue && <div className="text-xs text-gray-500 mt-0.5">{formatVue(registreVue, null)}</div>}
+                    </div>
+                  )}
+                  {findType === 'acte' && actePreview && (
+                    <div className="px-4 py-3 pl-12">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <div className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">Acte</div>
+                        <RWBadge existing={!actePreview.isNew} />
+                      </div>
+                      <div className="font-medium text-gray-800">{acteIntitule || `${selectedTypeRegistre?.label ?? 'Acte'} n°${numeroActe}`}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">n°{numeroActe}{acteVue && <span> · {formatVue(acteVue, vueMax(registreVue))}</span>}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!previewLoading && (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Ce qui sera fait en cliquant sur "Référencer ce document"</p>
+                  <ul className="space-y-1.5">
+                    <li className="text-xs text-gray-600 flex items-start gap-1.5">
+                      <span className="text-gray-300 mt-0.5">—</span>
+                      {selectedBureau?.isNew ? `Bureau « ${selectedBureau.nom} » : nouveau, sera créé (avec sa conservation).` : `Bureau « ${selectedBureau?.nom} » : réutilisé tel quel, rien à créer.`}
+                    </li>
+                    {registrePreview && (
+                      <li className="text-xs text-gray-600 flex items-start gap-1.5">
+                        <span className="text-gray-300 mt-0.5">—</span>
+                        {registrePreview.isNew ? `Registre « ${registrePreview.label} » : nouveau, sera créé.` : `Registre « ${registrePreview.label} » : réutilisé tel quel, rien à créer.`}
+                      </li>
+                    )}
+                    {findType === 'acte' && actePreview && (
+                      <li className="text-xs text-gray-600 flex items-start gap-1.5">
+                        <span className="text-gray-300 mt-0.5">—</span>
+                        {actePreview.isNew ? 'Acte : nouveau, sera créé.' : 'Acte : déjà référencé — un nouvel exemplaire sera ajouté.'}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button onClick={goBack} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            ← Retour
+          </button>
+          <div className="flex-1" />
+          {step !== 'summary' ? (
+            <button onClick={goNext} disabled={!canContinue}
+              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+              Continuer →
+            </button>
+          ) : (
+            <button onClick={handleSubmit} disabled={saving}
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+              {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Enregistrement…</> : 'Référencer ce document'}
+            </button>
+          )}
+        </div>
+      </main>
     </div>
   )
 }
@@ -2550,6 +3159,13 @@ export function ReferenceWizardPage() {
         <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
       </div>
     )
+  }
+
+  // HYPOTHEQUES : branche entièrement séparée, cf. note en tête de
+  // HypothequesWizardBody — ne partage ni l'état ni le rendu du flux
+  // générique acte/table/registre au-delà du choix de série.
+  if (serieCode === 'HYPOTHEQUES' && serieId && step !== 'serie') {
+    return <HypothequesWizardBody serieId={serieId} onExit={() => setStep('serie')} />
   }
 
   const showStepper  = !['serie', 'type'].includes(step)

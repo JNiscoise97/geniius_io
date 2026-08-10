@@ -6,7 +6,7 @@ import {
   FolderOpen, Tag, Landmark, Newspaper, ExternalLink, Copy,
   Library, BookOpen, File, X,
   AlertTriangle, Loader2, MonitorCheck, University,
-  Lock, LayoutDashboard,
+  Lock, LayoutDashboard, Save,
 } from 'lucide-react'
 import { supabaseRebond } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -17,7 +17,7 @@ import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import {
-  qualifierSource, decrireDocument, rattacherDocument, fetchRoleDocumentOptions,
+  qualifierSource, decrireDocument, updateDocumentDescription, rattacherDocument, fetchRoleDocumentOptions,
 } from './patrimoine.service'
 import { unpackMarginalia, packMarginalia, unpackWriting, packWriting, toIntOrNull } from './citationJsonb'
 import { vueMax, formatVue } from './vueFormat'
@@ -356,10 +356,14 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       setDescription(ex.description ?? '')
       setIdentifiantInterne(ex.identifiant_interne ?? '')
 
-      // Une citation ec_acte ou ec_table (selon le rôle du document) — jamais les deux à la fois.
+      // Une citation ec_acte, ec_table ou hyp_acte (selon le rôle/série du
+      // document) — jamais deux en même temps sur un même exemplaire. hyp_acte
+      // ajouté le 2026-08-10 (module Hypothèques) — sans lui, cette section
+      // ne trouvait jamais la citation d'un acte hypothécaire, et les champs
+      // saisis ici (dont la position/vue) n'étaient jamais enregistrés.
       const { data: cit } = await supabaseRebond.from('citations')
         .select('id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
-        .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table']).maybeSingle()
+        .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).maybeSingle()
       if (cancelled) return
       if (cit) {
         setCitationId(cit.id)
@@ -425,23 +429,30 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     acteIsMissing !== null && (acteIsMissing === true || actePosition.trim().length > 0)
   )
 
-  const canSubmit = !!typeUniteRef && !!roleRef && periode.trim().length > 0 && acteFormComplete && !submitting
+  const [savingDraft, setSavingDraft] = useState(false)
+  const canMarkAsDecrit = !!typeUniteRef && !!roleRef && periode.trim().length > 0 && acteFormComplete && !submitting && !savingDraft
 
-  async function handleSubmit() {
-    if (!canSubmit) return
-    setSubmitting(true)
+  // Partagé entre "Enregistrer" (markAsDecrit=false, sheet reste ouverte) et
+  // "Marquer comme décrit" (markAsDecrit=true, ferme la sheet) — même
+  // écriture des trois entités (unites_documentaires/exemplaires/citations),
+  // seule la fonction service appelée pour unites_documentaires diffère
+  // (decrireDocument fait aussi passer statut_document à 'decrit').
+  async function saveFields(markAsDecrit: boolean) {
     try {
       const meta: Record<string, unknown> = {}
       if (note.trim()) meta.note = note.trim()
 
-      const { error } = await decrireDocument(doc.id, {
+      const payload = {
         type_unite_ref: typeUniteRef,
         role_document_ref: roleRef || null,
         langue_ref: langueRef,
         couverture_label: periode || null,
         niveau_fiabilite: niveauFiabilite,
         metadonnees: Object.keys(meta).length ? meta : null,
-      })
+      }
+      const { error } = markAsDecrit
+        ? await decrireDocument(doc.id, payload)
+        : await updateDocumentDescription(doc.id, payload)
       if (error) throw error
 
       if (exemplaireId) {
@@ -485,24 +496,45 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
         if (citErr) throw citErr
       }
 
-      onDone()
+      if (markAsDecrit) {
+        onDone()
+      } else {
+        toast.success('Brouillon enregistré')
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Erreur lors de l'enregistrement")
-    } finally {
-      setSubmitting(false)
     }
+  }
+
+  async function handleSaveDraft() {
+    if (savingDraft || submitting) return
+    setSavingDraft(true)
+    await saveFields(false)
+    setSavingDraft(false)
+  }
+
+  async function handleSubmit() {
+    if (!canMarkAsDecrit) return
+    setSubmitting(true)
+    await saveFields(true)
+    setSubmitting(false)
   }
 
   return (
     <SlideOver open title="Décrire le document" subtitle={doc.titre} onClose={onClose}
       maxWidthClassName="max-w-4xl"
       footer={<>
-        <button onClick={onClose} disabled={submitting}
-          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+        <button onClick={onClose} disabled={submitting || savingDraft}
+          className="rounded-xl border-2 border-gray-300 py-2.5 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-400 disabled:opacity-40 transition-colors">
           Annuler
         </button>
-        <button onClick={handleSubmit} disabled={!canSubmit}
-          className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+        <button onClick={handleSaveDraft} disabled={submitting || savingDraft}
+          className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-40 flex items-center justify-center gap-2 transition-colors">
+          {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+          Enregistrer
+        </button>
+        <button onClick={handleSubmit} disabled={!canMarkAsDecrit}
+          className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-40 flex items-center justify-center gap-2 transition-colors">
           {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           <CheckCircle2 className="w-3.5 h-3.5" />Marquer comme décrit
         </button>

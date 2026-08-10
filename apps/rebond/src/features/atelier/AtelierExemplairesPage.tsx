@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { LayoutDashboard, FileEdit, ChevronRight, Loader2, Star, Building2, Library, CheckCircle2, Circle, PenLine } from 'lucide-react'
 import { fetchDocumentHeader, fetchExemplairesForDocument } from './atelier.service'
+import { vueMax, formatVue } from '../patrimoine/vueFormat'
 import type { AtelierExemplaire, TranscriptionStatut } from './atelier.types'
 
 const TRANSCRIPTION_STATUT_CONFIG: Record<TranscriptionStatut, { label: string; color: string; icon: React.ElementType }> = {
@@ -24,6 +25,7 @@ export function AtelierExemplairesPage() {
   const [notFound, setNotFound] = useState(false)
   const [docTitre, setDocTitre] = useState('')
   const [registreName, setRegistreName] = useState<string | null>(null)
+  const [registreVueRange, setRegistreVueRange] = useState<string | null>(null)
   const [exemplaires, setExemplaires] = useState<AtelierExemplaire[]>([])
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function AtelierExemplairesPage() {
       if (!doc) { setNotFound(true); setLoading(false); return }
       setDocTitre(doc.titre)
       setRegistreName(doc.registreName)
+      setRegistreVueRange(doc.registreVueRange)
 
       const { data: ex } = await fetchExemplairesForDocument(id!)
       if (cancelled) return
@@ -104,6 +107,7 @@ export function AtelierExemplairesPage() {
             {exemplaires.map(ex => {
               const statut = TRANSCRIPTION_STATUT_CONFIG[ex.transcriptionStatut]
               const StatutIcon = statut.icon
+              const vueLabel = ex.vue ? formatVue(ex.vue, vueMax(registreVueRange)) : null
               return (
                 <div
                   key={ex.id}
@@ -115,22 +119,24 @@ export function AtelierExemplairesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">
-                        {ex.coteLocale || ex.identifiantInterne || 'Exemplaire sans cote'}
+                        Exemplaire
                       </span>
+                      {ex.coteLocale && <span className="text-xs font-mono text-gray-400">{ex.coteLocale}</span>}
                       {ex.estReference && (
                         <span title="Exemplaire de référence" className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
                           <Star className="w-3 h-3" />Référence
                         </span>
                       )}
                     </div>
+                    {ex.depotLabel && (
+                      <p className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
+                        <Building2 className="w-3 h-3 text-gray-300 shrink-0" />{ex.depotLabel}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
-                      {ex.depotLabel && (
-                        <span className="inline-flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-gray-300" />{ex.depotLabel}
-                        </span>
-                      )}
+                      {ex.numeroActe && <span className="font-mono">n°{ex.numeroActe}</span>}
+                      {vueLabel && <span>{vueLabel}</span>}
                       {ex.natureLabel && <span>{ex.natureLabel}</span>}
-                      {ex.localisationInterne && <span className="text-gray-400">— {ex.localisationInterne}</span>}
                     </div>
                   </div>
 

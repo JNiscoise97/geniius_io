@@ -74,6 +74,31 @@ chaîne sert à la fois de texte envoyé à Claude (pour les offsets) et de
 texte affiché dans l'UI pour le surlignage — toute divergence entre les deux
 casserait le lien assertion ↔ passage.
 
+#### Convention Markdown pour la mise en forme fidèle à la source (2026-08-10)
+
+Le transcripteur reproduit dans l'éditeur des éléments de mise en forme
+réellement présents dans l'acte (pas de la décoration) — `tiptapJsonToPlainText`
+les encode en Markdown, dans le même texte brut (donc visibles à l'écran, pas
+seulement envoyés à Claude en coulisses) :
+- `**gras**` — le scribe a mis le mot en évidence (typiquement un patronyme,
+  pour le rendre repérable).
+- `~~barré~~` — rature/correction dans l'acte original, pas le texte
+  finalement retenu.
+- `#`/`##`/`###` en début de ligne — un titre/sous-titre tel qu'il apparaît
+  dans l'acte.
+- `[passage non transcrit]` (texte littéral) — repère posé par le
+  transcripteur pour une lacune volontaire (bloc Tiptap atomique dédié,
+  `tiptap/NonTranscritNode.ts`, pas du texte de l'acte).
+
+Le prompt système (Edge Function) explique cette convention à Claude —
+notamment que `~~barré~~` n'est pas un fait à extraire normalement (mais
+peut être signalé via `other` si la correction semble notable) et que
+`[passage non transcrit]` ne doit jamais être interprété comme du texte réel
+ni comblé par supposition. `source_text` peut inclure ces marqueurs quand ils
+encadrent le passage cité (la recherche exacte du texte cité fonctionne dans
+les deux cas, avec ou sans marqueurs, tant que la citation est fidèle à ce
+qui apparaît réellement dans le texte fourni).
+
 ## 3. Modèle de données
 
 Quatre tables (`rebond.*`), détail complet dans `schema-docs/transcription_assertions.md` :

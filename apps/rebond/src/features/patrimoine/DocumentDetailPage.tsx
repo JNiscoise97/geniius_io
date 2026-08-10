@@ -330,7 +330,7 @@ export function DocumentDetailPage() {
         return
       }
       const { data: existingCit, error: findErr } = await supabaseRebond.from('citations')
-        .select('target_type, target_id').in('exemplaire_id', siblingIds).in('target_type', ['ec_acte', 'ec_table']).limit(1).maybeSingle()
+        .select('target_type, target_id').in('exemplaire_id', siblingIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).limit(1).maybeSingle()
       if (findErr) throw findErr
       if (!existingCit) {
         toast.error("Aucun autre exemplaire de ce document n'est encore relié à un acte/une table.")
@@ -428,7 +428,7 @@ export function DocumentDetailPage() {
         const existingIds = exemplaires.map(e => e.id)
         if (existingIds.length > 0) {
           const { data: existingCit } = await supabaseRebond.from('citations')
-            .select('target_type, target_id').in('exemplaire_id', existingIds).in('target_type', ['ec_acte', 'ec_table']).limit(1).maybeSingle()
+            .select('target_type, target_id').in('exemplaire_id', existingIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).limit(1).maybeSingle()
           if (existingCit) {
             const { data: newCit } = await supabaseRebond.from('citations').insert({
               exemplaire_id: data.id, target_type: existingCit.target_type, target_id: existingCit.target_id,
@@ -555,7 +555,7 @@ export function DocumentDetailPage() {
       if (exIds.length) {
         const { data: cits } = await supabaseRebond.from('citations')
           .select('id, exemplaire_id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
-          .in('exemplaire_id', exIds).in('target_type', ['ec_acte', 'ec_table'])
+          .in('exemplaire_id', exIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte'])
         if (cancelled) return
         for (const c of cits ?? []) citByExemplaire.set(c.exemplaire_id, c)
       }
@@ -1077,6 +1077,11 @@ export function DocumentDetailPage() {
                             placeholder="Cote d'archives de cette copie" className={`${inputCls} font-mono`} />
                         </Field>
 
+                        <Field label="Vue (plage dans le visualiseur numérique)">
+                          <input value={ex.localisationInterne} onChange={e => updateExemplaire(idx, { localisationInterne: e.target.value })} readOnly={locked}
+                            placeholder="Ex. 12-14 (ou 1-376 pour l'étendue totale d'un registre)" className={inputCls} />
+                        </Field>
+
                         {parentExemplaireOptions.length > 0 && (
                           <Field label="Exemplaire du registre correspondant">
                             <select value={ex.parentExemplaireId ?? ''} disabled={locked}
@@ -1280,6 +1285,12 @@ export function DocumentDetailPage() {
             </div>
           )}
         </div>
+
+        {/* TODO Annexes : table + service prêts (unites_documentaires_annexes,
+            fetchAnnexes/searchDocumentsByTitre/addAnnexe/removeAnnexe dans
+            patrimoine.service.ts), UI volontairement pas encore branchée ici —
+            demande explicite de l'utilisateur le 2026-08-10 (un premier essai
+            desservait la fonctionnalité). Revenir dessus avec plus de soin. */}
 
         <Dialog open={addOpen} onOpenChange={(open) => { setAddOpen(open); if (!open) {
           setAddDepotQuery(''); setAddDepotResults([]); setAddSelectedDepot(null); setAddCoteLocale('')

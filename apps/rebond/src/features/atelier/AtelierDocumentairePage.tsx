@@ -20,6 +20,16 @@
 // (pas évident au premier abord, cf. atelier.service.ts) :
 // unites_documentaires -> exemplaires -> citations (target_type='ec_acte')
 // -> etat_civil_actes -> etat_civil_bureaux / etat_civil_registres.
+//
+// Hypothèques (2026-08-10, sur demande explicite) : hiérarchie plus courte,
+// forme différente de l'état civil (pas de département/commune distincts,
+// pas d'année comme niveau propre) — région > conservation > bureau >
+// registre (trié par numero_volume) > actes (triés par numéro d'acte).
+// Deux listes de niveaux distinctes (ETAT_CIVIL_HIERARCHY_LEVELS /
+// HYPOTHEQUES_HIERARCHY_LEVELS), sélectionnées via DocHierarchyMeta.domaine
+// — voir atelier.service.ts pour le chemin de données
+// (citations target_type='hyp_acte' -> hypotheques_actes ->
+// hypotheques_registres -> hypotheques_bureaux -> hypotheques_conservations).
 
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -74,16 +84,20 @@ function TreeRow({ label, count, depth, open, onToggle }: {
 }
 
 // Feuille de l'arbre : un acte individuel, ligne simple (pas de carte) —
-// titre, puis rôle, date, vue (position dans le registre numérisé, cf.
-// vueFormat.ts déjà utilisé ailleurs dans Patrimoine documentaire pour ce
-// même calcul), et lien en ligne s'il existe.
-function DocumentRow({ doc, sourceVueRangeById, depth, onClick }: {
+// titre, puis rôle, numéro d'acte (etat_civil_actes/hypotheques_actes.
+// numero_acte — ajouté le 2026-08-10, jusque-là utilisé pour le tri
+// seulement, pas affiché), date, vue (position dans le registre numérisé,
+// "X / Y" via formatVue/vueMax déjà utilisé ailleurs dans Patrimoine
+// documentaire), et lien en ligne s'il existe.
+function DocumentRow({ doc, metaByDoc, sourceVueRangeById, depth, onClick }: {
   doc: Document
+  metaByDoc: Map<string, DocHierarchyMeta>
   sourceVueRangeById: Map<string, string | null>
   depth: number
   onClick: () => void
 }) {
   const role = doc.role ? ROLE_CONFIG[doc.role] : null
+  const numeroActe = metaByDoc.get(doc.id)?.numeroActe ?? null
   const registreVueRange = doc.source_id ? sourceVueRangeById.get(doc.source_id) ?? null : null
   const vueLabel = doc.vue ? formatVue(doc.vue, vueMax(registreVueRange)) : null
 
@@ -98,6 +112,7 @@ function DocumentRow({ doc, sourceVueRangeById, depth, onClick }: {
       <FileText className="w-3.5 h-3.5 text-gray-300 shrink-0" />
       <span className="text-sm text-gray-800 group-hover:text-indigo-700 transition-colors truncate">{doc.titre}</span>
       {role && <span className={`text-[10px] font-medium rounded border px-1.5 py-0.5 shrink-0 ${role.color}`}>{role.label}</span>}
+      {numeroActe && <span className="text-xs font-mono text-gray-400 shrink-0">n°{numeroActe}</span>}
       {doc.date_document && <span className="text-xs text-gray-400 shrink-0">{doc.date_document}</span>}
       {vueLabel && <span className="text-xs text-gray-400 shrink-0">{vueLabel}</span>}
       {doc.url && (
@@ -120,21 +135,38 @@ type LevelDef = {
   getKey: (meta: DocHierarchyMeta) => string
   getSortValue: (meta: DocHierarchyMeta) => string | number
 }
-const HIERARCHY_LEVELS: LevelDef[] = [
-  { getLabel: m => m.region || NON_RENSEIGNE, getKey: m => m.region || NON_RENSEIGNE, getSortValue: m => m.region || NON_RENSEIGNE },
-  { getLabel: m => m.departement || NON_RENSEIGNE, getKey: m => m.departement || NON_RENSEIGNE, getSortValue: m => m.departement || NON_RENSEIGNE },
-  { getLabel: m => m.commune || NON_RENSEIGNE, getKey: m => m.commune || NON_RENSEIGNE, getSortValue: m => m.commune || NON_RENSEIGNE },
-  { getLabel: m => m.bureauLabel || NON_RENSEIGNE, getKey: m => m.bureauLabel || NON_RENSEIGNE, getSortValue: m => m.bureauLabel || NON_RENSEIGNE },
-  { getLabel: m => m.sortYear != null ? String(m.sortYear) : NON_RENSEIGNE, getKey: m => m.sortYear != null ? String(m.sortYear) : NON_RENSEIGNE, getSortValue: m => m.sortYear ?? Number.MAX_SAFE_INTEGER },
+const REGISTRE_LEVEL: LevelDef = {
   // Regroupement par registreId (l'id réel), pas par registreLabel : le
   // libellé est généré automatiquement à partir du seul type d'acte (cf.
   // atelier.service.ts) donc deux registres distincts peuvent partager le
   // même libellé générique ("Registre des décès") — grouper par le texte
   // fusionnerait à tort deux vrais registres différents en un seul nœud.
-  // Trié par la position de son type d'acte principal (registreSortPosition,
-  // via ref_etat_civil_type_acte.position) — le registre n'a pas d'ordre
-  // propre en base.
-  { getLabel: m => m.registreLabel || NON_RENSEIGNE, getKey: m => m.registreId ?? NON_RENSEIGNE, getSortValue: m => m.registreSortPosition ?? Number.MAX_SAFE_INTEGER },
+  // Trié par registreSortPosition — position du type d'acte principal pour
+  // l'état civil (ref_etat_civil_type_acte.position), numero_volume pour
+  // les hypothèques (cf. atelier.service.ts) : le registre n'a pas d'ordre
+  // propre en base dans un cas comme dans l'autre.
+  getLabel: m => m.registreLabel || NON_RENSEIGNE, getKey: m => m.registreId ?? NON_RENSEIGNE, getSortValue: m => m.registreSortPosition ?? Number.MAX_SAFE_INTEGER,
+}
+
+const ETAT_CIVIL_HIERARCHY_LEVELS: LevelDef[] = [
+  { getLabel: m => m.region || NON_RENSEIGNE, getKey: m => m.region || NON_RENSEIGNE, getSortValue: m => m.region || NON_RENSEIGNE },
+  { getLabel: m => m.departement || NON_RENSEIGNE, getKey: m => m.departement || NON_RENSEIGNE, getSortValue: m => m.departement || NON_RENSEIGNE },
+  { getLabel: m => m.commune || NON_RENSEIGNE, getKey: m => m.commune || NON_RENSEIGNE, getSortValue: m => m.commune || NON_RENSEIGNE },
+  { getLabel: m => m.bureauLabel || NON_RENSEIGNE, getKey: m => m.bureauLabel || NON_RENSEIGNE, getSortValue: m => m.bureauLabel || NON_RENSEIGNE },
+  { getLabel: m => m.sortYear != null ? String(m.sortYear) : NON_RENSEIGNE, getKey: m => m.sortYear != null ? String(m.sortYear) : NON_RENSEIGNE, getSortValue: m => m.sortYear ?? Number.MAX_SAFE_INTEGER },
+  REGISTRE_LEVEL,
+]
+
+// Hypothèques : pas de département/commune distincts, pas d'année comme
+// niveau propre — région > conservation (réutilise le champ departement de
+// DocHierarchyMeta, cf. atelier.service.ts) > bureau > registre. 4 niveaux
+// au lieu de 6, décidé explicitement (2026-08-10) pour ne pas créer de nœud
+// "Non renseigné" vide sur des niveaux qui n'existent pas dans ce domaine.
+const HYPOTHEQUES_HIERARCHY_LEVELS: LevelDef[] = [
+  { getLabel: m => m.region || NON_RENSEIGNE, getKey: m => m.region || NON_RENSEIGNE, getSortValue: m => m.region || NON_RENSEIGNE },
+  { getLabel: m => m.departement || NON_RENSEIGNE, getKey: m => m.departement || NON_RENSEIGNE, getSortValue: m => m.departement || NON_RENSEIGNE },
+  { getLabel: m => m.bureauLabel || NON_RENSEIGNE, getKey: m => m.bureauLabel || NON_RENSEIGNE, getSortValue: m => m.bureauLabel || NON_RENSEIGNE },
+  REGISTRE_LEVEL,
 ]
 
 function compareSortValues(a: string | number, b: string | number): number {
@@ -144,8 +176,8 @@ function compareSortValues(a: string | number, b: string | number): number {
 
 type HierarchyNode = { key: string; label: string; docs: Document[]; children: HierarchyNode[] }
 
-function buildHierarchy(docs: Document[], metaByDoc: Map<string, DocHierarchyMeta>, levelIndex: number): HierarchyNode[] {
-  const level = HIERARCHY_LEVELS[levelIndex]
+function buildHierarchy(docs: Document[], metaByDoc: Map<string, DocHierarchyMeta>, levels: LevelDef[], levelIndex: number): HierarchyNode[] {
+  const level = levels[levelIndex]
   const groups = new Map<string, { key: string; label: string; sortValue: string | number; docs: Document[] }>()
   for (const doc of docs) {
     const meta = metaByDoc.get(doc.id)
@@ -155,14 +187,14 @@ function buildHierarchy(docs: Document[], metaByDoc: Map<string, DocHierarchyMet
     g.docs.push(doc)
     groups.set(key, g)
   }
-  const isLastLevel = levelIndex === HIERARCHY_LEVELS.length - 1
+  const isLastLevel = levelIndex === levels.length - 1
   return [...groups.values()]
     .sort((a, b) => compareSortValues(a.sortValue, b.sortValue))
     .map(g => ({
       key: g.key,
       label: g.label,
       docs: g.docs,
-      children: isLastLevel ? [] : buildHierarchy(g.docs, metaByDoc, levelIndex + 1),
+      children: isLastLevel ? [] : buildHierarchy(g.docs, metaByDoc, levels, levelIndex + 1),
     }))
 }
 
@@ -177,10 +209,11 @@ function sortLeafDocs(docs: Document[], metaByDoc: Map<string, DocHierarchyMeta>
   })
 }
 
-function HierarchyTreeNode({ node, depth, metaByDoc, sourceVueRangeById, onOpenDocument }: {
+function HierarchyTreeNode({ node, depth, metaByDoc, levels, sourceVueRangeById, onOpenDocument }: {
   node: HierarchyNode
   depth: number
   metaByDoc: Map<string, DocHierarchyMeta>
+  levels: LevelDef[]
   sourceVueRangeById: Map<string, string | null>
   onOpenDocument: (id: string) => void
 }) {
@@ -192,10 +225,10 @@ function HierarchyTreeNode({ node, depth, metaByDoc, sourceVueRangeById, onOpenD
       {open && (
         isLeafLevel
           ? sortLeafDocs(node.docs, metaByDoc).map(doc => (
-            <DocumentRow key={doc.id} doc={doc} sourceVueRangeById={sourceVueRangeById} depth={depth + 1} onClick={() => onOpenDocument(doc.id)} />
+            <DocumentRow key={doc.id} doc={doc} metaByDoc={metaByDoc} sourceVueRangeById={sourceVueRangeById} depth={depth + 1} onClick={() => onOpenDocument(doc.id)} />
           ))
           : node.children.map(child => (
-            <HierarchyTreeNode key={child.key} node={child} depth={depth + 1} metaByDoc={metaByDoc} sourceVueRangeById={sourceVueRangeById} onOpenDocument={onOpenDocument} />
+            <HierarchyTreeNode key={child.key} node={child} depth={depth + 1} metaByDoc={metaByDoc} levels={levels} sourceVueRangeById={sourceVueRangeById} onOpenDocument={onOpenDocument} />
           ))
       )}
     </div>
@@ -213,7 +246,13 @@ function SerieSection({ serieLabel, docs, metaByDoc, sourceVueRangeById, default
   const [open, setOpen] = useState(defaultOpen)
   const withActe = docs.filter(d => metaByDoc.get(d.id)?.bureauLabel)
   const withoutActe = docs.filter(d => !metaByDoc.get(d.id)?.bureauLabel)
-  const tree = withActe.length > 0 ? buildHierarchy(withActe, metaByDoc, 0) : []
+  // La forme de la hiérarchie dépend du domaine résolu (voir
+  // DocHierarchyMeta.domaine, atelier.service.ts) — homogène par série en
+  // pratique (une série ne résout jamais que par un seul chemin de données).
+  const levels = withActe.some(d => metaByDoc.get(d.id)?.domaine === 'hypotheques')
+    ? HYPOTHEQUES_HIERARCHY_LEVELS
+    : ETAT_CIVIL_HIERARCHY_LEVELS
+  const tree = withActe.length > 0 ? buildHierarchy(withActe, metaByDoc, levels, 0) : []
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -230,10 +269,10 @@ function SerieSection({ serieLabel, docs, metaByDoc, sourceVueRangeById, default
       {open && (
         <div className="px-4 pb-3">
           {tree.map(node => (
-            <HierarchyTreeNode key={node.key} node={node} depth={1} metaByDoc={metaByDoc} sourceVueRangeById={sourceVueRangeById} onOpenDocument={onOpenDocument} />
+            <HierarchyTreeNode key={node.key} node={node} depth={1} metaByDoc={metaByDoc} levels={levels} sourceVueRangeById={sourceVueRangeById} onOpenDocument={onOpenDocument} />
           ))}
           {withoutActe.length > 0 && sortLeafDocs(withoutActe, metaByDoc).map(doc => (
-            <DocumentRow key={doc.id} doc={doc} sourceVueRangeById={sourceVueRangeById} depth={1} onClick={() => onOpenDocument(doc.id)} />
+            <DocumentRow key={doc.id} doc={doc} metaByDoc={metaByDoc} sourceVueRangeById={sourceVueRangeById} depth={1} onClick={() => onOpenDocument(doc.id)} />
           ))}
         </div>
       )}

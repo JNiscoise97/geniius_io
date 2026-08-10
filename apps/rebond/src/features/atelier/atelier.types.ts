@@ -13,12 +13,43 @@ export type AtelierExemplaire = {
   estReference: boolean
   transcriptionStatut: TranscriptionStatut
   transcriptionUpdatedAt: string | null
+  // Ajoutés le 2026-08-10 (demande explicite) : numéro d'acte (etat_civil_actes/
+  // hypotheques_actes.numero_acte, via la citation ec_acte/hyp_acte de cet
+  // exemplaire) et vue propre à cet acte (citation.locating, avec repli sur
+  // exemplaires.localisation_interne — même priorité que usePatrimoine.ts).
+  numeroActe: string | null
+  vue: string | null
 }
 
 export type AtelierDocumentHeader = {
   id: string
   titre: string
   couvertureLabel: string | null
+  // Vue totale du registre parent (exemplaires.localisation_interne de sa
+  // fiche de référence) — dénominateur pour afficher "vue X / Y" au niveau
+  // de chaque exemplaire de ce document. Ajouté le 2026-08-10.
+  registreVueRange: string | null
+}
+
+// Renvois au répertoire (hypothèques uniquement, 2026-08-10) — pour chaque
+// partie (vendeur/acheteur) mentionnée dans la marge d'un acte hypothécaire,
+// une référence volume/case vers sa ligne dans un répertoire des formalités
+// (rebond.hypotheques_repertoire_entrees). Absent (null) si l'exemplaire en
+// cours de transcription n'est pas un acte hypothécaire.
+export type HypActeContext = {
+  acteId: string
+  bureauId: string
+  typeFormaliteRef: string
+}
+
+export type RepertoireEntreeRow = {
+  id: string
+  description: string | null
+  caseNumero: string
+  registreLabel: string
+  // Nécessaire pour pré-remplir le formulaire d'édition (2026-08-10) — pas
+  // déductible de registreLabel seul (texte généré, pas garanti parseable).
+  numeroVolume: number
 }
 
 // Résultat de recherche pour "Comparer avec un autre exemplaire" — juste

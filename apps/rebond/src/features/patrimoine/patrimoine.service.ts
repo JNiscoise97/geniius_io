@@ -223,6 +223,32 @@ export async function qualifierSource(id: string, payload: {
 // (deux copies du même document peuvent avoir des cotes/identifiants internes distincts).
 // Passe workflow_statut → 'decrit'.
 
+// Enregistre les champs de description SANS faire avancer statut_document —
+// pour pouvoir sauvegarder un apport partiel sans s'engager sur "décrit"
+// (demande explicite utilisateur : la sheet ne proposait avant que "Annuler"
+// ou "Marquer comme décrit", aucun moyen d'enregistrer un travail en cours).
+export async function updateDocumentDescription(id: string, payload: {
+  type_unite_ref: string | null
+  role_document_ref: string | null
+  langue_ref: string | null
+  couverture_label: string | null
+  niveau_fiabilite: string | null
+  metadonnees: Record<string, unknown> | null
+}) {
+  const { error } = await supabaseRebond
+    .from('unites_documentaires')
+    .update({
+      type_unite_ref: payload.type_unite_ref || null,
+      role_document_ref: payload.role_document_ref || null,
+      langue_ref: payload.langue_ref || null,
+      couverture_label: payload.couverture_label || null,
+      niveau_fiabilite: payload.niveau_fiabilite || null,
+      metadonnees: payload.metadonnees,
+    })
+    .eq('id', id)
+  return { error }
+}
+
 export async function decrireDocument(id: string, payload: {
   type_unite_ref: string | null
   role_document_ref: string | null
@@ -260,6 +286,49 @@ export async function rattacherDocument(id: string, parentUdId: string) {
     .from('unites_documentaires')
     .update({ parent_ud_id: parentUdId })
     .eq('id', id)
+  return { error }
+}
+
+// ── Annexes (rebond.unites_documentaires_annexes) ──────────────
+// Relation "est annexe de", générique à toute série — distincte de
+// unites_documentaires_mentions (index → acte) et de parent_ud_id
+// (containment physique). Voir schema-docs / échange utilisateur 2026-08-10.
+
+export type AnnexeLink = { linkId: string; id: string; titre: string }
+
+export async function fetchAnnexes(documentId: string): Promise<{ asPrincipal: AnnexeLink[]; asAnnexe: AnnexeLink[] }> {
+  const [principal, annexe] = await Promise.all([
+    supabaseRebond.from('unites_documentaires_annexes')
+      .select('id, annexe:unites_documentaires!annexe_id ( id, titre )').eq('document_id', documentId),
+    supabaseRebond.from('unites_documentaires_annexes')
+      .select('id, document:unites_documentaires!document_id ( id, titre )').eq('annexe_id', documentId),
+  ])
+  const asPrincipal = (principal.data ?? []).map((r: any) => {
+    const a = Array.isArray(r.annexe) ? r.annexe[0] : r.annexe
+    return a ? { linkId: r.id, id: a.id, titre: a.titre } : null
+  }).filter(Boolean) as AnnexeLink[]
+  const asAnnexe = (annexe.data ?? []).map((r: any) => {
+    const d = Array.isArray(r.document) ? r.document[0] : r.document
+    return d ? { linkId: r.id, id: d.id, titre: d.titre } : null
+  }).filter(Boolean) as AnnexeLink[]
+  return { asPrincipal, asAnnexe }
+}
+
+export async function searchDocumentsByTitre(query: string, excludeId: string): Promise<Array<{ id: string; titre: string }>> {
+  if (query.trim().length < 2) return []
+  const { data } = await supabaseRebond.from('unites_documentaires')
+    .select('id, titre').ilike('titre', `%${query.trim()}%`).neq('id', excludeId).limit(10)
+  return data ?? []
+}
+
+export async function addAnnexe(documentId: string, annexeId: string) {
+  const { error } = await supabaseRebond.from('unites_documentaires_annexes')
+    .upsert({ document_id: documentId, annexe_id: annexeId }, { onConflict: 'document_id,annexe_id' })
+  return { error }
+}
+
+export async function removeAnnexe(linkId: string) {
+  const { error } = await supabaseRebond.from('unites_documentaires_annexes').delete().eq('id', linkId)
   return { error }
 }
 

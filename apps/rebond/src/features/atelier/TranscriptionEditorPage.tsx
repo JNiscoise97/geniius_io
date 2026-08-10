@@ -30,10 +30,12 @@ import {
   Quote, Undo2, Redo2, Minus, Cloud, CloudOff, MessageSquarePlus, History, Save,
   CheckCircle2, RotateCcw, Trash2, Plus, Tag, PenLine, FileSignature, Eraser, Layers, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lock, Unlock, BadgeCheck, Undo, GitCompare,
-  Search, Copy, Replace,
+  Search, Copy, Replace, BookMarked,
 } from 'lucide-react'
 import { diffWordsWithSpace } from 'diff'
+import { toast } from 'sonner'
 import { CommentMark } from './tiptap/CommentMark'
+import { NonTranscritNode } from './tiptap/NonTranscritNode'
 import { tiptapJsonToPlainText } from './tiptap/tiptapText'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -42,12 +44,13 @@ import {
   fetchVersions, createVersionSnapshot, fetchComments, createComment, setCommentStatut, deleteComment,
   fetchZoneTypes, fetchZones, createZone, deleteZone, replaceZones, fetchZonesAttendu, updateQualite,
   markAsTranscrit, revertToEnCours, searchTranscribedExemplaires,
+  fetchHypActeContext, fetchRepertoireEntrees, addRepertoireEntree, updateRepertoireEntree, removeRepertoireEntree,
 } from './atelier.service'
 import { QUALITE_VIDE } from './atelier.types'
 import type {
   TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, TranscriptionZoneType, TranscriptionZone,
   TranscriptionQualite, SourceLectureKind, Completeness, ReserveLevel, ZoneAttendu, ZoneSnapshotEntry,
-  TranscriptionSearchResult,
+  TranscriptionSearchResult, HypActeContext, RepertoireEntreeRow,
 } from './atelier.types'
 
 // Comparaison "métier" des zones : par contenu (type + texte relevé), pas
@@ -118,7 +121,7 @@ type ExemplaireContext = {
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
-type SectionKey = 'zones' | 'commentaires' | 'historique' | 'qualite'
+type SectionKey = 'zones' | 'commentaires' | 'historique' | 'qualite' | 'repertoire'
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -206,6 +209,15 @@ function Toolbar({ editor, hasSelection, onComment, locked }: { editor: Editor; 
       </ToolbarButton>
       <ToolbarButton title="Rétablir" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()}>
         <Redo2 className="w-4 h-4" />
+      </ToolbarButton>
+
+      <div className="w-px h-5 bg-gray-200 mx-1" />
+
+      <ToolbarButton
+        title="Insérer un passage non transcrit"
+        onClick={() => editor.chain().focus().insertNonTranscrit().run()}
+      >
+        <AlertTriangle className="w-4 h-4" />
       </ToolbarButton>
 
       <div className="w-px h-5 bg-gray-200 mx-1" />
@@ -453,6 +465,109 @@ function ZonesPanel({ zoneTypes, zones, attendu, locked, onAdd, onDelete }: {
           </div>
         )
       })}
+    </div>
+    </fieldset>
+  )
+}
+
+// Renvois au répertoire (hypothèques uniquement) — pour chaque partie
+// (vendeur/acheteur) mentionnée en marge de l'acte, une référence
+// volume/case vers sa ligne dans un répertoire des formalités. Écrit dans
+// rebond.hypotheques_repertoire_entrees (find-or-create le volume de
+// répertoire côté service), pas en texte libre — demandé explicitement le
+// 2026-08-10 après avoir d'abord utilisé "Mention marginale" en dépannage.
+function RepertoirePanel({ entrees, locked, saving, onAdd, onEdit, onDelete }: {
+  entrees: RepertoireEntreeRow[]
+  locked: boolean
+  saving: boolean
+  onAdd: (numeroVolume: string, caseNumero: string, description: string) => void
+  onEdit: (id: string, numeroVolume: string, caseNumero: string, description: string) => void
+  onDelete: (id: string) => void
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [description, setDescription] = useState('')
+  const [numeroVolume, setNumeroVolume] = useState('')
+  const [caseNumero, setCaseNumero] = useState('')
+
+  const canSubmit = numeroVolume.trim().length > 0 && caseNumero.trim().length > 0 && !saving
+
+  function resetForm() {
+    setEditingId(null); setDescription(''); setNumeroVolume(''); setCaseNumero('')
+  }
+
+  function startEdit(e: RepertoireEntreeRow) {
+    setEditingId(e.id)
+    setDescription(e.description ?? '')
+    setNumeroVolume(String(e.numeroVolume))
+    setCaseNumero(e.caseNumero)
+  }
+
+  function submit() {
+    if (!canSubmit) return
+    if (editingId) onEdit(editingId, numeroVolume.trim(), caseNumero.trim(), description.trim())
+    else onAdd(numeroVolume.trim(), caseNumero.trim(), description.trim())
+    resetForm()
+  }
+
+  // Le formulaire, réutilisé pour l'ajout (en bas de liste) ET l'édition
+  // (affiché À LA PLACE de la ligne concernée, pas en bas) — sur une longue
+  // liste, éditer la première entrée n'obligeait sinon plus qu'à scroller
+  // jusqu'en bas pour voir le formulaire, retour utilisateur direct.
+  const form = (
+    <div className="rounded-lg border border-gray-100 bg-white p-3 space-y-2">
+      {editingId && <p className="text-[11px] font-medium text-indigo-600">Modification du renvoi</p>}
+      <input value={description} onChange={e => setDescription(e.target.value)}
+        placeholder="Ex. Vendeur — Jean Dupont" className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <div className="flex items-center gap-2">
+        <input value={numeroVolume} onChange={e => setNumeroVolume(e.target.value)}
+          placeholder="N° volume" className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <input value={caseNumero} onChange={e => setCaseNumero(e.target.value)}
+          placeholder="N° case" className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={submit} disabled={!canSubmit}
+          className="flex-1 text-xs font-medium bg-indigo-600 text-white rounded-lg px-2.5 py-1.5 hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+          {saving ? 'Enregistrement…' : editingId ? 'Enregistrer les modifications' : 'Ajouter le renvoi'}
+        </button>
+        {editingId && (
+          <button onClick={resetForm} className="text-xs font-medium text-gray-500 hover:text-gray-700 px-2">
+            Annuler
+          </button>
+        )}
+      </div>
+    </div>
+  )
+
+  return (
+    <fieldset disabled={locked} className="contents">
+    <div className="space-y-3">
+      {entrees.length === 0 && (
+        <p className="text-xs text-gray-400 italic">Aucun renvoi au répertoire pour l'instant.</p>
+      )}
+      {entrees.length > 0 && (
+        <div className="space-y-1.5">
+          {entrees.map(e => e.id === editingId ? (
+            <div key={e.id}>{form}</div>
+          ) : (
+            <div key={e.id} className="flex items-start justify-between gap-2 rounded-md bg-gray-50 px-2.5 py-1.5">
+              <div className="text-xs text-gray-700">
+                {e.description && <p className="font-medium">{e.description}</p>}
+                <p className="text-gray-500">{e.registreLabel} — case {e.caseNumero}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => startEdit(e)} className="text-gray-300 hover:text-indigo-600 transition-colors">
+                  <PenLine className="w-3 h-3" />
+                </button>
+                <button onClick={() => { if (editingId === e.id) resetForm(); onDelete(e.id) }} className="text-gray-300 hover:text-rose-600 transition-colors">
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!editingId && form}
     </div>
     </fieldset>
   )
@@ -834,7 +949,7 @@ function CompareExemplaireDialog({ open, onOpenChange, exemplaireId, currentPlai
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Rechercher par titre de document ou cote…"
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 min-w-0 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -915,6 +1030,9 @@ export function TranscriptionEditorPage() {
   const [zoneTypes, setZoneTypes] = useState<TranscriptionZoneType[]>([])
   const [zones, setZones] = useState<TranscriptionZone[]>([])
   const [qualite, setQualite] = useState<TranscriptionQualite>(QUALITE_VIDE)
+  const [hypContext, setHypContext] = useState<HypActeContext | null>(null)
+  const [repertoireEntrees, setRepertoireEntrees] = useState<RepertoireEntreeRow[]>([])
+  const [savingRepertoireEntree, setSavingRepertoireEntree] = useState(false)
 
   const [locked, setLocked] = useState(false)
   const [confirmUnlockOpen, setConfirmUnlockOpen] = useState(false)
@@ -957,7 +1075,7 @@ export function TranscriptionEditorPage() {
   const draftHadContentRef = useRef(false)
 
   const editor = useEditor({
-    extensions: [StarterKit, CommentMark],
+    extensions: [StarterKit, CommentMark, NonTranscritNode],
     editorProps: {
       attributes: {
         class: 'min-h-[60vh] max-w-none focus:outline-none text-[15px] leading-relaxed text-gray-800 '
@@ -970,7 +1088,12 @@ export function TranscriptionEditorPage() {
           + '[&_blockquote]:border-l-2 [&_blockquote]:border-indigo-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:my-3 '
           + '[&_hr]:my-6 [&_hr]:border-gray-200 '
           + '[&_code]:bg-gray-100 [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[13px] '
-          + '[&_mark.transcription-comment-mark]:bg-amber-100 [&_mark.transcription-comment-mark]:rounded-sm [&_mark.transcription-comment-mark]:cursor-pointer',
+          + '[&_mark.transcription-comment-mark]:bg-amber-100 [&_mark.transcription-comment-mark]:rounded-sm [&_mark.transcription-comment-mark]:cursor-pointer '
+          + '[&_span.transcription-non-transcrit-node]:inline-block [&_span.transcription-non-transcrit-node]:bg-rose-100 [&_span.transcription-non-transcrit-node]:text-rose-700 '
+          + '[&_span.transcription-non-transcrit-node]:border [&_span.transcription-non-transcrit-node]:border-rose-300 [&_span.transcription-non-transcrit-node]:rounded-md '
+          + '[&_span.transcription-non-transcrit-node]:px-2 [&_span.transcription-non-transcrit-node]:py-0.5 [&_span.transcription-non-transcrit-node]:mx-0.5 '
+          + '[&_span.transcription-non-transcrit-node]:text-xs [&_span.transcription-non-transcrit-node]:font-medium [&_span.transcription-non-transcrit-node]:select-none '
+          + '[&_span.transcription-non-transcrit-node.ProseMirror-selectednode]:ring-2 [&_span.transcription-non-transcrit-node.ProseMirror-selectednode]:ring-rose-400',
       },
     },
     onUpdate: () => { if (hasLoadedRef.current) scheduleSave(); setContentTick(t => t + 1) },
@@ -1186,6 +1309,43 @@ export function TranscriptionEditorPage() {
     setZones(prev => prev.filter(z => z.id !== zoneId))
   }
 
+  async function handleAddRepertoireEntree(numeroVolumeRaw: string, caseNumero: string, description: string) {
+    if (!hypContext) return
+    const numeroVolume = parseInt(numeroVolumeRaw, 10)
+    if (!Number.isFinite(numeroVolume)) { toast.error('Numéro de volume invalide'); return }
+    setSavingRepertoireEntree(true)
+    try {
+      await addRepertoireEntree(hypContext, numeroVolume, caseNumero, description)
+      const entrees = await fetchRepertoireEntrees(hypContext.acteId)
+      setRepertoireEntrees(entrees)
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erreur lors de l'ajout du renvoi")
+    } finally {
+      setSavingRepertoireEntree(false)
+    }
+  }
+
+  async function handleEditRepertoireEntree(id: string, numeroVolumeRaw: string, caseNumero: string, description: string) {
+    if (!hypContext) return
+    const numeroVolume = parseInt(numeroVolumeRaw, 10)
+    if (!Number.isFinite(numeroVolume)) { toast.error('Numéro de volume invalide'); return }
+    setSavingRepertoireEntree(true)
+    try {
+      await updateRepertoireEntree(hypContext, id, numeroVolume, caseNumero, description)
+      const entrees = await fetchRepertoireEntrees(hypContext.acteId)
+      setRepertoireEntrees(entrees)
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erreur lors de la modification du renvoi")
+    } finally {
+      setSavingRepertoireEntree(false)
+    }
+  }
+
+  async function handleDeleteRepertoireEntree(id: string) {
+    await removeRepertoireEntree(id)
+    setRepertoireEntrees(prev => prev.filter(e => e.id !== id))
+  }
+
   function handleQualiteChange(patch: Partial<TranscriptionQualite>) {
     setQualite(prev => ({ ...prev, ...patch }))
     qualitePendingRef.current = { ...qualitePendingRef.current, ...patch }
@@ -1233,6 +1393,15 @@ export function TranscriptionEditorPage() {
       })
 
       fetchZonesAttendu(exemplaireId!).then(a => { if (!cancelled) setZonesAttendu(a) }).catch(() => {})
+
+      fetchHypActeContext(exemplaireId!).then(async h => {
+        if (cancelled) return
+        setHypContext(h)
+        if (h) {
+          const entrees = await fetchRepertoireEntrees(h.acteId)
+          if (!cancelled) setRepertoireEntrees(entrees)
+        }
+      }).catch(() => {})
 
       const { data: tr } = await fetchTranscription(exemplaireId!)
       if (cancelled) return
@@ -1495,6 +1664,20 @@ export function TranscriptionEditorPage() {
                 onDelete={handleDeleteZone}
               />
             </AccordionSection>
+
+            {hypContext && (
+              <AccordionSection title="Renvois au répertoire" icon={BookMarked} count={repertoireEntrees.length}
+                open={openSections.has('repertoire')} onToggle={() => toggleSection('repertoire')}>
+                <RepertoirePanel
+                  entrees={repertoireEntrees}
+                  locked={locked}
+                  saving={savingRepertoireEntree}
+                  onAdd={handleAddRepertoireEntree}
+                  onEdit={handleEditRepertoireEntree}
+                  onDelete={handleDeleteRepertoireEntree}
+                />
+              </AccordionSection>
+            )}
 
             <AccordionSection title="Qualité" icon={Gauge}
               open={openSections.has('qualite')} onToggle={() => toggleSection('qualite')}>
