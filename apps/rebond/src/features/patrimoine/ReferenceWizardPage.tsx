@@ -14,6 +14,7 @@ import { DataTable, type ColumnDef } from '@/components/shared/DataTable'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { EtatCivilBureau } from '@/types/etatcivil'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { normalizeDateString, isValidDateString, formatDateToFrench } from '@/utils/date'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -303,6 +304,287 @@ const chipCls = (active: boolean) => [
 ].join(' ')
 
 const inputCls = 'w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
+
+// ── Aide au choix par arbre oui/non (2026-08-11, demande explicite) ────────────
+// Composant générique réutilisé pour désambiguïser plusieurs référentiels à
+// choix unique (nature d'exemplaire, mode de constitution d'un registre,
+// règle de numérotation, cadre juridique) — le texte des questions et leur
+// enchaînement ne peuvent pas venir des tables elles-mêmes (qui ne
+// contiennent que les résultats finaux, pas la logique de branchement) :
+// codés en dur ci-dessous, un arbre par référentiel. À ajuster à la main si
+// une table change (ex. NUMERISATION retirée de ref_natures, ou
+// table_decennale/post_abolition_transitoire retirées des tables registre —
+// tour du 2026-08-11 où ces deux dernières ont été supprimées après
+// vérification qu'aucun registre ne les utilisait). Un noeud pointe soit
+// vers un autre noeud (question suivante), soit directement vers un code de
+// la table concernée (résultat final).
+type RefWizardNode = {
+  question: string
+  yes: string | RefWizardNode
+  no: string | RefWizardNode
+}
+
+const NATURE_WIZARD_TREE: RefWizardNode = {
+  question: "Est-ce un texte retranscrit (saisi), pas une image du document ?",
+  yes: 'TRANSCRIPTION',
+  no: {
+    question: "Est-ce une version de travail ou préparatoire, sans valeur officielle (brouillon, notes, projet) ?",
+    yes: 'BROUILLON',
+    no: {
+      question: "Est-ce l'acte dans sa forme d'origine — pas une copie faite à partir de lui ?",
+      yes: {
+        question: "Est-ce un acte notarié dont l'original est conservé par le notaire (la minute) ?",
+        yes: 'MINUTE',
+        no: 'ORIGINAL',
+      },
+      no: {
+        question: "Est-ce une reproduction numérique (scan, photo, PDF) ?",
+        yes: 'NUMERISATION',
+        no: {
+          question: "Ne reprend-elle qu'une partie de l'acte, pas la totalité ?",
+          yes: 'EXTRAIT',
+          no: {
+            question: "Est-ce une copie authentique délivrée et certifiée par un notaire (formule exécutoire, signature/sceau) ?",
+            yes: 'EXPEDITION',
+            no: {
+              question: "Est-ce un deuxième exemplaire officiel établi en parallèle de l'original (registre en double, double minute) ?",
+              yes: 'DOUBLE',
+              no: {
+                question: "Est-ce une simple copie (manuscrite, de travail, d'archives), sans caractère officiel particulier ?",
+                yes: 'COPIE',
+                no: 'AUTRE',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+}
+
+// Arbre pour rebond.ref_etat_civil_registre_mode (9 codes après suppression
+// de table_decennale le 2026-08-11 — sa propre note disait explicitement
+// "ce n'est pas un registre d'actes", 0 usage vérifié avant suppression).
+const REGISTRE_MODE_WIZARD_TREE: RefWizardNode = {
+  question: "Le registre a-t-il été reconstitué après coup (perte, destruction, lacune), à partir d'autres sources ?",
+  yes: 'reconstitution',
+  no: {
+    question: "Sert-il à transcrire des actes établis ailleurs (mariages/décès transcrits, jugements, mentions...) ?",
+    yes: 'transcription',
+    no: {
+      question: "Est-il explicitement rattaché à un établissement (hôpital, prison, bagne, garnison...) ?",
+      yes: 'par_etablissement',
+      no: {
+        question: "A-t-il été constitué séparément pour une catégorie de population/statut précise (registre distinct par population) ?",
+        yes: 'par_population_statut',
+        no: {
+          question: "Est-il structuré par entité territoriale (communes rattachées, sections, quartiers, cantons) ?",
+          yes: 'par_commune_section',
+          no: {
+            question: "Est-il organisé par bureau, annexe ou section d'état civil ?",
+            yes: 'par_bureau',
+            no: {
+              question: "Les actes sont-ils regroupés par nature (naissances/mariages/décès en parties ou volumes séparés) ?",
+              yes: 'par_type_acte',
+              no: {
+                question: "Plusieurs natures d'actes sont-elles entremêlées dans la même séquence chronologique (pas de partition) ?",
+                yes: 'chronologique_mixte',
+                no: 'chronologique',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+}
+
+// Arbre pour rebond.ref_etat_civil_registre_ordre_numerotation (9 codes,
+// inchangée lors de la revue du 2026-08-11).
+const REGISTRE_NUMEROTATION_WIZARD_TREE: RefWizardNode = {
+  question: "Les actes portent-ils un numéro d'acte explicite ?",
+  yes: {
+    question: "Deux systèmes de numérotation coexistent-ils sur les mêmes actes (ex. numéro manuscrit + numéro de greffe/contrôle) ?",
+    yes: 'double_numerotation',
+    no: {
+      question: "La numérotation présente-t-elle des anomalies sans schéma stable (doublons, sauts, numéros manquants, inversions) ?",
+      yes: 'irreguliere',
+      no: {
+        question: "Chaque type d'acte (naissances/mariages/décès) a-t-il sa propre série de numéros ?",
+        yes: 'par_type_acte',
+        no: {
+          question: "Chaque commune/section tient-elle sa propre série de numéros ?",
+          yes: 'par_commune_section',
+          no: {
+            question: "Chaque bureau/antenne tient-il sa propre série de numéros ?",
+            yes: 'par_bureau',
+            no: {
+              question: "La numérotation redémarre-t-elle à 1 chaque mois ?",
+              yes: 'par_mois',
+              no: {
+                question: "La numérotation redémarre-t-elle à 1 chaque année ?",
+                yes: 'par_annee',
+                no: 'continue_globale',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  no: 'sans_numero',
+}
+
+// Arbre pour rebond.ref_etat_civil_registre_statut_juridique (6 codes après
+// suppression de post_abolition_transitoire le 2026-08-11 — frontière floue
+// avec nouveaux_libres même dans sa propre description, 0 usage vérifié
+// avant suppression). Catégories historiques réelles, à manier avec
+// précision — en cas de doute véritable entre deux catégories proches,
+// reste au jugement de l'utilisateur plutôt qu'à une réponse forcée par
+// l'assistant.
+const REGISTRE_STATUT_JURIDIQUE_WIZARD_TREE: RefWizardNode = {
+  question: "Le registre relève-t-il du régime général de l'état civil (Code civil), sans catégorie de population distincte assignée ?",
+  yes: 'droit_commun',
+  no: {
+    question: "Concerne-t-il des personnes en condition servile (esclaves) ?",
+    yes: 'esclaves',
+    no: {
+      question: "Concerne-t-il des personnes juridiquement libres mais catégorisées racialement (libres de couleur) ?",
+      yes: 'libres_de_couleur',
+      no: {
+        question: "Concerne-t-il des travailleurs engagés sous contrat (immigration/travail contractuel colonial) ?",
+        yes: 'engages',
+        no: {
+          question: "Concerne-t-il des personnes soumises au régime de l'indigénat ?",
+          yes: 'indigenat',
+          no: 'nouveaux_libres',
+        },
+      },
+    },
+  },
+}
+
+type RefWizardRow = { id: string; code: string; label: string; description: string | null }
+
+// Généralisé (2026-08-11) depuis le premier assistant (nature d'exemplaire)
+// pour être réutilisé sur les 3 champs du registre d'état civil — table et
+// arbre passés en props plutôt que codés en dur, resultLabel/applyLabel
+// pour adapter le texte à chaque champ ("Nature trouvée"/"Mode trouvé"...).
+function RefWizard({ table, tree, resultLabel, applyLabel, onResolve }: {
+  table: string
+  tree: RefWizardNode
+  resultLabel: string
+  applyLabel: string
+  onResolve: (id: string) => void
+}) {
+  const [rows, setRows] = useState<RefWizardRow[]>([])
+  // 'loading' explicite (2026-08-11, bug réel signalé : "je clique sur
+  // utiliser cette nature mais ça ne fait rien") — le bouton était désactivé
+  // en silence tant que le chargement de la table n'était pas terminé (ou
+  // avait échoué), sans rien à l'écran pour l'indiquer : un clic sur un
+  // bouton désactivé ne fait effectivement rien, mais rien ne le signalait
+  // comme désactivé plutôt que cassé. État de chargement/erreur rendu
+  // explicite, et confirmation visible après un clic réussi.
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [loadAttempt, setLoadAttempt] = useState(0)
+  const [path, setPath] = useState<RefWizardNode[]>([tree])
+  const [resultCode, setResultCode] = useState<string | null>(null)
+  const [applied, setApplied] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadState('loading')
+    supabaseRebond.from(table).select('id, code, label, description').then(({ data, error }) => {
+      if (cancelled) return
+      if (error) { setLoadState('error'); return }
+      setRows((data ?? []) as RefWizardRow[])
+      setLoadState('ready')
+    })
+    return () => { cancelled = true }
+  }, [table, loadAttempt])
+
+  const current = path[path.length - 1]
+
+  function answer(value: boolean) {
+    const next = value ? current.yes : current.no
+    if (typeof next === 'string') setResultCode(next)
+    else setPath(p => [...p, next])
+  }
+
+  function back() {
+    setResultCode(null)
+    setPath(p => (p.length > 1 ? p.slice(0, -1) : p))
+  }
+
+  function reset() {
+    setResultCode(null)
+    setApplied(false)
+    setPath([tree])
+  }
+
+  if (resultCode) {
+    const row = rows.find(r => r.code === resultCode)
+    return (
+      <div className="space-y-3 p-4 rounded-xl border border-indigo-100 bg-indigo-50/50">
+        <p className="text-xs font-medium text-indigo-500 uppercase tracking-wide">{resultLabel}</p>
+        <p className="text-sm font-semibold text-gray-800">{row?.label ?? resultCode}</p>
+        {row?.description && <p className="text-xs text-gray-500">{row.description}</p>}
+        {applied ? (
+          <div className="flex items-center gap-3 pt-1">
+            <p className="text-xs font-medium text-emerald-600">✓ Appliqué</p>
+            <button type="button" onClick={reset} className="text-xs text-gray-500 hover:text-gray-700">
+              Choisir une autre valeur
+            </button>
+          </div>
+        ) : loadState === 'error' ? (
+          <div className="pt-1 space-y-2">
+            <p className="text-xs text-red-600">Le référentiel n'a pas pu être chargé — impossible d'appliquer le résultat.</p>
+            <button type="button" onClick={() => setLoadAttempt(n => n + 1)} className="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+              Réessayer
+            </button>
+          </div>
+        ) : loadState === 'ready' && !row ? (
+          <p className="text-xs text-amber-600 pt-1">
+            Cette valeur ("{resultCode}") n'existe plus dans le référentiel — l'arbre de l'assistant doit être mis à jour.
+          </p>
+        ) : (
+          <div className="flex items-center gap-3 pt-1">
+            <button type="button" disabled={loadState !== 'ready' || !row}
+              onClick={() => { if (row) { onResolve(row.id); setApplied(true) } }}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+              {loadState === 'loading' ? 'Chargement…' : applyLabel}
+            </button>
+            <button type="button" onClick={reset} className="text-xs text-gray-500 hover:text-gray-700">
+              Recommencer
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3 p-4 rounded-xl border border-gray-100 bg-gray-50/60">
+      <p className="text-xs font-medium text-gray-400">Question {path.length}</p>
+      <p className="text-sm text-gray-800">{current.question}</p>
+      <div className="flex gap-2">
+        <button type="button" onClick={() => answer(true)}
+          className="flex-1 text-sm font-medium px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50">
+          Oui
+        </button>
+        <button type="button" onClick={() => answer(false)}
+          className="flex-1 text-sm font-medium px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50">
+          Non
+        </button>
+      </div>
+      {path.length > 1 && (
+        <button type="button" onClick={back} className="text-xs text-gray-400 hover:text-gray-600">
+          ← Question précédente
+        </button>
+      )}
+    </div>
+  )
+}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -1040,25 +1322,64 @@ function RWStepDescribeRegistreEC({
                 />
               </Field>
               <Field label="Mode de constitution du registre" required>
-                <RefSinglePickerSmart
-                  table="ref_etat_civil_registre_mode" mode="edit" actionsInvisible={false}
-                  value={registreModeRef}
-                  onChange={next => setRegistreModeRef(next ? String(next) : null)}
-                />
+                <Tabs defaultValue="aide" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="aide">Aide au choix</TabsTrigger>
+                    <TabsTrigger value="liste">Liste</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="aide" className="pt-2">
+                    <RefWizard table="ref_etat_civil_registre_mode" tree={REGISTRE_MODE_WIZARD_TREE}
+                      resultLabel="Mode trouvé" applyLabel="Utiliser ce mode"
+                      onResolve={id => setRegistreModeRef(id)} />
+                  </TabsContent>
+                  <TabsContent value="liste" className="pt-2">
+                    <RefSinglePickerSmart
+                      table="ref_etat_civil_registre_mode" mode="edit" actionsInvisible={false}
+                      value={registreModeRef}
+                      onChange={next => setRegistreModeRef(next ? String(next) : null)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </Field>
               <Field label="Règle d'attribution des numéros d'actes" required>
-                <RefSinglePickerSmart
-                  table="ref_etat_civil_registre_ordre_numerotation" mode="edit" actionsInvisible={false}
-                  value={registreOrdreNumerotationRef}
-                  onChange={next => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
-                />
+                <Tabs defaultValue="aide" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="aide">Aide au choix</TabsTrigger>
+                    <TabsTrigger value="liste">Liste</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="aide" className="pt-2">
+                    <RefWizard table="ref_etat_civil_registre_ordre_numerotation" tree={REGISTRE_NUMEROTATION_WIZARD_TREE}
+                      resultLabel="Règle trouvée" applyLabel="Utiliser cette règle"
+                      onResolve={id => setRegistreOrdreNumerotationRef(id)} />
+                  </TabsContent>
+                  <TabsContent value="liste" className="pt-2">
+                    <RefSinglePickerSmart
+                      table="ref_etat_civil_registre_ordre_numerotation" mode="edit" actionsInvisible={false}
+                      value={registreOrdreNumerotationRef}
+                      onChange={next => setRegistreOrdreNumerotationRef(next ? String(next) : null)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </Field>
               <Field label="Cadre juridique et population concernée" required>
-                <RefSinglePickerSmart
-                  table="ref_etat_civil_registre_statut_juridique" mode="edit" actionsInvisible={false}
-                  value={registreStatutJuridiqueRef}
-                  onChange={next => setRegistreStatutJuridiqueRef(next ? String(next) : null)}
-                />
+                <Tabs defaultValue="aide" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="aide">Aide au choix</TabsTrigger>
+                    <TabsTrigger value="liste">Liste</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="aide" className="pt-2">
+                    <RefWizard table="ref_etat_civil_registre_statut_juridique" tree={REGISTRE_STATUT_JURIDIQUE_WIZARD_TREE}
+                      resultLabel="Cadre trouvé" applyLabel="Utiliser ce cadre"
+                      onResolve={id => setRegistreStatutJuridiqueRef(id)} />
+                  </TabsContent>
+                  <TabsContent value="liste" className="pt-2">
+                    <RefSinglePickerSmart
+                      table="ref_etat_civil_registre_statut_juridique" mode="edit" actionsInvisible={false}
+                      value={registreStatutJuridiqueRef}
+                      onChange={next => setRegistreStatutJuridiqueRef(next ? String(next) : null)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </Field>
             </>
           ) : (
@@ -3065,11 +3386,24 @@ export function ReferenceWizardPage() {
                 )}
               </Field>
               <Field label="Nature de l'exemplaire" required>
-                <RefSinglePickerSmart
-                  table="ref_natures" mode="edit" actionsInvisible={false}
-                  value={acteNatureRef}
-                  onChange={next => setActeNatureRef(next ? String(next) : null)}
-                />
+                <Tabs defaultValue="aide" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="aide">Aide au choix</TabsTrigger>
+                    <TabsTrigger value="liste">Liste</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="aide" className="pt-2">
+                    <RefWizard table="ref_natures" tree={NATURE_WIZARD_TREE}
+                      resultLabel="Nature trouvée" applyLabel="Utiliser cette nature"
+                      onResolve={id => setActeNatureRef(id)} />
+                  </TabsContent>
+                  <TabsContent value="liste" className="pt-2">
+                    <RefSinglePickerSmart
+                      table="ref_natures" mode="edit" actionsInvisible={false}
+                      value={acteNatureRef}
+                      onChange={next => setActeNatureRef(next ? String(next) : null)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </Field>
               <Field label="Cote">
                 <input value={acte.cote} onChange={e => patchActe('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />

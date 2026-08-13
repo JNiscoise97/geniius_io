@@ -1,13 +1,23 @@
 // extraction.types.ts — types UI pour le module Extraction (assertions IA).
 
-export type AssertionStatus = 'pending' | 'validated' | 'rejected'
+// 'conflicting' (2026-08-11) : deux assertions distinctes (citations
+// différentes) sur le même subject+predicate donnent des valeurs qui SE
+// CONTREDISENT (ex. deux prix de vente différents trouvés à deux endroits
+// du texte) — détecté à l'insertion (extraction.service.ts), voir
+// conflictGroupId sur ExtractionAssertion. Les deux assertions restent
+// visibles et doivent être tranchées par un humain plutôt que déduplicées.
+export type AssertionStatus = 'pending' | 'validated' | 'rejected' | 'conflicting'
 
 // 'ai' = telle que produite par l'extraction, jamais modifiée depuis.
 // 'manual' = ajoutée ou corrigée directement par un humain (édition ou
 // ajout manuel, cf. extraction.service.ts).
 export type AssertionOrigin = 'ai' | 'manual'
 
-export type EntityType = 'person' | 'document' | 'place' | 'event'
+// 'property' (2026-08-11) : un bien précis (terrain, maison...), objet
+// d'une vente/succession — distinct de 'place' (lieu géographique/
+// administratif qui situe : commune, section, hameau...). Voir migration
+// 20260811100001 et la doctrine "L'entité property" côté extract-assertions.
+export type EntityType = 'person' | 'document' | 'place' | 'event' | 'property'
 
 export type ExtractionEntity = {
   id: string
@@ -33,6 +43,7 @@ export type ExtractionAssertion = {
   status: AssertionStatus
   origin: AssertionOrigin
   createdAt: string
+  conflictGroupId: string | null
 }
 
 export type Predicate = {
@@ -57,4 +68,15 @@ export type ExtractableExemplaire = {
   latestVersionCreatedAt: string
   assertionsCount: number
   pendingCount: number
+}
+
+// Résultat de recherche pour "Comparer avec un autre acte" (2026-08-10) —
+// juste de quoi lister/choisir, le détail (assertions/entités) n'est chargé
+// qu'à la sélection, même pattern que TranscriptionSearchResult (atelier).
+export type ActeCompareSearchResult = {
+  versionId: string
+  exemplaireId: string
+  documentTitre: string
+  coteLocale: string | null
+  assertionsCount: number
 }

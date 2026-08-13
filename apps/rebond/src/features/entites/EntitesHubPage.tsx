@@ -138,7 +138,13 @@ export function EntitesHubPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {filtered.map(item => (
-              <EntityCard key={item.id} item={item} onClick={() => navigate(`/entites/${item.id}`)} />
+              <EntityCard
+                key={item.id}
+                item={item}
+                onClick={() =>
+                  navigate(item.entityType === 'person' ? `/individu/${item.id}` : `/entites/${item.id}`)
+                }
+              />
             ))}
           </div>
         )}

@@ -404,13 +404,41 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
     return () => { cancelled = true }
   }, [isActe, typeUniteRef])
 
-  // Auto-complétion de la couverture temporelle dès qu'un rôle est choisi (peu importe lequel) :
-  // on remonte la chaîne parent_ud_id jusqu'au registre racine et on reprend son couverture_label.
+  // Auto-complétion de la couverture temporelle dès qu'un rôle est choisi (peu importe lequel).
+  // Deux sources, dans cet ordre de priorité :
+  // 1. Pour un acte primaire, la date de l'acte lui-même si elle est déjà connue
+  //    (etat_civil_actes.date, atteinte via exemplaires → citations
+  //    target_type='ec_acte') — plus précise que le renvoi au parent, et évite
+  //    de la ressaisir alors qu'elle a déjà été saisie à la création de l'acte
+  //    (2026-08-13, demande explicite après avoir repéré la redondance : la
+  //    date de l'acte vit dans une colonne à part, jamais reliée à ce champ
+  //    jusqu'ici).
+  // 2. Sinon (ou si aucun acte lié trouvé), on remonte la chaîne parent_ud_id
+  //    jusqu'au registre racine et on reprend son couverture_label
+  //    (comportement déjà existant, inchangé).
   // Ne joue que si le champ n'a pas déjà été renseigné.
   useEffect(() => {
     if (!roleRef || periode.trim()) return
     let cancelled = false
     ;(async () => {
+      if (isActe) {
+        const { data: exs } = await supabaseRebond.from('exemplaires')
+          .select('id').eq('unite_documentaire_id', doc.id)
+        const exIds = (exs ?? []).map(e => e.id)
+        if (exIds.length) {
+          const { data: cits } = await supabaseRebond.from('citations')
+            .select('target_id').in('exemplaire_id', exIds).eq('target_type', 'ec_acte').limit(1)
+          const acteId = cits?.[0]?.target_id
+          if (acteId) {
+            const { data: acteRow } = await supabaseRebond.from('etat_civil_actes')
+              .select('date').eq('id', acteId).maybeSingle()
+            if (acteRow?.date) {
+              if (!cancelled) setPeriode(acteRow.date)
+              return
+            }
+          }
+        }
+      }
       let currentId: string | null = doc.source_id
       let lastCouverture: string | null = null
       for (let i = 0; i < 5 && currentId; i++) {
@@ -423,7 +451,7 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       if (!cancelled && lastCouverture) setPeriode(lastCouverture)
     })()
     return () => { cancelled = true }
-  }, [roleRef])
+  }, [roleRef, isActe, doc.id, doc.source_id])
 
   const acteFormComplete = !showStatutSection || (
     acteIsMissing !== null && (acteIsMissing === true || actePosition.trim().length > 0)

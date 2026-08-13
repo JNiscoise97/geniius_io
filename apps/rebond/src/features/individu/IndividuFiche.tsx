@@ -28,11 +28,14 @@ import {
   Navigation,
   Pen,
   Link2,
+  ClipboardCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import IndividuLigneDeVieTable from './IndividuLigneDeVieTable';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { supabase, supabaseRebond } from '@/lib/supabase';
 import { Separator } from '@/components/ui/separator';
 import {
   getChronoProfessions,
@@ -49,10 +52,13 @@ import AnalyseProfessionStatutFonction from './AnalyseProfessionStatutFonction';
 import AnalyseSignature from './AnalyseSignature';
 import RelationsAccordion from './RelationsAccordion';
 import { displayNom } from '@/lib/nom';
+import { fetchEntityAttributes, fetchEntityDetail, upsertEntityAttribute } from '@/features/entites/entites.service';
+import type { EntityAttribute, EntityDetail, EntityFact } from '@/features/entites/entites.types';
 
 const tabs = [
   { label: 'Synthèse', icon: User },
   { label: 'Relations & faits', icon: Link2 },
+  { label: 'Informations à valider', icon: ClipboardCheck },
   { label: 'Détails', icon: ListTree },
   { label: 'Ligne de vie', icon: Layers3 },
   { label: 'Famille', icon: Users },
@@ -75,12 +81,77 @@ const historique = [
   { date: '1891-05-22', label: 'Mention dans une donation chez Me DURAND' },
 ];
 
+// Prédicats retenus comme "attributs d'identité" analysables dans l'onglet
+// "Informations à valider" — liste volontairement restreinte aux faits qui
+// décrivent la personne elle-même de façon stable (curatée à la main, même
+// esprit que RELATION_PREDICATES dans entites.service.ts). Exclut les rôles
+// dans un acte (comparant, témoin...), les relations (père/conjoint...) déjà
+// couvertes par l'onglet "Relations & faits", et "age"/"name" qui ne sont
+// pas des attributs stables à figer (l'âge varie par acte, le nom se gère
+// par le renommage de la fiche canonique).
+const ATTRIBUTE_PREDICATES: Record<string, string> = {
+  sex: 'Sexe',
+  birth_date: 'Date de naissance',
+  birth_place: 'Lieu de naissance',
+  death_date: 'Date de décès',
+  death_place: 'Lieu de décès',
+  occupation: 'Profession',
+  residence: 'Résidence',
+  domicile: 'Domicile',
+  nationality: 'Nationalité',
+  marital_status: 'Statut matrimonial',
+};
+
+type AttributeCandidate = {
+  value: string;
+  normalizedValue: string;
+  factIds: string[];
+  documentTitres: string[];
+};
+
+type AttributeGroup = {
+  code: string;
+  label: string;
+  candidates: AttributeCandidate[];
+};
+
+// Regroupe les faits par attribut d'identité, puis par valeur normalisée —
+// un attribut avec plusieurs candidats est un conflit entre actes (ex. deux
+// dates de naissance différentes) à trancher manuellement ; un seul
+// candidat est simplement à confirmer (synthèse, même sans désaccord).
+function analyzeAttributes(facts: EntityFact[]): AttributeGroup[] {
+  const byCode = new Map<string, Map<string, AttributeCandidate>>();
+
+  for (const f of facts) {
+    const label = ATTRIBUTE_PREDICATES[f.predicateCode];
+    if (!label) continue;
+    const raw = f.valueDate ?? f.valueText ?? (f.valueNumber != null ? String(f.valueNumber) : null);
+    const value = raw?.trim();
+    if (!value) continue;
+
+    const normalized = value.toLowerCase();
+    const byValue = byCode.get(f.predicateCode) ?? new Map<string, AttributeCandidate>();
+    const existing = byValue.get(normalized);
+    if (existing) {
+      existing.factIds.push(f.id);
+      if (!existing.documentTitres.includes(f.documentTitre)) existing.documentTitres.push(f.documentTitre);
+    } else {
+      byValue.set(normalized, { value, normalizedValue: normalized, factIds: [f.id], documentTitres: [f.documentTitre] });
+    }
+    byCode.set(f.predicateCode, byValue);
+  }
+
+  return [...byCode.entries()]
+    .map(([code, byValue]) => ({ code, label: ATTRIBUTE_PREDICATES[code], candidates: [...byValue.values()] }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
 export default function IndividuLayout() {
   const { individuId } = useParams();
 
   const individus = useIndividuStore((s) => s.individus);
   const fetchIndividus = useIndividuStore((s) => s.fetchIndividus);
-  const { individu, fetchIndividuById } = useIndividuStore();
+  const { fetchIndividuById } = useIndividuStore();
 
   const [openedTabs, setOpenedTabs] = useState<any[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | undefined>(individuId);
@@ -92,14 +163,113 @@ export default function IndividuLayout() {
   }, [fetchIndividus]);
 
   useEffect(() => {
-    if (individuId && individus.length > 0) {
-      const found = individus.find((i) => i.id === individuId);
-      if (found) {
-        setOpenedTabs([found]);
-        setActiveTabId(found.id);
-      }
+    if (!individuId) return;
+
+    const found = individus.find((i) => i.id === individuId);
+    if (found) {
+      setOpenedTabs([found]);
+      setActiveTabId(found.id);
+      return;
     }
+
+    // Repli : l'id vient du registre canonique du nouveau rebond
+    // (rebond.entities), pas de l'ancien modèle (rebond_individus) — ce
+    // composant est rapatrié depuis rebond_deprecated mais pas encore
+    // reconnecté aux vraies données de cet ancien modèle (demande
+    // explicite : le brancher même non câblé). On affiche au moins le nom
+    // canonique pour que l'écran ne soit pas vide ; tous les onglets basés
+    // sur les RPC de l'ancien modèle resteront vides tant que ce module
+    // n'est pas reconnecté à une source de données réelle.
+    let cancelled = false;
+    supabaseRebond
+      .from('entities')
+      .select('id, label')
+      .eq('id', individuId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const [prenom, ...reste] = data.label.split(' ');
+        setOpenedTabs([
+          {
+            id: data.id,
+            prenom: prenom ?? data.label,
+            nom: reste.join(' ') || null,
+            sexe: null,
+            naissance_date: null,
+            naissance_lieu: null,
+            deces_naissance: null,
+            deces_lieu: null,
+          },
+        ]);
+        setActiveTabId(data.id);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [individuId, individus]);
+
+  // Onglet "Relations & faits" : sourcé directement depuis le registre
+  // canonique (rebond.entities), pas depuis l'ancien modèle — même service
+  // que la fiche Entités (`fetchEntityDetail`), pour ne pas dupliquer le
+  // calcul des relations/faits/actes à deux endroits.
+  const [entityDetail, setEntityDetail] = useState<EntityDetail | null>(null);
+  const [entityDetailLoading, setEntityDetailLoading] = useState(false);
+
+  useEffect(() => {
+    if (!individuId) return;
+    let cancelled = false;
+    setEntityDetailLoading(true);
+    fetchEntityDetail(individuId)
+      .then((data) => {
+        if (!cancelled) setEntityDetail(data);
+      })
+      .catch((err) => {
+        console.error('[IndividuFiche] Erreur fetchEntityDetail', err);
+        if (!cancelled) setEntityDetail(null);
+      })
+      .finally(() => {
+        if (!cancelled) setEntityDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [individuId]);
+
+  // Onglet "Informations à valider" : analyse des faits (entityDetail.facts)
+  // groupés par attribut d'identité, comparés aux choix déjà validés
+  // manuellement (rebond.entity_attributes).
+  const [validatedAttributes, setValidatedAttributes] = useState<EntityAttribute[]>([]);
+  const [savingAttribute, setSavingAttribute] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!individuId) return;
+    let cancelled = false;
+    fetchEntityAttributes(individuId)
+      .then((data) => {
+        if (!cancelled) setValidatedAttributes(data);
+      })
+      .catch((err) => console.error('[IndividuFiche] Erreur fetchEntityAttributes', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [individuId]);
+
+  const attributeGroups = analyzeAttributes(entityDetail?.facts ?? []);
+
+  async function handleValidateAttribute(code: string, candidate: AttributeCandidate) {
+    if (!individuId) return;
+    setSavingAttribute(code);
+    try {
+      await upsertEntityAttribute(individuId, code, candidate.value, candidate.factIds);
+      const refreshed = await fetchEntityAttributes(individuId);
+      setValidatedAttributes(refreshed);
+      toast.success('Information validée');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de la validation');
+    } finally {
+      setSavingAttribute(null);
+    }
+  }
 
   const closeTab = (id: string) => {
     setOpenedTabs((prev) => {
@@ -310,82 +480,6 @@ export default function IndividuLayout() {
     })(),
   };
 
-  // Relations directes : liste plate père/mère/conjoint(s)/enfants/frères-sœurs,
-  // cliquables vers l'onglet de la personne liée quand son individu_id est connu
-  // (même pattern que les liens "épouse de" du header et les parents de Synthèse).
-  const relationsDirectes: { label: string; nom: string; individuId?: string | null }[] = (() => {
-    const list: { label: string; nom: string; individuId?: string | null }[] = [];
-
-    for (const role of ['père', 'mère'] as const) {
-      const parent = parents.find((p) => p.parent_role === role);
-      if (!parent) continue;
-      const detail = parentsDetails.find((d) => d.id === parent.parent_acteur_id);
-      const person = parentsPersonnes[role === 'père' ? 'pere' : 'mere'];
-      const nom = person
-        ? `${person.prenom ?? ''} ${person.nom ?? ''}`.trim()
-        : detail
-          ? `${detail.prenom ?? ''} ${detail.nom ?? ''}`.trim()
-          : '';
-      if (!nom) continue;
-      list.push({ label: role === 'père' ? 'Père' : 'Mère', nom, individuId: parent.parent_individu_id });
-    }
-
-    for (const union of unions ?? []) {
-      const nom = `${union.conjoint_prenom ?? ''} ${union.conjoint_nom ?? ''}`.trim();
-      if (!nom) continue;
-      list.push({ label: 'Conjoint(e)', nom, individuId: union.conjoint_individu_id });
-    }
-
-    for (const enfant of enfants ?? []) {
-      const nom = `${enfant.prenom ?? ''} ${enfant.nom ?? ''}`.trim();
-      if (!nom) continue;
-      list.push({ label: 'Enfant', nom, individuId: enfant.enfant_individu_id });
-    }
-
-    for (const s of siblings ?? []) {
-      const nom = `${s.prenom ?? ''} ${s.nom ?? ''}`.trim();
-      if (!nom) continue;
-      list.push({
-        label: s.sexe === 'F' ? 'Sœur' : s.sexe === 'M' ? 'Frère' : 'Frère/sœur',
-        nom,
-        individuId: s.sibling_individu_id,
-      });
-    }
-
-    return list;
-  })();
-
-  // Faits : phrases factuelles courtes dérivées des données déjà agrégées
-  // (naissance/décès/professions/unions) — équivalent, avec la granularité
-  // disponible ici, des "faits" atomiques du module Entités du nouveau rebond.
-  const faits: string[] = (() => {
-    const list: string[] = [];
-    const genreNe = activeIndividu?.sexe === 'F' ? 'Née' : 'Né';
-    const genreDecede = activeIndividu?.sexe === 'F' ? 'Décédée' : 'Décédé';
-
-    if (naissance.date && naissance.date !== 'date indéterminée') {
-      const lieu = naissance.lieu && naissance.lieu !== 'lieu indéterminé' ? ` à ${naissance.lieu}` : '';
-      list.push(`${genreNe} le ${naissance.date}${lieu}`);
-    }
-    if (deces.date && deces.date !== 'date indéterminée') {
-      const dateLabel = deces.date.startsWith('avant') ? deces.date : `le ${deces.date}`;
-      const lieu = deces.lieu && deces.lieu !== 'lieu indéterminé' ? ` à ${deces.lieu}` : '';
-      list.push(`${genreDecede} ${dateLabel}${lieu}`);
-    }
-    for (const union of unions ?? []) {
-      const conjoint = `${union.conjoint_prenom ?? ''} ${union.conjoint_nom ?? ''}`.trim();
-      if (!conjoint) continue;
-      const date = union.date_mariage ? ` le ${union.date_mariage}` : '';
-      const lieu = union.lieu_mariage ? ` à ${union.lieu_mariage}` : '';
-      list.push(`${union.type_union ?? 'Union'} avec ${conjoint}${date}${lieu}`);
-    }
-    for (const prof of (professionsChrono ? professionsChrono.split(',') : [])) {
-      const trimmed = prof.trim();
-      if (trimmed) list.push(`Profession : ${trimmed}`);
-    }
-    return list;
-  })();
-
   return (
     <>
       {isLoading && (
@@ -425,7 +519,7 @@ export default function IndividuLayout() {
               {/* Gauche : infos de l'individu */}
               <div className='flex items-center gap-3'>
                 {openedTabs.length == 1 && (
-                  <Link to={`/individus/liste`}>
+                  <Link to={`/entites`}>
                     <ArrowLeft className='w-4 h-4 text-gray-600 cursor-pointer'>
                       <title>Retour</title>
                     </ArrowLeft>
@@ -678,77 +772,159 @@ export default function IndividuLayout() {
                 </>
               ) : activeSection === 'Relations & faits' ? (
                 <div className='space-y-4 not-prose'>
-                  <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
-                    <h2 className='text-sm font-semibold text-gray-800 mb-3'>Relations directes</h2>
-                    {relationsDirectes.length === 0 ? (
-                      <p className='text-xs text-gray-400 italic'>Aucune relation connue pour l’instant.</p>
-                    ) : (
-                      <div className='flex flex-col gap-1.5'>
-                        {relationsDirectes.map((r, i) =>
-                          r.individuId ? (
-                            <button
-                              key={i}
-                              onClick={() => openIndividu(r.individuId!)}
-                              className='flex items-center justify-between text-sm text-gray-700 hover:text-indigo-700 py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors text-left'
-                            >
-                              <span><span className='text-gray-400'>{r.label} :</span> {r.nom}</span>
-                            </button>
-                          ) : (
-                            <div key={i} className='text-sm text-gray-700 py-1.5 px-2'>
-                              <span className='text-gray-400'>{r.label} :</span> {r.nom}
-                            </div>
-                          ),
+                  {entityDetailLoading && !entityDetail ? (
+                    <p className='text-xs text-gray-400 italic flex items-center gap-1.5'>
+                      <Loader2 className='w-3.5 h-3.5 animate-spin' />Chargement…
+                    </p>
+                  ) : (
+                    <>
+                      <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
+                        <h2 className='text-sm font-semibold text-gray-800 mb-3'>Relations directes</h2>
+                        {!entityDetail || entityDetail.relations.length === 0 ? (
+                          <p className='text-xs text-gray-400 italic'>Aucune relation connue pour l’instant.</p>
+                        ) : (
+                          <div className='flex flex-col gap-1.5'>
+                            {entityDetail.relations.map((r, i) =>
+                              r.targetEntityId ? (
+                                <Link
+                                  key={i}
+                                  to={`/individu/${r.targetEntityId}`}
+                                  className='flex items-center justify-between text-sm text-gray-700 hover:text-indigo-700 py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors'
+                                >
+                                  <span><span className='text-gray-400'>{r.predicateLabel} :</span> {r.targetLabel}</span>
+                                  <Navigation className='w-3.5 h-3.5 text-gray-300' />
+                                </Link>
+                              ) : (
+                                <div key={i} className='text-sm text-gray-700 py-1.5 px-2'>
+                                  <span className='text-gray-400'>{r.predicateLabel} :</span> {r.targetLabel}
+                                  <span className='text-[11px] text-gray-300 ml-1.5'>(pas encore une fiche)</span>
+                                </div>
+                              ),
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
-                    <h2 className='text-sm font-semibold text-gray-800 mb-3'>Faits ({faits.length})</h2>
-                    {faits.length === 0 ? (
-                      <p className='text-xs text-gray-400 italic'>Aucun fait établi pour l’instant.</p>
-                    ) : (
-                      <div className='flex flex-col gap-2.5'>
-                        {faits.map((f, i) => (
-                          <div key={i} className='rounded-lg border border-gray-100 p-3'>
-                            <p className='text-sm text-gray-800'>{f}</p>
+                      <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
+                        <h2 className='text-sm font-semibold text-gray-800 mb-3'>
+                          Faits ({entityDetail?.facts.length ?? 0})
+                        </h2>
+                        {!entityDetail || entityDetail.facts.length === 0 ? (
+                          <p className='text-xs text-gray-400 italic'>Aucun fait validé pour l’instant.</p>
+                        ) : (
+                          <div className='flex flex-col gap-2.5'>
+                            {entityDetail.facts.map((f) => (
+                              <div key={f.id} className='rounded-lg border border-gray-100 p-3'>
+                                <p className='text-sm text-gray-800'>{f.label}</p>
+                                {f.sourceText && (
+                                  <p className='text-xs text-gray-400 italic mt-1'>« {f.sourceText} »</p>
+                                )}
+                                <p className='text-[11px] text-gray-400 mt-1.5 flex items-center gap-1'>
+                                  <FileText className='w-3 h-3' />{f.documentTitre}
+                                </p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
-                    <h2 className='text-sm font-semibold text-gray-800 mb-3'>
-                      Mentionné{activeIndividu?.sexe === 'F' ? 'e' : ''} dans {acteursByIndividu?.length ?? 0} acte
-                      {(acteursByIndividu?.length ?? 0) > 1 ? 's' : ''}
-                    </h2>
-                    {!acteursByIndividu || acteursByIndividu.length === 0 ? (
-                      <p className='text-xs text-gray-400 italic'>Aucun acte pour l’instant.</p>
-                    ) : (
-                      <div className='flex flex-col gap-1.5'>
-                        {acteursByIndividu.map((a: any) => {
-                          const base = a.source_table === 'etat_civil_actes' ? 'ec-acte' : 'ac-acte';
-                          return (
-                            <a
-                              key={a.id}
-                              href={`/${base}/${a.acte_id}`}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                              className='flex items-center justify-between text-sm text-gray-700 hover:text-indigo-700 py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors group'
-                            >
-                              <span className='flex items-center gap-1.5'>
-                                <FileText className='w-3.5 h-3.5 text-gray-300' />
-                                {a.acte_label || 'Acte'}
-                                {a.acte_date && <span className='text-gray-400'>— {a.acte_date}</span>}
-                                {a.role && <span className='text-gray-400'>({a.role})</span>}
-                              </span>
-                            </a>
-                          );
-                        })}
+                      <div className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
+                        <h2 className='text-sm font-semibold text-gray-800 mb-3'>
+                          Mentionné{activeIndividu?.sexe === 'F' ? 'e' : ''} dans {entityDetail?.documents.length ?? 0} acte
+                          {(entityDetail?.documents.length ?? 0) > 1 ? 's' : ''}
+                        </h2>
+                        {!entityDetail || entityDetail.documents.length === 0 ? (
+                          <p className='text-xs text-gray-400 italic'>Aucun acte pour l’instant.</p>
+                        ) : (
+                          <div className='flex flex-col gap-1.5'>
+                            {entityDetail.documents.map((d) => (
+                              <Link
+                                key={d.versionId}
+                                to={`/atelier-documentaire/exemplaires/${d.exemplaireId}/versions/${d.versionId}/extraction`}
+                                className='flex items-center justify-between text-sm text-gray-700 hover:text-indigo-700 py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors group'
+                              >
+                                <span className='flex items-center gap-1.5'>
+                                  <FileText className='w-3.5 h-3.5 text-gray-300' />{d.titre}
+                                </span>
+                                <Navigation className='w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-500 transition-colors' />
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
+                </div>
+              ) : activeSection === 'Informations à valider' ? (
+                <div className='space-y-4 not-prose'>
+                  <p className='text-xs text-gray-500 -mt-2'>
+                    Faits regroupés par type d'information. Quand plusieurs actes se contredisent, choisis
+                    la valeur à retenir ; sinon, confirme la valeur trouvée. Le choix est mémorisé pour cette
+                    fiche.
+                  </p>
+                  {entityDetailLoading && !entityDetail ? (
+                    <p className='text-xs text-gray-400 italic flex items-center gap-1.5'>
+                      <Loader2 className='w-3.5 h-3.5 animate-spin' />Chargement…
+                    </p>
+                  ) : attributeGroups.length === 0 ? (
+                    <p className='text-xs text-gray-400 italic'>Aucune information analysable pour l’instant.</p>
+                  ) : (
+                    attributeGroups.map((group) => {
+                      const validated = validatedAttributes.find((a) => a.attributeCode === group.code);
+                      return (
+                        <div key={group.code} className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
+                          <div className='flex items-center justify-between mb-3'>
+                            <h2 className='text-sm font-semibold text-gray-800'>{group.label}</h2>
+                            {group.candidates.length > 1 && (
+                              <span className='text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5'>
+                                {group.candidates.length} valeurs concurrentes
+                              </span>
+                            )}
+                          </div>
+
+                          {validated && (
+                            <div className='flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 mb-3'>
+                              <CheckCircle2 className='w-3.5 h-3.5 shrink-0' />
+                              Validé : {validated.value}
+                            </div>
+                          )}
+
+                          <div className='flex flex-col gap-1.5'>
+                            {group.candidates.map((c) => {
+                              const isRetenue = validated?.value.trim().toLowerCase() === c.normalizedValue;
+                              return (
+                                <div
+                                  key={c.normalizedValue}
+                                  className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                                    isRetenue ? 'border-emerald-300 bg-emerald-50/50' : 'border-gray-100'
+                                  }`}
+                                >
+                                  <div className='min-w-0'>
+                                    <p className='text-sm text-gray-800'>{c.value}</p>
+                                    <p className='text-[11px] text-gray-400 mt-0.5'>
+                                      {c.factIds.length} fait{c.factIds.length > 1 ? 's' : ''} · {c.documentTitres.join(', ')}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleValidateAttribute(group.code, c)}
+                                    disabled={savingAttribute === group.code || isRetenue}
+                                    className='shrink-0 flex items-center gap-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-40 transition-colors'
+                                  >
+                                    {savingAttribute === group.code ? (
+                                      <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                                    ) : isRetenue ? (
+                                      <CheckCircle2 className='w-3.5 h-3.5' />
+                                    ) : null}
+                                    {isRetenue ? 'Retenue' : 'Valider'}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               ) : activeSection === 'Détails' ? (
                 <div className='space-y-4'>

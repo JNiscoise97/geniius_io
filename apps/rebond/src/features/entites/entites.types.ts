@@ -25,6 +25,12 @@ export type EntityListItem = CanonicalEntity & {
 // un lien vers l'acte source. Même esprit que ExtractionAssertion +
 // describeAssertion, mais déjà résolu côté service pour rester simple côté
 // composant (la fiche affiche, elle ne recalcule pas).
+//
+// predicateCode/valueText/valueNumber/valueDate exposent la donnée brute
+// sous-jacente (pas seulement le label déjà formulé) — nécessaire pour
+// l'analyse par attribut de l'onglet "Informations à valider" (module
+// Individu rapatrié), qui doit regrouper les faits par type de champ plutôt
+// que par phrase.
 export type EntityFact = {
   id: string
   label: string
@@ -32,6 +38,10 @@ export type EntityFact = {
   documentTitre: string
   exemplaireId: string
   versionId: string
+  predicateCode: string
+  valueText: string | null
+  valueNumber: number | null
+  valueDate: string | null
 }
 
 // Une relation directe (père/mère/conjoint/enfant/frère-sœur/proche/
@@ -47,4 +57,16 @@ export type EntityDetail = CanonicalEntity & {
   facts: EntityFact[]
   relations: EntityRelation[]
   documents: { exemplaireId: string; versionId: string; titre: string }[]
+}
+
+// Une information d'identité validée manuellement pour une entité (ex. la
+// date de naissance retenue parmi plusieurs mentions concurrentes dans les
+// faits) — voir rebond.entity_attributes / onglet "Informations à valider"
+// du module Individu.
+export type EntityAttribute = {
+  id: string
+  attributeCode: string
+  value: string
+  sourceFactIds: string[]
+  validatedAt: string
 }

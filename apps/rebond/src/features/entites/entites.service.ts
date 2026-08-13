@@ -6,7 +6,7 @@
 import { supabaseRebond } from '@/lib/supabase'
 import { describeAssertion, entityLabel as extractionEntityLabel } from '../extraction/extraction.service'
 import type { ExtractionAssertion, ExtractionEntity } from '../extraction/extraction.types'
-import type { CanonicalEntity, EntityDetail, EntityFact, EntityListItem, EntityRelation, EntityType } from './entites.types'
+import type { CanonicalEntity, EntityAttribute, EntityDetail, EntityFact, EntityListItem, EntityRelation, EntityType } from './entites.types'
 
 // Prédicats relationnels (personne -> personne) affichés à part comme
 // "relations directes" sur la fiche, plutôt que noyés dans la liste de
@@ -204,6 +204,7 @@ export async function fetchEntityDetail(entityId: string): Promise<EntityDetail 
       status: 'validated',
       origin: a.origin === 'manual' ? 'manual' : 'ai',
       createdAt: a.created_at,
+      conflictGroupId: null,
     }
     facts.push({
       id: a.id,
@@ -212,10 +213,77 @@ export async function fetchEntityDetail(entityId: string): Promise<EntityDetail 
       documentTitre: doc?.titre ?? 'Acte',
       exemplaireId: doc?.exemplaireId ?? '',
       versionId: a.transcription_version_id,
+      predicateCode: code,
+      valueText: a.value_text,
+      valueNumber: a.value_number,
+      valueDate: a.value_date,
     })
   }
 
   return { ...base, facts, relations, documents: [...documentsMap.values()] }
+}
+
+// Renommage manuel (2026-08-10, demande explicite) — jusqu'ici le libellé
+// était figé à celui de la première promotion (voir schema-docs). Ne touche
+// que la fiche canonique, jamais l'entité locale d'origine
+// (transcription_entities, qui reste fidèle au texte source de l'acte).
+export async function renameEntity(entityId: string, label: string): Promise<void> {
+  const trimmed = label.trim()
+  if (!trimmed) throw new Error('Le libellé ne peut pas être vide')
+  const { error } = await supabaseRebond.from('entities').update({ label: trimmed }).eq('id', entityId)
+  if (error) throw error
+}
+
+// Suppression définitive (2026-08-10, demande explicite) — première
+// dérogation à la doctrine "aucune suppression" de ce module (jusqu'ici
+// seule la fusion existait, et elle ne supprime jamais). Sert à corriger une
+// entité canonique erronée (ex. une mauvaise fusion de lieux promue par
+// erreur), pas à "dé-promouvoir" une entité légitime.
+// `entity_links.entity_id` est ON DELETE CASCADE : les liens vers cette
+// entité disparaissent avec elle, mais les entités locales
+// (transcription_entities) et leurs assertions ne sont PAS touchées — si
+// l'une d'elles est revalidée plus tard, ensureEntitiesPromoted recréera une
+// entité canonique automatiquement (comportement normal, pas un bug).
+// `merged_into_id` est ON DELETE SET NULL : si cette entité était le
+// survivant d'une fusion, les entités fusionnées redeviennent actives
+// (visibles à nouveau dans les listes/Réconciliation) plutôt que de pointer
+// vers une fiche qui n'existe plus.
+export async function deleteEntity(entityId: string): Promise<void> {
+  const { error } = await supabaseRebond.from('entities').delete().eq('id', entityId)
+  if (error) throw error
+}
+
+// Informations d'identité validées manuellement (2026-08-13, module Individu
+// rapatrié, onglet "Informations à valider") — table rebond.entity_attributes.
+// Une seule valeur retenue par (entité, attribut) : upsertEntityAttribute
+// remplace la précédente en cas de nouvelle validation (correction), pas
+// d'historique conservé dans cette première version.
+export async function fetchEntityAttributes(entityId: string): Promise<EntityAttribute[]> {
+  const { data, error } = await supabaseRebond.from('entity_attributes')
+    .select('id, attribute_code, value, source_fact_ids, validated_at')
+    .eq('entity_id', entityId)
+  if (error) throw error
+  return (data ?? []).map(r => ({
+    id: r.id,
+    attributeCode: r.attribute_code,
+    value: r.value,
+    sourceFactIds: r.source_fact_ids ?? [],
+    validatedAt: r.validated_at,
+  }))
+}
+
+export async function upsertEntityAttribute(
+  entityId: string,
+  attributeCode: string,
+  value: string,
+  sourceFactIds: string[],
+): Promise<void> {
+  const { error } = await supabaseRebond.from('entity_attributes')
+    .upsert(
+      { entity_id: entityId, attribute_code: attributeCode, value, source_fact_ids: sourceFactIds, validated_at: new Date().toISOString() },
+      { onConflict: 'entity_id,attribute_code' },
+    )
+  if (error) throw error
 }
 
 // Résout version -> {exemplaireId, titre du document} par une chaîne de

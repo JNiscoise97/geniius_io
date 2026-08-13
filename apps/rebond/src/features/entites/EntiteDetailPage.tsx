@@ -2,13 +2,20 @@
 // Fiche d'une entité canonique : faits validés agrégés depuis tous les
 // actes qui la mentionnent, relations directes (liste plate, pas un graphe
 // — ça c'est le rôle du futur module Graphe historique), et les documents
-// où elle apparaît. Lecture seule : aucune édition ici, les faits viennent
-// tous du module Extraction (valider/rejeter se fait là-bas, sur l'acte).
+// où elle apparaît. Les faits eux-mêmes restent en lecture seule (valider/
+// rejeter se fait dans le module Extraction, sur l'acte) — seules deux
+// actions existent ici, sur la fiche elle-même : renommer le libellé et
+// supprimer l'entité canonique (2026-08-10, demande explicite, dérogation
+// à la doctrine "lecture seule" d'origine — voir schema-docs/entities.md).
+// Supprimer ne touche jamais Extraction : les entités locales/assertions de
+// l'acte restent intactes, seule la fiche de regroupement disparaît (voir
+// deleteEntity dans entites.service.ts pour le détail du cascade).
 
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { LayoutDashboard, Users2, Loader2, AlertCircle, MapPin, User, FileText, ArrowRight } from 'lucide-react'
-import { fetchEntityDetail } from './entites.service'
+import { toast } from 'sonner'
+import { LayoutDashboard, Users2, Loader2, AlertCircle, MapPin, User, FileText, ArrowRight, Pencil, Trash2, Check, X } from 'lucide-react'
+import { fetchEntityDetail, renameEntity, deleteEntity } from './entites.service'
 import type { EntityDetail } from './entites.types'
 
 export function EntiteDetailPage() {
@@ -18,6 +25,10 @@ export function EntiteDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [entity, setEntity] = useState<EntityDetail | null>(null)
+  const [renaming, setRenaming] = useState(false)
+  const [labelDraft, setLabelDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!entityId) return
@@ -61,6 +72,40 @@ export function EntiteDetailPage() {
 
   const Icon = entity.entityType === 'place' ? MapPin : User
 
+  function startRename() {
+    setLabelDraft(entity!.label)
+    setRenaming(true)
+  }
+
+  async function handleRename() {
+    const trimmed = labelDraft.trim()
+    if (!trimmed || !entity) return
+    setSaving(true)
+    try {
+      await renameEntity(entity.id, trimmed)
+      setEntity({ ...entity, label: trimmed })
+      setRenaming(false)
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors du renommage')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!entity) return
+    if (!window.confirm(`Supprimer définitivement la fiche "${entity.label}" ? Les actes et faits liés dans Extraction ne sont pas affectés.`)) return
+    setDeleting(true)
+    try {
+      await deleteEntity(entity.id)
+      toast.success('Entité supprimée')
+      navigate('/entites')
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de la suppression')
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
@@ -76,14 +121,47 @@ export function EntiteDetailPage() {
           <span className="text-sm font-semibold text-gray-900 truncate">{entity.label}</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-            <Icon className="w-5 h-5 text-emerald-600" />
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+              <Icon className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div className="min-w-0">
+              {renaming ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    value={labelDraft}
+                    onChange={e => setLabelDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false) }}
+                    className="text-xl font-semibold text-gray-900 border-b border-indigo-300 focus:outline-none focus:border-indigo-500 min-w-0"
+                  />
+                  <button onClick={handleRename} disabled={saving} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-md disabled:opacity-50">
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setRenaming(false)} disabled={saving} className="p-1 text-gray-400 hover:bg-gray-100 rounded-md">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 group">
+                  <h1 className="text-xl font-semibold text-gray-900 truncate">{entity.label}</h1>
+                  <button onClick={startRename} className="p-1 text-gray-300 hover:text-gray-500 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-gray-400">{entity.entityType === 'place' ? 'Lieu' : 'Personne'}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">{entity.label}</h1>
-            <p className="text-xs text-gray-400">{entity.entityType === 'place' ? 'Lieu' : 'Personne'}</p>
-          </div>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex items-center gap-1.5 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+          >
+            {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            Supprimer
+          </button>
         </div>
 
         {entity.relations.length > 0 && (

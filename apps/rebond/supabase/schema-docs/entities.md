@@ -44,7 +44,7 @@ donnée, les autres ne font que la lire dans leur propre contexte.**
 |---|---|---|
 | `id` | uuid | PK |
 | `entity_type` | text | `person` \| `place` uniquement. **Volontairement pas `document`/`event`** : `document` reste dans Patrimoine documentaire (déjà son propre registre, `unites_documentaires`) ; `event` reste local à un acte (un "E1 = Présentation de l'enfant" d'un acte n'a pas de pendant à rapprocher dans un autre acte). Pas de `bien`/`organisation` non plus : Extraction ne produit aujourd'hui que person/document/place/event (actes d'état civil testés), pas encore de type pour des actes fonciers/notariés — ne pas anticiper ce vocabulaire avant qu'Extraction en ait réellement besoin (même doctrine que le référentiel de prédicats). |
-| `label` | text | Libellé affiché, copié depuis l'entité locale au moment de la promotion (pas de renommage manuel pour l'instant — MVP). |
+| `label` | text | Libellé affiché, copié depuis l'entité locale au moment de la promotion. Renommable manuellement depuis la fiche (2026-08-10) — ne modifie que cette ligne, jamais l'entité locale d'origine (`transcription_entities`, qui reste fidèle au texte source de l'acte). |
 | `merged_into_id` | uuid | Nullable. Si non-null, cette entité a été fusionnée dans une autre (voir Réconciliation) — conservée (pas supprimée) pour qu'une référence existante reste résoluble, mais exclue des listes actives (`is('merged_into_id', null)`). |
 | `created_at` / `updated_at` | timestamptz | `updated_at` maintenu par `trg_entities_touch`. |
 
@@ -96,10 +96,34 @@ Aucune suppression — les faits et documents de toutes les entités
 fusionnées deviennent immédiatement ceux du survivant (la fiche les lit via
 `entity_links`, pas de recalcul à faire).
 
+## Renommage et suppression (2026-08-10, demande explicite)
+
+Première dérogation à la doctrine "lecture seule" d'origine du module
+Entités (voir mémoire agent `project_entites_reconciliation_module`) —
+deux actions désormais possibles depuis la fiche, dans
+`entites.service.ts` :
+
+- **`renameEntity(entityId, label)`** : `UPDATE entities SET label = ...`.
+  Ne touche que la fiche canonique.
+- **`deleteEntity(entityId)`** : `DELETE FROM entities WHERE id = ...`.
+  `entity_links.entity_id` est `ON DELETE CASCADE` — les liens vers cette
+  entité disparaissent avec elle, mais les entités locales
+  (`transcription_entities`) et leurs assertions dans Extraction ne sont
+  **pas** touchées : si l'une d'elles est revalidée plus tard,
+  `ensureEntitiesPromoted` recréera automatiquement une entité canonique
+  (comportement normal, pas un bug à corriger). `merged_into_id` est
+  `ON DELETE SET NULL` : si l'entité supprimée était le survivant d'une
+  fusion, les entités fusionnées redeviennent actives (visibles à nouveau
+  dans les listes et dans Réconciliation) plutôt que de pointer vers une
+  fiche disparue.
+
+Suppression = correction d'une entité erronée (ex. une mauvaise fusion de
+lieux promue par erreur), pas une "dé-promotion" pour une entité légitime
+qu'on voudrait juste masquer — dans ce dernier cas, rien n'empêche qu'elle
+soit recréée à la prochaine validation d'assertion qui la concerne.
+
 ## Ce qui n'est volontairement pas dans ce lot
 
-- Pas de renommage manuel d'une entité canonique (le libellé vient tel
-  quel de la première promotion).
 - Pas de "défusion" (une fusion n'est pas réversible dans l'UI pour
   l'instant — `merged_into_id` reste modifiable en base si besoin).
 - Pas de détection de doublons par similarité (Levenshtein, phonétique...)
