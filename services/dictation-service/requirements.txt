@@ -1,0 +1,19 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+faster-whisper>=1.0
+# Pin a 4.4.0 : ctranslate2 >=4.5 plante (segfault natif) au chargement d'un
+# modele sur CPU sur certaines machines sans AVX-512 (constate en pratique sur
+# un Intel i5-8350U, Kaby Lake-R) - crash confirme independant du modele
+# choisi (meme le modele "tiny" standard plante) et independant du
+# compute_type (int8 et float32 plantent tous les deux). 4.4.0 fonctionne.
+# A retester si une version plus recente corrige ce probleme.
+ctranslate2==4.4.0
+# ctranslate2 4.4.0 importe encore pkg_resources, retire par defaut des
+# setuptools recents (>=81).
+setuptools<81
+huggingface_hub>=0.24
+numpy>=1.26
+python-dotenv>=1.0
+# Requis par FastAPI pour parser les uploads multipart/form-data (endpoint
+# POST /transcribe).
+python-multipart>=0.0.9

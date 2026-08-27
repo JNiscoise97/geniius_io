@@ -30,13 +30,18 @@ import {
   Quote, Undo2, Redo2, Minus, Cloud, CloudOff, MessageSquarePlus, History, Save,
   CheckCircle2, RotateCcw, Trash2, Plus, Tag, PenLine, FileSignature, Eraser, Layers, Gauge,
   ChevronDown, ChevronRight, AlertTriangle, Lock, Unlock, BadgeCheck, Undo, GitCompare,
-  Search, Copy, Replace, BookMarked,
+  Search, Copy, Replace, BookMarked, Mic, Square,
 } from 'lucide-react'
 import { diffWordsWithSpace } from 'diff'
 import { toast } from 'sonner'
 import { CommentMark } from './tiptap/CommentMark'
 import { NonTranscritNode } from './tiptap/NonTranscritNode'
 import { tiptapJsonToPlainText } from './tiptap/tiptapText'
+import { useDictation } from './dictation/useDictation'
+import { DictationStatusPanel } from './dictation/DictationStatusPanel'
+import { DictationKeywordsPanel } from './dictation/DictationKeywordsPanel'
+import { buildDictationPrompt } from './dictation/dictationPrompt'
+import { fetchEntities } from '../extraction/extraction.service'
 import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import {
@@ -44,13 +49,14 @@ import {
   fetchVersions, createVersionSnapshot, fetchComments, createComment, setCommentStatut, deleteComment,
   fetchZoneTypes, fetchZones, createZone, deleteZone, replaceZones, fetchZonesAttendu, updateQualite,
   markAsTranscrit, revertToEnCours, searchTranscribedExemplaires,
-  fetchHypActeContext, fetchRepertoireEntrees, addRepertoireEntree, updateRepertoireEntree, removeRepertoireEntree,
+  fetchHypActeContext, fetchEcActeBureauContext, fetchRepertoireEntrees, addRepertoireEntree, updateRepertoireEntree, removeRepertoireEntree,
+  saveDictationSession,
 } from './atelier.service'
 import { QUALITE_VIDE } from './atelier.types'
 import type {
   TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, TranscriptionZoneType, TranscriptionZone,
   TranscriptionQualite, SourceLectureKind, Completeness, ReserveLevel, ZoneAttendu, ZoneSnapshotEntry,
-  TranscriptionSearchResult, HypActeContext, RepertoireEntreeRow,
+  TranscriptionSearchResult, HypActeContext, EcActeBureauContext, RepertoireEntreeRow,
 } from './atelier.types'
 
 // Comparaison "métier" des zones : par contenu (type + texte relevé), pas
@@ -156,7 +162,9 @@ function ToolbarButton({ onClick, active, disabled, title, children }: {
   )
 }
 
-function Toolbar({ editor, hasSelection, onComment, locked }: { editor: Editor; hasSelection: boolean; onComment: () => void; locked: boolean }) {
+function Toolbar({ editor, hasSelection, onComment, locked, dictating, onToggleDictation }: {
+  editor: Editor; hasSelection: boolean; onComment: () => void; locked: boolean; dictating: boolean; onToggleDictation: () => void
+}) {
   return (
     <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-100 flex-wrap">
     <fieldset disabled={locked} className="contents">
@@ -218,6 +226,12 @@ function Toolbar({ editor, hasSelection, onComment, locked }: { editor: Editor; 
         onClick={() => editor.chain().focus().insertNonTranscrit().run()}
       >
         <AlertTriangle className="w-4 h-4" />
+      </ToolbarButton>
+
+      <div className="w-px h-5 bg-gray-200 mx-1" />
+
+      <ToolbarButton title={dictating ? 'Arrêter la dictée' : 'Dicter'} active={dictating} onClick={onToggleDictation}>
+        {dictating ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
       </ToolbarButton>
 
       <div className="w-px h-5 bg-gray-200 mx-1" />
@@ -1026,6 +1040,16 @@ export function TranscriptionEditorPage() {
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [pendingComment, setPendingComment] = useState<{ from: number; to: number } | null>(null)
   const [versions, setVersions] = useState<TranscriptionVersion[]>([])
+  // Labels d'entités (personnes/lieux) déjà connus pour la dernière version
+  // enregistrée — alimente le prompt de contexte de la dictée (voir
+  // dictation/dictationPrompt.ts). Vide tant qu'aucune version/extraction n'a
+  // encore eu lieu sur ce document.
+  const [knownEntityLabels, setKnownEntityLabels] = useState<string[]>([])
+  // Bureau d'état civil (+ commune/département) de l'acte en cours, si
+  // applicable — alimente aussi le contexte de la dictée, à la place du
+  // libellé du dépôt (institution/service d'archives, pas un lieu mentionné
+  // dans l'acte lui-même).
+  const [ecBureauContext, setEcBureauContext] = useState<EcActeBureauContext | null>(null)
   const [savingVersion, setSavingVersion] = useState(false)
   const [zoneTypes, setZoneTypes] = useState<TranscriptionZoneType[]>([])
   const [zones, setZones] = useState<TranscriptionZone[]>([])
@@ -1103,6 +1127,105 @@ export function TranscriptionEditorPage() {
       setActiveCommentId(editor.isActive('commentaire') ? (attrs.commentId ?? null) : null)
     },
   })
+
+  const dictationStartedAtRef = useRef<string | null>(null)
+  const dictation = useDictation({
+    onTranscribed: text => {
+      if (!editor || !text.trim()) return
+      editor.chain().focus('end').insertContent(text + ' ').run()
+    },
+  })
+
+  // Mots-clés ajoutés manuellement pour biaiser la reconnaissance (voir
+  // dictationPrompt.ts) — persistés en localStorage par exemplaire (pas en
+  // base : propres à cette machine/ce navigateur, pas un fait documentaire).
+  const [customKeywords, setCustomKeywords] = useState<string[]>([])
+  useEffect(() => {
+    if (!exemplaireId) return
+    try {
+      const raw = localStorage.getItem(`dictation-keywords:${exemplaireId}`)
+      setCustomKeywords(raw ? JSON.parse(raw) : [])
+    } catch {
+      setCustomKeywords([])
+    }
+  }, [exemplaireId])
+
+  function addCustomKeyword(keyword: string) {
+    setCustomKeywords(prev => {
+      if (prev.includes(keyword)) return prev
+      const next = [...prev, keyword]
+      try { localStorage.setItem(`dictation-keywords:${exemplaireId}`, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
+  }
+  function removeCustomKeyword(keyword: string) {
+    setCustomKeywords(prev => {
+      const next = prev.filter(k => k !== keyword)
+      try { localStorage.setItem(`dictation-keywords:${exemplaireId}`, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
+  }
+
+  // Bureau d'état civil + commune/département (s'il s'agit d'un acte
+  // d'état civil) plutôt que le libellé du dépôt — le dépôt est l'institution
+  // qui conserve le document (ex. "ANOM"), sans rapport avec ce qui est
+  // effectivement écrit dedans, contrairement au bureau/à la commune.
+  const autoDictationKeywords = useMemo(() => {
+    const list = [
+      ctx?.documentTitre,
+      ecBureauContext?.bureauNom,
+      ecBureauContext?.commune,
+      ecBureauContext?.departement,
+      ...knownEntityLabels,
+    ].filter((v): v is string => !!v)
+    return Array.from(new Set(list))
+  }, [ctx?.documentTitre, ecBureauContext, knownEntityLabels])
+
+  const [confirmDictationOpen, setConfirmDictationOpen] = useState(false)
+
+  // Filet de sécurité : l'enregistrement audio complet est uploadé à l'arrêt,
+  // indépendamment du résultat de la transcription (qui se termine en tâche
+  // de fond, voir useDictation.stop()) — un échec de transcription ou
+  // d'upload ne doit jamais faire disparaître silencieusement ce qui a été
+  // dit, ni bloquer l'un sur l'autre.
+  async function handleToggleDictation() {
+    if (locked) return
+    if (dictation.status === 'recording') {
+      const startedAt = dictationStartedAtRef.current ?? new Date().toISOString()
+      const recording = await dictation.stop()
+      if (recording && recording.size > 0) {
+        try {
+          const transcriptionId = await ensureTranscriptionRow()
+          await saveDictationSession({
+            exemplaireId: exemplaireId!,
+            transcriptionId,
+            startedAt,
+            audioBlob: recording,
+            segmentsTotal: 1,
+            segmentsCommitted: 0,
+            segmentsError: 0,
+          })
+        } catch {
+          toast.error("La dictée est en cours de transcription, mais l'enregistrement audio de sécurité n'a pas pu être sauvegardé.")
+        }
+      }
+    } else {
+      // Sur demande explicite : demander confirmation des mots-clés avant de
+      // démarrer, plutôt que de partir directement sur ceux détectés/ajoutés
+      // jusque-là (voir la boîte de dialogue plus bas, DictationKeywordsPanel).
+      setConfirmDictationOpen(true)
+    }
+  }
+
+  async function handleConfirmStartDictation() {
+    setConfirmDictationOpen(false)
+    // knownEntityLabels/ecBureauContext viennent du chargement de la page
+    // (load(), plus haut) ; customKeywords des mots-clés ajoutés
+    // manuellement — voir dictationPrompt.ts pour l'usage de ce prompt.
+    const prompt = buildDictationPrompt({ entityLabels: autoDictationKeywords, customKeywords })
+    dictationStartedAtRef.current = new Date().toISOString()
+    await dictation.start(prompt)
+  }
 
   function toggleSection(key: SectionKey) {
     setOpenSections(prev => {
@@ -1403,6 +1526,8 @@ export function TranscriptionEditorPage() {
         }
       }).catch(() => {})
 
+      fetchEcActeBureauContext(exemplaireId!).then(b => { if (!cancelled) setEcBureauContext(b) }).catch(() => {})
+
       const { data: tr } = await fetchTranscription(exemplaireId!)
       if (cancelled) return
       if (tr) {
@@ -1431,6 +1556,15 @@ export function TranscriptionEditorPage() {
         setComments(commentsList)
         setZones(zonesList)
         if ((tr as any).qualite) setQualite((tr as any).qualite)
+
+        if (versionsList[0]) {
+          fetchEntities(versionsList[0].id).then(entities => {
+            if (cancelled) return
+            setKnownEntityLabels(
+              entities.filter(e => e.entityType === 'person' || e.entityType === 'place').map(e => e.label),
+            )
+          }).catch(() => {})
+        }
       }
       setLoading(false)
       if (!cancelled) hasLoadedRef.current = true
@@ -1575,6 +1709,34 @@ export function TranscriptionEditorPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={confirmDictationOpen} onOpenChange={setConfirmDictationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dicter avec ces mots-clés ?</DialogTitle>
+            <DialogDescription>
+              Ces mots-clés sont transmis au service de transcription pour l'aider à reconnaître les noms propres
+              attendus dans ce document (personnes, lieux) plutôt que leur sosie phonétique le plus courant.
+            </DialogDescription>
+          </DialogHeader>
+          <DictationKeywordsPanel
+            autoKeywords={autoDictationKeywords}
+            customKeywords={customKeywords}
+            onAdd={addCustomKeyword}
+            onRemove={removeCustomKeyword}
+          />
+          <DialogFooter>
+            <button onClick={() => setConfirmDictationOpen(false)}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button onClick={handleConfirmStartDictation}
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+              <Mic className="w-3.5 h-3.5" />Dicter
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1644,7 +1806,17 @@ export function TranscriptionEditorPage() {
         <div className="flex-1 min-w-0 max-w-4xl">
           {ctx.depotLabel && <p className="text-xs text-gray-400 mb-3">{ctx.depotLabel}</p>}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-            <Toolbar editor={editor} hasSelection={hasSelection} onComment={handleOpenCommentComposer} locked={locked} />
+            <Toolbar
+              editor={editor} hasSelection={hasSelection} onComment={handleOpenCommentComposer} locked={locked}
+              dictating={dictation.status === 'recording'} onToggleDictation={handleToggleDictation}
+            />
+            <DictationStatusPanel
+              status={dictation.status}
+              micLevel={dictation.micLevel}
+              error={dictation.error}
+              serviceInfo={dictation.serviceInfo}
+              onRetry={dictation.retry}
+            />
             <div className="px-8 py-6">
               <EditorContent editor={editor} />
             </div>

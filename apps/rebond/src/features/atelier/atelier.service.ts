@@ -31,7 +31,7 @@ import { QUALITE_VIDE } from './atelier.types'
 import type {
   AtelierExemplaire, TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, CommentaireStatut,
   TranscriptionZoneType, TranscriptionZone, TranscriptionQualite, ZoneAttendu, ZoneSnapshotEntry,
-  TranscriptionSearchResult, HypActeContext, RepertoireEntreeRow,
+  TranscriptionSearchResult, HypActeContext, EcActeBureauContext, RepertoireEntreeRow, DictationSession,
 } from './atelier.types'
 
 type TranscriptionQualiteRow = {
@@ -783,6 +783,24 @@ export async function fetchHypActeContext(exemplaireId: string): Promise<HypActe
   return { acteId: acte.id, bureauId: registre.bureau_id, typeFormaliteRef: registre.type_registre_ref }
 }
 
+// Chaîne plus courte que pour les hypothèques (etat_civil_actes.bureau_id
+// est direct, pas de registre intermédiaire). commune/departement sont des
+// colonnes texte libres directement sur etat_civil_bureaux, pas de jointure
+// supplémentaire nécessaire.
+export async function fetchEcActeBureauContext(exemplaireId: string): Promise<EcActeBureauContext | null> {
+  const { data: cit } = await supabaseRebond.from('citations')
+    .select('target_id').eq('exemplaire_id', exemplaireId).eq('target_type', 'ec_acte').maybeSingle<{ target_id: string }>()
+  if (!cit) return null
+
+  const { data: acte } = await supabaseRebond.from('etat_civil_actes')
+    .select('bureau:etat_civil_bureaux!bureau_id(nom, commune, departement)')
+    .eq('id', cit.target_id)
+    .maybeSingle<{ bureau: { nom: string; commune: string | null; departement: string | null } | null }>()
+  if (!acte?.bureau) return null
+
+  return { bureauNom: acte.bureau.nom, commune: acte.bureau.commune, departement: acte.bureau.departement }
+}
+
 export async function fetchRepertoireEntrees(acteId: string): Promise<RepertoireEntreeRow[]> {
   const { data } = await supabaseRebond.from('hypotheques_repertoire_entrees')
     .select('id, case_numero, description_courte, hypotheques_registres ( label, numero_volume )')
@@ -849,4 +867,55 @@ export async function removeRepertoireEntree(id: string) {
 export async function revertToEnCours(transcriptionId: string) {
   const { error } = await supabaseRebond.from('transcriptions').update({ statut: 'en_cours' }).eq('id', transcriptionId)
   if (error) throw error
+}
+
+// -------------------- Dictée vocale --------------------
+//
+// Filet de sécurité : l'enregistrement audio complet d'une session de dictée
+// est uploadé (bucket rebond-dictation-audio) uniquement à l'arrêt explicite,
+// jamais en cours de session — v1 volontairement simple, voir plan. Le texte
+// déjà transcrit et inséré dans le document est lui déjà couvert par
+// l'auto-save habituel (saveTranscription), indépendamment de cette fonction.
+export async function saveDictationSession(params: {
+  exemplaireId: string
+  transcriptionId: string
+  startedAt: string
+  audioBlob: Blob
+  segmentsTotal: number
+  segmentsCommitted: number
+  segmentsError: number
+}): Promise<DictationSession> {
+  const sessionId = crypto.randomUUID()
+  const storagePath = `${params.exemplaireId}/${params.transcriptionId}/${sessionId}.webm`
+
+  const { error: uploadError } = await supabase.storage
+    .from('rebond-dictation-audio')
+    .upload(storagePath, params.audioBlob, { contentType: 'audio/webm' })
+  if (uploadError) throw uploadError
+
+  const { data, error } = await supabaseRebond.from('transcription_dictation_sessions')
+    .insert({
+      id: sessionId,
+      transcription_id: params.transcriptionId,
+      storage_path: storagePath,
+      started_at: params.startedAt,
+      ended_at: new Date().toISOString(),
+      segments_total: params.segmentsTotal,
+      segments_committed: params.segmentsCommitted,
+      segments_error: params.segmentsError,
+    })
+    .select('id, transcription_id, storage_path, started_at, ended_at, segments_total, segments_committed, segments_error')
+    .single()
+  if (error) throw error
+
+  return {
+    id: data.id,
+    transcriptionId: data.transcription_id,
+    storagePath: data.storage_path,
+    startedAt: data.started_at,
+    endedAt: data.ended_at,
+    segmentsTotal: data.segments_total,
+    segmentsCommitted: data.segments_committed,
+    segmentsError: data.segments_error,
+  }
 }

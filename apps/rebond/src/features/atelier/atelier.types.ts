@@ -42,6 +42,16 @@ export type HypActeContext = {
   typeFormaliteRef: string
 }
 
+// Bureau d'état civil de l'acte en cours — utilisé pour alimenter le
+// contexte de la dictée (2026-08-27) : ces noms de lieux sont bien plus
+// susceptibles d'apparaître dans le texte dicté que le libellé du dépôt
+// (institution/service d'archives, sans rapport avec le contenu de l'acte).
+export type EcActeBureauContext = {
+  bureauNom: string
+  commune: string | null
+  departement: string | null
+}
+
 export type RepertoireEntreeRow = {
   id: string
   description: string | null
@@ -124,6 +134,21 @@ export type TranscriptionQualite = {
   completenessNote: string | null
   reserveLevel: ReserveLevel
   reserveReason: string | null
+}
+
+// Résumé d'une session de dictée vocale (enregistrement audio complet en
+// filet de sécurité + compteurs) — un par clic "Dicter"/arrêt, pas une
+// colonne sur transcriptions puisqu'une transcription peut accumuler
+// plusieurs sessions de dictée dans le temps.
+export type DictationSession = {
+  id: string
+  transcriptionId: string
+  storagePath: string
+  startedAt: string
+  endedAt: string | null
+  segmentsTotal: number
+  segmentsCommitted: number
+  segmentsError: number
 }
 
 // Valeur par défaut — sert à la fois d'état initial du formulaire et de
