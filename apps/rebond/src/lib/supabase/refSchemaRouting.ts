@@ -29,6 +29,10 @@ const REBOND_SCHEMA_REF_TABLES = new Set([
   'ref_auteur_institutionnel',
   'ref_type_acces',
   'ref_etat_civil_transcription_status',
+  'ref_qualite',
+  'ref_profession',
+  'ref_situation_matrimoniale',
+  'ref_filiation',
 ])
 
 export function resolveRefTableClient(table: string) {

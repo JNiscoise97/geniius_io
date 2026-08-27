@@ -98,9 +98,9 @@ const VOCAB: Record<string, SerieVocab> = {
     level3: { label: 'Une table décennale',   desc: 'Table couvrant une décennie…',                     placeholder: 'Ex. Table décennale des naissances 1853–1862 — Deshaies' },
   },
   NOTARIAT: {
-    level1: { label: 'Un acte notarié',       desc: 'Vente, succession, contrat de mariage, inventaire…', placeholder: 'Ex. Vente — DUPONT à MARTIN, 12 mars 1888' },
-    level2: { label: 'Un index / répertoire', desc: 'Répertoire des actes, index des parties…',          placeholder: 'Ex. Répertoire 1er semestre 1888' },
-    level3: { label: 'Un minutier',           desc: 'Minutier ou registre du notaire…',                  placeholder: 'Ex. Minutier de Maître LAMY — 1888' },
+    level1: { label: 'Un acte notarié',       desc: 'Vente, succession, contrat de mariage, inventaire… — le texte intégral d\'un acte précis, conservé par le notaire (la minute).', placeholder: 'Ex. Vente — DUPONT à MARTIN, 12 mars 1888' },
+    level2: { label: 'Un index / répertoire', desc: 'Registre récapitulatif du notaire : une ligne par acte (date, parties, type, n° de renvoi) — pas le texte de l\'acte, juste de quoi le retrouver dans le minutier.', placeholder: 'Ex. Répertoire 1er semestre 1888' },
+    level3: { label: 'Un minutier',           desc: 'Le recueil relié des actes originaux (les minutes) d\'un notaire sur une période — le contenu intégral, pas un résumé.', placeholder: 'Ex. Minutier de Maître LAMY — 1888' },
   },
   HYPOTHEQUES: {
     level1: { label: 'Une transcription / inscription', desc: 'Transcription, inscription, radiation…', placeholder: 'Ex. Transcription — Vente parcelle n°42' },
@@ -664,8 +664,11 @@ function RWStepType({ vocab, findType, onChange }: {
   )
 }
 
-function RWStepDescribe({ kind, placeholder, level, patch }: {
+function RWStepDescribe({ kind, placeholder, level, patch, depotQuery, setDepotQuery, depotResults, depotSearching, selectedDepot, setSelectedDepot }: {
   kind: 'table' | 'registre'; placeholder: string; level: RWLevel; patch: (f: keyof RWLevel, v: string) => void
+  depotQuery: string; setDepotQuery: (v: string) => void
+  depotResults: DepotOption[]; depotSearching: boolean
+  selectedDepot: DepotOption | null; setSelectedDepot: (v: DepotOption | null) => void
 }) {
   const posLabel = kind === 'table' ? 'Vues (début – fin)' : undefined
   const ouLabel  = kind === 'table' ? 'Position dans le document' : "C'est où ?"
@@ -684,7 +687,16 @@ function RWStepDescribe({ kind, placeholder, level, patch }: {
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">{ouLabel}</p>
         <div className="space-y-3">
           <Field label="Institution / dépôt">
-            <input value={level.institution} onChange={e => patch('institution', e.target.value)} placeholder="Ex. ANOM, AD Réunion…" className={inputCls} />
+            <DepotPicker
+              depotQuery={depotQuery} setDepotQuery={setDepotQuery}
+              depotResults={depotResults} depotSearching={depotSearching}
+              selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
+            />
+            {!selectedDepot && (
+              <p className="text-xs text-amber-600 mt-1.5">
+                Sans dépôt, aucun exemplaire ne sera créé — la cote et la position ne seront pas enregistrées.
+              </p>
+            )}
           </Field>
           <Field label="Cote">
             <input value={level.cote} onChange={e => patch('cote', e.target.value)} placeholder="Ex. 5Mi/456" className={inputCls} />
@@ -796,11 +808,21 @@ function RWBadge({ existing }: { existing: boolean }) {
     : <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium shrink-0">nouveau</span>
 }
 
-function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, tableIntitule, selectedTableUd, hasRegistre, registre, registreIntitule, selectedRegistreUd }: {
-  vocab: SerieVocab; acte: RWLevel; selectedUd: UDMatch | null
+function RWStepSummary({ vocab, findType, acte, selectedUd, hasTable, table, tableIntitule, selectedTableUd, hasRegistre, registre, registreIntitule, selectedRegistreUd }: {
+  vocab: SerieVocab; findType: 'acte' | 'table' | 'registre'; acte: RWLevel; selectedUd: UDMatch | null
   hasTable: boolean | null; table: RWLevel; tableIntitule: string | null; selectedTableUd: { id: string; titre: string } | null
   hasRegistre: boolean | null; registre: RWLevel; registreIntitule: string | null; selectedRegistreUd: { id: string; titre: string } | null
 }) {
+  // findType détermine ce qui a réellement été décrit par l'utilisateur —
+  // "Qu'avez-vous trouvé ?" à l'étape 'type'. Si ce n'est pas un acte
+  // (findType === 'table'/'registre'), aucun acte n'est jamais créé
+  // (goNext() saute l'étape 'acte' entièrement dans ce cas, voir plus bas) :
+  // afficher quand même un bloc "Acte : nouveau, sera créé" avec un titre
+  // "(sans titre)" était trompeur — signalé par l'utilisateur 2026-08-16
+  // ("j'ai créé un minutier et il a créé un acte notarié par défaut vide")
+  // alors qu'en base seul le registre/minutier était réellement inséré :
+  // pur artefact d'affichage, pas un vrai bug de création.
+  const acteWasDescribed = findType === 'acte'
   // Le titre affiché doit être celui de l'objet réellement réutilisé quand il
   // y en a un (selectedTableUd/selectedRegistreUd) — sinon on affichait
   // l'intitulé recalculé à partir des critères de recherche courants, qui
@@ -825,9 +847,9 @@ function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, tableIntitule
     hasTable && (selectedTableUd
       ? `Table « ${tableTitle} » : réutilisée telle quelle, rien à créer.`
       : `Table « ${tableTitle} » : nouvelle, sera créée.`),
-    selectedUd
+    acteWasDescribed && (selectedUd
       ? `Acte « ${acteTitle} » : document existant retrouvé, sera complété (pas de nouvelle fiche).`
-      : `Acte « ${acteTitle} » : nouveau, sera créé.`,
+      : `Acte « ${acteTitle} » : nouveau, sera créé.`),
   ].filter(Boolean) as string[]
 
   return (
@@ -841,8 +863,8 @@ function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, tableIntitule
               <RWBadge existing={Boolean(selectedRegistreUd)} />
             </div>
             <div className="font-medium text-gray-800">{registreTitle}</div>
-            {!selectedRegistreUd && (registre.institution || registre.cote) && (
-              <div className="text-xs text-gray-500 mt-0.5">{[registre.institution, registre.cote].filter(Boolean).join(' · ')}</div>
+            {!selectedRegistreUd && registre.cote && (
+              <div className="text-xs text-gray-500 mt-0.5">{registre.cote}</div>
             )}
             {!selectedRegistreUd && registre.position && <div className="text-xs text-gray-500 mt-0.5">{formatVue(registre.position, null)}</div>}
           </div>
@@ -857,15 +879,17 @@ function RWStepSummary({ vocab, acte, selectedUd, hasTable, table, tableIntitule
             {!selectedTableUd && table.position && <div className="text-xs text-gray-500 mt-0.5">{formatVue(table.position, registreMaxVue)}</div>}
           </div>
         )}
-        <div className={`px-4 py-3 ${hasTable && tableIntitule ? (hasRegistre && registreIntitule ? 'pl-12' : 'pl-8') : ''}`}>
-          <div className="flex items-center gap-2 mb-0.5">
-            <div className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">{vocab.level1.label}</div>
-            <RWBadge existing={Boolean(selectedUd)} />
+        {acteWasDescribed && (
+          <div className={`px-4 py-3 ${hasTable && tableIntitule ? (hasRegistre && registreIntitule ? 'pl-12' : 'pl-8') : ''}`}>
+            <div className="flex items-center gap-2 mb-0.5">
+              <div className="text-[10px] text-indigo-600 uppercase tracking-wide font-semibold">{vocab.level1.label}</div>
+              <RWBadge existing={Boolean(selectedUd)} />
+            </div>
+            <div className="font-medium text-gray-800">{acteTitle}</div>
+            {acteDetails && <div className="text-xs text-gray-500 mt-0.5">{acteDetails}</div>}
+            {!selectedUd && acte.position && <div className="text-xs text-gray-500">{formatVue(acte.position, registreMaxVue)}</div>}
           </div>
-          <div className="font-medium text-gray-800">{acteTitle}</div>
-          {acteDetails && <div className="text-xs text-gray-500 mt-0.5">{acteDetails}</div>}
-          {!selectedUd && acte.position && <div className="text-xs text-gray-500">{formatVue(acte.position, registreMaxVue)}</div>}
-        </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
@@ -2644,6 +2668,33 @@ export function ReferenceWizardPage() {
       }
       return exId
     }
+
+    // NOTARIAT : crée le domaine métier rebond.notariat_actes + la citation
+    // qui le relie à l'exemplaire (2026-08-16, demande explicite après avoir
+    // constaté qu'un acte notarié créé via ce wizard n'avait ni l'un ni
+    // l'autre — donc jamais de statut/qualité/zones qualifiables, à la
+    // différence de l'état civil et des hypothèques qui ont chacun leur
+    // table domaine déjà branchée). notariat_actes existait déjà, migrée de
+    // l'ancien modèle (public.actes, 231 lignes), jamais branchée au wizard
+    // jusqu'ici — voir schema-docs/notariat_actes.md et la migration
+    // 20260816100001 qui repointe son FK unite_documentaire_id vers le
+    // nouveau schéma. Ne renseigne que label + unite_documentaire_id : les
+    // autres colonnes (type_operation, clauses, origine_propriete...) n'ont
+    // pas de champ correspondant dans ce formulaire générique, laissées null
+    // plutôt que d'élargir le formulaire sans besoin exprimé.
+    const ensureNotariatActeCitation = async (udId: string, exId: string | null) => {
+      if (serieCode !== 'NOTARIAT' || !exId) return
+      const { data: na, error: naErr } = await supabaseRebond.from('notariat_actes')
+        .insert({ label: acteTitle, unite_documentaire_id: udId })
+        .select('id').single()
+      if (naErr) throw naErr
+      const { error: citErr } = await supabaseRebond.from('citations').insert({
+        exemplaire_id: exId, target_type: 'ac_acte', target_id: na.id,
+        locating: acte.position.trim() ? { systems: [{ raw: acte.position.trim() }] } : {}, is_missing: false,
+      })
+      if (citErr) throw citErr
+    }
+
     try {
       if (savedActeId) {
         const { error: titreErr } = await supabaseRebond.from('unites_documentaires').update({ titre: acteTitle }).eq('id', savedActeId)
@@ -2651,6 +2702,7 @@ export function ReferenceWizardPage() {
         if (!savedActeExemplaireId) {
           const exId = await insertActeExemplaire(savedActeId)
           setSavedActeExemplaireId(exId)
+          await ensureNotariatActeCitation(savedActeId, exId)
         }
         toast.success('Acte mis à jour')
       } else {
@@ -2664,6 +2716,7 @@ export function ReferenceWizardPage() {
         setSavedActeId(newId)
         const exId = newId ? await insertActeExemplaire(newId) : null
         setSavedActeExemplaireId(exId)
+        if (newId) await ensureNotariatActeCitation(newId, exId)
         toast.success('Acte enregistré')
       }
       return true
@@ -2876,7 +2929,7 @@ export function ReferenceWizardPage() {
           cote: registre.cote || null,
           note: useStructuredTable
             ? (registre.notes || null)
-            : [registre.institution, registre.url, registre.notes].filter(Boolean).join(' · ') || null,
+            : [registre.url, registre.notes].filter(Boolean).join(' · ') || null,
         })
         if (error) throw error
         const registreId = data?.id ?? null
@@ -3457,7 +3510,11 @@ export function ReferenceWizardPage() {
           selectedDepot={selectedDepot}   setSelectedDepot={setSelectedDepot}
           level={table} patch={patch(setTable)}
         />
-      : <RWStepDescribe kind="table" placeholder={vocab.level2.placeholder} level={table} patch={patch(setTable)} />
+      : <RWStepDescribe kind="table" placeholder={vocab.level2.placeholder} level={table} patch={patch(setTable)}
+          depotQuery={depotQuery} setDepotQuery={setDepotQuery}
+          depotResults={depotResults} depotSearching={depotSearching}
+          selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
+        />
     if (step === 'ask-registre') return <RWStepAskContext question={askRegistreQuestion}                         value={hasRegistre} onChange={setHasRegistre} />
     if (step === 'registre') return useStructuredTable
       ? <RWStepDescribeRegistreEC
@@ -3480,8 +3537,12 @@ export function ReferenceWizardPage() {
           selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
           level={registre} patch={patch(setRegistre)}
         />
-      : <RWStepDescribe kind="registre" placeholder={vocab.level3.placeholder} level={registre} patch={patch(setRegistre)} />
-    return <RWStepSummary vocab={vocab} acte={acte} selectedUd={selectedUd}
+      : <RWStepDescribe kind="registre" placeholder={vocab.level3.placeholder} level={registre} patch={patch(setRegistre)}
+          depotQuery={depotQuery} setDepotQuery={setDepotQuery}
+          depotResults={depotResults} depotSearching={depotSearching}
+          selectedDepot={selectedDepot} setSelectedDepot={setSelectedDepot}
+        />
+    return <RWStepSummary vocab={vocab} findType={findType} acte={acte} selectedUd={selectedUd}
       hasTable={hasTable} table={table} tableIntitule={useStructuredTable ? tableIntitule : table.intitule} selectedTableUd={selectedTableUd}
       hasRegistre={hasRegistre} registre={registre} registreIntitule={useStructuredTable ? registreIntitule : registre.intitule} selectedRegistreUd={selectedRegistreUd}
     />

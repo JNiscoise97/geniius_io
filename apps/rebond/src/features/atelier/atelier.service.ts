@@ -26,6 +26,7 @@
 
 import { supabase, supabaseRebond } from '@/lib/supabase'
 import { unpackMarginalia } from '../patrimoine/citationJsonb'
+import { CITATION_ACTE_TARGET_TYPES } from '../patrimoine/patrimoine.service'
 import { QUALITE_VIDE } from './atelier.types'
 import type {
   AtelierExemplaire, TranscriptionStatut, TranscriptionVersion, TranscriptionCommentaire, CommentaireStatut,
@@ -697,15 +698,14 @@ export async function replaceZones(transcriptionId: string, zonesSnapshot: ZoneS
 // code de rebond.ref_transcription_zone_types (mention_marginale, signature,
 // rature_marginale), pas son id, pour rester indépendant des uuid générés.
 export async function fetchZonesAttendu(exemplaireId: string): Promise<Record<string, ZoneAttendu>> {
-  // hyp_acte ajouté le 2026-08-10 — sans lui, "Zones spécifiques" affichait
-  // toujours "Non qualifié" pour un acte hypothécaire, même après avoir
-  // renseigné mentions marginales/signatures/ratures via la sheet "Décrire"
-  // (même bug que usePatrimoine.ts et DocumentDetailPage.tsx, corrigé au
-  // même moment).
+  // Liste des target_type centralisée dans CITATION_ACTE_TARGET_TYPES
+  // (patrimoine.service.ts) depuis le 2026-08-16 — un oubli ici avait déjà
+  // laissé "Zones spécifiques" bloqué sur "Non qualifié" pour hyp_acte
+  // (corrigé le 2026-08-10) puis à nouveau pour ac_acte (notariat).
   const { data: cit } = await supabaseRebond.from('citations')
     .select('marginalia')
     .eq('exemplaire_id', exemplaireId)
-    .in('target_type', ['ec_acte', 'ec_table', 'hyp_acte'])
+    .in('target_type', CITATION_ACTE_TARGET_TYPES)
     .maybeSingle<{ marginalia: unknown }>()
 
   const mar = unpackMarginalia((cit?.marginalia as any) ?? null)

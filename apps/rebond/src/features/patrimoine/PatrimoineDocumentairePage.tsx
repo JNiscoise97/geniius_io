@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import {
   qualifierSource, decrireDocument, updateDocumentDescription, rattacherDocument, fetchRoleDocumentOptions,
+  CITATION_ACTE_TARGET_TYPES,
 } from './patrimoine.service'
 import { unpackMarginalia, packMarginalia, unpackWriting, packWriting, toIntOrNull } from './citationJsonb'
 import { vueMax, formatVue } from './vueFormat'
@@ -356,14 +357,15 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
       setDescription(ex.description ?? '')
       setIdentifiantInterne(ex.identifiant_interne ?? '')
 
-      // Une citation ec_acte, ec_table ou hyp_acte (selon le rôle/série du
-      // document) — jamais deux en même temps sur un même exemplaire. hyp_acte
-      // ajouté le 2026-08-10 (module Hypothèques) — sans lui, cette section
-      // ne trouvait jamais la citation d'un acte hypothécaire, et les champs
-      // saisis ici (dont la position/vue) n'étaient jamais enregistrés.
+      // Une citation ec_acte, ec_table, hyp_acte ou ac_acte (selon le
+      // rôle/série du document) — jamais deux en même temps sur un même
+      // exemplaire. Liste centralisée dans CITATION_ACTE_TARGET_TYPES
+      // (patrimoine.service.ts, 2026-08-16) après deux oublis successifs
+      // (hyp_acte puis ac_acte) qui laissaient cette section ne jamais
+      // trouver la citation d'un acte hypothécaire/notarié.
       const { data: cit } = await supabaseRebond.from('citations')
         .select('id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
-        .eq('exemplaire_id', ex.id).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).maybeSingle()
+        .eq('exemplaire_id', ex.id).in('target_type', CITATION_ACTE_TARGET_TYPES).maybeSingle()
       if (cancelled) return
       if (cit) {
         setCitationId(cit.id)
@@ -884,6 +886,15 @@ function DecrireDocumentSheet({ doc, roleOptions, onClose, onDone }: {
 
 // ─── Rattacher un document (P1.2 step 3) ─────────────────────────────────────
 
+type SerieInfo = { id: string; code: string; label: string }
+
+// Picker de source parente avec recherche + filtre par série (2026-08-16,
+// demande explicite après confusion avec le simple <select> précédent — pas
+// assez lisible dès que le nombre de sources grandit). Les séries ne sont
+// PAS exposées par `v_sources` (vue utilisée par fetchSources ailleurs sur
+// la page) : chargées ici séparément (petites requêtes, pas de migration de
+// vue nécessaire) plutôt que d'étendre une vue partagée par toute la page
+// pour un besoin propre à ce seul picker.
 function RattacherDocumentSheet({ doc, sources, onClose, onDone }: {
   doc: Document
   sources: Source[]
@@ -892,8 +903,53 @@ function RattacherDocumentSheet({ doc, sources, onClose, onDone }: {
 }) {
   const [parentId, setParentId] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [query, setQuery] = useState('')
+  const [serieFilter, setSerieFilter] = useState<string | null>(null)
+  const [serieBySourceId, setSerieBySourceId] = useState<Map<string, string>>(new Map())
+  const [seriesById, setSeriesById] = useState<Map<string, SerieInfo>>(new Map())
 
   const activeSources = sources.filter(s => s.statut !== 'a_qualifier')
+
+  useEffect(() => {
+    const ids = activeSources.map(s => s.id)
+    if (ids.length === 0) return
+    supabaseRebond.from('unites_documentaires').select('id, serie_ref').in('id', ids)
+      .then(({ data }) => {
+        setSerieBySourceId(new Map((data ?? []).filter((r): r is { id: string; serie_ref: string } => !!r.serie_ref).map(r => [r.id, r.serie_ref])))
+      })
+    supabaseRebond.from('ref_series_documentaires').select('id, code, label')
+      .then(({ data }) => {
+        setSeriesById(new Map((data ?? []).map((s: any) => [s.id, { id: s.id, code: s.code, label: s.label }])))
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.id])
+
+  const serieFor = (sourceId: string): SerieInfo | null => {
+    const serieId = serieBySourceId.get(sourceId)
+    return serieId ? seriesById.get(serieId) ?? null : null
+  }
+
+  const availableSeries = useMemo(() => {
+    const seen = new Map<string, SerieInfo>()
+    for (const s of activeSources) {
+      const info = serieFor(s.id)
+      if (info && !seen.has(info.code)) seen.set(info.code, info)
+    }
+    return [...seen.values()].sort((a, b) => a.label.localeCompare(b.label))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSources, serieBySourceId, seriesById])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return activeSources.filter(s => {
+      if (q && !s.nom.toLowerCase().includes(q)) return false
+      if (serieFilter && serieFor(s.id)?.code !== serieFilter) return false
+      return true
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSources, query, serieFilter, serieBySourceId, seriesById])
+
+  const selected = parentId ? activeSources.find(s => s.id === parentId) ?? null : null
 
   async function handleSubmit() {
     if (!parentId) return
@@ -921,15 +977,74 @@ function RattacherDocumentSheet({ doc, sources, onClose, onDone }: {
       <p className="text-xs text-gray-500">
         Sélectionnez la source dans laquelle ce document a été trouvé ou auquel il appartient.
       </p>
-      <Field label="Source parente" required>
-        <select value={parentId} onChange={e => setParentId(e.target.value)} className={selectCls} autoFocus>
-          <option value="">Sélectionner une source…</option>
-          {activeSources.map(s => {
-            const t = TYPE_CONFIG[s.type]
-            return <option key={s.id} value={s.id}>[{t.label}] {s.nom}</option>
-          })}
-        </select>
-      </Field>
+
+      {selected ? (
+        <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/60 px-3 py-2">
+          {(() => { const T = TYPE_CONFIG[selected.type]; const Icon = T.icon
+            return <Icon className={`w-4 h-4 shrink-0 ${T.color}`} /> })()}
+          <span className="flex-1 text-sm text-gray-800">
+            <span className="font-medium">{selected.nom}</span>
+            {serieFor(selected.id) && <span className="text-gray-400 ml-1.5">· {serieFor(selected.id)!.label}</span>}
+          </span>
+          <button onClick={() => setParentId('')} className="text-gray-400 hover:text-gray-600 shrink-0">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher une source…"
+              className={`${inputCls} pl-9`} autoFocus />
+          </div>
+
+          {availableSeries.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              <button onClick={() => setSerieFilter(null)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  serieFilter === null ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}>
+                Toutes séries
+              </button>
+              {availableSeries.map(s => (
+                <button key={s.code} onClick={() => setSerieFilter(s.code)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    serieFilter === s.code ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
+            {filtered.length === 0 ? (
+              <p className="text-xs text-gray-400 italic px-3 py-4 text-center">Aucune source ne correspond.</p>
+            ) : (
+              filtered.map(s => {
+                const T = TYPE_CONFIG[s.type]
+                const Icon = T.icon
+                const info = serieFor(s.id)
+                return (
+                  <button key={s.id} onClick={() => setParentId(s.id)}
+                    className="w-full text-left px-3 py-2.5 hover:bg-gray-50 flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-lg border ${T.bg} ${T.border} flex items-center justify-center shrink-0`}>
+                      <Icon className={`w-3.5 h-3.5 ${T.color}`} />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-gray-800 truncate">{s.nom}</span>
+                      <span className="block text-xs text-gray-400 truncate">
+                        {[info?.label, s.localisation].filter(Boolean).join(' · ')}
+                      </span>
+                    </span>
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       {parentId && (
         <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs text-gray-500">
           Après rattachement, le document passera dans <strong>Documents à décrire</strong>.

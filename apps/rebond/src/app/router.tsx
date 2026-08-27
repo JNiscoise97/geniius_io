@@ -16,6 +16,7 @@ import ExtractionHubPage from '../pages/ExtractionHubPage'
 import EntitesHubPage from '../pages/EntitesHubPage'
 import EntiteDetailPage from '../pages/EntiteDetailPage'
 import IndividuPage from '../pages/IndividuPage'
+import LieuPage from '../pages/LieuPage'
 import ReconciliationPage from '../pages/ReconciliationPage'
 import Layout from '../components/layout/Layout'
 
@@ -149,6 +150,14 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <IndividuPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/lieu/:lieuId',
+    element: (
+      <Layout>
+        <LieuPage />
       </Layout>
     ),
   },

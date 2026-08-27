@@ -298,6 +298,52 @@ function AssertionRow({ assertion, label, onSetStatus, onEdit }: {
   )
 }
 
+// Sélecteur de citation intégré au formulaire d'assertion (2026-08-15,
+// demande explicite) — même mécanique de sélection que SourceTextCard
+// (réutilise getSelectionOffsetsWithin), mais affiche UN SEUL passage
+// surligné (celui déjà associé à cette assertion, s'il y en a un) plutôt
+// que toutes les assertions de la version. Évite d'avoir à fermer le
+// formulaire pour ressélectionner dans le texte source de la page.
+function SourceTextPicker({ text, highlightStart, highlightEnd, onSelect }: {
+  text: string
+  highlightStart: number | null
+  highlightEnd: number | null
+  onSelect: (sel: { text: string; start: number; end: number }) => void
+}) {
+  const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  function handleMouseUp() {
+    if (!containerRef.current) return
+    setSelection(getSelectionOffsetsWithin(containerRef.current))
+  }
+
+  const hasHighlight = highlightStart != null && highlightEnd != null && highlightEnd > highlightStart
+  const before = hasHighlight ? text.slice(0, highlightStart!) : text
+  const marked = hasHighlight ? text.slice(highlightStart!, highlightEnd!) : ''
+  const after = hasHighlight ? text.slice(highlightEnd!) : ''
+
+  return (
+    <div className="space-y-2">
+      <div ref={containerRef} onMouseUp={handleMouseUp}
+        className="max-h-64 overflow-y-auto whitespace-pre-wrap leading-relaxed text-sm text-gray-800 border border-gray-200 rounded-lg p-3 bg-gray-50">
+        {hasHighlight ? <>{before}<mark className="rounded-sm bg-indigo-200">{marked}</mark>{after}</> : text}
+      </div>
+      {selection && (
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2">
+          <p className="text-xs text-indigo-700 italic truncate">« {selection.text} »</p>
+          <button
+            onClick={() => { onSelect(selection); setSelection(null); window.getSelection()?.removeAllRanges() }}
+            className="flex items-center gap-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-2.5 py-1.5 transition-colors shrink-0"
+          >
+            Utiliser cette sélection
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const NEW_ENTITY_VALUE = '__new__'
 
 // Formulaire partagé ajout/édition — édition : le sujet reste fixe (changer
@@ -305,7 +351,7 @@ const NEW_ENTITY_VALUE = '__new__'
 // périmètre volontairement pour rester simple). Ajout : le sujet peut être
 // une entité existante ou une toute nouvelle (créée à la volée avant
 // l'assertion elle-même, cf. createManualEntity).
-function AssertionFormDialog({ open, onClose, entities, predicates, transcriptionVersionId, initial, prefill, onSaved }: {
+function AssertionFormDialog({ open, onClose, entities, predicates, transcriptionVersionId, initial, prefill, sourceFullText, onSaved }: {
   open: boolean
   onClose: () => void
   entities: ExtractionEntity[]
@@ -316,6 +362,10 @@ function AssertionFormDialog({ open, onClose, entities, predicates, transcriptio
   // (2026-08-10) — évite de retaper la citation à la main. Les offsets ne
   // sont soumis que si le texte n'a pas été modifié depuis (cf. handleSubmit).
   prefill?: { text: string; start: number; end: number } | null
+  // Texte intégral de la version — pour le sélecteur de citation intégré
+  // (2026-08-15) : voir SourceTextPicker, bouton à côté du label "Texte
+  // source".
+  sourceFullText: string
   onSaved: () => void
 }) {
   const isEdit = !!initial
@@ -329,6 +379,18 @@ function AssertionFormDialog({ open, onClose, entities, predicates, transcriptio
   const [sourceText, setSourceText] = useState(initial?.sourceText ?? prefill?.text ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Offsets de la citation actuellement associée au champ "Texte source" —
+  // seedé depuis l'assertion existante (édition) ou le prefill (ajout),
+  // remplacé si l'utilisateur sélectionne un nouveau passage via
+  // SourceTextPicker. Source unique de vérité pour la résolution des
+  // offsets à la soumission (remplace l'ancien double calcul
+  // prefill/initial séparé).
+  const [citationOffsets, setCitationOffsets] = useState<{ start: number; end: number } | null>(
+    initial?.sourceStart != null && initial?.sourceEnd != null
+      ? { start: initial.sourceStart, end: initial.sourceEnd }
+      : prefill ? { start: prefill.start, end: prefill.end } : null
+  )
+  const [showSourcePicker, setShowSourcePicker] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -340,6 +402,12 @@ function AssertionFormDialog({ open, onClose, entities, predicates, transcriptio
     setObjectEntityId(initial?.objectEntityId ?? '')
     setValueText(initial?.valueText ?? '')
     setSourceText(initial?.sourceText ?? prefill?.text ?? '')
+    setCitationOffsets(
+      initial?.sourceStart != null && initial?.sourceEnd != null
+        ? { start: initial.sourceStart, end: initial.sourceEnd }
+        : prefill ? { start: prefill.start, end: prefill.end } : null
+    )
+    setShowSourcePicker(false)
     setError(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial, prefill])
@@ -365,11 +433,14 @@ function AssertionFormDialog({ open, onClose, entities, predicates, transcriptio
       // en base (sinon `updateAssertion` les écraserait à null au moindre
       // clic sur "Enregistrer", même sans toucher à la citation) ; sinon
       // (texte retapé/modifié à la main, sans sélection) pas de position
-      // fiable à soumettre.
-      const sourceMatchesPrefill = !!prefill && sourceText.trim() === prefill.text.trim()
-      const sourceUnchangedInEdit = isEdit && sourceText.trim() === (initial?.sourceText ?? '').trim()
-      const resolvedSourceStart = sourceMatchesPrefill ? prefill!.start : sourceUnchangedInEdit ? (initial?.sourceStart ?? null) : null
-      const resolvedSourceEnd = sourceMatchesPrefill ? prefill!.end : sourceUnchangedInEdit ? (initial?.sourceEnd ?? null) : null
+      // fiable à soumettre. citationOffsets est la source unique (seedée
+      // depuis initial/prefill à l'ouverture, remplacée par une nouvelle
+      // sélection via SourceTextPicker) — ne vaut que si le texte du champ
+      // correspond encore exactement à ce que ces offsets pointent.
+      const citationMatchesOffsets = !!citationOffsets
+        && sourceText.trim() === sourceFullText.slice(citationOffsets.start, citationOffsets.end).trim()
+      const resolvedSourceStart = citationMatchesOffsets ? citationOffsets!.start : null
+      const resolvedSourceEnd = citationMatchesOffsets ? citationOffsets!.end : null
       const input: ManualAssertionInput = {
         subjectEntityId: resolvedSubjectId,
         predicateCode,
@@ -471,11 +542,30 @@ function AssertionFormDialog({ open, onClose, entities, predicates, transcriptio
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Texte source (citation, optionnel)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-gray-600">Texte source (citation, optionnel)</label>
+              {sourceFullText && (
+                <button type="button" onClick={() => setShowSourcePicker(v => !v)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                  <Search className="w-3 h-3" />
+                  {showSourcePicker ? 'Masquer le texte source' : 'Sélectionner dans le texte source'}
+                </button>
+              )}
+            </div>
+            {showSourcePicker && sourceFullText && (
+              <div className="mb-2">
+                <SourceTextPicker
+                  text={sourceFullText}
+                  highlightStart={citationOffsets?.start ?? null}
+                  highlightEnd={citationOffsets?.end ?? null}
+                  onSelect={sel => { setSourceText(sel.text); setCitationOffsets({ start: sel.start, end: sel.end }) }}
+                />
+              </div>
+            )}
             <textarea value={sourceText} onChange={e => setSourceText(e.target.value)}
-              placeholder="Passage exact qui justifie ce fait… (ou sélectionne-le dans le texte avant d'ouvrir ce formulaire)"
+              placeholder="Passage exact qui justifie ce fait… (ou sélectionne-le dans le texte source ci-dessus)"
               className={`${inputCls} min-h-[60px] resize-none`} />
-            {prefill && sourceText.trim() === prefill.text.trim() && (
+            {citationOffsets && sourceText.trim() === sourceFullText.slice(citationOffsets.start, citationOffsets.end).trim() && (
               <p className="text-[11px] text-indigo-600 mt-1">Position dans le texte capturée — le passage sera surligné une fois validé.</p>
             )}
           </div>
@@ -1454,6 +1544,7 @@ export function ExtractionPage() {
         transcriptionVersionId={versionId!}
         initial={editingAssertion}
         prefill={addPrefill}
+        sourceFullText={plainText}
         onSaved={reloadEntitiesAndAssertions}
       />
 

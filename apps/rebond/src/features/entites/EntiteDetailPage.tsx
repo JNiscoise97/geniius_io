@@ -205,6 +205,23 @@ export function EntiteDetailPage() {
           )}
         </div>
 
+        {entity.mentions.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-3">Citée dans d'autres faits ({entity.mentions.length})</h2>
+            <div className="flex flex-col gap-2.5">
+              {entity.mentions.map(m => (
+                <div key={m.id} className="rounded-lg border border-gray-100 p-3">
+                  <p className="text-sm text-gray-800">{m.label}</p>
+                  {m.sourceText && <p className="text-xs text-gray-400 italic mt-1">« {m.sourceText} »</p>}
+                  <p className="text-[11px] text-gray-400 mt-1.5 flex items-center gap-1">
+                    <FileText className="w-3 h-3" />{m.documentTitre}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {entity.documents.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-3">Mentionnée dans {entity.documents.length} acte{entity.documents.length > 1 ? 's' : ''}</h2>

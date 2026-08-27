@@ -52,8 +52,12 @@ import AnalyseProfessionStatutFonction from './AnalyseProfessionStatutFonction';
 import AnalyseSignature from './AnalyseSignature';
 import RelationsAccordion from './RelationsAccordion';
 import { displayNom } from '@/lib/nom';
+import { formatDateToFrench } from '@/utils/date';
 import { fetchEntityAttributes, fetchEntityDetail, upsertEntityAttribute } from '@/features/entites/entites.service';
 import type { EntityAttribute, EntityDetail, EntityFact } from '@/features/entites/entites.types';
+import { RefSinglePickerSmart } from '@/components/shared/RefSinglePickerSmart';
+import { resolveRefTableClient } from '@/lib/supabase/refSchemaRouting';
+import { TriStateButton, type TriState } from '@/components/shared/TriStateButton';
 
 const tabs = [
   { label: 'Synthèse', icon: User },
@@ -71,14 +75,6 @@ const tabs = [
   { label: 'Hypothèses', icon: AlertCircle },
   { label: 'Réseau relationnel', icon: Share2 },
   { label: 'Notes de recherche', icon: FileText },
-];
-
-const historique = [
-  { date: '1832-04-12', label: 'Naissance à Basse-Terre' },
-  { date: '1851-07-03', label: 'Mariage avec Jean RIVIÈRE' },
-  { date: '1862-09-15', label: 'Naissance de Louise RIVIÈRE' },
-  { date: '1886-01-01', label: 'Mention dans le recensement de Basse-Terre' },
-  { date: '1891-05-22', label: 'Mention dans une donation chez Me DURAND' },
 ];
 
 // Prédicats retenus comme "attributs d'identité" analysables dans l'onglet
@@ -144,6 +140,253 @@ function analyzeAttributes(facts: EntityFact[]): AttributeGroup[] {
   return [...byCode.entries()]
     .map(([code, byValue]) => ({ code, label: ATTRIBUTE_PREDICATES[code], candidates: [...byValue.values()] }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+// Interprète la valeur brute d'un attribut "sex" validé (texte libre issu de
+// l'extraction : "masculin", "F", "femme"...) en code M/F pour l'icône et
+// les accords du header — retourne null si non reconnaissable plutôt que de
+// deviner.
+function inferSexeCode(raw: string): 'M' | 'F' | null {
+  const v = raw.trim().toLowerCase();
+  if (v === 'f' || v === 'm') return v.toUpperCase() as 'M' | 'F';
+  if (v.includes('fémin') || v.includes('femin') || v === 'femme') return 'F';
+  if (v.includes('mascul') || v === 'homme') return 'M';
+  return null;
+}
+
+// --- Onglet "Informations à valider" > "Par acte" ---
+//
+// Champs "acteur" pouvant être sourcés sur un fait précis d'un acte donné —
+// reprend la structure de l'ancienne table acteurs (acteurFieldGroups dans
+// types/analyse.ts), MAIS sans les champs "_ref" (sélecteurs de dictionnaire
+// de l'ancien modèle : id vers une table de référence, pas une valeur
+// textuelle en soi) ni les "_mention_toponyme" (spans bruts d'un outil de
+// liaison toponymique distinct). Demande explicite de l'utilisateur : "tous
+// les champs de l'ancienne table acteurs" — interprété comme "tous les
+// champs qui portent une valeur exploitable", pas les artefacts de
+// sélection d'UI qui n'ont aucun sens comme "valeur + fait source".
+type ActeurField = { key: string; label: string };
+type ActeurFieldGroup = { label: string; fields: ActeurField[] };
+
+const ACTEUR_FIELD_GROUPS: ActeurFieldGroup[] = [
+  { label: 'Identité', fields: [
+    { key: 'role', label: 'Rôle dans l’acte' },
+    { key: 'qualite', label: 'Qualité' },
+    { key: 'nom', label: 'Nom' },
+    { key: 'prenom', label: 'Prénom' },
+    { key: 'sexe', label: 'Sexe' },
+  ] },
+  { label: 'Âge & vie', fields: [
+    { key: 'age', label: 'Âge' },
+    { key: 'est_vivant', label: 'Vivant(e)' },
+  ] },
+  { label: 'Profession & statut', fields: [
+    { key: 'profession_brut', label: 'Profession' },
+    { key: 'statut_brut', label: 'Statut' },
+    { key: 'fonction', label: 'Fonction' },
+    { key: 'titre_honneur', label: 'Titre d’honneur' },
+  ] },
+  { label: 'Filiation', fields: [
+    { key: 'filiation', label: 'Filiation' },
+    { key: 'pere_est_cite', label: 'Père cité' },
+    { key: 'mere_est_citee', label: 'Mère citée' },
+  ] },
+  { label: 'Domicile & origine', fields: [
+    { key: 'domicile', label: 'Domicile' },
+    { key: 'residence_brut', label: 'Résidence' },
+    { key: 'origine', label: 'Origine' },
+  ] },
+  { label: 'Naissance', fields: [
+    { key: 'naissance_date', label: 'Date de naissance' },
+    { key: 'naissance_heure', label: 'Heure de naissance' },
+    { key: 'naissance_lieux', label: 'Lieu de naissance' },
+  ] },
+  { label: 'Décès', fields: [
+    { key: 'deces_date', label: 'Date de décès' },
+    { key: 'deces_heure', label: 'Heure de décès' },
+    { key: 'deces_lieux', label: 'Lieu de décès' },
+  ] },
+  { label: 'Lien avec l’acte', fields: [
+    { key: 'lien', label: 'Lien' },
+  ] },
+  { label: 'Déclarations', fields: [
+    { key: 'est_declarant', label: 'Déclarant(e)' },
+    { key: 'est_present', label: 'Présent(e)' },
+    { key: 'est_consentant', label: 'Consentant(e)' },
+    { key: 'a_assiste_naissance', label: 'A assisté à la naissance' },
+    { key: 'a_assiste_deces', label: 'A assisté au décès' },
+  ] },
+  { label: 'Signature', fields: [
+    { key: 'a_signe', label: 'A signé' },
+    { key: 'signature', label: 'Signature' },
+    { key: 'signature_libelle', label: 'Libellé de la signature' },
+  ] },
+  { label: 'Note', fields: [
+    { key: 'note', label: 'Note' },
+  ] },
+];
+
+// Prédicat de fait/relation -> champ acteur qu'il peut sourcer directement
+// (clic = pré-remplit + lie). Un prédicat absent de cette table reste
+// visible dans le panneau des faits pour contexte, mais n'est pas cliquable
+// — pas de champ où le ranger automatiquement.
+// Construite d'après la liste RÉELLE de rebond.ref_assertion_predicates
+// (81 codes actifs, vérifiés en base le 2026-08-14 — bien plus large que
+// les ~20 supposés lors de la première version, d'où le bug "Dame" non
+// reconnu : le prédicat est "title" (Titre de civilité), pas "function").
+// "quality" (Qualité / statut, distinct de la profession — ex. "fille
+// légitime", "propriétaire") reste volontairement NON mappé : sa valeur est
+// trop variable selon le contexte de l'acte pour un champ unique fiable ;
+// il reste visible dans "Faits non repris" plutôt que mal aiguillé.
+const PREDICATE_TO_FIELD: Record<string, string> = {
+  name: 'nom',
+  sex: 'sexe',
+  age: 'age',
+  occupation: 'profession_brut',
+  domicile: 'domicile',
+  residence: 'residence_brut',
+  marital_status: 'statut_brut',
+  title: 'qualite',
+  function: 'qualite',
+  birth_date: 'naissance_date',
+  birth_place: 'naissance_lieux',
+  birth_time: 'naissance_heure',
+  death_date: 'deces_date',
+  death_place: 'deces_lieux',
+  death_time: 'deces_heure',
+  witness: 'role',
+  comparant: 'role',
+  declarant: 'role',
+  officer_role: 'role',
+  present: 'est_present',
+  signs: 'a_signe',
+  cannot_sign: 'a_signe',
+  consent: 'est_consentant',
+};
+
+// Champs à vocabulaire contrôlé (2026-08-15, demande explicite) — ces
+// tables `ref_*` existent déjà, peuplées de données réelles de l'ancien
+// modèle (schéma `public`, jamais migrées vers `rebond` — d'où l'usage du
+// client par défaut via resolveRefTableClient, pas supabaseRebond) :
+// ref_qualite (5 : monsieur/dame/sieur/demoiselle/mademoiselle),
+// ref_profession (54), ref_situation_matrimoniale (9),
+// ref_filiation (8). Pas de "fonction" ici : aucune table équivalente pour
+// une fonction PERSONNELLE n'existe (ref_etat_civil_registre_fonction
+// concerne le REGISTRE, pas la personne) — reste en texte libre.
+const FIELD_REF_TABLE: Record<string, string> = {
+  qualite: 'ref_qualite',
+  profession_brut: 'ref_profession',
+  statut_brut: 'ref_situation_matrimoniale',
+  filiation: 'ref_filiation',
+};
+
+// "sexe" : pas de table ref_* dédiée dans l'ancien modèle (contrairement
+// aux 4 ci-dessus) — un vocabulaire à 2-3 valeurs fixes ne justifie pas un
+// tiroir de recherche, juste ces boutons inline (2026-08-15, décision
+// explicite après discussion : "je ne ferais pas un ref_* complet ici").
+const SEXE_OPTIONS = [
+  { value: 'masculin', label: 'Masculin' },
+  { value: 'féminin', label: 'Féminin' },
+  { value: 'indéterminé', label: 'Indéterminé' },
+];
+
+// Champs booléens (présence/absence/non-observé) rendus avec TriStateButton
+// (@/components/shared/TriStateButton, déjà utilisé ailleurs dans l'app)
+// plutôt qu'un champ texte — même esprit que "sexe" : le vocabulaire est
+// fixe (oui/non/inconnu), pas la peine d'un champ libre.
+const TRISTATE_FIELDS = new Set(['est_vivant', 'pere_est_cite', 'mere_est_citee']);
+
+function parseTriState(text: string | undefined): TriState {
+  if (!text) return null;
+  const v = text.trim().toLowerCase();
+  if (v === 'oui' || v === 'true') return true;
+  if (v === 'non' || v === 'false') return false;
+  return null;
+}
+
+// La valeur métier stockée (rebond.entity_attributes.value) est le LIBELLÉ
+// texte, pas l'id de la ligne ref_* choisie (cohérent avec tous les autres
+// champs, qui sont déjà du texte libre) — ce composant se contente donc de
+// résoudre l'id choisi en libellé avant de le remonter. Comme il n'existe
+// pas de colonne pour retrouver l'id déjà choisi à partir du texte
+// sauvegardé, le chip affiché est un texte "posé" via placeholderEmpty
+// plutôt qu'une vraie sélection résolue — limite acceptée pour cette
+// première version (le texte actuel reste visible, juste pas présélectionné
+// si on rouvre le tiroir).
+function RefFieldPicker({ table, currentValue, onPick }: { table: string; currentValue: string; onPick: (label: string) => void }) {
+  return (
+    <RefSinglePickerSmart
+      table={table}
+      mode='edit'
+      multi={false}
+      value={null}
+      placeholderEmpty={currentValue || 'Non renseigné'}
+      onChange={async (id) => {
+        if (!id) { onPick(''); return; }
+        const { data } = await resolveRefTableClient(table).from(table).select('label').eq('id', id).maybeSingle();
+        onPick((data as any)?.label ?? '');
+      }}
+    />
+  );
+}
+
+type ActeItem = {
+  id: string;
+  label: string;
+  sourceText: string;
+  fieldKey: string | null;
+  fieldValue: string;
+};
+
+// Faits + relations d'un acte précis, ramenés à une forme commune pour le
+// panneau de gauche du formulaire "Par acte".
+function buildActeItems(detail: EntityDetail | null, versionId: string): ActeItem[] {
+  if (!detail) return [];
+  const items: ActeItem[] = [];
+  for (const f of detail.facts) {
+    if (f.versionId !== versionId) continue;
+    const value = f.valueText ?? f.valueDate ?? (f.valueNumber != null ? String(f.valueNumber) : '');
+    items.push({ id: f.id, label: f.label, sourceText: f.sourceText, fieldKey: PREDICATE_TO_FIELD[f.predicateCode] ?? null, fieldValue: value ?? '' });
+  }
+  for (const r of detail.relations) {
+    if (r.versionId !== versionId) continue;
+    items.push({ id: r.id, label: `${r.predicateLabel} : ${r.targetLabel}`, sourceText: '', fieldKey: 'role', fieldValue: r.ownRoleLabel });
+  }
+  return items;
+}
+
+// Ligne de vie : une ligne par acte, remplie UNIQUEMENT à partir des champs
+// déjà validés/sourcés ("Informations à valider" > "Par acte") — plus de
+// déduction automatique non tracée (la version précédente devinait la
+// correspondance prédicat->colonne sans validation, rejetée explicitement
+// par l'utilisateur : "ça ne va pas").
+function buildValidatedActeRows(detail: EntityDetail | null, attrs: EntityAttribute[]): any[] {
+  if (!detail) return [];
+  const byVersion = new Map<string, any>();
+  for (const doc of detail.documents) {
+    byVersion.set(doc.versionId, {
+      id: doc.versionId,
+      acte_id: doc.versionId,
+      exemplaire_id: doc.exemplaireId,
+      version_id: doc.versionId,
+      acte_label: doc.titre,
+      acte_date: doc.date,
+    });
+  }
+  for (const a of attrs) {
+    if (!a.versionId) continue;
+    const row = byVersion.get(a.versionId);
+    if (row) row[a.attributeCode] = a.value;
+  }
+  return [...byVersion.values()];
+}
+
+// Affiche une date validée en français si elle est au format ISO
+// (rebond.entity_attributes.value garde le texte brut de l'attribut, qui
+// peut être une date ISO comme un texte libre selon ce que l'extraction a
+// trouvé) — sinon affiche la valeur telle quelle.
+function formatAttributeValue(value: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatDateToFrench(value) : value;
 }
 
 export default function IndividuLayout() {
@@ -255,6 +498,7 @@ export default function IndividuLayout() {
   }, [individuId]);
 
   const attributeGroups = analyzeAttributes(entityDetail?.facts ?? []);
+  const enrichisRows = buildValidatedActeRows(entityDetail, validatedAttributes);
 
   async function handleValidateAttribute(code: string, candidate: AttributeCandidate) {
     if (!individuId) return;
@@ -268,6 +512,125 @@ export default function IndividuLayout() {
       toast.error(err?.message ?? 'Erreur lors de la validation');
     } finally {
       setSavingAttribute(null);
+    }
+  }
+
+  // Sous-onglet "Par acte" : liste des actes -> fiche acteur. La fiche
+  // s'auto-suggère (un champ dont un seul fait de l'acte porte le
+  // prédicat correspondant se pré-remplit tout seul, sourcé, à confirmer
+  // d'un clic) plutôt que d'obliger à cliquer chaque fait un par un dans
+  // un panneau séparé (rejeté explicitement : "l'écran n'est pas très
+  // intuitif"). Rien n'est écrit en base tant que le champ n'est pas
+  // confirmé ("Valider ce champ") ou édité à la main (sauvegarde au blur).
+  const [infoSubTab, setInfoSubTab] = useState<'synthese' | 'parActe'>('synthese');
+  const [selectedActeVersionId, setSelectedActeVersionId] = useState<string | null>(null);
+  const [fieldDrafts, setFieldDrafts] = useState<Record<string, string>>({});
+  const [fieldDraftFactId, setFieldDraftFactId] = useState<Record<string, string | null>>({});
+  const [perActeSaving, setPerActeSaving] = useState<string | null>(null);
+  // Lien manuel (2026-08-15, demande explicite : "comment je peux lier un
+  // fait à un champ") — jusqu'ici seul PREDICATE_TO_FIELD pouvait proposer
+  // un candidat ; un fait sans correspondance mappée (ou mal mappée) n'avait
+  // aucun moyen d'être lié à un champ. Ce sélecteur permet de choisir
+  // N'IMPORTE QUEL fait/relation de l'acte pour N'IMPORTE QUEL champ.
+  const [linkPickerField, setLinkPickerField] = useState<string | null>(null);
+
+  const acteItems = selectedActeVersionId ? buildActeItems(entityDetail, selectedActeVersionId) : [];
+  const itemsByField = new Map<string, ActeItem[]>();
+  const unmappedItems: ActeItem[] = [];
+  for (const item of acteItems) {
+    if (!item.fieldKey) { unmappedItems.push(item); continue; }
+    const arr = itemsByField.get(item.fieldKey) ?? [];
+    arr.push(item);
+    itemsByField.set(item.fieldKey, arr);
+  }
+
+  useEffect(() => {
+    if (!selectedActeVersionId) {
+      setFieldDrafts({});
+      setFieldDraftFactId({});
+      return;
+    }
+    const drafts: Record<string, string> = {};
+    const draftFactIds: Record<string, string | null> = {};
+    for (const group of ACTEUR_FIELD_GROUPS) {
+      for (const field of group.fields) {
+        const existing = validatedAttributes.find((a) => a.attributeCode === field.key && a.versionId === selectedActeVersionId);
+        if (existing) {
+          drafts[field.key] = existing.value;
+          draftFactIds[field.key] = existing.sourceFactIds[0] ?? null;
+          continue;
+        }
+        const candidates = itemsByField.get(field.key) ?? [];
+        if (candidates.length === 1) {
+          drafts[field.key] = candidates[0].fieldValue;
+          draftFactIds[field.key] = candidates[0].id;
+        }
+      }
+    }
+    setFieldDrafts(drafts);
+    setFieldDraftFactId(draftFactIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedActeVersionId, entityDetail, validatedAttributes]);
+
+  function handleCandidatePick(fieldKey: string, item: ActeItem) {
+    setFieldDrafts((prev) => ({ ...prev, [fieldKey]: item.fieldValue }));
+    setFieldDraftFactId((prev) => ({ ...prev, [fieldKey]: item.id }));
+  }
+
+  async function handleConfirmField(fieldKey: string) {
+    if (!individuId || !selectedActeVersionId) return;
+    const value = fieldDrafts[fieldKey]?.trim();
+    if (!value) return;
+    const factId = fieldDraftFactId[fieldKey];
+    setPerActeSaving(fieldKey);
+    try {
+      await upsertEntityAttribute(individuId, fieldKey, value, factId ? [factId] : [], selectedActeVersionId);
+      const refreshed = await fetchEntityAttributes(individuId);
+      setValidatedAttributes(refreshed);
+      toast.success('Champ validé');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de l’enregistrement');
+    } finally {
+      setPerActeSaving(null);
+    }
+  }
+
+  async function handleFieldBlur(fieldKey: string) {
+    if (!individuId || !selectedActeVersionId) return;
+    const value = fieldDrafts[fieldKey]?.trim();
+    const existing = validatedAttributes.find((a) => a.attributeCode === fieldKey && a.versionId === selectedActeVersionId);
+    if (!value || existing?.value === value) return;
+    setPerActeSaving(fieldKey);
+    try {
+      await upsertEntityAttribute(individuId, fieldKey, value, existing?.sourceFactIds ?? [], selectedActeVersionId);
+      const refreshed = await fetchEntityAttributes(individuId);
+      setValidatedAttributes(refreshed);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de l’enregistrement');
+    } finally {
+      setPerActeSaving(null);
+    }
+  }
+
+  // Choix depuis un référentiel (ref_qualite/ref_profession/...) — sauvegarde
+  // immédiate (contrairement à la saisie libre, pas besoin d'attendre un
+  // blur : le choix dans le tiroir est déjà un geste déliberé). Conserve la
+  // source déjà liée si le champ était sourcé — un choix dans le
+  // référentiel est une normalisation du texte, pas un reniement du fait.
+  async function handleRefPick(fieldKey: string, label: string) {
+    setFieldDrafts((prev) => ({ ...prev, [fieldKey]: label }));
+    if (!individuId || !selectedActeVersionId || !label) return;
+    const existing = validatedAttributes.find((a) => a.attributeCode === fieldKey && a.versionId === selectedActeVersionId);
+    setPerActeSaving(fieldKey);
+    try {
+      await upsertEntityAttribute(individuId, fieldKey, label, existing?.sourceFactIds ?? [], selectedActeVersionId);
+      const refreshed = await fetchEntityAttributes(individuId);
+      setValidatedAttributes(refreshed);
+      toast.success('Champ mis à jour');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de l’enregistrement');
+    } finally {
+      setPerActeSaving(null);
     }
   }
 
@@ -480,6 +843,31 @@ export default function IndividuLayout() {
     })(),
   };
 
+  // Header : priorité aux informations validées manuellement (onglet
+  // "Informations à valider", rebond.entity_attributes) sur les données de
+  // l'ancien modèle — pour une entité du nouveau registre canonique, seules
+  // les informations validées existent. "date indéterminée"/valeur absente
+  // ne s'affichent plus (avant, le header montrait toujours ces placeholders
+  // même sans aucune donnée).
+  const validatedSex = validatedAttributes.find((a) => a.attributeCode === 'sex' && a.versionId === null);
+  const sexeCode: 'M' | 'F' | null =
+    (validatedSex ? inferSexeCode(validatedSex.value) : null) ??
+    (activeIndividu?.sexe === 'M' || activeIndividu?.sexe === 'F' ? activeIndividu.sexe : null);
+
+  const validatedBirthDate = validatedAttributes.find((a) => a.attributeCode === 'birth_date' && a.versionId === null);
+  const naissanceDisplay = validatedBirthDate
+    ? formatAttributeValue(validatedBirthDate.value)
+    : naissance.date && naissance.date !== 'date indéterminée'
+      ? naissance.date
+      : null;
+
+  const validatedDeathDate = validatedAttributes.find((a) => a.attributeCode === 'death_date' && a.versionId === null);
+  const decesDisplay = validatedDeathDate
+    ? formatAttributeValue(validatedDeathDate.value)
+    : deces.date && deces.date !== 'date indéterminée'
+      ? deces.date
+      : null;
+
   return (
     <>
       {isLoading && (
@@ -526,17 +914,17 @@ export default function IndividuLayout() {
                   </Link>
                 )}
 
-                {activeIndividu.sexe === 'M' && (
+                {sexeCode === 'M' && (
                   <Mars className='w-4 h-4 text-blue-500'>
                     <title>Homme</title>
                   </Mars>
                 )}
-                {activeIndividu.sexe === 'F' && (
+                {sexeCode === 'F' && (
                   <Venus className='w-4 h-4 text-pink-500'>
                     <title>Femme</title>
                   </Venus>
                 )}
-                {!['M', 'F'].includes(activeIndividu.sexe) && (
+                {!sexeCode && (
                   <Circle className='w-4 h-4 text-gray-400'>
                     <title>Genre non précisé</title>
                   </Circle>
@@ -548,15 +936,15 @@ export default function IndividuLayout() {
 
                 <span className='text-sm text-gray-500'>
                   {[
-                    (activeIndividu.sexe === 'F' ? 'née ' : 'né ') + naissance.date,
-                    (activeIndividu.sexe === 'F' ? 'décédée ' : 'décédé ') + deces.date,
+                    naissanceDisplay && (sexeCode === 'F' ? 'née ' : 'né ') + naissanceDisplay,
+                    decesDisplay && (sexeCode === 'F' ? 'décédée ' : 'décédé ') + decesDisplay,
                   ]
                     .filter(Boolean)
                     .join(' - ')}
 
                   {unions && unions.length > 0 && (
                     <>
-                      {' • ' + (activeIndividu.sexe === 'F' ? 'épouse' : 'époux') + ' de : '}
+                      {' • ' + (sexeCode === 'F' ? 'épouse' : 'époux') + ' de : '}
                       {unions
                         .filter((union) => union.type_union === 'mariage civil')
                         .map((union, index) => {
@@ -629,19 +1017,7 @@ export default function IndividuLayout() {
               <h2 className='text-lg font-semibold mb-4'>{activeSection}</h2>
               {activeSection === 'Ligne de vie' ? (
                 <div className='space-y-4'>
-                  {historique.map((event) => (
-                    <div key={event.date} className='flex gap-4 items-start'>
-                      <div className='w-28 text-right text-sm text-gray-500'>
-                        {new Date(event.date).toLocaleDateString('fr-FR')}
-                      </div>
-                      <div className='flex-1 text-sm text-gray-800 border-l-2 border-blue-500 pl-4'>
-                        {event.label}
-                      </div>
-                    </div>
-                  ))}
-                  <Separator />
-
-                  <IndividuLigneDeVieTable enrichis={acteursByIndividu} pageSize={-1} />
+                  <IndividuLigneDeVieTable enrichis={enrichisRows} pageSize={-1} />
                 </div>
               ) : activeSection === 'Synthèse' ? (
                 <>
@@ -857,73 +1233,302 @@ export default function IndividuLayout() {
                 </div>
               ) : activeSection === 'Informations à valider' ? (
                 <div className='space-y-4 not-prose'>
-                  <p className='text-xs text-gray-500 -mt-2'>
-                    Faits regroupés par type d'information. Quand plusieurs actes se contredisent, choisis
-                    la valeur à retenir ; sinon, confirme la valeur trouvée. Le choix est mémorisé pour cette
-                    fiche.
-                  </p>
-                  {entityDetailLoading && !entityDetail ? (
+                  <div className='flex items-center gap-2'>
+                    {([
+                      ['synthese', 'Synthèse'],
+                      ['parActe', 'Par acte'],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => { setInfoSubTab(key); setSelectedActeVersionId(null); }}
+                        className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-colors ${
+                          infoSubTab === key ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {infoSubTab === 'synthese' ? (
+                    <div className='space-y-4'>
+                      <p className='text-xs text-gray-500'>
+                        Faits regroupés par type d'information, tous actes confondus. Quand plusieurs actes se
+                        contredisent, choisis la valeur à retenir ; sinon, confirme la valeur trouvée.
+                      </p>
+                      {entityDetailLoading && !entityDetail ? (
+                        <p className='text-xs text-gray-400 italic flex items-center gap-1.5'>
+                          <Loader2 className='w-3.5 h-3.5 animate-spin' />Chargement…
+                        </p>
+                      ) : attributeGroups.length === 0 ? (
+                        <p className='text-xs text-gray-400 italic'>Aucune information analysable pour l’instant.</p>
+                      ) : (
+                        attributeGroups.map((group) => {
+                          const validated = validatedAttributes.find((a) => a.attributeCode === group.code && a.versionId === null);
+                          return (
+                            <div key={group.code} className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
+                              <div className='flex items-center justify-between mb-3'>
+                                <h2 className='text-sm font-semibold text-gray-800'>{group.label}</h2>
+                                {group.candidates.length > 1 && (
+                                  <span className='text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5'>
+                                    {group.candidates.length} valeurs concurrentes
+                                  </span>
+                                )}
+                              </div>
+
+                              {validated && (
+                                <div className='flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 mb-3'>
+                                  <CheckCircle2 className='w-3.5 h-3.5 shrink-0' />
+                                  Validé : {validated.value}
+                                </div>
+                              )}
+
+                              <div className='flex flex-col gap-1.5'>
+                                {group.candidates.map((c) => {
+                                  const isRetenue = validated?.value.trim().toLowerCase() === c.normalizedValue;
+                                  return (
+                                    <div
+                                      key={c.normalizedValue}
+                                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                                        isRetenue ? 'border-emerald-300 bg-emerald-50/50' : 'border-gray-100'
+                                      }`}
+                                    >
+                                      <div className='min-w-0'>
+                                        <p className='text-sm text-gray-800'>{c.value}</p>
+                                        <p className='text-[11px] text-gray-400 mt-0.5'>
+                                          {c.factIds.length} fait{c.factIds.length > 1 ? 's' : ''} · {c.documentTitres.join(', ')}
+                                        </p>
+                                      </div>
+                                      <button
+                                        onClick={() => handleValidateAttribute(group.code, c)}
+                                        disabled={savingAttribute === group.code || isRetenue}
+                                        className='shrink-0 flex items-center gap-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-40 transition-colors'
+                                      >
+                                        {savingAttribute === group.code ? (
+                                          <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                                        ) : isRetenue ? (
+                                          <CheckCircle2 className='w-3.5 h-3.5' />
+                                        ) : null}
+                                        {isRetenue ? 'Retenue' : 'Valider'}
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  ) : entityDetailLoading && !entityDetail ? (
                     <p className='text-xs text-gray-400 italic flex items-center gap-1.5'>
                       <Loader2 className='w-3.5 h-3.5 animate-spin' />Chargement…
                     </p>
-                  ) : attributeGroups.length === 0 ? (
-                    <p className='text-xs text-gray-400 italic'>Aucune information analysable pour l’instant.</p>
-                  ) : (
-                    attributeGroups.map((group) => {
-                      const validated = validatedAttributes.find((a) => a.attributeCode === group.code);
-                      return (
-                        <div key={group.code} className='bg-white rounded-xl border border-gray-200 shadow-sm p-5'>
-                          <div className='flex items-center justify-between mb-3'>
-                            <h2 className='text-sm font-semibold text-gray-800'>{group.label}</h2>
-                            {group.candidates.length > 1 && (
-                              <span className='text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5'>
-                                {group.candidates.length} valeurs concurrentes
-                              </span>
-                            )}
-                          </div>
-
-                          {validated && (
-                            <div className='flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 mb-3'>
-                              <CheckCircle2 className='w-3.5 h-3.5 shrink-0' />
-                              Validé : {validated.value}
-                            </div>
-                          )}
-
-                          <div className='flex flex-col gap-1.5'>
-                            {group.candidates.map((c) => {
-                              const isRetenue = validated?.value.trim().toLowerCase() === c.normalizedValue;
+                  ) : !selectedActeVersionId ? (
+                    <div className='space-y-2'>
+                      <p className='text-xs text-gray-500'>
+                        Choisis un acte pour reconstituer sa fiche acteur, champ par champ, sourcée sur les faits
+                        de cet acte précis.
+                      </p>
+                      {!entityDetail || entityDetail.documents.length === 0 ? (
+                        <p className='text-xs text-gray-400 italic'>Aucun acte pour l’instant.</p>
+                      ) : (
+                        <div className='flex flex-col gap-1.5'>
+                          {[...entityDetail.documents]
+                            .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+                            .map((doc) => {
+                              const filledCount = validatedAttributes.filter((a) => a.versionId === doc.versionId).length;
                               return (
-                                <div
-                                  key={c.normalizedValue}
-                                  className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
-                                    isRetenue ? 'border-emerald-300 bg-emerald-50/50' : 'border-gray-100'
-                                  }`}
+                                <button
+                                  key={doc.versionId}
+                                  onClick={() => setSelectedActeVersionId(doc.versionId)}
+                                  className='flex items-center justify-between text-left bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 hover:border-indigo-300 transition-colors'
                                 >
-                                  <div className='min-w-0'>
-                                    <p className='text-sm text-gray-800'>{c.value}</p>
-                                    <p className='text-[11px] text-gray-400 mt-0.5'>
-                                      {c.factIds.length} fait{c.factIds.length > 1 ? 's' : ''} · {c.documentTitres.join(', ')}
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => handleValidateAttribute(group.code, c)}
-                                    disabled={savingAttribute === group.code || isRetenue}
-                                    className='shrink-0 flex items-center gap-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-40 transition-colors'
-                                  >
-                                    {savingAttribute === group.code ? (
-                                      <Loader2 className='w-3.5 h-3.5 animate-spin' />
-                                    ) : isRetenue ? (
-                                      <CheckCircle2 className='w-3.5 h-3.5' />
-                                    ) : null}
-                                    {isRetenue ? 'Retenue' : 'Valider'}
-                                  </button>
-                                </div>
+                                  <span className='text-sm text-gray-800'>
+                                    {doc.titre}
+                                    {doc.date && <span className='text-gray-400'> — {formatAttributeValue(doc.date)}</span>}
+                                  </span>
+                                  <span className='text-[11px] text-gray-400'>
+                                    {filledCount > 0 ? `${filledCount} champ${filledCount > 1 ? 's' : ''} sourcé${filledCount > 1 ? 's' : ''}` : 'rien de sourcé'}
+                                  </span>
+                                </button>
                               );
                             })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    (() => {
+                      const acteDoc = entityDetail?.documents.find((d) => d.versionId === selectedActeVersionId);
+                      return (
+                        <div className='space-y-4'>
+                          <button
+                            onClick={() => setSelectedActeVersionId(null)}
+                            className='flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700'
+                          >
+                            <ArrowLeft className='w-3.5 h-3.5' />Retour à la liste des actes
+                          </button>
+                          <p className='text-sm font-medium text-gray-800'>{acteDoc?.titre}</p>
+
+                          <div className='space-y-4'>
+                            {ACTEUR_FIELD_GROUPS.map((group) => (
+                              <div key={group.label} className='bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3'>
+                                <p className='text-[11px] font-semibold text-gray-400 uppercase tracking-wide'>{group.label}</p>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                                  {group.fields.map((field) => {
+                                    const sourced = validatedAttributes.find((a) => a.attributeCode === field.key && a.versionId === selectedActeVersionId);
+                                    const candidates = itemsByField.get(field.key) ?? [];
+                                    const activeFactId = fieldDraftFactId[field.key] ?? null;
+                                    const activeCandidate = candidates.find((c) => c.id === activeFactId);
+                                    const isConfirmed = !!sourced && (!activeFactId || sourced.sourceFactIds[0] === activeFactId);
+                                    const showConfirmButton = !!activeFactId && !isConfirmed;
+
+                                    return (
+                                      <div
+                                        key={field.key}
+                                        className={`rounded-lg border p-2.5 ${
+                                          isConfirmed ? 'border-emerald-200 bg-emerald-50/40' : showConfirmButton ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100'
+                                        }`}
+                                      >
+                                        <div className='flex items-center justify-between'>
+                                          <span className='text-xs text-gray-500'>{field.label}</span>
+                                          <div className='flex items-center gap-1'>
+                                            <button
+                                              onClick={() => setLinkPickerField((cur) => (cur === field.key ? null : field.key))}
+                                              title='Lier un fait de cet acte à ce champ'
+                                              className={`p-0.5 rounded ${linkPickerField === field.key ? 'text-indigo-600 bg-indigo-100' : 'text-gray-300 hover:text-indigo-500 hover:bg-gray-50'}`}
+                                            >
+                                              <Link2 className='w-3.5 h-3.5' />
+                                            </button>
+                                            {isConfirmed && <CheckCircle2 className='w-3.5 h-3.5 text-emerald-500 shrink-0' />}
+                                          </div>
+                                        </div>
+                                        {field.key === 'sexe' ? (
+                                          <div className='flex flex-wrap gap-1 mt-1'>
+                                            {SEXE_OPTIONS.map((opt) => (
+                                              <button
+                                                key={opt.value}
+                                                onClick={() => handleRefPick(field.key, opt.value)}
+                                                className={`text-[11px] rounded-full px-2 py-0.5 border transition-colors ${
+                                                  (fieldDrafts[field.key] ?? '').toLowerCase() === opt.value
+                                                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                                                }`}
+                                              >
+                                                {opt.label}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        ) : TRISTATE_FIELDS.has(field.key) ? (
+                                          <div className='mt-1'>
+                                            <TriStateButton
+                                              value={parseTriState(fieldDrafts[field.key])}
+                                              onChange={(v) => handleRefPick(field.key, v === null || v === undefined ? '' : v ? 'oui' : 'non')}
+                                              compact
+                                              unknownLabel='Non renseigné'
+                                              noLabel='Non'
+                                              yesLabel='Oui'
+                                            />
+                                          </div>
+                                        ) : FIELD_REF_TABLE[field.key] ? (
+                                          <div className='mt-1'>
+                                            <RefFieldPicker
+                                              table={FIELD_REF_TABLE[field.key]}
+                                              currentValue={fieldDrafts[field.key] ?? ''}
+                                              onPick={(label) => handleRefPick(field.key, label)}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <input
+                                            value={fieldDrafts[field.key] ?? ''}
+                                            onChange={(e) => {
+                                              setFieldDrafts((prev) => ({ ...prev, [field.key]: e.target.value }));
+                                              setFieldDraftFactId((prev) => ({ ...prev, [field.key]: null }));
+                                            }}
+                                            onBlur={() => handleFieldBlur(field.key)}
+                                            className='w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
+                                          />
+                                        )}
+                                        {activeCandidate && (
+                                          <p className='text-[11px] text-gray-400 italic mt-1'>
+                                            Source : « {activeCandidate.sourceText || activeCandidate.label} »
+                                          </p>
+                                        )}
+                                        {candidates.length > 1 && (
+                                          <div className='flex flex-wrap gap-1 mt-1.5'>
+                                            {candidates.map((c) => (
+                                              <button
+                                                key={c.id}
+                                                onClick={() => handleCandidatePick(field.key, c)}
+                                                className={`text-[11px] rounded-full px-2 py-0.5 border transition-colors ${
+                                                  activeFactId === c.id
+                                                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                                                }`}
+                                              >
+                                                {c.fieldValue}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        )}
+                                        {linkPickerField === field.key && (
+                                          <div className='mt-1.5 border border-gray-200 rounded-lg bg-white max-h-48 overflow-y-auto divide-y divide-gray-100'>
+                                            {acteItems.length === 0 ? (
+                                              <p className='text-[11px] text-gray-400 italic p-2'>Aucun fait sur cet acte.</p>
+                                            ) : (
+                                              acteItems.map((item) => (
+                                                <button
+                                                  key={item.id}
+                                                  onClick={() => { handleCandidatePick(field.key, item); setLinkPickerField(null); }}
+                                                  className='block w-full text-left px-2 py-1.5 text-[11px] hover:bg-indigo-50'
+                                                >
+                                                  <span className='text-gray-700'>{item.label}</span>
+                                                  {item.sourceText && <span className='text-gray-400 italic'> — « {item.sourceText} »</span>}
+                                                </button>
+                                              ))
+                                            )}
+                                          </div>
+                                        )}
+                                        {showConfirmButton && (
+                                          <button
+                                            onClick={() => handleConfirmField(field.key)}
+                                            disabled={perActeSaving === field.key}
+                                            className='mt-1.5 flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-40'
+                                          >
+                                            {perActeSaving === field.key ? (
+                                              <Loader2 className='w-3 h-3 animate-spin' />
+                                            ) : (
+                                              <CheckCircle2 className='w-3 h-3' />
+                                            )}
+                                            Valider ce champ
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
                           </div>
+
+                          {unmappedItems.length > 0 && (
+                            <details className='bg-white rounded-xl border border-gray-100 p-4'>
+                              <summary className='text-xs font-medium text-gray-500 cursor-pointer'>
+                                Faits non repris dans la fiche ({unmappedItems.length})
+                              </summary>
+                              <div className='mt-3 space-y-2'>
+                                {unmappedItems.map((item) => (
+                                  <div key={item.id} className='text-sm text-gray-700'>
+                                    {item.label}
+                                    {item.sourceText && <p className='text-xs text-gray-400 italic'>« {item.sourceText} »</p>}
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          )}
                         </div>
                       );
-                    })
+                    })()
                   )}
                 </div>
               ) : activeSection === 'Détails' ? (

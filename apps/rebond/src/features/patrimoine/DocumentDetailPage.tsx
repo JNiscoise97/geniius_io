@@ -21,7 +21,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
-import { fetchRoleDocumentOptions } from './patrimoine.service'
+import { fetchRoleDocumentOptions, CITATION_ACTE_TARGET_TYPES } from './patrimoine.service'
 import { unpackMarginalia, packMarginalia, unpackWriting, packWriting, toIntOrNull } from './citationJsonb'
 
 const inputCls = 'w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
@@ -330,7 +330,7 @@ export function DocumentDetailPage() {
         return
       }
       const { data: existingCit, error: findErr } = await supabaseRebond.from('citations')
-        .select('target_type, target_id').in('exemplaire_id', siblingIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).limit(1).maybeSingle()
+        .select('target_type, target_id').in('exemplaire_id', siblingIds).in('target_type', CITATION_ACTE_TARGET_TYPES).limit(1).maybeSingle()
       if (findErr) throw findErr
       if (!existingCit) {
         toast.error("Aucun autre exemplaire de ce document n'est encore relié à un acte/une table.")
@@ -428,7 +428,7 @@ export function DocumentDetailPage() {
         const existingIds = exemplaires.map(e => e.id)
         if (existingIds.length > 0) {
           const { data: existingCit } = await supabaseRebond.from('citations')
-            .select('target_type, target_id').in('exemplaire_id', existingIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte']).limit(1).maybeSingle()
+            .select('target_type, target_id').in('exemplaire_id', existingIds).in('target_type', CITATION_ACTE_TARGET_TYPES).limit(1).maybeSingle()
           if (existingCit) {
             const { data: newCit } = await supabaseRebond.from('citations').insert({
               exemplaire_id: data.id, target_type: existingCit.target_type, target_id: existingCit.target_id,
@@ -555,7 +555,7 @@ export function DocumentDetailPage() {
       if (exIds.length) {
         const { data: cits } = await supabaseRebond.from('citations')
           .select('id, exemplaire_id, target_type, is_missing, lacune, lacune_note, locating, repro_quality_ref, marks, marginalia, writing, note')
-          .in('exemplaire_id', exIds).in('target_type', ['ec_acte', 'ec_table', 'hyp_acte'])
+          .in('exemplaire_id', exIds).in('target_type', CITATION_ACTE_TARGET_TYPES)
         if (cancelled) return
         for (const c of cits ?? []) citByExemplaire.set(c.exemplaire_id, c)
       }

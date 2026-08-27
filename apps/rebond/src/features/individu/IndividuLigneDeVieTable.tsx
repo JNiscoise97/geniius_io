@@ -18,6 +18,12 @@ import { StatusPill } from '../../components/shared/StatusPill';
 interface LigneDeVieRow {
   acteId: string;
   sourceTable: string;
+  // Présents seulement pour des lignes dérivées du nouveau registre canonique
+  // (rebond.entities, via entites.service.ts) — permettent de lier vers le
+  // bon acte dans le nouveau rebond plutôt que vers /ec-acte/:id (ancien
+  // modèle, route qui n'existe pas ici).
+  exemplaireId?: string;
+  versionId?: string;
   acteLabel: string;
   acteStatut: string;
   acteNumero: string;
@@ -110,6 +116,8 @@ export default function IndividuLigneDeVieTable({
     const fullRows: LigneDeVieRow[] = data.map((acteur) => ({
       acteId: acteur.acte_id,
       sourceTable: acteur.source_table,
+      exemplaireId: acteur.exemplaire_id,
+      versionId: acteur.version_id,
       acteLabel: acteur.acte_label || '',
       acteNumero: acteur.numero_acte || '',
       acteStatut: acteur.acte_statut || '',
@@ -159,10 +167,12 @@ export default function IndividuLigneDeVieTable({
       key: 'acteLabel',
       label: 'Acte',
       render: (row) => {
-        const base = row.sourceTable === 'etat_civil_actes' ? 'ec-acte' : 'ac-acte';
+        const href = row.exemplaireId
+          ? `/atelier-documentaire/exemplaires/${row.exemplaireId}/versions/${row.versionId}/extraction`
+          : `/${row.sourceTable === 'etat_civil_actes' ? 'ec-acte' : 'ac-acte'}/${row.acteId}`;
         return (
           <a
-            href={`/${base}/${row.acteId}`}
+            href={href}
             target='_blank'
             rel='noopener noreferrer'
             className='inline-flex items-center gap-1 hover:text-indigo-600'
@@ -177,10 +187,12 @@ export default function IndividuLigneDeVieTable({
       key: 'acteRaccourci',
       label: "Raccourci vers l'acte",
       render: (row) => {
-        const base = row.sourceTable === 'etat_civil_actes' ? 'ec-acte' : 'ac-acte';
+        const href = row.exemplaireId
+          ? `/atelier-documentaire/exemplaires/${row.exemplaireId}/versions/${row.versionId}/extraction`
+          : `/${row.sourceTable === 'etat_civil_actes' ? 'ec-acte' : 'ac-acte'}/${row.acteId}`;
         return (
           <a
-            href={`/${base}/${row.acteId}`}
+            href={href}
             target='_blank'
             rel='noopener noreferrer'
             className='inline-flex items-center gap-1 hover:text-indigo-600'
@@ -226,6 +238,10 @@ export default function IndividuLigneDeVieTable({
       key: 'dissocier',
       label: 'Dissocier',
       render: (row) => {
+        // Rien à dissocier pour une ligne dérivée du nouveau registre
+        // canonique (pas de sourceTable) — deleteActeurIndividuRelation
+        // n'a de sens que sur l'ancien modèle (rebond_individus_mapping).
+        if (!row.sourceTable) return null;
         return (
           <Button
             size='sm'

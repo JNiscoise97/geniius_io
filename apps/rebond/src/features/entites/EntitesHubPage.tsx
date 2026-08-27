@@ -142,7 +142,13 @@ export function EntitesHubPage() {
                 key={item.id}
                 item={item}
                 onClick={() =>
-                  navigate(item.entityType === 'person' ? `/individu/${item.id}` : `/entites/${item.id}`)
+                  navigate(
+                    item.entityType === 'person'
+                      ? `/individu/${item.id}`
+                      : item.entityType === 'place'
+                        ? `/lieu/${item.id}`
+                        : `/entites/${item.id}`
+                  )
                 }
               />
             ))}

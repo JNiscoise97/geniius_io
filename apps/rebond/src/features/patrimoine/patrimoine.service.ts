@@ -5,6 +5,20 @@
 import { supabaseRebond } from '@/lib/supabase'
 import type { LocatingJson, MarginaliaJson } from './citationJsonb'
 
+// Types de citation qui représentent "l'acte/table" propre à une série
+// documentaire — la cible qu'on cherche quand on veut retrouver LA citation
+// d'un exemplaire qui porte le statut/la qualité/les zones attendues d'un
+// document (par opposition à d'autres citations possibles, ex. annexes).
+// Centralisé ici le 2026-08-16 après un bug signalé sur un acte notarié
+// ("zones spécifiques non qualifiées") : la liste était dupliquée dans 7
+// endroits (atelier.service.ts, DocumentDetailPage.tsx,
+// PatrimoineDocumentairePage.tsx, usePatrimoine.ts) et n'avait pas suivi
+// l'ajout de 'ac_acte' (notariat, voir SERIE_TARGET_TYPE dans
+// ReferenceWizardPage.tsx) — déjà arrivé une fois avec 'hyp_acte' avant
+// d'être recorrigé. Un seul point à toucher désormais pour une future série.
+export const CITATION_ACTE_TARGET_TYPES = ['ec_acte', 'ec_table', 'hyp_acte', 'ac_acte'] as const
+export type CitationActeTargetType = typeof CITATION_ACTE_TARGET_TYPES[number]
+
 // ── Types DB bruts ────────────────────────────────────────────
 
 export type VSourceRow = {
