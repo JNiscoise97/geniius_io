@@ -1,8 +1,8 @@
 import graphUrl from "./data/family-graph.generated.json?url"
 import type { FamilyGraphData } from "./types/graph"
-import { supabase } from "../../lib/supabase/client"
+import { bridgeGetJson, BridgeError } from "../../lib/bridge/client"
+import { convertTreeSnapshotToFamilyGraph, type TreeSnapshotJson } from "./convertTreeSnapshot"
 
-const TREE_FILES_BUCKET = "tree-files"
 const EMPTY_GRAPH: FamilyGraphData = { people: {}, families: {}, media: {} }
 
 // ── État courant ──────────────────────────────────────────────────────────────
@@ -34,9 +34,18 @@ export function getDemoGraphPromise(): Promise<FamilyGraphData> {
   return _demoGraphPromise
 }
 
-// ── Graphe d'un arbre importé (Supabase Storage, {treeId}/graph/graph.json) ─────
+// ── Graphe d'un arbre réel (pont admin, GET /trees/:id/current) ─────────────────
+// Le pont déchiffre côté serveur et renvoie le JSON en clair (voir
+// bridge/lib/src/current_tree_handler.dart) — ce module n'a donc jamais à
+// connaître K_tree ni à faire de crypto. Converti depuis le format Dart
+// (TreeSnapshot) vers FamilyGraphData (voir convertTreeSnapshot.ts).
 // Mis en cache par treeId pour que <GraphBootstrap> puisse réutiliser la même
 // promesse d'un rendu à l'autre (React.use() a besoin d'une référence stable).
+//
+// Les photos ne sont pas encore résolues ici (le pont n'a pas encore
+// d'endpoint pour servir une photo déchiffrée) — `media` reste vide tant
+// que cette brique n'existe pas ; les sections qui affichent des vignettes
+// n'auront rien à montrer jusque-là.
 
 const treeGraphPromises = new Map<string, Promise<FamilyGraphData>>()
 
@@ -44,85 +53,21 @@ export function loadGraphForTree(treeId: string): Promise<FamilyGraphData> {
   const cached = treeGraphPromises.get(treeId)
   if (cached) return cached
 
-  const promise = supabase.storage
-    .from(TREE_FILES_BUCKET)
-    .download(`${treeId}/graph/graph.json`)
-    .then(async ({ data: blob, error }) => {
-      if (error || !blob) return EMPTY_GRAPH
-      try {
-        return JSON.parse(await blob.text()) as FamilyGraphData
-      } catch {
-        return EMPTY_GRAPH
+  const promise = bridgeGetJson<TreeSnapshotJson>(`/trees/${treeId}/current`)
+    .then((snapshot) => convertTreeSnapshotToFamilyGraph(snapshot))
+    .catch((error) => {
+      if (error instanceof BridgeError) {
+        console.error(`[geniius] Failed to load tree "${treeId}" from bridge:`, error.message)
       }
+      return EMPTY_GRAPH
     })
-    .then(async (data) => {
-      await resolveMediaUrls(treeId, data)
+    .then((data) => {
       _data = data
       return data
     })
 
   treeGraphPromises.set(treeId, promise)
   return promise
-}
-
-// ── Résolution des médias (Supabase Storage → URL signée) ───────────────────────
-// Le GEDCOM référence ses médias par un chemin/nom de fichier (TITL ou FILE) qui
-// vient du logiciel d'origine — quasi jamais celui sous lequel le fichier a été
-// déposé dans le formulaire d'import. On rapatriche donc par nom de fichier
-// seul (insensible à la casse), sur un niveau de dossier depuis
-// {treeId}/media, et on résout les correspondances en URLs signées en un seul
-// appel groupé plutôt qu'un par média.
-
-async function resolveMediaUrls(treeId: string, data: FamilyGraphData): Promise<void> {
-  const mediaEntries = Object.values(data.media ?? {})
-  if (mediaEntries.length === 0) return
-
-  const pathByBasename = new Map<string, string>()
-
-  const { data: topLevel } = await supabase.storage
-    .from(TREE_FILES_BUCKET)
-    .list(`${treeId}/media`, { limit: 1000 })
-
-  for (const entry of topLevel ?? []) {
-    if (entry.id) {
-      pathByBasename.set(entry.name.toLowerCase(), `${treeId}/media/${entry.name}`)
-      continue
-    }
-
-    // Pas de métadonnée = sous-dossier (ex. import d'un dossier entier) — un
-    // seul niveau de récursion, suffisant pour les cas d'usage actuels.
-    const { data: nested } = await supabase.storage
-      .from(TREE_FILES_BUCKET)
-      .list(`${treeId}/media/${entry.name}`, { limit: 1000 })
-
-    for (const nestedEntry of nested ?? []) {
-      if (nestedEntry.id) {
-        pathByBasename.set(
-          nestedEntry.name.toLowerCase(),
-          `${treeId}/media/${entry.name}/${nestedEntry.name}`,
-        )
-      }
-    }
-  }
-
-  if (pathByBasename.size === 0) return
-
-  const matches = mediaEntries.flatMap((media) => {
-    const reference = media.file || media.title
-    const basename = reference?.replace(/\\/g, '/').split('/').pop()?.toLowerCase()
-    const path = basename ? pathByBasename.get(basename) : undefined
-    return path ? [{ media, path }] : []
-  })
-
-  if (matches.length === 0) return
-
-  const { data: signed } = await supabase.storage
-    .from(TREE_FILES_BUCKET)
-    .createSignedUrls(matches.map((m) => m.path), 60 * 60 * 6) // 6h — le temps d'une session de consultation
-
-  signed?.forEach((result, index) => {
-    if (result.signedUrl) matches[index].media.url = result.signedUrl
-  })
 }
 
 // ── Accesseur ──────────────────────────────────────────────────────────────────

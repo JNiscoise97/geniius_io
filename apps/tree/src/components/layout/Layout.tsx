@@ -16,6 +16,15 @@ const baseNavItems = [
   { label: 'Explorer', to: '/explore' },
   { label: 'Sources', to: '/sources' },
   { label: 'Profil', to: '/profil' },
+  // Les trois entrées ci-dessus opèrent sur les arbres du modèle
+  // multi-tenant de geniius_io (compte par compte) ; celles-ci opèrent
+  // sur le vrai arbre familial via le pont admin (bridge/), un système
+  // totalement séparé — le préfixe "Admin ·" le rend visible dans la nav
+  // plutôt que de les faire passer pour des fonctionnalités du même
+  // modèle de données.
+  { label: 'Admin · Historique', to: '/admin/history' },
+  { label: 'Admin · Photos manquantes', to: '/admin/missing-photos' },
+  { label: 'Admin · Mon compte', to: '/admin/account' },
 ]
 
 function AuthControls({

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 
 import type { DocumentsView, FamilyView, HistoryView, IndividuView, MainTab } from '../components/tree-navigate/types'
 import { AscendanceView } from '../components/tree-navigate/components/views/AscendanceView'
@@ -69,7 +69,16 @@ function getInitialState(treeId?: string): NavigationState {
 
 export default function TreeNavigatePage() {
   const { treeId } = useParams<{ treeId: string }>()
+  const [searchParams] = useSearchParams()
+  // Permet un lien direct vers une fiche (?person=<id>) — prioritaire sur
+  // l'historique de navigation local, pour que le lien reste reproductible.
+  const linkedPersonId = searchParams.get('person') ?? undefined
   const initialState = getInitialState(treeId)
+  if (linkedPersonId) {
+    initialState.selectedPersonId = linkedPersonId
+    initialState.mainTab = 'individu'
+    initialState.individuView = 'description'
+  }
 
   const [referencePersonId, setReferencePersonId] = useState<string | undefined>(undefined)
 

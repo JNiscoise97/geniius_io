@@ -10,7 +10,9 @@ import {
   type FamilyGraphPerson,
 } from '@geniius/utils/family-graph'
 import { buildBloodAndSpousesSet } from '../lib/graphUtils'
-import { supabase } from '../lib/supabase/client'
+import { bridgeGetJson } from '../lib/bridge/client'
+import type { BridgeTree } from '../lib/bridge/types'
+import SearchableTable from '../components/SearchableTable'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -532,144 +534,26 @@ function useSections(rootId?: string): Record<string, Section> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Table avec recherche et tri
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SearchableTable({
-  headers,
-  rows,
-  emptyMessage = 'Aucun résultat.',
-  searchable = false,
-  defaultSortCol = 0,
-}: {
-  headers: string[]
-  rows: string[][]
-  emptyMessage?: string
-  searchable?: boolean
-  defaultSortCol?: number
-}) {
-  const [query, setQuery] = useState('')
-  const [sortCol, setSortCol] = useState(defaultSortCol)
-  const [sortAsc, setSortAsc] = useState(true)
-
-  const filtered = rows
-    .filter((row) => {
-      if (!query.trim()) return true
-      const q = query.toLowerCase()
-      return row.some((cell) => cell.toLowerCase().includes(q))
-    })
-    .sort((a, b) => {
-      const cmp = (a[sortCol] ?? '').localeCompare(b[sortCol] ?? '', 'fr', { numeric: true })
-      return sortAsc ? cmp : -cmp
-    })
-
-  const handleColClick = (i: number) => {
-    if (sortCol === i) {
-      setSortAsc((v) => !v)
-    } else {
-      setSortCol(i)
-      setSortAsc(true)
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      {searchable && (
-        <div className="relative">
-          <Search
-            size={15}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher…"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 hover:text-slate-700"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-      )}
-
-      {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm font-medium text-slate-500">
-          {query ? `Aucun résultat pour « ${query} »` : emptyMessage}
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                {headers.map((h, i) => (
-                  <th
-                    key={h}
-                    onClick={() => handleColClick(i)}
-                    className="cursor-pointer select-none px-4 py-3 text-left text-xs font-black uppercase tracking-wide text-slate-500 hover:text-emerald-700"
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      {h}
-                      {sortCol === i && (
-                        <span className="text-emerald-600">{sortAsc ? '↑' : '↓'}</span>
-                      )}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                >
-                  {row.map((cell, j) => (
-                    <td key={j} className="px-4 py-3 font-medium text-slate-800">
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="border-t border-slate-100 px-4 py-2 text-xs font-bold text-slate-400">
-            {filtered.length !== rows.length
-              ? `${filtered.length} / ${rows.length} entrée${rows.length > 1 ? 's' : ''}`
-              : `${rows.length} entrée${rows.length > 1 ? 's' : ''}`}
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Page principale
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function TreeStatsPage() {
   const { treeId, section } = useParams<{ treeId: string; section: string }>()
 
-  const [referencePersonId, setReferencePersonId] = useState<string | undefined>(undefined)
+  // No "root person" concept exists in the real schema yet (unlike
+  // geniius_io's own removed `trees.reference_person_id`) — sections
+  // relying on one (isolated individuals, unexplored branches) run
+  // without a defined root for now, a known gap rather than a bug.
+  const referencePersonId: string | undefined = undefined
   const [treeName, setTreeName] = useState<string | null>(null)
 
   useEffect(() => {
+    // Tree name was previously read from geniius_io's own (now-removed,
+    // unrelated) `trees` table — the real trees live behind the bridge.
     if (!treeId) return
-    supabase
-      .from('trees')
-      .select('name, reference_person_id')
-      .eq('id', treeId)
-      .maybeSingle()
-      .then(({ data }) => {
-        setReferencePersonId(data?.reference_person_id ?? undefined)
-        setTreeName(data?.name ?? null)
-      })
+    bridgeGetJson<BridgeTree[]>('/trees')
+      .then((trees) => setTreeName(trees.find((t) => t.id === treeId)?.label ?? null))
+      .catch(() => setTreeName(null))
   }, [treeId])
 
   const sections = useSections(referencePersonId)

@@ -37,6 +37,8 @@ import { buildGraphFromGedcomText, getBirth, getDeath, getYear } from '@geniius/
 import { supabase } from '../lib/supabase/client'
 import { graph, formatPersonName } from '../components/tree-navigate/data'
 import { useTreeStats } from '../hook/useTreeStats'
+import { bridgeGetJson } from '../lib/bridge/client'
+import type { BridgeTree } from '../lib/bridge/types'
 
 const BUCKET = 'tree-files'
 
@@ -120,18 +122,18 @@ export default function TreePage() {
 
   const [loaded, setLoaded] = useState(false)
   const [treeName, setTreeName] = useState<string | null>(null)
-  const [createdAt, setCreatedAt] = useState<string | null>(null)
+  const createdAt: string | null = null
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null)
   const [gedcomFiles, setGedcomFiles] = useState<StoredFile[]>([])
   const [mediaFiles, setMediaFiles] = useState<StoredFile[]>([])
   const [graphStats, setGraphStats] = useState<GraphStats | null>(null)
-  const [referencePersonId, setReferencePersonId] = useState<string | undefined>(undefined)
+  const referencePersonId: string | undefined = undefined
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
 
   async function refreshAll(id: string) {
-    const [treeRes, gedcomRes, mediaRes, statsRes, sessionRes] = await Promise.all([
-      supabase.from('trees').select('name, created_at, reference_person_id').eq('id', id).maybeSingle(),
+    const [trees, gedcomRes, mediaRes, statsRes, sessionRes] = await Promise.all([
+      bridgeGetJson<BridgeTree[]>('/trees').catch(() => [] as BridgeTree[]),
       supabase.storage.from(BUCKET).list(`${id}/gedcom`),
       supabase.storage.from(BUCKET).list(`${id}/media`),
       supabase
@@ -142,9 +144,7 @@ export default function TreePage() {
       supabase.auth.getSession(),
     ])
 
-    setTreeName(treeRes.data?.name ?? null)
-    setCreatedAt(treeRes.data?.created_at ?? null)
-    setReferencePersonId(treeRes.data?.reference_person_id ?? undefined)
+    setTreeName(trees.find((tree) => tree.id === id)?.label ?? null)
     setGedcomFiles(gedcomRes.data ?? [])
     setMediaFiles(mediaRes.data ?? [])
     setGraphStats(statsRes.data ?? null)
@@ -225,7 +225,7 @@ export default function TreePage() {
   }, [graphStats])
 
   const hasFiles = gedcomFiles.length > 0 || mediaFiles.length > 0
-  const isParsed = graphStats !== null && graphStats.person_count > 0
+  const isParsed = Object.keys(graph.people).length > 0
 
   if (!isParsed) {
     return (

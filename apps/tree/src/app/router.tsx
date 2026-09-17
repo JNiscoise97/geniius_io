@@ -9,6 +9,10 @@ import TreeNavigatePage from '../pages/TreeNavigatePage'
 import TreeStatsPage from '../pages/TreeStatsPage'
 import TreesListPage from '../pages/TreesListPage'
 import ImportPage from '../pages/ImportPage'
+import VersionHistoryPage from '../pages/admin/VersionHistoryPage'
+import MissingPhotosPage from '../pages/admin/MissingPhotosPage'
+import AdminAccountPage from '../pages/admin/AdminAccountPage'
+import AdminAuthGate from '../components/admin/AdminAuthGate'
 import { GraphBootstrap } from '../components/GraphBootstrap'
 import { LoadingScreen } from '../components/layout/LoadingScreen'
 
@@ -51,7 +55,42 @@ export const router = createBrowserRouter([
     path: '/import',
     element: (
       <Layout>
-        <ImportPage />
+        <AdminAuthGate>
+          <ImportPage />
+        </AdminAuthGate>
+      </Layout>
+    ),
+  },
+
+  {
+    path: '/admin/history',
+    element: (
+      <Layout>
+        <AdminAuthGate>
+          <VersionHistoryPage />
+        </AdminAuthGate>
+      </Layout>
+    ),
+  },
+
+  {
+    path: '/admin/missing-photos',
+    element: (
+      <Layout>
+        <AdminAuthGate>
+          <MissingPhotosPage />
+        </AdminAuthGate>
+      </Layout>
+    ),
+  },
+
+  {
+    path: '/admin/account',
+    element: (
+      <Layout>
+        <AdminAuthGate>
+          <AdminAccountPage />
+        </AdminAuthGate>
       </Layout>
     ),
   },
@@ -88,19 +127,7 @@ export const router = createBrowserRouter([
     element: <Navigate to="/" replace />,
   },
   {
-    path: '/trees/:treeId',
-    element: (
-      <Layout>
-        <Suspense fallback={<LoadingScreen />}>
-          <GraphBootstrap>
-            <TreePage />
-          </GraphBootstrap>
-        </Suspense>
-      </Layout>
-    ),
-  },
-  {
-    path: '/trees/:treeId/navigate',
+    path: '/demo/navigate',
     element: (
       <Layout>
         <Suspense fallback={<LoadingScreen />}>
@@ -111,15 +138,46 @@ export const router = createBrowserRouter([
       </Layout>
     ),
   },
+
+  {
+    path: '/trees/:treeId',
+    element: (
+      <Layout>
+        <AdminAuthGate>
+          <Suspense fallback={<LoadingScreen />}>
+            <GraphBootstrap>
+              <TreePage />
+            </GraphBootstrap>
+          </Suspense>
+        </AdminAuthGate>
+      </Layout>
+    ),
+  },
+  {
+    path: '/trees/:treeId/navigate',
+    element: (
+      <Layout>
+        <AdminAuthGate>
+          <Suspense fallback={<LoadingScreen />}>
+            <GraphBootstrap>
+              <TreeNavigatePage />
+            </GraphBootstrap>
+          </Suspense>
+        </AdminAuthGate>
+      </Layout>
+    ),
+  },
   {
     path: '/trees/:treeId/stats/:section',
     element: (
       <Layout>
-        <Suspense fallback={<LoadingScreen />}>
-          <GraphBootstrap>
-            <TreeStatsPage />
-          </GraphBootstrap>
-        </Suspense>
+        <AdminAuthGate>
+          <Suspense fallback={<LoadingScreen />}>
+            <GraphBootstrap>
+              <TreeStatsPage />
+            </GraphBootstrap>
+          </Suspense>
+        </AdminAuthGate>
       </Layout>
     ),
   },
