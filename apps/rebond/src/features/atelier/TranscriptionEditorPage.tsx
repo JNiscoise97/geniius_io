@@ -1222,9 +1222,10 @@ export function TranscriptionEditorPage() {
     // knownEntityLabels/ecBureauContext viennent du chargement de la page
     // (load(), plus haut) ; customKeywords des mots-clés ajoutés
     // manuellement — voir dictationPrompt.ts pour l'usage de ce prompt.
+    const allKeywords = Array.from(new Set([...autoDictationKeywords, ...customKeywords]))
     const prompt = buildDictationPrompt({ entityLabels: autoDictationKeywords, customKeywords })
     dictationStartedAtRef.current = new Date().toISOString()
-    await dictation.start(prompt)
+    await dictation.start(prompt, allKeywords)
   }
 
   function toggleSection(key: SectionKey) {

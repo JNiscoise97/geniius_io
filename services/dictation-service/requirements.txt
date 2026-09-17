@@ -17,3 +17,6 @@ python-dotenv>=1.0
 # Requis par FastAPI pour parser les uploads multipart/form-data (endpoint
 # POST /transcribe).
 python-multipart>=0.0.9
+# Conversion des nombres en toutes lettres (convention des actes anciens) -
+# voir numbers_fr.py.
+num2words>=0.5.13

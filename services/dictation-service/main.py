@@ -9,6 +9,7 @@ envoye une seule fois a la fin de la dictee.
 """
 
 import asyncio
+import json
 import logging
 import os
 import tempfile
@@ -17,7 +18,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
+from correction import apply_keyword_corrections
 from model import LoadedModel, load_model, transcribe
+from numbers_fr import spell_out_numbers
 
 load_dotenv()
 
@@ -60,10 +63,15 @@ def health():
 
 
 MAX_PROMPT_CHARS = 2000
+MAX_KEYWORDS = 60
 
 
 @app.post("/transcribe")
-async def transcribe_endpoint(file: UploadFile = File(...), prompt: str | None = Form(None)):
+async def transcribe_endpoint(
+    file: UploadFile = File(...),
+    prompt: str | None = Form(None),
+    keywords: str | None = Form(None),
+):
     if _loaded_model is None:
         raise HTTPException(status_code=503, detail="Modele en cours de chargement, reessayez dans un instant.")
 
@@ -74,11 +82,27 @@ async def transcribe_endpoint(file: UploadFile = File(...), prompt: str | None =
 
     initial_prompt = prompt[:MAX_PROMPT_CHARS] if prompt else None
 
+    keyword_list: list[str] = []
+    if keywords:
+        try:
+            parsed = json.loads(keywords)
+            if isinstance(parsed, list):
+                keyword_list = [str(k) for k in parsed if isinstance(k, str)][:MAX_KEYWORDS]
+        except (json.JSONDecodeError, TypeError):
+            pass  # keywords malforme : on ignore plutot que d'echouer toute la transcription
+
     try:
         async with _model_lock:
             text = await asyncio.get_event_loop().run_in_executor(
                 None, transcribe, _loaded_model, tmp_path, initial_prompt,
             )
+        # Corrige les mots proches d'un mot-cle mais mal reconnus - voir
+        # correction.py pour la methode et ses limites (pas une vraie
+        # comparaison phonetique).
+        text = apply_keyword_corrections(text, keyword_list)
+        # Convention des actes anciens : nombres toujours en toutes lettres,
+        # jamais en chiffres (voir numbers_fr.py) - demande explicite.
+        text = spell_out_numbers(text)
         return {"text": text}
     except Exception as exc:
         logger.exception("Echec transcription")

@@ -405,6 +405,45 @@ export async function searchTranscribedExemplaires(excludeExemplaireId: string):
     .filter((r): r is TranscriptionSearchResult => !!r.documentId)
 }
 
+// Statut de transcription PAR DOCUMENT, agrégé sur tous ses exemplaires
+// (2026-08-16, demande explicite : le filtre "Transcrits" de
+// AtelierDocumentairePage.tsx ne renvoyait jamais rien). Cause trouvée :
+// cette page filtrait sur `unites_documentaires.statut_document` (le champ
+// du cycle de vie Patrimoine — en_attente/decrit), qu'AUCUN code ne fait
+// jamais passer à 'transcrit'/'en_cours'/'annote' — le vrai statut de
+// transcription vit sur `rebond.transcriptions.statut` (par exemplaire, déjà
+// utilisé par fetchExemplairesForDocument ci-dessous). Agrégation : le
+// statut le plus avancé parmi les exemplaires du document (un seul
+// exemplaire "termine" suffit à considérer le document transcrit) — la
+// grande majorité des documents n'en ont qu'un seul de toute façon.
+const TRANSCRIPTION_STATUT_RANK: Record<TranscriptionStatut, number> = { non_commence: 0, en_cours: 1, termine: 2 }
+
+export async function fetchDocumentsTranscriptionStatut(documentIds: string[]): Promise<Map<string, TranscriptionStatut>> {
+  const result = new Map<string, TranscriptionStatut>()
+  if (documentIds.length === 0) return result
+  for (const id of documentIds) result.set(id, 'non_commence')
+
+  const { data: exemplaires } = await supabaseRebond.from('exemplaires')
+    .select('id, unite_documentaire_id')
+    .in('unite_documentaire_id', documentIds)
+  const docByExemplaire = new Map((exemplaires ?? []).map(e => [e.id, e.unite_documentaire_id]))
+  const exIds = [...docByExemplaire.keys()]
+  if (exIds.length === 0) return result
+
+  const { data: trs } = await supabaseRebond.from('transcriptions')
+    .select('exemplaire_id, statut')
+    .in('exemplaire_id', exIds)
+
+  for (const t of trs ?? []) {
+    const docId = docByExemplaire.get(t.exemplaire_id)
+    if (!docId) continue
+    const statut = t.statut as TranscriptionStatut
+    const current = result.get(docId) ?? 'non_commence'
+    if (TRANSCRIPTION_STATUT_RANK[statut] > TRANSCRIPTION_STATUT_RANK[current]) result.set(docId, statut)
+  }
+  return result
+}
+
 export async function fetchExemplairesForDocument(documentId: string): Promise<{ data: AtelierExemplaire[]; error: Error | null }> {
   const { data: exRows, error: exErr } = await supabaseRebond.from('exemplaires')
     .select(`

@@ -38,10 +38,21 @@ import {
   ChevronDown, ChevronRight, FileText,
 } from 'lucide-react'
 import { usePatrimoine } from '../patrimoine/usePatrimoine'
-import { ROLE_CONFIG } from '../patrimoine/PatrimoineDocumentairePage'
+import { ROLE_CONFIG, STATUT_DOC_CONFIG, STATUT_DOC_FALLBACK } from '../patrimoine/PatrimoineDocumentairePage'
 import { vueMax, formatVue } from '../patrimoine/vueFormat'
-import { fetchDocumentsHierarchyMeta, type DocHierarchyMeta } from './atelier.service'
+import { fetchDocumentsHierarchyMeta, fetchDocumentsTranscriptionStatut, type DocHierarchyMeta } from './atelier.service'
+import type { TranscriptionStatut } from './atelier.types'
 import type { PatrimoineDocument as Document, DocStatut } from '../patrimoine/source.types'
+
+// Statut RÉEL de transcription (rebond.transcriptions.statut, agrégé par
+// document — voir fetchDocumentsTranscriptionStatut) mappé vers les mêmes
+// clés DocStatut que les filtres/pastilles de cette page, pour rester
+// affiché avec STATUT_DOC_CONFIG sans dupliquer une palette de couleurs.
+const TRANSCRIPTION_TO_DOC_STATUT: Record<TranscriptionStatut, DocStatut> = {
+  non_commence: 'a_transcrire',
+  en_cours: 'en_cours',
+  termine: 'transcrit',
+}
 
 // Tri "naturel" (2 avant 10, pas 10 avant 2 comme un tri texte pur) — pour
 // les libellés de hiérarchie qui sont du texte (région/département/
@@ -100,6 +111,7 @@ function DocumentRow({ doc, metaByDoc, sourceVueRangeById, depth, onClick }: {
   const numeroActe = metaByDoc.get(doc.id)?.numeroActe ?? null
   const registreVueRange = doc.source_id ? sourceVueRangeById.get(doc.source_id) ?? null : null
   const vueLabel = doc.vue ? formatVue(doc.vue, vueMax(registreVueRange)) : null
+  const statutInfo = STATUT_DOC_CONFIG[doc.statut] ?? STATUT_DOC_FALLBACK
 
   return (
     <div
@@ -109,6 +121,7 @@ function DocumentRow({ doc, metaByDoc, sourceVueRangeById, depth, onClick }: {
       className="w-full flex items-center gap-2 py-1.5 pr-3 hover:bg-gray-50 rounded-md cursor-pointer transition-colors group"
       style={{ paddingLeft: 8 + depth * 18 }}
     >
+      <span className={`w-2 h-2 rounded-full shrink-0 ${statutInfo.dot}`} title={statutInfo.label} />
       <FileText className="w-3.5 h-3.5 text-gray-300 shrink-0" />
       <span className="text-sm text-gray-800 group-hover:text-indigo-700 transition-colors truncate">{doc.titre}</span>
       {role && <span className={`text-[10px] font-medium rounded border px-1.5 py-0.5 shrink-0 ${role.color}`}>{role.label}</span>}
@@ -289,9 +302,22 @@ export function AtelierDocumentairePage() {
   const [statutFilter, setStatutFilter] = useState<DocStatut | 'tous'>('tous')
   const [hierarchyMeta, setHierarchyMeta] = useState<Map<string, DocHierarchyMeta>>(new Map())
   const [metaLoading, setMetaLoading] = useState(true)
+  const [transcriptionStatutByDoc, setTranscriptionStatutByDoc] = useState<Map<string, TranscriptionStatut>>(new Map())
 
   const activeSources = sources.filter(s => s.statut !== 'a_qualifier')
   const activeDocs = docs.filter(d => d.statut !== 'en_attente')
+
+  // Le statut affiché/filtré (pastille, filtres "À transcrire"/"En
+  // cours"/"Transcrits") doit refléter le vrai avancement de la
+  // transcription (rebond.transcriptions.statut), pas
+  // unites_documentaires.statut_document — qui ne vaut jamais que
+  // 'en_attente'/'decrit' en pratique (voir fetchDocumentsTranscriptionStatut).
+  // On substitue doc.statut ici, une seule fois, plutôt que de faire
+  // redescendre une Map supplémentaire dans DocumentRow/HierarchyTreeNode.
+  const docsWithRealStatut = useMemo(() => activeDocs.map(d => {
+    const real = transcriptionStatutByDoc.get(d.id)
+    return real ? { ...d, statut: TRANSCRIPTION_TO_DOC_STATUT[real] } : d
+  }), [activeDocs, transcriptionStatutByDoc])
 
   // Pour situer un acte dans l'étendue numérisée totale de son registre
   // (formatVue/vueMax, cf. vueFormat.ts — même calcul déjà utilisé ailleurs
@@ -302,14 +328,22 @@ export function AtelierDocumentairePage() {
     if (activeDocs.length === 0) { setMetaLoading(false); return }
     let cancelled = false
     setMetaLoading(true)
-    fetchDocumentsHierarchyMeta(activeDocs.map(d => d.id))
-      .then(m => { if (!cancelled) setHierarchyMeta(m) })
+    const ids = activeDocs.map(d => d.id)
+    Promise.all([
+      fetchDocumentsHierarchyMeta(ids),
+      fetchDocumentsTranscriptionStatut(ids),
+    ])
+      .then(([meta, transcriptionStatut]) => {
+        if (cancelled) return
+        setHierarchyMeta(meta)
+        setTranscriptionStatutByDoc(transcriptionStatut)
+      })
       .finally(() => { if (!cancelled) setMetaLoading(false) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs])
 
-  const filteredDocs = activeDocs.filter(d => {
+  const filteredDocs = docsWithRealStatut.filter(d => {
     const matchSource = sourceFilter === 'tous' || d.source_id === sourceFilter
     const matchStatut = statutFilter === 'tous' || d.statut === statutFilter
     const q = search.toLowerCase()
@@ -403,12 +437,13 @@ export function AtelierDocumentairePage() {
             <button
               key={f.key}
               onClick={() => setStatutFilter(f.key)}
-              className={`text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
+              className={`flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border transition-colors ${
                 statutFilter === f.key
                   ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700'
               }`}
             >
+              {f.key !== 'tous' && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUT_DOC_CONFIG[f.key].dot}`} />}
               {f.label}
             </button>
           ))}

@@ -33,9 +33,13 @@ export function useDictation({ onTranscribed }: UseDictationOptions) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const meterRafRef = useRef<number | null>(null)
   const lastRecordingRef = useRef<Blob | null>(null)
-  // Figé au moment de start() (le contexte du document ne change pas en
-  // cours de dictée) — réutilisé tel quel par retry().
+  // Figés au moment de start() (le contexte du document ne change pas en
+  // cours de dictée) — réutilisés tels quels par retry().
   const promptRef = useRef<string | undefined>(undefined)
+  // Liste brute des mêmes mots-clés que promptRef — utilisée côté service
+  // pour une passe de correction post-transcription (voir correction.py),
+  // en plus du biais initial_prompt qui, lui, ne garantit rien.
+  const keywordsRef = useRef<string[] | undefined>(undefined)
 
   const onTranscribedRef = useRef(onTranscribed)
   useEffect(() => { onTranscribedRef.current = onTranscribed }, [onTranscribed])
@@ -58,6 +62,9 @@ export function useDictation({ onTranscribed }: UseDictationOptions) {
       const form = new FormData()
       form.append('file', blob, 'recording.webm')
       if (promptRef.current) form.append('prompt', promptRef.current)
+      if (keywordsRef.current && keywordsRef.current.length > 0) {
+        form.append('keywords', JSON.stringify(keywordsRef.current))
+      }
       const res = await fetch(`${SERVICE_URL}/transcribe`, { method: 'POST', body: form })
       if (!res.ok) {
         const body = await res.json().catch(() => null)
@@ -75,9 +82,12 @@ export function useDictation({ onTranscribed }: UseDictationOptions) {
   // prompt : indice de contexte optionnel (noms propres attendus dans ce
   // document — commune, patronymes déjà connus) transmis à chaque requête
   // de transcription pour biaiser la reconnaissance. Voir dictationPrompt.ts.
-  const start = useCallback(async (prompt?: string) => {
+  // keywords : les mêmes noms, mais en liste — pour la passe de correction
+  // post-transcription (voir correction.py côté service).
+  const start = useCallback(async (prompt?: string, keywords?: string[]) => {
     setError(null)
     promptRef.current = prompt
+    keywordsRef.current = keywords
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     streamRef.current = stream
