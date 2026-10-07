@@ -1,1 +1,0 @@
-export const PUBLIC_EVENT_SLUG = "tanjama-2026";

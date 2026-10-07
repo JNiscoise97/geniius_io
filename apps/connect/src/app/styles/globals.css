@@ -1,9 +1,0 @@
-/* src/globals.css
-   =========================================================
-   CONNECT — keep minimal (Tailwind handles layout)
-   ========================================================= */
-
-/* Optional: safe-area helper if you need it */
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
