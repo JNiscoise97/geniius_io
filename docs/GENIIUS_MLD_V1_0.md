@@ -169,7 +169,7 @@ Ce n'est pas un modèle « entité–attribut–valeur » non typé : le prédic
 
 **Décision.**
 - `regle_acces` : une cible parmi trois clés étrangères exclusives (`cible_objet_id`, `cible_espace_id`, `cible_lien_id`), un bénéficiaire parmi (`beneficiaire_acteur_id`, `beneficiaire_groupe_id`, `role_beneficiaire`, public), `effet` (autoriser, interdire), `objet_protege` (contenu, existence), période.
-- Les appartenances (`appartenance_espace`, `attribution_role`, `membre_groupe`) sont versionnées par l'espace ou le groupe.
+- Les appartenances (`appartenance_espace`, `attribution_role`, `membre_groupe`) sont versionnées par l'espace ou le groupe. Les habilitations administratives et scientifiques sont indépendantes et cumulables ; seule une appartenance scientifique ouvre la lecture des objets `projet` (CP-25).
 - L'évaluation (`acces(contexte, cible, action)`) suit l'ordre fixé au § 22 : existence protégée → interdiction → autorisation explicite → visibilité par défaut. L'interdiction l'emporte toujours (DD-18).
 - La relation dérivée `droit_effectif` ‡ (§ 22.2) est la forme logique de ce calcul ; sa matérialisation et son moteur (RLS, service de politiques) relèvent de MPD-02 et MPD-06.
 
@@ -645,11 +645,16 @@ appartenance_espace  [A:espace]                    -- APPARTENIR
   acteur_id    uuid  NN  FK → acteur_geniius(id)
   role_espace  code  NN  CK IN {propriétaire, administrateur, responsable scientifique,
                                 collaborateur, invité, lecteur}
+  nature_habilitation  code  NN  CK IN {administrative, scientifique}      ‡ CP-25
+  lecture_scientifique bool  NN                                            ‡ CP-25
   date_debut   ts    NN
   date_fin     ts
   ⟨VA espace⟩
   PK (espace_id, acteur_id, role_espace, v_debut)
-  -- DI-B02, DI-B04 : CP-06
+  CK (nature_habilitation = 'administrative') = (role_espace IN ('propriétaire','administrateur'))
+  CK lecture_scientifique = (role_espace IN ('responsable scientifique','collaborateur','lecteur'))
+  -- un acteur cumule les deux habilitations par deux lignes distinctes (PK incluant role_espace)
+  -- DI-B02, DI-B04 : CP-06 ; séparation administration / science : CP-25
 
 attribution_role  [A:espace]                       -- ATTRIBUER_ROLE
   espace_id         uuid  NN  FK → espace(id)
@@ -2866,6 +2871,9 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 | CP-20 | Accès temporaires : les interventions de mission et les comparaisons d'arbres dérivent des règles d'accès bornées, closes à expiration | `regle_acces` | DI-K12, DI-L10, OB-16 |
 | CP-21 | Propagation : une nouvelle version **scientifique** d'un amont fait passer ses dépendances à `potentiellement affecté`, puis les questions concernées à `à réexaminer` et les résultats dynamiques à `potentiellement obsolète` ; asynchrone admis, délai = MPD-04 | `dependance`, `question`, `resultat`, `carte` | RG-A04, DI-A18, DI-K04, DI-O09, OB-09 |
 | CP-22 | Associations versionnées `[A:p]` : `v_debut` = version courante du propriétaire à l'insertion ; retrait = `v_fin` ; jamais de suppression ; unicités appliquées aux lignes actives (`v_fin IS NULL`) | Toutes tables `[A:p]` | MLD-02, L5 |
+| CP-23 | Droits du propriétaire : la création d'un objet `privé` crée, dans la même transaction, une `regle_acces` d'autorisation explicite (`voir`, `éditer`) pour l'acteur auteur ; aucun rôle d'espace ne donne de lecture implicite d'un objet `privé` | `objet`, `regle_acces` | § 22.1, CDCF § 49.2 |
+| CP-24 | Habilitation exceptionnelle : toute autorisation accordée à un acteur sur un objet `privé` dont il n'est pas l'auteur, en vertu d'un rôle d'administration, exige `date_fin`, une `condition` justifiée, et la journalisation de chaque usage dans `contexte_evaluation` (`finalite` non nulle) | `regle_acces`, `contexte_evaluation` | § 22.1, OB-16 |
+| CP-25 | Séparation des habilitations administratives et scientifiques : les habilitations d'administration et de participation scientifique sont indépendantes. L'attribution d'un rôle administratif ne crée pas d'appartenance scientifique et ne confère aucun accès implicite aux contenus de visibilité `projet` ou `privé`. L'accès aux objets `projet` repose sur une appartenance active autorisant explicitement la lecture scientifique (`lecture_scientifique = vrai`), sous réserve des interdictions et restrictions applicables. Un même acteur peut cumuler les deux habilitations. À la création d'un espace, le créateur reçoit les deux | `appartenance_espace`, `attribution_role`, § 22 | § 22.1, CDCF § 49.2 |
 
 ---
 
@@ -2875,13 +2883,29 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 
 | `visibilite` | Acteurs qui voient par défaut |
 |---|---|
-| privé | Acteurs ayant un rôle `propriétaire` ou `administrateur` dans l'espace, et bénéficiaires explicites |
-| projet | Membres de l'espace (`appartenance_espace` active) |
+| privé | Seuls les acteurs explicitement autorisés à consulter le contenu concerné, notamment son propriétaire lorsque ses droits effectifs le permettent, peuvent y accéder. Le rôle d'administrateur d'espace, d'organisation ou de plateforme ne confère aucun droit de lecture implicite. Tout accès exceptionnel doit reposer sur une habilitation spécifique, limitée, justifiée et auditée, conformément aux règles applicables. |
+| projet | Acteurs ayant une appartenance active à l'espace avec `lecture_scientifique = vrai` (rôles `responsable scientifique`, `collaborateur`, `lecteur`), sous réserve des interdictions et restrictions applicables. Aucun rôle administratif ne donne de lecture (CP-25) ; un `invité` ne lit que ce que des règles explicites lui ouvrent. |
 | famille | Membres des groupes `famille` liés à l'espace par une règle |
 | cercle invité | Bénéficiaires explicites seulement |
 | communauté GENIIUS | Tout acteur authentifié |
 | public non indexé | Tout lecteur, sans indexation |
 | public indexable | Tout lecteur, avec indexation si `decouvrabilite = indexable Web` |
+
+**Mise en œuvre des règles `projet` et `privé`.**
+
+- **Droits du propriétaire.** À la création d'un objet `privé`, une règle `regle_acces` d'autorisation explicite (`voir`, `éditer`) est créée pour l'acteur auteur (CP-23). Le propriétaire n'accède donc pas « par rôle » : il accède parce qu'une règle l'y autorise, et cette règle reste soumise aux interdictions, embargos et protections d'existence (§ 22.2, étapes 1, 2 et 6).
+- **Administration sans lecture (CP-25).** Les habilitations administratives (`appartenance_espace` de nature `administrative` : `propriétaire`, `administrateur` ; `attribution_role` `administrateur technique`) permettent de gérer l'espace (membres, règles, cycle de vie) sans lire le contenu des objets `projet` ou `privé` (CDCF § 49.2). La lecture scientifique repose sur une appartenance distincte. Un même acteur peut cumuler les deux, par deux lignes d'`appartenance_espace`.
+- **Création d'un espace.** Le créateur reçoit, dans la même transaction, une appartenance `propriétaire` (administrative) et une appartenance `responsable scientifique` (scientifique). Il peut ensuite renoncer à l'une sans perdre l'autre.
+- **Accès exceptionnel.** Une habilitation exceptionnelle est une `regle_acces` d'autorisation dont `date_fin` est obligatoire, dont `condition` porte la justification et le fondement applicable, et dont chaque usage est journalisé dans `contexte_evaluation` avec une `finalite` renseignée (CP-24). Un prestataire reçoit, selon son mandat, une appartenance administrative bornée par `date_fin` et/ou des habilitations exceptionnelles limitées au périmètre autorisé.
+
+**Synthèse des situations (CP-25).**
+
+| Situation | Administration de l'espace | Lecture des objets `projet` | Lecture des objets `privé` |
+|---|---|---|---|
+| Administrateur technique uniquement | Oui | Non | Non |
+| Membre scientifique uniquement | Non, sauf habilitation | Oui, selon droits effectifs | Seulement sur autorisation |
+| Administrateur également membre scientifique | Oui | Oui, selon droits effectifs | Seulement sur autorisation |
+| Prestataire avec accès exceptionnel | Selon mandat | Uniquement dans le périmètre autorisé | Uniquement par habilitation spécifique auditée |
 
 ## 22.2 Algorithme `acces(contexte, cible, action)`
 
@@ -3409,6 +3433,7 @@ Ces structures n'ont pas d'équivalent direct dans le MCD ni dans le dictionnair
 | `zone.x`, `y`, `largeur`, `hauteur`, `polygone_image` | Décomposition de `GEOM` image | MLD-05 |
 | Groupes de colonnes `⟨dh⟩` et `⟨val⟩` | Décomposition de `DATE_HIST` et `VALEUR` | MLD-03, MLD-04 |
 | `droit_effectif`, `graphe_accessible` (relations dérivées) | Forme logique du contrôle d'accès | MLD-13, P20 |
+| `appartenance_espace.nature_habilitation`, `appartenance_espace.lecture_scientifique` | Séparation administration / lecture scientifique, sans nouvelle table | CP-25 |
 
 ---
 
