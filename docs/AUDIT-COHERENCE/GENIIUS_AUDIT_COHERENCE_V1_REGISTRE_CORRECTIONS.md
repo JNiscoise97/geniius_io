@@ -144,7 +144,7 @@
 - **Documents :** MLD (§ 5.1, § 5.3, § 11, § 21.2), dictionnaire (ESPACE, CONTEXTE_EVALUATION), CDC technique (§ 9.2), CDCF (voir ECD-19).
 - **Décision attendue :** décision d'emplacement, puis validation des ajouts au MLD.
 - **GEL :** GEL-07.
-- **Statut :** **corrigé le 9/10/2026 (décision d’emplacement prise).** Dans le MLD : `espace.replication_hors_ligne` et `duree_max_hors_ligne_jours` ; `contexte_evaluation` étendu (réplication, synchronisation, application locale, appareil) ; table `contribution_differee` (§ 5.6, idempotence, version de base, versions client, états de réception) ; CP-27 (réception différée) ; CP-28 (réplication, retraits non qualifiés). Hors MLD, schéma technique par ADR tenu par ST-01 à ST-08 (MLD § 28.3). Dictionnaire : § 4.25, DI-B31 à B33, OB-20, OB-21. **Arbitrage retenu sur le canal de révélation par retrait :** retraits non qualifiés ; résidu (la disparition est observable) accepté et documenté, conformément à AUDIT-TECH-001.5 — à confirmer par le porteur. Reste : protocole de synchronisation (architecture) et recettes X02, X15 à X17 à jouer.
+- **Statut :** **corrigé le 9/10/2026 (décision d’emplacement prise).** Dans le MLD : `espace.replication_hors_ligne` et `duree_max_hors_ligne_jours` ; `contexte_evaluation` étendu (réplication, synchronisation, application locale, appareil) ; table `contribution_differee` (§ 5.6, idempotence, version de base, versions client, états de réception) ; CP-27 (réception différée) ; CP-28 (réplication, retraits non qualifiés). Hors MLD, schéma technique par ADR tenu par ST-01 à ST-08 (MLD § 28.3). Dictionnaire : § 4.25, DI-B31 à B33, OB-20, OB-21. **Arbitrage retenu sur le canal de révélation par retrait :** retraits non qualifiés ; résidu (la disparition est observable) accepté et documenté, conformément à AUDIT-TECH-001.5 — **confirmé par le porteur le 9/10/2026**, avec la réserve « retrait ≠ destruction des contributions locales » (CP-28). Reste : protocole de synchronisation (architecture) et recettes X02, X15 à X17 à jouer.
 
 ---
 
@@ -415,7 +415,7 @@
 - **Documents :** AV-FONC-001, CDCF, MCD, dictionnaire, MLD, CDC technique.
 - **Décision attendue :** périmètre et calendrier d'AV-FONC-001 (déjà demandé par REV-03-M11).
 - **GEL :** gel définitif.
-- **Statut :** ouvert.
+- **Statut :** **décision prise le 9/10/2026 : option A, intégration intégrale en V1.** Correction en cours selon la séquence d'AV-FONC-001, § 12.
 
 ### ECD-21 — Version du référentiel scientifique non portée par les contributions
 
@@ -539,7 +539,7 @@
 | ECD-02 | Bloquant | Responsable documentaire | Avant gel | Corrigé (09/10) |
 | ECD-03 | Bloquant | Responsable documentaire | Avant gel | Corrigé (09/10) — option B |
 | ECD-04 | Bloquant | Modèle de données (MLD) | Avant gel | Corrigé (09/10) — vérification GEL-05 restante |
-| ECD-05 | Bloquant | Architecture et MLD | Avant gel (décision d'emplacement) | Corrigé (09/10) — arbitrage « retraits non qualifiés » à confirmer |
+| ECD-05 | Bloquant | Architecture et MLD | Avant gel (décision d'emplacement) | Corrigé (09/10) — arbitrage confirmé |
 | ECD-06 à ECD-21 | Majeur | MLD, architecture, juridique selon l'entrée | Avant MPD, ou inscription au registre des décisions différées | Ouverts |
 | ECD-22 à ECD-28 | Mineur | Éditorial | Prochaine révision | Ouverts |
 | ECD-29 à ECD-32 | Amélioration | Recette, produit | Planification | Ouverts |

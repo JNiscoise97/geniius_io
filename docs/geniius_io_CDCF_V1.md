@@ -1,9 +1,9 @@
-# GENIIUS --- CDCF V1.1
+# GENIIUS --- CDCF V1.2
 
 ## Référentiel fonctionnel, conceptuel et explicatif --- version développée
 
-**Statut :** référentiel maître de cadrage\
-**Date :** 7 octobre 2026\
+**Statut :** référentiel maître de cadrage — **V1.2** = V1.1 + avenant AV-FONC-001 (Partie XXI, §§ 119–134 ; CU-26 à CU-31 ; critères 51 à 64)\
+**Date :** 7 octobre 2026 (V1.1) ; 9 octobre 2026 (V1.2)\
 **Objet :** développer le CDCF V1 en explicitant les intentions, les
 problèmes résolus, les règles, les conséquences fonctionnelles, les
 limites et les cas de vérification.
@@ -2208,6 +2208,8 @@ Réouverture historisée.
 Relations : - issu de ; - prolonge ; - complète ; - réexamine ; -
 conteste ; - réutilise corpus ; - parent/sous-projet ; - succède à.
 
+*V1.2 : programmes, rattachement bilatéral et multiple, habilitations de groupe → § 120 et § 122.*
+
 ------------------------------------------------------------------------
 
 # 26. Tree --- souveraineté et Core partagé
@@ -2969,6 +2971,8 @@ La transcription originale reste intacte.
 Distinguer : 1. visibilité --- qui voit ? 2. découvrabilité --- qui
 trouve ? 3. réutilisation --- que peut-on faire ?
 
+*V1.2 : consultation ou réutilisation d'une branche partagée → § 126.2 ; révocation → § 132.*
+
 Publicement visible ≠ librement téléchargeable/réutilisable.
 
 ------------------------------------------------------------------------
@@ -3174,6 +3178,8 @@ elle ne l'est plus.
 # 76. Publication
 
 Une publication est : - volontaire ; - sélectionnée ; - versionnée.
+
+*V1.2 : séries, circuit éditorial, diffusions et abonnements → § 130.*
 
 Elle ne rend pas tout le projet public.
 
@@ -4506,3 +4512,357 @@ dire :
 
 C'est cette capacité qui doit rester le fil directeur de toutes les
 décisions futures.
+
+
+------------------------------------------------------------------------
+
+# PARTIE XXI --- Avenant V1.2 : projets, programmes et contributions collectives
+
+**Origine.** Dossier [AV-FONC-001](AV-FONC/AV-FONC-001.md), figé le 9 octobre 2026. Arbitrages AV-1 à AV-12. Périmètre : intégration intégrale en V1.
+
+**Règle de lecture.** Cette partie complète les sections existantes sans les remplacer. Lorsqu'une section antérieure traite déjà d'un sujet (§ 25.4, § 25.19, § 25.20, § 39, § 61–65, § 76, § 88–89), elle reste applicable, et la présente partie en précise les effets. En cas de divergence, la présente partie prévaut pour les projets, programmes et contributions collectives.
+
+**Correspondance avec les exigences candidates du dossier.**
+
+| AVF (dossier) | Section V1.2 | Recoupe |
+|---|---|---|
+| AVF-001 | § 119 | § 25.19 (cycle de vie), § 24 (questions) |
+| AVF-002 | § 120 | § 25.20 (parent / sous-projet) |
+| AVF-003 | § 121 | --- (nouveau) |
+| AVF-004 | § 122 | § 62 (permissions), § 65 (gouvernance) |
+| AVF-005 | § 123 | § 39 (corpus) |
+| AVF-006 | § 124 | § 25.4 (mission déléguée) |
+| AVF-007 | § 125 | --- (nouveau) |
+| AVF-008, AVF-009 | § 126 | § 61.2 (réutilisation) |
+| AVF-010 | § 128 | § 65.1, § 89 |
+| AVF-011, AVF-012 | § 127 | § 84 (import), § 26.5 (comparaison), § 63 (propositions) |
+| AVF-013 | § 130 | § 76–77 (publication) |
+| AVF-014, AVF-015 | § 129 | § 38, § 40, § 54 (anti-pattern 74 %) |
+| AVF-016 | § 131 | § 82, § 88–89 |
+
+------------------------------------------------------------------------
+
+# 119. Le projet comme espace de recherche gouverné
+
+## 119.1 Définition
+
+Un projet GENIIUS est un espace de recherche ou de mémoire, individuel ou collectif, durable ou borné. Il est doté d'un périmètre, d'objectifs, de règles de gouvernance et d'un cycle de vie (§ 25.19). Il relie questions de recherche, sources, activités, connaissances, contributeurs et résultats, sans confondre leurs statuts ni leurs droits.
+
+Un projet n'est pas un arbre généalogique. Un arbre est une représentation scientifique indépendante, qui peut alimenter un projet sans être absorbée par lui (§ 26, § 125).
+
+## 119.2 Contenu d'un projet
+
+Un projet peut définir :
+
+-   ses objectifs et questions de recherche (§ 25.9) ;
+-   son périmètre et ses axes d'étude (§ 121) ;
+-   ses ressources (§ 123) ;
+-   ses travaux (§ 124) ;
+-   sa reconstitution collective (§ 125) ;
+-   ses livrables (§ 130) ;
+-   ses indicateurs (§ 129) ;
+-   sa gouvernance et ses habilitations (§ 122).
+
+> **Un projet relie le travail à réaliser, les documents étudiés, les résultats scientifiques et les livrables. Ce n'est pas un logiciel de gestion de tâches auquel on aurait ajouté un arbre.**
+
+------------------------------------------------------------------------
+
+# 120. Programmes et sous-projets (AV-1, AV-2)
+
+## 120.1 Un programme est un projet coordinateur
+
+Un programme est un projet qui exerce une fonction de coordination sur d'autres projets. Ce n'est ni un nouveau type d'espace, ni une catégorie figée : la qualification « programme » découle de ses relations, ou se choisit comme libellé de présentation.
+
+Exemple : le programme « Reconstitution des parcours des personnes esclavisées aux Antilles » coordonne le projet « Guadeloupe ». Celui-ci coordonne à son tour « Pointe-Noire », qui coordonne « Habitation X ».
+
+Règles :
+
+-   un projet peut être à la fois sous-projet et coordinateur ;
+-   un programme peut exister avant ses sous-projets ;
+-   la hiérarchie est strictement organisationnelle : elle n'établit aucune hiérarchie entre entités historiques ;
+-   une fédération de projets autonomes n'est pas une hiérarchie : les relations de § 25.20 (complète, réutilise le corpus de…) restent disponibles sans rattachement.
+
+## 120.2 Rattachement bilatéral, multiple et non transitif
+
+Un projet peut être rattaché à **plusieurs** coordinateurs. Chaque rattachement :
+
+-   est proposé par l'une des parties et n'est **actif** qu'après acceptation explicite des deux, par des représentants habilités ; une invitation ne vaut pas acceptation ;
+-   peut être rompu unilatéralement par chaque partie, sans effet rétroactif sur les travaux déjà produits ni sur les autres rattachements ;
+-   permet seulement de présenter les métadonnées convenues du sous-projet, de faire remonter les indicateurs qu'il autorise, et de lui proposer des activités ;
+-   ne transfère ni propriété, ni droit de lecture, ni droit d'administration, ni autorité scientifique ;
+-   n'est pas transitif.
+
+États : proposé, actif, refusé, terminé. La hiérarchie reste acyclique.
+
+> **Être administrateur du programme ne donne pas accès aux données privées de ses sous-projets.**
+
+------------------------------------------------------------------------
+
+# 121. Axes de recherche (AV-4)
+
+## 121.1 Principe
+
+Un projet peut déclarer plusieurs axes : territoires, périodes historiques, personnes, familles, organisations, biens, habitations, thèmes ou autres objets compatibles avec le modèle.
+
+Exemple, projet « Les Colimaçons » : territoire « Les Colimaçons, Saint-Leu » ; période 1793--1848 ; familles BOURBON, BOVALO, ANNAMALÉ ; habitations ; thèmes « affranchissements » et « trajectoires ».
+
+## 121.2 Règles
+
+-   **Un axe n'est jamais une assertion.** Déclarer qu'un projet étudie les BOVALO et l'habitation X n'établit aucune relation historique entre eux.
+-   **Un axe n'est jamais un conteneur.** Il ne possède, ne déplace et ne duplique aucun objet. Il ne confère aucun droit.
+-   **Un axe est structuré et relié.** Il référence une entité, une mention, un concept ou une autre référence existante. Les périodes conservent leur incertitude (§ 9.1).
+-   **Un sujet peut rester incertain.** Une « famille non identifiée mentionnée dans l'inventaire de 1793 » se déclare sans créer de famille fictive.
+-   **Axe déclaré ≠ correspondance calculée.** Le fait qu'un projet contienne des travaux sur un lieu ne fait pas de ce lieu un axe.
+-   **Recherche protégée.** Une recherche du type « tous les projets qui étudient l'habitation X » ne révèle aucun projet ni axe inaccessible.
+
+------------------------------------------------------------------------
+
+# 122. Habilitations dans les programmes (AV-3)
+
+## 122.1 Groupes de coordination
+
+Un projet coordinateur peut constituer des groupes, par exemple « Coordination CM98 ». Chaque sous-projet peut accorder à un tel groupe une habilitation limitée : rôle, périmètre, durée et mode d'admission.
+
+Il existe deux modes d'admission des nouveaux membres du groupe :
+
+-   **notification** : le nouveau membre reçoit les droits accordés au groupe ; le sous-projet est informé et peut révoquer ;
+-   **approbation préalable** : aucun droit tant que le sous-projet n'a pas approuvé nommément la personne. C'est le **comportement par défaut** pour les contenus privés ou sensibles.
+
+## 122.2 Règles
+
+-   un départ du groupe retire immédiatement les droits dérivés, répliques hors ligne comprises ; aucune approbation ne retarde une révocation ;
+-   une approbation porte sur une identité, pas sur une place ;
+-   le programme ne peut pas élargir unilatéralement les permissions accordées ;
+-   la fin du rattachement (§ 120.2) désactive les habilitations accordées à ce titre, sans toucher aux droits acquis par un autre fondement ;
+-   GENIIUS sait expliquer pourquoi une personne a accès à un objet, sans exposer cette explication à des personnes non habilitées.
+
+------------------------------------------------------------------------
+
+# 123. Ressources d'un projet (AV-5)
+
+Un projet peut déclarer les ressources qu'il mobilise ou prévoit de mobiliser : référence, inventaire, source à exploiter, outil de travail, bibliographie, donnée de travail… Une même ressource peut avoir plusieurs rôles.
+
+Règles :
+
+-   la ressource conserve sa nature, sa provenance, son espace et ses droits ; la déclarer ne crée ni copie ni accès ;
+-   les situations « référencée », « conservée » et « exploitée » se déduisent du modèle, sans statut saisi ;
+-   « exploitée par ce projet » n'est affiché que si les travaux sont attribuables au projet ; l'absence de travaux visibles ne prouve pas l'absence d'exploitation ;
+-   ce qu'un projet **utilise** (§ 123) est distinct de ce qu'il **étudie** (§ 121). Une fiche matricule peut être les deux à la fois.
+
+------------------------------------------------------------------------
+
+# 124. Pilotage des travaux (AV-6)
+
+## 124.1 Tâches, lots et jalons
+
+Le pilotage repose sur un concept unique, la tâche, qui peut être :
+
+-   une **tâche** : « transcrire la fiche n° 42 » ;
+-   un **lot** : « transcrire les fiches 1 à 100 », confié à une ou plusieurs personnes ou à un groupe ;
+-   un **jalon** : « dépouillement de Saint-Leu terminé ».
+
+Une tâche peut avoir des sous-tâches et des dépendances, sans cycle. Ses échéances sont des **dates de calendrier**, distinctes des dates historiques.
+
+## 124.2 Délégation par lot
+
+Un lot peut fonder une délégation temporaire, limitée à ses objets, aux opérations prévues (par exemple lire et transcrire, mais pas valider) et à une durée (§ 25.4).
+
+-   Être assigné ne donne aucun droit par soi-même.
+-   La délégation a son propre cycle de vie : la clôture du lot peut y mettre fin, mais **sa réouverture ne réactive aucun droit**.
+-   Étendre le périmètre d'un lot n'étend jamais silencieusement les droits.
+-   Déléguer une tâche ne transfère ni responsabilité scientifique, ni droit de publication, ni propriété.
+
+## 124.3 Avancement
+
+L'avancement se constate sur les objets : « 37 fiches sur 100 transcrites ». On le détaille par état réel : transcription présente, évaluée, identification proposée, validée. Aucun pourcentage global de complétude scientifique (§ 54). Une tâche « faite » n'est jamais une validation.
+
+------------------------------------------------------------------------
+
+# 125. Reconstitution collective (REC-TR08)
+
+Un projet territorial ou thématique, comme Les Colimaçons, possède **sa propre reconstitution** : familles, personnes, filiations, unions, lieux, propriétés, événements et sources. Elle est alimentée par des contributions sélectionnées venant de plusieurs arbres, GENIIUS ou externes.
+
+-   La reconstitution n'est pas une fusion des arbres participants.
+-   Des familles sans parenté connue entre elles peuvent y figurer ; aucune parenté fictive n'est créée.
+-   Le projet prend ses propres décisions scientifiques, sans les imposer aux arbres sources.
+-   Les divergences entre contributeurs sont conservées comme positions distinctes.
+-   Une découverte faite dans un arbre peut être **proposée** au projet ou à d'autres arbres. Chaque destinataire accepte, refuse ou diffère ; un refus est tracé.
+-   Le projet ne peut jamais déduire une relation d'asservissement, de résidence, de propriété, de parenté ou d'identité sans assertion sourcée (§ 6.5).
+
+------------------------------------------------------------------------
+
+# 126. Partage sélectif d'une branche (REC-TR09)
+
+## 126.1 Une branche est une sélection explicite
+
+Le propriétaire, ou un responsable habilité, peut partager **une partie précisément délimitée** de son arbre : un point de départ (par exemple Sosa 31), une ascendance (paternelle, maternelle, les deux ou aucune), la descendance, les unions et les conjoints.
+
+-   Partager un conjoint n'ouvre pas sa famille : le Sosa 30 apparaît sans ses parents ni ses grands-parents.
+-   Les branches non sélectionnées (par exemple celle du Sosa 16) ne sont ni exposées ni **déductibles** par recherche, parcours, comptage ou export.
+-   Les personnes vivantes et les données sensibles sont masquées ou exclues par défaut.
+-   Une **prévisualisation exacte** des personnes, relations, sources et informations transmises est obligatoire avant de confirmer.
+-   Chaque branche partagée a ses propres paramètres, par exemple BOURBON et BOVALO séparément.
+
+## 126.2 Consultation ou réutilisation
+
+Pour chaque branche partagée, le propriétaire choisit :
+
+-   **consultation seule** (par défaut) : visible dans le projet, non reprenable ailleurs ;
+-   **réutilisation autorisée** : les participants peuvent reprendre les éléments autorisés dans leurs propres arbres, avec provenance et crédits.
+
+L'autorisation ne peut jamais dépasser les droits effectifs de celui qui partage. Il n'y a aucun partage transitif.
+
+## 126.3 Évolution
+
+La branche partagée est versionnée. Les modifications ultérieures de l'arbre source produisent des **propositions** de mise à jour, jamais un élargissement silencieux du périmètre.
+
+------------------------------------------------------------------------
+
+# 127. Contributions internes et externes (REC-TR11)
+
+Un projet reçoit des contributions issues d'arbres GENIIUS ou d'imports externes (par exemple un GEDCOM issu de Geneanet), avec les mêmes exigences de provenance, de contrôle scientifique et de confidentialité (§ 84).
+
+-   Une personne potentiellement déjà connue donne lieu à une proposition de rapprochement, jamais à une fusion automatique.
+-   Les assertions contradictoires sont conservées.
+-   Un réimport détecte les différences sans écraser les décisions du projet ; un import identique ne crée pas de doublon.
+-   Aucune synchronisation continue avec une plateforme externe n'est présumée (§ 85).
+-   La disparition d'une source externe est historisée, sans prétendre qu'elle reste accessible.
+
+------------------------------------------------------------------------
+
+# 128. Arbre préparé pour un tiers (REC-TR10, AV-11)
+
+Un chercheur peut créer et administrer l'arbre d'une personne qui n'a pas encore de compte. Par exemple, l'arbre de son cousin BOVALO, en cadeau.
+
+-   **Créateur, auteur des recherches et propriétaire administratif** sont trois qualités distinctes, qui peuvent changer indépendamment.
+-   Le bénéficiaire futur est **désigné** sans création de compte ni de lien entre son identité de compte et sa fiche généalogique.
+-   La remise se fait par une **invitation privée**, limitée dans le temps, révocable et à usage unique. Détenir le lien ne suffit pas : le bénéficiaire est vérifié.
+-   Avant d'accepter, le bénéficiaire voit les **partages actifs** de l'arbre. Il accepte un état identifié de ces engagements ; toute modification impose une nouvelle présentation. Il peut refuser le transfert.
+-   Le transfert de gouvernance est explicite, atomique, audité et non réversible unilatéralement (§ 65.1).
+-   Après transfert, le nouveau propriétaire gère les habilitations et peut révoquer les partages (§ 132). Il ne peut ni s'attribuer les recherches, ni les réécrire. Ses désaccords prennent la forme d'assertions concurrentes. Il choisit ce qui est présenté dans son espace.
+-   Aucun droit permanent ne découle de la qualité de créateur.
+-   En l'absence de réponse ou en cas de refus, aucun compte ni transfert n'est forcé.
+
+------------------------------------------------------------------------
+
+# 129. Indicateurs et recherches transversales (AV-7, AV-9)
+
+## 129.1 Indicateurs
+
+Un indicateur est une **méthode** déterministe et versionnée. Elle précise l'unité comptée (fiches et personnes sont des unités distinctes), les critères, le dédoublonnage, le traitement des identifications incertaines, et le numérateur et le dénominateur d'un ratio (§ 40).
+
+-   Le numérateur et le dénominateur sont toujours affichés : « 3 000 sur 5 000 personnes identifiées », jamais « 60 % » seul.
+-   Les incertitudes s'expriment par des bornes **justifiées**, un résultat conditionnel ou une indétermination.
+-   Chaque calcul conserve sa méthode, son corpus, l'état scientifique retenu, son périmètre d'autorisation, sa date, sa couverture et ses exclusions.
+-   Un tableau de bord est calculé sur ce que le lecteur peut voir, et indique ce périmètre.
+-   Un résultat publié est figé, évalué pour sa diffusabilité, et identique pour tous ses lecteurs. Il reste explicable après l'évolution des connaissances.
+-   Les indicateurs d'un programme ne sont jamais la somme naïve de ceux de ses sous-projets : une même personne peut figurer dans plusieurs projets.
+-   Aucun indicateur ne mesure une vérité ou une complétude scientifique.
+
+## 129.2 Recherches transversales
+
+Les recherches à l'échelle d'un programme respectent intégralement les droits de chaque projet, y compris dans les index, caches et agrégations. Elles doivent rester utilisables sur de grands programmes : profil de référence de 50 sous-projets, 500 contributeurs et un million d'objets.
+
+## 129.3 Consommation et financement
+
+-   La consommation des ressources est attribuée à l'espace qui conserve les objets.
+-   Un programme peut proposer de **prendre en charge** tout ou partie de la consommation d'un projet, par un accord bilatéral, plafonné, borné dans le temps et révocable. Plusieurs financeurs sont possibles, sans double imputation.
+-   Une prise en charge ne donne aucun droit, aucune propriété ni aucune autorité.
+-   Sa fin n'entraîne aucune suppression. Les données restent récupérables et exportables ; seules les nouvelles consommations peuvent être limitées.
+
+------------------------------------------------------------------------
+
+# 130. Livrables éditoriaux (AV-8)
+
+Les livrables destinés à une audience sont des **publications** (§ 76) : newsletter, rapport d'activité, rapport au financeur, catalogue, bulletin… L'audience peut être publique ou restreinte, sans dispense de contrôle.
+
+-   Les publications peuvent former des **séries** (« Lettre des Colimaçons ») ; chaque numéro est figé, chiffres compris (§ 129.1).
+-   **Circuit éditorial** : brouillon, relecture, approbation, publication. Les approbations sont nominatives et liées à la version approuvée. Une modification substantielle invalide l'approbation.
+-   Une approbation éditoriale n'est **ni une validation scientifique, ni une autorisation de diffusion**. Les contrôles de diffusabilité s'appliquent toujours.
+-   Chaque **diffusion** (web, e-mail, PDF, export) est tracée et contrôlée selon son audience réelle et son risque de redistribution. Un e-mail envoyé ne peut pas être rappelé : une correction se diffuse en erratum ou en nouvelle édition (§ 77).
+-   S'**abonner** à une série ne donne aucun droit, dans le respect des règles sur les communications électroniques (consentement, désabonnement). L'abonnement éditorial est distinct de la veille scientifique (§ 91).
+-   La rédaction assistée par IA ne produit que des propositions, soumises à approbation humaine (§ 93).
+-   Un document de travail n'est pas une publication tant qu'il n'est pas constitué en édition destinée à une audience.
+
+------------------------------------------------------------------------
+
+# 131. Pérennité d'un projet
+
+Un projet peut être archivé, transmis, rouvert et exporté avec ses dépendances, ses provenances et ses historiques autorisés (§ 82, § 88, § 89). La fin d'un programme ne détruit aucun de ses sous-projets. La dissolution d'une organisation n'entraîne aucune destruction automatique (REV-02-H).
+
+------------------------------------------------------------------------
+
+# 132. Révocation d'une contribution (AV-10)
+
+Une révocation met fin aux autorisations encore actives. Elle n'annule pas automatiquement les actes légitimement accomplis.
+
+| Usage | Après révocation |
+|---|---|
+| Consultation dans le projet | Accès supprimé, sans divulgation du motif ; copies hors ligne retirées à la synchronisation |
+| Réutilisation **explicitement autorisée** et réalisée | Copie conservée dans les limites de l'autorisation, avec provenance ; plus aucune mise à jour |
+| Copie faite sans droit de réutilisation | Aucun droit de conservation autonome |
+| Conclusion du projet | Conservée ; vérifiabilité réévaluée ; jamais invalidée automatiquement |
+| Publication déjà parue | Version historique conservée ; toute nouvelle diffusion est réévaluée |
+| Export déjà remis | Non récupérable ; aucun nouvel export |
+| Preuve indépendante, droits acquis à un autre titre | Non affectés |
+
+Une révocation partielle suit les mêmes règles sur la partie retirée. Une obligation légale (effacement, retrait de consentement) prévaut sur ces règles, selon la procédure applicable (§ 97).
+
+------------------------------------------------------------------------
+
+# 133. Cas d'usage ajoutés (V1.2)
+
+## CU-26 --- Les Colimaçons : familles, habitations et trajectoires
+
+Un chercheur reconstitue le quartier des Colimaçons (Saint-Leu, La Réunion) : familles BOURBON, BOVALO, ANNAMALÉ, habitations, propriétaires, trajectoires. Il y contribue depuis son arbre uniquement BOURBON (Sosa 27) et BOVALO (Sosa 31). Pour BOVALO : ascendance paternelle, descendance et unions ; le Sosa 30 apparaît comme conjoint, sans son ascendance ; la branche du Sosa 16 est exclue.
+
+Attendu : reconstitution propre au projet ; partage strictement limité ; aucune déduction possible des branches exclues ; aucune relation d'asservissement, de résidence ou de parenté sans assertion sourcée.
+
+## CU-27 --- Arbre offert à un cousin
+
+Le chercheur crée l'arbre de son cousin BOVALO, qui n'a pas de compte, y contribue au projet Les Colimaçons, puis le lui offre.
+
+Attendu : aucun faux compte ; recherches attribuées au chercheur ; invitation privée vérifiée ; partages actifs présentés avant l'acceptation ; transfert explicite et audité ; refus possible sans conséquence.
+
+## CU-28 --- Contribution externe
+
+Un généalogiste importe son arbre Geneanet (GEDCOM) et propose certaines branches au projet.
+
+Attendu : provenance conservée ; rapprochements proposés, jamais imposés ; réimport sans écrasement ; aucune synchronisation continue présumée.
+
+## CU-29 --- Programme antillais fédéré
+
+Un programme comprend des projets Guadeloupe et Martinique, organisés par commune ou par habitation. Un contributeur rejoint uniquement Pointe-Noire.
+
+Attendu : accès limité à Pointe-Noire ; aucune lecture des projets frères ni du parent par le seul fait du programme ; l'administrateur du programme ne lit pas les sous-projets ; recherches transversales filtrées.
+
+## CU-30 --- Militaires réunionnais de 1914--1918
+
+Un projet inventorie 10 000 fiches matricules, répartit leur transcription en lots entre bénévoles, propose des identifications, les rapproche d'actes de naissance et d'arbres, puis publie des rapports.
+
+Attendu : lots à accès limité et temporaire ; avancement constaté ; fiche recensée, consultée, transcrite, personne identifiée et personne reliée à un arbre distinguées ; indicateurs avec dénominateur, incertitudes et périmètre ; rapport figé et explicable.
+
+## CU-31 --- Fédération des généalogies réunionnaises
+
+Un programme durable rapproche des arbres et projets autonomes relatifs à La Réunion, sans les fusionner.
+
+Attendu : recoupements signalés ; divergences et permissions propres conservées ; aucun « super-arbre » fusionné ; fédération sans hiérarchie imposée.
+
+------------------------------------------------------------------------
+
+# 134. Critères de recette ajoutés (V1.2)
+
+51. Un programme est un projet ; être administrateur du programme ne donne aucun accès aux contenus privés de ses sous-projets.
+52. Un rattachement de sous-projet exige l'accord des deux parties et n'est pas transitif.
+53. Un axe de recherche n'établit aucune relation historique.
+54. Un sujet incertain peut être un axe sans création d'entité fictive.
+55. Une habilitation de groupe n'élargit pas les droits quand le groupe change, sauf mode accepté ; un départ révoque immédiatement.
+56. Déclarer une ressource ne donne aucun accès à cette ressource.
+57. La réouverture d'un lot ne rend aucun droit à un bénévole dont la délégation a expiré.
+58. Un avancement est constaté sur les objets, jamais saisi en pourcentage global.
+59. Un partage de branche n'ouvre pas les branches non sélectionnées, même indirectement.
+60. Consultation et réutilisation sont deux autorisations distinctes ; la consultation est le défaut.
+61. Un arbre peut être préparé pour un tiers sans compte et lui être transféré sans réattribuer les recherches.
+62. Un indicateur affiche son unité, son dénominateur, ses incertitudes et son périmètre ; un chiffre publié reste figé et explicable.
+63. Une approbation éditoriale n'est ni une validation scientifique ni une autorisation de diffusion.
+64. Une révocation retire les accès sans détruire les réutilisations légitimes ni invalider les conclusions.

@@ -2,7 +2,7 @@
 
 ## Définitions exhaustives des entités, associations et attributs du MCD V1.1 canonique
 
-- **Statut :** dictionnaire de données de référence — **candidat au gel, non gelé**. Les deux contrôles formels de l'annexe I sont conformes : REC-01 (9/10/2026) et [REC-16](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_95_TESTS.md) (9/10/2026). Le gel reste à prononcer par décision explicite. Voir le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
+- **Statut :** dictionnaire de données de référence — **GELÉ le 9/10/2026** (décision explicite du porteur), après conformité des deux contrôles formels de l’annexe I : REC-01 et [REC-16](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_95_TESTS.md). Toute modification ultérieure suit la procédure de changement (CDC technique, § 13) et met à jour le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
 - **Révision du 9/10/2026 (audit de cohérence, ECD-04 et ECD-05) :**
   - ajouts `†` : ESPACE (réplication hors ligne), REGLE_ACCES (`nature`, `fondement`, DI-B29, DI-B30), CONTEXTE_EVALUATION (réplication, synchronisation, règle exceptionnelle, appareil), entité CONTRIBUTION_DIFFEREE (§ 4.25, DI-B31 à B33) ;
   - nouvelles obligations OB-20 à OB-22 ;
@@ -3071,7 +3071,7 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-16 | Accès temporaires bornés (missions, comparaisons) et clôture automatique | DI-K12, DI-L10 |
 | OB-17 | Isolation des espaces et chiffrement des attributs `I` au repos | CDCF § 95 |
 | OB-18 | Calcul d'indépendance des sources sur le graphe accessible ; jamais mieux que « aucune dépendance connue » sans acte humain | DD-05 |
-| OB-20 † | Réplication locale : la réplique est le graphe accessible d'un contexte `réplication` (acteur, appareil), limité aux espaces qui l'autorisent ; existence protégée exclue ; expiration locale pour les espaces `limitée` ; retraits transmis en premier, sous une forme non qualifiée | AUDIT-TECH-001, TECH-002, TECH-011.6 (9/10/2026) |
+| OB-20 † | Réplication locale : la réplique est le graphe accessible d'un contexte `réplication` (acteur, appareil), limité aux espaces qui l'autorisent ; existence protégée exclue ; expiration locale pour les espaces `limitée` ; retraits transmis en premier, sous une forme non qualifiée ; un retrait ne détruit jamais les contributions locales de l’utilisateur, y compris celles qui portent sur l’objet retiré : elles sont conservées et transmises en CONTRIBUTION_DIFFEREE (arbitrage confirmé le 9/10/2026) | AUDIT-TECH-001, TECH-002, TECH-011.6 (9/10/2026) |
 | OB-21 † | Réception différée : idempotence par `(acteur, operation_origine)`, réévaluation des droits à l'intégration, conversion seulement déterministe, conflits sans écrasement (DI-B31 à B33) | TECH-003, TECH-005, AUDIT-TECH-003 (9/10/2026) |
 | OB-22 † | Aucune règle de lecture au profit d'un rôle administratif ; habilitation exceptionnelle nominative, bornée, fondée et journalisée à chaque usage (DI-B29, DI-B30) | REV-02-A, REC-X11, TECH-027 (9/10/2026) |
 

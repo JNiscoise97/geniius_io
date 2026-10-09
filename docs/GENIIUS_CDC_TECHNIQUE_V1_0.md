@@ -7,7 +7,7 @@
 **Documents amont :**
 - CDCF V1.1 (référence)
 - MCD V1.1 🔒 (gelé, 95/95 tests)
-- Dictionnaire V1.1 consolidé (candidat au gel)
+- Dictionnaire V1.1 consolidé 🔒 (gelé le 9/10/2026)
 - MLD V1.0 (candidat)
 
 Statuts et preuves : voir le registre des versions normatives.
@@ -2300,7 +2300,9 @@ Le dossier [AV-FONC-001 — Projets et programmes de recherche scientifique](AV-
 5. Rouvrir de façon contrôlée la chaîne CDCF → MCD → dictionnaire → MLD → CDC technique → recettes.
 6. Vérifier et geler.
 
-**Règle.** AV-FONC-001 ne doit pas être introduit silencieusement dans les modèles existants. Comme il touche des structures fondamentales, **le gel définitif du CDC technique V1.0 est déconseillé sans décision explicite sur son périmètre et son calendrier d'intégration.**
+**Règle.** AV-FONC-001 ne doit pas être introduit silencieusement dans les modèles existants.
+
+**Décision de périmètre (9/10/2026) : intégration intégrale en V1 (option A).** Le gel définitif du CDC technique attend l'intégration de l'avenant dans la chaîne CDCF → MCD → dictionnaire → MLD → CDC technique, selon la séquence de AV-FONC-001, § 12.
 
 **Pistes d'évolution identifiées** (non approuvées, à instruire séparément) :
 - EV-02 — Campagnes documentaires.
