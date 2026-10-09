@@ -2,9 +2,15 @@
 
 **Version :** 1.0 — consolidée à partir des échanges de conception
 **Date :** 9 octobre 2026
-**Statut :** audit achevé sur le périmètre initial — **NON GELÉ** (voir § 11)
-**Source :** fichier `échanges_CDC technique.txt` (décisions TECH-001 à TECH-033, AUDIT-TECH-001 à 016, REV-02-A à H, REV-03-A à M11)
-**Documents amont :** CDCF V1.1 🔒 → MCD V1.1 🔒 → Dictionnaire V1.1 🔒 → MLD V1.0 🔒
+**Statut :** audit achevé sur le périmètre initial — **NON GELÉ** (voir § 11). **Version de référence** du CDC technique ; les autres versions sont archivées dans [`archives/cdc-technique/`](archives/cdc-technique/) ([registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md)).
+**Source :** [`archives/cdc-technique/échanges_CDC technique.txt`](archives/cdc-technique/) (décisions TECH-001 à TECH-033, AUDIT-TECH-001 à 016, REV-02-A à H, REV-03-A à M11)
+**Documents amont :**
+- CDCF V1.1 (référence)
+- MCD V1.1 🔒 (gelé, 95/95 tests)
+- Dictionnaire V1.1 consolidé (candidat au gel)
+- MLD V1.0 (candidat)
+
+Statuts et preuves : voir le registre des versions normatives.
 **Document aval :** Architecture technique → crash-test d'architecture → MPD → API/Core → applications
 
 > Ce document fixe **ce que GENIIUS doit garantir techniquement**. Il ne choisit pas les technologies : chaque fois qu'une solution concrète est évoquée (PostgreSQL, MinIO, Supabase, Electron, Tauri, RLS, RabbitMQ, OpenTelemetry…), c'est à titre d'illustration. Le choix relève de l'architecture technique, documenté par ADR (TECH-032).
@@ -30,6 +36,7 @@
 Annexe A — Glossaire
 Annexe B — Journal des décisions
 Annexe C — Limites de ce document
+Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.1
 
 ---
 
@@ -1572,7 +1579,8 @@ Issues du contrôle croisé avec le MCD V1.1, le dictionnaire V1.1 et le MLD V1.
 | Réf. | Règle | Précisions approuvées |
 |---|---|---|
 | **CP-23** | Droits du propriétaire : la création d'un objet `privé` crée **dans la même transaction** une `regle_acces` explicite (`voir`, `éditer`) pour l'auteur. Aucun rôle d'espace ne donne de lecture implicite. | Ne doit ni empêcher un transfert ultérieur de propriété ou de garde, ni donner une autorisation perpétuelle après une révocation légitime. |
-| **CP-24** | Habilitation exceptionnelle : `date_fin` obligatoire, `condition` justifiée, journalisation de **chaque usage** (`contexte_evaluation`, `finalite` non nulle). | Trace aussi les refus et tentatives pertinents, **sans journaliser le contenu confidentiel**. |
+| **CP-24** | Habilitation exceptionnelle : règle nominative de `nature = exceptionnelle`, avec `date_fin` et `fondement` obligatoires (CK), et journalisation de **chaque usage** (`contexte_evaluation.regle_acces_id`, `finalite` non nulle). Elle couvre les objets `privé` **et** `projet` *(révisée le 9/10/2026, ECD-04)*. | Trace aussi les refus et tentatives pertinents, **sans journaliser le contenu confidentiel**. |
+| **CP-26** | Une règle `autoriser` au profit du rôle `propriétaire` ou `administrateur` ne porte que sur `administrer`, qui n'ouvre aucune lecture (CK déclaratif). Les rôles de gouvernance ne sont jamais bénéficiaires d'une règle *(ajoutée le 9/10/2026, ECD-04)*. | Rend l'arbitrage A de REC-X11 exécutable. |
 | **CP-25** | Séparation des habilitations administratives et scientifiques. Un rôle administratif ne crée aucune appartenance scientifique ni lecture implicite des objets `projet` ou `privé`. La lecture `projet` exige une appartenance active avec lecture scientifique explicite. Le cumul est possible. | À la création d'un espace, le créateur reçoit atomiquement `propriétaire` (administratif) **et** `responsable scientifique` (scientifique), révocables ou transférables indépendamment. Un prestataire reçoit une appartenance administrative bornée à son mandat, sans lecture scientifique implicite. |
 
 **Arbitrages REC-X10.**
@@ -1593,6 +1601,14 @@ Issues du contrôle croisé avec le MCD V1.1, le dictionnaire V1.1 et le MLD V1.
 | Prestataire avec accès exceptionnel | Selon mandat | Dans le périmètre autorisé | Par habilitation spécifique auditée |
 
 **État documentaire.** Le fichier `docs/GENIIUS_MLD_V1_0.md` de l'espace de travail contient la nouvelle rédaction du § 22.1 et CP-23 à CP-25 (constat du 9 octobre 2026, modification non encore commitée). Ce constat porte sur **un fichier corrigé**. Il n'établit pas que ce fichier est la **version normative unique** du MLD : plusieurs versions ont circulé, dont une antérieure à la correction. Tant que cette version n'est pas désignée formellement, et que l'absence de lecture administrative implicite n'est pas vérifiée dans le reste du modèle (M10-A01, GEL-05), la correction reste **constatée mais non normativement intégrée**, et **GEL-01 reste ouverte**. Après la décision du 9 octobre 2026 (« ne touche plus au MLD pour l'instant »), aucune autre modification structurelle du MLD n'est engagée : toute nouvelle lacune révélée par les recettes est consignée avant décision.
+
+**Révision décidée le 9 octobre 2026 (audit de cohérence, ECD-04 et ECD-05).** Sur décision explicite, le MLD et le dictionnaire ont été complétés :
+- **CP-24 réécrite et CP-26 ajoutée** : plus aucune règle de lecture au profit d'un rôle administratif ; l'accès exceptionnel est identifiable (`regle_acces.nature`, `fondement`) et journalisé ;
+- **CP-27** : réception des contributions hors ligne dans `contribution_differee` (zone de réconciliation, MLD § 5.6) ;
+- **CP-28** : réplication locale limitée au graphe accessible, politique par espace, retraits non qualifiés ;
+- **obligations ST-01 à ST-08** transmises au schéma technique des appareils et de la synchronisation (MLD § 28.3).
+
+Le MLD reste candidat. Voir le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
 
 ## 6.3 Points de contrôle REV-03-M10
 
@@ -2132,7 +2148,8 @@ Ces reports ne sont acceptables que si leurs contrats sont suffisamment précis.
 |---|---|---|
 | Stratégie d'isolation logique et physique des espaces | Architecture | AUDIT-TECH-009 |
 | Mécanisme d'identifiants publics pérennes (URI persistantes, ARK) | Architecture | AUDIT-TECH-010, CP-17 |
-| Protocole de synchronisation et de négociation de compatibilité ; zone de réconciliation | Architecture | TECH-003, AUDIT-TECH-003 |
+| Protocole de synchronisation et de négociation de compatibilité | Architecture | TECH-003, AUDIT-TECH-003 |
+| ~~Emplacement du modèle de données de la synchronisation~~ — **décidé le 9/10/2026 (ECD-05)** : zone de réconciliation (`contribution_differee`), politique de réplication et contexte d'évaluation dans le MLD (CP-27, CP-28) ; appareils, sessions, curseurs, journal technique et stockage local dans un schéma technique choisi par ADR, tenu par les obligations ST-01 à ST-08 (MLD § 28.3) | Fait | TECH-002, 003, 005, 007.8 ; AUDIT-TECH-001, 003 |
 | Politique de caches et d'invalidation | Architecture | AUDIT-TECH-004, MPD-02 |
 | Formats de conservation et fréquence des contrôles d'intégrité | Architecture / exploitation | AUDIT-TECH-012 |
 | Dimensionnement des performances | Architecture / tests | TECH-014, AUDIT-TECH-008 |
@@ -2361,7 +2378,79 @@ Une découverte faite pendant une recette qui révèle une vraie lacune est **co
 # Annexe C — Limites de ce document
 
 - Ce document consolide **fidèlement les échanges de conception**. Il ne crée aucune décision nouvelle. Les seuls ajouts sont rédactionnels : numérotation `TECH-xxx.n`, regroupements, tableaux de synthèse, identification des doublons.
-- Il remplace le document `GENIIUS_CDC_TECHNIQUE_V1_0_CONSOLIDE_CANDIDAT.md`, qui avait été reconstitué sans accès à la source des échanges.
-- Les références précises aux sections du CDCF, du MCD et du dictionnaire restent à compléter (M10-C08).
+- Il remplace le document `GENIIUS_CDC_TECHNIQUE_V1_0_CONSOLIDE_CANDIDAT.md`, qui avait été reconstitué sans accès à la source des échanges. Ce document est désormais archivé dans `archives/cdc-technique/`.
+- Les origines fonctionnelles sont rattachées aux sections du CDCF V1.1 à l'annexe D. Certaines exigences n'ont pas d'origine fonctionnelle : elles reposent sur une justification technique (ECD-19).
 - Aucun test logiciel n'a été exécuté. Aucune condition de gel n'est levée. **Aucun gel n'est prononcé.**
 - Les chiffres de volumétrie et de coûts cités en exemple (profils TECH-009, tarifs de stockage évoqués pendant la conception) sont **indicatifs** et ne constituent pas des engagements.
+
+# Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.1
+
+*Ajoutée le 9 octobre 2026 (correction ECD-03 de l'audit de cohérence). Le référentiel fonctionnel de référence est `docs/geniius_io_CDCF_V1.md` (CDCF V1.1). Ses identifiants sont : sections § n, cas d'usage CU-01 à CU-25, critères de recette 1 à 50 (§ 103), décisions Q113 à Q245.*
+
+## D.1 Identifiants hérités des échanges
+
+Les échanges de conception (archives) citent des identifiants issus de `CDCF_GENIIUS_V1.docx`, document absent du dépôt. **Ce CDC technique ne les utilise pas comme références normatives.** Leur correspondance avec le CDCF V1.1 est la suivante.
+
+| Identifiant (échanges) | Objet | CDCF V1.1 | Recettes CDC technique |
+|---|---|---|---|
+| A-01 | Séparer le Core et les objets propres aux applications | § 2.3, § 3.7, § 43, § 44 | REC-TECH08 |
+| A-02 | Aucune contribution automatique au Core partagé | § 4.3, § 4.4, § 56 ; critères 8, 24 | REC-A02 |
+| A-03 | Core utilisable dans un espace privé | § 12, § 47 ; critère 23 | REC-A02 |
+| A-04 | Nouveaux domaines sans nouvelle application | § 43 ; critère 22 | — |
+| K-01 | Correction indépendante des couches scientifiques | § 5.3 ; critères 2, 3 | REC-K01 |
+| K-02 | Propagation des impacts d'une correction | § 5.4, § 41 ; critères 20, 25, 41 | REC-K02, X12 |
+| K-03 | Séparer valeurs attestées et valeurs calculées | § 9.2 | REC-K03 |
+| S-01 | Hiérarchie documentaire et provenance fine | § 15, § 18 | REC-S01 |
+| S-02 | Rôles distincts des intervenants | § 16 | — |
+| S-03 | Relations qualifiées entre documents | § 17 | — |
+| S-04 | Documents disparus et reconstructions | § 20, § 30–32 ; CU-03 | REC-S02, S03 |
+| CV-I01 | Deux Jean CARMEN homonymes | § 6, § 8.2 | REC-I01 |
+| CV-I02 | Charles TANCRÈDE identifié à tort comme une seule personne | § 8.3 ; CU-01 ; critère 4 | REC-I02 |
+| CV-I03 | Variantes BLUKER / BICLAIR | § 7.1 ; CU-14 | REC-I03 |
+| CV-T01 | Emploi attesté en 1834, 1837 et 1841 | § 10.3 ; CU-15 | REC-T01 |
+| CV-T02 | Deshaies puis Pointe-à-Pitre, sans itinéraire inventé | § 29 | REC-T02 |
+| CV-T03 | Première et dernière attestations | § 10.3 ; CU-23 | REC-T03 |
+| CV-AT01 | Reconstruction d'un territoire historique | § 27 ; CU-08 | REC-AT01 |
+| CV-AT02 | Habitation au nord de C, sans polygone inventé | § 27.5, § 28 ; critère 12 | REC-AT02 |
+| CV-AT03 | Concomitance ≠ causalité (épidémie) | § 14, § 27.10 ; critère 30 | REC-AT03 |
+| CV-CN01 | Identification de photos lors d'une cousinade | § 3.5, § 32, § 33.1 ; CU-05, CU-16 | REC-CN01, X14 |
+
+## D.2 Origine fonctionnelle de chaque exigence TECH
+
+Cette table répond à M10-C08. « Justification technique » signifie que l'exigence découle d'une décision des échanges de conception, sans exigence fonctionnelle correspondante dans le CDCF V1.1. Ces exigences restent normatives, mais leur origine est à régulariser (avenant AV-FONC-002 proposé, ECD-19).
+
+| TECH | Origine dans le CDCF V1.1 | Nature |
+|---|---|---|
+| 001 | § 3, § 44 (applications comme portes d'entrée) — aucune exigence de surface | Justification technique (ECD-19) |
+| 002 | Aucune | Justification technique (ECD-19) |
+| 003 | § 4.4 (filiation sans synchronisation forcée), § 64 (conflits d'édition) ; critère 24 | Fonctionnelle + technique |
+| 004 | § 84 (import externe) — aucune exigence d'application installée | Justification technique (ECD-19) |
+| 005 | § 64 — la synchronisation entre appareils n'est pas traitée (§ 85 porte sur la synchronisation externe) | Justification technique (ECD-19) |
+| 006 | § 18 (reproductions), § 15.2, § 97 ; critère 2 | Fonctionnelle |
+| 007 | § 95 (MFA, sessions et appareils), § 90 | Fonctionnelle |
+| 008 | § 2.3, § 43, § 44 ; critère 22 | Fonctionnelle |
+| 009 | § 88 (pérennité) — volumétrie issue des échanges (association de 40 généalogistes) | Justification technique (ECD-19) |
+| 010 | § 83, § 84 | Fonctionnelle |
+| 011 | § 61, § 62, § 73–75, § 49 ; critères 8, 11 | Fonctionnelle |
+| 012 | § 95 (sauvegardes chiffrées, restauration testée), § 88 | Fonctionnelle |
+| 013 | — | Justification technique |
+| 014 | § 42 (recherche globale) | Justification technique |
+| 015 | § 41 (résultats dynamiques) ; critère 41 | Fonctionnelle + technique |
+| 016 | § 42, § 43, § 7 (variantes de noms) | Fonctionnelle |
+| 017 | § 41–42, § 93, § 94 ; critère 14 | Fonctionnelle |
+| 018 | § 79 (API), § 5 ; critère 44 | Fonctionnelle |
+| 019 | § 95 | Fonctionnelle |
+| 020 | § 66–72, § 96, § 97 ; critère 25 | Fonctionnelle |
+| 021 | § 95 (logs d'audit), § 90 | Fonctionnelle |
+| 022 | — | Justification technique |
+| 023 | — | Justification technique |
+| 024 | § 101 (CU), § 103 (critères de recette) | Fonctionnelle |
+| 025 | § 106 (UX transversales) ; critère 12 | Fonctionnelle |
+| 026 | § 82–84, § 88 ; critères 45, 46 | Fonctionnelle |
+| 027 | § 49.2, § 62 | Fonctionnelle |
+| 028 | § 88 (partiel) | Justification technique |
+| 029 | § 100 (monétisation) | Fonctionnelle (partielle) |
+| 030 | § 95 (politique de vulnérabilités, réponse aux incidents) | Fonctionnelle |
+| 031 | § 31, § 40 ; critère 48 | Fonctionnelle |
+| 032 | Partie XVIII, § 115 | Fonctionnelle (gouvernance) |
+| 033 | § 99, § 19.3 | Fonctionnelle |

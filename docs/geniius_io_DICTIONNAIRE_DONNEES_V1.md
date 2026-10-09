@@ -1,8 +1,13 @@
-# GENIIUS — Dictionnaire de données V1.0
+# GENIIUS — Dictionnaire de données V1.1 consolidé
 
 ## Définitions exhaustives des entités, associations et attributs du MCD V1.1 canonique
 
-- **Statut :** dictionnaire de données de référence — première version, à soumettre à validation
+- **Statut :** dictionnaire de données de référence — **candidat au gel, non gelé**. Les deux contrôles formels de l'annexe I sont conformes : REC-01 (9/10/2026) et [REC-16](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_95_TESTS.md) (9/10/2026). Le gel reste à prononcer par décision explicite. Voir le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
+- **Révision du 9/10/2026 (audit de cohérence, ECD-04 et ECD-05) :**
+  - ajouts `†` : ESPACE (réplication hors ligne), REGLE_ACCES (`nature`, `fondement`, DI-B29, DI-B30), CONTEXTE_EVALUATION (réplication, synchronisation, règle exceptionnelle, appareil), entité CONTRIBUTION_DIFFEREE (§ 4.25, DI-B31 à B33) ;
+  - nouvelles obligations OB-20 à OB-22 ;
+  - aucune règle existante n'est modifiée.
+- **Version :** V1.1 consolidé = corps V1 (7/10/2026) + annexes G à J. C'est le document désigné par le MLD sous le nom `GENIIUS_DICTIONNAIRE_DONNEES_V1_1_CONSOLIDE.md`. *En-tête corrigé le 9/10/2026 (correction ECD-01) ; il indiquait auparavant « V1.0 — première version, à soumettre à validation ». Le contenu n'est pas modifié.*
 - **Date :** 7 octobre 2026
 - **Sources :** CDCF V1.1 (`docs/geniius_io_CDCF_V1.md`) ; MCD V1.1 canonique gelé (`docs/geniius_io_MCD_V1.md`) ; rapport de réexécution des 95 tests (`docs/GENIIUS_RAPPORT_REEXECUTION_95_TESTS_MCD_V1_1.md`)
 - **Position dans la feuille de route :** étape suivant le gel du MCD, précède le modèle logique (MLD)
@@ -677,6 +682,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | regime_gouvernance | Règles de décision de l'espace | `TEXTE_LONG` | 0..1 | — | Obligatoire pour `communauté` et `Core partagé` | « décisions scientifiques par référents » | S·V·O |
 | date_creation | Date de création | `HORODATAGE` | 1 | UTC ms | Égale à `OBJET.date_creation` | `2028-01-04T00:00Z` | Y·F·O |
 | visibilite_max † | Plafond de visibilité des objets | `CODE` | 1 | D-04 | DI-B03 ; `personnel` : `privé` | `cercle invité` | S·V·O |
+| replication_hors_ligne † | Politique de réplication des contenus de l'espace sur les appareils | `CODE` | 1 | {autorisée, limitée, interdite} | Défaut `autorisée` ; OB-20 (AUDIT-TECH-001) | `limitée` | S·V·O |
+| duree_max_hors_ligne_jours † | Durée maximale de consultation hors ligne sans revalidation | `ENTIER` | C | > 0 | Obligatoire si et seulement si `replication_hors_ligne = limitée` | `30` | S·V·O |
 
 ## 4.2 COMMUNAUTE ✓ — ⊂ ESPACE
 
@@ -803,6 +810,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-B12** — `objet_protege = existence` ⇒ l'objet ou le lien est retiré du graphe accessible des bénéficiaires visés avant toute opération (P20, TI-11).
 - **DI-B13** — Une règle ne peut pas élargir la visibilité d'un lien au-delà de ses extrémités (TI-10).
 - **DI-B14** — Une règle ne peut conférer `contribuer au Core` qu'à un acteur ayant un rôle sur l'espace source.
+- **DI-B29** † — Une règle d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer`. Cette action n'implique aucune autre action. Les rôles de gouvernance (ATTRIBUER_ROLE) ne sont jamais bénéficiaires d'une règle. *(9/10/2026 — REC-X11 arbitrage A, REV-02-A.)*
+- **DI-B30** † — `nature = exceptionnelle` exige un bénéficiaire acteur nominatif, `effet = autoriser`, une `date_fin` et un `fondement`. Chaque usage est consigné dans un `CONTEXTE_EVALUATION` qui référence la règle, avec une finalité déclarée. Le contenu consulté n'est jamais consigné. *(9/10/2026 — TECH-027.5.)*
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
@@ -816,6 +825,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | date_fin | Fin d'effet | `HORODATAGE` | 0..1 | UTC ms | Accès temporaire (missions déléguées) | `2029-03-01T00:00Z` | S·V·O |
 | condition | Condition d'application | `TEXTE_COURT` | 0..1 | — | Expression évaluable (MPD) | « tant que la personne est vivante » | S·V·O |
 | sensibilite | Niveau de sensibilité | `CODE` | 1 | {normale, sensible, très sensible} | — | `sensible` | S·V·O |
+| nature † | Règle ordinaire ou habilitation exceptionnelle | `CODE` | 1 | {ordinaire, exceptionnelle} | Défaut `ordinaire` ; DI-B30 | `exceptionnelle` | S·V·O |
+| fondement † | Justification, mandat ou base juridique d'une habilitation exceptionnelle | `TEXTE_COURT` | C | — | Obligatoire si `nature = exceptionnelle` | « ticket support 2031-114, accord du propriétaire » | S·V·I |
 
 ## 4.10 CONTEXTE_EVALUATION
 
@@ -836,9 +847,11 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | projet | Projet concerné | `IDENT` | 0..1 | id de `PROJET` | — | — | Y·N·O |
 | role | Rôle de l'acteur au moment de l'évaluation | `CODE` | 0..1 | Rôles d'APPARTENIR | — | `collaborateur` | Y·N·O |
 | instant | Instant d'évaluation | `HORODATAGE` | 1 | UTC ms | — | `2030-02-02T12:00Z` | Y·N·O |
-| operation | Opération évaluée | `CODE` | 1 | {consultation, recherche, traversée, suggestion, agrégation, comptage, calcul, export, publication, notification, API} | P20 | `agrégation` | Y·N·O |
+| operation | Opération évaluée | `CODE` | 1 | {consultation, recherche, traversée, suggestion, agrégation, comptage, calcul, export, publication, notification, API, réplication †, synchronisation †} | P20 ; OB-20, OB-21 | `agrégation` | Y·N·O |
 | finalite | Finalité déclarée | `TEXTE_COURT` | 0..1 | — | — | « statistique publique Dolé » | S·N·O |
-| canal | Canal | `CODE` | 1 | {interface, API, export, notification, page publique} | — | `page publique` | Y·N·O |
+| canal | Canal | `CODE` | 1 | {interface, API, export, notification, page publique, application locale †} | — | `page publique` | Y·N·O |
+| regle_acces † | Habilitation exceptionnelle utilisée | `IDENT` | 0..1 | id de `REGLE_ACCES` | Si renseigné : `finalite` obligatoire (DI-B30) | `01b7…` | Y·N·O |
+| appareil † | Appareil concerné (schéma technique) | `IDENT` | C | Identifiant d'appareil | Obligatoire si `operation = réplication` (OB-20) | `01c2…` | Y·N·I |
 
 ## 4.11 DECISION_APPLICABILITE_DROIT ✓
 
@@ -1034,6 +1047,35 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | BLOQUER | COMPTE (0,n) — COMPTE (0,n) | date (1) | — | `I` |
 | RESTRICTION_AMONT † / DERIVE_CONCERNE † | DECISION_APPLICABILITE_DROIT (1,1) — OBJET (0,n), ×2 | — | DI-B15 | Suit le dérivé |
 | EVALUER_OBJET † / EVALUER_DANS † | EVALUATION_DIFFUSABILITE (1,1) — OBJET (0,n) ; (1,1) — CONTEXTE_EVALUATION (0,n) | — | DI-B17 | Suit l'objet |
+
+## 4.25 CONTRIBUTION_DIFFEREE † — ajout du 9/10/2026
+
+**Définition.** Opération réalisée hors connexion sur un appareil, reçue par GENIIUS et en attente de traitement, ou déjà traitée : création, modification ou demande de suppression. C'est la zone de réconciliation du CDC technique (TECH-003, AUDIT-TECH-003). Une contribution différée **n'est pas** une connaissance intégrée. L'objet qu'elle produit, s'il est intégré, suit son propre cycle de validation.
+
+**Identifiant.** `id_objet` ; unicité de `(acteur, operation_origine)`, qui garantit l'idempotence du rejeu.
+
+**Héritage.** `OBJET` (versionné, soumis aux droits et à la purge).
+
+**Confidentialité.** `R` ; visibilité `privé`, lisible par son auteur seul (CP-23 du MLD).
+
+**Intégrité.**
+- **DI-B31** — Une opération hors ligne n'est jamais écrite directement dans les objets métier. Elle est reçue ici, puis intégrée seulement après réévaluation des droits **au moment de l'intégration** et contrôle de compatibilité des versions. Une conversion n'est admise que si elle est déterministe ; sinon, la contribution est `en attente de réconciliation`.
+- **DI-B32** — Une modification dont la version de base n'est plus la version courante ouvre un `CONFLIT_EDITION`. Elle n'écrase jamais l'existant (CDCF § 64).
+- **DI-B33** — Une contribution différée n'est jamais supprimée hors purge légale (DD-13). Refusée, elle reste lisible par son seul auteur, sans divulgation ni publication.
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| operation_origine | Identifiant de l'opération attribué par l'appareil | `IDENT` | 1 | UUID | Unique par acteur | `01d0…` | Y·F·O |
+| appareil | Appareil d'origine | `IDENT` | 1 | Identifiant d'appareil (schéma technique) | — | `01c2…` | Y·F·I |
+| date_operation_locale | Date de l'opération sur l'appareil | `HORODATAGE` | 1 | UTC ms | — | `2031-04-02T11:03Z` | Y·F·O |
+| nature_operation | Nature | `CODE` | 1 | {création, modification, demande de suppression} | `création` ⇔ pas de version de base | `modification` | Y·F·O |
+| version_base | Version canonique connue lors de l'opération | `IDENT` + numéro | C | Version d'objet | Obligatoire hors création (TECH-003.2) | `P-1024 v17` | Y·F·O |
+| charge | Opération sérialisée | `ETAT_FIGE` | 1 | Format patrimonial | Purgeable | `{…}` | Y·F·R |
+| versions_client | Versions logicielle, de schéma et de référentiel déclarées | `TEXTE_COURT` ×3 | 1 | — | La version du référentiel pointe une version de `REFERENTIEL` | « 2.4 / s12 / GENIIUS-COMMUN v3 » | Y·F·O |
+| etat_reception | État de réception | `CODE` | 1 | {reçue, intégrée, transformée, en attente de réconciliation, refusée - droits, refusée - invalide, en erreur} | `intégrée`/`transformée` ⇒ objet résultant ; refus, erreur, transformation ⇒ motif | `en attente de réconciliation` | S·V·O |
+| motif | Motif du traitement | `TEXTE_COURT` | C | — | — | « catégorie scindée en V3 » | S·V·R |
+
+Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE (1,1)) ; CIBLER_ESPACE (ESPACE (0,n) — (1,1)) ; RESULTER_EN (CONTRIBUTION_DIFFEREE (0,1) — OBJET (0,1)) ; OUVRIR_CONFLIT (CONTRIBUTION_DIFFEREE (0,1) — CONFLIT_EDITION (0,1)).
 
 ---
 
@@ -2972,7 +3014,7 @@ Ces écarts **précisent** le MCD sans le rouvrir (§ 0.3). Ils sont à reporter
 
 | Entité | Attributs † |
 |---|---|
-| ESPACE | visibilite_max |
+| ESPACE | visibilite_max ; replication_hors_ligne, duree_max_hors_ligne_jours (9/10/2026) |
 | VERSION_OBJET | empreinte_etat, statut_contenu |
 | ACTIVITE | fournisseur, perimetre_donnees_transmises |
 | DEPENDANCE | id_lien, categorie, sens, cycle_detecte, etat_lien |
@@ -2981,7 +3023,9 @@ Ces écarts **précisent** le MCD sans le rouvrir (§ 0.3). Ils sont à reporter
 | ACQUISITION_INFORMATION | date_connaissance_declaree |
 | REFERENCE_PERSISTANTE | ark |
 | ACTEUR_GENIIUS | nature_acteur |
-| REGLE_ACCES | cible_type, effet, objet_protege, role_beneficiaire |
+| REGLE_ACCES | cible_type, effet, objet_protege, role_beneficiaire ; nature, fondement (9/10/2026) |
+| CONTEXTE_EVALUATION | regle_acces, appareil ; valeurs `réplication`, `synchronisation`, `application locale` (9/10/2026) |
+| CONTRIBUTION_DIFFEREE | entité ajoutée (§ 4.25, 9/10/2026) |
 | DOCUMENT | titre_original |
 | VUE | largeur_px, hauteur_px |
 | ANNOTATION | date_trace |
@@ -2994,7 +3038,7 @@ Ces écarts **précisent** le MCD sans le rouvrir (§ 0.3). Ils sont à reporter
 
 ## C.4 Associations ajoutées
 
-DECRIRE_ETAT, REDIRIGER_VERS, JUSTIFIER, INVOQUER_PREUVE, ACQUERIR, LOT, FOURNIR, ACQUERIR_DOC (A) ; PORTER_SUR_LIEN, RESTRICTION_AMONT, DERIVE_CONCERNE, EVALUER_OBJET, EVALUER_DANS (B) ; CONCERNER_TERRITOIRE, COMPOSER_DOC, ALIGNEMENT_REPRODUCTION, DECLARER_SOURCE, IDENTIFIER_SOURCE, SOURCER_EXT (C) ; SELECTIONNER, ADOPTER, PORTER_SUR_PROPOSITION (F) ; EXPRIMER_ASSERTION, EXTRAITE_DE, TRADUIRE_EXPRESSION (G) ; RACINE, ECART_A, ECART_B (L) ; EVALUER_PUBLICATION, EVALUER_EXPORT (P) ; EXPLORER_A, EXPLORER_B (Q).
+DECRIRE_ETAT, REDIRIGER_VERS, JUSTIFIER, INVOQUER_PREUVE, ACQUERIR, LOT, FOURNIR, ACQUERIR_DOC (A) ; PORTER_SUR_LIEN, RESTRICTION_AMONT, DERIVE_CONCERNE, EVALUER_OBJET, EVALUER_DANS, PROPOSER_DIFFERE, CIBLER_ESPACE, RESULTER_EN, OUVRIR_CONFLIT (B) ; CONCERNER_TERRITOIRE, COMPOSER_DOC, ALIGNEMENT_REPRODUCTION, DECLARER_SOURCE, IDENTIFIER_SOURCE, SOURCER_EXT (C) ; SELECTIONNER, ADOPTER, PORTER_SUR_PROPOSITION (F) ; EXPRIMER_ASSERTION, EXTRAITE_DE, TRADUIRE_EXPRESSION (G) ; RACINE, ECART_A, ECART_B (L) ; EVALUER_PUBLICATION, EVALUER_EXPORT (P) ; EXPLORER_A, EXPLORER_B (Q).
 
 ## C.5 Associations réifiées en liens gouvernables (DD-09)
 
@@ -3027,6 +3071,9 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-16 | Accès temporaires bornés (missions, comparaisons) et clôture automatique | DI-K12, DI-L10 |
 | OB-17 | Isolation des espaces et chiffrement des attributs `I` au repos | CDCF § 95 |
 | OB-18 | Calcul d'indépendance des sources sur le graphe accessible ; jamais mieux que « aucune dépendance connue » sans acte humain | DD-05 |
+| OB-20 † | Réplication locale : la réplique est le graphe accessible d'un contexte `réplication` (acteur, appareil), limité aux espaces qui l'autorisent ; existence protégée exclue ; expiration locale pour les espaces `limitée` ; retraits transmis en premier, sous une forme non qualifiée | AUDIT-TECH-001, TECH-002, TECH-011.6 (9/10/2026) |
+| OB-21 † | Réception différée : idempotence par `(acteur, operation_origine)`, réévaluation des droits à l'intégration, conversion seulement déterministe, conflits sans écrasement (DI-B31 à B33) | TECH-003, TECH-005, AUDIT-TECH-003 (9/10/2026) |
+| OB-22 † | Aucune règle de lecture au profit d'un rôle administratif ; habilitation exceptionnelle nominative, bornée, fondée et journalisée à chaque usage (DI-B29, DI-B30) | REV-02-A, REC-X11, TECH-027 (9/10/2026) |
 
 ---
 

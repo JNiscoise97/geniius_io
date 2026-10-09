@@ -2,9 +2,15 @@
 
 ## Modèle logique de données relationnel dérivé du MCD V1.1 et du Dictionnaire V1.1 consolidé
 
-- **Statut :** modèle logique de référence — première version, à soumettre à validation
-- **Date :** 7 octobre 2026
-- **Sources :** MCD V1.1 canonique (`docs/geniius_io_MCD_V1.md`) ; Dictionnaire de données V1.1 consolidé (`docs/GENIIUS_DICTIONNAIRE_DONNEES_V1_1_CONSOLIDE.md`), en particulier l'annexe G (traçabilité), l'annexe H (registre MLD-01 à MLD-15) et les annexes C et D
+- **Statut :** modèle logique de référence — **candidat, non gelé**. Voir le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
+- **Date :** 7 octobre 2026 ; CP-23 à CP-25 et § 22.1 révisés le 9 octobre 2026
+- **Révision du 9 octobre 2026 (audit de cohérence, ECD-04 et ECD-05) :**
+  - colonnes `regle_acces.nature` et `fondement`, CP-24 réécrite et CP-26 ajoutée : plus aucune règle de lecture au profit d'un rôle administratif ; l'accès exceptionnel devient identifiable et audité ;
+  - colonnes `espace.replication_hors_ligne` et `duree_max_hors_ligne_jours` ;
+  - extension de `contexte_evaluation` (`réplication`, `synchronisation`, `application locale`, `regle_acces_id`, `appareil_ref`) ;
+  - nouvelle table `contribution_differee` (§ 5.6), qui porte le total à 247 tables ;
+  - CP-27, CP-28 et obligations ST-01 à ST-08 transmises au schéma technique (§ 28.3).
+- **Sources :** MCD V1.1 canonique gelé (`docs/geniius_io_MCD_V1.md`) ; Dictionnaire de données V1.1 consolidé (`docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md` — *chemin corrigé le 9/10/2026 (ECD-01) ; anciennement cité sous le nom `GENIIUS_DICTIONNAIRE_DONNEES_V1_1_CONSOLIDE.md`*), en particulier l'annexe G (traçabilité), l'annexe H (registre MLD-01 à MLD-15) et les annexes C et D
 - **Position dans la feuille de route :** étape suivant le dictionnaire, précède le modèle physique (MPD)
 
 ---
@@ -169,7 +175,7 @@ Ce n'est pas un modèle « entité–attribut–valeur » non typé : le prédic
 
 **Décision.**
 - `regle_acces` : une cible parmi trois clés étrangères exclusives (`cible_objet_id`, `cible_espace_id`, `cible_lien_id`), un bénéficiaire parmi (`beneficiaire_acteur_id`, `beneficiaire_groupe_id`, `role_beneficiaire`, public), `effet` (autoriser, interdire), `objet_protege` (contenu, existence), période.
-- Les appartenances (`appartenance_espace`, `attribution_role`, `membre_groupe`) sont versionnées par l'espace ou le groupe. Les habilitations administratives et scientifiques sont indépendantes et cumulables ; seule une appartenance scientifique ouvre la lecture des objets `projet` (CP-25).
+- Les appartenances (`appartenance_espace`, `attribution_role`, `membre_groupe`) sont versionnées par l'espace ou le groupe. Les habilitations administratives et scientifiques sont indépendantes et cumulables ; seule une appartenance scientifique ouvre la lecture des objets `projet` (CP-25). Une règle accordée à un rôle administratif ne porte que sur `administrer` (CP-26) ; un accès exceptionnel est une règle nominative de `nature = exceptionnelle` (CP-24).
 - L'évaluation (`acces(contexte, cible, action)`) suit l'ordre fixé au § 22 : existence protégée → interdiction → autorisation explicite → visibilité par défaut. L'interdiction l'emporte toujours (DD-18).
 - La relation dérivée `droit_effectif` ‡ (§ 22.2) est la forme logique de ce calcul ; sa matérialisation et son moteur (RLS, service de politiques) relèvent de MPD-02 et MPD-06.
 
@@ -562,7 +568,10 @@ espace  [V]                                        -- ESPACE
   nom                 text  NN*
   regime_gouvernance  text
   visibilite_max      code  NN  CK IN D-04
+  replication_hors_ligne     code  NN  CK IN {autorisée, limitée, interdite}  default 'autorisée'  ‡ CP-28
+  duree_max_hors_ligne_jours int       CK duree_max_hors_ligne_jours > 0                         ‡ CP-28
   UQ (type_espace) WHERE type_espace = 'Core partagé'        -- DD-17
+  CK (replication_hors_ligne = 'limitée') = (duree_max_hors_ligne_jours IS NOT NULL)        -- AUDIT-TECH-001
   CK type_espace NOT IN ('communauté','Core partagé') OR regime_gouvernance IS NOT NULL OR est_purge
   CK type_espace <> 'personnel' OR visibilite_max = 'privé'
 
@@ -688,7 +697,13 @@ regle_acces  [V]                                   -- REGLE_ACCES
   date_fin                ts
   condition               text
   sensibilite             code  NN  CK IN {normale, sensible, très sensible}
+  nature                  code  NN  CK IN {ordinaire, exceptionnelle}  default 'ordinaire'  ‡ CP-24
+  fondement               text                                  ‡ CP-24 (justification, mandat, base juridique)
   CK num_nonnulls(cible_objet_id, cible_espace_id, cible_lien_id) = 1          -- DI-B10
+  CK NOT (type_beneficiaire = 'rôle d''espace' AND role_beneficiaire IN ('propriétaire','administrateur')
+          AND effet = 'autoriser' AND action <> 'administrer')                -- CP-26 (DI-B29)
+  CK nature <> 'exceptionnelle' OR (type_beneficiaire = 'acteur' AND effet = 'autoriser'
+          AND date_fin IS NOT NULL AND fondement IS NOT NULL)                 -- CP-24 (DI-B30)
   CK (cible_type = 'objet')  = (cible_objet_id  IS NOT NULL)
   CK (cible_type = 'espace') = (cible_espace_id IS NOT NULL)
   CK (cible_type = 'lien')   = (cible_lien_id   IS NOT NULL)
@@ -706,9 +721,15 @@ contexte_evaluation  [N]                           -- CONTEXTE_EVALUATION
   role        code
   instant     ts    NN
   operation   code  NN  CK IN {consultation, recherche, traversée, suggestion, agrégation, comptage,
-                               calcul, export, publication, notification, API}
+                               calcul, export, publication, notification, API,
+                               réplication, synchronisation}                 -- réplication/synchronisation : CP-27, CP-28
   finalite    text
-  canal       code  NN  CK IN {interface, API, export, notification, page publique}
+  canal       code  NN  CK IN {interface, API, export, notification, page publique,
+                               application locale}                           -- application locale : CP-28
+  regle_acces_id  uuid    FK → regle_acces(id)   ‡ CP-24 : règle exceptionnelle utilisée
+  appareil_ref    uuid                           ‡ CP-28 : appareil (schéma technique, § 28.3) ; confidentialité I
+  CK regle_acces_id IS NULL OR finalite IS NOT NULL                          -- CP-24
+  CK operation <> 'réplication' OR appareil_ref IS NOT NULL                  -- CP-28
 
 decision_applicabilite_droit  [V]                  -- DECISION_APPLICABILITE_DROIT
   ⟨OBJ 'DECISION_APPLICABILITE_DROIT'⟩
@@ -875,6 +896,44 @@ blocage  [T]                                       -- BLOQUER ; I
   date              ts    NN
   PK (compte_id, compte_bloque_id)
   CK compte_id <> compte_bloque_id
+```
+
+## 5.6 Réception des contributions hors ligne (révision du 9/10/2026 — ECD-05)
+
+Une opération réalisée hors connexion (CDC technique TECH-003, AUDIT-TECH-003) n'est jamais écrite directement dans les tables métier. Elle est d'abord **reçue** dans `contribution_differee`, qui constitue la zone de réconciliation. Elle n'est intégrée qu'après réévaluation des droits et contrôle de compatibilité (CP-27). L'appareil, la session de synchronisation et le transport relèvent du schéma technique (§ 28.3).
+
+```text
+contribution_differee  [V] †                      -- CONTRIBUTION_DIFFEREE (dictionnaire § 4.25) ; confidentialité R
+  ⟨OBJ 'CONTRIBUTION_DIFFEREE'⟩                  -- objet de l'espace cible, visibilité 'privé' : lisible par son auteur (CP-23)
+  acteur_id                uuid  NN  FK → acteur_geniius(id)        -- auteur de l'opération hors ligne
+  espace_cible_id          uuid  NN  FK → espace(id)
+  operation_origine_id     uuid  NN                                  -- identifiant idempotent attribué par le client
+  appareil_ref             uuid  NN                                  -- appareil (schéma technique) ; I
+  date_operation_locale    ts    NN
+  nature_operation         code  NN  CK IN {création, modification, demande de suppression}
+  base_objet_id            uuid
+  base_numero              int                                       -- version canonique connue (TECH-003.2)
+  type_objet_vise          code  NN
+  charge                   json  NN*                                  -- opération sérialisée (format patrimonial, ETAT_FIGE)
+  version_logiciel         text  NN
+  version_schema           text  NN
+  referentiel_id           uuid      FK → referentiel(id)
+  referentiel_numero       int                                       -- version du référentiel scientifique (AUDIT-TECH-003.1)
+  etat_reception           code  NN  CK IN {reçue, intégrée, transformée, en attente de réconciliation,
+                                            refusée - droits, refusée - invalide, en erreur}
+  motif                    text
+  objet_resultant_id       uuid      FK → objet(id)
+  conflit_edition_id       uuid      FK → conflit_edition(id)
+  date_traitement          ts
+  UQ (acteur_id, operation_origine_id)                                        -- idempotence (TECH-013.4)
+  FK (base_objet_id, base_numero) → version_objet(objet_id, numero)
+  FK (referentiel_id, referentiel_numero) → version_objet(objet_id, numero)
+  CK (nature_operation = 'création') = (base_objet_id IS NULL)
+  CK (base_objet_id IS NULL) = (base_numero IS NULL)
+  CK etat_reception NOT IN ('intégrée','transformée') OR objet_resultant_id IS NOT NULL
+  CK etat_reception NOT IN ('refusée - droits','refusée - invalide','en erreur','transformée') OR motif IS NOT NULL
+  CK etat_reception = 'reçue' OR date_traitement IS NOT NULL
+  -- jamais supprimée hors purge légale (TECH-005.8, AUDIT-TECH-001.4) : CP-27
 ```
 
 ---
@@ -2872,8 +2931,11 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 | CP-21 | Propagation : une nouvelle version **scientifique** d'un amont fait passer ses dépendances à `potentiellement affecté`, puis les questions concernées à `à réexaminer` et les résultats dynamiques à `potentiellement obsolète` ; asynchrone admis, délai = MPD-04 | `dependance`, `question`, `resultat`, `carte` | RG-A04, DI-A18, DI-K04, DI-O09, OB-09 |
 | CP-22 | Associations versionnées `[A:p]` : `v_debut` = version courante du propriétaire à l'insertion ; retrait = `v_fin` ; jamais de suppression ; unicités appliquées aux lignes actives (`v_fin IS NULL`) | Toutes tables `[A:p]` | MLD-02, L5 |
 | CP-23 | Droits du propriétaire : la création d'un objet `privé` crée, dans la même transaction, une `regle_acces` d'autorisation explicite (`voir`, `éditer`) pour l'acteur auteur ; aucun rôle d'espace ne donne de lecture implicite d'un objet `privé` | `objet`, `regle_acces` | § 22.1, CDCF § 49.2 |
-| CP-24 | Habilitation exceptionnelle : toute autorisation accordée à un acteur sur un objet `privé` dont il n'est pas l'auteur, en vertu d'un rôle d'administration, exige `date_fin`, une `condition` justifiée, et la journalisation de chaque usage dans `contexte_evaluation` (`finalite` non nulle) | `regle_acces`, `contexte_evaluation` | § 22.1, OB-16 |
+| CP-24 | Habilitation exceptionnelle *(révisée le 9/10/2026 — ECD-04)*.<br>• **Quand elle s'applique :** toute autorisation donnée, pour une mission d'administration, de support, d'exploitation ou de prestation, à un acteur qui n'a pas de droit ordinaire sur un objet `privé` ou `projet`.<br>• **Forme :** une `regle_acces` de `nature = exceptionnelle`, nominative (`type_beneficiaire = acteur`), avec `date_fin` et `fondement` obligatoires (CK).<br>• **Traçabilité :** chaque usage est journalisé dans `contexte_evaluation`, avec `regle_acces_id` renseigné et `finalite` non nulle (CK) ; les refus et tentatives pertinents sont aussi tracés, jamais le contenu consulté.<br>• **Fin de validité :** la règle est réévaluée à chaque opération révélatrice et cesse à `date_fin`, y compris pour les exports et tâches déjà préparés. | `regle_acces`, `contexte_evaluation` | § 22.1, OB-16, REC-X11 (arbitrage B), TECH-027.5 |
 | CP-25 | Séparation des habilitations administratives et scientifiques : les habilitations d'administration et de participation scientifique sont indépendantes. L'attribution d'un rôle administratif ne crée pas d'appartenance scientifique et ne confère aucun accès implicite aux contenus de visibilité `projet` ou `privé`. L'accès aux objets `projet` repose sur une appartenance active autorisant explicitement la lecture scientifique (`lecture_scientifique = vrai`), sous réserve des interdictions et restrictions applicables. Un même acteur peut cumuler les deux habilitations. À la création d'un espace, le créateur reçoit les deux | `appartenance_espace`, `attribution_role`, § 22 | § 22.1, CDCF § 49.2 |
+| CP-26 | Règles au profit d'un rôle administratif *(ajoutée le 9/10/2026 — ECD-04)*.<br>• Une `regle_acces` d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer` (CK déclaratif). L'action `administrer` n'implique aucune autre action (§ 22.2, étape 4).<br>• Un acteur administrateur ne lit ni n'édite un contenu `projet` ou `privé` que par une appartenance scientifique (CP-25), une autorisation ordinaire nominative accordée par un ayant droit, ou une habilitation exceptionnelle (CP-24).<br>• Les rôles de gouvernance d'`attribution_role` (dont `administrateur technique`) ne sont jamais bénéficiaires d'une `regle_acces`. | `regle_acces` | REC-X11 (arbitrage A), TECH-011.10, REV-02-A, DI-B29 |
+| CP-27 | Réception des contributions hors ligne *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Réception :** toute opération réalisée hors connexion est d'abord enregistrée dans `contribution_differee` avec l'état `reçue`. L'unicité `(acteur, operation_origine_id)` rend le rejeu idempotent.<br>• **Intégration :** elle n'a lieu qu'après réévaluation de `acces()` dans le contexte d'intégration (`operation = synchronisation`, instant de l'intégration, et non de la création locale), puis contrôle de compatibilité des versions logicielle, de schéma et de référentiel.<br>• **Conversion :** autorisée seulement si elle est déterministe (état `transformée`, motif obligatoire). Sinon : `en attente de réconciliation`.<br>• **Conflit :** une modification dont `base_numero` n'est plus la version courante passe par `conflit_edition` et `proposition_modification` (base = `base_numero`), jamais par un écrasement.<br>• **Conservation :** une contribution différée n'est jamais supprimée hors purge légale (CP-16). Refusée pour raison de droits, elle reste lisible par son seul auteur, sans divulgation ni publication.<br>• **Statuts :** reçue ≠ intégrée ≠ validée scientifiquement (`statut_validation` de l'objet résultant). | `contribution_differee`, `conflit_edition`, `proposition_modification` | TECH-003, TECH-005, AUDIT-TECH-001.4, AUDIT-TECH-003, TECH-013.4 |
+| CP-28 | Réplication locale *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Contenu :** une réplique ne contient que `graphe_accessible(contexte)` pour un contexte `operation = réplication` (acteur, appareil, instant), restreint aux espaces dont `replication_hors_ligne <> 'interdite'`. Les objets dont l'existence est protégée n'y figurent jamais.<br>• **Durée :** pour un espace `limitée`, le contenu répliqué expire localement après `duree_max_hors_ligne_jours` sans revalidation serveur.<br>• **Retraits :** à chaque synchronisation, le serveur transmet d'abord les **retraits** (révocation, restriction, purge, protection d'existence, révocation d'appareil), sous une forme **non qualifiée** : même message quel que soit le motif (OB-04). Le client les applique avant toute autre opération.<br>• **Limites :** les contributions locales non synchronisées ne sont jamais retirées (CP-27). La disparition d'un objet d'une réplique est le résidu de divulgation accepté, documenté pour les propriétaires (AUDIT-TECH-001.5). | `espace`, `contexte_evaluation`, schéma technique (§ 28.3) | TECH-002, TECH-011.6, AUDIT-TECH-001, AUDIT-TECH-004 |
 
 ---
 
@@ -2896,7 +2958,8 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 - **Droits du propriétaire.** À la création d'un objet `privé`, une règle `regle_acces` d'autorisation explicite (`voir`, `éditer`) est créée pour l'acteur auteur (CP-23). Le propriétaire n'accède donc pas « par rôle » : il accède parce qu'une règle l'y autorise, et cette règle reste soumise aux interdictions, embargos et protections d'existence (§ 22.2, étapes 1, 2 et 6).
 - **Administration sans lecture (CP-25).** Les habilitations administratives (`appartenance_espace` de nature `administrative` : `propriétaire`, `administrateur` ; `attribution_role` `administrateur technique`) permettent de gérer l'espace (membres, règles, cycle de vie) sans lire le contenu des objets `projet` ou `privé` (CDCF § 49.2). La lecture scientifique repose sur une appartenance distincte. Un même acteur peut cumuler les deux, par deux lignes d'`appartenance_espace`.
 - **Création d'un espace.** Le créateur reçoit, dans la même transaction, une appartenance `propriétaire` (administrative) et une appartenance `responsable scientifique` (scientifique). Il peut ensuite renoncer à l'une sans perdre l'autre.
-- **Accès exceptionnel.** Une habilitation exceptionnelle est une `regle_acces` d'autorisation dont `date_fin` est obligatoire, dont `condition` porte la justification et le fondement applicable, et dont chaque usage est journalisé dans `contexte_evaluation` avec une `finalite` renseignée (CP-24). Un prestataire reçoit, selon son mandat, une appartenance administrative bornée par `date_fin` et/ou des habilitations exceptionnelles limitées au périmètre autorisé.
+- **Règles par rôle administratif (CP-26).** Une règle accordée au rôle `propriétaire` ou `administrateur` ne peut porter que sur l'action `administrer`. Cette action n'ouvre aucune lecture. Une règle générale du type « les administrateurs voient tout » est donc impossible (CK sur `regle_acces`).
+- **Accès exceptionnel.** Une habilitation exceptionnelle est une `regle_acces` nominative de `nature = exceptionnelle`, dont `date_fin` et `fondement` sont obligatoires (CK). Chaque usage est journalisé dans `contexte_evaluation` avec `regle_acces_id` et une `finalite` renseignés (CP-24). Un prestataire reçoit, selon son mandat, une appartenance administrative bornée par `date_fin` et/ou des habilitations exceptionnelles limitées au périmètre autorisé.
 
 **Synthèse des situations (CP-25).**
 
@@ -3017,6 +3080,7 @@ Bilan : **247 tables décrites** (hors tables `_hist` miroir) ; 163 entités et 
 | CONTACT | `contact` |
 | CONTEXTE_EVALUATION | `contexte_evaluation` |
 | CONTRIBUTION_CONNECT | `contribution_connect` |
+| CONTRIBUTION_DIFFEREE † | `contribution_differee` (ajout du 9/10/2026, ECD-05) |
 | CORPUS | `corpus` |
 | CORRECTION_PUBLICATION | `correction_publication` |
 | CORRESPONDANCE | `correspondance` |
@@ -3434,6 +3498,9 @@ Ces structures n'ont pas d'équivalent direct dans le MCD ni dans le dictionnair
 | Groupes de colonnes `⟨dh⟩` et `⟨val⟩` | Décomposition de `DATE_HIST` et `VALEUR` | MLD-03, MLD-04 |
 | `droit_effectif`, `graphe_accessible` (relations dérivées) | Forme logique du contrôle d'accès | MLD-13, P20 |
 | `appartenance_espace.nature_habilitation`, `appartenance_espace.lecture_scientifique` | Séparation administration / lecture scientifique, sans nouvelle table | CP-25 |
+| `regle_acces.nature`, `regle_acces.fondement`, `contexte_evaluation.regle_acces_id` | Habilitation exceptionnelle identifiable et auditée | CP-24, ECD-04 |
+| `espace.replication_hors_ligne`, `espace.duree_max_hors_ligne_jours` | Politique de réplication hors ligne par espace | CP-28, AUDIT-TECH-001, ECD-05 |
+| `contexte_evaluation.appareil_ref` ; valeurs `réplication`, `synchronisation`, `application locale` | Contexte d'évaluation des répliques et des synchronisations | CP-27, CP-28, ECD-05 |
 
 ---
 
@@ -3498,6 +3565,28 @@ Aucune ligne ne relie `EA` et `EB`. Les rapprochements vivent chacun dans l'espa
 ## 28.2 Volumétrie attendue (ordre de grandeur, pour dimensionner)
 
 Les tables les plus volumineuses seront, dans l'ordre : `segment` et `segment_hist`, `assertion` et ses tables d'ancrage, `version_objet`, `activite`, `zone`, `mention`, `dependance`. Les tables `_hist` grossissent avec le nombre de corrections, pas avec le nombre d'objets ; le partitionnement par date de version est une option MPD.
+
+
+## 28.3 Obligations transmises au schéma technique (décision du 9/10/2026 — ECD-05)
+
+**Décision d'emplacement.** Le MLD porte ce qui a une portée scientifique, de droits ou de cycle de vie :
+- la politique de réplication (`espace`) ;
+- la zone de réconciliation (`contribution_differee`) ;
+- le contexte d'évaluation (`contexte_evaluation`) ;
+- les règles CP-27 et CP-28.
+
+Les structures purement techniques sont hors MLD. Elles relèvent d'un **schéma technique** choisi par ADR à l'architecture (TECH-032) : appareils, sessions de synchronisation, curseurs incrémentaux, journal technique des opérations, transferts de fichiers reprenables, stockage local chiffré. Ce schéma doit respecter les obligations suivantes.
+
+| # | Obligation | Origine |
+|---|---|---|
+| ST-01 | Un appareil est identifié de manière stable (`appareil_ref`), rattaché à un `compte`, et révocable. La révocation d'un appareil interdit toute synchronisation et déclenche le retrait de sa réplique au prochain contact (CP-28). | TECH-007.8, AUDIT-TECH-001 |
+| ST-02 | La synchronisation est incrémentale et reprenable : curseur par appareil et par espace, sans duplication (idempotence par `operation_origine_id`, CP-27). | TECH-005.2–3, TECH-013.4 |
+| ST-03 | Chaque session de synchronisation crée un `contexte_evaluation` (`operation` = `réplication` ou `synchronisation`, `canal = application locale`, `appareil_ref`). Le calcul de la réplique utilise `graphe_accessible` de ce contexte. | CP-28, OB-03 |
+| ST-04 | Les retraits sont transmis avant toute donnée nouvelle, sous une forme non qualifiée. | CP-28, OB-04 |
+| ST-05 | Le client annonce ses versions logicielle, de schéma et de référentiel ; elles sont recopiées dans `contribution_differee`. | AUDIT-TECH-003.2 |
+| ST-06 | Les données locales sont chiffrées au repos ; aucune donnée biométrique n'est stockée. | TECH-019.3, TECH-007.7 |
+| ST-07 | Une création locale non synchronisée n'est jamais supprimée automatiquement par le client (cache, stockage, ancienneté, mise à jour applicative). | TECH-005.8, AUDIT-TECH-003.10 |
+| ST-08 | Les fichiers lourds suivent une politique de transfert distincte (Wi-Fi, données mobiles, confirmation) et sont repris après interruption. | TECH-005.4 |
 
 ---
 
