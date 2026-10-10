@@ -1,15 +1,22 @@
-# GENIIUS — Dictionnaire de données V1.1 consolidé
+# GENIIUS — Dictionnaire de données V1.3 (candidat)
 
-## Définitions exhaustives des entités, associations et attributs du MCD V1.1 canonique
+## Définitions exhaustives des entités, associations et attributs du MCD V1.2 canonique
 
-- **Statut :** dictionnaire de données de référence — **GELÉ le 9/10/2026** (décision explicite du porteur), après conformité des deux contrôles formels de l’annexe I : REC-01 et [REC-16](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_95_TESTS.md). Toute modification ultérieure suit la procédure de changement (CDC technique, § 13) et met à jour le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
+- **Statut V1.3 :** **candidat (10/10/2026)**, produit par la procédure de changement DC-DICT-02 (annexe L) pour les écarts majeurs de l’audit de cohérence ; à valider comme référence normative avant le gel du MLD. Ajouts marqués « V1.3 », récapitulés en annexe C.7.
+- **Statut V1.2 :** **GELÉ le 10/10/2026** (décision du porteur), produit par la procédure de changement DC-DICT-01 (annexe K) pour intégrer le MCD V1.2 gelé (avenant AV-FONC-001), après conformité de REC-01 et REC-16 sur le MCD V1.2 ([contrôle](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md)). La **V1.1 consolidée**, gelée le 9/10/2026, reste consultable dans l'historique Git (commit `423991c`).
+- **Révision V1.2 (9/10/2026, AV-FONC-001 étape 4) :**
+  - fiches des sept concepts du MCD V1.2 : `PRISE_EN_CHARGE` (§ 4.26), `ETUDIER` et `UTILISER` (§ 13.13), `SELECTION_PARTAGE` (§ 14.6), `DECISION_EDITORIALE`, `DIFFUSION` et `PARAITRE_DANS` (§ 18.6 et 18.7) ;
+  - précisions P-1 à P-8 de l'analyse d'écart sur des fiches existantes, marquées **†** et datées « V1.2 » : RELIER_PROJETS, REGLE_ACCES, TACHE, METHODE, CALCUL, RESULTAT, PUBLICATION, VEILLE, OPERATION_FLUX, FILIATION, TRANSFERT_GOUVERNANCE, ESPACE ;
+  - décisions DD-19 à DD-26 ; règles DI-A37 et A38, DI-B34 à B42, DI-K23 à K31, DI-L12 à L20, DI-O13 à O17, DI-P11 à P18, DI-Q07 ; obligations OB-23 à OB-28 ;
+  - aucune règle V1.1 n'est supprimée. Trois sont **élargies**, sans affaiblir ce qu'elles garantissaient : DI-A20 (type `réutilisation`), DI-L06 à L08 (nouveaux types de flux), cardinalité de `PLANIFIER_TACHE` (annexe C.6).
+- **Statut V1.1 (historique) :** dictionnaire de données de référence — **GELÉ le 9/10/2026** (décision explicite du porteur), après conformité des deux contrôles formels de l’annexe I : REC-01 et [REC-16](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_95_TESTS.md). Toute modification ultérieure suit la procédure de changement (CDC technique, § 13) et met à jour le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
 - **Révision du 9/10/2026 (audit de cohérence, ECD-04 et ECD-05) :**
   - ajouts `†` : ESPACE (réplication hors ligne), REGLE_ACCES (`nature`, `fondement`, DI-B29, DI-B30), CONTEXTE_EVALUATION (réplication, synchronisation, règle exceptionnelle, appareil), entité CONTRIBUTION_DIFFEREE (§ 4.25, DI-B31 à B33) ;
   - nouvelles obligations OB-20 à OB-22 ;
   - aucune règle existante n'est modifiée.
 - **Version :** V1.1 consolidé = corps V1 (7/10/2026) + annexes G à J. C'est le document désigné par le MLD sous le nom `GENIIUS_DICTIONNAIRE_DONNEES_V1_1_CONSOLIDE.md`. *En-tête corrigé le 9/10/2026 (correction ECD-01) ; il indiquait auparavant « V1.0 — première version, à soumettre à validation ». Le contenu n'est pas modifié.*
-- **Date :** 7 octobre 2026
-- **Sources :** CDCF V1.1 (`docs/geniius_io_CDCF_V1.md`) ; MCD V1.1 canonique gelé (`docs/geniius_io_MCD_V1.md`) ; rapport de réexécution des 95 tests (`docs/GENIIUS_RAPPORT_REEXECUTION_95_TESTS_MCD_V1_1.md`)
+- **Date :** 9 octobre 2026 (V1.2) ; 7 octobre 2026 (corps V1)
+- **Sources :** CDCF V1.2 (`docs/geniius_io_CDCF_V1.md`) ; MCD V1.2 canonique gelé (`docs/geniius_io_MCD_V1.md`) ; rapports de réexécution des 95 tests (`docs/GENIIUS_RAPPORT_REEXECUTION_95_TESTS_MCD_V1_1.md`) et des 173 contrôles (`docs/GENIIUS_RAPPORT_REEXECUTION_173_CONTROLES_MCD_V1_2.md`) ; analyse d’écart AV-FONC-001 (`docs/AV-FONC/AV-FONC-001_ETAPE3_ANALYSE_ECART_MCD.md`)
 - **Position dans la feuille de route :** étape suivant le gel du MCD, précède le modèle logique (MLD)
 
 ---
@@ -28,7 +35,7 @@ Les types restent **conceptuels** (`DATE_HIST`, `TEXTE_SOURCE`, `REF_CONCEPT`…
 
 ## 0.3 Règle de maintien du gel du MCD
 
-Le dictionnaire peut **préciser** le MCD : ajouter des attributs, fixer des formats, lever une ambiguïté de cardinalité, réifier une association pour la rendre gouvernable. Il ne peut **pas** ajouter de concept fondamental ni contredire un invariant (P1–P22).
+Le dictionnaire peut **préciser** le MCD : ajouter des attributs, fixer des formats, lever une ambiguïté de cardinalité, réifier une association pour la rendre gouvernable. Il ne peut **pas** ajouter de concept fondamental ni contredire un invariant (P1–P25 depuis le MCD V1.2).
 
 Tout ajout par rapport au MCD est marqué **†** et récapitulé en annexe C, pour que le MCD puisse être aligné lors d'une prochaine révision éditoriale sans être rouvert conceptuellement.
 
@@ -74,6 +81,7 @@ Les attributs hérités d'`OBJET` (§ 3.1) ne sont pas répétés dans les fiche
 | `ETAT_FIGE` | État sérialisé complet d'un objet à une version | Format documenté et versionné (format patrimonial, DD-02) |
 | `LANGUE` | Code de langue | BCP 47 (`fr`, `gcf` pour le créole guadeloupéen, `la`, `fr-x-…` pour les variétés non codifiées) |
 | `ECRITURE` | Système d'écriture | ISO 15924 (`Latn`, `Arab`, `Deva`…) |
+| `DATE_CIVILE` † (V1.2) | Date du calendrier civil actuel, à usage **opérationnel** (échéance, jalon, date de diffusion prévue) | Format ISO 8601 `AAAA-MM-JJ` ; saisissable ; jamais une `DATE_HIST` ni un `HORODATAGE` ; n'est jamais sujet d'assertion historique (DD-23) |
 | `MONNAIE` | Monnaie, y compris historique | `REF_CONCEPT` du référentiel des monnaies (annexe A.6) ; pas ISO 4217 seul |
 | `UNITE` | Unité de mesure, y compris ancienne | `REF_CONCEPT` du référentiel des unités (annexe A.6) |
 
@@ -279,6 +287,20 @@ Les domaines du MCD qui décrivent le **monde historique** (natures, rôles, typ
 
 Interdits : conserver secrètement une copie supprimée pour sauver une conclusion (CDCF § 97) ; réutiliser un identifiant ; supprimer un `ACTE_EVALUATION` passé du seul fait de la suppression d'une preuve (RG-H04). La suppression d'un `COMPTE` n'entraîne pas celle de l'`ACTEUR_GENIIUS` lorsque la conservation de l'attribution est légitime (RG-B08).
 
+**Tombstones (V1.3) :** voir DD-27.
+
+## DD-27 † (V1.3) — Trace minimale d'un objet purgé et effacement de résolution (ECD-10)
+
+**Question.** DD-02 et DD-13 conservent l'identifiant d'un objet purgé (tombstone). L'effacement légal peut toutefois imposer de supprimer des informations de résolution, et une tombstone révèle qu'un objet a existé dans un espace donné, à une date donnée.
+
+**Décision.**
+1. **Trace minimale.** Une tombstone ne conserve que : l'identifiant, le type d'objet, l'état `supprimé`, l'indicateur et la date de purge, et les numéros de versions (sans contenu). Elle ne permet jamais de **reconstituer** une donnée purgée : aucun attribut de contenu, aucune empreinte de contenu réversible, aucun libellé.
+2. **Existence protégée par défaut.** La résolution d'un identifiant purgé répond comme pour un identifiant inexistant (OB-04) à tout demandeur qui ne pouvait pas voir l'objet avant la purge. Elle ne répond « supprimé » qu'aux personnes habilitées sur l'espace, et publiquement seulement pour un objet qui était publié (page de tombstone ARK, DD-02).
+3. **Effacement de résolution.** Sur fondement légal, la tombstone est réduite à l'identifiant seul (pour empêcher sa réattribution) : rattachement à l'espace, date de création et numéros de versions sont effacés ou remplacés par des valeurs neutres. Les dépendances aval affichent alors « preuve n'est plus disponible » sans désigner l'espace.
+4. **Pas de durée arbitraire.** Les conditions de conservation et d'effacement des traces (délais, fondements) sont fixées par l'étude juridique (EXT-04). Le modèle impose seulement les points 1 à 3.
+
+**Justification.** P19, TI-11, OB-04 ; CDC technique AUDIT-TECH-010.9 et 010.10 ; décision du porteur du 10/10/2026.
+
 ## DD-14 — Plausibilité qualitative
 
 L'échelle `D-19` (forte, probable, possible, faible, écartée provisoirement, rejetée, indéterminée) est la **seule** expression de certitude stockée dans le Core. Elle est fermée et ordonnée de `forte` à `faible` ; `écartée provisoirement`, `rejetée` et `indéterminée` sont hors ordre. Un score algorithmique (similarité, proposition de candidats) n'existe que dans un `RESULTAT`. Le passage d'un score à une plausibilité est une action humaine tracée.
@@ -301,6 +323,82 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 ## DD-18 — Règles d'accès : interdiction prioritaire et protection de l'existence
 
 `REGLE_ACCES` reçoit deux attributs † : `effet` {autoriser, interdire} et `objet_protege` {contenu, existence}. L'interdiction l'emporte toujours sur l'autorisation. Une règle `objet_protege = existence` retire l'objet ou le lien du graphe accessible pour les bénéficiaires visés, avant toute recherche, traversée, agrégation, comptage, export ou notification (P20, RG-B11).
+
+## DD-19 † (V1.2) — Rattachement de projets : un lien gouvernable bilatéral (P-1, AV-2)
+
+**Question.** `RELIER_PROJETS` « sous-projet de » est une simple association typée dans le MCD. Le CDCF § 120.2 exige l'accord des deux parties, la non-transitivité et une fin propre.
+
+**Décision.**
+1. `RELIER_PROJETS` est **réifiée** (DD-09) : `id_lien`, gouvernable. Elle reçoit `etat` {proposé, actif, refusé, terminé}, un initiateur et deux décisions (projet parent, projet enfant) portées par l'association `DECIDER_RATTACHEMENT` †.
+2. Pour `type = sous-projet de`, l'état `actif` exige les deux décisions favorables (DI-K23). Pour les autres types (`complète`, `réutilise le corpus de`…), une seule partie déclare le lien, qui ne vaut que dans son espace : il n'engage pas l'autre projet.
+3. Le rattachement ne confère **aucun** droit (P23). Il peut seulement servir de **fondement** à des habilitations explicitement accordées par le sous-projet (DD-22) ; sa fin désactive ces habilitations, et elles seules.
+4. Pas de transitivité : un rattachement A → B et B → C n'établit rien entre A et C, ni en droits, ni en indicateurs.
+5. « Déplacer » un sous-projet = terminer un rattachement et en proposer un autre. Aucun droit ne survit au changement par héritage.
+
+**Justification.** Critères 51, 52 ; CU-29 ; REC-PR01-01, PR01-09.
+
+## DD-20 † (V1.2) — `ETUDIER` et `UTILISER` réifiés en liens gouvernables
+
+**Question.** Le MCD V1.2 rend ces associations gouvernables (RG-K13) et admet un axe purement chronologique sans cible (§ 13.5).
+
+**Décision.** `ETUDIER` et `UTILISER` sont réifiés (DD-09) : `id_lien`, portée possible d'une `REGLE_ACCES` (`cible_type = lien`), visibilité par défaut = la plus restrictive de leurs extrémités (TI-10). Pour `ETUDIER`, la patte cible est `0..1` : son absence n'est admise que pour `type_axe = période` (DI-K24). Pas de nouvelle entité « AXE ».
+
+## DD-21 † (V1.2) — Partage sélectif : manifeste, habilitation et réutilisation (concept A ; P-6, P-7)
+
+**Décision.**
+1. **Manifeste.** Le contenu d'une `SELECTION_PARTAGE` est l'ensemble des `INCLURE_SELECTION` rattachés à **une version** de la sélection. Le manifeste est calculé à partir des paramètres, présenté, puis **figé** à la confirmation (DI-L13). Il n'est jamais recalculé sur une version existante.
+2. **Habilitation.** Une sélection est rendue accessible par une `REGLE_ACCES` portant sur elle (`PORTER_SUR_OBJET`). Le bénéficiaire est un acteur, un groupe, ou un rôle d'espace **de l'espace destinataire** (`espace_role` †, DI-B34). Les actions admises sur une sélection sont `voir`, `commenter` et `réutiliser`. `réutiliser` n'implique pas `voir` en dehors du manifeste ; `voir` n'implique jamais `réutiliser` (DI-B35).
+3. **Calcul de l'accès.** Accès d'un lecteur à un objet `o` via la sélection `s` : `o` figure au manifeste de la version active de `s` **et** une règle active sur `s` le désigne **et** la personne qui a posé la règle détient encore, à l'instant de l'évaluation, les droits correspondants sur `o` **et** aucune protection propre à `o` ne s'y oppose (OB-23).
+4. **Contribution et réutilisation.** `contribution vers un espace partagé` matérialise la mise à disposition d'une version de sélection à un espace destinataire. Elle ne crée **aucune** copie. `réutilisation d'une sélection` crée des copies dans l'espace de l'acteur, liées par `FILIATION` de type `réutilisation`, qui désigne la version de la règle d'accès qui l'autorisait et la licence applicable (DI-A37).
+5. **Révocation.** Effets selon RG-L12 du MCD ; traduction en DI-A38, DI-L19 et OB-20.
+
+## DD-22 † (V1.2) — Habilitation de groupe et mode d'admission (P-2, AV-3)
+
+**Décision.**
+1. Une `REGLE_ACCES` au profit d'un `GROUPE` **extérieur** à l'espace qui porte l'objet (par exemple le groupe « Coordination » du programme, sur un objet du sous-projet) exige un `mode_admission` {notification, approbation préalable}. Défaut : `approbation préalable` ; `notification` n'est admise que si `sensibilite = normale` (DI-B36).
+2. En `approbation préalable`, un membre du groupe n'est bénéficiaire qu'après une **admission nominative** (`ADMETTRE` †) par un administrateur de l'espace porteur. L'admission porte sur une identité (acteur), pas sur une place dans le groupe.
+3. En `notification`, l'entrée d'un membre produit une notification à l'espace porteur, qui peut révoquer cette admission.
+4. La sortie du groupe (fin de `MEMBRE_GROUPE`) retire immédiatement les droits dérivés, y compris les répliques hors ligne (OB-20). Aucune approbation ne retarde une révocation.
+5. Seul l'espace porteur crée ou élargit une telle règle ; le programme ne le peut pas.
+6. Une règle peut citer le rattachement qui la fonde (`FONDER_SUR_RATTACHEMENT` †). La fin du rattachement fixe la `date_fin` des règles ainsi fondées (DI-B37).
+7. **Explicabilité.** Pour tout accès, le système sait reconstituer la chaîne des fondements (règle, groupe, admission, rattachement). Cette explication n'est présentée qu'aux personnes habilitées à administrer l'objet ou à l'intéressé, pour ses propres accès (OB-24).
+
+## DD-23 † (V1.2) — Pilotage : tâches, lots, jalons et délégations (P-3, AV-6)
+
+**Décision.**
+1. `TACHE.type` {tâche, lot, jalon}. Les sous-tâches (`SOUS_TACHE` †) et les dépendances (`DEPENDRE_TACHE` †) forment un graphe **sans cycle** (DI-K27).
+2. Les échéances sont des `DATE_CIVILE` : ce sont des dates du calendrier de travail, jamais des dates historiques. La V1.1 typait `echeance` en `DATE_HIST` ; ce type est corrigé.
+3. Une tâche peut être assignée à plusieurs acteurs ou à un groupe (`PLANIFIER_TACHE` élargi, annexe C.6). **Être assigné ne donne aucun droit** (DI-K28).
+4. Un lot peut fonder une **délégation** : une `REGLE_ACCES` nominative (acteur ou groupe), bornée en actions (jamais `valider`, `administrer`, `repartager` ni publication), avec une `date_fin` obligatoire et des portées sur les objets **explicitement** listés au moment de la délégation (`FONDER_DELEGATION` †, DI-K29).
+5. La délégation a son propre cycle de vie. La clôture du lot peut y mettre fin ; sa **réouverture ne réactive aucune règle** : il faut une nouvelle délégation (DI-K30). Ajouter des objets au lot n'étend pas la délégation.
+6. L'avancement n'est **jamais stocké** : il est calculé à la demande sur les objets du lot, par état réel (DD-11, DI-K31). `faite` n'est jamais une validation.
+
+## DD-24 † (V1.2) — Indicateurs (P-4, AV-7)
+
+**Décision.**
+1. Un indicateur est une `METHODE` de `profil = indicateur`. Sa fiche impose : unité comptée, critères d'inclusion, règle de dédoublonnage, traitement des identifications incertaines, définition du numérateur et du dénominateur (DI-O13).
+2. Le `RESULTAT` d'un indicateur contient toujours le numérateur, le dénominateur, les bornes (justifiées) ou l'indétermination, les exclusions et le périmètre d'autorisation (DI-O14).
+3. Le `CALCUL` d'un indicateur est rattaché au `CONTEXTE_EVALUATION` qui a délimité son graphe accessible (`CALCULER_DANS` †). Un tableau de bord est calculé pour son lecteur et affiche ce périmètre (DI-O15).
+4. Un indicateur de programme dédoublonne par entité sur l'ensemble des projets accessibles : jamais une somme des indicateurs des sous-projets (DI-O16).
+5. Un résultat destiné à publication est `figé`, évalué pour sa diffusabilité et identique pour tous ses lecteurs (DI-O17).
+
+## DD-25 † (V1.2) — Circuit éditorial, modification substantielle et abonnement éditorial (concepts D, E, F ; P-5 ; AV-8)
+
+**Décision.**
+1. **Circuit éditorial.** `ESPACE.circuit_editorial` {aucun, approbation requise}. Défaut : `approbation requise` pour les espaces `projet`, `organisation` et `communauté` ; `aucun` pour `personnel`, `privé` et `familial`. Le Core partagé et la publication publique ne publient pas de livrables éditoriaux.
+2. **Modification substantielle.** Toute nouvelle version d'une publication est substantielle, **sauf** `nature_changement = correction technique` sans modification du texte, des chiffres ni des objets exposés (mise en forme, métadonnées techniques). En cas de doute, la version est substantielle. Une version substantielle n'est pas couverte par l'approbation précédente (DI-P12).
+3. **Approbation et diffusion.** La décision d'approbation est humaine (`ACTEUR_GENIIUS.nature_acteur` humain), nominative et liée à une version. La diffusion exige une version `publiée`, une approbation valide si le circuit l'exige, et une `EVALUATION_DIFFUSABILITE` dans **son** contexte (DI-P15).
+4. **Numéros.** Le MCD mentionne `numéro de série` parmi les types de `PUBLICATION`. Ce n'est pas un type : un numéro est une publication de type éditorial (lettre, bulletin, rapport…) qui paraît dans une série par `PARAITRE_DANS`.
+5. **Abonnement éditorial.** C'est une `VEILLE` de `type = abonnement éditorial` sur une série. Elle exige un consentement horodaté, se résilie en un seul acte, ne crée aucune `REGLE_ACCES` et reste distincte de la veille scientifique (DI-Q07). Elle ne donne pas accès aux numéros : chaque diffusion est évaluée pour l'abonné.
+
+## DD-26 † (V1.2) — Transfert de gouvernance proposé, présenté, accepté (P-8, AV-11)
+
+**Décision.**
+1. `TRANSFERT_GOUVERNANCE.etat` {proposé, accepté, refusé, expiré, annulé}. L'effet (changement de propriétaire) se produit à `accepté`, de façon atomique.
+2. Tant que l'état n'est pas `accepté`, le cessionnaire peut être **absent** : le bénéficiaire est désigné par la `DESIGNATION_GARDE` (destinataire futur), via `DESTINER_TRANSFERT` †. Le cessionnaire (acteur vérifié) est obligatoire dès `accepté` (DI-B40). C'est une précision de la cardinalité MCD `cessionnaire (1,1)`, qui vaut pour le transfert accompli (annexe C.6).
+3. **Engagements présentés.** Avant acceptation, le bénéficiaire voit l'état figé des partages actifs (sélections, règles d'accès, rattachements) : `engagements_presentes` (`ETAT_FIGE`) et son empreinte. Si les engagements ont changé entre la présentation et l'acceptation, celle-ci est rejetée et une nouvelle présentation est due (DI-B41).
+4. **Droits résiduels.** Par défaut, le cédant ne garde **aucun** droit : seuls ses crédits et attributions subsistent (RG-B03). Un droit maintenu doit être accordé explicitement par le nouveau propriétaire, après le transfert (DI-B42).
+5. L'invitation (lien à usage unique, expiration, vérification du bénéficiaire) relève du schéma technique d'identité (OB-28).
 
 ---
 
@@ -398,6 +496,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A11** — `mode = manuel` ⇒ une association REALISER vers un acteur ; `mode = automatique` ⇒ `moteur` obligatoire.
 - **DI-A12** — Une donnée a quitté la plateforme ⇒ `fournisseur` et `perimetre_donnees_transmises` obligatoires ; aucun attribut `R` ou `I` ne figure dans le périmètre (TI-12).
 - **DI-A13** — `date_fin` ≥ `date_debut`.
+- **DI-A39** † (V1.3, ECD-14) — Toute activité qui crée un objet porte un acteur via `REALISER` : le **réalisateur** pour une activité manuelle ou assistée, le **déclencheur** pour une activité automatique (worker, OCR, extraction, import). Une activité automatique sans déclencheur humain identifiable (tâche planifiée de plateforme) est rattachée à l’acteur qui a programmé la tâche, ou à défaut au propriétaire de l’espace cible. Aucun objet `privé` n’est créé sans acteur auteur (CP-23 du MLD).
+- **DI-A40** † (V1.3, ECD-21) — Une activité qui crée ou modifie un objet typé par un concept (assertion, mention, entité, document…) désigne la **version du conteneur `REFERENTIEL`** en vigueur pour cet objet (`UTILISER_REFERENTIEL`). La « version du référentiel » est la version du conteneur (manifeste, DD-01). Une contribution différée porte la version déclarée par le client (DI-B31).
 
 **Exemple.** Activité `transcription`, mode `assisté`, moteur « HTR-Caraïbes » v2.3, intervention humaine `correction`, mode de lecture `indépendante/aveugle`.
 
@@ -458,7 +558,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Identifiant.** `id_lien`.
 
-**Participe à.** DERIVER (OBJET dérivé 0,n — 1,1 ; VERSION_OBJET origine 0,n — 1,1), RESULTER (OPERATION_FLUX 0,n — 0,1).
+**Participe à.** DERIVER (OBJET dérivé 0,n — 1,1 ; VERSION_OBJET origine 0,n — 1,1), RESULTER (OPERATION_FLUX 0,n — 0,1), AUTORISER_REUTILISATION † (V1.2 : FILIATION de type `réutilisation` (0,1) — VERSION_OBJET d’une `REGLE_ACCES` (0,n) ; DI-A37).
 
 **Versionnement.** `V` (l'`etat_divergence` évolue).
 
@@ -470,6 +570,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A20** — `type_filiation` ∈ {contribution, import, échange Tree↔Tree, restauration} ⇒ une `OPERATION_FLUX` ou un `IMPORT` est obligatoire.
 - **DI-A21** — `contribution` ⇒ l'espace de l'objet dérivé est le Core partagé ; `import` ⇒ l'espace d'origine est le Core partagé.
 - **DI-A22** — Aucune synchronisation n'est déduite : un changement de l'origine fait seulement passer `etat_divergence` à `divergents` et peut notifier (RG-L02).
+- **DI-A37** † (V1.2) — `type_filiation = réutilisation` ⇒ produite par une `OPERATION_FLUX` de type `réutilisation d'une sélection` (DI-L18) ; `AUTORISER_REUTILISATION` désigne la version de la `REGLE_ACCES` qui l'autorisait ; l'objet dérivé porte la licence applicable à l'objet d'origine (`SOUS_LICENCE`) et ses crédits d'origine sont conservés. DI-A20 est élargie en conséquence : la réutilisation exige aussi une opération de flux.
+- **DI-A38** † (V1.2) — Après révocation ou réduction de la sélection ou de la règle, une `FILIATION` `réutilisation` existante est **conservée** avec sa provenance, dans les limites de la licence et de l'autorisation d'origine ; elle ne peut plus passer à `mise à jour proposée` ni `mise à jour importée`. Aucune copie hors `FILIATION` `réutilisation` n'a de droit de conservation autonome : les objets consultés via la sélection, y compris les répliques hors ligne, sont retirés (OB-20). Une obligation légale (purge, retrait de consentement) prévaut (DD-13).
 
 **Exemple.** Assertion partagée A-847 dérivée de l'assertion privée `P-128@3`, type `contribution`, état `alignés`.
 
@@ -635,7 +737,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | PRECEDER | VERSION_OBJET (0,1) — VERSION_OBJET (0,1) | — | DI-A06 | Suit l'objet |
 | PRODUIRE | ACTIVITE (0,n) — VERSION_OBJET (1,1) | — | Toute version a une activité | Suit l'objet |
 | UTILISER_ENTREE | ACTIVITE (0,n) — VERSION_OBJET (0,n) | role_entree (`TEXTE_COURT`, 0..1) | Une entrée est antérieure à l'activité | `X` |
-| REALISER | ACTEUR_GENIIUS (0,n) — ACTIVITE (0,1) | — | DI-A11 | Suit l'activité |
+| REALISER | ACTEUR_GENIIUS (0,n) — ACTIVITE (0,1) | role_acteur {réalisateur, déclencheur} (1) † (V1.3) | DI-A11, DI-A39 | Suit l’activité |
+| UTILISER_REFERENTIEL † (V1.3) | ACTIVITE (0,n) — VERSION_OBJET d’un `REFERENTIEL` (0,n) | — | DI-A40 | Suit l’activité |
 | APPLIQUER | ACTIVITE (0,n) — METHODE (0,n) | version_methode (`IDENT` de version, 1) | La version de méthode existe | Suit l'activité |
 | DEPENDRE aval / amont | OBJET (0,n) — DEPENDANCE (1,1), ×2 | — | DI-A14 | Lien réifié |
 | UTILISER_VERSION | VERSION_OBJET (0,n) — DEPENDANCE (0,1) | — | DI-A15 | Suit la dépendance |
@@ -684,6 +787,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | visibilite_max † | Plafond de visibilité des objets | `CODE` | 1 | D-04 | DI-B03 ; `personnel` : `privé` | `cercle invité` | S·V·O |
 | replication_hors_ligne † | Politique de réplication des contenus de l'espace sur les appareils | `CODE` | 1 | {autorisée, limitée, interdite} | Défaut `autorisée` ; OB-20 (AUDIT-TECH-001) | `limitée` | S·V·O |
 | duree_max_hors_ligne_jours † | Durée maximale de consultation hors ligne sans revalidation | `ENTIER` | C | > 0 | Obligatoire si et seulement si `replication_hors_ligne = limitée` | `30` | S·V·O |
+| circuit_editorial † (V1.2) | Approbation éditoriale exigée avant publication et diffusion d'un livrable | `CODE` | 1 | {aucun, approbation requise} | Défaut selon `type_espace` (DD-25) ; DI-P18 | `approbation requise` | S·V·O |
 
 ## 4.2 COMMUNAUTE ✓ — ⊂ ESPACE
 
@@ -731,6 +835,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | categories_sollicitation_acceptees | Demandes acceptées | `CODE` | 0..n | Catégories de `DEMANDE` | Vide = aucune sollicitation | `photo-identification` | S·N·I |
 | date_inscription | Date d'ouverture | `HORODATAGE` | 1 | UTC ms | — | `2027-11-02T18:00Z` | Y·N·I |
 | etat_compte | État | `CODE` | 1 | {actif, suspendu, fermé, supprimé} | DI-B05 | `actif` | Y·N·I |
+| langue_preferee † (V1.3, ECD-12) | Langue d’interface préférée, synchronisée entre surfaces | `LANGUE` | 0..1 | BCP 47 | Repli : langue de référence du référentiel | `fr` | S·N·I |
 
 ## 4.5 ACTEUR_GENIIUS ✓
 
@@ -827,6 +932,15 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | sensibilite | Niveau de sensibilité | `CODE` | 1 | {normale, sensible, très sensible} | — | `sensible` | S·V·O |
 | nature † | Règle ordinaire ou habilitation exceptionnelle | `CODE` | 1 | {ordinaire, exceptionnelle} | Défaut `ordinaire` ; DI-B30 | `exceptionnelle` | S·V·O |
 | fondement † | Justification, mandat ou base juridique d'une habilitation exceptionnelle | `TEXTE_COURT` | C | — | Obligatoire si `nature = exceptionnelle` | « ticket support 2031-114, accord du propriétaire » | S·V·I |
+| espace_role † (V1.2) | Espace dont le rôle bénéficiaire est visé | `IDENT` | C | id d'`ESPACE` | Obligatoire si `type_beneficiaire = rôle d'espace` et que le rôle appartient à un autre espace que celui qui porte l'objet (partage vers un projet destinataire) ; DI-B34 | `01e1…` (projet Les Colimaçons) | S·V·X |
+| mode_admission † (V1.2) | Admission des nouveaux membres d'un groupe bénéficiaire extérieur | `CODE` | C | {notification, approbation préalable} | Obligatoire si le bénéficiaire est un groupe extérieur à l'espace porteur ; défaut `approbation préalable` ; DI-B36 | `approbation préalable` | S·V·O |
+
+**Intégrité (V1.2).**
+
+- **DI-B34** † — Une règle portant sur une `SELECTION_PARTAGE` n'admet que les actions `voir`, `commenter` et `réutiliser`. Son bénéficiaire est un acteur, un groupe, ou un rôle d'un espace désigné par `espace_role`. Elle ne porte jamais sur un individu racine ni sur l'arbre source (RG-L09).
+- **DI-B35** † — `réutiliser` et `voir` sont deux autorisations distinctes : aucune n'implique l'autre. Une règle n'autorise jamais plus que ce que détient, **à l'instant de chaque évaluation**, l'acteur qui l'a posée : si ses droits diminuent, ceux des bénéficiaires diminuent d'autant (OB-23). Le bénéficiaire ne peut repartager qu'avec une règle `repartager` explicite.
+- **DI-B36** † — Bénéficiaire = groupe extérieur à l'espace porteur ⇒ `mode_admission` obligatoire ; `notification` n'est admis que si `sensibilite = normale`. En `approbation préalable`, un membre n'est bénéficiaire qu'avec une `ADMETTRE` de décision `approuvée` à son nom. Seuls les administrateurs de l'espace porteur créent, élargissent ou admettent (DD-22).
+- **DI-B37** † — Les droits dérivés d'un groupe cessent à la fin de `MEMBRE_GROUPE` du bénéficiaire, sans délai d'approbation ; une règle `FONDER_SUR_RATTACHEMENT` reçoit pour `date_fin` la date de fin du rattachement, si celle-ci est antérieure. Les droits acquis par un autre fondement ne sont pas touchés.
 
 ## 4.10 CONTEXTE_EVALUATION
 
@@ -939,11 +1053,11 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Définition.** Consentement explicite, versionné et horodaté d'une personne (CDCF § 24.16, § 72).
 
-**Intégrité.** **DI-B23** — Le retrait crée une nouvelle version (`decision = retiré`) ; l'ancienne reste historisée (RG-B06). **DI-B24** — Un retrait ne détruit pas mécaniquement une conclusion justifiée indépendamment (test 18) ; il déclenche une `DECISION_APPLICABILITE_DROIT` sur les dérivés. **DI-B25** — `portee = biométrie` d'une personne vivante : `decision = accordé` exigé avant tout traitement (CDCF § 33.2).
+**Intégrité.** **DI-B23** — Le retrait crée une nouvelle version (`decision = retiré`) ; l'ancienne reste historisée (RG-B06). **DI-B24** — Un retrait ne détruit pas mécaniquement une conclusion justifiée indépendamment (test 18) ; il déclenche une `DECISION_APPLICABILITE_DROIT` sur les dérivés. **DI-B25** — `portee = biométrie` d'une personne vivante : `decision = accordé` exigé avant tout traitement (CDCF § 33.2). **DI-B43** † (V1.3, ECD-11) — Une `ACTIVITE` de mode `assisté` ou `automatique` ne prend en entrée (`UTILISER_ENTREE`) aucun objet couvert par un consentement `usage algorithmique` `refusé` ou `retiré` ; si `fournisseur` est renseigné, aucun objet couvert par un consentement `transmission à un prestataire externe` refusé ou retiré. Le refus s’applique aux dérivés selon `DECISION_APPLICABILITE_DROIT` (P21).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
-| portee | Usage concerné | `CODE` | 1 | {enregistrement, transcription, usage familial, usage projet, publication, usage posthume, biométrie} | DI-B25 | `publication` | S·V·R |
+| portee | Usage concerné | `CODE` | 1 | {enregistrement, transcription, usage familial, usage projet, publication, usage posthume, biométrie} ; **V1.3 (ECD-11)** : + {structuration, partage, contribution scientifique, usage algorithmique, transmission à un prestataire externe} | DI-B25, DI-B43 | `publication` | S·V·R |
 | decision | Décision | `CODE` | 1 | {accordé, refusé, retiré} | DI-B23 | `accordé` | S·V·R |
 | texte_version | Version du texte de consentement présenté | `TEXTE_COURT` | 1 | Identifiant de version | — | `consentement-journal-v3` | Y·V·R |
 | horodatage | Instant du recueil | `HORODATAGE` | 1 | UTC ms | — | `2028-06-01T15:22Z` | Y·V·R |
@@ -966,9 +1080,19 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Intégrité.** **DI-B26** — Le transfert n'outrepasse jamais les droits attachés au contenu : embargos, consentements et crédits restent inchangés (RG-B03).
 
+**Intégrité (V1.2, DD-26).**
+
+- **DI-B40** † — Cessionnaire : facultatif tant que `etat` ∈ {proposé, refusé, expiré, annulé} ; obligatoire et vérifié dès `accepté`. Un transfert `proposé` à un bénéficiaire sans compte désigne sa `DESIGNATION_GARDE` (`DESTINER_TRANSFERT`). L'effet de `accepté` est atomique ; un transfert accepté n'est pas réversible unilatéralement.
+- **DI-B41** † — `accepté` exige que l'empreinte des engagements actifs à l'instant de l'acceptation soit égale à `empreinte_engagements` ; sinon l'acceptation est rejetée et une nouvelle présentation est produite (nouvelle version).
+- **DI-B42** † — Après `accepté`, le cédant ne conserve aucun rôle ni règle d'accès sur l'espace du seul fait du transfert ; ses `CREDIT` et ses `ACTIVITE` restent attribués (RG-B03). Le nouveau propriétaire ne peut ni s'attribuer ni réécrire les recherches antérieures.
+
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
-| date | Date d'effet | `HORODATAGE` | 1 | UTC ms | — | `2040-01-01T00:00Z` | S·V·O |
+| etat † (V1.2) | Étape du transfert | `CODE` | 1 | {proposé, accepté, refusé, expiré, annulé} | DI-B40, DI-B41 | `proposé` | S·V·O |
+| engagements_presentes † (V1.2) | État figé des partages actifs présentés au bénéficiaire | `ETAT_FIGE` | 1 | Liste des sélections, règles et rattachements actifs, avec leurs versions | Recalculé à chaque nouvelle présentation | `{…}` | Y·V·R |
+| empreinte_engagements † (V1.2) | Empreinte de `engagements_presentes` | `EMPREINTE` | 1 | SHA-256 | DI-B41 | `9f2c…` | Y·V·O |
+| date_expiration † (V1.2) | Fin de validité de la proposition | `HORODATAGE` | 1 | UTC ms | Passé ce délai : `expiré` | `2040-02-01T00:00Z` | Y·V·O |
+| date | Date d'effet | `HORODATAGE` | C | UTC ms | Obligatoire dès `accepté` (V1.2 : auparavant `1`) | `2040-01-01T00:00Z` | S·V·O |
 | perimetre | Ce qui est transféré | `TEXTE_LONG` | 1 | — | — | « gouvernance du projet » | S·V·O |
 | exclusions | Ce qui est exclu | `TEXTE_LONG` | 0..1 | — | — | « Journal personnel du fondateur » | S·V·O |
 | conditions | Conditions | `TEXTE_LONG` | 0..1 | — | — | — | S·V·O |
@@ -1039,7 +1163,12 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | EXPRIMER | ACTEUR_GENIIUS (0,n) — VOLONTE_NUMERIQUE (1,1) | — | — | `R` |
 | LIEN_COMPTE_PERSONNE | COMPTE (0,n) — LIEN_COMPTE_PERSONNE (1,1) — PERSONNE (0,n) | voir § 4.7 | RG-B10 | `R` |
 | LIEN_COMPTE_ACTEUR | COMPTE (0,n) — ACTEUR_GENIIUS (0,n) | voir § 4.6 | DI-B07 | `I` |
-| TRANSFERER | ESPACE (0,n) — TRANSFERT_GOUVERNANCE (1,1) ; cédant ACTEUR (0,n) — (1,1) ; cessionnaire ACTEUR (0,n) — (1,1) | — | DI-B26 | Suit l'espace |
+| TRANSFERER | ESPACE (0,n) — TRANSFERT_GOUVERNANCE (1,1) ; cédant ACTEUR (0,n) — (1,1) ; cessionnaire ACTEUR (0,n) — (0,1) tant que non accepté, (1,1) dès `accepté` † (V1.2) | — | DI-B26, DI-B40 | Suit l'espace |
+| DESTINER_TRANSFERT † (V1.2) | TRANSFERT_GOUVERNANCE (0,1) — DESIGNATION_GARDE (0,n) | — | DI-B40 | `R` |
+| ADMETTRE † (V1.2) | REGLE_ACCES (0,n) — ACTEUR_GENIIUS (0,n) | decision {approuvée, refusée, révoquée} (1) ; date (1) ; decideur → ACTEUR (1) | DI-B36 ; une admission porte sur une identité | Suit la règle ; `X` |
+| FONDER_SUR_RATTACHEMENT † (V1.2) | REGLE_ACCES (0,1) — RELIER_PROJETS (lien réifié) (0,n) | — | DI-B37 | Suit la règle ; `X` |
+| PRENDRE_EN_CHARGE (V1.2) | financeur ESPACE (0,n) — PRISE_EN_CHARGE (1,1) ; bénéficiaire ESPACE (0,n) — PRISE_EN_CHARGE (1,1) | — | DI-B38 | `X` (§ 4.26) |
+| ACCEPTER_PRISE_EN_CHARGE † (V1.2) | PRISE_EN_CHARGE (0,n) — ACTEUR_GENIIUS (0,n) | partie {financeur, bénéficiaire} (1) ; decision {acceptée, refusée, révoquée} (1) ; date (1) ; version → VERSION_OBJET de l'accord (1) | DI-B38 | Suit l'accord |
 | DESIGNER | DESIGNATION_GARDE (1,1) — OBJET (0,n) ; ACTEUR (0,n) — (0,1) \| PERSONNE (0,n) — (0,1) | — | DI-B27 | `R` |
 | DECLARER_INTERET | ACTEUR_GENIIUS (0,n) — LIEN_INTERET (1,1) — OBJET (0,n) | — | — | Visible des évaluateurs |
 | FINANCER | PROJET (0,n) — FINANCEMENT (1,1) ; FINANCEMENT (0,1) — ORGANISATION (0,n) | — | — | Suit le projet |
@@ -1076,6 +1205,36 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | motif | Motif du traitement | `TEXTE_COURT` | C | — | — | « catégorie scindée en V3 » | S·V·R |
 
 Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE (1,1)) ; CIBLER_ESPACE (ESPACE (0,n) — (1,1)) ; RESULTER_EN (CONTRIBUTION_DIFFEREE (0,1) — OBJET (0,1)) ; OUVRIR_CONFLIT (CONTRIBUTION_DIFFEREE (0,1) — CONFLIT_EDITION (0,1)).
+
+## 4.26 PRISE_EN_CHARGE ✓ — MCD V1.2 (concept G)
+
+**Définition.** Accord bilatéral, plafonné, borné dans le temps et révocable, par lequel un espace **financeur** couvre tout ou partie de la consommation de ressources d'un espace **bénéficiaire** (CDCF § 129.3 ; MCD § 4.6). N'est **pas** un `FINANCEMENT` (provenance scientifique d'un projet) ni un `ABONNEMENT` (droit d'usage acheté). La mesure de la consommation, l'ordre d'imputation et la facturation relèvent du MLD et du MPD (OB-25).
+
+**Identifiant.** `id_objet`.
+
+**Participe à.** PRENDRE_EN_CHARGE (financeur, bénéficiaire) ; ACCEPTER_PRISE_EN_CHARGE †. **N'a aucune association** avec `REGLE_ACCES`, `APPARTENIR`, `ATTRIBUER_ROLE`, `ACTE_EVALUATION`, `DECISION_EDITORIALE`, `BADGE` (RG-B15).
+
+**Versionnement.** `V` : chaque changement d'état, de plafond ou de période crée une version.
+
+**Confidentialité.** `X` : l'accord révèle une relation entre deux espaces. Visible des administrateurs des deux espaces ; jamais déductible par un membre qui ne voit pas l'autre espace (RG-B11).
+
+**Intégrité.**
+
+- **DI-B38** — `etat = active` exige deux `ACCEPTER_PRISE_EN_CHARGE` de décision `acceptée`, l'une par un administrateur du financeur, l'autre par un administrateur du bénéficiaire, sur **la même version**. Financeur ≠ bénéficiaire. Toute modification de `plafond`, `ressource_couverte` ou de la période crée une nouvelle version qui exige de nouvelles acceptations ; jusque-là, la version précédente reste active (RG-B16).
+- **DI-B39** — Chaque partie peut révoquer à tout moment (`etat = révoquée`, `motif_fin`). La fin d'un accord (révocation, expiration, refus) ne supprime aucune donnée et ne retire aucun accès : seules les nouvelles consommations peuvent être limitées (RG-B18). Plusieurs accords peuvent être actifs pour un même bénéficiaire ; une même consommation n'est jamais imputée deux fois (OB-25).
+
+**Exemple.** Le programme « Antilles » couvre 200 heures de calcul HTR du projet « Pointe-Noire » du 1/1/2030 au 31/12/2030 ; acceptée par les deux administrateurs.
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| ressource_couverte | Ressource dont la consommation est couverte | `CODE` | 1..n | {stockage, calcul, quotas, autre} | TI-06 | `calcul` | S·V·O |
+| plafond | Plafond de la prise en charge | `VALEUR` | 1 | § 21 ; unité ou monnaie obligatoire | > 0 | `{200, heure de calcul HTR}` | S·V·O |
+| date_debut | Début | `DATE_CIVILE` | 1 | — | — | `2030-01-01` | S·V·O |
+| date_fin | Fin | `DATE_CIVILE` | 1 | — | ≥ `date_debut` ; accord borné (CDCF § 129.3) | `2030-12-31` | S·V·O |
+| etat | État | `CODE` | 1 | {proposée, active, refusée, suspendue, révoquée, expirée} | DI-B38, DI-B39 ; `expirée` calculé | `active` | S/C·V·O |
+| motif_fin | Motif de fin | `TEXTE_COURT` | C | — | Obligatoire si `refusée` ou `révoquée` | « fin du programme » | S·V·O |
+
+*Les propriétés MCD `acceptation_financeur` et `acceptation_beneficiaire` sont transformées en association `ACCEPTER_PRISE_EN_CHARGE` (TI-02 ; annexe C.6).*
 
 ---
 
@@ -1201,18 +1360,27 @@ Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE 
 
 ## 5.8 FICHIER
 
-**Définition.** Fichier binaire. Son empreinte permet la déduplication **technique** uniquement (RG-C07).
+**Définition.** Fichier binaire déposé dans un espace. Son empreinte sert au contrôle d'intégrité et à la déduplication **technique**, uniquement à l'intérieur d'un espace (RG-C07). *V1.3 (ECD-07) : l'identité d'un fichier est propre à son espace ; le stockage physique peut être mutualisé de façon non observable.*
 
-**Identifiant.** `id_fichier` ; `empreinte` unique.
+**Identifiant.** `id_fichier` ; `(espace, empreinte)` unique *(V1.3 ; auparavant `empreinte` unique globalement)*.
 
-**Confidentialité.** `emplacement_stockage` est `I` ; l'accès au binaire suit l'objet le plus restrictif qui l'utilise.
+**Participe à.** DEPOSER_DANS † (V1.3) : FICHIER (1,1) — ESPACE (0,n).
 
-**Intégrité.** **DI-C13** — Deux fichiers de même empreinte sont fusionnés techniquement ; cela ne fusionne aucun document, exemplaire ni reproduction (test 13).
+**Confidentialité.** `emplacement_stockage` et `cle_stockage` sont `I` ; l'accès au binaire suit l'objet le plus restrictif qui l'utilise.
+
+**Intégrité.**
+
+- **DI-C13** *(réécrite en V1.3, ECD-07 ; la V1.1 fusionnait techniquement deux fichiers de même empreinte, sans restriction d'espace)* — Dans un même espace, deux dépôts de même empreinte désignent le même `FICHIER` ; cela ne fusionne aucun document, exemplaire ni reproduction (test 13). Deux espaces ont toujours deux `FICHIER` distincts, même pour un binaire identique.
+- **DI-C22** † (V1.3, ECD-07) — **Non-observabilité.** Une mutualisation physique entre espaces (même `cle_stockage`) n'est jamais observable d'un espace à l'autre : même délai d'envoi, même message, même quota décompté, aucune indication « déjà présent ». La purge d'un `FICHIER` retire sa référence au binaire ; le binaire est effacé dès qu'aucune référence légitime ne subsiste. Une purge légalement obligatoire n'est jamais empêchée par la mutualisation : si une référence d'un autre espace subsiste, elle porte sur une donnée de cet espace, et non sur celle de l'espace purgé (OB-29).
+- **DI-C23** † (V1.3, ECD-08) — Un fichier n'est exploitable scientifiquement (reproduction `master`, zone, transcription d'appui) que si `etat_conservation = confirmé`. Les états `temporairement inaccessible`, `manquant` et `corrompu` sont distincts et ne valent pas suppression ; `purgé` résulte seulement d'une purge (DD-13).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
 | id_fichier | Identifiant | `IDENT` | 1 | UUID v7 | — | `01b0…` | Y·F·I |
-| empreinte | Empreinte | `EMPREINTE` | 1 | SHA-256 | Unique ; DI-C13 | `3a7f…` | Y·F·O |
+| empreinte | Empreinte | `EMPREINTE` | 1 | SHA-256 | Unique par espace (V1.3) ; DI-C13 | `3a7f…` | Y·F·O |
+| cle_stockage † (V1.3) | Clé de l'objet binaire stocké, éventuellement partagée entre espaces | `TEXTE_COURT` | 1 | — | Jamais exposée ; DI-C22 | `blob/9c…` | Y·N·I |
+| etat_conservation † (V1.3) | État de conservation du binaire | `CODE` | 1 | {en réception, confirmé, temporairement inaccessible, manquant, corrompu, purgé} | DI-C23 ; défaut `en réception` | `confirmé` | C·V·O |
+| date_dernier_controle † (V1.3) | Dernier contrôle d'intégrité | `HORODATAGE` | 0..1 | UTC ms | — | `2031-02-01T03:00Z` | Y·V·O |
 | format | Type MIME | `TEXTE_COURT` | 1 | IANA | — | `image/jpeg` | Y·F·O |
 | taille | Taille en octets | `ENTIER` | 1 | > 0 | — | `4 821 337` | Y·F·O |
 | emplacement_stockage | Localisation physique | `TEXTE_COURT` | 1 | — | Jamais exposé | `s3://…` | Y·N·I |
@@ -2097,6 +2265,10 @@ Les attributs `description`, `rang` et `statut` sont hérités de `POSITION`.
 
 **Intégrité.** **DI-K01** — `etat_cycle = clôturé dans son périmètre` exige `date_cloture` ; une réouverture crée une nouvelle version sans effacer l'état de clôture (RG-K04, critère 21). **DI-K02** — `transmis` exige une `DESIGNATION_GARDE` effective de rôle successeur.
 
+**Intégrité (V1.2, DD-19).**
+
+- **DI-K23** † — Un `RELIER_PROJETS` de type `sous-projet de` n'est `actif` qu'avec deux `DECIDER_RATTACHEMENT` `acceptée`, l'une par un administrateur du projet parent, l'autre par un administrateur du projet enfant. Un projet peut être rattaché à plusieurs parents. Chaque partie peut y mettre fin seule (`terminé`, `date_fin`) ; le lien n'est jamais supprimé. Un rattachement, actif ou non, ne fonde aucun droit, aucun rôle et aucune agrégation d'indicateurs par lui-même : il n'est pas transitif (P23). Être administrateur d'un projet parent ne donne aucune action sur l'enfant (DI-B29).
+
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
 | intitule | Intitulé | `TEXTE_COURT` | 1 | — | — | « Les CHARBONNÉ de Deshaies » | S·V·O |
@@ -2246,11 +2418,24 @@ Les attributs `description`, `rang` et `statut` sont hérités de `POSITION`.
 
 ## 13.10 TACHE ✓
 
+**Définition (précisée en V1.2, DD-23).** Unité de pilotage d'un projet : **tâche** (« transcrire la fiche n° 42 »), **lot** (« transcrire les fiches 1 à 100 ») ou **jalon** (« dépouillement de Saint-Leu terminé »). Une tâche organise le travail ; elle ne valide rien et ne donne aucun droit.
+
+**Participe à.** PLANIFIER_TACHE (élargi en V1.2) ; SOUS_TACHE † ; DEPENDRE_TACHE † ; FONDER_DELEGATION †.
+
+**Intégrité (V1.2).**
+
+- **DI-K27** † — Les graphes `SOUS_TACHE` et `DEPENDRE_TACHE` sont sans cycle ; une sous-tâche appartient au même projet que sa tâche parente. Un `jalon` n'a ni assigné ni délégation.
+- **DI-K28** † — Être assigné à une tâche (acteur ou groupe) ne confère aucun droit sur ses objets ni sur le projet.
+- **DI-K29** † — Une délégation fondée sur un lot (`FONDER_DELEGATION`) est une `REGLE_ACCES` : bénéficiaire nominatif (acteur ou groupe assigné) ; actions limitées à {voir, commenter, proposer, transcrire} ; `date_fin` obligatoire ; portées sur les objets du lot **listés explicitement à la création** de la règle. Ajouter un objet au lot n'étend pas la règle. Déléguer ne transfère ni responsabilité scientifique, ni droit de publication, ni propriété.
+- **DI-K30** † — La clôture d'un lot (`faite` ou `abandonnée`) fixe la `date_fin` des délégations qu'il fonde, si elle est antérieure. La réouverture d'un lot ne prolonge ni ne réactive aucune règle : une nouvelle délégation est nécessaire.
+- **DI-K31** † — Aucun attribut d'avancement ou de pourcentage n'est stocké. L'avancement d'un lot est **calculé** à la demande, sur le graphe accessible du lecteur, par état réel de ses objets (transcription présente, évaluée, identification proposée, validée) ; il s'exprime en nombres (« 37 sur 100 »), jamais en complétude scientifique (RG-K02, TI-05). `statut = faite` n'est jamais une validation.
+
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
+| type † (V1.2) | Nature | `CODE` | 1 | {tâche, lot, jalon} | Défaut `tâche` ; DI-K27 | `lot` | S·V·O |
 | libelle | Tâche | `TEXTE_COURT` | 1 | — | — | « retrouver le fondement de la validation de 2028 » | S/C·V·O |
-| statut | État | `CODE` | 1 | {à faire, en cours, faite, abandonnée} | — | `à faire` | S·V·O |
-| echeance | Échéance | `DATE_HIST` | 0..1 | Date exacte | — | `2035-06-30` | S·V·O |
+| statut | État | `CODE` | 1 | {à faire, en cours, faite, abandonnée} | DI-K30, DI-K31 | `à faire` | S·V·O |
+| echeance | Échéance opérationnelle | `DATE_CIVILE` | 0..1 | ISO 8601 | **V1.2 : type corrigé**, auparavant `DATE_HIST` (DD-23) | `2035-06-30` | S·V·O |
 | origine | Origine | `CODE` | 1 | {manuelle, signal de dépendance, preuve inaccessible, réouverture, anomalie} | Les origines non manuelles sont créées par le système (CU-20) | `preuve inaccessible` | Y/S·F·O |
 
 ## 13.11 SNAPSHOT ✓, DIFF_CONNAISSANCE ✓, DECOUVERTE ✓
@@ -2276,7 +2461,13 @@ Les attributs `description`, `rang` et `statut` sont hérités de `POSITION`.
 
 | Association | Pattes et cardinalités | Propriétés | Intégrité | Gouvernance |
 |---|---|---|---|---|
-| RELIER_PROJETS | PROJET (0,n) — PROJET (0,n) | type {issu de, prolonge, complète, réexamine, conteste, réutilise le corpus de, sous-projet de, succède à} (1) | Sans cycle pour `sous-projet de` | Suit chaque projet |
+| RELIER_PROJETS — lien réifié † (V1.2, DD-19) | PROJET (0,n) — PROJET (0,n) | id_lien (1) ; type {issu de, prolonge, complète, réexamine, conteste, réutilise le corpus de, sous-projet de, succède à} (1) ; etat {proposé, actif, refusé, terminé} (1) † ; initiateur → ACTEUR (1) † ; date_debut (0..1) † ; date_fin (0..1) † | Sans cycle pour `sous-projet de` ; DI-K23 | Gouvernable (DD-09) ; visibilité ≤ celle des deux projets (TI-10) ; `X` |
+| DECIDER_RATTACHEMENT † (V1.2) | RELIER_PROJETS (0,2) — ACTEUR_GENIIUS (0,n) | partie {parent, enfant} (1) ; decision {acceptée, refusée, terminée} (1) ; date (1) | DI-K23 | Suit le lien |
+| SOUS_TACHE † (V1.2) | TACHE parente (0,n) — TACHE (0,1) | — | DI-K27 | Suit le projet |
+| DEPENDRE_TACHE † (V1.2) | TACHE (0,n) — TACHE préalable (0,n) | — | DI-K27 | Suit le projet |
+| FONDER_DELEGATION † (V1.2) | TACHE de type `lot` (0,n) — REGLE_ACCES (0,1) | — | DI-K29, DI-K30 | Suit la règle |
+| ETUDIER — lien réifié (V1.2, DD-20) | PROJET (0,n) — OBJET cible (0,n) ; cible `0..1` (DI-K24) | voir § 13.13 | DI-K24, DI-K25 | Gouvernable ; `X` |
+| UTILISER — lien réifié (V1.2, DD-20) | PROJET (0,n) — OBJET ressource (0,n) | voir § 13.13 | DI-K25, DI-K26 | Gouvernable ; `X` |
 | SOUS_QUESTION | QUESTION parente (0,n) — QUESTION (0,1) | — | DI-K06 | Suit la question |
 | CONCERNER | QUESTION (0,n) — OBJET (0,n) | — | — | `X` |
 | EXPLORER | QUESTION (0,n) — PISTE (1,1) ; PISTE (0,1) — RECHERCHE_EFFECTUEE \| ANOMALIE (origine) | — | — | Suit la piste |
@@ -2295,10 +2486,41 @@ Les attributs `description`, `rang` et `statut` sont hérités de `POSITION`.
 | APPLIQUER_A / protocole_version | QUESTION \| DOCUMENT \| EXEMPLAIRE (0,n) — APPLICATION (1,1) ; VERSION_OBJET (0,n) — APPLICATION (1,1) | — | DI-K15 | Suit l'application |
 | ETAT_CRITERE | APPLICATION (0,n) — CRITERE (0,n) | etat {accompli, partiel, non fait, non applicable} (1) ; couverture (0..1) ; preuve → OBJET (0..1) | DI-K16 | Suit l'application |
 | CONTEXTE_REGLE | REGLE (0,n) — OBJET (0,n) ; adoptant ACTEUR (0,n) — REGLE (0,1) | — | DI-K18, DI-K19 | Suit la règle |
-| PLANIFIER_TACHE | PROJET (0,n) — TACHE (1,1) ; TACHE (0,1) — ACTEUR (0,n) ; TACHE (0,n) — OBJET (0,n) | — | — | Suit le projet |
+| PLANIFIER_TACHE | PROJET (0,n) — TACHE (1,1) ; TACHE (0,n) — ACTEUR (0,n) † (V1.2 : auparavant (0,1)) ; TACHE (0,n) — GROUPE (0,n) † (V1.2) ; TACHE (0,n) — OBJET (0,n) | — | DI-K28 | Suit le projet |
 | FIGER / CONTENIR_SNAP | ESPACE (0,n) — SNAPSHOT (1,1) ; SNAPSHOT (1,n) — VERSION_OBJET (0,n) | — | DI-K20 | Suit le snapshot ; une version restreinte reste restreinte dans le snapshot |
 | AVANT / APRES | DIFF (0,1) — SNAPSHOT (0,n), ×2 | date_avant / date_apres (`HORODATAGE`, C) si pas de snapshot | DI-K21 | Suit le diff |
 | DECLENCHER / MODIFIER | DECOUVERTE (0,1) — DIFF (0,n) ; DECOUVERTE (0,n) — VERSION_OBJET (0,n) ; ACTEUR (0,n) — DECOUVERTE (1,1) | — | — | Suit la découverte |
+
+## 13.13 ETUDIER et UTILISER — liens réifiés, MCD V1.2 (concepts B et C, DD-20)
+
+**Définition.** `ETUDIER` : axe de recherche déclaré par un projet — ce qu'il étudie (territoire, période, famille, habitation, thème…). `UTILISER` : ressource mobilisée par un projet — ce dont il se sert (inventaire, source à exploiter, outil, bibliographie…). Ni l'un ni l'autre n'est une assertion, un conteneur ou une habilitation (P25 ; MCD § 13.5).
+
+**Identifiant.** `id_lien` (DD-09).
+
+**Versionnement.** `V` : une déclaration se clôt (`date_fin`) ; elle n'est jamais effacée. Un `SNAPSHOT` du projet la fige.
+
+**Confidentialité.** `X` : un axe ou une ressource révèle l'intérêt d'un projet pour un objet. Visibilité par défaut ≤ la plus restrictive de ses extrémités (TI-10) ; une recherche « projets qui étudient (utilisent) X » s'exécute sur le graphe accessible (OB-03).
+
+**Intégrité.**
+
+- **DI-K24** — `ETUDIER` sans objet cible n'est admis que si `type_axe = période` **et** `periode` est renseignée. Un sujet incertain cible la `MENTION`, la `POSITION` ou le `COLLECTIF_HISTORIQUE` qui le porte, jamais une entité créée pour l'occasion (RG-K10, RG-E02).
+- **DI-K25** — La création, la modification ou la clôture d'un `ETUDIER` ou d'un `UTILISER` ne crée, ne modifie ni ne valide aucune `ASSERTION`, `RELATION`, `RAPPROCHEMENT`, `REGLE_ACCES`, `REFERENCE_INTER_ESPACE` ni copie. Elle ne déplace aucun objet (RG-K09, RG-K11).
+- **DI-K26** — Les situations « référencée », « conservée » et « exploitée » d'une ressource sont **dérivées** (DD-11), jamais saisies : `conservée` si la ressource est dans l'espace du projet ; `exploitée par ce projet` seulement si des `ACTIVITE` sur la ressource sont attribuables au projet et visibles du lecteur. L'absence d'`ACTIVITE` visible s'affiche « aucune exploitation visible », jamais « non exploitée » (RG-K12).
+
+| Lien | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|---|
+| ETUDIER | type_axe | Nature de l'axe | `REF_CONCEPT` | 1 | Référentiel des types d'axe : territoire, période, personne, famille, collectif, organisation, bien, habitation, thème, autre | DI-K24 ; TI-06 | `famille` | S·V·O |
+| ETUDIER | libelle | Libellé de travail | `TEXTE_COURT` | 1 | — | TI-09 : libellé technique, jamais historique | « famille BOVALO » | S·V·O |
+| ETUDIER | periode | Période étudiée | `PERIODE_HIST` | C | DD-10 | Obligatoire si pas de cible ; incertitude conservée | 1793–1848 | S·V·O |
+| ETUDIER | statut | État | `CODE` | 1 | {actif, suspendu, clos} | `clos` ⇒ `date_fin` | `actif` | S·V·O |
+| ETUDIER | date_declaration | Déclaration | `HORODATAGE` | 1 | UTC ms | — | `2029-03-01T00:00Z` | Y·V·O |
+| ETUDIER | date_fin | Fin | `HORODATAGE` | 0..1 | UTC ms | — | — | Y·V·O |
+| UTILISER | roles | Rôles de la ressource | `REF_CONCEPT` | 1..n | Référentiel des rôles de ressource : référence, inventaire, source à exploiter, outil de travail, bibliographie, donnée de travail, autre | DI-K26 | `inventaire`, `source à exploiter` | S·V·O |
+| UTILISER | date_declaration | Déclaration | `HORODATAGE` | 1 | UTC ms | — | `2029-03-01T00:00Z` | Y·V·O |
+| UTILISER | date_fin | Fin | `HORODATAGE` | 0..1 | UTC ms | — | — | Y·V·O |
+| UTILISER | situation | Référencée, conservée, exploitée | `CODE` | — | Dérivée (DD-11) | DI-K26 ; non saisissable | `exploitée` | C·D·O |
+
+**Exemple.** Projet « Militaires réunionnais » : `UTILISER` → inventaire des 10 000 fiches matricules (Archives départementales), rôles `inventaire` et `source à exploiter` ; `ETUDIER` → collectif « conscrits réunionnais 1914–1918 », `type_axe = collectif`.
 
 ---
 
@@ -2338,10 +2560,14 @@ La propriété `personne_racine_affichage` du MCD devient l'association RACINE �
 - **DI-L07** — `import Core→privé` : espace source = Core partagé ; aucune modification silencieuse ultérieure de l'espace cible (RG-L02).
 - **DI-L08** — `comparaison Tree↔Tree` et `échange Tree↔Tree` : aucun des deux espaces n'est le Core partagé (RG-L03).
 - **DI-L09** — Une opération `exécutée` n'est jamais annulée : son effet se corrige par une nouvelle opération ou de nouvelles versions.
+- **DI-L12** † (V1.2) — `contribution vers un espace partagé` : l'espace cible n'est **jamais** le Core partagé (RG-L13, RG-B01) et diffère de l'espace source ; `selection` est obligatoire et désigne une version `active` d'une `SELECTION_PARTAGE` de l'espace source ; une `REGLE_ACCES` active sur cette sélection désigne l'espace cible (`espace_role`) ou ses membres ; l'acteur a un rôle sur l'espace source et l'action `repartager` sur la sélection. L'opération ne crée aucune copie ni `FILIATION`.
+- **DI-L18** † (V1.2) — `réutilisation d'une sélection` : espace source = espace de la sélection ; espace cible = un espace où l'acteur a un rôle, jamais le Core partagé ; `selection` obligatoire ; l'acteur bénéficie, à l'instant de l'exécution, d'une règle `réutiliser` active sur cette sélection ; seuls les objets du manifeste effectivement accessibles à l'acteur sont copiés ; chaque copie porte une `FILIATION` de type `réutilisation` (DI-A37, RG-L10).
+- **DI-L20** † (V1.2) — `selection` est obligatoire pour les deux types ci-dessus et interdite pour les autres types de flux.
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
-| type | Nature du flux | `CODE` | 1 | D-45 | DI-L06 à L08 ; figé | `contribution privé→Core` | S·F·O |
+| type | Nature du flux | `CODE` | 1 | D-45 (V1.2 : + `contribution vers un espace partagé`, `réutilisation d'une sélection`) | DI-L06 à L08, DI-L12, DI-L18 ; figé | `contribution privé→Core` | S·F·O |
+| selection (V1.2) | Version de sélection partagée ou réutilisée | `IDENT` + numéro | C | Version de `SELECTION_PARTAGE` | DI-L20 | `S-31 v2` | S·F·X |
 | date | Date | `HORODATAGE` | 1 | UTC ms | — | `2029-11-02T08:00Z` | Y·F·O |
 | statut | État | `CODE` | 1 | {préparée, exécutée, annulée} | DI-L09 ; `annulée` seulement avant exécution | `exécutée` | S·V·O |
 | autorisation | Fondement de l'autorisation | `TEXTE_COURT` | 1 | — | — | « contribution validée par la responsable du projet » | S·F·O |
@@ -2376,6 +2602,58 @@ Les objets comparés A et B sont reliés par les associations ECART_A † et ECA
 | PRODUIRE_FILIATION | OPERATION_FLUX (0,n) — FILIATION (0,1) | — | DI-A20 | Suit la filiation |
 | COMPARER | ARBRE A (0,n) — COMPARAISON (1,1) ; ARBRE B (0,n) — (1,1) ; COMPARAISON (0,n) — ECART (1,1) | — | DI-L10 | DI-L11 |
 | ECART_A † / ECART_B † | ECART (0,1) — OBJET (0,n), ×2 | — | — | DI-L11 |
+| HEBERGER_SELECTION (V1.2) | ESPACE source (0,n) — SELECTION_PARTAGE (1,1) | — | DI-L17 | Suit la sélection |
+| INCLURE_SELECTION (V1.2) | VERSION_OBJET d'une `SELECTION_PARTAGE` (0,n) — OBJET inclus (0,n) | version_incluse → VERSION_OBJET de l'objet inclus (1) ; mode_inclusion {intégral, masqué, pseudonymisé} (1) ; motif_inclusion {point de départ, ascendance, descendance, union, conjoint, ajout explicite} (1) | DI-L13, DI-L16 ; figée avec la version de la sélection | `X` ; chaque entrée filtrée par le contexte (OB-23) |
+
+## 14.6 SELECTION_PARTAGE ✓ — MCD V1.2 (concept A, DD-21)
+
+**Définition.** Sous-ensemble gouverné et versionné d'objets et de relations d'un espace source, destiné à être partagé avec un autre espace : une branche d'arbre ou un ensemble explicite (MCD § 14.5). Ses **paramètres** décrivent une intention ; son **manifeste** (les `INCLURE_SELECTION` d'une version) est le seul contenu partagé. Une sélection définit **quoi** ; les `REGLE_ACCES` qui portent sur elle définissent à qui, pour quelles opérations et jusqu'à quand.
+
+**Identifiant.** `id_objet`.
+
+**Héritage.** `OBJET`.
+
+**Participe à.** HEBERGER_SELECTION, INCLURE_SELECTION, PORTER_SUR_OBJET (règles d'accès), SOURCE de `OPERATION_FLUX.selection`.
+
+**Versionnement.** `V`. Une version = des paramètres et un manifeste. Une version confirmée n'est plus jamais modifiée ; toute évolution crée une version.
+
+**Confidentialité.** La sélection appartient à l'espace source et suit ses règles. Son manifeste est `X` : chaque entrée n'est présentée que si elle est accessible dans le contexte. Les paramètres d'exclusion (`exclusions`, branche du Sosa 16) sont `I` pour les destinataires : un destinataire ne voit jamais ce qui a été exclu, ni combien d'éléments l'ont été.
+
+**Intégrité.**
+
+- **DI-L13** — Le manifeste d'une version est calculé à partir des paramètres et de l'état de l'espace source, **présenté** à la personne qui partage, puis figé à sa confirmation. La présentation montre exactement ce qui sera transmis : personnes, relations, sources, informations et `mode_inclusion` (RG-L07). Une version `active` a un manifeste figé ; un manifeste n'est jamais recalculé sur une version existante.
+- **DI-L14** — Aucun objet n'entre dans le manifeste d'une version existante. Un objet ajouté ou relié ensuite dans l'espace source n'est accessible au destinataire qu'après une **nouvelle version** confirmée (RG-L05).
+- **DI-L15** — Si `evolution = suivi par propositions`, un changement de l'espace source qui modifierait le manifeste produit une version `proposée`, notifiée **à l'espace source seulement**, avec ses différences. Seul un acteur ayant `repartager` sur la sélection la confirme. Si `evolution = figée`, aucune proposition n'est produite. Une version plus étroite (réduction) prend effet dès sa création, sans confirmation du destinataire (RG-L06).
+- **DI-L16** — Règles d'inclusion :
+  - inclure une personne n'inclut aucune de ses relations : seules les `RELATION` du manifeste sont partagées ;
+  - un conjoint inclus avec `conjoints = sans leur ascendance` apparaît avec l'union, sans ses parents ni leurs relations ;
+  - une relation entre un objet inclus et un objet non inclus n'est jamais incluse ;
+  - personnes vivantes : `traitement_vivants` s'applique (défaut `exclus`) ; données sensibles : `traitement_sensibles` (défaut `exclus`) ;
+  - les `exclusions` l'emportent sur tous les autres paramètres.
+- **DI-L17** — Tout objet du manifeste appartient à l'espace source ou y est référencé (`REFERENCE_INTER_ESPACE`), et l'acteur qui confirme détient sur lui `repartager` à l'instant de la confirmation. Une sélection ne peut pas inclure un objet que son auteur ne peut pas voir.
+- **DI-L19** — Révocation ou réduction (fin de la règle d'accès, sélection `révoquée`, nouvelle version plus étroite) : l'accès cesse à la prochaine évaluation, sans divulgation du motif ; les répliques hors ligne sont retirées (OB-20) ; les copies `réutilisation` déjà faites suivent DI-A38 ; les conclusions qui s'appuyaient sur la sélection sont conservées et leurs `DEPENDANCE` passent à `potentiellement affecté` (droits), jamais invalidées ; les publications parues et les exports remis restent ; toute nouvelle diffusion est réévaluée (DI-P15). Les droits acquis à un autre titre ne sont pas touchés.
+
+**Exemple.** Sélection « BOVALO depuis le Sosa 31 », version 1 : ascendance paternelle, descendance complète, unions incluses, conjoints sans leur ascendance, vivants exclus, exclusion de la branche du Sosa 16 ; manifeste de 43 personnes, 51 relations et 38 sources.
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| libelle | Nom de la sélection | `TEXTE_COURT` | 1 | — | TI-09 | « BOVALO depuis le Sosa 31 » | S·V·O |
+| type_selection | Nature | `CODE` | 1 | {branche généalogique, ensemble explicite} | Figé | `branche généalogique` | S·F·O |
+| arbre_source | Arbre de départ | `IDENT` | C | id d'`ARBRE` de l'espace source | Obligatoire pour `branche généalogique` | `T-12` | S·F·O |
+| point_depart | Personne de départ | `IDENT` | C | id de `PERSONNE` de l'espace source | Obligatoire pour `branche généalogique` | `P-31` | S·V·O |
+| ascendance | Ascendance incluse | `CODE` | C | {aucune, paternelle, maternelle, les deux} | `branche généalogique` | `paternelle` | S·V·O |
+| profondeur_ascendance | Générations d'ascendance | `ENTIER` | 0..1 | ≥ 1 | Vide = sans limite | `5` | S·V·O |
+| descendance | Descendance incluse | `CODE` | C | {aucune, complète, bornée} | `branche généalogique` | `complète` | S·V·O |
+| profondeur_descendance | Générations de descendance | `ENTIER` | C | ≥ 1 | Obligatoire si `bornée` | — | S·V·O |
+| unions | Unions | `CODE` | C | {incluses, exclues} | `branche généalogique` | `incluses` | S·V·O |
+| conjoints | Conjoints | `CODE` | C | {exclus, sans leur ascendance} | `branche généalogique` ; DI-L16 | `sans leur ascendance` | S·V·O |
+| exclusions | Objets ou branches exclus | `IDENT` | 0..n | ids d'`OBJET` de l'espace source | DI-L16 ; `I` pour les destinataires | `P-16` | S·V·I |
+| traitement_vivants | Personnes vivantes | `CODE` | 1 | {exclus, masqués} | Défaut `exclus` ; DI-L16 | `exclus` | S·V·O |
+| traitement_sensibles | Données sensibles | `CODE` | 1 | {exclus, masqués} | Défaut `exclus` | `exclus` | S·V·O |
+| evolution | Mode d'évolution | `CODE` | 1 | {figée, suivi par propositions} | DI-L15 | `suivi par propositions` | S·V·O |
+| etat | État | `CODE` | 1 | {brouillon, proposée, active, suspendue, révoquée, close} | `active` ⇒ manifeste figé (DI-L13) ; `révoquée`, `close` : ne fonde plus aucun accès | `active` | S·V·O |
+
+*La valeur d'état `proposée` précise le cycle de vie du MCD (§ 14.5) pour les versions issues de DI-L15.*
 
 ---
 
@@ -2523,6 +2801,15 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 | algorithme | Algorithme | `TEXTE_LONG` | 0..1 | — | — | « intervalle [acte − âge − 1 ; acte − âge] » | S·V·O |
 | version_algorithme | Version | `TEXTE_COURT` | 1 | SemVer | DI-O05 | `1.0.0` | S·V·O |
 | deterministe † | Méthode déterministe | `BOOLEEN` | 1 | — | DI-O06 | `vrai` | S·V·O |
+| profil † (V1.2) | Méthode ordinaire ou indicateur | `CODE` | 1 | {ordinaire, indicateur} | Défaut `ordinaire` ; `indicateur` ⇒ `deterministe = vrai` et DI-O13 | `indicateur` | S·V·O |
+| unite_comptee † (V1.2) | Ce qui est compté | `TEXTE_COURT` | C | — | Obligatoire si `indicateur` ; fiches et personnes sont des unités distinctes | « personnes distinctes identifiées » | S·V·O |
+| criteres † (V1.2) | Critères d'inclusion | `TEXTE_LONG` | C | — | Obligatoire si `indicateur` | « identification validée ou proposée » | S·V·O |
+| dedoublonnage † (V1.2) | Règle de dédoublonnage | `TEXTE_LONG` | C | — | Obligatoire si `indicateur` ; DI-O16 | « une personne = une entité après rapprochements validés » | S·V·O |
+| traitement_incertitude † (V1.2) | Traitement des identifications incertaines | `CODE` | C | {exclues, bornes, résultat conditionnel, indétermination} | Obligatoire si `indicateur` | `bornes` | S·V·O |
+| numerateur † (V1.2) | Définition du numérateur | `TEXTE_COURT` | C | — | Obligatoire si l'indicateur est un ratio | « personnes identifiées » | S·V·O |
+| denominateur † (V1.2) | Définition du dénominateur | `TEXTE_COURT` | C | — | Obligatoire si l'indicateur est un ratio | « personnes recensées à l'inventaire » | S·V·O |
+
+**Intégrité (V1.2, DD-24).** **DI-O13** † — Une méthode `profil = indicateur` est déterministe et renseigne unité, critères, dédoublonnage, traitement des incertitudes et, pour un ratio, numérateur et dénominateur. Toute modification de ces attributs crée une nouvelle version (DI-O05) ; les résultats passés restent liés à l'ancienne.
 
 ## 17.5 CALCUL ✓
 
@@ -2550,6 +2837,10 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 - **DI-O10** — Un résultat affiché indique toujours corpus, méthode, couverture et date de calcul (RG-O01) (« 146 décès dans le corpus » ≠ « 146 décès réels »).
 - **DI-O11** — Une cooccurrence ou un entourage calculé ne crée jamais de `RELATION` (RG-G06).
 - **DI-O12** — Un résultat d'agrégation exposé à une audience plus large que celle du calcul exige une `EVALUATION_DIFFUSABILITE` (DI-B18).
+- **DI-O14** † (V1.2) — Le `contenu` d'un résultat d'indicateur contient toujours : numérateur et dénominateur (jamais un pourcentage seul), bornes justifiées **ou** mention d'indétermination, exclusions, couverture et périmètre d'autorisation (`CALCULER_DANS`). Aucun indicateur ne mesure une vérité ni une complétude scientifique (TI-05).
+- **DI-O15** † (V1.2) — Le `CALCUL` d'un indicateur est rattaché au `CONTEXTE_EVALUATION` qui a délimité son graphe accessible (`CALCULER_DANS`). Un tableau de bord est calculé pour son lecteur et affiche ce périmètre ; deux lecteurs aux droits différents peuvent voir deux valeurs différentes.
+- **DI-O16** † (V1.2) — Un indicateur portant sur plusieurs projets (programme) applique le dédoublonnage de sa méthode à l'ensemble des objets accessibles ; il n'est jamais la somme des indicateurs des sous-projets.
+- **DI-O17** † (V1.2) — Un résultat d'indicateur destiné à une `PUBLICATION` est `figé`, évalué pour sa diffusabilité dans le contexte de la publication, et identique pour tous ses lecteurs ; il reste explicable par sa méthode, son corpus et son état de connaissance (RG-O01).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
@@ -2574,6 +2865,7 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 | EXECUTER_CALCUL | ACTIVITE (0,1) — CALCUL (1,1) | — | — | Suit le calcul |
 | PRODUIRE_RESULTAT | CALCUL (1,n) — RESULTAT (1,1) | — | — | Suit le résultat |
 | REPRODUIRE_CALCUL | CALCUL d'origine (0,n) — CALCUL (0,1) | — | DI-O07 | Suit le calcul |
+| CALCULER_DANS † (V1.2) | CALCUL (0,1) — CONTEXTE_EVALUATION (0,n) | — | Obligatoire pour un calcul de méthode `indicateur` ; DI-O15 | Suit le calcul |
 
 ---
 
@@ -2589,11 +2881,13 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 - **DI-P02** — Une publication corrigée n'est jamais réécrite : correction = `CORRECTION_PUBLICATION`, nouvelle édition = nouvelle publication (RG-P03).
 - **DI-P03** — `indexable = vrai` exige que toutes les versions exposées aient `decouvrabilite = indexable Web` (RG-P04).
 - **DI-P04** — La première publication attribue un ARK aux objets exposés qui n'en ont pas (DD-02).
+- **DI-P14** † (V1.2) — Une publication de type `série` n'expose aucune version d'objet par elle-même et ne passe jamais à `corrigée` du fait d'un nouveau numéro : l'appartenance est portée par `PARAITRE_DANS`, du côté du numéro (RG-P08). Un numéro n'est jamais de type `série` ; le graphe `PARAITRE_DANS` est sans cycle. Pour une série, `publiée` signifie « ouverte » ; `retirée` la clôt sans toucher aux numéros parus.
+- **DI-P18** † (V1.2) — Dans un espace dont `circuit_editorial = approbation requise`, une publication de type éditorial (lettre, rapport, catalogue, bulletin, autre livrable) ne passe à `publiée` qu'avec une `DECISION_EDITORIALE` `approuvée`, valide, sur **la version exacte** publiée (DI-P12). Une rédaction assistée par IA n'est qu'une proposition, sans effet sur ce circuit (DD-15).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
 | titre | Titre | `TEXTE_COURT` | 1 | — | — | « Charles TANCRÈDE, 1851–1890 : trajectoire » | S·V·O |
-| type | Nature | `CODE` | 1 | {fiche entité, chronologie, carte, corpus, conclusion, article, édition critique, page publique} | — | `article` | S·F·O |
+| type | Nature | `CODE` | 1 | {fiche entité, chronologie, carte, corpus, conclusion, article, édition critique, page publique} ; **V1.2 (P-5)** : + {série, lettre d'information, rapport d'activité, rapport au financeur, catalogue, bulletin, autre livrable éditorial} | `numéro de série` n'est pas un type (DD-25) ; DI-P14 ; TI-06 | `article` | S·F·O |
 | etat | État | `CODE` | 1 | {brouillon, publiée, corrigée, remplacée, retirée} | DI-P01, DI-P02 ; `retirée` exige un motif (correction de type retrait motivé) | `publiée` | S·V·O |
 | date_publication | Date de publication | `HORODATAGE` | C | UTC ms | Obligatoire dès `publiée` | `2028-09-01T00:00Z` | Y·F·O |
 | numero_edition | Édition | `ENTIER` | 1 | ≥ 1 | — | `1` | S·F·O |
@@ -2636,10 +2930,12 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 - **DI-P08** — Un réimport reconnaît le lot antérieur, les identifiants externes, l'empreinte du fichier, les objets déjà acquis et les divergences apparues depuis ; un même GEDCOM importé deux fois ne devient pas deux ensembles de preuves (MCD § 18.5, test 7).
 - **DI-P09** — Une restauration ne recrée que des objets de l'espace privé ; aucune réconciliation ne publie dans le Core partagé (RG-P06).
 - **DI-P10** — `rapport` est obligatoire pour `restauration` et `réimport patrimonial`.
+- **DI-P19** † (V1.3, ECD-14) — Tout `IMPORT` a un acteur importateur (`IMPORTER`) ; c’est l’auteur des objets privés qu’il crée (DI-A39).
 
 | Entité | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|---|
 | IMPORT | type | Nature | `CODE` | 1 | {import externe, réimport patrimonial, restauration} | DI-P09 | `import externe` | S·F·O |
+| IMPORT | acteur † (V1.3) | Acteur importateur | association `IMPORTER` : ACTEUR_GENIIUS (0,n) — IMPORT (1,1) | 1 | — | DI-P19 | — | Y·F·O |
 | IMPORT | logiciel | Logiciel d'origine | `TEXTE_COURT` | 0..1 | — | — | « Heredis 2024 » | I·F·O |
 | IMPORT | format | Format | `TEXTE_COURT` | 1 | — | — | `GEDCOM` | I·F·O |
 | IMPORT | version_format | Version du format | `TEXTE_COURT` | 0..1 | — | — | `5.5.1` | I·F·O |
@@ -2662,6 +2958,55 @@ Le `LIEU` est défini au § 7.3. Ses noms, rattachements et relations spatiales 
 | EVALUER_EXPORT † | EXPORT (0,1) — CONTEXTE_EVALUATION (1,1) | — | DI-P05 | Suit l'export |
 | FICHIER_ORIGINAL / CIBLE_IMPORT | IMPORT (1,1) — FICHIER (0,n) ; IMPORT (1,1) — ESPACE (0,n) | — | — | Suit l'import |
 | RECONCILIER | IMPORT (0,n) — RECONCILIATION (1,1) ; RECONCILIATION (1,1) — OBJET importé (0,n) ; RECONCILIATION (0,1) — OBJET existant (0,n) | — | DI-P08, DI-P09 | Suit l'import |
+| PARAITRE_DANS (V1.2, concept D) | PUBLICATION numéro (0,n) — PUBLICATION série (0,n) | rang (`ENTIER`, 1, ≥ 1, unique dans la série) ; date (`HORODATAGE`, 1) | DI-P14 | Suit le numéro ; la liste des numéros d'une série est filtrée par le contexte (`X`) |
+| DECIDER (V1.2) | ACTEUR_GENIIUS (0,n) — DECISION_EDITORIALE (1,1) ; DECISION_EDITORIALE (1,1) — VERSION_OBJET d'une `PUBLICATION` (0,n) | — | DI-P11 à DI-P13 | Suit la publication ; `X` |
+| DIFFUSER (V1.2) | VERSION_OBJET d'une `PUBLICATION` (0,n) — DIFFUSION (1,1) ; ACTEUR_GENIIUS (0,n) — DIFFUSION (1,1) ; DIFFUSION (1,1) — CONTEXTE_EVALUATION (0,n) | — | DI-P15 à DI-P17 | Suit la publication ; `X` |
+| EVALUER_DIFFUSION (V1.2) | DIFFUSION (0,1) — EVALUATION_DIFFUSABILITE (0,1) | — | DI-P16 | Suit la diffusion |
+
+## 18.6 DECISION_EDITORIALE ✓ — MCD V1.2 (concept E, DD-25)
+
+**Définition.** Décision nominative d'un acteur humain sur **une version** précise d'une publication : relue, approuvée, refusée, approbation invalidée (MCD § 18.6). N'est **ni** une validation scientifique (`ACTE_EVALUATION`), **ni** une autorisation de diffusion (`EVALUATION_DIFFUSABILITE`).
+
+**Versionnement.** `F` : une décision est figée à sa création. Une approbation invalidée reste en place ; l'invalidation est une nouvelle décision.
+
+**Confidentialité.** Visible des membres de l'espace qui participent au circuit éditorial ; jamais des abonnés ni du public (MCD § 18.6, « révélation »).
+
+**Intégrité.**
+
+- **DI-P11** — Une décision porte sur une version de `PUBLICATION` et est prise par un `ACTEUR_GENIIUS` humain ayant un rôle dans l'espace de la publication. Un agent IA ne prend aucune décision éditoriale.
+- **DI-P12** — À la création d'une version substantielle (DD-25), le système crée, pour chaque approbation valide de la version précédente, une décision `approbation invalidée` qui la référence (`invalide`). Une approbation n’est valide que pour sa version et tant qu’elle n’est pas invalidée (RG-P09).
+- **DI-P13** — Aucune association entre `DECISION_EDITORIALE` et `ACTE_EVALUATION`. Une décision éditoriale ne modifie aucun `statut_validation` ; un acte d'évaluation ne vaut pas approbation (RG-P10, critère 63).
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| type | Décision | `CODE` | 1 | {relue, approuvée, refusée, approbation invalidée} | DI-P12 | `approuvée` | S/C·F·O |
+| motif | Motif | `TEXTE_COURT` | C | — | Obligatoire pour `refusée` et `approbation invalidée` | « chiffre de la p. 2 modifié après approbation » | S/C·F·O |
+| invalide | Approbation invalidée | `IDENT` | C | id de `DECISION_EDITORIALE` | Obligatoire si `approbation invalidée` | `DE-12` | C·F·O |
+| date | Date | `HORODATAGE` | 1 | UTC ms | — | `2031-04-02T09:00Z` | Y·F·O |
+
+## 18.7 DIFFUSION ✓ — MCD V1.2 (concept F)
+
+**Définition.** Opération de diffusion d'une version publiée d'une publication vers une audience, par un canal : mise en ligne, envoi d'e-mail, génération de PDF, export, API (CDCF § 130). Trace **ce qui** a été diffusé, à **combien** de destinataires et dans **quel contexte**. La liste nominative des destinataires relève des abonnements (`VEILLE`) et du journal d'envoi technique (OB-27), pas de cette fiche.
+
+**Versionnement.** `N` : journal ; une diffusion n'est jamais modifiée ni supprimée hors purge légale.
+
+**Intégrité.**
+
+- **DI-P15** — Une diffusion `exécutée` ou `partielle` exige : une version `publiée` ; si `circuit_editorial = approbation requise`, une approbation valide sur cette version (DI-P12, DI-P18) ; une `EVALUATION_DIFFUSABILITE` favorable, établie dans le `CONTEXTE_EVALUATION` de **cette** diffusion (audience réelle, canal, instant). Une évaluation antérieure, même pour la même version, ne dispense pas d’une nouvelle (révocation, embargo, audience plus large) (RG-P11).
+- **DI-P16** — Une diffusion refusée est enregistrée avec `resultat = bloquée` et `motif_blocage`. `exécutée` et `partielle` exigent `EVALUER_DIFFUSION` ; `bloquée` le peut, sans l'exiger.
+- **DI-P17** — Une diffusion ne se rappelle pas. Une erreur se corrige par une `CORRECTION_PUBLICATION` (erratum, nouvelle édition) et, s'il y a lieu, une nouvelle diffusion (RG-P12).
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| canal | Canal | `CODE` | 1 | {web, e-mail, PDF, export, API, autre} | TI-06 | `e-mail` | S·N·O |
+| audience | Audience réelle | `TEXTE_COURT` | 1 | — | Cohérente avec `CONTEXTE_EVALUATION.audience` | « abonnés de la Lettre des Colimaçons » | S·N·O |
+| nombre_destinataires | Nombre de destinataires | `ENTIER` | C | ≥ 0 | Obligatoire si `canal = e-mail` | `412` | C·N·O |
+| risque_redistribution | Risque de redistribution | `CODE` | 1 | {faible, moyen, élevé} | `e-mail`, `PDF`, `export` : au moins `moyen` | `moyen` | S/C·N·O |
+| date | Date | `HORODATAGE` | 1 | UTC ms | — | `2031-04-03T08:00Z` | Y·N·O |
+| resultat | Résultat | `CODE` | 1 | {exécutée, partielle, bloquée, échouée} | DI-P15, DI-P16 | `bloquée` | C·N·O |
+| motif_blocage | Motif | `TEXTE_COURT` | C | — | Obligatoire si `bloquée` | « approbation invalidée par la version 3 » | C·N·O |
+
+**Exemple (lettre n° 12).** La version 2 de la Lettre n° 12 a été approuvée. Une correction de chiffre crée la version 3 : l'approbation est invalidée (DI-P12). L'envoi programmé de la version 3 est enregistré `bloquée`, motif « aucune approbation valide » (DI-P15).
 
 ---
 
@@ -2699,14 +3044,16 @@ Les extrémités d'un lien exploratoire sont portées par les associations EXPLO
 
 ## 19.3 HISTORIQUE_NAVIGATION, VEILLE ✓, NOTIFICATION
 
-**Intégrité.** **DI-Q03** — `HISTORIQUE_NAVIGATION` n'alimente jamais le Core et est purgeable par le titulaire (RG-Q03). **DI-Q04** — Une veille `surveiller` exige une condition ou une requête. **DI-Q05** — Une notification n'est créée que si l'événement, son existence et le contenu nécessaire sont communicables au destinataire dans son contexte (MCD § 19.5, test 10). **DI-Q06** — Aucun `motif` d'engagement (RG-Q04).
+**Intégrité.** **DI-Q03** — `HISTORIQUE_NAVIGATION` n'alimente jamais le Core et est purgeable par le titulaire (RG-Q03). **DI-Q04** — Une veille `surveiller` exige une condition ou une requête. **DI-Q05** — Une notification n'est créée que si l'événement, son existence et le contenu nécessaire sont communicables au destinataire dans son contexte (MCD § 19.5, test 10). **DI-Q06** — Aucun `motif` d'engagement (RG-Q04). **DI-Q07** † (V1.2, DD-25) — Une veille `abonnement éditorial` cible une `PUBLICATION` de type `série` ; elle exige un consentement horodaté et se résilie en un seul acte (`active = faux`), sans justification. Elle ne crée aucune `REGLE_ACCES` et ne donne accès à aucun numéro : chaque envoi est une `DIFFUSION` évaluée pour son audience (DI-P15). Elle est distincte des veilles `suivre` et `surveiller` et n'en déclenche aucune.
 
 | Entité | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|---|
 | HISTORIQUE_NAVIGATION | id_navigation | Identifiant | `IDENT` | 1 | UUID v7 | — | `01d0…` | Y·N·I |
 | HISTORIQUE_NAVIGATION | date | Date | `HORODATAGE` | 1 | UTC ms | DI-Q03 | `2029-02-02T10:00Z` | Y·N·I |
 | HISTORIQUE_NAVIGATION | session | Session | `IDENT` | 1 | — | — | `01d1…` | Y·N·I |
-| VEILLE | type | Suivre ou surveiller | `CODE` | 1 | {suivre, surveiller} | DI-Q04 | `surveiller` | S·V·O |
+| VEILLE | type | Suivre, surveiller ou s'abonner | `CODE` | 1 | {suivre, surveiller, abonnement éditorial † (V1.2)} | DI-Q04, DI-Q07 | `surveiller` | S·V·O |
+| VEILLE | consentement_communication † (V1.2) | Recueil du consentement à recevoir la série | `HORODATAGE` | C | UTC ms | Obligatoire si `abonnement éditorial` ; DI-Q07 | `2031-01-05T10:00Z` | Y·V·R |
+| VEILLE | canal_abonnement † (V1.2) | Canal de réception | `CODE` | C | {e-mail, in-app} | Obligatoire si `abonnement éditorial` | `e-mail` | S·V·R |
 | VEILLE | condition | Condition | `TEXTE_COURT` | C | — | DI-Q04 | « nouvelle mention CHARBONNÉ à Deshaies » | S·V·O |
 | VEILLE | mode_notification | Mode | `CODE` | 1 | {immédiat, digest, in-app, silencieux} | — | `digest` | S·V·O |
 | VEILLE | active | Active | `BOOLEEN` | 1 | — | — | `vrai` | S·V·O |
@@ -2750,6 +3097,7 @@ Les extrémités d'un lien exploratoire sont portées par les associations EXPLO
 | nom | Nom | `TEXTE_COURT` | 1 | — | DI-R01 | `GENIIUS-COMMUN` | S·F·O |
 | niveau | Niveau | `CODE` | 1 | {personnel/projet, communautaire, commun GENIIUS} | — | `commun GENIIUS` | S·F·O |
 | description | Description | `TEXTE_LONG` | 0..1 | — | — | « référentiel initial » | S·V·O |
+| langue_reference † (V1.3, ECD-12) | Langue de la définition scientifique de référence et langue de repli des libellés | `LANGUE` | 1 | BCP 47 | DI-R06 | `fr` | S·F·O |
 
 ## 20.2 CONCEPT ✓
 
@@ -2760,6 +3108,17 @@ Les extrémités d'un lien exploratoire sont portées par les associations EXPLO
 - **DI-R03** — `nature = prédicat` ⇒ `profil_assertion`, `types_sujet` et `attend_cible` ou `type_valeur` obligatoires.
 - **DI-R04** — `statut_promotion = promu` exige une décision humaine historisée (RG-R01) ; jamais par popularité.
 - **DI-R05** — `PLUS_LARGE` est sans cycle et reste dans la même `nature`.
+- **DI-R06** † (V1.3, ECD-12) — `libelle` et `definition` du concept sont dans la `langue_reference` de son référentiel. Les libellés et définitions dans d'autres langues sont des **représentations** (`LIBELLE_CONCEPT`), au plus une par langue. Ils ne créent pas de nouveau concept et ne modifient pas la définition scientifique de référence. L'identifiant et le `code` restent indépendants de toute langue. À défaut de libellé dans la langue demandée, l'interface affiche le libellé de référence.
+
+**Libellés multilingues (V1.3, ECD-12).** `LIBELLE_CONCEPT` † : représentation d'un concept dans une langue. Versionné avec le concept (une modification crée une version du concept).
+
+| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
+|---|---|---|---|---|---|---|---|
+| langue | Langue | `LANGUE` | 1 | BCP 47 | Unique par concept ; ≠ `langue_reference` | `en` | S·V·O |
+| libelle | Libellé traduit | `TEXTE_COURT` | 1 | — | — | « declared age » | S·V·O |
+| definition | Définition traduite | `TEXTE_LONG` | 0..1 | — | Représentation de la définition de référence (DI-R06) | « age attributed to a person by a source… » | S·V·O |
+
+Association : TRADUIRE_CONCEPT † (CONCEPT (0,n) — LIBELLE_CONCEPT (1,1)).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
@@ -2988,6 +3347,8 @@ Les équivalences (1 carré ≈ 1,29 ha selon les usages) sont des **méthodes d
 | D-24 | couche_spatiale | Référentiel | D-49 | motif (notification) | Fermé |
 | D-25 | mode_realite | Fermé |  |  |  |
 
+**V1.2.** `D-10` reçoit `réutiliser` et `D-45` reçoit `contribution vers un espace partagé` et `réutilisation d'une sélection` (MCD V1.2) ; les deux domaines restent **fermés**. Deviennent des **référentiels** : types d'axe (`ETUDIER.type_axe`) et rôles de ressource (`UTILISER.roles`), initialisés par les listes du § 13.13.
+
 Sont également des **référentiels** les listes introduites dans les fiches pour : `type_exemplaire`, `nature_structure`, natures de `COLLECTIF_HISTORIQUE`, `BIEN`, `NORME`, `CRITERE_PROTOCOLE.dimension`, types d'`EVENEMENT_CONNECT` et d'`ACTIVITE_CONNECT` (DD-06), `DOMAINE_EXPERTISE.theme`, `IDENTIFIANT_EXTERNE.systeme`.
 
 ---
@@ -3042,7 +3403,46 @@ DECRIRE_ETAT, REDIRIGER_VERS, JUSTIFIER, INVOQUER_PREUVE, ACQUERIR, LOT, FOURNIR
 
 ## C.5 Associations réifiées en liens gouvernables (DD-09)
 
-DEPENDANCE, FILIATION, REFERENCE_INTER_ESPACE, RESPONSABILITE, CREDITER.
+DEPENDANCE, FILIATION, REFERENCE_INTER_ESPACE, RESPONSABILITE, CREDITER ; **V1.2** : RELIER_PROJETS (DD-19), ETUDIER, UTILISER (DD-20).
+
+## C.6 Écarts par rapport au MCD V1.2 (révision V1.2 du dictionnaire)
+
+Les sept concepts du MCD V1.2 (A à G) sont **canoniques** : leurs fiches ne sont pas des écarts. Les écarts ci-dessous précisent le MCD V1.2 sans le rouvrir.
+
+| Élément | Écart † | Nature | Décision |
+|---|---|---|---|
+| Types conceptuels | `DATE_CIVILE` | Type ajouté | DD-23 |
+| ESPACE | `circuit_editorial` | Attribut | DD-25 |
+| REGLE_ACCES | `espace_role`, `mode_admission` | Attributs | DD-21, DD-22 |
+| TRANSFERT_GOUVERNANCE | `etat`, `engagements_presentes`, `empreinte_engagements`, `date_expiration` ; `date` devient conditionnelle | Attributs | DD-26 |
+| TRANSFERER | Cessionnaire (0,1) tant que le transfert n'est pas `accepté` | **Cardinalité précisée** : la cardinalité MCD (1,1) vaut pour le transfert accompli | DD-26 |
+| PLANIFIER_TACHE | TACHE — ACTEUR (0,n) au lieu de (0,1) ; TACHE — GROUPE ajouté | **Cardinalité élargie** (assignés multiples, AV-6) | DD-23 |
+| TACHE | `type` ; `echeance` passe de `DATE_HIST` à `DATE_CIVILE` | Attribut ; **type corrigé** | DD-23 |
+| METHODE | `profil`, `unite_comptee`, `criteres`, `dedoublonnage`, `traitement_incertitude`, `numerateur`, `denominateur` | Attributs | DD-24 |
+| PUBLICATION | Types éditoriaux ; « numéro de série » n'est pas un type | Domaine précisé | DD-25 |
+| VEILLE | Type `abonnement éditorial`, `consentement_communication`, `canal_abonnement` | Domaine et attributs | DD-25 |
+| PRISE_EN_CHARGE | Propriétés `acceptation_financeur` et `acceptation_beneficiaire` → association `ACCEPTER_PRISE_EN_CHARGE` (TI-02) | Propriété transformée en association | § 4.26 |
+| SELECTION_PARTAGE | Valeur d'état `proposée` | Domaine précisé | DI-L15 |
+| DECISION_EDITORIALE | `invalide` (référence à l'approbation invalidée) | Attribut | DI-P12 |
+| Associations ajoutées | DECIDER_RATTACHEMENT, ADMETTRE, FONDER_SUR_RATTACHEMENT, DESTINER_TRANSFERT, ACCEPTER_PRISE_EN_CHARGE, SOUS_TACHE, DEPENDRE_TACHE, FONDER_DELEGATION, CALCULER_DANS, AUTORISER_REUTILISATION | Associations | DD-19 à DD-26 |
+
+**Règles V1.1 élargies (sans affaiblissement).** DI-A20 couvre aussi la `réutilisation` (DI-A37) ; DI-L06 à L08 restent inchangées et sont complétées par DI-L12, L18 et L20 pour les deux nouveaux types de flux ; aucun de ces nouveaux types ne peut cibler le Core partagé.
+
+## C.7 Écarts introduits par la V1.3 (DC-DICT-02, écarts de l'audit de cohérence)
+
+| Élément | Écart † | Nature | Origine |
+|---|---|---|---|
+| FICHIER | Identité par espace (`DEPOSER_DANS`), `cle_stockage`, `etat_conservation`, `date_dernier_controle` ; **DI-C13 réécrite** (fusion technique limitée à l'espace) ; DI-C22, DI-C23 | Attributs, association, règle modifiée | ECD-07, ECD-08 |
+| CONSENTEMENT | `portee` + {structuration, partage, contribution scientifique, usage algorithmique, transmission à un prestataire externe} ; DI-B43 | Domaine, règle | ECD-11 |
+| CONCEPT, REFERENTIEL, COMPTE | `LIBELLE_CONCEPT` et `TRADUIRE_CONCEPT` ; `REFERENTIEL.langue_reference` ; `COMPTE.langue_preferee` ; DI-R06 | Entité dépendante, attributs, règle | ECD-12 |
+| ACTIVITE, IMPORT | `REALISER.role_acteur` {réalisateur, déclencheur} ; association `IMPORTER` ; DI-A39, DI-P19 | Propriété, association, règles | ECD-14 |
+| ACTIVITE | Association `UTILISER_REFERENTIEL` (version du conteneur `REFERENTIEL`) ; DI-A40 | Association, règle | ECD-21 |
+| Suppression | DD-27 (trace minimale, existence protégée, effacement de résolution) ; EXT-04 | Décision | ECD-10 |
+| Obligations | OB-09 réécrite (dépendances directes synchrones) ; OB-29 à OB-32 | Obligations | ECD-06, 07, 15, 33, 10 |
+
+**Règles V1.2 modifiées (sans affaiblissement).**
+- **DI-C13** : la fusion technique ne vaut plus qu'à l'intérieur d'un espace ; la garantie du test 13 (aucune fusion documentaire) est conservée.
+- **OB-09** : un délai asynchrone n'est plus admis pour le niveau direct.
 
 ---
 
@@ -3060,7 +3460,7 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-06 | Monotonie de visibilité des liens | TI-10, DD-09 |
 | OB-07 | Seuil de petit effectif pour les agrégats diffusés (valeur à fixer au MPD) | DI-B18, test 9 |
 | OB-08 | Détection des cycles de raisonnement et exclusion du décompte des justifications indépendantes | DI-A17, DI-A29 |
-| OB-09 | Propagation des changements amont vers les dépendances (`etat_impact`), en asynchrone admis, avec délai maximal à fixer | DI-A18, RG-A04 |
+| OB-09 | Propagation des changements amont vers les dépendances (`etat_impact`). **V1.3 (ECD-06)** : les dépendances **directes** sont marquées `potentiellement affecté` dans la transaction même du changement scientifique ; seule la propagation transitive est asynchrone, avec délai maximal à fixer (MPD-04). Pendant une propagation en cours, aucun résultat dérivé n’est présenté comme définitivement à jour. La propagation est idempotente et un échec de traitement ne fait jamais disparaître un état d’impact déjà posé | DI-A18, RG-A04, ECD-06 |
 | OB-10 | Réconciliation d'import par lot, identifiants externes, empreinte et objets déjà acquis | DI-P08, test 7 |
 | OB-11 | Résolution des identifiants : `geniius:` interne, ARK public à la publication, tombstones après suppression | DD-02, DI-A36 |
 | OB-12 | Purge légale : `etat_fige` vidé, empreinte recalculée, identifiant conservé, dépendances signalées | DD-13 |
@@ -3074,6 +3474,16 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-20 † | Réplication locale : la réplique est le graphe accessible d'un contexte `réplication` (acteur, appareil), limité aux espaces qui l'autorisent ; existence protégée exclue ; expiration locale pour les espaces `limitée` ; retraits transmis en premier, sous une forme non qualifiée ; un retrait ne détruit jamais les contributions locales de l’utilisateur, y compris celles qui portent sur l’objet retiré : elles sont conservées et transmises en CONTRIBUTION_DIFFEREE (arbitrage confirmé le 9/10/2026) | AUDIT-TECH-001, TECH-002, TECH-011.6 (9/10/2026) |
 | OB-21 † | Réception différée : idempotence par `(acteur, operation_origine)`, réévaluation des droits à l'intégration, conversion seulement déterministe, conflits sans écrasement (DI-B31 à B33) | TECH-003, TECH-005, AUDIT-TECH-003 (9/10/2026) |
 | OB-22 † | Aucune règle de lecture au profit d'un rôle administratif ; habilitation exceptionnelle nominative, bornée, fondée et journalisée à chaque usage (DI-B29, DI-B30) | REV-02-A, REC-X11, TECH-027 (9/10/2026) |
+| OB-23 † (V1.2) | Accès par sélection : intersection, **à chaque évaluation**, du manifeste de la version active, des règles actives sur la sélection, des droits courants de l'auteur de la règle et des protections propres à chaque objet ; appliquée aussi aux index, caches, compteurs, exports et répliques ; aucune relation hors manifeste exposée, ni son existence, ni leur nombre | DD-21, DI-B35, DI-L16, RG-L08, RG-L11, P24 |
+| OB-24 † (V1.2) | Explication des accès : reconstituer pour un accès donné la chaîne de fondements (règle, groupe, admission, rattachement, délégation, sélection), présentée seulement aux administrateurs de l'objet et à l'intéressé pour ses propres accès | DD-22, CDCF § 122.2 |
+| OB-25 † (V1.2) | Imputation des consommations : chaque consommation est attribuée à l'espace qui conserve les objets, puis imputée au plus à **une** prise en charge active ; ordre d'imputation, plafonds et limitation des seules nouvelles consommations à définir au MLD | DI-B38, DI-B39, RG-B17, RG-B18 |
+| OB-26 † (V1.2) | Recherches et indicateurs transversaux de programme : calculés sur le graphe accessible de chaque projet, dédoublonnés par entité ; profil de référence : 50 sous-projets, 500 contributeurs, un million d'objets | DI-O15, DI-O16, CDCF § 129.2 |
+| OB-27 † (V1.2) | Diffusion : journal technique des envois, désabonnement effectif avant tout envoi ultérieur, respect des règles sur les communications électroniques ; aucun envoi sans `DIFFUSION` évaluée | DI-P15 à P17, DI-Q07 |
+| OB-28 † (V1.2) | Invitation et transfert : lien privé à usage unique, expirant et révocable ; détenir le lien ne suffit pas, le bénéficiaire est vérifié ; acceptation atomique contre l'empreinte des engagements présentés | DD-26, DI-B40, DI-B41, AV-11 |
+| OB-29 † (V1.3) | Fichiers : identité et déduplication par espace ; mutualisation physique éventuelle **non observable** d'un espace à l'autre (interface, API, temps de réponse exploitables, quotas) ; effacement du binaire à la dernière référence légitime ; une purge légale n'est jamais empêchée par la mutualisation. Le MPD démontre la compatibilité entre déduplication, isolation, chiffrement et effacement | DI-C13, DI-C22, ECD-07 |
+| OB-30 † (V1.3) | Vue « mes contributions » d'un acteur ayant quitté un espace : seulement les informations d'attribution légitimement conservées (rôle, date, type d'acte, crédit) ; jamais le contenu ; ni titre, référence ou métadonnée dont la divulgation révélerait un élément protégé ou dont l'existence est protégée pour lui. La qualité d'auteur ne confère aucun droit de consultation permanent sur l'espace quitté | RG-B08, DI-B09, ECD-15 |
+| OB-31 † (V1.3) | Réutilisations d'une entité du Core : calculées sur le graphe accessible du lecteur, en ne parcourant que les rapprochements et références dont l'espace et le lien lui sont visibles ; le Core ne connaît que les réutilisations publiques (ou visibles du lecteur) | OB-03, ECD-33, CDC technique REC-TR07 |
+| OB-32 † (V1.3) | Traces d'objets purgés conformes à DD-27 : contenu minimal, existence protégée par défaut, effacement de résolution sur fondement légal | DD-27, ECD-10 |
 
 ---
 
@@ -3094,6 +3504,19 @@ Le rapport de réexécution identifie les tests 4, 5, 7, 8, 9, 10, 11, 14, 18, 1
 | 18 | Retrait de consentement sans destruction automatique | DI-B23, DI-B24, `DECISION_APPLICABILITE_DROIT` |
 | 19 | Tree souverain après évolution du Core | DI-A22, DI-A25, DI-L03 à DI-L05, DI-L07 |
 | 20 | API indistinguable entre absence et existence secrète | TI-11, DI-B12, OB-04 |
+
+**V1.2 — contrôles AV-FONC-001 les plus exposés à une traduction naïve.**
+
+| Contrôle | Scénario | Règles du dictionnaire |
+|---|---|---|
+| TR09-06, TR09-12, critère 59 | Branche exclue non déductible (Sosa 16) | DI-L14, DI-L16, OB-23, OB-03, OB-04 |
+| TR09-10 | Évolution sans élargissement | DI-L14, DI-L15 |
+| Critère 60 | Consultation ≠ réutilisation | DI-B34, DI-B35, DI-L18, DI-A37 |
+| Critère 64, AV-10 | Révocation sans destruction | DI-A38, DI-L19, OB-20 |
+| Critères 51, 52, PR01-04 | Administrateur du programme sans lecture ; rattachement non transitif | DI-K23, DI-B29, DD-19 |
+| Critère 55 | Groupe : admission et départ | DI-B36, DI-B37 |
+| Critère 57 | Lot rouvert sans droits | DI-K29, DI-K30 |
+| Critère 63, lettre n° 12 | Approbation ≠ validation ≠ diffusion | DI-P11 à DI-P18 |
 
 ---
 
@@ -3184,9 +3607,13 @@ Les décisions ci-dessous sont **volontairement laissées ouvertes** par le dict
 | MPD-04 | MPD | Délai de propagation | SLA de mise à jour de `etat_impact` | Doit satisfaire OB-09 | À décider |
 | MPD-05 | MPD | Chiffrement | Données `I`, secrets, clés et rotation | Respecter OB-17 et TI-12 | À décider |
 | MPD-06 | MPD | RLS / moteur d'autorisation | PostgreSQL RLS, service de policy ou hybride | P20 : filtrage avant opération révélatrice | À décider |
+| MLD-16 † (V1.2) | MLD | Manifeste des sélections | Stockage des `INCLURE_SELECTION` par version ; calcul incrémental des propositions | OB-23 ; manifeste figé (DI-L13) ; aucune entrée hors manifeste servie | À décider |
+| MLD-17 † (V1.2) | MLD | Imputation des prises en charge | Ordre, priorité et plafonds | OB-25 ; jamais de double imputation ; aucun lien vers les droits (RG-B15) | À décider |
+| MLD-18 † (V1.2) | MLD | Explication des accès | Matérialisation ou calcul à la demande des fondements | OB-24 ; explication non exposée aux non-habilités | À décider |
 | EXT-01 | Validation externe | ARK / NAAN | Autorité et procédure d'attribution | DD-02 ; ne pas simuler un NAAN | À confirmer |
 | EXT-02 | Validation externe | Présomption de personne vivante | Seuil et politique juridique | F-2 ; validation juridique requise | À confirmer |
 | EXT-03 | Validation externe | Catégories historiques sensibles | Gouvernance et contextualisation | F-6 ; validation avec communautés concernées | À confirmer |
+| EXT-04 † (V1.3) | Validation externe | Traces d’objets purgés | Délais et fondements de conservation et d’effacement des tombstones | DD-27 ; aucune durée arbitraire dans le modèle | À confirmer (étude juridique, TECH-020) |
 
 ---
 
@@ -3196,7 +3623,7 @@ Le dictionnaire est considéré comme **gelable pour le MLD** lorsque tous les c
 
 | ID | Critère | Preuve attendue | État V1 |
 |---|---|---|---|
-| REC-01 | Toutes les entités et associations du MCD sont représentées ou explicitement fusionnées/renommées | MCD + annexe C | À auditer formellement |
+| REC-01 | Toutes les entités et associations du MCD sont représentées ou explicitement fusionnées/renommées | MCD + annexe C | V1.1 : conforme (registre, § 3.1). **V1.2 : conforme** ([REC-01 et REC-16 V1.2](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md), § 2) |
 | REC-02 | Tous les ajouts du dictionnaire par rapport au MCD sont identifiables | Marque `†` + annexe C | Couvert |
 | REC-03 | Chaque entité possède une définition non ambiguë | Fiches des domaines A–R | Couvert |
 | REC-04 | Chaque attribut possède type conceptuel, obligation et contraintes | Tableaux attributaires | Couvert |
@@ -3211,7 +3638,7 @@ Le dictionnaire est considéré comme **gelable pour le MLD** lorsque tous les c
 | REC-13 | Aucun choix physique n'est présenté comme une vérité métier sans justification | Revue MLD | À vérifier au MLD |
 | REC-14 | Les états d'absence et les valeurs interdites sont cohérents | TI-07, TI-08, LACUNE | Couvert |
 | REC-15 | Les données historiques sensibles et l'IA ont une règle de traitement explicite | TI-12, DD-15 | Couvert |
-| REC-16 | La couverture des tests non critiques du rapport de 95 tests est auditée jusqu'au niveau DD | Matrice 95 tests → DD/DI/TI/OB | À produire avant gel final |
+| REC-16 | La couverture des tests non critiques du rapport de 95 tests est auditée jusqu'au niveau DD | Matrice 95 tests → DD/DI/TI/OB | V1.1 : conforme, 95/95. **V1.2 : conforme, 173/173** ([REC-16 V1.2](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md)) |
 | REC-17 | Chaque future structure MLD est traçable vers MCD/DD/OB ou une décision MLD | Annexe G | À appliquer au MLD |
 
 **Règle de sortie.** Les critères `REC-01` et `REC-16` sont les deux contrôles formels restant à exécuter avant de déclarer le dictionnaire **gelé**. Les autres critères ouverts relèvent du MLD/MPD et ne bloquent pas la rédaction de celui-ci.
@@ -3236,3 +3663,68 @@ Le prochain travail recommandé est donc **un audit de gel du dictionnaire**, et
 - **(c)** corriger les éventuels trous ;
 - **(d)** geler le dictionnaire ;
 - **(e)** commencer le MLD.
+
+---
+
+# Annexe K — Demande de changement DC-DICT-01 : dictionnaire V1.2 (AV-FONC-001, étape 4)
+
+Procédure du CDC technique, § 13.
+
+## K.1 Demande
+
+Intégrer au dictionnaire gelé V1.1 le MCD V1.2 gelé le 9/10/2026 :
+- fiches des sept concepts A à G ;
+- précisions P-1 à P-8 identifiées par l'analyse d'écart (`docs/AV-FONC/AV-FONC-001_ETAPE3_ANALYSE_ECART_MCD.md`, § 5), dont dépendent les 14 contrôles PASS SOUS CONDITION du MCD V1.2.
+
+## K.2 Analyse d'impact
+
+| Domaine | Impact |
+|---|---|
+| Modèle scientifique | Aucune règle d'assertion, d'identification, de validation ou de justification modifiée. Les ajouts garantissent P23 à P25 (aucun droit, aucune relation, aucune validation implicites). |
+| Sécurité | Nouvelles voies d'accès (sélection, groupe extérieur, délégation de lot) : toutes par `REGLE_ACCES`, sous OB-03, OB-04 et la nouvelle OB-23 ; aucune règle de lecture au profit d'un rôle administratif (OB-22 inchangée). |
+| Règles V1.1 | Élargies, sans garantie retirée : DI-A20, PLANIFIER_TACHE (cardinalité), TRANSFERER (cessionnaire avant acceptation), type de `TACHE.echeance` (annexe C.6). |
+| Tests | REC-01 et REC-16 rejoués sur le MCD V1.2 : conformes ([rapport](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md)). |
+| Documents aval | MLD : nouvelles structures et contraintes (fiches V1.2, OB-23 à OB-28, MLD-16 à MLD-18) — étape 5. CDC technique : droits hiérarchiques, indicateurs, volumétrie de programme (OB-26), diffusion (OB-27), invitation (OB-28) — étape 6. |
+
+## K.3 Décision
+
+**Accepté** : décision du porteur du 9/10/2026 (gel du MCD V1.2 et ouverture de l'étape 4), dans le cadre d'AV-FONC-001 figé (AV-1 à AV-12).
+
+## K.4 Versionnement et traçabilité
+
+- Version : dictionnaire **V1.2, gelé le 10/10/2026** ; la V1.1 consolidée gelée reste dans l'historique Git (commit `423991c`).
+- Écarts au MCD V1.2 : annexe C.6. Obligations : annexe D (OB-23 à OB-28). Décisions MLD ouvertes : annexe H (MLD-16 à MLD-18). Tests critiques : annexe E.
+- Conditions de gel (annexe I) : REC-01 et REC-16 **conformes** sur le MCD V1.2 ; **gel prononcé par le porteur le 10/10/2026**.
+- Registre des versions normatives mis à jour.
+
+---
+
+# Annexe L — Demande de changement DC-DICT-02 : dictionnaire V1.3 (écarts majeurs de l'audit)
+
+Procédure du CDC technique, § 13.
+
+## L.1 Demande
+
+Intégrer au dictionnaire V1.2 gelé les corrections retenues par le porteur le 10/10/2026 pour les écarts ECD-06, 07, 08, 10, 11, 12, 14, 15, 21 et 33 ([instruction](AUDIT-COHERENCE/GENIIUS_INSTRUCTION_ECD_MAJEURS_MLD.md), § 5), avant la correction et le gel du MLD.
+
+Les écarts ECD-13 (traçabilité dictionnaire → MLD) et ECD-09, 16, 17, 18 (obligations du schéma technique) se traitent dans le MLD.
+
+## L.2 Analyse d'impact
+
+| Domaine | Impact |
+|---|---|
+| Modèle scientifique | Aucun concept nouveau, aucune règle d'assertion, d'identification ou de validation modifiée ; le MCD V1.2 reste intact (REC-01 inchangé) |
+| Sécurité et confidentialité | Renforcée : non-observabilité de la déduplication (DI-C22), existence protégée des tombstones (DD-27), refus de l'usage algorithmique (DI-B43), auteur toujours identifié (DI-A39), vue « mes contributions » bornée (OB-30) |
+| Règles modifiées | DI-C13 (portée limitée à l'espace) et OB-09 (niveau direct synchrone). Aucune garantie antérieure n'est retirée (annexe C.7) |
+| Tests | REC-16 : le test de non-régression 13 (« même fichier dans deux contextes ») s'appuie sur DI-C13, dont la garantie est maintenue et renforcée ; CU-01 et le critère 25 citent OB-09, dont la garantie est renforcée (niveau direct synchrone). Les autres couvertures sont inchangées. **REC-16 reste conforme (173/173).** |
+| Documents aval | MLD : `fichier`, `consentement`, `concept_libelle`, `compte`, `referentiel`, `activite`, `import`, CP-16, CP-21, CP-23 ; obligations ST-12 à ST-15. CDC technique : TECH-006, 017, 020, 031, 033 (étape 6) |
+
+## L.3 Décision
+
+**Accepté** par décision du porteur du 10/10/2026 (orientations des écarts majeurs, ECD-06, 07, 10 et 15 arbitrés individuellement).
+
+## L.4 Versionnement
+
+- Version : dictionnaire **V1.3 candidat** ; la V1.2 gelée reste la référence jusqu'à la validation de la V1.3.
+- Conformément à la séquence décidée, la V1.3 doit être validée comme référence normative **avant** le gel du MLD.
+- Écarts : annexe C.7. Obligations : annexe D (OB-09, OB-29 à OB-32). Validation externe : EXT-04.

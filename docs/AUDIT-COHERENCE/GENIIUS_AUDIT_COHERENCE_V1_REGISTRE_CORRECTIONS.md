@@ -540,7 +540,7 @@
 | ECD-03 | Bloquant | Responsable documentaire | Avant gel | Corrigé (09/10) — option B |
 | ECD-04 | Bloquant | Modèle de données (MLD) | Avant gel | Corrigé (09/10) — vérification GEL-05 restante |
 | ECD-05 | Bloquant | Architecture et MLD | Avant gel (décision d'emplacement) | Corrigé (09/10) — arbitrage confirmé |
-| ECD-06 à ECD-21 | Majeur | MLD, architecture, juridique selon l'entrée | Avant MPD, ou inscription au registre des décisions différées | Ouverts |
+| ECD-06 à ECD-21 | Majeur | MLD, architecture, juridique selon l’entrée | Avant MPD, ou inscription au registre des décisions différées | Instruits le 10/10 ([instruction](GENIIUS_INSTRUCTION_ECD_MAJEURS_MLD.md)) : décision du porteur attendue ; ECD-20 proposé à la clôture |
 | ECD-22 à ECD-28 | Mineur | Éditorial | Prochaine révision | Ouverts |
 | ECD-29 à ECD-32 | Amélioration | Recette, produit | Planification | Ouverts |
 

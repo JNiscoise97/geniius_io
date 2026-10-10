@@ -1,11 +1,12 @@
-# GENIIUS — MCD V1.1 CANONIQUE
+# GENIIUS — MCD V1.2 CANONIQUE
 
-## Modèle conceptuel de données dérivé du CDCF V1.1
+## Modèle conceptuel de données dérivé du CDCF V1.2
 
-- **Statut :** modèle conceptuel canonique consolidé — fusion du MCD IO V1 et du MCD V1.0 crash-testé
-- **Date :** 7 octobre 2026
-- **Sources de consolidation :** CDCF V1.1 + MCD IO V1 + MCD V1.0 gel conceptuel + crash-tests consolidés
-- **Position dans la feuille de route :** phase 3 du CDCF § 115 (« modèle conceptuel de données »)
+- **Statut :** **GELÉ le 9/10/2026** (décision du porteur) — baseline conceptuelle V1.2, après réexécution des 173 contrôles : 159 PASS, 14 PASS SOUS CONDITION, 0 FAIL ([rapport](GENIIUS_RAPPORT_REEXECUTION_173_CONTROLES_MCD_V1_2.md)). Remplace la V1.1 canonique (7/10/2026), conservée dans l’historique Git (commit `423991c`).
+- **Date :** 9 octobre 2026 (V1.1 : 7 octobre 2026)
+- **Sources de consolidation :** CDCF V1.2 (avenant AV-FONC-001, Partie XXI) + MCD V1.1 canonique + analyse d'écart `docs/AV-FONC/AV-FONC-001_ETAPE3_ANALYSE_ECART_MCD.md`
+- **Position dans la feuille de route :** phase 3 du CDCF § 115 (« modèle conceptuel de données ») ; étape 3 d'AV-FONC-001
+- **Révision V1.2 :** sept concepts ajoutés (A à G), trois invariants (P23 à P25), sans remodelage des entités existantes. Les ajouts sont marqués **[V1.2]**. Synthèse et couverture des 26 FAIL : § 29.
 
 ---
 
@@ -39,7 +40,7 @@ Le MCD est dérivé des **invariants** du CDCF, pas des tables habituelles d'un 
 
 ## 0.3 Traçabilité
 
-Chaque règle de gestion porte un identifiant `RG-<domaine><n°>` et renvoie à la section du CDCF qui la justifie. La section 23 relie les 25 cas d'usage et les 50 critères de recette aux structures du modèle.
+Chaque règle de gestion porte un identifiant `RG-<domaine><n°>` et renvoie à la section du CDCF qui la justifie. La section 23 relie les 31 cas d'usage et les 64 critères de recette aux structures du modèle (CU-26 à 31 et critères 51 à 64 : V1.2).
 
 ## 0.4 Statut canonique et règle de consolidation
 
@@ -71,6 +72,16 @@ Un concept issu du MCD crash-testé n'est ajouté que s'il apporte une capacité
 **P21 — Une dérivation n'hérite pas mécaniquement de tous les droits.** L'applicabilité d'une restriction à un dérivé doit pouvoir être décidée explicitement, puis sa diffusabilité évaluée.
 
 **P22 — Pas de justification circulaire silencieuse.** Le graphe de raisonnement doit permettre de détecter qu'une conclusion réutilise, directement ou indirectement, ce qu'elle prétend établir.
+
+### Invariants ajoutés en V1.2 (AV-FONC-001)
+
+Ces trois invariants ont le **même niveau normatif** que P1 à P22. Ils ne modifient aucun des invariants précédents ; ils rendent explicites les frontières établies par AV-1 à AV-11.
+
+**P23 — La hiérarchie des projets n'est pas une hiérarchie de la connaissance.** Les relations hiérarchiques ou fédératives entre projets constituent des relations d'organisation et de coordination. Elles ne créent, ne modifient ni ne valident aucune relation scientifique entre les objets étudiés et ne confèrent aucun droit implicite de lecture, d'administration ou de décision scientifique.
+
+**P24 — Partager une partie n'ouvre pas le tout.** Le partage d'un sous-ensemble d'objets ou de relations n'autorise que les éléments explicitement inclus dans le périmètre versionné et effectivement autorisés. Il ne donne accès ni au reste de l'ensemble d'origine, ni aux objets nouvellement reliés, ni aux informations protégées accessibles par traversée indirecte du graphe.
+
+**P25 — Étudier, utiliser, publier et diffuser sont quatre actes distincts.** Étudier un objet, utiliser une ressource, publier un contenu et diffuser une publication constituent quatre actes distincts, soumis chacun à leurs conditions et autorisations propres. Aucun de ces actes n'autorise implicitement les autres.
 
 ---
 
@@ -307,6 +318,8 @@ erDiagram
   ORGANISATION |o--o{ FINANCEMENT : "financeur"
   UTILISATEUR ||--o{ ABONNEMENT : "souscrire"
   UTILISATEUR }o--o{ UTILISATEUR : "bloquer"
+  ESPACE ||--o{ PRISE_EN_CHARGE : "financeur (V1.2)"
+  ESPACE ||--o{ PRISE_EN_CHARGE : "beneficiaire (V1.2)"
 ```
 
 ## 4.2 Entités
@@ -332,6 +345,7 @@ erDiagram
 | LIEN_INTERET | ✓ | Lien déclaré entre un utilisateur et ce qu'il évalue (§ 55.1). | type {valide sa propre famille, propriétaire du fonds, membre du projet évalué, participant à l'événement, financeur, autre}, date_declaration |
 | FINANCEMENT | ✓ | Source de financement d'un projet, comme provenance (§ 55, Q213). | type {autofinancement, association, université, collectivité, subvention, mécénat, crowdfunding}, montant (`VALEUR`), periode, obligations |
 | ABONNEMENT | — | Droit d'usage acheté (stockage, calcul, quotas). | `#id_abonnement`, offre, quotas, credits_calcul, date_debut, date_fin |
+| PRISE_EN_CHARGE **[V1.2]** | ✓ | Accord bilatéral de prise en charge de consommation entre deux espaces. | voir § 4.6 |
 
 ## 4.3 Associations
 
@@ -391,6 +405,35 @@ erDiagram
 - **RG-B12** — Les arêtes scientifiques du graphe sont gouvernables au même titre que les nœuds.
 - **RG-B13** — `DECISION_APPLICABILITE_DROIT` et `EVALUATION_DIFFUSABILITE` sont distinctes : la première détermine quelles contraintes subsistent ; la seconde décide ce qui peut être diffusé dans le contexte.
 - **RG-B14** — Le risque d'inférence ou de ré-identification peut rendre un agrégat non diffusable même si les données brutes ne sont pas exposées.
+
+## 4.6 [V1.2] Prise en charge de la consommation (concept G — CDCF § 129.3, AV-9)
+
+Un espace (typiquement un programme) peut prendre en charge tout ou partie de la consommation de ressources d'un autre espace. Le concept est placé ici, à côté d'`ABONNEMENT`, parce qu'il relève du même registre : l'usage des ressources de la plateforme, sans rapport avec la connaissance ni avec les droits.
+
+**Frontière MCD / MLD.** Le MCD retient le financeur, le bénéficiaire, la ressource couverte, le plafond, la période, l'acceptation bilatérale, l'état et l'historique. L'ordre d'imputation, la tarification, la mesure de consommation et les mécanismes de facturation relèvent du MLD et du MPD.
+
+### Entité
+
+| Entité | Obj. | Définition | Propriétés |
+|---|---|---|---|
+| PRISE_EN_CHARGE | ✓ | Accord bilatéral, plafonné, borné dans le temps et révocable, par lequel un espace financeur couvre tout ou partie de la consommation d'un espace bénéficiaire. Versionnée : chaque changement d'état ou de plafond crée une version (P3). | ressource_couverte {stockage, calcul, quotas, autre}, plafond (`VALEUR`), date_debut, date_fin, etat {proposée, active, refusée, suspendue, révoquée, expirée}, acceptation_financeur (acteur, date), acceptation_beneficiaire (acteur, date), motif_fin |
+
+### Associations
+
+| Association | Pattes | Propriétés portées |
+|---|---|---|
+| PRENDRE_EN_CHARGE | financeur ESPACE (0,n) — PRISE_EN_CHARGE (1,1) ; bénéficiaire ESPACE (0,n) — PRISE_EN_CHARGE (1,1) | — |
+
+**Cardinalités.** Un espace peut financer et être financé par plusieurs accords (0,n des deux côtés) : plusieurs prises en charge peuvent coexister pour un même bénéficiaire, y compris de financeurs différents.
+
+### Règles de gestion
+
+- **RG-B15** — Une `PRISE_EN_CHARGE` n'a aucune association avec `REGLE_ACCES`, `APPARTENIR`, `ATTRIBUER_ROLE`, `ACTE_EVALUATION`, `DECISION_EDITORIALE`, `BADGE` ni avec le poids d'un vote. Elle ne confère ni droit, ni propriété, ni autorité scientifique ou éditoriale (même règle que RG-B05 ; P23). Elle n'est pas un `FINANCEMENT` : celui-ci est une provenance scientifique du projet (§ 55), celle-là un accord d'usage de la plateforme.
+- **RG-B16** — Une prise en charge n'est `active` qu'après acceptation du financeur **et** du bénéficiaire. Elle reste révocable par chacune des parties ; aucune partie ne peut en modifier unilatéralement le plafond ou la période sans nouvelle acceptation.
+- **RG-B17** — Plusieurs prises en charge peuvent coexister pour un même bénéficiaire ; une même consommation n'est jamais imputée deux fois. Le mécanisme d'imputation (ordre, priorité) est laissé au MLD.
+- **RG-B18** — La fin d'une prise en charge (expiration, révocation, refus) n'entraîne aucune suppression ni perte d'accès aux données : elles restent consultables, récupérables et exportables. Seules les **nouvelles** consommations peuvent être limitées. Les versions antérieures de l'accord restent consultables.
+
+**Révélation.** Une `PRISE_EN_CHARGE` révèle l'existence d'une relation entre deux espaces. Elle est soumise au `CONTEXTE_EVALUATION` (RG-B11) : un membre d'un sous-projet ne déduit pas d'une prise en charge l'existence d'un projet financeur ou bénéficiaire qu'il ne peut pas voir.
 
 ---
 
@@ -1070,6 +1113,8 @@ erDiagram
   DIFF_CONNAISSANCE }o--o| SNAPSHOT : "apres"
   DECOUVERTE |o--o{ DIFF_CONNAISSANCE : "declencher"
   DECOUVERTE }o--o{ VERSION_OBJET : "modifier"
+  PROJET }o--o{ OBJET : "etudier (V1.2)"
+  PROJET }o--o{ OBJET : "utiliser (V1.2)"
 ```
 
 ## 13.2 Entités
@@ -1135,11 +1180,42 @@ erDiagram
 - **RG-K07** — Une `REGLE_METHODOLOGIQUE` ne passe à `règle adoptée` que par un acte humain identifié ; sa portée ne s'étend jamais automatiquement. (§ 23.7, § 25.8)
 - **RG-K08** — Une `REGLE_METHODOLOGIQUE` ou un `PROTOCOLE` modifié crée une nouvelle version ; les applications passées restent liées à leur version. Jamais de modification silencieuse. (§ 25.7)
 
+## 13.5 [V1.2] Axes de recherche et ressources d'un projet (concepts B et C — CDCF §§ 121, 123 ; AV-4, AV-5)
+
+Un projet **étudie** des objets (ses axes) et **utilise** des ressources. Ce sont deux associations distinctes entre `PROJET` et `OBJET` ; un même objet peut être à la fois étudié et utilisé (une fiche matricule, par exemple). Aucune des deux ne crée d'objet, de copie, de relation historique ou de droit (P25).
+
+### Associations
+
+| Association | Pattes | Propriétés portées |
+|---|---|---|
+| ETUDIER (B) | PROJET (0,n) — OBJET cible (0,n) | type_axe {territoire, période, personne, famille, collectif, organisation, bien, habitation, thème, autre} (référentiel, P14), periode (`DATE_HIST`, facultative), libelle, statut {actif, suspendu, clos}, date_declaration, date_fin |
+| UTILISER (C) | PROJET (0,n) — OBJET ressource (0,n) | roles (1..n, `CONCEPT` d'un référentiel : référence, inventaire, source à exploiter, outil de travail, bibliographie, donnée de travail…), date_declaration, date_fin |
+
+**Cibles admises.**
+- `ETUDIER` vise une entité historique, une `MENTION`, une `POSITION`, un `COLLECTIF_HISTORIQUE`, un `CONCEPT` (thème) ou toute autre référence existante. Un axe **purement chronologique** n'a pas d'objet cible : il est porté par sa seule `periode`. Le dictionnaire décidera s'il faut, pour ce cas, réifier l'association en fiche ; le concept reste inchangé.
+- `UTILISER` vise tout `OBJET` : document, unité archivistique, corpus, référentiel, inventaire, fichier, autre projet.
+
+**Cardinalités.** (0,n) des deux côtés : un projet peut déclarer zéro ou plusieurs axes et ressources ; un objet peut être étudié ou utilisé par plusieurs projets. Un même couple projet-objet peut porter plusieurs axes (par exemple une famille sur deux périodes distinctes).
+
+**Cycle de vie.** Une déclaration commence à `date_declaration` et se termine par `date_fin` (axe clos, ressource abandonnée) ; elle n'est jamais effacée. Les déclarations font partie de l'état versionné du projet (P3) ; un `SNAPSHOT` du projet les fige.
+
+### Règles de gestion
+
+- **RG-K09** — Un axe n'est jamais une assertion. `ETUDIER` ne crée, ne modifie ni ne valide aucune `ASSERTION`, `RELATION` ou `RAPPROCHEMENT` : deux objets étudiés par le même projet ne sont reliés par rien (P23, critère 53).
+- **RG-K10** — Un sujet incertain se déclare en ciblant la `MENTION`, la `POSITION` ou le `COLLECTIF_HISTORIQUE` qui le porte (« famille non identifiée mentionnée dans l'inventaire de 1793 »), jamais en créant une entité historique fictive (RG-E02, critère 54).
+- **RG-K11** — Un axe ou une ressource n'est pas un conteneur : il ne possède, ne déplace, ne duplique aucun objet. La ressource conserve sa nature, sa provenance, son espace et ses droits. Déclarer une ressource ne crée ni copie ni accès (critère 56).
+- **RG-K12** — Axe déclaré ≠ correspondance calculée : qu'un projet contienne des travaux sur un lieu n'en fait pas un axe. De même, les situations « référencée », « conservée » et « exploitée » d'une ressource se **déduisent** du modèle (`UTILISER`, `ESPACE` de la ressource, `ACTIVITE` attribuable au projet) ; aucun statut d'exploitation n'est saisi. L'absence de travaux visibles ne prouve pas l'absence d'exploitation.
+- **RG-K13** — `ETUDIER` et `UTILISER` sont des arêtes gouvernées (RG-B11, RG-B12). Une recherche « tous les projets qui étudient (ou utilisent) X » s'exécute sur le graphe accessible (P20) : elle ne révèle ni projet, ni axe, ni ressource inaccessibles. Réciproquement, déclarer comme axe ou ressource un objet que le lecteur du projet ne peut pas voir ne lui en révèle pas l'existence.
+
+**Révocation.** La perte d'accès à une ressource (révocation, embargo, disparition) ne supprime pas la déclaration `UTILISER` : celle-ci reste dans l'historique du projet. Elle n'est présentée qu'aux lecteurs qui peuvent voir la ressource (RG-K13). Les travaux déjà réalisés suivent les règles de révocation (§ 14.5, RG-L12).
+
 ---
 
 # 14. Domaine L — Tree
 
 Choix de modélisation : un `ARBRE` est une **structure de navigation** dans un espace privé ou familial. Ses individus sont des `PERSONNE` de cet espace, et ses liens sont des `RELATION` de parenté ou d'alliance de cet espace. Tree utilise donc tout le modèle Core **sans contribuer** au Core partagé (§ 4.1, § 12, critère 23).
+
+**[V1.2]** `HEBERGER` est défini sur tout `ESPACE` : un espace de projet peut aussi héberger un arbre, par exemple pour naviguer dans sa reconstitution collective (CDCF § 125). Les mêmes règles s'appliquent : personnes et relations de l'espace du projet (RG-L01), aucune contribution au Core partagé sans `OPERATION_FLUX` explicite (RG-B01). Un arbre de projet reste facultatif : la reconstitution existe par ses `PERSONNE`, `RELATION` et `RAPPROCHEMENT`.
 
 ## 14.1 Diagramme
 
@@ -1165,7 +1241,7 @@ erDiagram
 |---|---|---|---|
 | ARBRE | ✓ | Arbre généalogique souverain d'un espace ; jamais fusionné avec un arbre mondial (§ 26.1). | nom, origine {saisie, import GEDCOM, import autre}, personne_racine_affichage |
 | NOEUD_ARBRE | ✓ | Présence d'une `PERSONNE` de l'espace dans un arbre, avec ses conventions d'affichage. | libelle_affichage, position_affichage |
-| OPERATION_FLUX | ✓ | Opération explicite de circulation entre espaces : contribuer, importer, comparer, échanger, restaurer (§ 13, § 26.3). | type ⟨D-45⟩, date, statut {préparée, exécutée, annulée}, autorisation |
+| OPERATION_FLUX | ✓ | Opération explicite de circulation entre espaces : contribuer, importer, comparer, échanger, restaurer (§ 13, § 26.3). | type ⟨D-45⟩, date, statut {préparée, exécutée, annulée}, autorisation, selection (→ version de `SELECTION_PARTAGE`, facultative) **[V1.2]** |
 | COMPARAISON | ✓ | Comparaison autorisée de deux arbres (§ 26.5). | date, perimetre, statut |
 | ECART | ✓ | Différence relevée par une comparaison. | type {seulement dans A, seulement dans B, valeur divergente, identique}, objet_a (→ OBJET), objet_b (→ OBJET) |
 
@@ -1189,6 +1265,71 @@ erDiagram
 - **RG-L02** — Une `OPERATION_FLUX` de type `import Core→privé` crée des copies liées par `FILIATION` ; un changement ultérieur dans le Core passe la filiation à `divergents` et notifie, sans modifier l'arbre. (§ 26.4, critère 9)
 - **RG-L03** — Une `COMPARAISON` ou un `échange Tree↔Tree` ne crée aucun objet dans le Core partagé. (§ 26.5, critère 10)
 - **RG-L04** — Un import GEDCOM sans sources produit des assertions d'`etat_provenance = non sourcée` ; l'import ne crée aucune source artificielle. (§ 84)
+
+## 14.5 [V1.2] Partage sélectif (concept A — CDCF §§ 125 à 127, 132 ; REC-TR09 ; AV-10)
+
+Une `SELECTION_PARTAGE` est un **sous-ensemble gouverné** d'objets et de relations d'un espace source, destiné à être partagé avec un autre espace (un projet, typiquement) : une branche d'arbre (« BOVALO à partir du Sosa 31 ») ou un ensemble explicite. Elle sert aux contributions vers un projet (TR08, TR11, PR01-07), au partage d'une branche (TR09) et au partage d'une branche d'un arbre administré pour un tiers (TR10-04).
+
+Le concept est placé dans le domaine L parce que son usage premier est la branche d'arbre ; il s'applique à tout espace.
+
+**Trois séparations structurent le concept :**
+
+1. **Définition ≠ contenu.** Les paramètres (point de départ, ascendance, descendance…) décrivent une intention. Le contenu partagé est le **manifeste** : la liste figée, par version, des objets et relations effectivement inclus. Seul le manifeste fait foi. Si une nouvelle personne est ajoutée ultérieurement à la branche BOVALO dans l'arbre source, elle ne devient pas automatiquement accessible.
+2. **Sélection ≠ habilitation.** Une sélection définit **quoi** ; les mécanismes d'habilitation (`REGLE_ACCES`, domaine B) définissent **à qui, pour quelles opérations et jusqu'à quand**. La sélection ne porte ni destinataire, ni droit, ni durée.
+3. **Consultation ≠ réutilisation.** Ce sont deux autorisations distinctes, posées par des règles d'accès différentes sur la même sélection (critère 60).
+
+### Diagramme
+
+```mermaid
+erDiagram
+  ESPACE ||--o{ SELECTION_PARTAGE : "heberger_selection"
+  SELECTION_PARTAGE ||--|{ VERSION_OBJET : "versions"
+  VERSION_OBJET }o--o{ OBJET : "inclure_selection (manifeste)"
+  REGLE_ACCES }o--o| SELECTION_PARTAGE : "portee_objet"
+  OPERATION_FLUX }o--o| VERSION_OBJET : "selection_version"
+```
+
+### Entité
+
+| Entité | Obj. | Définition | Propriétés |
+|---|---|---|---|
+| SELECTION_PARTAGE | ✓ | Sous-ensemble gouverné et versionné d'objets et de relations d'un espace source. Sa définition est faite de paramètres ; son contenu est le manifeste de chaque version. | libelle, type_selection {branche généalogique, ensemble explicite}, arbre_source (→ `ARBRE`, facultatif), point_depart (→ `PERSONNE`, facultatif), ascendance {aucune, paternelle, maternelle, les deux}, profondeur_ascendance, descendance {aucune, complète, bornée}, profondeur_descendance, unions {incluses, exclues}, conjoints {exclus, sans leur ascendance}, exclusions (→ `OBJET`, 0..n), traitement_vivants {exclus, masqués} (défaut : exclus), traitement_sensibles {exclus, masqués} (défaut : exclus), evolution {figée, suivi par propositions}, etat {brouillon, active, suspendue, révoquée, close} |
+
+### Associations
+
+| Association | Pattes | Propriétés portées |
+|---|---|---|
+| HEBERGER_SELECTION | ESPACE source (0,n) — SELECTION_PARTAGE (1,1) | — |
+| INCLURE_SELECTION | VERSION_OBJET (d'une `SELECTION_PARTAGE`) (0,n) — OBJET inclus (0,n) | version_incluse (→ `VERSION_OBJET` de l'objet inclus), mode_inclusion {intégral, masqué, pseudonymisé}, motif_inclusion {point de départ, ascendance, descendance, union, conjoint, ajout explicite} |
+
+**Cardinalités.**
+- Une sélection appartient à un seul espace source (1,1) ; un espace peut en héberger plusieurs (0,n). BOURBON et BOVALO sont deux sélections distinctes, chacune avec ses paramètres (TR09-07).
+- Un manifeste peut être vide (version `brouillon`) ; un objet peut figurer dans plusieurs sélections. Les relations (`ASSERTION` de type `RELATION`) sont des `OBJET` : elles figurent dans le manifeste au même titre que les personnes.
+- Les ajustements des entités existantes se limitent à une propriété : `OPERATION_FLUX.selection` (→ version de `SELECTION_PARTAGE`, facultative), qui désigne la version partagée lors d'une contribution ou d'une réutilisation. Le domaine `D-10` reçoit l'action `réutiliser` et le domaine `D-45` le type `contribution vers un espace partagé` (§ 22).
+
+**Cycle de vie.** `brouillon` → `active` (première version confirmée) → `suspendue` ↔ `active` → `révoquée` ou `close`. Chaque modification du manifeste crée une nouvelle `VERSION_OBJET` ; les versions antérieures restent consultables par les personnes habilitées et citables (P3). Une sélection `révoquée` ou `close` ne fonde plus aucun accès.
+
+### Règles de gestion
+
+- **RG-L05** — **Le manifeste fait foi et ne s'étend jamais seul.** L'accès porte sur les objets du manifeste de la version active, dans la version incluse. Un objet ajouté ou relié ultérieurement dans l'espace source, même s'il répond aux paramètres, n'entre pas dans la sélection (P24, critères 59 et TR09-10).
+- **RG-L06** — **Évolution par propositions.** Si `evolution = suivi par propositions`, une modification de l'espace source qui toucherait le périmètre produit une **proposition** de nouvelle version, présentée avec son manifeste et ses différences. Elle ne devient active que par la confirmation explicite d'une personne habilitée dans l'espace source. Si `evolution = figée`, aucune proposition n'est produite. Une **réduction** de périmètre prend effet immédiatement, sans approbation préalable.
+- **RG-L07** — **Prévisualisation exacte.** Avant confirmation, le manifeste de la version proposée est présenté tel qu'il sera transmis : personnes, relations, sources, informations, et modes d'inclusion (TR09-09). Ce qui est confirmé est exactement ce qui est présenté.
+- **RG-L08** — **Pas d'ouverture par adjacence.** Inclure une personne n'inclut aucune de ses autres relations : seules les relations présentes au manifeste sont partagées. Un conjoint inclus `sans leur ascendance` apparaît sans ses parents (TR09-05). Les relations entre un objet inclus et un objet exclu ne sont pas exposées, ni leur existence, ni leur nombre (TR09-06).
+- **RG-L09** — **Sélection ≠ habilitation.** Une sélection sans `REGLE_ACCES` active ne donne aucun accès. Les règles d'accès portent sur la sélection (`PORTER_SUR_OBJET`), jamais sur un individu racine. L'accès effectif d'un lecteur est l'intersection : manifeste ∩ règles d'accès actives ∩ droits effectifs de la personne qui partage ∩ protections propres à chaque objet (`EMBARGO`, personnes vivantes, `MASQUAGE`, `CONSENTEMENT`). Aucun partage transitif : le destinataire ne peut repartager qu'avec une autorisation explicite (`repartager`).
+- **RG-L10** — **Consultation par défaut ; réutilisation explicite.** Une règle `voir` permet la consultation dans l'espace destinataire. La reprise dans un autre espace exige une règle distincte `réutiliser` ; elle passe par une `OPERATION_FLUX` qui crée des copies liées par `FILIATION`, avec provenance et crédits (P15), et désigne la version de la sélection et l'autorisation qui la fondent.
+- **RG-L11** — **Graphe accessible.** Recherche, parcours, comptage, agrégation, export et notification exécutés dans l'espace destinataire s'appliquent au manifeste autorisé, jamais à l'espace source suivi d'un masquage (P20, P24). Les branches non sélectionnées ne sont pas déductibles (TR09-06, TR09-12).
+- **RG-L12** — **Révocation et réduction.** Une révocation (fin de la règle d'accès, sélection `révoquée`) ou une réduction (nouvelle version plus étroite) met fin aux autorisations encore actives sur la partie retirée, sans annuler les actes légitimement accomplis (CDCF § 132) :
+  - consultation : accès supprimé, sans divulgation du motif ; copies hors ligne retirées à la synchronisation ;
+  - réutilisation explicitement autorisée et réalisée : copie conservée dans les limites de l'autorisation, avec sa `FILIATION`, sans mise à jour ultérieure ;
+  - copie faite sans droit de réutilisation : aucun droit de conservation autonome ;
+  - conclusions du projet : conservées ; leurs `DEPENDANCE` sont réévaluées, jamais invalidées automatiquement ;
+  - publication déjà parue, export déjà remis : versions historiques conservées ; toute nouvelle diffusion est réévaluée (§ 18.6) ;
+  - preuve indépendante, droits acquis à un autre titre : non affectés.
+
+  Une obligation légale (effacement, retrait de consentement) prévaut, selon la procédure applicable.
+- **RG-L13** — **Contribution ≠ fusion.** Une contribution d'une sélection vers un projet est une `OPERATION_FLUX` de type `contribution vers un espace partagé`. Le projet construit sa propre reconstitution (`PERSONNE`, `RELATION`, `RAPPROCHEMENT` dans son espace, RG-L01) : il n'y a ni fusion des arbres participants, ni écriture dans l'arbre source. Le destinataire accepte, refuse ou diffère ; un refus est tracé. Les types `contribution vers un espace partagé` et `réutilisation d'une sélection` ne peuvent jamais avoir pour cible un espace de type `Core partagé` : la seule voie vers le Core partagé reste la `contribution privé→Core` (RG-B01, critère 8).
+
+**Révélation.** Le manifeste d'une sélection est lui-même soumis au `CONTEXTE_EVALUATION` : le lecteur du destinataire ne voit que les entrées qu'il est effectivement autorisé à voir, et la sélection ne révèle pas ce que l'espace source contient d'autre.
 
 ---
 
@@ -1363,13 +1504,17 @@ erDiagram
   IMPORT ||--o{ RECONCILIATION_IMPORT : "reconcilier"
   RECONCILIATION_IMPORT }o--|| OBJET : "objet_importe"
   RECONCILIATION_IMPORT }o--o| OBJET : "objet_existant"
+  PUBLICATION }o--o{ PUBLICATION : "paraitre_dans (V1.2)"
+  VERSION_OBJET ||--o{ DECISION_EDITORIALE : "decider (V1.2)"
+  VERSION_OBJET ||--o{ DIFFUSION : "diffuser (V1.2)"
+  DIFFUSION }o--o| EVALUATION_DIFFUSABILITE : "evaluer (V1.2)"
 ```
 
 ## 18.2 Entités
 
 | Entité | Obj. | Définition | Propriétés |
 |---|---|---|---|
-| PUBLICATION | ✓ | Publication volontaire, sélective, versionnée : fiche, chronologie, carte, corpus, conclusion, article, édition critique (§ 76). | titre, type {fiche entité, chronologie, carte, corpus, conclusion, article, édition critique, page publique}, etat {brouillon, publiée, corrigée, remplacée, retirée}, date_publication, numero_edition, indexable |
+| PUBLICATION | ✓ | Publication volontaire, sélective, versionnée : fiche, chronologie, carte, corpus, conclusion, article, édition critique (§ 76) ; livrable éditorial (§ 130) ; série **[V1.2]**. | titre, type {fiche entité, chronologie, carte, corpus, conclusion, article, édition critique, page publique ; **[V1.2]** série, numéro de série, rapport, bulletin, catalogue — liste détaillée au dictionnaire (P-5)}, etat {brouillon, publiée, corrigée, remplacée, retirée}, date_publication, numero_edition, indexable |
 | CORRECTION_PUBLICATION | ✓ | Correction historisée d'une publication (§ 77). | type {correction éditoriale mineure, erratum/corrigendum, nouvelle édition, retrait motivé}, motif, date |
 | EXPORT | ✓ | Export de portabilité ou package de reproductibilité (§ 82, Q198). | format ⟨D-48⟩, version_format, perimetre, date, droits_appliques |
 | IMPORT | ✓ | Import externe, réimport du format patrimonial ou restauration : l'import est une provenance (§ 83, § 84). | type {import externe, réimport patrimonial, restauration}, logiciel, format, version_format, fournisseur, date, avertissements |
@@ -1430,6 +1575,48 @@ Une restauration produit un rapport de restauration/reconnexion.
 Le manifeste, les compteurs, les références et les dépendances d'un export sont eux-mêmes soumis au `CONTEXTE_EVALUATION`.
 
 L'absence apparente d'un objet dans une API ne doit pas révéler qu'un objet caché existe.
+
+## 18.6 [V1.2] Livrables éditoriaux : séries, décisions éditoriales, diffusions (concepts D, E, F — CDCF § 130 ; AV-8)
+
+Les livrables destinés à une audience (lettre d'information, rapport d'activité, rapport au financeur, catalogue, bulletin) sont des `PUBLICATION`. Trois actes restent distincts (P25) :
+
+- **décider** qu'une version est éditorialement approuvée (`DECISION_EDITORIALE`) ;
+- **publier** cette version (`PUBLICATION.etat = publiée`, RG-P01 à P03) ;
+- **diffuser** une version publiée vers une audience, par un canal (`DIFFUSION`).
+
+Aucun de ces actes n'en autorise un autre, et aucun n'est une validation scientifique (`ACTE_EVALUATION`, domaine H).
+
+### Entités
+
+| Entité | Obj. | Définition | Propriétés |
+|---|---|---|---|
+| DECISION_EDITORIALE (E) | ✓ | Décision nominative d'un acteur sur **une version** précise d'une publication. | type {relue, approuvée, refusée, approbation invalidée}, motif, date |
+| DIFFUSION (F) | ✓ | Opération de diffusion d'une version de publication vers une audience, par un canal. Trace ce qui a été envoyé, à qui (en nombre) et dans quel contexte. | canal {web, e-mail, PDF, export, API, autre}, audience (description de l'audience réelle), nombre_destinataires, risque_redistribution {faible, moyen, élevé}, date, resultat {exécutée, partielle, bloquée, échouée}, motif_blocage |
+
+### Associations
+
+| Association | Pattes | Propriétés portées |
+|---|---|---|
+| PARAITRE_DANS (D) | PUBLICATION numéro (0,n) — PUBLICATION série (0,n) | rang, date |
+| DECIDER | ACTEUR_GENIIUS (0,n) — DECISION_EDITORIALE (1,1) ; DECISION_EDITORIALE (1,1) — VERSION_OBJET (d'une `PUBLICATION`) (0,n) | — |
+| DIFFUSER | VERSION_OBJET (d'une `PUBLICATION`) (0,n) — DIFFUSION (1,1) ; ACTEUR_GENIIUS (0,n) — DIFFUSION (1,1) ; DIFFUSION (1,1) — CONTEXTE_EVALUATION (0,n) | — |
+| EVALUER_DIFFUSION | DIFFUSION (0,1) — EVALUATION_DIFFUSABILITE (0,1) | — |
+
+**Cardinalités.**
+- Un numéro peut paraître dans zéro, une ou plusieurs séries ; une série regroupe zéro ou plusieurs numéros. Aucune série ne paraît, directement ou indirectement, dans elle-même.
+- Une décision porte sur exactement une version ; une version peut recevoir plusieurs décisions (relecture, approbation, invalidation), de plusieurs acteurs.
+- Une diffusion porte sur exactement une version et s'évalue dans exactement un contexte. Une version peut être diffusée plusieurs fois (canaux, audiences, dates différents).
+- Une diffusion `exécutée` ou `partielle` est toujours liée à une `EVALUATION_DIFFUSABILITE` ; une diffusion `bloquée` peut l'être (blocage motivé par l'évaluation) ou non (blocage faute d'approbation).
+
+### Règles de gestion
+
+- **RG-P08** — **Série.** Une série est une `PUBLICATION` de type `série`. Elle n'est pas figée : elle s'enrichit de numéros. L'appartenance à la série est portée par `PARAITRE_DANS`, du côté du numéro : ajouter un numéro ne crée pas de version de la série et ne réécrit aucune version publiée de celle-ci (RG-P01, RG-P03). Chaque numéro est une publication à part entière, figée chiffres compris (RG-P01, § 17). S'abonner à une série est un profil de `VEILLE` éditoriale (dictionnaire, P-5) : l'abonnement ne donne aucun droit, ne vaut pas consentement à d'autres communications et reste distinct de la veille scientifique.
+- **RG-P09** — **Approbation liée à une version.** Une `DECISION_EDITORIALE` `approuvée` vaut pour la seule version visée. Toute nouvelle version substantielle n'est pas approuvée tant qu'elle n'a pas reçu sa propre approbation ; l'approbation antérieure est alors tracée comme `approbation invalidée`, sans être effacée. Une décision est prise par un acteur humain identifié ; une rédaction assistée par IA ne produit que des propositions (§ 93).
+- **RG-P10** — **Approbation ≠ validation ≠ autorisation.** `DECISION_EDITORIALE` n'a aucune association avec `ACTE_EVALUATION`, ne modifie aucun `statut_validation` et ne vaut pas autorisation de diffusion. Réciproquement, un `ACTE_EVALUATION` ne vaut pas approbation éditoriale (critère 63).
+- **RG-P11** — **Chaque diffusion est contrôlée.** Une `DIFFUSION` ne peut être exécutée que pour une version `publiée`, approuvée lorsque le circuit éditorial de l'espace l'exige, et après une `EVALUATION_DIFFUSABILITE` dans **son** contexte : audience réelle, canal, date, risque de redistribution. Avoir été publiée ou diffusée une première fois ne dispense pas d'une nouvelle évaluation (révocation intervenue, embargo, audience plus large). Une diffusion refusée est enregistrée comme `bloquée`, avec son motif.
+- **RG-P12** — **Une diffusion est irréversible.** Un e-mail envoyé ou un export remis ne se rappelle pas. Une erreur se corrige par une `CORRECTION_PUBLICATION` (erratum, nouvelle édition) et, si nécessaire, une nouvelle diffusion ; la diffusion d'origine reste tracée (RG-P03).
+
+**Révélation.** Les décisions éditoriales et les diffusions révèlent l'existence d'une publication, de son circuit et de son audience. Elles sont soumises au `CONTEXTE_EVALUATION` : un abonné voit le numéro qu'il reçoit, pas les relectures, les refus ni les diffusions vers d'autres audiences.
 
 ---
 
@@ -1611,7 +1798,7 @@ Ces listes sont **initiales** : celles qui décrivent le monde historique devron
 | D-07 | type_dependance | appui probatoire, dérivation/calcul, localisation, citation, reconstruction, publication d'un état, droits |
 | D-08 | role_probatoire | principal, complémentaire, marge, verso, page suivante, contexte, contradictoire |
 | D-09 | type_espace | personnel, privé, familial, projet, organisation, communauté, Core partagé, publication publique |
-| D-10 | action (permission) | voir, commenter, proposer, transcrire, valider, éditer, administrer, exporter, repartager, contribuer au Core |
+| D-10 | action (permission) | voir, commenter, proposer, transcrire, valider, éditer, administrer, exporter, repartager, contribuer au Core, réutiliser **[V1.2]** |
 | D-11 | role (garde) | dépositaire/custodien, administrateur, destinataire, successeur de gouvernance, successeur scientifique, dépositaire patrimonial |
 | D-12 | nature (document) | acte manuscrit, registre, imprimé, photographie, enregistrement sonore, vidéo, témoignage, carte/plan, objet inscrit, page web, autre |
 | D-13 | statut_existence | prescrit seulement, existence attestée, conservé et localisé, non localisé, perdu, disparu, détruit, présumé détruit, inaccessible, lacunaire |
@@ -1646,7 +1833,7 @@ Ces listes sont **initiales** : celles qui décrivent le monde historique devron
 | D-42 | statut (item de mission) | à commander, commandé, communiqué, consulté, refusé, absent, photographié, incomplet, à refaire |
 | D-43 | portee (règle) | occurrence, préférence personnelle, main/scribe, registre, corpus, territoire, période |
 | D-44 | portee_nouveaute | nouveau pour l'utilisateur, nouveau pour le projet, nouveau dans GENIIUS, nouvelle preuve d'un fait connu, évolution réelle |
-| D-45 | type (flux) | contribution privé→Core, import Core→privé, comparaison Tree↔Tree, échange Tree↔Tree, restauration |
+| D-45 | type (flux) | contribution privé→Core, import Core→privé, comparaison Tree↔Tree, échange Tree↔Tree, restauration, contribution vers un espace partagé **[V1.2]**, réutilisation d'une sélection **[V1.2]** |
 | D-46 | type_localisation | exacte, approximative, relative, zone possible, hypothèse concurrente |
 | D-47 | type (méthode) | dérivation de date, conversion monétaire, conversion de mesure, statistique, reconstruction spatiale, proposition de candidats, cooccurrence, entourage, comparaison de trajectoires, datation croisée, OCR/HTR, détection visuelle, regroupement vocal, autre |
 | D-48 | format (export) | format patrimonial GENIIUS, GEDCOM, CSV, JSON, GeoJSON, bibliographique, médias originaux, package de reproductibilité |
@@ -1685,6 +1872,12 @@ Ces listes sont **initiales** : celles qui décrivent le monde historique devron
 | CU-23 | Première / dernière attestation | Calcul sur `ASSERTION` (RG-G11) |
 | CU-24 | Autorisation de voyage | `EVENEMENT` `mode_realite = autorisation` ; aucun `VOYAGE` réalisé |
 | CU-25 | Acte manquant | `ANOMALIE_DOCUMENTAIRE` + `INTERPRETATION` (hypothèses) + `PISTE` |
+| CU-26 **[V1.2]** | Les Colimaçons | `PROJET` + `ARBRE` du projet (reconstitution propre) ; `ETUDIER` (territoire, période, familles, habitations, thèmes) ; deux `SELECTION_PARTAGE` (BOURBON Sosa 27, BOVALO Sosa 31) avec `INCLURE_SELECTION` ; `REGLE_ACCES` `voir` ; `OPERATION_FLUX` `contribution vers un espace partagé` ; `RAPPROCHEMENT` ; RG-E02, RG-L05 à L13 ; § 24.5 |
+| CU-27 **[V1.2]** | Arbre offert à un cousin | `ESPACE` dédié + `ARBRE` ; `DESIGNATION_GARDE` → `PERSONNE` (destinataire futur) ; `ACTIVITE` / `CREDIT` ; `SELECTION_PARTAGE` vers le projet ; `TRANSFERT_GOUVERNANCE` (état, snapshot présenté : P-8) ; RG-B03 ; § 24.6 |
+| CU-28 **[V1.2]** | Contribution externe | `IMPORT` + `ACQUISITION_INFORMATION` ; `RECONCILIATION_IMPORT` ; `SELECTION_PARTAGE` (ensemble explicite ou branche) ; `RAPPROCHEMENT` proposé ; RG-L04 ; § 24.7 |
+| CU-29 **[V1.2]** | Programme antillais fédéré | `PROJET` coordinateur ; `RELIER_PROJETS` `sous-projet de` (lien bilatéral : P-1) ; `APPARTENIR` par projet ; `GROUPE` + `REGLE_ACCES` (P-2) ; P20, P23 ; § 24.8 |
+| CU-30 **[V1.2]** | Militaires réunionnais | `UTILISER` (inventaire, rôle `inventaire`) ; `ETUDIER` ; `TACHE` (lot, délégation : P-3) ; `PROPOSITION_IDENTIFICATION` ; `METHODE` / `CALCUL` / `RESULTAT` figé (P-4) ; `PUBLICATION` + `DECISION_EDITORIALE` + `DIFFUSION` ; `PRISE_EN_CHARGE` ; § 24.9 |
+| CU-31 **[V1.2]** | Fédération réunionnaise | `RELIER_PROJETS` non hiérarchique (complète, réutilise le corpus de) ; `RAPPROCHEMENT` ; RG-F04 (aucune fusion) ; P23 ; § 24.10 |
 
 ## 23.2 Critères de recette (CDCF § 103) → mécanisme
 
@@ -1736,12 +1929,26 @@ Ces listes sont **initiales** : celles qui décrivent le monde historique devron
 | 48 | P4 ; `VERSION_OBJET.date_debut_validite` / `date_fin_validite` ; `SNAPSHOT` |
 | 49 | RG-E02 ; `densite_documentaire` non pondérante |
 | 50 | `LACUNE` ; `plausibilite = indéterminée` ; `POSITION` ouverte |
+| 51 **[V1.2]** | P23 ; `PROJET` coordinateur ⊂ `ESPACE` ; aucune règle d'héritage de droits entre projets (MLD CP-25, CP-26) |
+| 52 **[V1.2]** | P23 ; `RELIER_PROJETS` `sous-projet de` comme lien gouvernable bilatéral, non transitif (dictionnaire P-1) |
+| 53 **[V1.2]** | RG-K09 ; P23 |
+| 54 **[V1.2]** | RG-K10 ; RG-E02 |
+| 55 **[V1.2]** | `GROUPE`, `MEMBRE_GROUPE`, `REGLE_ACCES` au profit d'un groupe, mode d'admission (dictionnaire P-2) |
+| 56 **[V1.2]** | RG-K11 ; P25 |
+| 57 **[V1.2]** | `TACHE` (lot) ; délégation à cycle de vie propre (dictionnaire P-3) ; RG-K05 |
+| 58 **[V1.2]** | RG-K02 ; avancement constaté sur les objets (dictionnaire P-3) |
+| 59 **[V1.2]** | RG-L05, RG-L08, RG-L11 ; P24 |
+| 60 **[V1.2]** | RG-L10 ; `D-10` `réutiliser` |
+| 61 **[V1.2]** | `DESIGNATION_GARDE` → `PERSONNE` ; `TRANSFERT_GOUVERNANCE` (dictionnaire P-8) ; RG-B03 ; `CREDIT` conservé |
+| 62 **[V1.2]** | RG-O01, RG-O03 ; `METHODE` (profil indicateur), `RESULTAT` figé (dictionnaire P-4) |
+| 63 **[V1.2]** | RG-P09, RG-P10, RG-P11 ; P25 |
+| 64 **[V1.2]** | RG-L12 ; `FILIATION` ; `DEPENDANCE` réévaluée ; RG-B18 |
 
 ---
 
-# 24. Mise à l'épreuve du modèle sur quatre cas
+# 24. Mise à l'épreuve du modèle sur des cas
 
-Le CDCF exige que le MCD soit testé sur les cas d'usage avant validation (Partie XVIII). Voici quatre déroulés en occurrences.
+Le CDCF exige que le MCD soit testé sur les cas d'usage avant validation (Partie XVIII). Voici les déroulés en occurrences : quatre cas de la V1.1 (§§ 24.1 à 24.4) et les six cas d'usage ajoutés par le CDCF V1.2 (§§ 24.5 à 24.10).
 
 ## 24.1 « Charles TANCRÈDE, âgé de 30 ans » (§ 4, § 9.2)
 
@@ -1778,6 +1985,57 @@ Le CDCF exige que le MCD soit testé sur les cas d'usage avant validation (Parti
 3. `RAPPROCHEMENT` pA ↔ pC (portée `privé→Core partagé`) créé par A ; `RAPPROCHEMENT` pB ↔ pC créé par B.
 4. Aucune association ne relie A et B ; les assertions de pA restent dans l'espace A. Si A contribue une assertion sur pA : `OPERATION_FLUX` (contribution) → nouvelle `ASSERTION` sur pC dans le Core partagé + `FILIATION` vers la version d'origine ; aucune synchronisation ultérieure.
 
+## 24.5 [V1.2] Les Colimaçons : BOURBON et BOVALO (CU-26, REC-TR08, REC-TR09)
+
+1. `PROJET` Col (Les Colimaçons). `ETUDIER` : territoire « Les Colimaçons, Saint-Leu » (→ `LIEU`) ; période 1793–1848 (`DATE_HIST`, sans cible) ; familles BOURBON, BOVALO, ANNAMALÉ ; thème « affranchissements » (→ `CONCEPT`) ; « famille non identifiée de l'inventaire de 1793 » (→ `MENTION`). Aucune `RELATION` n'est créée entre ces axes (RG-K09, RG-K10).
+2. Espace privé R du chercheur, `ARBRE` tR. Deux `SELECTION_PARTAGE` dans R :
+   - sB : point de départ Sosa 27, paramètres BOURBON ;
+   - sV : point de départ Sosa 31, ascendance paternelle, descendance complète, unions incluses, conjoints `sans leur ascendance`, vivants exclus.
+3. Version v1 de sV : le manifeste (`INCLURE_SELECTION`) liste les personnes, les `RELATION` et les sources incluses. Le Sosa 30 y figure (motif `conjoint`) avec son union, sans ses parents. Aucun élément de la branche du Sosa 16. Le chercheur voit ce manifeste avant de confirmer (RG-L07).
+4. `REGLE_ACCES` r1 : `voir` sur sV, au profit du rôle `collaborateur` du projet Col. Aucune règle `réutiliser` : consultation seule (RG-L10).
+5. `OPERATION_FLUX` `contribution vers un espace partagé`, `selection` = sV v1. Le projet crée sa propre reconstitution : `PERSONNE` et `RELATION` dans Col, `RAPPROCHEMENT` vers les personnes de sV ; aucune écriture dans tR (RG-L13).
+6. Une recherche « enfants de Sosa 16 » dans Col ne renvoie rien et aucun comptage ne laisse deviner la branche exclue (RG-L08, RG-L11, P24).
+7. Le chercheur ajoute un cousin BOVALO dans tR. Il n'entre pas dans sV ; une proposition de version v2 est produite (RG-L05, RG-L06). Tant qu'elle n'est pas confirmée, Col ne voit pas le cousin.
+8. Aucune relation d'asservissement, de résidence ou de parenté n'est déduite entre BOVALO et une habitation : seules des `ASSERTION` sourcées le peuvent (CDCF § 125).
+
+## 24.6 [V1.2] Arbre offert à un cousin (CU-27, REC-TR10)
+
+1. Le chercheur crée un `ESPACE` E et un `ARBRE` tC pour son cousin, qui n'a pas de compte. `DESIGNATION_GARDE` → `PERSONNE` (cousin, destinataire futur) : ni `UTILISATEUR` ni `LIEN_COMPTE_PERSONNE` créé.
+2. Les recherches sont des `ACTIVITE` attribuées à l'`ACTEUR_GENIIUS` du chercheur, avec leurs `CREDIT`.
+3. Le chercheur partage une `SELECTION_PARTAGE` sC de tC avec le projet Col (§ 24.5, TR10-04).
+4. `TRANSFERT_GOUVERNANCE` proposé : le cousin, vérifié, voit les partages actifs (dont sC) dans un état figé ; il accepte (dictionnaire P-8). Les `CREDIT` ne changent pas (RG-B03).
+5. Le nouveau propriétaire réduit sC (nouvelle version plus étroite) : RG-L12 s'applique à la partie retirée. S'il avait refusé le transfert, rien n'aurait été forcé.
+
+## 24.7 [V1.2] Contribution externe (CU-28, REC-TR11)
+
+1. `IMPORT` d'un GEDCOM Geneanet dans l'espace privé G du généalogiste ; `ACQUISITION_INFORMATION` ; assertions `non sourcée` si le fichier n'a pas de sources (RG-L04).
+2. `SELECTION_PARTAGE` sG (ensemble explicite) proposée au projet Col ; même circuit qu'au § 24.5.
+3. Le projet propose un `RAPPROCHEMENT` entre une personne de sG et une personne de sa reconstitution, sans fusion ; une assertion contradictoire est conservée.
+4. Réimport : `RECONCILIATION_IMPORT` détecte les différences. Une nouvelle version de sG n'est proposée que si le généalogiste la confirme (RG-L06). Aucune synchronisation avec Geneanet n'est présumée.
+
+## 24.8 [V1.2] Programme antillais fédéré (CU-29, REC-PR01)
+
+1. `PROJET` coordinateur Ant ; sous-projets Gpe, Mtq, PN (Pointe-Noire). `RELIER_PROJETS` `sous-projet de` PN → Gpe, accepté par les deux parties (P-1).
+2. La contributrice reçoit `APPARTENIR` `collaborateur` dans PN seulement. Elle ne voit ni Gpe, ni Mtq, ni Ant par le seul effet du rattachement (P23).
+3. L'administrateur de Ant n'a aucune règle `voir` sur PN ; son rôle n'administre que Ant (MLD CP-26).
+4. Groupe « Coordination » de Ant : PN lui accorde une `REGLE_ACCES` limitée, en mode `approbation préalable` (P-2).
+5. Une recherche transversale de Ant ne renvoie que les objets que le demandeur peut voir dans chaque projet (P20).
+
+## 24.9 [V1.2] Militaires réunionnais (CU-30)
+
+1. `PROJET` Mil. `UTILISER` : inventaire des 10 000 fiches (rôles `inventaire`, `source à exploiter`) ; la ressource reste dans son espace, sans copie ni accès (RG-K11). `ETUDIER` : collectif « conscrits réunionnais 1914–1918 ».
+2. `TACHE` lot « fiches 1 à 100 » assigné à Marie ; délégation bornée (lire, transcrire) et datée (P-3). À la réouverture du lot, après expiration de la délégation, Marie n'a aucun droit (critère 57).
+3. Avancement constaté sur les objets : `TRANSCRIPTION` présentes, `PROPOSITION_IDENTIFICATION`, `RAPPROCHEMENT` vers des arbres ; aucun pourcentage (RG-K02).
+4. `METHODE` « personnes identifiées » v1 → `CALCUL` → `RESULTAT` figé « 3 000 sur 5 000 », avec unité, bornes et périmètre (P-4, RG-O01).
+5. `PUBLICATION` « Rapport 2027 », numéro de la série « Rapports annuels » (`PARAITRE_DANS`). `DECISION_EDITORIALE` `approuvée` sur v1. Une correction crée v2 : approbation de v1 tracée `approbation invalidée`, nouvelle approbation requise (RG-P09). `DIFFUSION` e-mail de v2 aux membres, avec son `EVALUATION_DIFFUSABILITE` (RG-P11).
+6. `PRISE_EN_CHARGE` : Ant (ou un autre programme) couvre le calcul de Mil, plafonné, accepté par les deux espaces ; elle ne donne à Ant aucun accès à Mil (RG-B15, RG-B16).
+
+## 24.10 [V1.2] Fédération réunionnaise (CU-31)
+
+1. `PROJET` Féd ; `RELIER_PROJETS` `complète` et `réutilise le corpus de` vers des projets autonomes, sans `sous-projet de` : pas de hiérarchie.
+2. Les recoupements sont des `RAPPROCHEMENT` proposés entre personnes d'espaces distincts ; aucune fusion (RG-F04), aucun « super-arbre ».
+3. Chaque projet garde ses permissions et ses positions divergentes (`POSITION_EPISTEMIQUE`) ; Féd ne voit que ce qui lui est partagé (P23, P24).
+
 ---
 
 # 25. Choix de modélisation à valider et sujets laissés au MLD
@@ -1796,6 +2054,9 @@ Le CDCF exige que le MCD soit testé sur les cas d'usage avant validation (Parti
 | C8 | `EVENEMENT` est une entité ; `SITUATION` est une assertion | Les deux en entités | Un événement a une identité (récits concurrents, participants) ; une situation est un état daté d'une relation. |
 | C9 | Le statut de validation est dérivé des `ACTE_EVALUATION` | Champ éditable | Garantit l'historique du débat (§ 50, § 75). |
 | C10 | `CONTACT` (Echo) distinct de `PERSONNE` / `ORGANISATION` mais peut les représenter | Contact = entité historique | Un carnet d'adresses privé n'est pas de la connaissance historique (§ 57, P12). |
+| C11 **[V1.2]** | `SELECTION_PARTAGE` porte la définition et le manifeste ; destinataire, opérations et durée sont portés par `REGLE_ACCES` | Sélection porteuse de son destinataire et de son mode (consultation / réutilisation), proposée à l'étape 3 | Validé le 9/10/2026 : « une sélection définit quoi ; les mécanismes d'habilitation définissent à qui, pour quelles opérations et jusqu'à quand ». Une même sélection peut ainsi être consultée par un projet et réutilisable par un autre, et la révocation reste un acte d'habilitation. |
+| C12 **[V1.2]** | `PRISE_EN_CHARGE` dans le MCD (domaine B, à côté d'`ABONNEMENT`) | Prise en charge renvoyée au MLD | `ABONNEMENT` est déjà conceptuel ; l'acceptation bilatérale, la coexistence d'accords et l'absence d'autorité sont des règles métier, pas des détails de facturation. |
+| C13 **[V1.2]** | `ETUDIER` et `UTILISER` sont deux associations `PROJET` — `OBJET` | Une entité `AXE` unique avec un type « étudié / utilisé » | P25 : étudier et utiliser sont des actes distincts ; un même objet peut être les deux, avec des propriétés différentes (période pour un axe, rôles pour une ressource). |
 
 ## 25.2 Laissé au modèle logique / physique (CDCF § 116)
 
@@ -1888,3 +2149,71 @@ Il remplace les deux branches antérieures. Le prochain artefact de conception e
 - matérialisation éventuelle de graphes et agrégats.
 
 Une difficulté SQL, Supabase, API, RLS, performance ou UX ne justifie pas à elle seule de rouvrir le MCD.
+
+**Statut V1.2 (9/10/2026).** La V1.2 est **gelée** par décision du porteur, après la réexécution des 173 contrôles (§ 29.4). Elle remplace la V1.1 comme référence MCD canonique. Toute modification ultérieure suit la procédure de changement (CDC technique, § 13).
+
+---
+
+# 29. Révision V1.2 — avenant AV-FONC-001
+
+## 29.1 Origine et périmètre
+
+Le CDCF V1.2 (Partie XXI) ajoute les projets coordinateurs, les axes, les ressources, le pilotage, le partage sélectif, les livrables éditoriaux et la prise en charge. L'analyse d'écart (`docs/AV-FONC/AV-FONC-001_ETAPE3_ANALYSE_ECART_MCD.md`) a classé 78 contrôles : 34 PASS, 18 PASS SOUS CONDITION, 26 FAIL. Le porteur a validé le 9/10/2026 les sept concepts, les trois invariants et l'emplacement de `PRISE_EN_CHARGE`, et autorisé la rédaction de la V1.2 sans nouvel arbitrage structurel.
+
+**Contraintes de rédaction respectées :**
+- sept concepts, pas de huitième ;
+- aucun remodelage de `PROJET`, `CORPUS`, `PUBLICATION`, `TACHE` ni de la gouvernance. Les seuls ajustements d'existant sont une propriété (`OPERATION_FLUX.selection`) et des valeurs de domaine (`D-10`, `D-45`, `PUBLICATION.type`) ;
+- pour chaque ajout : cardinalités, cycle de vie, droits, révocation et risque de révélation d'existence.
+
+## 29.2 Ajouts
+
+| Réf. | Concept | Nature | Domaine | Règles |
+|---|---|---|---|---|
+| A | `SELECTION_PARTAGE` + `INCLURE_SELECTION`, `HEBERGER_SELECTION` | Entité ✓ + associations | L (§ 14.5) | RG-L05 à RG-L13 |
+| B | `ETUDIER` | Association | K (§ 13.5) | RG-K09, K10, K13 |
+| C | `UTILISER` | Association | K (§ 13.5) | RG-K11 à K13 |
+| D | `PARAITRE_DANS` | Association | P (§ 18.6) | RG-P08 |
+| E | `DECISION_EDITORIALE` + `DECIDER` | Entité ✓ + association | P (§ 18.6) | RG-P09, P10 |
+| F | `DIFFUSION` + `DIFFUSER`, `EVALUER_DIFFUSION` | Entité ✓ + associations | P (§ 18.6) | RG-P11, P12 |
+| G | `PRISE_EN_CHARGE` + `PRENDRE_EN_CHARGE` | Entité ✓ + association | B (§ 4.6) | RG-B15 à B18 |
+| — | P23, P24, P25 | Invariants | § 0.4 | — |
+
+## 29.3 Couverture des 26 FAIL
+
+| FAIL (étape 3) | Nb | Couvert par | Règles décisives |
+|---|---|---|---|
+| CU-26 | 1 | A, B | RG-L05 à L13, RG-K09, K10 ; § 24.5 |
+| CU-27 | 1 | A | RG-L09, L12 ; § 24.6 |
+| CU-28 | 1 | A | RG-L06, L13 ; § 24.7 |
+| CU-30 | 1 | C | RG-K11, K12 ; § 24.9 |
+| TR08-02, TR08-03 | 2 | A | RG-L13 (plusieurs sélections, sans fusion) ; HEBERGER_SELECTION (0,n) |
+| TR09-01 à 07 | 7 | A | Paramètres de `SELECTION_PARTAGE` ; RG-L08 (conjoint, Sosa 16), RG-L11 |
+| TR09-09 | 1 | A | RG-L07 (manifeste = prévisualisation exacte) |
+| TR09-10 | 1 | A | RG-L05, RG-L06 |
+| TR10-04 | 1 | A | § 24.6 étape 3 |
+| TR11-01 à 03 | 3 | A | RG-L13 ; sélection depuis tout espace (arbre propre, arbre administré, arbre sans parenté connue) |
+| PR01-07 | 1 | A | RG-L13 (destinataire = sous-projet) |
+| Critères 53, 54 | 2 | B | RG-K09, RG-K10 |
+| Critère 56 | 1 | C | RG-K11 |
+| Critères 59, 60 | 2 | A | RG-L05, L08, L11 ; RG-L10 |
+| Critère 63 | 1 | E, F | RG-P09 à P11 |
+| **Total** | **26** | | |
+
+**Concepts sans FAIL décompté.** D (`PARAITRE_DANS`) et G (`PRISE_EN_CHARGE`) couvrent des recettes des arbitrages AV classées FAIL « pour information » à l'étape 3 (§ 3.4 : Lettre n° 12 ; financement par deux programmes), non comptées dans les 78 contrôles. Les recettes AV-5 (ressource partagée par plusieurs projets) et AV-10 (révocation partielle) sont couvertes par C et A.
+
+**Non-altération des invariants P1 à P22.** Aucun ajout ne modifie un invariant existant. Les points de contact ont été vérifiés lors de la rédaction :
+- P3 (rien ne s'écrase) : sélections, décisions, diffusions et prises en charge sont versionnées ou historisées ;
+- P7 (le Core est un modèle) et P15 (référence ≠ filiation ≠ correspondance) : une réutilisation crée une `FILIATION`, une contribution passe par `OPERATION_FLUX`, un recoupement par `RAPPROCHEMENT` ;
+- P19 et P20 (droits sur les arêtes, contexte avant l'opération) : `ETUDIER`, `UTILISER`, `INCLURE_SELECTION`, `DECISION_EDITORIALE`, `DIFFUSION` et `PRISE_EN_CHARGE` sont soumis au `CONTEXTE_EVALUATION` ; chacun comporte une clause « révélation » ;
+- P21 (dérivation sans héritage mécanique des droits) : RG-L12 ;
+- RG-B05 est étendu, non modifié : RG-B15 l'applique à `PRISE_EN_CHARGE`.
+
+## 29.4 Niveaux de vérification et contrôles restants
+
+| Niveau | Signification | État au 9/10/2026 |
+|---|---|---|
+| **Spécifiée** | Le mécanisme est écrit dans le MCD | ✅ Les 26 FAIL ont un mécanisme spécifié (§ 29.3) |
+| **Vérifiée documentairement** | Un relecteur a rejoué le contrôle contre le texte du MCD V1.2 et conclu PASS ou PASS SOUS CONDITION | ✅ 9/10/2026 : **159 PASS, 14 PASS SOUS CONDITION, 0 FAIL / 173** ([rapport](GENIIUS_RAPPORT_REEXECUTION_173_CONTROLES_MCD_V1_2.md)). Trois anomalies corrigées (AN-1 à AN-3). Rapport non indépendant : relecture recommandée |
+| **Test exécuté** | Le contrôle a été exécuté sur un schéma ou un prototype | ⏳ Hors MCD : relève du MLD et des recettes techniques |
+
+**Gel prononcé le 9/10/2026** par le porteur, sur la base du rapport des 173 contrôles (sans FAIL). Les 18 PASS SOUS CONDITION restent dépendants des précisions P-1 à P-8 du dictionnaire V1.2 (étape 4).

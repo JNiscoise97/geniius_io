@@ -269,9 +269,9 @@ Ces sujets sont **des pistes**, non des fonctionnalités définitivement arbitr�
 |---|---|---|
 | 1 | Instruction des 12 questions ouvertes (§ 8), une par une : options, recommandation, décision | Toutes les questions tranchées ; dossier AV-FONC-001 figé |
 | 2 ✅ (9/10/2026) | Avenant CDCF → CDCF V1.2 | Exigences AVF-001 à 016 dédoublonnées avec le CDCF existant ; cas d'usage CU-A à CU-F intégrés aux CU |
-| 3 | Analyse d'écart du MCD : jouer CU-A à F, TR08 à 11 et PR01 contre le MCD V1.1 | Verdict PASS/FAIL par scénario. Un FAIL rouvre le MCD (V1.2) et impose de rejouer les 95 tests et les nouveaux. |
-| 4 | Dictionnaire V1.2, par la procédure de changement | Nouvelles fiches et règles ; REC-01 et REC-16 rejoués |
-| 5 | MLD | Structures et contraintes ; traçabilité complète |
+| 3 ✅ (9/10/2026) : rapport validé ; MCD V1.2 rédigé, 173 contrôles (0 FAIL), **gelé** | Analyse d'écart du MCD : jouer CU-A à F, TR08 à 11 et PR01 contre le MCD V1.1 | Verdict PASS/FAIL par scénario. Un FAIL rouvre le MCD (V1.2) et impose de rejouer les 95 tests et les nouveaux. |
+| 4 ✅ (10/10/2026) : dictionnaire V1.2 gelé (REC-01, REC-16 conformes) | Dictionnaire V1.2, par la procédure de changement | Nouvelles fiches et règles ; REC-01 et REC-16 rejoués |
+| 5 ✅ (10/10/2026) : MLD V1.1 candidat, intégration complète (le gel du MLD reste soumis aux écarts ECD ouverts) | MLD | Structures et contraintes ; traçabilité complète |
 | 6 | CDC technique | Droits hiérarchiques, calculs d'indicateurs, volumétrie des programmes, exports de projet ; recettes |
 | 7 | Contrôle de cohérence de la chaîne, puis gel | Conditions GEL-01 à 08 |
 
