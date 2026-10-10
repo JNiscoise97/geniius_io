@@ -103,3 +103,74 @@ AC-01, AC-03, AC-04, AC-05, AC-06, AC-10, AC-11, AC-17, AC-25, AC-26, AC-29.
 3. **Contrôle de réalisation** des 207 lignes « citées » du § 25.4 (AC-28) : vérification de la contrainte, pas seulement de la mention.
 4. **Contre-audit ciblé**, de préférence par un nouvel agent séparé, sur les corrections des 7 bloquants et des AC-10, AC-11, AC-23 et AC-28, avant toute décision de gel.
 5. Recettes documentaires, puis décision de gel.
+
+## 6. Décisions du porteur (10/10/2026)
+
+*Le porteur valide comme objectif la correction des 32 constats, le passage d'AC-28 en majeur et le contrôle exhaustif des 207 lignes. Il ne prononce pas la clôture des constats : les rapports, non versionnés, ne lui étaient pas accessibles.*
+
+| Arbitrage | Verdict | Règle retenue |
+|---|---|---|
+| D1 | Validé avec exception contrôlée | Aucun acteur ne s'accorde lui-même un rôle scientifique, sauf l'attribution initiale prévue à la création de l'espace. Toute attribution ultérieure exige un habilitant indépendant et effectivement autorisé. |
+| D2 | Validé | Consultation hors ligne `limitée` par défaut dans les espaces collectifs. Une autorisation explicite et bornée peut l'étendre ; retrait à la prochaine synchronisation effective. |
+| D3 | Validé sous condition | Le repartage d'une copie dépend des droits durablement acquis sur elle et de sa licence, sans nouvel accord de l'espace d'origine. La licence ne suffit pas si des restrictions légales ou des droits de tiers subsistent. |
+| D4 | Validé avec réserve | Les codes rattachés aux données effacées sont purgés s'ils permettent de les reconstituer ou n'ont plus de justification de conservation. Seules subsistent les traces minimales légalement nécessaires, protégées et non résolubles. |
+| D5 | Validé | UUID v4 pour les nouveaux identifiants opaques d'objets ; pas d'UUID v7 lorsque son horodatage contredit l'opacité ; aucune renumérotation automatique des identifiants existants. |
+| D6 | Validé | Un résultat figé publié peut alimenter un indicateur autorisé, sans action `agréger`, sous réserve de sa diffusabilité et de sa méthode. |
+| D7 | Validé, avec définition normative | **Masqué** : l'élément est omis de la représentation remise, ou remplacé par une indication neutre si elle ne révèle rien de protégé ; ni ses attributs, ni ses relations, ni ses références indirectes ne permettent de le reconstituer. **Pseudonymisé** : l'élément est représenté par un pseudonyme propre au contexte autorisé ; identifiants réels et correspondance inaccessibles au destinataire ; relations conservées filtrées contre la réidentification indirecte. La pseudonymisation n'est pas une anonymisation : les données restent personnelles. Les tests d'AC-06 et AC-07 portent sur le **graphe effectivement rendu** (participations, présences, situations, index, exports). |
+| D8 | Validé | `administrer` ouvre seulement les métadonnées nécessaires à la gouvernance ; aucun accès implicite aux contenus scientifiques privés ni aux métadonnées protégées sans nécessité administrative établie. |
+| D9 | Validé sous condition | Les droits vont au déposant identifiable des entrées, s'il possède les droits nécessaires ; sinon, aucun droit de lecture personnel n'est créé. Quatre rôles distincts : déclencheur technique, déposant des entrées, auteur scientifique identifiable, bénéficiaire d'une autorisation de lecture. Aucun n'est confondu avec le propriétaire administratif. |
+
+**Constats nuancés :**
+- **AC-13** : CP-40 reconnaît explicitement le résidu hors ligne ; la révocation est immédiate pour les lectures connectées.
+- **AC-16** : les copies légitimement réutilisées sont autonomes.
+- **AC-32** : pas d'action `agréger`.
+
+**AC-28 :** reclassé **majeur**. Chacune des 207 lignes reçoit un statut parmi : réalisée et vérifiée, partielle, absente, non applicable avec justification. Le § 25.4 est corrigé selon les résultats.
+
+**Ordre de correction approuvé :**
+1. Les onze défauts du dictionnaire.
+2. AC-01 à AC-07 dans le MLD, puis les autres constats.
+3. Vérification des 207 lignes.
+4. Contre-audit indépendant sur les sept bloquants, AC-10, AC-11, AC-23 et AC-28, avec non-régression.
+5. Gel du dictionnaire V1.3 et du MLD seulement après résolution documentée.
+
+## 7. Corrections appliquées (V1.1-d du MLD, dictionnaire V1.3 complété) — 10/10/2026
+
+*Statut : corrections rédigées par l'auteur. Aucun constat n'est clos : le contre-audit indépendant et la décision du porteur restent nécessaires.*
+
+| Constat | Dictionnaire V1.3 | MLD V1.1-d |
+|---|---|---|
+| AC-01 | DD-28 ; DI-B29 complétée | CP-48 ; CK d'auto-habilitation sur `regle_acces` ; § 22.2 étape 4 |
+| AC-02 | — | CP-37 réécrite (toutes les appartenances et règles du cédant closes et transférées) |
+| AC-03 | DI-A39 réécrite (quatre rôles) | CP-23 réécrite (titulaire ≠ propriétaire administratif ; aucun droit par repli) ; `regle_acces.nature = propriétaire` |
+| AC-04 | `BENEFICIER_EMBARGO`, DI-B21 réécrite | `embargo_beneficiaire` ; CP-46 réécrite ; § 22.2 étape 1 |
+| AC-05 | Unicité de BASE_JUSTIFICATIVE par espace et auteur | UQ de `base_justificative` ; CP-49 (visibilité uniforme) |
+| AC-06 | DI-L21 (définitions D7), `masquage` d'inclusion | `selection_inclusion.masquage_id` + CK ; CP-29 (rendu effectif) |
+| AC-07 | DI-L16 étendue à tous les profils | CP-33 |
+| AC-08 | — | CP-50 |
+| AC-09 | — | CP-35 (même espace ou acceptation) |
+| AC-10 | `version_active`, `etat_proposition`, `version_en_vigueur`, DI-L22, DI-B38 | Colonnes et FK ; CP-29, 33, 36, 39 ; MLD-16 |
+| AC-11 | `POSER_REGLE`, DI-B44 | `regle_acces.auteur_acteur_id` |
+| AC-12 | — | `transfert_engagement` (groupes, appartenances, admissions) ; CP-37 |
+| AC-13 | Réplication `limitée` par défaut en espace collectif (D2) | CK de `espace` ; CP-28 et CP-40 (résidu hors ligne reconnu) |
+| AC-14 | — | CP-27 (`charge` = delta) |
+| AC-15 | DD-28.4 (D8) | CP-35 ; `decision_editoriale.origine` |
+| AC-16 | DI-A41 (D3) | CP-51 |
+| AC-17 | DI-C13 réécrite, DI-C22 étendue | UQ d'empreinte supprimée ; CP-41 réécrite |
+| AC-18 | — | CK de `export_exclusion` ; CP-46 |
+| AC-19 | — | `assertion.temps_forme`, `⟨dh temps_fin⟩` |
+| AC-20 | — | `dependance.amont_type`, FK composite, CK ; § 24 corrigé |
+| AC-21 | — | CP-05 |
+| AC-22 | — | Unicités `WHERE NOT est_purge` (dix tables) ; prédicat de cote |
+| AC-23 | — | CP-22 réécrite ; CP-01 étendue |
+| AC-24 | DD-27 (D4) | Vingt colonnes en `NN*` |
+| AC-25 | DD-02 (UUID v4, D5) ; DD-27.3 | `version_objet` nullable sous `resolution_effacee` |
+| AC-26 | `email` conditionnelle ; `PSEUDONYME_RESERVE` | CK de `compte` ; `pseudonyme_reserve` |
+| AC-27 | — | CP-52 |
+| AC-28 | — | CP-53 ; `activite_perimetre_transmis`, `intervention_perimetre`, `evaluation_diffusabilite.effectif` ; § 25.4 refait (207 lignes vérifiées ; 21 lacunes corrigées, dont 3 trouvées par ce contrôle) |
+| AC-29 | Cardinalité (0,n) | — |
+| AC-30 | — | § 22.2 étape 1 bis ; `campagne_personne.acteur_id` |
+| AC-31 | — | CP-23 (acteur institutionnel d'amorçage) |
+| AC-32 | DD-24, point 6 (D6) | CP-34 |
+
+**Prochaine étape :** contre-audit indépendant ciblé sur les sept bloquants, AC-10, AC-11, AC-23 et AC-28, avec non-régression sur les autres corrections.

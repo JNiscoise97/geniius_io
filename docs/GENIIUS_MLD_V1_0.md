@@ -21,6 +21,16 @@
   - écarts ECD-06, 07, 08, 10, 11, 12, 13, 14, 15, 21, 33 corrigés : CP-16, CP-21 et CP-23 réécrites ; CP-41 à CP-47 ; tables `activite_referentiel`, `concept_libelle`, `export_referentiel` ; colonnes de `fichier`, `objet`, `activite`, `import`, `compte`, `referentiel`, `consentement` ; vues `v_mes_contributions`, `reutilisations_publiques` ; matrice complète des règles DI (§ 25.4) ;
   - obligations ST-12 à ST-15 (ECD-09, 16, 17, 18) ;
   - **267 tables** ; marqueur **[V1.1-c]**.
+- **Corrections V1.1-d (10 octobre 2026, après l’audit contradictoire)** — 32 constats AC-01 à AC-32 et arbitrages D1 à D9 du porteur ([instruction](AUDIT-MLD/INSTRUCTION_CONSTATS_AUDIT_MLD_V1_1.md)) :
+  - CP-22, CP-23, CP-37, CP-41 et CP-46 réécrites ; CP-01, 02, 05, 27, 28, 29, 33, 34, 35, 36, 39 et 40 complétées ;
+  - nouvelles contraintes CP-48 à CP-53 ;
+  - § 22.2 : étapes 1, 1 bis et 4 ;
+  - DDL : 4 nouvelles tables et colonnes sur environ vingt tables ; unicités filtrées des lignes purgées ; colonnes de contenu en `NN*` ;
+  - § 25.4 entièrement refait, avec un statut par ligne (contrôle exhaustif des 207 lignes « citées ») ;
+  - **271 tables** ; marqueur **[V1.1-d]** ;
+  - les constats restent **ouverts** jusqu’au contre-audit et à la décision du porteur.
+- **Refonte du contrôle d’accès décidée le 10/10/2026 (proposition A)** : le [contrat d’autorisation](GENIIUS_CONTRAT_AUTORISATION_V1.md) primera sur les contraintes d’accès actuelles, qui seront réécrites, sans empilement, après la validation du contrat et de la [batterie de scénarios](AUDIT-MLD/GENIIUS_BATTERIE_SCENARIOS_AUTORISATION_V1.md). **D’ici là, CP-23 à CP-26, CP-29, CP-30, CP-37, CP-46 et CP-48 ne sont pas normatives.**
+- **Corrections parallèles V1.1-e (hors contrôle d’accès, candidates)** : DI-A37, DI-K11, AC-22 (trois unicités), AC-25 (activités), NC-09, NC-10, NC-13, NC-15, DI-A10, DI-A26, DI-C11, DI-C23, DI-G13, DI-O14 ; textes contradictoires d’AC-10 retirés (CP-33, MLD-16, CP-36) ; commentaire de `charge` (AC-14). Marqueur **[V1.1-e]**.
 - **Date :** 7 octobre 2026 ; CP-23 à CP-25 et § 22.1 révisés le 9 octobre 2026
 - **Révision du 9 octobre 2026 (audit de cohérence, ECD-04 et ECD-05) :**
   - colonnes `regle_acces.nature` et `fondement`, CP-24 réécrite et CP-26 ajoutée : plus aucune règle de lecture au profit d'un rôle administratif ; l'accès exceptionnel devient identifiable et audité ;
@@ -218,8 +228,8 @@ Ce n'est pas un modèle « entité–attribut–valeur » non typé : le prédic
 ## MLD-16 [V1.1] — Manifeste des sélections partagées
 
 **Décision : manifeste relationnel en insertion seule, écrit une fois par version.**
-- `selection_inclusion` `[N]` contient une ligne par objet inclus et par version de sélection, avec la version incluse de l'objet, le mode et le motif d'inclusion. Les lignes sont écrites **dans la transaction qui confirme** la version et ne sont jamais modifiées (DI-L13).
-- Une proposition d'évolution (DI-L15) est une nouvelle version de la sélection à l'état `proposée`, avec ses propres lignes. La différence avec la version active se calcule par comparaison des deux ensembles de lignes.
+- `selection_inclusion` `[N]` contient une ligne par objet inclus et par version de sélection, avec la version incluse de l'objet, le mode et le motif d'inclusion. Les lignes sont écrites **une fois, à la création de la version** (proposition ou réduction), et ne sont jamais modifiées ; la confirmation désigne la version active sans rien réécrire (DI-L13, DI-L22) [réécrit en V1.1-e, AC-10].
+- Une proposition d'évolution (DI-L15) est une nouvelle version de la sélection à l'état `proposée`, avec ses propres lignes. La différence avec la version active se calcule par comparaison des deux ensembles de lignes. **[V1.1-d] AC-10 :** l’accès ne lit que la version désignée par `version_active_numero` ; la version courante peut être une proposition en attente sans que l’accès change (DI-L22, CP-33).
 - Le calcul du manifeste à partir des paramètres (parcours de l'arbre source) est une fonction de service. Son implémentation incrémentale relève du MPD. Seul le résultat confirmé est normatif.
 - Les exclusions (`selection_exclusion`) sont de confidentialité `I` : elles ne sont jamais servies à l'espace destinataire.
 
@@ -372,18 +382,21 @@ Les transitions de `etat_cycle_vie` (DI-A03) et le plafond de visibilité de l'e
 version_objet  [N]                                 -- VERSION_OBJET
   objet_id             uuid  NN  FK → objet(id)          -- AVOIR_VERSION (1,1)
   numero               int   NN  CK numero >= 1        -- PRECEDER : ordre des numéros
-  date_debut_validite  ts    NN
+  date_debut_validite  ts                                   -- NN sauf effacement de résolution (AC-25)
   date_fin_validite    ts                                   -- NULL = version courante
-  nature_changement    code  NN  CK IN {création, correction technique, changement scientifique,
+  nature_changement    code      CK IN {création, correction technique, changement scientifique,
                                          changement de statut, changement de gouvernance, restriction}
   motif                text
-  activite_id          uuid  NN  FK → activite(id)          -- PRODUIRE (1,1)
-  empreinte_etat       hash  NN
+  activite_id          uuid      FK → activite(id)          -- PRODUIRE (1,1) ; NN sauf effacement de résolution (AC-25)
+  empreinte_etat       hash                                 -- NN sauf effacement de résolution (AC-25)
+  resolution_effacee   bool  NN  default faux               -- [V1.1-d] DD-27.3 (AC-25)
+  CK resolution_effacee OR (date_debut_validite IS NOT NULL AND activite_id IS NOT NULL
+        AND empreinte_etat IS NOT NULL)                       -- [V1.1-d]
   statut_contenu       code  NN  CK IN {intact, restreint, purgé}  default 'intact'
   PK (objet_id, numero)
   UQ (objet_id) WHERE date_fin_validite IS NULL             -- une seule version courante (DI-A07)
   CK date_fin_validite IS NULL OR date_fin_validite >= date_debut_validite
-  CK (numero = 1) = (nature_changement = 'création')
+  CK resolution_effacee OR ((numero = 1) = (nature_changement = 'création'))   -- [V1.1-d] AC-25
   CK nature_changement NOT IN ('changement scientifique','restriction','changement de gouvernance')
      OR motif IS NOT NULL                                   -- DI-A08
 
@@ -413,6 +426,7 @@ activite  [N]                                      -- ACTIVITE
   perimetre_donnees_transmises  text
   acteur_id                     uuid      FK → acteur_geniius(id)   -- REALISER (0,1)
   role_acteur                   code      CK IN {réalisateur, déclencheur}   -- [V1.1-c] DI-A39 (ECD-14)
+  resolution_effacee            bool  NN  default faux                -- [V1.1-e] AC-25 : activité neutralisée par effacement de résolution (DD-27.3)
   CK (acteur_id IS NULL) = (role_acteur IS NULL)                             -- [V1.1-c]
   CK mode = 'automatique' OR role_acteur IS DISTINCT FROM 'déclencheur'      -- [V1.1-c]
   -- toute activité qui crée un objet a un acteur (DI-A39) : CP-23
@@ -422,6 +436,12 @@ activite  [N]                                      -- ACTIVITE
   CK mode <> 'manuel' OR acteur_id IS NOT NULL                       -- DI-A11
   CK (moteur IS NULL) = (version_moteur IS NULL)
   CK (fournisseur IS NULL) = (perimetre_donnees_transmises IS NULL)  -- DI-A12
+
+activite_perimetre_transmis  [N]                   -- [V1.1-d] DI-A12 : attributs transmis à un prestataire (AC-28)
+  activite_id  uuid  NN  FK → activite(id)
+  attribut     text  NN                                    -- « TABLE.colonne » d’une liste contrôlée
+  PK (activite_id, attribut)
+  -- aucun attribut de confidentialité R ou I (CP-53) ; obligatoire si `fournisseur` est renseigné (CP-05)
 
 activite_referentiel  [N]                          -- [V1.1-c] UTILISER_REFERENTIEL † (DI-A40, ECD-21)
   activite_id         uuid  NN  FK → activite(id)
@@ -475,7 +495,11 @@ lien_version  [N] ‡                                -- registre des versions de
 dependance  [L]                                    -- DEPENDANCE (3 catégories)
   ⟨LIEN 'dependance'⟩
   aval_id           uuid  NN  FK → objet(id)                -- DEPENDRE aval
-  amont_id          uuid  NN  FK → objet(id)                -- DEPENDRE amont
+  amont_id          uuid  NN                                -- DEPENDRE amont
+  amont_type        code  NN                                -- [V1.1-d] AC-20 : type de l'amont
+  FK (amont_id, amont_type) → objet(id, type_objet)          -- [V1.1-d]
+  CK categorie <> 'justification' OR amont_type NOT IN ('ACQUISITION_INFORMATION','ACQUISITION_DOCUMENTAIRE',
+        'BADGE','NARRATION','LIEN_EXPLORATOIRE','WORKSPACE','NOTE','TAG','COLLECTION','INBOX_ITEM','VEILLE')                              -- [V1.1-d] DI-A30, DI-A16, DI-G13 (domaine Q inclus)
   amont_numero      int                                     -- UTILISER_VERSION
   categorie         code  NN  CK IN {production, justification, raisonnement}
   type_dependance   code  NN  CK IN D-07
@@ -510,6 +534,8 @@ filiation  [L]                                     -- FILIATION
   FK (regle_acces_id, regle_acces_numero) → version_objet(objet_id, numero)   -- [V1.1]
   CK objet_derive_id <> origine_id                                           -- DI-A19
   CK operation_flux_id IS NOT NULL OR import_id IS NOT NULL                  -- DI-A20 élargie par DI-A37 [V1.1] : la réutilisation exige aussi un flux
+  CK type_filiation <> 'réutilisation' OR (operation_flux_id IS NOT NULL AND import_id IS NULL)   -- [V1.1-e] DI-A37 : une réutilisation vient d'un flux, jamais d'un import
+  -- type du flux = `réutilisation d'une sélection` (DI-A37, DI-L18) : CP-33
   CK (type_filiation = 'réutilisation') = (regle_acces_id IS NOT NULL)       -- [V1.1] DI-A37
   CK (regle_acces_id IS NULL) = (regle_acces_numero IS NULL)                 -- [V1.1]
   -- état figé après révocation (DI-A38) : CP-33
@@ -522,7 +548,7 @@ reference_inter_espace  [L]                        -- REFERENCE_INTER_ESPACE (ex
   motif               text
   etat_courant        code  NN  CK IN {active, cible révisée, redirigée, retirée,
                                        inaccessible, non résolue}           -- dérivé (CP-10)
-  UQ (espace_referent_id, objet_cible_id) WHERE etat_courant <> 'retirée'
+  UQ (espace_referent_id, objet_cible_id) WHERE etat_courant <> 'retirée'   -- [V1.1-d] visibilité uniforme dans l'espace référent : CP-49 (AC-05)
   -- DI-A23 (espace référent ≠ espace de la cible) : CP-04
 
 etat_reference_externe  [N]                        -- ETAT_REFERENCE_EXTERNE
@@ -533,7 +559,7 @@ etat_reference_externe  [N]                        -- ETAT_REFERENCE_EXTERNE
   date                   ts    NN
   motif                  text
   redirection_objet_id   uuid      FK → objet(id)                     -- REDIRIGER_VERS
-  CK (etat = 'redirigée') = (redirection_objet_id IS NOT NULL)        -- DI-A26
+  CK (etat = 'redirigée') = (redirection_objet_id IS NOT NULL)        -- DI-A26 ; [V1.1-e] un changement d’état de la cible ne modifie jamais automatiquement un objet de l’espace référent : il peut seulement créer une tâche de réexamen
 ```
 
 Les tables `dependance_hist`, `filiation_hist`, `reference_inter_espace_hist`, `responsabilite_hist`, `credit_hist` et `lien_hist` suivent MLD-02 avec la clé `(id, numero)` → `lien_version`.
@@ -547,14 +573,18 @@ base_justificative  [V]                            -- BASE_JUSTIFICATIVE (conten
   portee             code  NN  CK IN {publique, communautaire, projet, privée}
   date               ts    NN
   statut             code  NN  CK IN {en vigueur, remplacée, insuffisante, à réexaminer}
-  UQ (objet_justifie_id, portee) WHERE statut = 'en vigueur'
+  espace_id          uuid  NN  FK → espace(id)               ‡ copie de objet.espace_id (AC-05)
+  auteur_acteur_id   uuid      FK → acteur_geniius(id)       -- [V1.1-d] auteur, obligatoire pour la portée privée (AC-05)
+  CK portee <> 'privée' OR auteur_acteur_id IS NOT NULL OR est_purge
+  UQ (espace_id, objet_justifie_id, portee, coalesce(auteur_acteur_id, espace_id))
+     WHERE statut = 'en vigueur' AND NOT est_purge                          -- [V1.1-d] AC-05 ; V1.1 : (objet, portée)
 
 base_justificative_preuve  [A:base_justificative]  -- INVOQUER_PREUVE
   base_justificative_id  uuid  NN  FK → base_justificative(id)
   dependance_id          uuid  NN  FK → dependance(id)
   ⟨VA base_justificative⟩
   PK (base_justificative_id, dependance_id, v_debut)
-  -- DI-A27 (même aval, catégorie justification), DI-A29 : CP-09
+  -- DI-A29 : CP-09 ; [V1.1-d] DI-A27 (même aval que l’objet justifié, catégorie justification) : CP-53
 
 acquisition_information  [V]                       -- ACQUISITION_INFORMATION
   ⟨OBJ 'ACQUISITION_INFORMATION'⟩
@@ -634,7 +664,10 @@ espace  [V]                                        -- ESPACE
   duree_max_hors_ligne_jours int       CK duree_max_hors_ligne_jours > 0                         ‡ CP-28
   circuit_editorial   code  NN  CK IN {aucun, approbation requise}          -- [V1.1] DD-25 ; défaut selon type_espace (CP-35)
   UQ (type_espace) WHERE type_espace = 'Core partagé'        -- DD-17
-  CK (replication_hors_ligne = 'limitée') = (duree_max_hors_ligne_jours IS NOT NULL)        -- AUDIT-TECH-001
+  CK replication_hors_ligne <> 'limitée' OR duree_max_hors_ligne_jours IS NOT NULL   -- AUDIT-TECH-001
+  CK replication_hors_ligne <> 'interdite' OR duree_max_hors_ligne_jours IS NULL
+  CK type_espace NOT IN ('projet','organisation','communauté') OR replication_hors_ligne = 'interdite'
+     OR duree_max_hors_ligne_jours IS NOT NULL                                  -- [V1.1-d] D2, AC-13 : toujours bornée en espace collectif
   CK type_espace NOT IN ('communauté','Core partagé') OR regime_gouvernance IS NOT NULL OR est_purge
   CK type_espace <> 'personnel' OR visibilite_max = 'privé'
 
@@ -657,13 +690,15 @@ espace_organisation  [V]                           -- ESPACE_ORGANISATION ⊂ ES
 compte  [T]                                        -- COMPTE (ex-UTILISATEUR) ; confidentialité I
   id                            uuid  PK
   identite_civile               text
-  email                         text  NN
+  email                         text                                 -- [V1.1-d] AC-26 : effacée à la suppression du compte
   niveau_verification_identite  code  NN  CK IN {aucun, standard, renforcé}
   date_inscription              ts    NN
   etat_compte                   code  NN  CK IN {actif, suspendu, fermé, supprimé}
   espace_personnel_id           uuid  NN  UQ  FK → espace(id)     ‡ espace personnel du compte
   langue_preferee               lang                                -- [V1.1-c] ECD-12 ; repli : langue de référence
   UQ (lower(email)) WHERE etat_compte IN ('actif','suspendu')
+  CK etat_compte = 'supprimé' OR email IS NOT NULL                            -- [V1.1-d] DI-B05
+  CK etat_compte <> 'supprimé' OR (email IS NULL AND identite_civile IS NULL)   -- [V1.1-d] DI-B05
 
 compte_categorie_sollicitation  [T]                -- COMPTE.categories_sollicitation_acceptees (0..n)
   compte_id  uuid  NN  FK → compte(id) ON DELETE CASCADE
@@ -680,6 +715,11 @@ acteur_geniius  [V]                                -- ACTEUR_GENIIUS
   statut                 code  NN  CK IN {actif, inactif, décédé, dissous}
   UQ (lower(pseudonyme)) WHERE pseudonyme IS NOT NULL                -- DI-B08 (jamais réattribué : CP-06)
   CK mode_affichage_public <> 'pseudonyme stable' OR pseudonyme IS NOT NULL OR est_purge
+
+pseudonyme_reserve  [T]                            -- [V1.1-d] PSEUDONYME_RESERVE † (DI-B08, AC-26) ; jamais purgé
+  empreinte_pseudonyme  hash  PK                      -- empreinte normalisée et non réversible (salée par plateforme)
+  date_reservation      ts    NN
+  -- aucune clé vers l’acteur ; tout nouveau pseudonyme est refusé si son empreinte y figure (CP-06)
 
 lien_compte_acteur  [T]                            -- LIEN_COMPTE_ACTEUR ; confidentialité I
   compte_id            uuid  NN  FK → compte(id) ON DELETE CASCADE
@@ -698,7 +738,7 @@ lien_compte_personne  [V]                          -- LIEN_COMPTE_PERSONNE (ex-R
   date         ts    NN
   statut       code  NN  CK IN {déclaré, vérifié, révoqué}
   niveau       code  NN  CK IN {standard, renforcé}
-  UQ (personne_id) WHERE statut = 'vérifié'
+  UQ (personne_id) WHERE statut = 'vérifié' AND NOT est_purge                 -- [V1.1-e] AC-22
 
 groupe  [V]                                        -- GROUPE
   ⟨OBJ 'GROUPE'⟩
@@ -761,7 +801,12 @@ regle_acces  [V]                                   -- REGLE_ACCES
   date_fin                ts
   condition               text
   sensibilite             code  NN  CK IN {normale, sensible, très sensible}
-  nature                  code  NN  CK IN {ordinaire, exceptionnelle}  default 'ordinaire'  ‡ CP-24
+  nature                  code  NN  CK IN {ordinaire, exceptionnelle, propriétaire}  default 'ordinaire'  ‡ CP-24 ; [V1.1-d] `propriétaire` : règle CP-23
+  auteur_acteur_id        uuid  NN  FK → acteur_geniius(id)   -- [V1.1-d] POSER_REGLE † (DI-B44, AC-11), figé
+  CK nature = 'propriétaire' OR type_beneficiaire <> 'acteur' OR beneficiaire_acteur_id <> auteur_acteur_id
+     OR action NOT IN ('voir','éditer','transcrire','valider','réutiliser','repartager','exporter')   -- [V1.1-d] DD-28.2 : pas d'auto-habilitation
+  CK nature <> 'propriétaire' OR (type_beneficiaire = 'acteur' AND effet = 'autoriser'
+     AND action IN ('voir','éditer') AND cible_type = 'objet')                       -- [V1.1-d] CP-23
   fondement               text                                  ‡ CP-24 (justification, mandat, base juridique)
   espace_role_id          uuid      FK → espace(id)            -- [V1.1] espace du rôle bénéficiaire (DI-B34)
   mode_admission          code      CK IN {notification, approbation préalable}   -- [V1.1] DI-B36
@@ -844,6 +889,8 @@ evaluation_diffusabilite  [V]                      -- EVALUATION_DIFFUSABILITE
   date                 ts    NN
   FK (objet_evalue_id, objet_evalue_numero) → version_objet(objet_id, numero)
   CK risque_inference <> 'élevé' OR decision <> 'diffusable'               -- DI-B17
+  effectif             int       CK effectif >= 0                       -- [V1.1-d] DI-B18 : effectif d’un agrégat évalué
+  -- effectif < seuil MPD-03 ⇒ decision ∈ {autorisation requise, existence seulement, non diffusable} : CP-53
 ```
 
 ## 5.4 Licences, embargos, classification, masquage
@@ -866,6 +913,16 @@ embargo  [V]                                       -- EMBARGO
   motif            text  NN*
   statut           code  NN  CK IN {actif, levé, expiré}
   CK date_fin_type IS NOT NULL OR condition_levee IS NOT NULL OR est_purge  -- DI-B19
+
+embargo_beneficiaire  [A:embargo]                  -- [V1.1-d] BENEFICIER_EMBARGO † (DI-B21, AC-04)
+  embargo_id  uuid  NN  FK → embargo(id)
+  acteur_id   uuid      FK → acteur_geniius(id)
+  groupe_id   uuid      FK → groupe(id)
+  ⟨VA embargo⟩
+  CK num_nonnulls(acteur_id, groupe_id) = 1
+  UQ (embargo_id, acteur_id) WHERE acteur_id IS NOT NULL AND v_fin IS NULL
+  UQ (embargo_id, groupe_id) WHERE groupe_id IS NOT NULL AND v_fin IS NULL
+  -- au moins un bénéficiaire, l’auteur d’office (CP-05) ; exception d’accès à l’étape 1 du § 22.2 (CP-46)
 
 classification  [T]                                -- CLASSIFICATION (référentiel)
   code     text  PK
@@ -899,14 +956,14 @@ consentement  [V]                                  -- CONSENTEMENT ; confidentia
   personne_id          uuid  NN  FK → personne(id)            -- CONSENTIR
   objet_concerne_id    uuid      FK → objet(id)
   espace_concerne_id   uuid      FK → espace(id)
-  portee               code  NN  CK IN {enregistrement, transcription, usage familial, usage projet,
+  portee               code  NN* CK IN {enregistrement, transcription, usage familial, usage projet,   -- [V1.1-d] AC-24 : purgeable
                                         structuration, partage, contribution scientifique, usage algorithmique,
                                         transmission à un prestataire externe,          -- [V1.1-c] ECD-11 (DI-B43 : CP-42)
                                         publication, usage posthume, biométrie}
-  decision             code  NN  CK IN {accordé, refusé, retiré}
-  texte_version        text  NN
+  decision             code  NN* CK IN {accordé, refusé, retiré}   -- [V1.1-d] AC-24 : purgeable
+  texte_version        text  NN*   -- [V1.1-d] AC-24 : purgeable
   horodatage           ts    NN
-  mode_recueil         code  NN  CK IN {écrit signé, oral enregistré, électronique, représentant légal}
+  mode_recueil         code  NN* CK IN {écrit signé, oral enregistré, électronique, représentant légal}   -- [V1.1-d] AC-24 : purgeable
   CK num_nonnulls(objet_concerne_id, espace_concerne_id) <= 1
 
 volonte_numerique  [V]                             -- VOLONTE_NUMERIQUE ; R
@@ -941,7 +998,8 @@ transfert_engagement  [N] ‡                        -- [V1.1] engagements prés
   transfert_id       uuid  NN  FK → transfert_gouvernance(id)
   transfert_numero   int   NN                                  -- version de présentation
   engagement_id      uuid  NN                                  -- règle d'accès, sélection ou rattachement
-  engagement_type    code  NN  CK IN {REGLE_ACCES, SELECTION_PARTAGE, relation_projets}
+  engagement_type    code  NN  CK IN {REGLE_ACCES, SELECTION_PARTAGE, relation_projets,
+                                         GROUPE, appartenance_espace, regle_admission}   -- [V1.1-d] AC-12
   engagement_numero  int   NN
   PK (transfert_id, transfert_numero, engagement_id)
   FK (transfert_id, transfert_numero) → version_objet(objet_id, numero)
@@ -1004,6 +1062,9 @@ prise_en_charge  [V]                               -- [V1.1] PRISE_EN_CHARGE (MC
   date_fin                date  NN                            -- DATE_CIVILE
   etat                    code  NN  CK IN {proposée, active, refusée, suspendue, révoquée, expirée}
   motif_fin               text
+  version_en_vigueur_numero int                                   -- [V1.1-d] AC-10 : dernière version acceptée par les deux parties
+  FK (id, version_en_vigueur_numero) → version_objet(objet_id, numero)            -- [V1.1-d]
+  CK etat NOT IN ('active','suspendue') OR version_en_vigueur_numero IS NOT NULL   -- [V1.1-d]
   CK financeur_espace_id <> beneficiaire_espace_id
   CK date_fin >= date_debut
   CK plafond_norm IS NULL OR plafond_norm > 0
@@ -1056,7 +1117,7 @@ contribution_differee  [V] †                      -- CONTRIBUTION_DIFFEREE (di
   base_objet_id            uuid
   base_numero              int                                       -- version canonique connue (TECH-003.2)
   type_objet_vise          code  NN
-  charge                   json  NN*                                  -- opération sérialisée (format patrimonial, ETAT_FIGE)
+  charge                   json  NN*                                  -- [V1.1-e] AC-14 : delta saisi et identifiants de base seulement, jamais l'état de base ni l'ancienne valeur (CP-27)
   version_logiciel         text  NN
   version_schema           text  NN
   referentiel_id           uuid      FK → referentiel(id)
@@ -1174,7 +1235,7 @@ identifiant_documentaire  [V]                      -- IDENTIFIANT_DOCUMENTAIRE
   ⟨dh date_fin⟩
   FK (porteur_id, porteur_type) → objet(id, type_objet)
   UQ (porteur_id, coalesce(institution_emettrice, ''))
-     WHERE type = 'cote actuelle' AND date_fin_type IS NULL   -- DI-C08
+     WHERE type = 'cote actuelle' AND date_fin_type IS NULL AND NOT est_purge   -- DI-C08 ; [V1.1-d] AC-22
 
 localisation_en_ligne  [V]                         -- LOCALISATION_EN_LIGNE
   ⟨OBJ 'LOCALISATION_EN_LIGNE'⟩
@@ -1197,7 +1258,7 @@ page  [V]                                          -- PAGE
   face           code  NN  CK IN {recto, verso, sans objet}
   rang           int   NN  CK rang >= 1
   etat           code  NN  CK IN {présente, absente, endommagée}
-  UQ (exemplaire_id, rang)
+  UQ (exemplaire_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
 ```
 
 ## 6.3 Reproductions, fichiers, vues, zones
@@ -1231,7 +1292,7 @@ fichier  [T]                                       -- FICHIER
                                          manquant, corrompu, purgé}  default 'en réception'   -- [V1.1-c] DI-C23 (ECD-08)
   date_dernier_controle ts                                    -- [V1.1-c]
   est_purge             bool  NN  default faux
-  UQ (espace_id, empreinte)                                   -- [V1.1-c] DI-C13 : identité par espace
+  -- [V1.1-d] AC-17 : plus d'unicité d'empreinte ; un `fichier` par dépôt (DI-C13) ; mutualisation physique seulement (`cle_stockage`)
   CK est_purge OR emplacement_stockage IS NOT NULL
   CK est_purge = (etat_conservation = 'purgé')                -- [V1.1-c]
   CK est_purge OR cle_stockage IS NOT NULL                    -- [V1.1-c]
@@ -1254,7 +1315,7 @@ vue  [V]                                           -- VUE
   duree            int                                        -- ms
   largeur_px       int   CK largeur_px > 0
   hauteur_px       int   CK hauteur_px > 0
-  UQ (reproduction_id, rang)
+  UQ (reproduction_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
   CK (type = 'image') = (largeur_px IS NOT NULL AND hauteur_px IS NOT NULL)
   CK (type = 'image') <> (duree IS NOT NULL)
 
@@ -1287,7 +1348,7 @@ alignement_reproduction  [A:vue] †                 -- ALIGNEMENT_REPRODUCTION 
   id              uuid  PK
   vue_source_id   uuid  NN  FK → vue(id)
   vue_cible_id    uuid  NN  FK → vue(id)
-  transformation  text  NN
+  transformation  text  NN*   -- [V1.1-d] AC-24 : purgeable
   methode         text
   statut          code  NN  CK IN {proposé, vérifié}
   v_debut         int   NN
@@ -1383,7 +1444,7 @@ segment  [V]                                       -- SEGMENT
   texte                text                                   -- verbatim (TI-03)
   type                 code  NN  CK IN {mot, ligne, paragraphe, marge, interligne}
   incertitude_lecture  code  NN  CK IN {certaine, probable, douteuse, illisible}
-  UQ (transcription_id, rang)
+  UQ (transcription_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
   CK texte IS NOT NULL OR incertitude_lecture = 'illisible' OR est_purge     -- DI-D05
 
 segment_zone  [A:segment]                          -- ALIGNER
@@ -1434,7 +1495,7 @@ mention_ancrage  [A:mention]                       -- LOCALISER_MENTION
 regroupement_traces  [V]                           -- REGROUPEMENT_TRACES
   ⟨OBJ 'REGROUPEMENT_TRACES'⟩
   type    code  NN  CK IN {individu visuel, cluster vocal, main d'écriture, signature récurrente}
-  code    text  NN
+  code    text  NN*   -- [V1.1-d] AC-24 : purgeable
   statut  code  NN  CK IN {proposé, examiné, contesté}
   -- unicité du code par espace : CP-15 ; consentement biométrique (DI-B25) : CP-13
 
@@ -1479,9 +1540,9 @@ entite_historique  [V]                             -- ENTITE_HISTORIQUE (abstrai
 personne  [V]                                      -- PERSONNE
   ⟨SOUS entite_historique 'PERSONNE'⟩
   mode_individualisation  code  NN  CK IN {nommée, prénom seul, surnom/désignation, anonyme individualisée}
-  regime_protection       code  NN  CK IN {vivant attesté, raisonnablement présumé vivant,
+  regime_protection       code  NN* CK IN {vivant attesté, raisonnablement présumé vivant,   -- [V1.1-d] AC-24 : purgeable
                                            décédé attesté, statut vital inconnu}
-  mineur_protege          bool  NN
+  mineur_protege          bool  NN*   -- [V1.1-d] AC-24 : purgeable
   ⟨dh date_reevaluation_protection⟩
   CK NOT mineur_protege OR date_reevaluation_protection_type IS NOT NULL OR est_purge  -- DI-E07
   -- AUCUNE colonne de nom, sexe, date, lieu, profession : tout passe par assertion (RG-E01, MLD-09)
@@ -1537,7 +1598,7 @@ etape_voyage  [V]                                  -- ETAPE_VOYAGE
   rang        int   NN  CK rang >= 1
   ⟨dh date⟩
   statut      code  NN  CK IN {attestée, reconstruite, hypothétique}
-  UQ (voyage_id, rang)
+  UQ (voyage_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
   -- DI-E08 (attestée ⇒ assertion ancrée) : CP-13
 
 tradition  [V]                                     -- TRADITION
@@ -1603,8 +1664,8 @@ candidature  [V]                                   -- CANDIDATURE
   plausibilite  code  NN  CK IN D-19
   statut        code  NN  CK IN {en lice, écartée provisoirement, rejetée, retenue}
   motif         text
-  UQ (position_id, entite_id)                                                -- DI-F07
-  UQ (position_id) WHERE statut = 'retenue'                                  -- DI-F08
+  UQ (position_id, entite_id) WHERE NOT est_purge                                                -- DI-F07   -- [V1.1-d] AC-22
+  UQ (position_id) WHERE statut = 'retenue' AND NOT est_purge                                  -- DI-F08 ; [V1.1-e] AC-22
   CK statut NOT IN ('écartée provisoirement','rejetée') OR motif IS NOT NULL OR est_purge
 
 rapprochement  [V]                                 -- RAPPROCHEMENT
@@ -1628,7 +1689,7 @@ selection_contexte  [V]                            -- SELECTION_CONTEXTE (ex-CHO
   predicat_id         uuid  NN  FK → concept(id)              ‡ copie du prédicat de l'assertion
   usage               code  NN  CK IN {affichage, export, calcul, publication, arbre}
   motif               text
-  UQ (espace_contexte_id, entite_id, usage, predicat_id)                     -- DI-F14
+  UQ (espace_contexte_id, entite_id, usage, predicat_id) WHERE NOT est_purge                     -- DI-F14 ; [V1.1-d] AC-22 ; visibilité uniforme : CP-49 (AC-05)
   -- sujet de l'assertion = entité, prédicat copié conforme (DI-F13) : CP-07
 
 position_epistemique  [V]                          -- POSITION_EPISTEMIQUE
@@ -1640,7 +1701,7 @@ position_epistemique  [V]                          -- POSITION_EPISTEMIQUE
   justification            text  NN*
   date                     ts    NN
   CK num_nonnulls(contexte_espace_id, contexte_publication_id) = 1
-  UQ (coalesce(contexte_espace_id, contexte_publication_id), objet_vise_id)  -- DI-F16
+  UQ (coalesce(contexte_espace_id, contexte_publication_id), objet_vise_id) WHERE NOT est_purge  -- DI-F16 ; [V1.1-d] AC-22 ; visibilité uniforme : CP-49
 ```
 
 ---
@@ -1673,6 +1734,10 @@ assertion  [V]                                     -- ASSERTION ; profils ASSERT
   polarite               code  NN  CK IN {positive, négative}  default 'positive'
   plausibilite           code  NN  CK IN D-19
   ⟨dh temps⟩                                                   -- temps historique
+  temps_forme            code  NN  CK IN {date, période}  default 'date'     -- [V1.1-d] AC-19 : DATE_HIST ou PERIODE_HIST
+  ⟨dh temps_fin⟩                                               -- [V1.1-d] fin de période ; ⟨dh temps⟩ = début
+  CK (temps_forme = 'période') = (temps_fin_type IS NOT NULL) OR est_purge     -- [V1.1-d]
+  CK profil <> 'situation' OR temps_forme = 'date'                          -- [V1.1-e] NC-15 : la période d'une situation est portée par assertion_situation
   ⟨val valeur⟩
   etat_provenance        code  NN  CK IN D-14
   calcul_id              uuid      FK → calcul(id)             -- DERIVER (0,1)
@@ -1865,7 +1930,7 @@ acte_evaluation  [F]                               -- ACTE_EVALUATION (jamais mo
   type                   code  NN  CK IN D-33
   date                   ts    NN
   justification          text
-  processus_applicable   text  NN
+  processus_applicable   text  NN*   -- [V1.1-d] AC-24 : purgeable
   independance           code  NN  CK IN {indépendance déclarée, lien connu, inconnue}  -- CP-10
   role_au_moment         code  NN
   FK (objet_evalue_id, objet_evalue_numero) → version_objet(objet_id, numero)
@@ -1969,8 +2034,8 @@ badge  [V]                                         -- BADGE
   acteur_id             uuid  NN  FK → acteur_geniius(id)     -- OBTENIR
   domaine_id            uuid      FK → domaine_expertise(id)
   famille               code  NN  CK IN {expérience constatée, qualification attribuée}
-  libelle               text  NN
-  critere_ou_procedure  text  NN
+  libelle               text  NN*   -- [V1.1-d] AC-24 : purgeable
+  critere_ou_procedure  text  NN*   -- [V1.1-d] AC-24 : purgeable
   date_attribution      ts    NN
   date_revocation       ts
 
@@ -2023,7 +2088,7 @@ element_reconstruit  [V]                           -- ELEMENT_RECONSTRUIT ⊂ PO
   numero              text
   statut_contenu      code  NN  CK IN {attesté par une trace, reconstruit (hypothèse), inconnu}
   UQ (reconstruction_id, coalesce(parent_element_id, '00000000-0000-0000-0000-000000000000'), niveau, numero)
-     WHERE numero IS NOT NULL                                 -- DI-I06 (la constante est technique)
+     WHERE numero IS NOT NULL AND NOT est_purge                                 -- DI-I06 (la constante est technique) ; [V1.1-e] AC-22
   CK parent_element_id IS NULL OR parent_element_id <> id
   -- DI-I03 (attesté ⇒ appui), parent dans la même reconstruction, absence de cycle : CP-05, CP-09
 
@@ -2093,7 +2158,7 @@ echange  [V]                                       -- ECHANGE
   rang                  int   NN  CK rang >= 1
   question_texte_exact  text                                  -- verbatim
   caractere_question    code  NN  CK IN {ouverte, fermée, suggestive, inconnu}
-  UQ (session_memoire_id, rang)                                              -- DI-J05
+  UQ (session_memoire_id, rang) WHERE NOT est_purge                                              -- DI-J05   -- [V1.1-d] AC-22
   CK question_texte_exact IS NOT NULL OR caractere_question = 'inconnu' OR est_purge  -- DI-J04
 
 echange_zone  [A:echange]                          -- MINUTE
@@ -2107,7 +2172,7 @@ reponse  [V]                                       -- REPONSE ; R
   echange_id          uuid  NN  FK → echange(id)              -- OBTENIR (1,1)
   phase               code  NN  CK IN {spontanée, après indice}
   texte               text                                    -- verbatim
-  etat_memoire        code  NN  CK IN D-36
+  etat_memoire        code  NN* CK IN D-36   -- [V1.1-d] AC-24 : purgeable
   mode_connaissance   code  NN  CK IN D-37  default 'inconnu'
   reponse_revisee_id  uuid  UQ  FK → reponse(id)              -- REVISER (0,1)
   nature_revision     code      CK IN {nouvelle déclaration, précision, rétractation}
@@ -2145,6 +2210,7 @@ campagne_personne  [A:campagne_memoire]            -- INTERROGER
   campagne_memoire_id  uuid  NN  FK → campagne_memoire(id)
   personne_id          uuid  NN  FK → personne(id)
   statut               code  NN  CK IN {invitée, a répondu, a décliné}
+  acteur_id            uuid      FK → acteur_geniius(id)   -- [V1.1-d] AC-30 : acteur qui répond (cloisonnement, § 22.2 étape 1 bis) ; R
   ⟨VA campagne_memoire⟩
   PK (campagne_memoire_id, personne_id, v_debut)
 
@@ -2296,12 +2362,14 @@ recherche_effectuee  [V]                           -- RECHERCHE_EFFECTUEE
   item_mission_id      uuid      FK → item_mission(id)        -- REALISER_ITEM
   ⟨dh date⟩                                                   -- NN* sur date_type
   objectif             text  NN*
+  nature_recherche     code  NN  CK IN {nominative, thématique, documentaire, autre}  -- [V1.1-e] DI-K11
   termes_et_variantes  text
+  CK nature_recherche <> 'nominative' OR termes_et_variantes IS NOT NULL OR est_purge   -- [V1.1-e] DI-K11
   niveau_consultation  code  NN  CK IN D-41
   couverture           text  NN*
   resultat             code  NN  CK IN {positif, négatif, partiel, non concluant}
   limites              text
-  -- au moins un périmètre (DI-K09) : CP-05 ; DI-K10 : CP-13 ; DI-K11 : application
+  -- au moins un périmètre (DI-K09) : CP-05 ; DI-K10 : CP-13 ; DI-K11 : CK ci-dessus
 
 recherche_perimetre  [A:recherche_effectuee]       -- PERIMETRE (1,n)
   recherche_effectuee_id     uuid  NN  FK → recherche_effectuee(id)
@@ -2338,7 +2406,7 @@ item_mission  [V]                                  -- ITEM_MISSION
   priorite         code      CK IN {haute, moyenne, basse}
   statut           code  NN  CK IN D-42
   notes            text
-  UQ (mission_id, rang)
+  UQ (mission_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
 
 intervention_mission  [A:mission]                  -- INTERVENIR
   mission_id       uuid  NN  FK → mission(id)
@@ -2348,10 +2416,19 @@ intervention_mission  [A:mission]                  -- INTERVENIR
   statut           code  NN  CK IN {soi, tiers, professionnel, bénévole}
   acces_debut      ts    NN
   acces_fin        ts
-  perimetre_acces  text  NN
+  perimetre_acces  text  NN*   -- [V1.1-d] AC-24 : purgeable
   ⟨VA mission⟩
   PK (mission_id, acteur_id, role, v_debut)
   CK acces_fin IS NULL OR acces_fin > acces_debut
+
+intervention_perimetre  [A:mission]                -- [V1.1-d] DI-K12 : périmètre d’accès en objets cibles (AC-28)
+  mission_id  uuid  NN
+  acteur_id   uuid  NN
+  role        code  NN
+  objet_id    uuid  NN  FK → objet(id)
+  ⟨VA mission⟩
+  PK (mission_id, acteur_id, role, objet_id, v_debut)
+  -- les règles d’accès temporaires de CP-20 portent sur ces objets ; `perimetre_acces` reste une description
   -- règles d'accès temporaires dérivées et closes à expiration (DI-K12) : CP-20
 
 offre_deplacement  [V]                             -- OFFRE_DEPLACEMENT
@@ -2400,7 +2477,7 @@ interaction  [V]                                   -- INTERACTION
   contact_id        uuid  NN  FK → contact(id)                -- HISTORIQUE
   question_id       uuid      FK → question(id)
   mission_id        uuid      FK → mission(id)
-  type              code  NN  CK IN {demande, réponse, relance, échange, note privée}
+  type              code  NN* CK IN {demande, réponse, relance, échange, note privée}   -- [V1.1-d] AC-24 : purgeable
   ⟨dh date⟩                                                   -- NN*
   contenu           text  NN*                                 -- R
   ⟨dh echeance_relance⟩
@@ -2422,7 +2499,7 @@ critere_protocole  [V]                             -- CRITERE_PROTOCOLE
   libelle       text  NN*
   ⟨REF dimension⟩
   condition     text
-  UQ (protocole_id, rang)
+  UQ (protocole_id, rang) WHERE NOT est_purge   -- [V1.1-d] AC-22
 
 application_protocole  [V]                         -- APPLICATION_PROTOCOLE
   ⟨OBJ 'APPLICATION_PROTOCOLE'⟩
@@ -2555,7 +2632,7 @@ noeud_arbre  [V]                                   -- NOEUD_ARBRE
   personne_id         uuid  NN  FK → personne(id)             -- REPRESENTER
   libelle_affichage   text
   position_affichage  text
-  UQ (arbre_id, personne_id)                                                  -- DI-L04
+  UQ (arbre_id, personne_id) WHERE NOT est_purge                                                  -- DI-L04   -- [V1.1-d] AC-22
   -- même espace que l'arbre (DI-L03) : CP-04
 
 arbre_lien  [A:arbre]                              -- INCLURE_LIEN
@@ -2573,7 +2650,7 @@ operation_flux  [V]                                -- OPERATION_FLUX
   type               code  NN  CK IN D-45
   date               ts    NN
   statut             code  NN  CK IN {préparée, exécutée, annulée}
-  autorisation       text  NN
+  autorisation       text  NN*   -- [V1.1-d] AC-24 : purgeable
   selection_id       uuid      FK → selection_partage(id)      -- [V1.1] OPERATION_FLUX.selection
   selection_numero   int
   FK (selection_id, selection_numero) → version_objet(objet_id, numero)   -- [V1.1]
@@ -2599,6 +2676,10 @@ selection_partage  [V]                             -- [V1.1] SELECTION_PARTAGE (
   traitement_sensibles    code  NN  CK IN {exclus, masqués}  default 'exclus'
   evolution               code  NN  CK IN {figée, suivi par propositions}
   etat                    code  NN  CK IN {brouillon, proposée, active, suspendue, révoquée, close}
+  version_active_numero   int                                     -- [V1.1-d] AC-10 : seule source de l'accès (DI-L22)
+  etat_proposition        code      CK IN {en attente, confirmée, refusée}       -- [V1.1-d]
+  FK (id, version_active_numero) → version_objet(objet_id, numero)                -- [V1.1-d]
+  CK etat IN ('brouillon') OR version_active_numero IS NOT NULL OR est_purge         -- [V1.1-d]
   CK type_selection <> 'branche généalogique' OR est_purge
      OR (arbre_source_id IS NOT NULL AND point_depart_id IS NOT NULL AND ascendance IS NOT NULL
          AND descendance IS NOT NULL AND unions IS NOT NULL AND conjoints IS NOT NULL)
@@ -2620,6 +2701,10 @@ selection_inclusion  [N]                           -- [V1.1] INCLURE_SELECTION :
   objet_numero      int   NN                                    -- version_incluse
   mode_inclusion    code  NN  CK IN {intégral, masqué, pseudonymisé}
   motif_inclusion   code  NN  CK IN {point de départ, ascendance, descendance, union, conjoint, ajout explicite}
+  masquage_id       uuid      FK → masquage(id)              -- [V1.1-d] AC-06 : représentation transformée (DI-L21)
+  CK mode_inclusion <> 'pseudonymisé' OR masquage_id IS NOT NULL                -- [V1.1-d]
+  CK mode_inclusion <> 'intégral' OR masquage_id IS NULL                          -- [V1.1-d]
+  -- [V1.1-e] NC-10 : masquage de l'objet inclus lui-même, de type `pseudonymisation`, propre à la sélection : CP-33
   PK (selection_id, selection_numero, objet_id)
   FK (selection_id, selection_numero) → version_objet(objet_id, numero)
   FK (objet_id, objet_numero) → version_objet(objet_id, numero)
@@ -2630,7 +2715,7 @@ comparaison  [V]                                   -- COMPARAISON
   arbre_a_id  uuid  NN  FK → arbre(id)                       -- COMPARER (A)
   arbre_b_id  uuid  NN  FK → arbre(id)                       -- COMPARER (B)
   date        ts    NN
-  perimetre   text  NN
+  perimetre   text  NN*   -- [V1.1-d] AC-24 : purgeable
   statut      code  NN  CK IN {en cours, terminée, expirée}
   CK arbre_a_id <> arbre_b_id
 
@@ -2895,6 +2980,8 @@ decision_editoriale  [F]                           -- [V1.1] DECISION_EDITORIALE
   type                    code  NN  CK IN {relue, approuvée, refusée, approbation invalidée}
   motif                   text
   decision_invalidee_id   uuid      FK → decision_editoriale(id)
+  origine                 code  NN  CK IN {humaine, automatique}  default 'humaine'   -- [V1.1-d] AC-15
+  CK origine = 'humaine' OR type = 'approbation invalidée'                           -- [V1.1-d] seule l'invalidation est automatique
   date                    ts    NN
   FK (publication_id, publication_numero) → version_objet(objet_id, numero)
   CK (type = 'approbation invalidée') = (decision_invalidee_id IS NOT NULL)        -- DI-P12
@@ -2994,7 +3081,8 @@ export_dependance_externe  [N] ‡                   -- dépendances externes r�
 export_exclusion  [N] ‡                            -- exclusions pour droits ; confidentialité I
   export_id  uuid  NN  FK → export(id)
   objet_id   uuid  NN  FK → objet(id)
-  motif      code  NN  CK IN {embargo, consentement, règle d'accès, licence, masquage, existence protégée}
+  motif      code  NN  CK IN {embargo, consentement, règle d'accès, licence, masquage}   -- [V1.1-d] AC-18 : jamais `existence protégée`
+  -- les objets à existence protégée ne sont ni listés ni nommés ; seul un compteur interne non nominatif, côté espace porteur, est tenu (CP-46)
   PK (export_id, objet_id)
 
 lignee_import  [T] ‡                               -- source suivie à travers les réimports (MLD-11)
@@ -3157,7 +3245,7 @@ notification  [T]                                  -- NOTIFICATION ; I
 ```text
 referentiel  [V]                                   -- REFERENTIEL (conteneur) ; PORTER = objet.espace_id
   ⟨OBJ 'REFERENTIEL'⟩
-  nom          text  NN
+  nom          text  NN*   -- [V1.1-d] AC-24 : purgeable
   niveau       code  NN  CK IN {personnel/projet, communautaire, commun GENIIUS}
   description  text
   langue_reference  lang  NN                                   -- [V1.1-c] DI-R06 (ECD-12)
@@ -3168,8 +3256,8 @@ concept  [V]                                       -- CONCEPT
   referentiel_id     uuid  NN  FK → referentiel(id)           -- CONTENIR_CONCEPT
   concept_parent_id  uuid      FK → concept(id)               -- PLUS_LARGE
   code               text  NN  CK code ~ '^[a-z0-9_]+$'
-  libelle            text  NN
-  definition         text  NN
+  libelle            text  NN*   -- [V1.1-d] AC-24 : purgeable
+  definition         text  NN*   -- [V1.1-d] AC-24 : purgeable
   nature             code  NN  CK IN {prédicat, rôle, type d'entité, type documentaire, nature d'événement,
                                       profession, statut, monnaie, unité, calendrier,
                                       système d'identifiant, autre}
@@ -3223,7 +3311,7 @@ usage_terme  [A:terme_historique]                  -- USAGE
   ⟨ph periode⟩
   territoire_lieu_id   uuid      FK → lieu(id)
   corpus_id            uuid      FK → corpus(id)
-  sens                 text  NN
+  sens                 text  NN*   -- [V1.1-d] AC-24 : purgeable
   ⟨VA terme_historique⟩
   PK (terme_historique_id, concept_id, v_debut)
 
@@ -3265,13 +3353,13 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 
 | # | Contrainte | Portée | Origine |
 |---|---|---|---|
-| CP-01 | Séquence d'écriture du § 21.1 ; aucune mise à jour d'une table `[V]` sans nouvelle version ; aucune modification d'une ligne `_hist`, `version_objet` ou d'un journal `[N]` hors purge | Toutes tables `[V]`, `[F]`, `[L]` | TI-01, MLD-02 |
-| CP-02 | `objet.version_courante` = numéro de la version sans `date_fin_validite` ; idem pour `lien.version_courante` ; une table `[F]` n'a qu'une version | `objet`, `lien` | DI-A02, DI-A07 |
+| CP-01 | Séquence d'écriture du § 21.1 ; aucune mise à jour d'une table `[V]` sans nouvelle version ; aucune modification d'une ligne `_hist`, `version_objet` ou d'un journal `[N]` hors purge<br>**[V1.1-d] AC-23 :** CP-01 s'applique aussi aux tables `[A:p]` (CP-22). | Toutes tables `[V]`, `[F]`, `[L]` | TI-01, MLD-02 |
+| CP-02 | `objet.version_courante` = numéro de la version sans `date_fin_validite` ; idem pour `lien.version_courante` ; une table `[F]` n'a qu'une version **[V1.1-d] DI-A07 :** `date_fin_validite` de la version *n* est égale à `date_debut_validite` de la version *n+1*, posée dans la transaction qui crée la version *n+1*. | `objet`, `lien` | DI-A02, DI-A07 |
 | CP-03 | Transitions d'état autorisées : `etat_cycle_vie` (DI-A03), phase de campagne irréversible (DI-J10), opération de flux `exécutée` non annulable (DI-L09), snapshot immuable (DI-K20) | Tables concernées | DI-A03, DI-J10, DI-L09, DI-K20 |
 | CP-04 | Contraintes d'espace entre lignes : espace du référent ≠ espace de la cible (DI-A23) ; un arbre n'est pas dans le Core partagé (DI-L01) ; nœud et personne dans l'espace de l'arbre (DI-L03) ; règles de type d'espace des flux (DI-L06 à DI-L08) et des filiations (DI-A21) ; une restauration ne cible jamais le Core partagé (DI-P09) ; [V1.1] une contribution vers un espace partagé ou une réutilisation de sélection ne cible jamais le Core partagé (DI-L12, DI-L18) | Liens, Tree, flux, imports | DI-A21, DI-A23, DI-L01, DI-L03, DI-L06–08, DI-P09 |
-| CP-05 | Cardinalités minimales et existences conditionnelles, contrôlées en fin de transaction : ancrage d'annotation et de mention (1,n) ; assertion `attestée` ancrée, fondée, issue d'une réponse ou d'une source externe (DI-G02) ; témoin de session (DI-J01) ; périmètre de recherche (DI-K09) ; deux propositions par conflit (DI-H08) ; élément attesté appuyé (DI-I03) ; formulation source extraite d'un segment (DI-G11) ; lacune de recherche justifiée (DI-G16) ; objets produits par une contribution Connect ; inbox rattachée (DI-Q02) ; types de sujet d’un prédicat (1,n) ; [V1.1] rôles d’une ressource `utiliser_role` (1,n), ressources d’une prise en charge (1,n) | Tables concernées | DI-G02, DI-G11, DI-G16, DI-H08, DI-I03, DI-J01, DI-K09, DI-Q02 ; [V1.1-c] DI-H06, DI-I08, DI-K13 ; versions de référentiel (`activite_referentiel`, `export_referentiel`) |
+| CP-05 | Cardinalités minimales et existences conditionnelles, contrôlées en fin de transaction : ancrage d'annotation et de mention (1,n) ; assertion `attestée` ancrée, fondée, issue d'une réponse ou d'une source externe (DI-G02) ; témoin de session (DI-J01) ; périmètre de recherche (DI-K09) ; deux propositions par conflit (DI-H08) ; élément attesté appuyé (DI-I03) ; formulation source extraite d'un segment (DI-G11) ; lacune de recherche justifiée (DI-G16) ; objets produits par une contribution Connect ; inbox rattachée (DI-Q02) ; types de sujet d’un prédicat (1,n) ; [V1.1] rôles d’une ressource `utiliser_role` (1,n), ressources d’une prise en charge (1,n)<br>**[V1.1-d] AC-21 :** DECRIRE_ETAT (une référence a au moins son état initial), INVOQUER_PREUVE (une base en vigueur invoque au moins une preuve), ACQUERIR_DOC, STOCKER, DECOMPOSER, SEGMENTER, ETAPE, STRUCTURER, DEFINIR, CONTENIR_SNAP, PRODUIRE_RESULTAT, EXPOSER (au passage à `publiée`), CONTENIR_EXPORT, CONTENIR_CAPSULE, catégories d'une offre de déplacement ; pour les conteneurs à jalons (transcription, protocole, snapshot), le minimum s'applique au premier jalon. Embargo : au moins un bénéficiaire (CP-46). Liste des attributs transmis (`activite_perimetre_transmis`) obligatoire si `fournisseur` est renseigné. | Tables concernées | DI-G02, DI-G11, DI-G16, DI-H08, DI-I03, DI-J01, DI-K09, DI-Q02 ; [V1.1-c] DI-H06, DI-I08, DI-K13 ; versions de référentiel (`activite_referentiel`, `export_referentiel`) |
 | CP-06 | Habilitations : validateur vérifié sur le Core (DI-H01, DI-B06) ; un compte actif par acteur personne (DI-B07) ; pseudonyme jamais réattribué (DI-B08) ; espace personnel sans invité et propriétaire présent (DI-B02, DI-B04) ; demande conforme aux préférences et aux blocages (DI-H10) ; promotion de concept par acte humain (DI-R04) | Gouvernance | DI-B02–B08, DI-H01, DI-H10, DI-R04 ; [V1.1-c] DI-B14 |
-| CP-07 | Cohérence de types et signatures : assertion conforme à la signature de son prédicat (sujet, cible, valeur, profil) ; table d'extension présente si et seulement si le profil l'exige ; `concept_predicat` si et seulement si `nature = prédicat` ; prédicat copié dans `selection_contexte` égal à celui de l'assertion et sujet = entité (DI-F13) ; liens d'arbre de parenté ou d'alliance ; modèle de parenté et statut causal présents quand requis ; date d'observation d'un foyer ; types IA de reproduction ⇒ original récupérable (DI-C11) ; une narration, un badge ou un lien exploratoire n'est jamais amont d'une dépendance de justification (DI-A16, DI-G13) | Assertions, référentiels | DI-G01, DI-R03, DI-F13, DI-A16, DI-G13, DI-C11, OB-13 ; [V1.1-c] DI-G07, DI-G09, DI-N08 ; langue d’un `concept_libelle` ≠ langue de référence |
+| CP-07 | Cohérence de types et signatures : assertion conforme à la signature de son prédicat (sujet, cible, valeur, profil) ; table d'extension présente si et seulement si le profil l'exige ; `concept_predicat` si et seulement si `nature = prédicat` ; prédicat copié dans `selection_contexte` égal à celui de l'assertion et sujet = entité (DI-F13) ; liens d'arbre de parenté ou d'alliance ; modèle de parenté et statut causal présents quand requis ; date d'observation d'un foyer ; types IA de reproduction ⇒ original récupérable (DI-C11) ; une narration, un badge ou un lien exploratoire n'est jamais amont d'une dépendance de justification (DI-A16, DI-G13)<br>**[V1.1-e] DI-C11 (complet) :** les détails produits par une colorisation, un generative fill ou une amélioration ne sont jamais l’ancre probatoire d’une assertion. **DI-G13 (complet) :** une `NARRATION` n’est jamais sujet d’un ANCRER. | Assertions, référentiels | DI-G01, DI-R03, DI-F13, DI-A16, DI-G13, DI-C11, OB-13 ; [V1.1-c] DI-G07, DI-G09, DI-N08 ; langue d’un `concept_libelle` ≠ langue de référence |
 | CP-08 | Accessibilité des concepts : toute colonne `→ concept` référence un concept actif d'un référentiel commun, communautaire de l'espace ou local de l'espace ; le type d'entité appartient à la branche de la spécialisation (DI-E01) | Toutes colonnes `→ concept` | MLD-08, DI-E01 ; [V1.1-c] DI-E04, DI-G09 |
 | CP-09 | Graphes sans cycle et cycles détectés : hiérarchies archivistiques, lignées de reproduction, sous-questions, sous-projets, concepts parents, éléments reconstruits, sous-tâches et dépendances de tâches, séries de publications [V1.1] ; dépendances de production sans cycle ; cycles de raisonnement autorisés mais marqués `cycle_detecte` et exclus des justifications indépendantes (DI-A17, DI-A29) | Hiérarchies, dépendances | DI-A17, DI-A29, DI-C06, DI-R05, OB-08 ; [V1.1-c] DI-K06 |
 | CP-10 | Statuts dérivés recalculés, jamais saisis (DD-11) : `statut_validation` depuis `acte_evaluation` ; `etat_courant` depuis `etat_reference_externe` ; `fraicheur` des résultats et cartes ; `independance` des actes (DI-H02) ; `statut_resolution` cohérent avec les propositions (DI-D07) ; position résolue ⇔ candidature retenue (DI-F05) | Statuts | DD-11, DI-D07, DI-F05, DI-H02 ; [V1.1-c] DI-F15, DI-K21, DI-N06 |
@@ -3280,38 +3368,44 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 | CP-13 | Règles métier inter-tables (une par règle) : DI-B15, DI-B22, DI-B25, DI-C01, DI-C02, DI-C04, DI-C14, DI-D03, DI-E02 (note d'individualisation au Core), DI-E08, DI-F03, DI-F09, DI-F10 (fusion validée), DI-G04, DI-G05, DI-G12, DI-I01, DI-J02, DI-J06, DI-K03, DI-K05, DI-K10, DI-K16, DI-N01, DI-O06, DI-O07, DI-P01, DI-P03, concurrence de reconstructions sur un même document. **[V1.1-c] Ajouts ECD-13 :** DI-A28, DI-A32, DI-A33, DI-B16, DI-C03, DI-C07, DI-C12, DI-C19, DI-C21, DI-D06, DI-E09, DI-F06, DI-F11, DI-G07, DI-G08, DI-G10, DI-G15, DI-G17, DI-H07, DI-H09, DI-I04, DI-I07, DI-J12, DI-K02, DI-K07, DI-K19, DI-M01, DI-N03, DI-N05, DI-O11, DI-O12, DI-P07 | Règles listées | DI-* listées |
 | CP-14 | Textes et dates : domaine `texte_libre` contre les sentinelles (TI-08) ; `x_expr` obligatoire pour une date issue d'une source ou d'une saisie (DD-10) ; un `TEXTE_SOURCE` ne change que par une nouvelle version motivée (TI-03) ; interdits géométriques (DI-N04, DD-16) | Toutes tables | TI-03, TI-08, DD-10, DD-16, OB-14 |
 | CP-15 | Unicités non déclaratives : dépendance active (aval, amont, catégorie, type) ; proposition d'identification non rejetée (source, cible) ; code de regroupement et nom de snapshot uniques par espace ; crédit actif (objet, bénéficiaire, rôle) | Tables concernées | DI-F02, DI-K20, DI-A14 |
-| CP-16 | Procédure de purge (MLD-15) : colonnes de contenu à `NULL` dans les tables courantes et `_hist`, `est_purge`, `statut_contenu`, empreinte recalculée, associations possédées closes, dépendances aval signalées. **[V1.1-c] Fichiers :** la référence du `fichier` purgé est retirée, puis le binaire est effacé si aucune autre référence légitime ne subsiste (CP-41). **[V1.1-c] Trace minimale (DD-27) :** la ligne `objet` ne conserve que l'identifiant, le type, l'état, `est_purge`, `date_purge` et le rattachement à l'espace. Aucune empreinte réversible du contenu n'est conservée : `empreinte_etat` est recalculée sur l'état purgé. **[V1.1-c] Effacement de résolution :** sur fondement légal, `resolution_effacee = vrai`, `espace_id` est remplacé par l'espace technique neutre « purgé », `date_creation` est vidée et les lignes `version_objet` ne gardent que le numéro. Les délais et fondements relèvent de l'étude juridique (EXT-04), sans durée inscrite dans le schéma. | Toutes tables d'objet, `fichier` | DD-13, DD-27, OB-12, OB-32 |
+| CP-16 | Procédure de purge (MLD-15) : colonnes de contenu à `NULL` dans les tables courantes et `_hist`, `est_purge`, `statut_contenu`, empreinte recalculée, associations possédées closes, dépendances aval signalées. **[V1.1-c] Fichiers :** la référence du `fichier` purgé est retirée, puis le binaire est effacé si aucune autre référence légitime ne subsiste (CP-41). **[V1.1-c] Trace minimale (DD-27) :** la ligne `objet` ne conserve que l'identifiant, le type, l'état, `est_purge`, `date_purge` et le rattachement à l'espace. Aucune empreinte réversible du contenu n'est conservée : `empreinte_etat` est recalculée sur l'état purgé. **[V1.1-c] Effacement de résolution :** sur fondement légal, `resolution_effacee = vrai`, `espace_id` est remplacé par l'espace technique neutre « purgé », `date_creation` est vidée et les lignes `version_objet` ne gardent que le numéro. Les délais et fondements relèvent de l'étude juridique (EXT-04), sans durée inscrite dans le schéma.<br>**[V1.1-e] AC-25 :** l’effacement de résolution neutralise aussi les `activite` qui n’ont produit que des versions de l’objet effacé (`resolution_effacee = vrai`, `acteur_id`, `parametres_decisifs` et `perimetre_donnees_transmises` vidés) ; la date de l’activité n’est conservée que si elle ne permet pas de désigner l’objet. **NC-13 :** la suppression d’un compte, qui ne supprime plus la ligne `compte`, supprime explicitement ses données techniques (`historique_navigation`, `notification`, `blocage`, `compte_categorie_sollicitation`, inbox non rattachée), dans la même transaction (DI-B05, DI-Q03). | Toutes tables d'objet, `fichier` | DD-13, DD-27, OB-12, OB-32 |
 | CP-17 | Attribution de l'ARK à la première publication ou citation figée externe ; jamais retiré | `reference_persistante` | DD-02, DI-A35, OB-11 |
 | CP-18 | Dépendances automatiques : un appui d'élément reconstruit, un `S_APPUYER` d'interprétation et une assertion dérivée créent les dépendances de production correspondantes | `dependance` | DI-I05, DI-G03 |
 | CP-19 | Lecture aveugle : pendant une transcription `indépendante/aveugle` non enregistrée, les autres lectures des mêmes zones sont absentes du graphe accessible de son auteur | Accès | DI-D02 |
 | CP-20 | Accès temporaires : les interventions de mission et les comparaisons d'arbres dérivent des règles d'accès bornées, closes à expiration | `regle_acces` | DI-K12, DI-L10, OB-16 |
 | CP-21 | Propagation *(réécrite en V1.1-c, ECD-06)*.<br>• **Niveau direct, synchrone :** dans la transaction même qui crée une nouvelle version **scientifique** d'un amont, toutes ses dépendances **directes** passent à `potentiellement affecté`, avec `date_signalement`.<br>• **Niveaux transitifs, asynchrones :** les dépendances transitives, les questions concernées (`à réexaminer`) et les résultats dynamiques (`potentiellement obsolète`) sont traités en asynchrone, dans un délai maximal fixé au MPD (MPD-04).<br>• **Pas de fausse certitude :** tant qu'une propagation issue d'un amont n'est pas terminée, aucun objet ou résultat en aval de cet amont n'est présenté comme définitivement à jour. Le lecteur voit qu'une propagation est en cours (dérivé de la file d'impacts, MPD).<br>• **Idempotence et robustesse :** rejouer une propagation ne change pas le résultat ; un échec de traitement ne remet jamais un `etat_impact` à `inchangé` ; un impact posé ne disparaît que par une décision ou un recalcul explicite. | `dependance`, `question`, `resultat`, `carte` | RG-A04, DI-A18, DI-K04, DI-O09, OB-09 (V1.3) |
-| CP-22 | Associations versionnées `[A:p]` : `v_debut` = version courante du propriétaire à l'insertion ; retrait = `v_fin` ; jamais de suppression ; unicités appliquées aux lignes actives (`v_fin IS NULL`) | Toutes tables `[A:p]` | MLD-02, L5 |
-| CP-23 | Droits du propriétaire : la création d'un objet `privé` crée, dans la même transaction, une `regle_acces` d'autorisation explicite (`voir`, `éditer`) pour l'acteur auteur ; aucun rôle d'espace ne donne de lecture implicite d'un objet `privé`. **[V1.1-c] Auteur toujours identifié (ECD-14) :** l'auteur est l'acteur de l'activité de création (`activite.acteur_id`), réalisateur ou déclencheur (DI-A39) ; pour un import, `import.acteur_id`. Une activité qui crée un objet sans acteur est rejetée. Une tâche planifiée de plateforme est rattachée à l'acteur qui l'a programmée, ou à défaut au propriétaire de l'espace cible. | `objet`, `regle_acces`, `activite`, `import` | § 22.1, CDCF § 49.2, DI-A39, DI-P19 |
+| CP-22 | Associations versionnées `[A:p]` *(réécrite en V1.1-d, AC-23)* : toute insertion ou clôture d'une ligne `[A:p]` **crée une nouvelle version du propriétaire** (§ 21.1) ; `v_debut` et `v_fin` valent ce nouveau numéro. Aucune ligne n'est jamais rattachée à une version existante : un état figé et son empreinte ne changent jamais après coup. Jamais de suppression ; unicités appliquées aux lignes actives (`v_fin IS NULL`) | Toutes tables `[A:p]` | MLD-02, L5, P3, DI-A07 |
+| CP-23 | Droits du propriétaire *(réécrite en V1.1-d, AC-03, D9)*.<br>• La création d'un objet `privé` crée, dans la même transaction, une `regle_acces` de `nature = propriétaire` (`voir`, `éditer`) au profit du **titulaire** de l'objet.<br>• **Titulaire :** l'acteur réalisateur pour une activité manuelle ou assistée ; pour une activité automatique, le **déposant identifiable des entrées** (acteur des activités de création des objets pris en entrée), s'il détient les droits nécessaires sur ces entrées ; pour un import, `import.acteur_id`, s'il détient les droits sur le fichier importé.<br>• **Sans titulaire :** aucune règle de lecture personnelle n'est créée ; l'objet n'est accessible que par habilitation exceptionnelle (CP-24). Une tâche de plateforme est imputée (traçabilité, `activite.acteur_id`) à un acteur institutionnel technique qui ne reçoit aucune règle.<br>• Une règle `propriétaire` ne bénéficie jamais à un acteur qui n'a, sur l'espace, qu'une habilitation administrative (sauf s'il est lui-même le réalisateur ou le déposant).<br>• Déclencheur technique, déposant, auteur scientifique (`credit`) et bénéficiaire d'une lecture sont distincts, et jamais confondus avec le propriétaire administratif.<br>• Aucun rôle d'espace ne donne de lecture implicite d'un objet `privé`. Une activité qui crée un objet sans acteur imputé est rejetée.<br>• **Amorçage du Core (AC-31) :** les concepts du référentiel commun sont créés par l'acteur institutionnel d'amorçage, en visibilité `public non indexé` ou `public indexable`, sans règle `propriétaire`. | `objet`, `regle_acces`, `activite`, `import` | § 22.1, CDCF § 49.2, DI-A39, DI-P19, D9 |
 | CP-24 | Habilitation exceptionnelle *(révisée le 9/10/2026 — ECD-04)*.<br>• **Quand elle s'applique :** toute autorisation donnée, pour une mission d'administration, de support, d'exploitation ou de prestation, à un acteur qui n'a pas de droit ordinaire sur un objet `privé` ou `projet`.<br>• **Forme :** une `regle_acces` de `nature = exceptionnelle`, nominative (`type_beneficiaire = acteur`), avec `date_fin` et `fondement` obligatoires (CK).<br>• **Traçabilité :** chaque usage est journalisé dans `contexte_evaluation`, avec `regle_acces_id` renseigné et `finalite` non nulle (CK) ; les refus et tentatives pertinents sont aussi tracés, jamais le contenu consulté.<br>• **Fin de validité :** la règle est réévaluée à chaque opération révélatrice et cesse à `date_fin`, y compris pour les exports et tâches déjà préparés. | `regle_acces`, `contexte_evaluation` | § 22.1, OB-16, REC-X11 (arbitrage B), TECH-027.5 |
 | CP-25 | Séparation des habilitations administratives et scientifiques : les habilitations d'administration et de participation scientifique sont indépendantes. L'attribution d'un rôle administratif ne crée pas d'appartenance scientifique et ne confère aucun accès implicite aux contenus de visibilité `projet` ou `privé`. L'accès aux objets `projet` repose sur une appartenance active autorisant explicitement la lecture scientifique (`lecture_scientifique = vrai`), sous réserve des interdictions et restrictions applicables. Un même acteur peut cumuler les deux habilitations. À la création d'un espace, le créateur reçoit les deux | `appartenance_espace`, `attribution_role`, § 22 | § 22.1, CDCF § 49.2 |
 | CP-26 | Règles au profit d'un rôle administratif *(ajoutée le 9/10/2026 — ECD-04)*.<br>• Une `regle_acces` d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer` (CK déclaratif). L'action `administrer` n'implique aucune autre action (§ 22.2, étape 4).<br>• Un acteur administrateur ne lit ni n'édite un contenu `projet` ou `privé` que par une appartenance scientifique (CP-25), une autorisation ordinaire nominative accordée par un ayant droit, ou une habilitation exceptionnelle (CP-24).<br>• Les rôles de gouvernance d'`attribution_role` (dont `administrateur technique`) ne sont jamais bénéficiaires d'une `regle_acces`. | `regle_acces` | REC-X11 (arbitrage A), TECH-011.10, REV-02-A, DI-B29 |
-| CP-27 | Réception des contributions hors ligne *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Réception :** toute opération réalisée hors connexion est d'abord enregistrée dans `contribution_differee` avec l'état `reçue`. L'unicité `(acteur, operation_origine_id)` rend le rejeu idempotent.<br>• **Intégration :** elle n'a lieu qu'après réévaluation de `acces()` dans le contexte d'intégration (`operation = synchronisation`, instant de l'intégration, et non de la création locale), puis contrôle de compatibilité des versions logicielle, de schéma et de référentiel.<br>• **Conversion :** autorisée seulement si elle est déterministe (état `transformée`, motif obligatoire). Sinon : `en attente de réconciliation`.<br>• **Conflit :** une modification dont `base_numero` n'est plus la version courante passe par `conflit_edition` et `proposition_modification` (base = `base_numero`), jamais par un écrasement.<br>• **Conservation :** une contribution différée n'est jamais supprimée hors purge légale (CP-16). Refusée pour raison de droits, elle reste lisible par son seul auteur, sans divulgation ni publication.<br>• **Statuts :** reçue ≠ intégrée ≠ validée scientifiquement (`statut_validation` de l'objet résultant). | `contribution_differee`, `conflit_edition`, `proposition_modification` | TECH-003, TECH-005, AUDIT-TECH-001.4, AUDIT-TECH-003, TECH-013.4 |
-| CP-28 | Réplication locale *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Contenu :** une réplique ne contient que `graphe_accessible(contexte)` pour un contexte `operation = réplication` (acteur, appareil, instant), restreint aux espaces dont `replication_hors_ligne <> 'interdite'`. Les objets dont l'existence est protégée n'y figurent jamais.<br>• **Durée :** pour un espace `limitée`, le contenu répliqué expire localement après `duree_max_hors_ligne_jours` sans revalidation serveur.<br>• **Retraits :** à chaque synchronisation, le serveur transmet d'abord les **retraits** (révocation, restriction, purge, protection d'existence, révocation d'appareil), sous une forme **non qualifiée** : même message quel que soit le motif (OB-04). Le client les applique avant toute autre opération.<br>• **Retrait ≠ destruction des contributions** *(arbitrage confirmé le 9/10/2026)* : un retrait rend l'objet inconsultable sur l'appareil. Il ne détruit jamais les contributions locales de l'utilisateur, synchronisées ou non, y compris celles qui portent sur l'objet retiré (note, photo, correction). Ces contributions sont conservées, détachées de l'objet devenu inaccessible et transmises en `contribution_differee` (CP-27). Leur sort est décidé à l'intégration : intégrée, en attente de réconciliation ou refusée pour raison de droits, auquel cas elle reste lisible par son seul auteur. Elles ne réexposent jamais le contenu retiré.<br>• **Résidu accepté** *(arbitrage confirmé le 9/10/2026)* : l'utilisateur peut constater qu'un objet qu'il voyait n'est plus disponible, sans pouvoir en connaître le motif (suppression, passage en privé, transfert, changement de ses propres droits). Ce résidu est documenté pour les propriétaires (AUDIT-TECH-001.5). | `espace`, `contexte_evaluation`, schéma technique (§ 28.3) | TECH-002, TECH-011.6, AUDIT-TECH-001, AUDIT-TECH-004 |
-| CP-29 | Règles d'accès sur une sélection *(V1.1)*.<br>• Une `regle_acces` dont la cible est une `selection_partage` n'admet que `voir`, `commenter`, `réutiliser` (DI-B34).<br>• Sa portée effective est le manifeste (`selection_inclusion`) de la version **active** de la sélection, jamais l'arbre source ni un individu racine.<br>• Évaluation dynamique (OB-23) : à chaque appel de `acces()`, l'objet doit figurer au manifeste actif, la règle doit être active, son **auteur** doit détenir encore l'action correspondante sur l'objet (`acces(contexte de l'auteur, objet, action)` à l'instant courant), et les étapes 1, 2 et 6 du § 22.2 s'appliquent à l'objet lui-même.<br>• `voir` n'implique pas `réutiliser` et inversement (DI-B35) ; aucune relation hors manifeste n'est servie, ni comptée. | `regle_acces`, `selection_inclusion`, § 22.2 | DI-B34, DI-B35, OB-23, RG-L08, RG-L09, RG-L11 |
+| CP-27 | Réception des contributions hors ligne *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Réception :** toute opération réalisée hors connexion est d'abord enregistrée dans `contribution_differee` avec l'état `reçue`. L'unicité `(acteur, operation_origine_id)` rend le rejeu idempotent.<br>• **Intégration :** elle n'a lieu qu'après réévaluation de `acces()` dans le contexte d'intégration (`operation = synchronisation`, instant de l'intégration, et non de la création locale), puis contrôle de compatibilité des versions logicielle, de schéma et de référentiel.<br>• **Conversion :** autorisée seulement si elle est déterministe (état `transformée`, motif obligatoire). Sinon : `en attente de réconciliation`.<br>• **Conflit :** une modification dont `base_numero` n'est plus la version courante passe par `conflit_edition` et `proposition_modification` (base = `base_numero`), jamais par un écrasement.<br>• **Conservation :** une contribution différée n'est jamais supprimée hors purge légale (CP-16). Refusée pour raison de droits, elle reste lisible par son seul auteur, sans divulgation ni publication.<br>• **Statuts :** reçue ≠ intégrée ≠ validée scientifiquement (`statut_validation` de l'objet résultant).<br>**[V1.1-d] AC-14 :** la `charge` ne contient que le **delta** saisi par l'auteur et les identifiants et numéros de version de base, jamais l'état de base. Une contribution refusée ne réexpose donc jamais un contenu retiré. | `contribution_differee`, `conflit_edition`, `proposition_modification` | TECH-003, TECH-005, AUDIT-TECH-001.4, AUDIT-TECH-003, TECH-013.4 |
+| CP-28 | Réplication locale *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Contenu :** une réplique ne contient que `graphe_accessible(contexte)` pour un contexte `operation = réplication` (acteur, appareil, instant), restreint aux espaces dont `replication_hors_ligne <> 'interdite'`. Les objets dont l'existence est protégée n'y figurent jamais.<br>• **Durée :** pour un espace `limitée`, le contenu répliqué expire localement après `duree_max_hors_ligne_jours` sans revalidation serveur.<br>• **Retraits :** à chaque synchronisation, le serveur transmet d'abord les **retraits** (révocation, restriction, purge, protection d'existence, révocation d'appareil), sous une forme **non qualifiée** : même message quel que soit le motif (OB-04). Le client les applique avant toute autre opération.<br>• **Retrait ≠ destruction des contributions** *(arbitrage confirmé le 9/10/2026)* : un retrait rend l'objet inconsultable sur l'appareil. Il ne détruit jamais les contributions locales de l'utilisateur, synchronisées ou non, y compris celles qui portent sur l'objet retiré (note, photo, correction). Ces contributions sont conservées, détachées de l'objet devenu inaccessible et transmises en `contribution_differee` (CP-27). Leur sort est décidé à l'intégration : intégrée, en attente de réconciliation ou refusée pour raison de droits, auquel cas elle reste lisible par son seul auteur. Elles ne réexposent jamais le contenu retiré.<br>• **Résidu accepté** *(arbitrage confirmé le 9/10/2026)* : l'utilisateur peut constater qu'un objet qu'il voyait n'est plus disponible, sans pouvoir en connaître le motif (suppression, passage en privé, transfert, changement de ses propres droits). Ce résidu est documenté pour les propriétaires (AUDIT-TECH-001.5).<br>**[V1.1-d] AC-13, D2 :** un changement de `replication_hors_ligne` ou de `duree_max_hors_ligne_jours` produit, à la prochaine synchronisation effective, les retraits correspondants (passage à `interdite` : retrait de toute la réplique de l'espace ; réduction de durée : expiration recalculée). Dans un espace collectif, la réplication est toujours bornée (CK de `espace`). La fenêtre entre une révocation et la prochaine synchronisation d'un appareil hors ligne est un **résidu reconnu**, borné par la durée maximale.<br>**[V1.1-e] NC-09 :** la réplication est bornée par `duree_max_hors_ligne_jours` dans tout espace qui compte plus d’un membre actif, y compris `familial` et `privé` ; l’ajout d’un deuxième membre impose la fixation d’une durée. | `espace`, `contexte_evaluation`, schéma technique (§ 28.3) | TECH-002, TECH-011.6, AUDIT-TECH-001, AUDIT-TECH-004 |
+| CP-29 | Règles d'accès sur une sélection *(V1.1)*.<br>• Une `regle_acces` dont la cible est une `selection_partage` n'admet que `voir`, `commenter`, `réutiliser` (DI-B34).<br>• Sa portée effective est le manifeste (`selection_inclusion`) de la version **active** de la sélection, jamais l'arbre source ni un individu racine.<br>• Évaluation dynamique (OB-23) : à chaque appel de `acces()`, l'objet doit figurer au manifeste actif, la règle doit être active, son **auteur** doit détenir encore l'action correspondante sur l'objet (`acces(contexte de l'auteur, objet, action)` à l'instant courant), et les étapes 1, 2 et 6 du § 22.2 s'appliquent à l'objet lui-même.<br>• `voir` n'implique pas `réutiliser` et inversement (DI-B35) ; aucune relation hors manifeste n'est servie, ni comptée.<br>**[V1.1-d] AC-10, AC-06 :** le manifeste qui fait foi est celui de `version_active_numero`, jamais de la version courante si elle est une proposition. L'objet est servi selon `selection_inclusion.mode_inclusion` (DI-L21) : `masqué`, omis ou remplacé par une indication neutre, sans attribut, relation ni référence indirecte permettant de le reconstituer ; `pseudonymisé`, représenté par le pseudonyme de son `masquage`, identifiants et correspondance jamais servis, relations filtrées contre la réidentification. Une personne couverte par DI-E05 n'est servie en mode `intégral` qu'avec une évaluation de diffusabilité favorable. Le contrôle porte sur le graphe effectivement rendu : recherches, index, compteurs et exports appliquent les mêmes transformations. | `regle_acces`, `selection_inclusion`, § 22.2 | DI-B34, DI-B35, OB-23, RG-L08, RG-L09, RG-L11 |
 | CP-30 | Groupes extérieurs et admissions *(V1.1)*.<br>• Une règle au profit d'un `groupe` dont l'espace diffère de l'espace porteur de la cible exige `mode_admission` (CK : `notification` seulement si `sensibilite = normale`).<br>• En `approbation préalable`, un membre n'est bénéficiaire qu'avec une ligne active de `regle_admission` `approuvée` à son nom ; le décideur est administrateur de l'espace porteur.<br>• En `notification`, l'ajout d'un membre au groupe produit une notification à l'espace porteur.<br>• La fin de `membre_groupe` retire les droits dérivés à la prochaine évaluation, sans délai, répliques comprises (CP-28).<br>• La fin d'un rattachement (`relation_projets.etat = terminé`) ferme (`date_fin`) les règles dont `rattachement_id` le désigne. | `regle_acces`, `regle_admission`, `membre_groupe` | DI-B36, DI-B37, DD-22 |
 | CP-31 | Rattachement bilatéral *(V1.1)*. Un `relation_projets` de type `sous-projet de` ne passe à `actif` qu'avec deux `decision_rattachement` `acceptée` (partie parent, partie enfant), chacune d'un administrateur du projet concerné. Chaque partie peut le terminer seule. Aucune règle d'accès, appartenance ni agrégation n'est dérivée d'un rattachement : `acces()` ne lit jamais `relation_projets`, sauf via `regle_acces.rattachement_id` (CP-30).<br>• **Transitions et cardinalités (condition de V-9) :**<br>&nbsp;&nbsp;– `sous-projet de` : `proposé` → `actif` (deux acceptations) ou `refusé` (un refus d’une partie) ; `actif` → `terminé` (décision `terminée` d’une partie) ; `refusé` et `terminé` sont terminaux, un nouveau rattachement est une nouvelle ligne ;<br>&nbsp;&nbsp;– autres types : déclarés par une seule partie, créés `actif` par la décision de l’initiateur et sans effet sur l’autre projet, qui n’est ni notifié de leur contenu ni engagé ; `actif` → `terminé` ;<br>&nbsp;&nbsp;– au plus une décision `acceptée` non suivie d’une `terminée` par partie et par lien ; une décision n’est jamais modifiée ;<br>&nbsp;&nbsp;– un projet peut avoir plusieurs parents actifs ; au plus un lien non terminal par couple et par type (UQ partielle) ; aucun cycle de `sous-projet de` (CP-09) ;<br>&nbsp;&nbsp;– visibilité du lien ≤ celle des deux projets (CP-12) : un projet invisible ne se déduit pas de son rattachement. | `relation_projets`, `decision_rattachement` | DI-K23, DD-19, P23 |
 | CP-32 | Tâches, lots, délégations *(V1.1)*.<br>• Une sous-tâche a le même `projet_id` que sa parente ; un `jalon` n'a ni `tache_assignation` ni règle `tache_lot_id`.<br>• Une assignation ne crée aucune règle (DI-K28).<br>• Une règle de délégation (`tache_lot_id`) porte sur des objets cibles explicites, copiés de `tache_objet` à sa création ; un ajout ultérieur à `tache_objet` ne crée aucune règle.<br>• Passage du lot à `faite` ou `abandonnée` : `date_fin` des délégations ramenée à la date de clôture si elle est postérieure ; un retour à `en cours` ne modifie aucune règle (DI-K30).<br>• L'avancement est une requête sur le graphe accessible, jamais une colonne (DI-K31). | `tache`, `tache_assignation`, `tache_objet`, `regle_acces` | DI-K27 à DI-K31, DD-23 |
-| CP-33 | Sélections, flux et réutilisations *(V1.1)*.<br>• **Manifeste :** les lignes de `selection_inclusion` d'une version sont écrites dans la transaction de confirmation, puis jamais modifiées ; une version `active` a au moins une ligne.<br>• **Inclusion (DI-L16) :** une `assertion` de profil relation n'est incluse que si ses deux extrémités le sont ; un conjoint `sans leur ascendance` n'entraîne aucune relation de filiation de ce conjoint ; aucun objet listé dans `selection_exclusion` ni aucun vivant (si `exclus`) n'est inclus.<br>• **Origine (DI-L17) :** tout objet inclus est dans l'espace source ou y est référencé, et l'acteur qui confirme détient `repartager` sur lui.<br>• **Propositions (DI-L15) :** notifiées au seul espace source ; une réduction s'applique sans confirmation.<br>• **Flux (DI-L12, DI-L18) :** jamais vers le Core partagé (complète CP-04) ; une contribution ne crée ni copie ni filiation ; une réutilisation exige une règle `réutiliser` active pour l'acteur à l'exécution et ne copie que les objets du manifeste qui lui sont accessibles ; chaque copie a une `filiation` `réutilisation` liée à la version de la règle.<br>• **Révocation (DI-A38, DI-L19) :** une filiation `réutilisation` ne passe plus à `mise à jour proposée` ni `mise à jour importée` après révocation ; les dépendances des conclusions passent à `potentiellement affecté`. | `selection_partage`, `selection_inclusion`, `selection_exclusion`, `operation_flux`, `filiation`, `dependance` | DD-21, DI-L12 à DI-L20, DI-A37, DI-A38, OB-23 |
-| CP-34 | Indicateurs *(V1.1)*. Un `calcul` d'une méthode `profil = indicateur` a un `contexte_id` ; son `resultat.contenu` contient numérateur, dénominateur, bornes ou indétermination, exclusions et périmètre (schéma JSON documenté du type `statistique calculée`, profil indicateur). Un indicateur multi-projets dédoublonne par entité sur le graphe accessible du contexte. Un résultat exposé par une publication est `figé` et évalué dans le contexte de la publication. | `calcul`, `resultat`, `publication_exposition` | DI-O13 à DI-O17, DD-24, OB-26 |
-| CP-35 | Circuit éditorial et diffusion *(V1.1)*.<br>• **Défaut :** `espace.circuit_editorial` = `approbation requise` pour `projet`, `organisation`, `communauté` ; `aucun` sinon.<br>• **Invalidation (DI-P12) :** à la création d'une version substantielle d'une publication (`nature_changement <> 'correction technique'`, ou correction technique modifiant `publication_exposition` ou le texte), une `decision_editoriale` `approbation invalidée` est créée pour chaque approbation valide de la version précédente.<br>• **Publication (DI-P18) :** dans un espace `approbation requise`, une publication de type éditorial ne passe à `publiée` qu'avec une approbation valide sur la version exacte.<br>• **Diffusion (DI-P15) :** `exécutée` ou `partielle` exige une version `publiée`, une approbation valide si le circuit l'exige, et une `evaluation_diffusabilite` favorable dont `contexte_id` est celui de la diffusion et dont l'objet évalué est la version diffusée.<br>• **Séries (DI-P14) :** `paraitre_dans.serie_id` désigne une publication de type `série`, `publication_id` une publication d'un autre type ; sans cycle.<br>• **Abonnement (DI-Q07) :** la cible d'une veille `abonnement éditorial` est une série ; aucune règle d'accès n'est créée ; résiliation = `active = faux`.<br>• Une `decision_editoriale` est prise par un acteur de `nature_acteur = personne`, jamais par une activité d’IA.<br>• **Conservation et révocation des diffusions (condition de V-8) :** une ligne `diffusion` est conservée pour toute la durée de vie de la publication, puis tant que l’espace existe ; elle n’est effacée que par une purge légale (CP-16), qui vide `audience` et ne laisse que les métadonnées techniques. Une diffusion n’est jamais révoquée ni modifiée : une révocation de la source, un retrait de la publication ou un embargo ultérieur n’annulent pas une diffusion passée ; ils empêchent les diffusions futures, qui sont réévaluées. Sa visibilité est restreinte aux administrateurs de l’espace et aux participants du circuit éditorial ; la liste nominative des destinataires n’est pas dans le MLD (ST-11). Le coût de stockage (une ligne `objet` par diffusion) est assumé. | `espace`, `publication`, `decision_editoriale`, `diffusion`, `paraitre_dans`, `veille` | DI-P11 à DI-P18, DI-Q07, DD-25, OB-27 |
-| CP-36 | Prise en charge *(V1.1)*. `etat = active` ⇔ deux lignes `prise_en_charge_acceptation` `acceptée` (financeur, bénéficiaire) sur la version courante, chacune par un administrateur de l'espace de sa partie. Une nouvelle version (plafond, ressources, période) exige de nouvelles acceptations ; tant qu'elles manquent, la version précédente reste celle qui s'applique. `expirée` est calculé à `date_fin`. La fin d'un accord ne supprime ni ne restreint aucune donnée ; imputation unique selon MLD-17. | `prise_en_charge`, `prise_en_charge_acceptation` | DI-B38, DI-B39, OB-25 |
-| CP-37 | Transfert de gouvernance *(V1.1)*. À chaque présentation, `transfert_engagement` reçoit la liste des engagements actifs de l'espace (règles, sélections, rattachements, avec versions) et `empreinte_engagements` leur empreinte. Le passage à `accepté` (transaction unique : changement des appartenances `propriétaire`, renseignement du cessionnaire et de `date`) est refusé si l'empreinte recalculée diffère. Après acceptation, le cédant ne garde aucune appartenance ni règle du seul fait du transfert ; ses `credit` et `activite` restent. `expiré` est calculé à `date_expiration`. | `transfert_gouvernance`, `transfert_engagement`, `appartenance_espace` | DI-B40 à DI-B42, DD-26, OB-28 |
+| CP-33 | Sélections, flux et réutilisations *(V1.1)*.<br>• **Manifeste [réécrit en V1.1-e, AC-10] :** les lignes de `selection_inclusion` d’une version sont écrites **une fois, à la création de cette version** (proposition ou réduction), puis jamais modifiées ; la confirmation ne réécrit rien, elle désigne la version comme `version_active_numero`. Une version active a au moins une ligne.<br>• **Inclusion (DI-L16) :** une `assertion` de profil relation n'est incluse que si ses deux extrémités le sont ; un conjoint `sans leur ascendance` n'entraîne aucune relation de filiation de ce conjoint ; aucun objet listé dans `selection_exclusion` ni aucun vivant (si `exclus`) n'est inclus.<br>• **Origine (DI-L17) :** tout objet inclus est dans l'espace source ou y est référencé, et l'acteur qui confirme détient `repartager` sur lui.<br>• **Propositions (DI-L15) :** notifiées au seul espace source ; une réduction s'applique sans confirmation.<br>• **Masquage [V1.1-e, NC-10] :** `masquage_id` désigne un `masquage` de l’objet inclus lui-même (`objet_original_id = objet_id`), de type `pseudonymisation`, propre à cette sélection (jamais partagé entre deux sélections).<br>• **Réutilisation [V1.1-e, DI-A37] :** une `filiation` `réutilisation` est produite par une `operation_flux` de type `réutilisation d’une sélection`.<br>• **Flux (DI-L12, DI-L18) :** jamais vers le Core partagé (complète CP-04) ; une contribution ne crée ni copie ni filiation ; une réutilisation exige une règle `réutiliser` active pour l'acteur à l'exécution et ne copie que les objets du manifeste qui lui sont accessibles ; chaque copie a une `filiation` `réutilisation` liée à la version de la règle.<br>• **Révocation (DI-A38, DI-L19) :** une filiation `réutilisation` ne passe plus à `mise à jour proposée` ni `mise à jour importée` après révocation ; les dépendances des conclusions passent à `potentiellement affecté`.<br>**[V1.1-d] AC-07 :** la règle d'inclusion vaut pour **toute assertion, quel que soit son profil** (attribut, relation, participation, présence, situation, existence documentaire) : elle n'est incluse que si son sujet **et** sa cible éventuelle sont inclus. Une source ou un événement qui mentionne une personne exclue n'est inclus qu'en `provenance masquée` ou après évaluation de diffusabilité. **AC-10 :** les lignes d'une version proposée sont écrites à la création de la proposition et figées à sa confirmation (MLD-16) ; la confirmation met à jour `version_active_numero` ; un refus met `etat_proposition = refusée` sans toucher à la version active ; une réduction devient active dès sa création. | `selection_partage`, `selection_inclusion`, `selection_exclusion`, `operation_flux`, `filiation`, `dependance` | DD-21, DI-L12 à DI-L20, DI-A37, DI-A38, OB-23 |
+| CP-34 | Indicateurs *(V1.1)*. Un `calcul` d'une méthode `profil = indicateur` a un `contexte_id` ; son `resultat.contenu` contient numérateur, dénominateur, bornes ou indétermination, exclusions et périmètre (schéma JSON documenté du type `statistique calculée`, profil indicateur). Un indicateur multi-projets dédoublonne par entité sur le graphe accessible du contexte. Un résultat exposé par une publication est `figé` et évalué dans le contexte de la publication.<br>**[V1.1-d] AC-32, D6 :** la remontée d’indicateurs d’un sous-projet vers un programme (CDCF § 120.2) passe par la publication d’un résultat figé, évalué pour sa diffusabilité ; elle ne crée aucune autorisation de calcul sur les données sources ; il n’existe pas d’action `agréger`.<br>**[V1.1-e] DI-O14 (complet) :** le contenu d’un résultat d’indicateur inclut aussi sa couverture. | `calcul`, `resultat`, `publication_exposition` | DI-O13 à DI-O17, DD-24, OB-26 |
+| CP-35 | Circuit éditorial et diffusion *(V1.1)*.<br>• **Défaut :** `espace.circuit_editorial` = `approbation requise` pour `projet`, `organisation`, `communauté` ; `aucun` sinon.<br>• **Invalidation (DI-P12) :** à la création d'une version substantielle d'une publication (`nature_changement <> 'correction technique'`, ou correction technique modifiant `publication_exposition` ou le texte), une `decision_editoriale` `approbation invalidée` est créée pour chaque approbation valide de la version précédente.<br>• **Publication (DI-P18) :** dans un espace `approbation requise`, une publication de type éditorial ne passe à `publiée` qu'avec une approbation valide sur la version exacte.<br>• **Diffusion (DI-P15) :** `exécutée` ou `partielle` exige une version `publiée`, une approbation valide si le circuit l'exige, et une `evaluation_diffusabilite` favorable dont `contexte_id` est celui de la diffusion et dont l'objet évalué est la version diffusée.<br>• **Séries (DI-P14) :** `paraitre_dans.serie_id` désigne une publication de type `série`, `publication_id` une publication d'un autre type ; sans cycle.<br>• **Abonnement (DI-Q07) :** la cible d'une veille `abonnement éditorial` est une série ; aucune règle d'accès n'est créée ; résiliation = `active = faux`.<br>• Une `decision_editoriale` est prise par un acteur de `nature_acteur = personne`, jamais par une activité d’IA.<br>• **Conservation et révocation des diffusions (condition de V-8) :** une ligne `diffusion` est conservée pour toute la durée de vie de la publication, puis tant que l’espace existe ; elle n’est effacée que par une purge légale (CP-16), qui vide `audience` et ne laisse que les métadonnées techniques. Une diffusion n’est jamais révoquée ni modifiée : une révocation de la source, un retrait de la publication ou un embargo ultérieur n’annulent pas une diffusion passée ; ils empêchent les diffusions futures, qui sont réévaluées. Sa visibilité est restreinte aux administrateurs de l’espace et aux participants du circuit éditorial ; la liste nominative des destinataires n’est pas dans le MLD (ST-11). Le coût de stockage (une ligne `objet` par diffusion) est assumé.<br>**[V1.1-d] AC-09 :** un numéro ne paraît que dans une série du **même espace** ; sinon, une acceptation par un acteur qui a `administrer` sur la série est exigée. **AC-15, D8 :** la lecture des diffusions et des décisions éditoriales relève des métadonnées de gouvernance (`administrer`, DD-28.4) et des participants nommés du circuit ; l'invalidation automatique a `origine = automatique` et pour `acteur_id` l'auteur de la version substantielle ; la règle « acteur humain » ne vaut que pour `relue`, `approuvée` et `refusée`. | `espace`, `publication`, `decision_editoriale`, `diffusion`, `paraitre_dans`, `veille` | DI-P11 à DI-P18, DI-Q07, DD-25, OB-27 |
+| CP-36 | Prise en charge *(V1.1)*. `etat = active` ⇔ il existe une version acceptée par les deux parties (`version_en_vigueur_numero`, deux lignes `prise_en_charge_acceptation` `acceptée` sur cette version) [V1.1-e : « version courante » remplacé, AC-10], chacune par un administrateur de l'espace de sa partie. Une nouvelle version (plafond, ressources, période) exige de nouvelles acceptations ; tant qu'elles manquent, la version précédente reste celle qui s'applique. `expirée` est calculé à `date_fin`. La fin d'un accord ne supprime ni ne restreint aucune donnée ; imputation unique selon MLD-17.<br>**[V1.1-d] AC-10 :** `version_en_vigueur_numero` désigne la dernière version acceptée par les deux parties ; c'est la seule version qui s'applique (CP-39). Une version courante en attente d'acceptation ne change ni l'état `active` de l'accord ni sa version en vigueur. | `prise_en_charge`, `prise_en_charge_acceptation` | DI-B38, DI-B39, OB-25 |
+| CP-37 | Transfert de gouvernance *(réécrite en V1.1-d, AC-02, AC-12)*.<br>• **Engagements présentés :** à chaque présentation, `transfert_engagement` reçoit, avec leurs versions, les règles d'accès actives sur l'espace et ses objets, les sélections, les rattachements, les **groupes bénéficiaires** (version du groupe, donc ses membres), les **appartenances actives** et les **admissions**. `empreinte_engagements` est calculée sur cet ensemble.<br>• **Acceptation :** dans une transaction unique, elle est refusée si l'empreinte recalculée diffère. Sinon :<br>&nbsp;&nbsp;– le cessionnaire reçoit `propriétaire` (administrative) et `responsable scientifique` (scientifique) ;<br>&nbsp;&nbsp;– **toutes** les appartenances et attributions de rôle du cédant sur l'espace sont closes ;<br>&nbsp;&nbsp;– toutes les `regle_acces` dont le cédant est bénéficiaire nominatif sur l'espace ou ses objets, règles `propriétaire` comprises, sont closes et transférées au cessionnaire ;<br>&nbsp;&nbsp;– le cessionnaire et `date` sont renseignés, et l'époque des droits est incrémentée (CP-40).<br>• Seuls les `credit` et les `activite` du cédant restent ; tout droit maintenu doit être accordé ensuite par le nouveau propriétaire (DD-26.4).<br>• `expiré` est calculé à `date_expiration`. | `transfert_gouvernance`, `transfert_engagement`, `appartenance_espace`, `attribution_role`, `regle_acces` | DI-B40 à DI-B42, DD-26, OB-28 |
 | CP-38 | Axes et ressources *(V1.1)*. Un `etudier` sans cible a pour `type_axe` le concept « période » du référentiel des types d'axe. La création, la modification ou la clôture d'un `etudier` ou d'un `utiliser` n'écrit dans aucune autre table que `lien`, `lien_version` et `utiliser_role`. La situation d'une ressource est une requête : `conservée` si `objet.espace_id` est l'espace du projet ; `exploitée` si une `activite` visible est attribuable au projet. | `etudier`, `utiliser` | DI-K24 à DI-K26, DD-20 |
-| CP-39 | Imputation des consommations *(V1.1 ; condition de V-7, précisée par le porteur le 10/10/2026)*.<br>• **Sémantique temporelle :** l'éligibilité d'un accord est appréciée à la **date effective de la consommation**, et non à la date de son traitement. Une suspension, révocation ou expiration interdit l'imputation des consommations survenues **après sa prise d'effet**, sans invalider les imputations légitimement acquises antérieurement. Exemple : une consommation du 10 octobre sous un accord valide, traitée le 12 après l'expiration de l'accord, reste imputable à cet accord.<br>• **Consommation ponctuelle ou continue :**<br>&nbsp;&nbsp;– une consommation **ponctuelle** (un traitement, un calcul, un export) a une date effective unique ;<br>&nbsp;&nbsp;– une consommation **continue** (stockage) est ventilée **par période** : chaque période est une consommation distincte, imputée selon les accords éligibles pendant cette période. Avoir déposé un fichier pendant la validité d'un accord ne finance pas les périodes suivantes. La granularité de période est fixée au MPD.<br>• **Accords éligibles :** `active` à la date effective, couvrant la ressource consommée, avec `date_debut ≤ date effective ≤ date_fin`. Un accord `suspendue`, `proposée`, `refusée`, `révoquée` ou `expirée` à la date effective n'est pas éligible. Pendant l'attente d'acceptation d'une nouvelle version, c'est la version précédente acceptée qui s'applique (CP-36).<br>• **Ordre de ventilation stable et déterministe :** les accords éligibles sont ordonnés par date d'activation croissante, puis par identifiant (MLD-17). L'ordre ne dépend ni de l'ordre d'arrivée des traitements, ni du serveur qui les exécute.<br>• **Plafond :** un accord n'est jamais imputé au-delà de son plafond. Une consommation qui dépasse le reliquat est **ventilée** : le reliquat sur cet accord, le reste sur l'accord suivant, puis sur l'espace bénéficiaire. Dès qu'un plafond est atteint, les deux parties sont notifiées.<br>• **Concurrence et rejeu (obligation ; le mécanisme relève du MPD) :** deux traitements concurrents, ou le rejeu d'un même traitement, produisent le même résultat : aucun dépassement de plafond, aucune double imputation. L'imputation est idempotente par référence de consommation et par période (ST-10).<br>• **Aucun effet sur les données :** plafond atteint, expiration ou révocation ne bloquent ni l'accès aux données ni leur export. Seules les consommations **survenant ensuite** et imputées à l'espace bénéficiaire suivent ses propres quotas (`abonnement`).<br>• **Correction :** une imputation erronée se corrige par une contre-écriture, jamais par une modification. | `prise_en_charge`, schéma technique (ST-10) | DI-B38, DI-B39, OB-25, MLD-17, V-7 |
-| CP-40 | Évaluation des droits, caches, révocation et échecs *(V1.1 ; condition de V-10, renforcée par le porteur le 10/10/2026)*.<br>• **Source de vérité :** `acces()` (§ 22.2) est la seule décision. Un cache n'est jamais une source autonome d'autorisation.<br>• **Fraîcheur garantie :** toute décision d'accès est évaluée à partir d'un état d'habilitation suffisamment récent pour garantir qu'aucune révocation **déjà effective** ne puisse être ignorée. L'invalidation ou le versionnement des caches est **coordonné avec la prise d'effet** des modifications de droits : une révocation ne prend effet qu'une fois que plus aucun cache ne peut servir la décision positive qu'elle annule. Il n'existe donc aucune fenêtre où la base a enregistré la révocation tandis qu'un serveur accepterait encore l'ancienne autorisation. Une invalidation purement asynchrone, sans cette coordination, est interdite. En cas d'impossibilité de vérifier la validité d'une décision positive, l'accès est **refusé**.<br>• **Mise en œuvre logique :** chaque portée de droits a une **époque**, incrémentée dans la transaction de toute écriture qui affecte un droit :<br>&nbsp;&nbsp;– `regle_acces` : création, nouvelle version, fin ;<br>&nbsp;&nbsp;– `appartenance_espace`, `attribution_role`, `membre_groupe`, `regle_admission` ;<br>&nbsp;&nbsp;– `embargo`, `masquage`, `consentement` ;<br>&nbsp;&nbsp;– activation, réduction, suspension ou révocation d'une `selection_partage` ;<br>&nbsp;&nbsp;– fin d'un `relation_projets`, clôture d'un lot, `transfert_gouvernance` accepté ;<br>&nbsp;&nbsp;– purge.<br>Une décision en cache n'est servie que si l'époque qu'elle porte est l'époque courante. Le mécanisme de diffusion des époques relève du MPD (MPD-02).<br>• **Dépendances entre droits :** une règle sur une sélection dépend des droits de son auteur. L'époque de la portée de l'auteur est donc incluse dans la clé des décisions qui l'utilisent : un changement des droits de l'auteur invalide les décisions de ses bénéficiaires.<br>• **Échéances :** une décision mise en cache porte la plus proche `date_fin` des règles qui la fondent ; elle n'est jamais servie au-delà. Aucun cache ne repose sur une durée de vie seule.<br>• **Opérations longues :** une révocation s'applique à toute **opération élémentaire** qui commence après sa prise d'effet, y compris la page suivante d'une requête paginée, la suite d'un téléchargement, un flux, une notification, un export ou une tâche asynchrone déjà lancés. Une autorisation obtenue au lancement n'est jamais un laissez-passer pour les opérations suivantes : chaque reprise, page, fragment ou étape revérifie `acces()`. Un export ou une tâche interrompus pour cette raison ne livrent pas de résultat partiel contenant la partie révoquée.<br>• **Échec de vérification (fail closed) :** si `acces()` ne peut pas conclure (délai dépassé, profondeur maximale atteinte, cycle détecté, donnée de droit indisponible, époque inconnue), la décision est **refus**. La réponse est indistinguable d'une absence (OB-04) ; l'échec est journalisé dans `contexte_evaluation` (finalité « échec d'évaluation »), sans révéler la cible au demandeur.<br>• **Profondeur et cycles :** la borne de profondeur s'applique **uniquement au parcours des dépendances d'autorisation** (règle sur une sélection → droits de son auteur → règle dont il bénéficie…). Elle ne limite jamais le graphe généalogique, ni les relations scientifiques, ni la taille d'une sélection. Les cycles de partage ou de délégation sont détectés et refusés. | `regle_acces`, `droit_effectif`, caches (MPD-02), § 22.2, exports, notifications | OB-03, OB-04, OB-23, DD-18, V-10 ; CDC technique : fail closed |
-| CP-41 | Fichiers : identité par espace, mutualisation et conservation *(V1.1-c, ECD-07, ECD-08)*.<br>• Un dépôt de même empreinte dans le même espace réutilise le `fichier` existant ; dans un autre espace, il crée toujours un `fichier` distinct (UQ `(espace_id, empreinte)`).<br>• La mutualisation par `cle_stockage` n'est **jamais observable** d'un espace à l'autre : l'envoi est effectué ou simulé intégralement, avec même délai, même message et même quota décompté ; aucune API ne révèle qu'une clé est partagée.<br>• Effacement : à la purge d'un `fichier`, sa `cle_stockage` est retirée ; le binaire est effacé quand plus aucun `fichier` non purgé ne porte cette clé. Une purge légale n'attend jamais l'accord d'un autre espace.<br>• Une `reproduction_fichier` de rôle `master` n'est exploitable scientifiquement (nouvel alignement, transcription d'appui) que si `etat_conservation = confirmé`.<br>• Les contrôles d'intégrité périodiques mettent à jour `etat_conservation` et `date_dernier_controle`. | `fichier`, `reproduction_fichier` | DI-C13, DI-C22, DI-C23, OB-29 |
+| CP-39 | Imputation des consommations *(V1.1 ; condition de V-7, précisée par le porteur le 10/10/2026)*.<br>• **Sémantique temporelle :** l'éligibilité d'un accord est appréciée à la **date effective de la consommation**, et non à la date de son traitement. Une suspension, révocation ou expiration interdit l'imputation des consommations survenues **après sa prise d'effet**, sans invalider les imputations légitimement acquises antérieurement. Exemple : une consommation du 10 octobre sous un accord valide, traitée le 12 après l'expiration de l'accord, reste imputable à cet accord.<br>• **Consommation ponctuelle ou continue :**<br>&nbsp;&nbsp;– une consommation **ponctuelle** (un traitement, un calcul, un export) a une date effective unique ;<br>&nbsp;&nbsp;– une consommation **continue** (stockage) est ventilée **par période** : chaque période est une consommation distincte, imputée selon les accords éligibles pendant cette période. Avoir déposé un fichier pendant la validité d'un accord ne finance pas les périodes suivantes. La granularité de période est fixée au MPD.<br>• **Accords éligibles :** `active` à la date effective, couvrant la ressource consommée, avec `date_debut ≤ date effective ≤ date_fin`. Un accord `suspendue`, `proposée`, `refusée`, `révoquée` ou `expirée` à la date effective n'est pas éligible. Pendant l'attente d'acceptation d'une nouvelle version, c'est la version précédente acceptée qui s'applique (CP-36).<br>• **Ordre de ventilation stable et déterministe :** les accords éligibles sont ordonnés par date d'activation croissante, puis par identifiant (MLD-17). L'ordre ne dépend ni de l'ordre d'arrivée des traitements, ni du serveur qui les exécute.<br>• **Plafond :** un accord n'est jamais imputé au-delà de son plafond. Une consommation qui dépasse le reliquat est **ventilée** : le reliquat sur cet accord, le reste sur l'accord suivant, puis sur l'espace bénéficiaire. Dès qu'un plafond est atteint, les deux parties sont notifiées.<br>• **Concurrence et rejeu (obligation ; le mécanisme relève du MPD) :** deux traitements concurrents, ou le rejeu d'un même traitement, produisent le même résultat : aucun dépassement de plafond, aucune double imputation. L'imputation est idempotente par référence de consommation et par période (ST-10).<br>• **Aucun effet sur les données :** plafond atteint, expiration ou révocation ne bloquent ni l'accès aux données ni leur export. Seules les consommations **survenant ensuite** et imputées à l'espace bénéficiaire suivent ses propres quotas (`abonnement`).<br>• **Correction :** une imputation erronée se corrige par une contre-écriture, jamais par une modification.<br>**[V1.1-d] AC-10 :** l'éligibilité se lit sur `version_en_vigueur_numero` (plafond, ressources, période) et sur l'état de l'accord à la date effective. | `prise_en_charge`, schéma technique (ST-10) | DI-B38, DI-B39, OB-25, MLD-17, V-7 |
+| CP-40 | Évaluation des droits, caches, révocation et échecs *(V1.1 ; condition de V-10, renforcée par le porteur le 10/10/2026)*.<br>• **Source de vérité :** `acces()` (§ 22.2) est la seule décision. Un cache n'est jamais une source autonome d'autorisation.<br>• **Fraîcheur garantie :** toute décision d'accès est évaluée à partir d'un état d'habilitation suffisamment récent pour garantir qu'aucune révocation **déjà effective** ne puisse être ignorée. L'invalidation ou le versionnement des caches est **coordonné avec la prise d'effet** des modifications de droits : une révocation ne prend effet qu'une fois que plus aucun cache ne peut servir la décision positive qu'elle annule. Il n'existe donc aucune fenêtre où la base a enregistré la révocation tandis qu'un serveur accepterait encore l'ancienne autorisation. Une invalidation purement asynchrone, sans cette coordination, est interdite. En cas d'impossibilité de vérifier la validité d'une décision positive, l'accès est **refusé**.<br>• **Mise en œuvre logique :** chaque portée de droits a une **époque**, incrémentée dans la transaction de toute écriture qui affecte un droit :<br>&nbsp;&nbsp;– `regle_acces` : création, nouvelle version, fin ;<br>&nbsp;&nbsp;– `appartenance_espace`, `attribution_role`, `membre_groupe`, `regle_admission` ;<br>&nbsp;&nbsp;– `embargo`, `masquage`, `consentement` ;<br>&nbsp;&nbsp;– activation, réduction, suspension ou révocation d'une `selection_partage` ;<br>&nbsp;&nbsp;– fin d'un `relation_projets`, clôture d'un lot, `transfert_gouvernance` accepté ;<br>&nbsp;&nbsp;– purge.<br>Une décision en cache n'est servie que si l'époque qu'elle porte est l'époque courante. Le mécanisme de diffusion des époques relève du MPD (MPD-02).<br>• **Dépendances entre droits :** une règle sur une sélection dépend des droits de son auteur. L'époque de la portée de l'auteur est donc incluse dans la clé des décisions qui l'utilisent : un changement des droits de l'auteur invalide les décisions de ses bénéficiaires.<br>• **Échéances :** une décision mise en cache porte la plus proche `date_fin` des règles qui la fondent ; elle n'est jamais servie au-delà. Aucun cache ne repose sur une durée de vie seule.<br>• **Opérations longues :** une révocation s'applique à toute **opération élémentaire** qui commence après sa prise d'effet, y compris la page suivante d'une requête paginée, la suite d'un téléchargement, un flux, une notification, un export ou une tâche asynchrone déjà lancés. Une autorisation obtenue au lancement n'est jamais un laissez-passer pour les opérations suivantes : chaque reprise, page, fragment ou étape revérifie `acces()`. Un export ou une tâche interrompus pour cette raison ne livrent pas de résultat partiel contenant la partie révoquée.<br>• **Échec de vérification (fail closed) :** si `acces()` ne peut pas conclure (délai dépassé, profondeur maximale atteinte, cycle détecté, donnée de droit indisponible, époque inconnue), la décision est **refus**. La réponse est indistinguable d'une absence (OB-04) ; l'échec est journalisé dans `contexte_evaluation` (finalité « échec d'évaluation »), sans révéler la cible au demandeur.<br>• **Profondeur et cycles :** la borne de profondeur s'applique **uniquement au parcours des dépendances d'autorisation** (règle sur une sélection → droits de son auteur → règle dont il bénéficie…). Elle ne limite jamais le graphe généalogique, ni les relations scientifiques, ni la taille d'une sélection. Les cycles de partage ou de délégation sont détectés et refusés.<br>**[V1.1-d] AC-13 :** la garantie « aucune fenêtre » vaut pour les décisions **évaluées côté serveur** (lectures connectées). Un appareil hors ligne peut conserver temporairement une copie précédemment autorisée, jusqu'à la prochaine synchronisation effective et au plus `duree_max_hors_ligne_jours` (CP-28) : ce résidu est reconnu, et non nié. Le changement de politique de réplication d'un espace est un événement d'époque. | `regle_acces`, `droit_effectif`, caches (MPD-02), § 22.2, exports, notifications | OB-03, OB-04, OB-23, DD-18, V-10 ; CDC technique : fail closed |
+| CP-41 | Fichiers *(réécrite en V1.1-d, AC-17)*.<br>• Chaque dépôt crée son propre `fichier`, même pour un binaire identique dans le même espace ; aucune unicité d'empreinte.<br>• La mutualisation par `cle_stockage` n'est **jamais observable**, ni d'un espace à l'autre, ni d'un dépôt à l'autre dans un même espace : envoi effectué ou simulé intégralement, même délai, même message, même quota décompté, `date_depot` propre au dépôt.<br>• Purge : la purge d'un `fichier` n'affecte aucun autre `fichier` ; le binaire est effacé quand plus aucun `fichier` non purgé ne porte sa `cle_stockage`. Une purge légale n'attend jamais l'accord d'un autre espace ni d'un autre membre.<br>• Une `reproduction_fichier` de rôle `master` n'est exploitable scientifiquement que si `etat_conservation = confirmé`.<br>• Les contrôles d'intégrité périodiques mettent à jour `etat_conservation` et `date_dernier_controle`.<br>**[V1.1-e] DI-C23 (complet) :** la même exigence (`etat_conservation = confirmé`) vaut pour une zone et pour une transcription d’appui. | `fichier`, `reproduction_fichier` | DI-C13, DI-C22, DI-C23, OB-29 |
 | CP-42 | Consentement à l'usage algorithmique *(V1.1-c, ECD-11)*. Une `activite` de mode `assisté` ou `automatique` ne prend en entrée aucun objet couvert par un `consentement` `usage algorithmique` de décision `refusé` ou `retiré` (dernière version). Si `fournisseur` est renseigné, elle ne prend aucun objet couvert par un consentement `transmission à un prestataire externe` refusé ou retiré. Le contrôle a lieu avant l'envoi des données, et non après. | `activite`, `consentement` | DI-B43, TI-12 |
 | CP-43 | Résolution des traces purgées *(V1.1-c, ECD-10)*. La résolution d'un identifiant d'objet purgé suit le graphe accessible : pour un demandeur qui ne pouvait pas voir l'objet avant la purge, la réponse est identique à celle d'un identifiant inexistant (OB-04). La réponse « supprimé » n'est servie qu'aux personnes habilitées sur l'espace, et publiquement pour un objet qui était publié (page de tombstone ARK). Une trace ne sert jamais à reconstituer un contenu. | `objet`, `reference_persistante` | DD-27, OB-32, TI-11 |
 | CP-44 | Vue « mes contributions » *(V1.1-c, ECD-15)*. `v_mes_contributions(acteur)` (§ 23) liste les activités et crédits de l'acteur, y compris dans un espace qu'il a quitté. Elle ne retourne que les informations d'attribution légitimement conservées : type d'acte, rôle, date, type d'objet, crédit. Pour un objet que l'acteur ne peut plus voir, elle n'expose ni contenu, ni titre, ni référence, ni libellé. Elle n'expose rien d'un objet dont l'existence est protégée pour lui. Elle ne crée aucun droit d'accès à l'espace quitté. | `activite`, `credit`, § 23 | OB-30, RG-B08, DI-B09 |
 | CP-45 | Personnes vivantes et mineurs *(V1.1-c, ECD-13)*.<br>• **Présomption (DI-E06) :** une `personne` sans assertion de décès dont une assertion de naissance a un `temps_max` à moins de 120 ans de la date courante, même approximative, a `regime_protection = raisonnablement présumé vivant` par défaut. La présomption est recalculée périodiquement (le temps passe) et n'écrit aucune assertion de vie ou de décès.<br>• **Effet (DI-E05) :** pour une personne `vivant attesté`, `raisonnablement présumé vivant` ou `mineur_protege`, ses assertions sont traitées en confidentialité R : jamais diffusées hors de l'espace sans `evaluation_diffusabilite` favorable explicite. La biométrie exige un consentement `accordé` (DI-B25).<br>• **Recette :** une personne née « vers 1960 », sans décès, n'est ni exposée dans une publication, ni dans une sélection partagée (`traitement_vivants`), ni dans un export, sans évaluation favorable ; en 2081, elle cesse d'être présumée vivante, sans assertion créée. | `personne`, `assertion`, `evaluation_diffusabilite`, `selection_inclusion`, `publication_exposition`, `export_element` | DI-E05, DI-E06, DI-B25, DI-L16, F-2, EXT-02 |
-| CP-46 | Embargos persistants et existence protégée *(V1.1-c, ECD-13)*.<br>• **Persistance (DI-B20, DI-P06) :** un `embargo` actif accompagne l'objet : il est inscrit au manifeste d'export et rétabli à la restauration ou au réimport. Un `transfert_gouvernance` ne le lève pas (CP-37), pas plus qu'une `selection_partage` (CP-29) ni une `diffusion` (CP-35).<br>• **Existence (DI-B21) :** un `embargo` de `portee = existence même` produit, dans la même transaction, une `regle_acces` `interdire` / `objet_protege = existence` visant l'objet pour tous sauf les bénéficiaires de l'embargo. La fin de l'embargo clôt cette règle.<br>• **Recette :** un témoignage sous embargo d'existence, exporté puis restauré dans un nouvel espace, reste sous embargo ; il n'apparaît dans aucune recherche, aucun compteur, aucune sélection d'un non-bénéficiaire. | `embargo`, `regle_acces`, `export_element`, `import` | DI-B20, DI-B21, DI-P06, RG-B03, RG-P05 |
+| CP-46 | Embargos *(réécrite en V1.1-d, AC-04)*.<br>• **Bénéficiaires :** tout embargo a au moins un bénéficiaire (`embargo_beneficiaire`) ; son auteur l'est d'office.<br>• **Existence (DI-B21) :** pour `portee = existence même`, l'objet est retiré du graphe accessible de tout acteur qui n'est pas bénéficiaire (membre d'un groupe bénéficiaire compris), y compris les administrateurs de l'espace et les acteurs futurs. C'est une **exception d'accès propre à l'embargo**, évaluée à l'étape 1 du § 22.2 ; ce n'est pas une règle `interdire` universelle. Seul un bénéficiaire ayant `administrer` sur l'embargo peut le lever.<br>• **Persistance (DI-B20, DI-P06) :** un embargo actif est inscrit au manifeste d'export, avec ses bénéficiaires, et rétabli à la restauration ou au réimport ; ni un transfert (CP-37), ni une sélection (CP-29), ni une diffusion (CP-35) ne le lèvent.<br>• **Exports (AC-18) :** un objet à existence protégée pour l'exportateur n'est ni exporté, ni listé dans `export_exclusion`.<br>• **Recette :** un témoignage sous embargo d'existence, exporté puis restauré, reste sous embargo ; son déposant bénéficiaire le voit ; un administrateur non bénéficiaire, un nouveau membre et un lecteur public ne le voient dans aucune recherche, aucun compteur, aucune sélection, aucun export. | `embargo`, `embargo_beneficiaire`, `export_element`, `import`, § 22.2 | DI-B20, DI-B21, DI-P06, RG-B03, RG-P05 |
 | CP-47 | Retrait de consentement *(V1.1-c, ECD-13)*.<br>• **Historisation (DI-B23) :** un retrait crée une nouvelle version du `consentement` (`decision = retiré`) ; l'ancienne reste dans `consentement_hist`.<br>• **Effets (DI-B24) :** pour chaque objet dérivé ayant une dépendance (production ou justification) vers un objet couvert, une `decision_applicabilite_droit` est créée à l'état `à réexaminer`, dans la même transaction ou dans la propagation (CP-21). Tant qu'elle n'est pas tranchée, la restriction s'applique (DI-B16). Une conclusion justifiée indépendamment (`base_justificative` sans dépendance vers l'objet couvert) n'est ni supprimée ni invalidée.<br>• **Recette :** retrait du consentement d'un témoin. Le témoignage n'est plus diffusé ; la conclusion appuyée aussi sur un acte public reste, avec une décision d'applicabilité à réexaminer ; la conclusion appuyée seulement sur le témoignage est restreinte (test de non-régression 18). | `consentement`, `decision_applicabilite_droit`, `dependance`, `base_justificative` | DI-B23, DI-B24, DI-B16, RG-B06 |
+| CP-48 | Autorité sur les droits *(V1.1-d, AC-01, D1, D8 ; DD-28)*.<br>• Seul un acteur qui détient `administrer` sur la cible crée, élargit, prolonge ou clôt une `regle_acces` sur cette cible, une `appartenance_espace` ou une `attribution_role` sur l'espace, un `membre_groupe` d'un groupe de l'espace, une `regle_admission`. `regle_acces.auteur_acteur_id` est cet acteur (AC-11).<br>• Une `regle_acces` vit dans l'espace de sa cible (`objet.espace_id` de la règle = espace de l'objet, du lien ou l'espace cible) : un projet parent ne crée aucune règle sur un sous-projet.<br>• **Pas d'auto-habilitation (CK de `regle_acces`, et pour les appartenances) :** aucun acteur ne s'accorde une appartenance scientifique ni une règle `voir`, `éditer`, `transcrire`, `valider`, `réutiliser`, `repartager` ou `exporter`, sauf l'attribution initiale de la création de l'espace et les règles `propriétaire` de CP-23. L'habilitant est un acteur différent du bénéficiaire.<br>• **Actions par défaut des rôles** (étape 4 du § 22.2) : selon la matrice de DD-28.3. `propriétaire` et `administrateur` reçoivent `administrer` sur l'espace, et aucune action sur les contenus.<br>• **Métadonnées de gouvernance (D8) :** `administrer` ouvre les métadonnées listées par DD-28.4, jamais les contenus ni les métadonnées protégées. | `regle_acces`, `appartenance_espace`, `attribution_role`, `membre_groupe`, `regle_admission`, § 22.2 | DD-28, DI-B29, DI-B36, DI-B44, DI-K23, OB-22 |
+| CP-49 | Unicités et visibilité *(V1.1-d, AC-05)*. Une unicité ne porte que sur des lignes dont la visibilité est uniforme pour tous ceux qui peuvent tenter une insertion concurrente. En conséquence :<br>• `base_justificative` : unicité par espace, objet, portée, et auteur pour la portée `privée` (UQ) ;<br>• `reference_inter_espace`, `selection_contexte` et `position_epistemique` sont des choix **d'espace** : leur visibilité est celle par défaut des membres de l'espace, jamais plus restrictive. Un choix personnel privé se fait dans l'espace personnel de l'acteur.<br>Une violation d'unicité ne peut donc jamais révéler un objet que le demandeur ne voit pas. | `base_justificative`, `reference_inter_espace`, `selection_contexte`, `position_epistemique` | TI-11, OB-04, P19 |
+| CP-50 | Écriture référentielle *(V1.1-d, AC-08)*. Toute colonne de référence fournie par un appelant (FK vers un objet, un espace, un projet, un lien) est validée par `acces(contexte, cible, voir)` **avant** l'évaluation des contraintes de clé. Absent et inaccessible produisent la même erreur, avec le même délai. Une `contribution_differee` vers un espace où l'acteur n'a jamais eu d'appartenance est reçue sans révéler l'existence de l'espace (succès simulé, refus à l'intégration). | Toutes les écritures | TI-11, OB-04, CDCF § 121.2 |
+| CP-51 | Repartage d'une copie réutilisée *(V1.1-d, AC-16, D3 ; DI-A41)*. L'inclusion d'un objet issu d'une `filiation` `réutilisation` dans une `selection_partage`, une `publication_exposition`, une `diffusion` ou un `export_element` ne requiert aucun accord de l'espace d'origine, mais exige : une règle `réutiliser` active lors de la reprise (`filiation.regle_acces_id`) ; une licence autorisant la redistribution (et la modification si la copie a été modifiée) ; aucun embargo, consentement, décision d'applicabilité ni protection DI-E05 qui s'y oppose. | `filiation`, `selection_inclusion`, `publication_exposition`, `diffusion`, `export_element`, `licence` | DI-A41, DI-A37, D3 |
+| CP-52 | Attributs figés *(V1.1-d, AC-27)*. Toute colonne marquée F (figée) dans le dictionnaire garde, dans toute nouvelle version, sa valeur de la version 1 : notamment `objet.espace_id` (DI-A01), `objet.type_objet`, `espace.type_espace`, `acteur_geniius.nature_acteur`, `assertion.nature`, `operation_flux.type`, `selection_partage.type_selection`, `reference_persistante` (mode, identifiant), `fichier` (format, taille, date de dépôt), `regle_acces.auteur_acteur_id`. Seules la purge (CP-16) et l'effacement de résolution (DD-27) y dérogent. La liste complète est générée depuis les marques F du dictionnaire. | Toutes tables d'objet | DI-A01, P7, CP-01 |
+| CP-53 | Règles DI jusque-là partiellement réalisées *(V1.1-d, AC-28)*.<br>• **DI-A10 :** une version produite par une activité `ia_generative` a toujours `etat_examen` ∈ {détecté automatiquement, préstructuré automatiquement} ; seul un acte humain distinct, produisant une nouvelle version, peut la faire évoluer [V1.1-e : règle rendue absolue].<br>• **DI-A12 :** `perimetre_donnees_transmises` est une liste contrôlée d'attributs (table enfant) ; aucun attribut de confidentialité R ou I n'y figure.<br>• **DI-B09 :** un acteur sans compte actif ne peut être l'acteur d'aucune nouvelle activité.<br>• **DI-B18 :** une `evaluation_diffusabilite` d'agrégat porte l'effectif ; en dessous du seuil MPD-03, la décision est au mieux `autorisation requise`.<br>• **DI-C15 :** une `zone` de type `plage temporelle` n'a aucune géométrie d'image.<br>• **DI-K11 :** une recherche nominative exige `termes_et_variantes`.<br>• **DI-K12 :** le périmètre d'une intervention de mission est une liste d'objets cibles (table enfant), d'où sont dérivées des règles bornées (CP-20).<br>• **DI-K18 :** l'adoptant d'une règle méthodologique est un acteur de `nature_acteur = personne`.<br>• **DI-A27 :** toute dépendance invoquée par une base justificative a pour aval l’objet justifié de la base et `categorie = justification`.<br>• **DI-A37 [V1.1-e] :** CK de `filiation` (réutilisation ⇒ flux, sans import) et CP-33 (type du flux). | Tables concernées | DI-A10, DI-A27, DI-A12, DI-A37, DI-B09, DI-B18, DI-C15, DI-K11, DI-K12, DI-K18 |
 
 ---
 
@@ -3350,10 +3444,11 @@ Ces contraintes ne s'expriment pas en `CHECK` d'une seule ligne. Elles doivent �
 
 Pour un contexte (acteur, audience, espace, instant, opération) et une cible (objet ou lien) :
 
-1. **Existence protégée.** S'il existe une règle active `effet = interdire`, `objet_protege = existence`, visant la cible ou son espace et s'appliquant au bénéficiaire : la cible **n'existe pas** pour ce contexte. Elle est retirée du graphe avant toute autre étape.
+1. **Existence protégée.** S'il existe une règle active `effet = interdire`, `objet_protege = existence`, visant la cible ou son espace et s'appliquant au bénéficiaire : la cible **n'existe pas** pour ce contexte. Elle est retirée du graphe avant toute autre étape. **[V1.1-d] AC-04 :** un embargo `existence même` retire aussi la cible pour tout acteur qui n’en est pas bénéficiaire (exception d’accès propre à l’embargo, CP-46), y compris les administrateurs.
+   **1 bis. Cloisonnements temporaires [V1.1-d, AC-30].** Pendant une lecture aveugle (CP-19) ou la phase indépendante d’une campagne (DI-J09, participant identifié par `campagne_personne.acteur_id`), les lectures concurrentes et les réponses des autres participants sont retirées du graphe accessible de l’acteur concerné.
 2. **Interdiction.** S'il existe une règle active `effet = interdire` pour l'action : refus.
 3. **Autorisation explicite.** S'il existe une règle active `effet = autoriser` pour l'action : accord.
-4. **Visibilité par défaut** (§ 22.1) pour l'action `voir` ; refus pour les autres actions sans règle.
+4. **Visibilité par défaut** (§ 22.1) pour l'action `voir` ; refus pour les autres actions sans règle. **[V1.1-d] AC-01 :** les actions par défaut des rôles d’appartenance sont celles de la matrice DD-28.3 (CP-48) ; `propriétaire` et `administrateur` ne reçoivent que `administrer` sur l’espace, qui ouvre les seules métadonnées de gouvernance (DD-28.4).
 5. **Lien.** Un lien n'est accessible que si ses deux extrémités le sont (TI-10) et que les étapes 1 à 4 l'autorisent.
 6. **Embargo et masquage.** Un objet sous embargo actif voit la portée concernée retirée (média, transcription, information…) ; un objet masqué est remplacé par sa version publique pour les lecteurs non habilités.
 
@@ -3411,7 +3506,7 @@ Ces vues sont **calculées** et **contextuelles**. Elles servent l'interface et 
 | Assertion transformée en attribut intrinsèque | Aucune colonne de fait sur `personne` ni sur les autres entités historiques (§ 8.2) ; fiches = vues contextuelles (§ 23) |
 | `DATE_HIST` aplatie | Groupe de six colonnes et contraintes du § 3.4 ; `approximative`/`vers` exigent `min < max` |
 | `COMPTE`, `ACTEUR_GENIIUS`, `PERSONNE` confondus | Trois tables distinctes ; liens `lien_compte_acteur` (I) et `lien_compte_personne` (R) ; toutes les attributions pointent `acteur_geniius` |
-| Acquisition, production, justification confondues | `acquisition_information` séparée ; `dependance.categorie` ; `base_justificative` ; une acquisition n'est jamais amont d'une justification (DI-A30, CP-07) |
+| Acquisition, production, justification confondues | `acquisition_information` séparée ; `dependance.categorie` ; `base_justificative` ; une acquisition n’est jamais amont d’une justification (DI-A30 : CK de `dependance` sur `amont_type`, V1.1-d) |
 | Filiation, référence, rapprochement fusionnés | Trois tables distinctes (`filiation`, `reference_inter_espace`, `rapprochement`) ; aucune table générique « lien vers » |
 | Historique supprimé | Tables `_hist`, `version_objet` et journaux en insertion seule ; `RESTRICT` partout ; actes d'évaluation `[F]` |
 | Calcul sur le graphe complet puis masquage | Graphe accessible (§ 22.3) obligatoire pour toute opération révélatrice |
@@ -3425,7 +3520,7 @@ Ces vues sont **calculées** et **contextuelles**. Elles servent l'interface et 
 
 Générée à partir des commentaires du schéma (chaque table et chaque colonne de liaison citent l'entité ou l'association du dictionnaire qu'elles réalisent). Elle sert de contrôle de couverture (annexe G et critère REC-17 du dictionnaire).
 
-Bilan : **267 tables décrites** (hors tables `_hist` miroir ; 247 en V1.0, 264 en V1.1 avant corrections ; + `activite_referentiel`, `concept_libelle`, `export_referentiel` en V1.1-c) ; 167 entités et profils du dictionnaire, 278 associations (ajouts V1.1 : § 25.3).
+Bilan : **271 tables décrites** (V1.1-d : + `embargo_beneficiaire`, `pseudonyme_reserve`, `intervention_perimetre`, `activite_perimetre_transmis`) ; avant : 267 tables (hors tables `_hist` miroir ; 247 en V1.0, 264 en V1.1 avant corrections ; + `activite_referentiel`, `concept_libelle`, `export_referentiel` en V1.1-c) ; 167 entités et profils du dictionnaire, 278 associations (ajouts V1.1 : § 25.3).
 
 ## 25.1 Entités et profils
 
@@ -3926,314 +4021,331 @@ Bilan : **267 tables décrites** (hors tables `_hist` miroir ; 247 en V1.0, 264 
 | DI-Q07 | CK de `veille` ; CP-35 |
 | OB-23 à OB-28 | CP-29 à CP-37 ; MLD-16 à MLD-18 ; ST-09 à ST-11 (§ 28.3) |
 
-## 25.4 Règles du dictionnaire → MLD : une ligne par règle DI (V1.1-c, ECD-13)
+## 25.4 Règles du dictionnaire → MLD : une ligne par règle DI (V1.1-d, ECD-13, AC-28)
 
-**Couverture :** 300 règles `DI-*` du dictionnaire V1.3 ; 207 étaient déjà citées dans le schéma ; 93 ont été complétées ; **aucune n’est sans réalisation**. « Hors MLD » et « obligation de service » désignent une règle de présentation ou de comportement applicatif, justifiée dans la ligne.
+**Correction de la V1.1-c.** La version précédente de ce paragraphe affirmait qu'« aucune règle n'est sans réalisation ». L'audit contradictoire a montré que c'était faux : sur 64 lignes échantillonnées, une vingtaine étaient absentes ou partielles (AC-28, reclassé majeur). Cette affirmation est retirée.
 
-**Limite.** Une ligne « citée » a été établie mécaniquement : elle prouve que la règle est référencée à l’endroit indiqué, pas que la contrainte la réalise correctement. Cette vérification revient à l’audit contradictoire.
+**Contrôle exhaustif des 207 lignes « citées » (V1.1-d).** Chaque ligne a été vérifiée contre la contrainte effective : CK, FK, UQ, table, ou texte de la CP qui énonce la règle. Une simple mention ne suffisait pas.
+- **21 lignes absentes ou partielles** ont été trouvées :
+  - 18 par l'audit : DI-A01, A10, A12, A30, A37, B05, B08, B09, B18, B41, B42, C15, K11, K12, K18, L15, L16, P13 ;
+  - 3 par ce contrôle : DI-A07 (enchaînement des dates de validité), DI-A16 (amonts du domaine Q non exclus), DI-A27 (renvoyée à CP-09, qui ne la traite pas).
+- Toutes ont été corrigées en V1.1-d.
+- **Résultat sur les 207 lignes :** 169 réalisées et vérifiées ; 37 réalisées après correction V1.1-d, **à confirmer par le contre-audit** ; 1 non applicable avec justification (DI-E03, règle d'usage des vues) ; **0 partielle, 0 absente** à l'issue des corrections.
 
-| Règle | Réalisation dans le MLD | Origine de la ligne |
-|---|---|---|
-| DI-A01 | `objet` | citée |
-| DI-A02 | CP-02 | citée |
-| DI-A03 | CP-03 ; `objet` | citée |
-| DI-A04 | `objet` | citée |
-| DI-A05 | CP-11 ; `objet` | citée |
-| DI-A06 | PK `version_objet(objet_id, numero)` ; séquence sans trou : CP-02 | complétée (ECD-13) |
-| DI-A07 | CP-02 ; `version_objet` | citée |
-| DI-A08 | `version_objet` | citée |
-| DI-A09 | `version_composant` (manifeste, MLD-02) ; FK vers `version_objet` | complétée (ECD-13) |
-| DI-A10 | `activite` | citée |
-| DI-A11 | `activite` | citée |
-| DI-A12 | `activite` | citée |
-| DI-A13 | `activite` | citée |
-| DI-A14 | CP-15 ; `dependance` | citée |
-| DI-A15 | `dependance` | citée |
-| DI-A16 | CP-07 ; `argument_preuve` | citée |
-| DI-A17 | CP-09 | citée |
-| DI-A18 | CP-21 | citée |
-| DI-A19 | `filiation` | citée |
-| DI-A20 | `filiation` | citée |
-| DI-A21 | CP-04 | citée |
-| DI-A22 | `filiation.etat_divergence` ; aucune écriture dans l'objet dérivé du fait de l'origine (CP-01) ; notification (`notification`) | complétée (ECD-13) |
-| DI-A23 | CP-04 ; `reference_inter_espace` | citée |
-| DI-A24 | `reference_inter_espace` : `acces()` de la cible dans le contexte de l'espace référent à la création : CP-04 | complétée (ECD-13) |
-| DI-A25 | `reference_inter_espace` sans copie ; évolution de la cible = ligne `etat_reference_externe` en insertion seule | complétée (ECD-13) |
-| DI-A26 | `etat_reference_externe` | citée |
-| DI-A27 | `base_justificative_preuve` | citée |
-| DI-A28 | CP-13 | complétée (ECD-13) |
-| DI-A29 | CP-09 ; `base_justificative_preuve` | citée |
-| DI-A30 | §24. | citée |
-| DI-A31 | `acquisition_information` | citée |
-| DI-A32 | `assertion.etat_provenance` ; CP-13 | complétée (ECD-13) |
-| DI-A33 | CP-13 (aucune écriture d'`acquisition_documentaire` sur `document` ni `responsabilite`) | complétée (ECD-13) |
-| DI-A34 | `reference_persistante` | citée |
-| DI-A35 | CP-17 | citée |
-| DI-A36 | `reference_persistante` ; résolution selon les droits : § 22.3 (API) ; CP-43 | complétée (ECD-13) |
-| DI-A37 | CP-33 ; `filiation` | citée |
-| DI-A38 | CP-33 ; `filiation` | citée |
-| DI-A39 | CP-23 ; `activite` | citée |
-| DI-A40 | `activite_referentiel` | citée |
-| DI-B01 | `espace` : UQ (type_espace) WHERE `Core partagé` | complétée (ECD-13) |
-| DI-B02 | CP-06 ; `appartenance_espace` | citée |
-| DI-B03 | CP-06 ; CP-11 | citée |
-| DI-B04 | CP-06 ; `appartenance_espace` | citée |
-| DI-B05 | CP-06 | citée |
-| DI-B06 | CP-06 | citée |
-| DI-B07 | CP-06 ; `lien_compte_acteur` | citée |
-| DI-B08 | CP-06 ; `acteur_geniius` | citée |
-| DI-B09 | CP-44 | citée |
-| DI-B10 | `regle_acces` | citée |
-| DI-B11 | § 22.2, étape 2 (interdiction prioritaire) ; OB-05 | complétée (ECD-13) |
-| DI-B12 | § 22.2, étape 1 (existence protégée) ; OB-04 | complétée (ECD-13) |
-| DI-B13 | CP-12 | complétée (ECD-13) |
-| DI-B14 | CP-06 | complétée (ECD-13) |
-| DI-B15 | CP-13 ; `decision_applicabilite_droit` | citée |
-| DI-B16 | § 22.2, étape 6 ; CP-13 (absence de `decision_applicabilite_droit` = restriction appliquée) | complétée (ECD-13) |
-| DI-B17 | `evaluation_diffusabilite` | citée |
-| DI-B18 | §22.3 | citée |
-| DI-B19 | `embargo` | citée |
-| DI-B20 | **CP-46** (nouvelle, ECD-13) | complétée (ECD-13) |
-| DI-B21 | **CP-46** (nouvelle, ECD-13) | complétée (ECD-13) |
-| DI-B22 | CP-13 ; `masquage` | citée |
-| DI-B23 | `consentement` [V] : retrait = nouvelle version (CP-01) ; **CP-47** | complétée (ECD-13) |
-| DI-B24 | **CP-47** (nouvelle, ECD-13) | complétée (ECD-13) |
-| DI-B25 | CP-13 ; `regroupement_traces` | citée |
-| DI-B26 | CP-37 (aucune écriture sur `embargo`, `consentement`, `credit`) | complétée (ECD-13) |
-| DI-B27 | `designation_garde` | citée |
-| DI-B28 | CP-37 ; CP-01 (aucune écriture sur `credit` ni `activite`) | complétée (ECD-13) |
-| DI-B29 | CP-26 ; `regle_acces` | citée |
-| DI-B30 | `regle_acces` | citée |
-| DI-B31 | `contribution_differee` ; CP-27 | complétée (ECD-13) |
-| DI-B32 | CP-27 (conflit) | complétée (ECD-13) |
-| DI-B33 | CP-27 (conservation) | complétée (ECD-13) |
-| DI-B34 | CP-29 ; `regle_acces` | citée |
-| DI-B35 | CP-29 ; `regle_acces` | citée |
-| DI-B36 | CP-30 ; `regle_acces` ; `regle_admission` | citée |
-| DI-B37 | CP-30 ; `regle_acces` | citée |
-| DI-B38 | CP-36 ; CP-39 | citée |
-| DI-B39 | CP-36 ; CP-39 | citée |
-| DI-B40 | CP-37 ; ST-09 ; `transfert_gouvernance` | citée |
-| DI-B41 | CP-37 ; `transfert_engagement` ; `transfert_gouvernance` ; §26. | citée |
-| DI-B42 | CP-37 | citée |
-| DI-B43 | CP-42 ; `consentement` | citée |
-| DI-C01 | CP-13 ; `document` | citée |
-| DI-C02 | CP-13 ; `document` | citée |
-| DI-C03 | CP-13 (aucune écriture d'une anomalie sur `document.statut_existence`) | complétée (ECD-13) |
-| DI-C04 | CP-13 ; `document` | citée |
-| DI-C05 | `exemplaire.document_id` NN (une FK unique) | complétée (ECD-13) |
-| DI-C06 | CP-09 ; `classement_unite` | citée |
-| DI-C07 | CP-13 (ordre `historique reconstruit` ⇒ `interpretation`) | complétée (ECD-13) |
-| DI-C08 | `identifiant_documentaire` | citée |
-| DI-C09 | `identifiant_documentaire.date_fin` ; CP-22 | complétée (ECD-13) |
-| DI-C10 | `reproduction` | citée |
-| DI-C11 | CP-07 ; `reproduction` | citée |
-| DI-C12 | CP-13 (alignement obligatoire) ; CP-41 (`master` confirmé) | complétée (ECD-13) |
-| DI-C13 | CP-41 ; `fichier` | citée |
-| DI-C14 | CP-13 ; `zone` | citée |
-| DI-C15 | `zone` | citée |
-| DI-C16 | `responsabilite` | citée |
-| DI-C17 | `citation_documentaire` | citée |
-| DI-C18 | `citation_documentaire.document_id` : FK vers un document de tout statut d'existence | complétée (ECD-13) |
-| DI-C19 | CP-13 (aucune création automatique de `document`) | complétée (ECD-13) |
-| DI-C20 | `source_externe_declaree` | citée |
-| DI-C21 | CP-13 | complétée (ECD-13) |
-| DI-C22 | CP-41 ; `fichier` | citée |
-| DI-C23 | CP-41 ; `fichier` | citée |
-| DI-D01 | `transcription` | citée |
-| DI-D02 | CP-19 ; `transcription` | citée |
-| DI-D03 | CP-13 ; `transcription` | citée |
-| DI-D04 | `segment` [V] ; CP-01 ; CP-14 (`TEXTE_SOURCE`) | complétée (ECD-13) |
-| DI-D05 | `segment` | citée |
-| DI-D06 | CP-13 (aucune création automatique de `personne` depuis `mention`) | complétée (ECD-13) |
-| DI-D07 | CP-10 ; `mention` | citée |
-| DI-D08 | `mention` | citée |
-| DI-E01 | CP-08 ; `entite_historique` | citée |
-| DI-E02 | CP-13 | citée |
-| DI-E03 | §23. | citée |
-| DI-E04 | CP-08 (type d'entité dans la branche de la spécialisation) | complétée (ECD-13) |
-| DI-E05 | **CP-45** (nouvelle, ECD-13) | complétée (ECD-13) |
-| DI-E06 | **CP-45** (nouvelle, ECD-13) | complétée (ECD-13) |
-| DI-E07 | `personne` | citée |
-| DI-E08 | CP-13 ; `etape_voyage` | citée |
-| DI-E09 | CP-13 (aucune `etape_voyage` dérivée de deux présences) | complétée (ECD-13) |
-| DI-F01 | `proposition_identification` | citée |
-| DI-F02 | CP-15 ; `proposition_identification` | citée |
-| DI-F03 | CP-13 ; `proposition_identification` | citée |
-| DI-F04 | `proposition_identification` : statut `rejetée` conservé ; aucune suppression (CP-01, § 3.5) | complétée (ECD-13) |
-| DI-F05 | CP-10 ; `position` | citée |
-| DI-F06 | Tables distinctes `position` et `personne` ; aucune conversion : CP-13 | complétée (ECD-13) |
-| DI-F07 | `candidature` | citée |
-| DI-F08 | `candidature` | citée |
-| DI-F09 | CP-13 ; `rapprochement` | citée |
-| DI-F10 | CP-13 ; `rapprochement` | citée |
-| DI-F11 | CP-13 (argument citant le verdict opposable) | complétée (ECD-13) |
-| DI-F12 | `rapprochement.portee` ; aucune ligne entre propriétaires (§ 27.3) ; CP-12 | complétée (ECD-13) |
-| DI-F13 | CP-07 ; `selection_contexte` | citée |
-| DI-F14 | `selection_contexte` ; §26. | citée |
-| DI-F15 | `selection_contexte` sans écriture sur `assertion` ; CP-10 | complétée (ECD-13) |
-| DI-F16 | `position_epistemique` | citée |
-| DI-F17 | `position_epistemique` par contexte ; aucune vue d'agrégat majoritaire (§ 23) | complétée (ECD-13) |
-| DI-G01 | CP-07 | citée |
-| DI-G02 | CP-05 ; `assertion` | citée |
-| DI-G03 | CP-18 ; `assertion` | citée |
-| DI-G04 | CP-13 ; `assertion` | citée |
-| DI-G05 | CP-13 ; `assertion` | citée |
-| DI-G06 | `assertion` | citée |
-| DI-G07 | `assertion_relation` (statut causal) ; CP-07 ; CP-13 | complétée (ECD-13) |
-| DI-G08 | `assertion_situation.continuite` ; CP-13 | complétée (ECD-13) |
-| DI-G09 | CP-07 (prédicat de classification déclarée) ; CP-08 | complétée (ECD-13) |
-| DI-G10 | `expression_assertion` ; CP-13 | complétée (ECD-13) |
-| DI-G11 | CP-05 ; `expression_segment` | citée |
-| DI-G12 | CP-13 ; `interpretation` | citée |
-| DI-G13 | CP-07 ; `interpretation` | citée |
-| DI-G14 | `interpretation` de type estimation ; présentation : obligation de service (§ 23) | complétée (ECD-13) |
-| DI-G15 | `phase_trajectoire.etat_examen` ; CP-13 | complétée (ECD-13) |
-| DI-G16 | CP-05 ; `lacune` | citée |
-| DI-G17 | `transmission.niveau` ; CP-13 | complétée (ECD-13) |
-| DI-G18 | Fonction `independance` (§ 23) ; OB-18 | complétée (ECD-13) |
-| DI-H01 | CP-06 ; `acte_evaluation` | citée |
-| DI-H02 | CP-10 | citée |
-| DI-H03 | `acte_evaluation` | citée |
-| DI-H04 | Aucune FK d'`abonnement`, de `badge` ni de compteur de votes vers `acte_evaluation` (§ 5.5) | complétée (ECD-13) |
-| DI-H05 | `argument_preuve` | citée |
-| DI-H06 | CP-05 (ETAYER obligatoire pour une preuve discriminante) | complétée (ECD-13) |
-| DI-H07 | CP-13 ; `credit` de rôle proposant | complétée (ECD-13) |
-| DI-H08 | CP-05 ; `conflit_proposition` | citée |
-| DI-H09 | CP-13 | complétée (ECD-13) |
-| DI-H10 | CP-06 ; `demande` | citée |
-| DI-I01 | CP-13 ; `reconstruction` | citée |
-| DI-I02 | Présentation : vues § 23 et API, mention « reconstruction » et auteur (obligation de service) | complétée (ECD-13) |
-| DI-I03 | CP-05 ; `element_reconstruit` | citée |
-| DI-I04 | CP-13 (élément `inconnu` créé seulement explicitement) | complétée (ECD-13) |
-| DI-I05 | CP-18 ; `element_appui` | citée |
-| DI-I06 | `element_reconstruit` | citée |
-| DI-I07 | CP-13 (aucune écriture d'une anomalie sur `statut_existence`) | complétée (ECD-13) |
-| DI-I08 | CP-05 | complétée (ECD-13) |
-| DI-J01 | CP-05 ; `session_memoire` | citée |
-| DI-J02 | CP-13 ; `session_memoire` | citée |
-| DI-J03 | `echange` ; aucune écriture sur une `reponse` antérieure (CP-01) | complétée (ECD-13) |
-| DI-J04 | `echange` | citée |
-| DI-J05 | `echange` | citée |
-| DI-J06 | CP-13 ; `reponse` | citée |
-| DI-J07 | `reponse` [V] ; REVISER ; CP-01 | complétée (ECD-13) |
-| DI-J08 | `reponse` | citée |
-| DI-J09 | `campagne_memoire` ; §22.3 | citée |
-| DI-J10 | CP-03 ; `campagne_memoire` | citée |
-| DI-J11 | `capsule` | citée |
-| DI-J12 | CP-13 (délivrance de `capsule` sans écriture sur `embargo`) | complétée (ECD-13) |
-| DI-K01 | `projet` | citée |
-| DI-K02 | CP-13 (`transmis` ⇒ `designation_garde` effective) | complétée (ECD-13) |
-| DI-K03 | CP-13 ; `question` | citée |
-| DI-K04 | CP-21 ; `question` | citée |
-| DI-K05 | CP-13 ; `question` | citée |
-| DI-K06 | CP-09 | complétée (ECD-13) |
-| DI-K07 | `piste.source_suggeree` (texte) ; CP-13 (aucune création) | complétée (ECD-13) |
-| DI-K08 | `piste` | citée |
-| DI-K09 | CP-05 ; `recherche_effectuee` | citée |
-| DI-K10 | CP-13 ; `recherche_effectuee` | citée |
-| DI-K11 | `recherche_effectuee` | citée |
-| DI-K12 | CP-20 ; `intervention_mission` | citée |
-| DI-K13 | CP-05 | complétée (ECD-13) |
-| DI-K14 | `offre_deplacement` sans FK vers un projet ; § 22 | complétée (ECD-13) |
-| DI-K15 | `application_protocole` | citée |
-| DI-K16 | CP-13 ; `application_protocole` | citée |
-| DI-K17 | Présentation : obligation de service (« exhaustif selon le protocole X vN ») | complétée (ECD-13) |
-| DI-K18 | `regle_methodologique` | citée |
-| DI-K19 | CP-13 | complétée (ECD-13) |
-| DI-K20 | CP-03 ; CP-15 | citée |
-| DI-K21 | CK `diff_connaissance` (num_nonnulls) ; CP-10 (nature technique) | complétée (ECD-13) |
-| DI-K22 | `decouverte` | citée |
-| DI-K23 | CP-31 ; `relation_projets` | citée |
-| DI-K24 | CP-38 ; `etudier` | citée |
-| DI-K25 | CP-38 ; `etudier` | citée |
-| DI-K26 | CP-38 ; `utiliser` | citée |
-| DI-K27 | CP-32 | citée |
-| DI-K28 | CP-32 ; `tache_assignation` | citée |
-| DI-K29 | CP-32 ; `regle_acces` ; `tache_objet` | citée |
-| DI-K30 | CP-32 | citée |
-| DI-K31 | CP-32 ; `tache` | citée |
-| DI-L01 | CP-04 ; `arbre` | citée |
-| DI-L02 | `arbre` | citée |
-| DI-L03 | CP-04 ; `noeud_arbre` | citée |
-| DI-L04 | `noeud_arbre` | citée |
-| DI-L05 | `noeud_arbre.personne_id` dans l'espace de l'arbre (CP-04) ; lien Core par `rapprochement` ou `reference_inter_espace` | complétée (ECD-13) |
-| DI-L06 | CP-04 ; `operation_flux` | citée |
-| DI-L07 | CP-04 ; `operation_flux` | citée |
-| DI-L08 | CP-04 ; `operation_flux` | citée |
-| DI-L09 | CP-03 ; `operation_flux` | citée |
-| DI-L10 | CP-20 | citée |
-| DI-L11 | CP-20 ; § 22 (écarts visibles des deux parties seulement) | complétée (ECD-13) |
-| DI-L12 | CP-04 ; CP-33 ; `operation_flux` | citée |
-| DI-L13 | CP-33 ; MLD-16 ; `selection_inclusion` | citée |
-| DI-L14 | CP-33 ; `selection_inclusion` | citée |
-| DI-L15 | CP-33 ; MLD-16 | citée |
-| DI-L16 | CP-33 ; `selection_inclusion` | citée |
-| DI-L17 | CP-33 ; `selection_partage` | citée |
-| DI-L18 | CP-04 ; CP-33 ; `operation_flux` | citée |
-| DI-L19 | CP-33 | citée |
-| DI-L20 | CP-33 ; `operation_flux` | citée |
-| DI-M01 | CP-04 ; CP-13 | complétée (ECD-13) |
-| DI-M02 | CP-19 | complétée (ECD-13) |
-| DI-M03 | `participation_connect` | citée |
-| DI-M04 | Confidentialité R ; § 22 ; OB-17 | complétée (ECD-13) |
-| DI-N01 | CP-13 ; `geometrie` | citée |
-| DI-N02 | `geometrie` | citée |
-| DI-N03 | `geometrie` reconstruite ⇒ `calcul_id` ; CP-13 | complétée (ECD-13) |
-| DI-N04 | CP-14 ; `geometrie` | citée |
-| DI-N05 | CP-13 ; présentation cartographique (obligation de service) | complétée (ECD-13) |
-| DI-N06 | `carte.mode`, `fraicheur` ; CP-10 ; CP-21 | complétée (ECD-13) |
-| DI-N07 | § 22.3 (calcul sur le graphe accessible) | complétée (ECD-13) |
-| DI-N08 | Tables distinctes (`lieu`, `bien`, assertion `situation`) ; CP-07 | complétée (ECD-13) |
-| DI-O01 | `corpus` | citée |
-| DI-O02 | `corpus` | citée |
-| DI-O03 | `corpus_inclusion` | citée |
-| DI-O04 | `cohorte_analytique` | citée |
-| DI-O05 | `methode` [V] ; `calcul.methode_numero` ; CP-01 | complétée (ECD-13) |
-| DI-O06 | CP-13 ; `methode` | citée |
-| DI-O07 | CP-13 ; `calcul` | citée |
-| DI-O08 | `calcul` | citée |
-| DI-O09 | CP-21 ; `resultat` | citée |
-| DI-O10 | `resultat.couverture` NN* ; présentation : obligation de service | complétée (ECD-13) |
-| DI-O11 | CP-13 (aucune `assertion_relation` produite par un calcul) | complétée (ECD-13) |
-| DI-O12 | § 22.3 (agrégation) ; CP-13 | complétée (ECD-13) |
-| DI-O13 | CP-34 ; `methode` | citée |
-| DI-O14 | CP-34 | citée |
-| DI-O15 | CP-34 | citée |
-| DI-O16 | CP-34 | citée |
-| DI-O17 | CP-34 | citée |
-| DI-P01 | CP-13 ; `publication` | citée |
-| DI-P02 | `correction_publication` ; CP-01 | complétée (ECD-13) |
-| DI-P03 | CP-13 ; `publication` | citée |
-| DI-P04 | CP-17 | complétée (ECD-13) |
-| DI-P05 | MLD-14 ; §26. | citée |
-| DI-P06 | `export_element` ; CP-46 | complétée (ECD-13) |
-| DI-P07 | MLD-14 ; aucune colonne `I` exportée : CP-13 ; MPD-05 | complétée (ECD-13) |
-| DI-P08 | MLD-11 | citée |
-| DI-P09 | CP-04 ; `reconciliation_import` | citée |
-| DI-P10 | `import` | citée |
-| DI-P11 | CP-35 | citée |
-| DI-P12 | CP-35 ; `decision_editoriale` | citée |
-| DI-P13 | CP-35 ; `decision_editoriale` | citée |
-| DI-P14 | CP-35 ; `publication` | citée |
-| DI-P15 | CP-35 ; `diffusion` | citée |
-| DI-P16 | CP-35 ; `diffusion` | citée |
-| DI-P17 | CP-35 | citée |
-| DI-P18 | CP-35 ; `publication` | citée |
-| DI-P19 | CP-23 ; `import` | citée |
-| DI-Q01 | Hors MLD : comportement applicatif (aucune contrainte de saisie ; déclenchement IA : `activite.declenchement`) | complétée (ECD-13) |
-| DI-Q02 | CP-05 ; `inbox_item` | citée |
-| DI-Q03 | `historique_navigation` [T], ON DELETE CASCADE (§ 3.5) ; aucune FK vers le Core | complétée (ECD-13) |
-| DI-Q04 | `veille` | citée |
-| DI-Q05 | §22.3 | citée |
-| DI-Q06 | `notification.motif` CK D-49 (aucune valeur d'engagement) | complétée (ECD-13) |
-| DI-Q07 | CP-35 ; `veille` | citée |
-| DI-R01 | `referentiel` | citée |
-| DI-R02 | `concept.actif` ; aucune suppression (RESTRICT, § 3.5) | complétée (ECD-13) |
-| DI-R03 | CP-07 ; `concept_predicat` | citée |
-| DI-R04 | CP-06 ; `concept` | citée |
-| DI-R05 | CP-09 ; `concept` | citée |
-| DI-R06 | `concept` ; `referentiel` | citée |
+**Autres lignes.**
+- Les 93 lignes complétées au titre d'ECD-13 (V1.1-c) et les 4 règles ajoutées par le dictionnaire V1.3 après l'audit (DI-A41, B44, L21, L22) portent le statut « Réalisée ». Les 93 lignes **n'ont pas été revérifiées ligne à ligne** dans ce contrôle, qui portait sur les 207 lignes « citées ».
+- 5 de ces 93 lignes sont non applicables avec justification (règles de présentation ou de comportement applicatif).
+
+**Limite.** Ce contrôle a été fait par l'auteur du MLD ; il n'est pas indépendant. Le contre-audit décidé par le porteur porte notamment sur AC-28.
+
+**Statuts.** *Réalisée et vérifiée* : contrôlée contre la contrainte effective. *Réalisée (corrigée V1.1-d)* : réalisation ajoutée ou réécrite après l'audit. *Réalisée* : réalisation désignée, non revérifiée ligne à ligne. *Non applicable (justifiée)* : règle de présentation ou de comportement, sans objet au niveau logique.
+
+| Règle | Réalisation dans le MLD | Statut | Vérification |
+|---|---|---|---|
+| DI-A01 | CP-52 ; `objet` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-27, à confirmer par le contre-audit |
+| DI-A02 | CP-02 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A03 | CP-03 ; `objet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A04 | `objet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A05 | CP-11 ; `objet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A06 | PK `version_objet(objet_id, numero)` ; séquence sans trou : CP-02 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A07 | CP-02 ; CP-22 ; `version_objet` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après contrôle 207, à confirmer par le contre-audit |
+| DI-A08 | `version_objet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A09 | `version_composant` (manifeste, MLD-02) ; FK vers `version_objet` | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A10 | CP-53 ; `activite` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-A11 | `activite` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A12 | CP-53 ; `activite_perimetre_transmis` ; `activite` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-A13 | `activite` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A14 | CP-15 ; `dependance` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A15 | `dependance` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A16 | CP-07 ; `argument_preuve` ; `dependance` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après contrôle 207, à confirmer par le contre-audit |
+| DI-A17 | CP-09 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A18 | CP-21 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A19 | `filiation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A20 | `filiation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A21 | CP-04 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A22 | `filiation.etat_divergence` ; aucune écriture dans l'objet dérivé du fait de l'origine (CP-01) ; notification (`notification`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A23 | CP-04 ; `reference_inter_espace` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A24 | `reference_inter_espace` : `acces()` de la cible dans le contexte de l'espace référent à la création : CP-04 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A25 | `reference_inter_espace` sans copie ; évolution de la cible = ligne `etat_reference_externe` en insertion seule | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A26 | `etat_reference_externe` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A27 | CP-53 ; `base_justificative_preuve` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après contrôle 207, à confirmer par le contre-audit |
+| DI-A28 | CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A29 | CP-09 ; `base_justificative_preuve` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A30 | `dependance` ; §24. | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-20, à confirmer par le contre-audit |
+| DI-A31 | `acquisition_information` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A32 | `assertion.etat_provenance` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A33 | CP-13 (aucune écriture d'`acquisition_documentaire` sur `document` ni `responsabilite`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A34 | `reference_persistante` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-A35 | CP-17 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A36 | `reference_persistante` ; résolution selon les droits : § 22.3 (API) ; CP-43 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-A37 | CP-33 ; CP-51 ; CP-53 ; `filiation` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-A38 | CP-33 ; `filiation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A39 | CP-23 ; `activite` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-03, à confirmer par le contre-audit |
+| DI-A40 | `activite_referentiel` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-A41 | CP-51 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-16, à confirmer par le contre-audit |
+| DI-B01 | `espace` : UQ (type_espace) WHERE `Core partagé` | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B02 | CP-06 ; `appartenance_espace` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B03 | CP-06 ; CP-11 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B04 | CP-06 ; `appartenance_espace` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B05 | CP-06 ; `compte` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-26, à confirmer par le contre-audit |
+| DI-B06 | CP-06 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B07 | CP-06 ; `lien_compte_acteur` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B08 | CP-06 ; `acteur_geniius` ; `pseudonyme_reserve` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-26, à confirmer par le contre-audit |
+| DI-B09 | CP-44 ; CP-53 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-B10 | `regle_acces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-B11 | § 22.2, étape 2 (interdiction prioritaire) ; OB-05 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B12 | § 22.2, étape 1 (existence protégée) ; OB-04 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B13 | CP-12 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B14 | CP-06 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B15 | CP-13 ; `decision_applicabilite_droit` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B16 | § 22.2, étape 6 ; CP-13 (absence de `decision_applicabilite_droit` = restriction appliquée) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B17 | `evaluation_diffusabilite` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-B18 | CP-53 ; `evaluation_diffusabilite` ; §22.3 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-B19 | `embargo` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-B20 | **CP-46** (nouvelle, ECD-13) | Réalisée (corrigée V1.1-d) | Complétée (ECD-13) ; non revérifiée ligne à ligne ; corrigée après AC-04, à confirmer par le contre-audit |
+| DI-B21 | **CP-46** (nouvelle, ECD-13) | Réalisée (corrigée V1.1-d) | Complétée (ECD-13) ; non revérifiée ligne à ligne ; corrigée après AC-04, à confirmer par le contre-audit |
+| DI-B22 | CP-13 ; `masquage` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B23 | `consentement` [V] : retrait = nouvelle version (CP-01) ; **CP-47** | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B24 | **CP-47** (nouvelle, ECD-13) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B25 | CP-13 ; CP-45 ; `regroupement_traces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B26 | CP-37 (aucune écriture sur `embargo`, `consentement`, `credit`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B27 | `designation_garde` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-B28 | CP-37 ; CP-01 (aucune écriture sur `credit` ni `activite`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B29 | CP-26 ; CP-48 ; `regle_acces` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-01, à confirmer par le contre-audit |
+| DI-B30 | `regle_acces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-B31 | `contribution_differee` ; CP-27 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B32 | CP-27 (conflit) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B33 | CP-27 (conservation) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-B34 | CP-29 ; `regle_acces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B35 | CP-29 ; `regle_acces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B36 | CP-30 ; CP-48 ; `regle_acces` ; `regle_admission` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-01, à confirmer par le contre-audit |
+| DI-B37 | CP-30 ; `regle_acces` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B38 | CP-36 ; CP-39 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-10, à confirmer par le contre-audit |
+| DI-B39 | CP-36 ; CP-39 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B40 | CP-37 ; ST-09 ; `transfert_gouvernance` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B41 | CP-37 ; `transfert_engagement` ; `transfert_gouvernance` ; §26. | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-12, à confirmer par le contre-audit |
+| DI-B42 | CP-37 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-02, à confirmer par le contre-audit |
+| DI-B43 | CP-42 ; `consentement` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-B44 | CP-48 ; `regle_acces` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-11, à confirmer par le contre-audit |
+| DI-C01 | CP-13 ; `document` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C02 | CP-13 ; `document` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C03 | CP-13 (aucune écriture d'une anomalie sur `document.statut_existence`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C04 | CP-13 ; `document` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C05 | `exemplaire.document_id` NN (une FK unique) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C06 | CP-09 ; `classement_unite` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C07 | CP-13 (ordre `historique reconstruit` ⇒ `interpretation`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C08 | `identifiant_documentaire` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-22, à confirmer par le contre-audit |
+| DI-C09 | `identifiant_documentaire.date_fin` ; CP-22 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C10 | `reproduction` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-C11 | CP-07 ; `reproduction` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C12 | CP-13 (alignement obligatoire) ; CP-41 (`master` confirmé) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C13 | CP-41 ; `fichier` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-17, à confirmer par le contre-audit |
+| DI-C14 | CP-13 ; `zone` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-C15 | CP-53 ; `zone` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-C16 | `responsabilite` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-C17 | `citation_documentaire` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-C18 | `citation_documentaire.document_id` : FK vers un document de tout statut d'existence | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C19 | CP-13 (aucune création automatique de `document`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C20 | `source_externe_declaree` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-C21 | CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-C22 | CP-41 ; `fichier` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-17, à confirmer par le contre-audit |
+| DI-C23 | CP-41 ; `fichier` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-D01 | `transcription` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-D02 | CP-19 ; `transcription` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-D03 | CP-13 ; `transcription` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-D04 | `segment` [V] ; CP-01 ; CP-14 (`TEXTE_SOURCE`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-D05 | `segment` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-D06 | CP-13 (aucune création automatique de `personne` depuis `mention`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-D07 | CP-10 ; `mention` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-D08 | `mention` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-E01 | CP-08 ; `entite_historique` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-E02 | CP-13 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-E03 | Non applicable au MLD : règle d'usage des vues (tri, score, filtre par défaut) ; obligation de service, garde-fou de `v_densite_documentaire` (§ 23) | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-E04 | CP-08 (type d'entité dans la branche de la spécialisation) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-E05 | **CP-45** (nouvelle, ECD-13) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-E06 | **CP-45** (nouvelle, ECD-13) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-E07 | `personne` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-E08 | CP-13 ; `etape_voyage` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-E09 | CP-13 (aucune `etape_voyage` dérivée de deux présences) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F01 | `proposition_identification` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-F02 | CP-15 ; `proposition_identification` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F03 | CP-13 ; `proposition_identification` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F04 | `proposition_identification` : statut `rejetée` conservé ; aucune suppression (CP-01, § 3.5) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F05 | CP-10 ; `position` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F06 | Tables distinctes `position` et `personne` ; aucune conversion : CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F07 | `candidature` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-22, à confirmer par le contre-audit |
+| DI-F08 | `candidature` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-F09 | CP-13 ; `rapprochement` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F10 | CP-13 ; `rapprochement` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F11 | CP-13 (argument citant le verdict opposable) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F12 | `rapprochement.portee` ; aucune ligne entre propriétaires (§ 27.3) ; CP-12 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F13 | CP-07 ; `selection_contexte` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-F14 | `selection_contexte` ; §26. | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-05, AC-22, à confirmer par le contre-audit |
+| DI-F15 | `selection_contexte` sans écriture sur `assertion` ; CP-10 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-F16 | `position_epistemique` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-05, AC-22, à confirmer par le contre-audit |
+| DI-F17 | `position_epistemique` par contexte ; aucune vue d'agrégat majoritaire (§ 23) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G01 | CP-07 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G02 | CP-05 ; `assertion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G03 | CP-18 ; `assertion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-G04 | CP-13 ; `assertion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G05 | CP-13 ; `assertion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G06 | `assertion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-G07 | `assertion_relation` (statut causal) ; CP-07 ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G08 | `assertion_situation.continuite` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G09 | CP-07 (prédicat de classification déclarée) ; CP-08 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G10 | `expression_assertion` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G11 | CP-05 ; `expression_segment` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G12 | CP-13 ; `interpretation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G13 | CP-07 ; `dependance` ; `interpretation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G14 | Non applicable au MLD : règle de présentation (une estimation n'est jamais affichée comme statistique) ; la distinction est structurelle (`interpretation` ≠ `resultat`), l'affichage relève du service | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-G15 | `phase_trajectoire.etat_examen` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G16 | CP-05 ; `lacune` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-G17 | `transmission.niveau` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-G18 | Fonction `independance` (§ 23) ; OB-18 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-H01 | CP-06 ; `acte_evaluation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-H02 | CP-10 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-H03 | `acte_evaluation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-H04 | Aucune FK d'`abonnement`, de `badge` ni de compteur de votes vers `acte_evaluation` (§ 5.5) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-H05 | `argument_preuve` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-H06 | CP-05 (ETAYER obligatoire pour une preuve discriminante) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-H07 | CP-13 ; `credit` de rôle proposant | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-H08 | CP-05 ; `conflit_proposition` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-H09 | CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-H10 | CP-06 ; `demande` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-I01 | CP-13 ; `reconstruction` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-I02 | Non applicable au MLD : mention « reconstruction » et auteur à l'affichage ; obligation de service | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-I03 | CP-05 ; `element_reconstruit` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-I04 | CP-13 (élément `inconnu` créé seulement explicitement) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-I05 | CP-18 ; `element_appui` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-I06 | `element_reconstruit` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-I07 | CP-13 (aucune écriture d'une anomalie sur `statut_existence`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-I08 | CP-05 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-J01 | CP-05 ; `session_memoire` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-J02 | CP-13 ; `session_memoire` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-J03 | `echange` ; aucune écriture sur une `reponse` antérieure (CP-01) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-J04 | `echange` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-J05 | `echange` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-J06 | CP-13 ; `reponse` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-J07 | `reponse` [V] ; REVISER ; CP-01 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-J08 | `reponse` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-J09 | `campagne_memoire` ; §22.2 ; §22.3 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-30, à confirmer par le contre-audit |
+| DI-J10 | CP-03 ; `campagne_memoire` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-J11 | `capsule` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-J12 | CP-13 (délivrance de `capsule` sans écriture sur `embargo`) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K01 | `projet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-K02 | CP-13 (`transmis` ⇒ `designation_garde` effective) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K03 | CP-13 ; `question` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K04 | CP-21 ; `question` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K05 | CP-13 ; `question` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K06 | CP-09 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K07 | `piste.source_suggeree` (texte) ; CP-13 (aucune création) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K08 | `piste` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-K09 | CP-05 ; `recherche_effectuee` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K10 | CP-13 ; `recherche_effectuee` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K11 | CP-53 ; `recherche_effectuee` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-K12 | CP-20 ; CP-53 ; `intervention_perimetre` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-K13 | CP-05 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K14 | `offre_deplacement` sans FK vers un projet ; § 22 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K15 | `application_protocole` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K16 | CP-13 ; `application_protocole` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K17 | Non applicable au MLD : libellé « exhaustif selon le protocole X vN » ; obligation de service, fondée sur `application_protocole` | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-K18 | CP-53 ; `regle_methodologique` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-28, à confirmer par le contre-audit |
+| DI-K19 | CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K20 | CP-03 ; CP-15 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K21 | CK `diff_connaissance` (num_nonnulls) ; CP-10 (nature technique) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-K22 | `decouverte` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-K23 | CP-31 ; CP-48 ; `relation_projets` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K24 | CP-38 ; `etudier` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-K25 | CP-38 ; `etudier` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K26 | CP-38 ; `utiliser` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K27 | CP-32 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K28 | CP-32 ; `tache_assignation` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K29 | CP-32 ; `regle_acces` ; `tache_objet` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-K30 | CP-32 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-K31 | CP-32 ; `tache` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L01 | CP-04 ; `arbre` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L02 | `arbre` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-L03 | CP-04 ; `noeud_arbre` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L04 | `noeud_arbre` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-22, à confirmer par le contre-audit |
+| DI-L05 | `noeud_arbre.personne_id` dans l'espace de l'arbre (CP-04) ; lien Core par `rapprochement` ou `reference_inter_espace` | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-L06 | CP-04 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L07 | CP-04 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L08 | CP-04 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L09 | CP-03 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L10 | CP-20 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L11 | CP-20 ; § 22 (écarts visibles des deux parties seulement) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-L12 | CP-04 ; CP-33 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L13 | CP-33 ; MLD-16 ; `selection_inclusion` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-10, à confirmer par le contre-audit |
+| DI-L14 | CP-33 ; `selection_inclusion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L15 | CP-33 ; MLD-16 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-10, à confirmer par le contre-audit |
+| DI-L16 | CP-33 ; CP-45 ; `selection_inclusion` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-06, AC-07, à confirmer par le contre-audit |
+| DI-L17 | CP-33 ; `selection_partage` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L18 | CP-04 ; CP-33 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L19 | CP-33 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-L20 | CP-33 ; `operation_flux` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-L21 | CP-29 ; `selection_inclusion` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-06, à confirmer par le contre-audit |
+| DI-L22 | MLD-16 ; `selection_partage` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-10, à confirmer par le contre-audit |
+| DI-M01 | CP-04 ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-M02 | CP-19 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-M03 | `participation_connect` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-M04 | Confidentialité R ; § 22 ; OB-17 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-N01 | CP-13 ; `geometrie` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-N02 | `geometrie` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-N03 | `geometrie` reconstruite ⇒ `calcul_id` ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-N04 | CP-14 ; `geometrie` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-N05 | CP-13 ; présentation cartographique (obligation de service) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-N06 | `carte.mode`, `fraicheur` ; CP-10 ; CP-21 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-N07 | § 22.3 (calcul sur le graphe accessible) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-N08 | Tables distinctes (`lieu`, `bien`, assertion `situation`) ; CP-07 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-O01 | `corpus` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-O02 | `corpus` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-O03 | `corpus_inclusion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-O04 | `cohorte_analytique` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O05 | `methode` [V] ; `calcul.methode_numero` ; CP-01 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-O06 | CP-13 ; `methode` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O07 | CP-13 ; `calcul` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O08 | `calcul` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-O09 | CP-21 ; `resultat` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O10 | Non applicable au MLD pour l'affichage ; les données affichées existent (`resultat.couverture` NN*, `calcul` → méthode, corpus, date) | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-O11 | CP-13 (aucune `assertion_relation` produite par un calcul) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-O12 | § 22.3 (agrégation) ; CP-13 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-O13 | CP-34 ; `methode` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O14 | CP-34 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O15 | CP-34 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O16 | CP-34 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-O17 | CP-34 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P01 | CP-13 ; `publication` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P02 | `correction_publication` ; CP-01 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-P03 | CP-13 ; `publication` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P04 | CP-17 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-P05 | MLD-14 ; §26. | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-18, à confirmer par le contre-audit |
+| DI-P06 | `export_element` ; CP-46 | Réalisée (corrigée V1.1-d) | Complétée (ECD-13) ; non revérifiée ligne à ligne ; corrigée après AC-04, AC-18, à confirmer par le contre-audit |
+| DI-P07 | MLD-14 ; aucune colonne `I` exportée : CP-13 ; MPD-05 | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-P08 | MLD-11 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P09 | CP-04 ; `reconciliation_import` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P10 | `import` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-P11 | CP-35 | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-15, à confirmer par le contre-audit |
+| DI-P12 | CP-35 ; `decision_editoriale` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; audit contradictoire ; corrigée après AC-15, à confirmer par le contre-audit |
+| DI-P13 | CP-35 ; `decision_editoriale` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P14 | CP-35 ; `publication` | Réalisée (corrigée V1.1-d) | Auteur, contrôle des 207 lignes ; corrigée après AC-09, à confirmer par le contre-audit |
+| DI-P15 | CP-35 ; `diffusion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P16 | CP-35 ; `diffusion` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-P17 | CP-35 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P18 | CP-35 ; `publication` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-P19 | CP-23 ; `import` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-Q01 | Non applicable au MLD : comportement applicatif de la capture ; le déclenchement de l'IA est tracé par `activite.declenchement` | Non applicable (justifiée) | Auteur, contrôle des 207 lignes |
+| DI-Q02 | CP-05 ; `inbox_item` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-Q03 | `historique_navigation` [T], ON DELETE CASCADE (§ 3.5) ; aucune FK vers le Core | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-Q04 | `veille` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-Q05 | §22.3 | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-Q06 | `notification.motif` CK D-49 (aucune valeur d'engagement) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-Q07 | CP-35 ; `veille` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-R01 | `referentiel` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes ; audit contradictoire |
+| DI-R02 | `concept.actif` ; aucune suppression (RESTRICT, § 3.5) | Réalisée | Complétée (ECD-13) ; non revérifiée ligne à ligne |
+| DI-R03 | CP-07 ; `concept_predicat` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-R04 | CP-06 ; `concept` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-R05 | CP-09 ; `concept` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
+| DI-R06 | `concept` ; `referentiel` | Réalisée et vérifiée | Auteur, contrôle des 207 lignes |
 
 ---
 

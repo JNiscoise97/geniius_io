@@ -164,7 +164,7 @@ Chaque décision indique la question, la décision prise, sa justification et sa
 
 | Élément | Format | Règle |
 |---|---|---|
-| `id_objet` | UUID version 7 (ordonné dans le temps) | Opaque ; ne code ni type, ni espace, ni date métier |
+| `id_objet` | **UUID version 4** (aléatoire) *(V1.3, D5 ; auparavant UUID v7, dont l’horodatage intégré contredisait l’opacité)* | Opaque ; ne code ni type, ni espace, ni date. Les identifiants v7 déjà attribués ne sont pas renumérotés ; leur horodatage est une donnée conservée, prise en compte par DD-27 |
 | `id_version` | `<id_objet>@<numero>` | `numero` séquentiel sans trou à partir de 1 |
 | `uri_persistante` | `geniius:<id_objet>` | Résoluble dans GENIIUS selon les droits |
 | Identifiant public | ARK `ark:/<NAAN>/g<base32(id_objet)>` | Attribué à la **première publication** ou à la première citation figée externe ; jamais retiré (une page de tombstone remplace le contenu supprimé) |
@@ -294,12 +294,34 @@ Interdits : conserver secrètement une copie supprimée pour sauver une conclusi
 **Question.** DD-02 et DD-13 conservent l'identifiant d'un objet purgé (tombstone). L'effacement légal peut toutefois imposer de supprimer des informations de résolution, et une tombstone révèle qu'un objet a existé dans un espace donné, à une date donnée.
 
 **Décision.**
-1. **Trace minimale.** Une tombstone ne conserve que : l'identifiant, le type d'objet, l'état `supprimé`, l'indicateur et la date de purge, et les numéros de versions (sans contenu). Elle ne permet jamais de **reconstituer** une donnée purgée : aucun attribut de contenu, aucune empreinte de contenu réversible, aucun libellé.
+1. **Trace minimale.** Une tombstone ne conserve que : l'identifiant, le type d'objet, l'état `supprimé`, l'indicateur et la date de purge, et les numéros de versions (sans contenu). Elle ne permet jamais de **reconstituer** une donnée purgée : aucun attribut de contenu, aucune empreinte de contenu réversible, aucun libellé. **V1.3 (D4) :** les codes rattachés aux données effacées (régime de protection, mineur protégé, portée et décision d’un consentement, état de mémoire…) sont purgés s’ils permettent de reconstituer une information effacée ou n’ont plus de justification de conservation ; ne subsistent que les traces minimales légalement nécessaires, protégées et non résolubles.
 2. **Existence protégée par défaut.** La résolution d'un identifiant purgé répond comme pour un identifiant inexistant (OB-04) à tout demandeur qui ne pouvait pas voir l'objet avant la purge. Elle ne répond « supprimé » qu'aux personnes habilitées sur l'espace, et publiquement seulement pour un objet qui était publié (page de tombstone ARK, DD-02).
-3. **Effacement de résolution.** Sur fondement légal, la tombstone est réduite à l'identifiant seul (pour empêcher sa réattribution) : rattachement à l'espace, date de création et numéros de versions sont effacés ou remplacés par des valeurs neutres. Les dépendances aval affichent alors « preuve n'est plus disponible » sans désigner l'espace.
+3. **Effacement de résolution.** Sur fondement légal, la tombstone est réduite à l'identifiant seul (pour empêcher sa réattribution) : rattachement à l'espace, date de création et numéros de versions sont effacés ou remplacés par des valeurs neutres. Les dépendances aval affichent alors « preuve n'est plus disponible » sans désigner l’espace. **V1.3 (AC-25) :** l’effacement couvre aussi les métadonnées de version (date de validité, nature de changement, activité, empreinte), les activités qui n’ont produit que des versions de cet objet, et ne laisse que le numéro. Pour un identifiant UUID v7 antérieur à D5, l’horodatage intégré est un résidu documenté : il n’est servi à personne et n’est pas résoluble.
 4. **Pas de durée arbitraire.** Les conditions de conservation et d'effacement des traces (délais, fondements) sont fixées par l'étude juridique (EXT-04). Le modèle impose seulement les points 1 à 3.
 
 **Justification.** P19, TI-11, OB-04 ; CDC technique AUDIT-TECH-010.9 et 010.10 ; décision du porteur du 10/10/2026.
+
+## DD-28 † (V1.3) — Autorité sur les droits, actions par défaut des rôles, métadonnées de gouvernance (AC-01, D1, D8)
+
+**Question.** L'audit contradictoire (AC-01) a montré qu'aucune règle ne dit qui peut créer une règle d'accès, une appartenance, un membre de groupe ou une admission. Un administrateur pouvait s'habiliter lui-même, et un programme habiliter sur ses sous-projets. Inversement, aucun rôle ne détenait explicitement `administrer`.
+
+**Décision.**
+1. **Autorité.** Seul un acteur qui détient `administrer` sur la cible (objet, lien ou espace) peut créer, élargir, prolonger ou clore une `REGLE_ACCES` sur cette cible, une appartenance (`APPARTENIR`) ou une attribution de rôle sur l'espace, un `MEMBRE_GROUPE` d'un groupe de l'espace, ou une admission (`ADMETTRE`). Une règle d'accès est un objet **de l'espace de sa cible** : un programme ne peut pas créer de règle sur un sous-projet (DI-K23).
+2. **Pas d'auto-habilitation (D1).** Aucun acteur ne s'accorde à lui-même une appartenance scientifique (`responsable scientifique`, `collaborateur`, `lecteur`), ni une règle `voir`, `éditer`, `transcrire`, `valider`, `réutiliser` ou `repartager` à son profit. Seule exception : l'attribution initiale prévue à la création de l'espace (le créateur reçoit `propriétaire` et `responsable scientifique`). Toute attribution scientifique ultérieure exige un **habilitant indépendant**, acteur différent du bénéficiaire, effectivement autorisé au sens du point 1. Dans un espace où le seul détenteur d’`administrer` voudrait s’habiliter lui-même, il passe par un autre administrateur ou par une habilitation exceptionnelle (DI-B30).
+3. **Actions par défaut des rôles d'appartenance** (étape « visibilité par défaut » du contrôle d'accès), sous réserve des interdictions et protections :
+
+   | Rôle d'appartenance | Actions par défaut sur les objets `projet` de l'espace | Sur l'espace |
+   |---|---|---|
+   | propriétaire, administrateur | aucune | `administrer` (métadonnées de gouvernance, point 4) |
+   | responsable scientifique | voir, commenter, proposer, transcrire, éditer, valider | — |
+   | collaborateur | voir, commenter, proposer, transcrire, éditer | — |
+   | lecteur | voir, commenter | — |
+   | invité | aucune (règles explicites seulement) | — |
+
+   `exporter`, `repartager`, `réutiliser` et `contribuer au Core` ne sont jamais des actions par défaut. Les objets `privé` restent régis par les seules règles explicites.
+4. **Métadonnées de gouvernance (D8).** `administrer` ouvre seulement : la liste des membres et de leurs rôles ; les règles d'accès et leurs bénéficiaires ; l'existence et les métadonnées des sélections partagées, des rattachements, des prises en charge et des diffusions (sans leur contenu) ; l'explication des accès (OB-24) ; le cycle de vie de l'espace. Jamais le contenu des objets ; jamais une métadonnée protégée (titre, libellé, existence protégée par embargo ou par règle) sans nécessité administrative établie, auquel cas une habilitation exceptionnelle est requise.
+
+**Justification.** CDCF § 49.2, § 120.2, § 122.2 ; P23 ; DI-B29 ; décisions du porteur du 10/10/2026.
 
 ## DD-14 — Plausibilité qualitative
 
@@ -381,6 +403,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 3. Le `CALCUL` d'un indicateur est rattaché au `CONTEXTE_EVALUATION` qui a délimité son graphe accessible (`CALCULER_DANS` †). Un tableau de bord est calculé pour son lecteur et affiche ce périmètre (DI-O15).
 4. Un indicateur de programme dédoublonne par entité sur l'ensemble des projets accessibles : jamais une somme des indicateurs des sous-projets (DI-O16).
 5. Un résultat destiné à publication est `figé`, évalué pour sa diffusabilité et identique pour tous ses lecteurs (DI-O17).
+6. **V1.3 (AC-32, D6) :** un résultat figé publié peut alimenter un indicateur autorisé, notamment pour un programme sur ses sous-projets (CDCF § 120.2), sous réserve de sa diffusabilité et de sa méthode ; cela ne crée **aucune** autorisation de calcul sur les données sources. Il n’existe pas d’action `agréger`.
 
 ## DD-25 † (V1.2) — Circuit éditorial, modification substantielle et abonnement éditorial (concepts D, E, F ; P-5 ; AV-8)
 
@@ -496,7 +519,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A11** — `mode = manuel` ⇒ une association REALISER vers un acteur ; `mode = automatique` ⇒ `moteur` obligatoire.
 - **DI-A12** — Une donnée a quitté la plateforme ⇒ `fournisseur` et `perimetre_donnees_transmises` obligatoires ; aucun attribut `R` ou `I` ne figure dans le périmètre (TI-12).
 - **DI-A13** — `date_fin` ≥ `date_debut`.
-- **DI-A39** † (V1.3, ECD-14) — Toute activité qui crée un objet porte un acteur via `REALISER` : le **réalisateur** pour une activité manuelle ou assistée, le **déclencheur** pour une activité automatique (worker, OCR, extraction, import). Une activité automatique sans déclencheur humain identifiable (tâche planifiée de plateforme) est rattachée à l’acteur qui a programmé la tâche, ou à défaut au propriétaire de l’espace cible. Aucun objet `privé` n’est créé sans acteur auteur (CP-23 du MLD).
+- **DI-A39** † (V1.3, ECD-14 ; **réécrite après l’audit, AC-03 et D9**) — Quatre rôles sont distingués et jamais confondus entre eux ni avec le propriétaire administratif de l’espace : (1) le **déclencheur technique** d’une activité automatique (`REALISER`, rôle `déclencheur`) ; (2) le **déposant des entrées**, dérivé : l’acteur des activités de création des objets pris en entrée (`UTILISER_ENTREE`) ; (3) l’**auteur scientifique**, lorsqu’il est identifiable (`CREDIT` de rôle `auteur`) ; (4) le **bénéficiaire d’une autorisation de lecture** (`REGLE_ACCES`). Toute activité qui crée un objet porte un acteur imputé via `REALISER` (réalisateur ou déclencheur) : c’est une **traçabilité**, pas un droit. Les droits du propriétaire d’un objet `privé` créé automatiquement vont au **déposant identifiable des entrées, s’il détient les droits nécessaires sur ces entrées** ; sinon, **aucun droit de lecture personnel** n’est créé, et l’accès ne passe que par une habilitation exceptionnelle (DI-B30). Une tâche de plateforme sans acteur identifiable est imputée à un acteur institutionnel technique, qui ne reçoit aucun droit de lecture.
 - **DI-A40** † (V1.3, ECD-21) — Une activité qui crée ou modifie un objet typé par un concept (assertion, mention, entité, document…) désigne la **version du conteneur `REFERENTIEL`** en vigueur pour cet objet (`UTILISER_REFERENTIEL`). La « version du référentiel » est la version du conteneur (manifeste, DD-01). Une contribution différée porte la version déclarée par le client (DI-B31).
 
 **Exemple.** Activité `transcription`, mode `assisté`, moteur « HTR-Caraïbes » v2.3, intervention humaine `correction`, mode de lecture `indépendante/aveugle`.
@@ -572,6 +595,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A22** — Aucune synchronisation n'est déduite : un changement de l'origine fait seulement passer `etat_divergence` à `divergents` et peut notifier (RG-L02).
 - **DI-A37** † (V1.2) — `type_filiation = réutilisation` ⇒ produite par une `OPERATION_FLUX` de type `réutilisation d'une sélection` (DI-L18) ; `AUTORISER_REUTILISATION` désigne la version de la `REGLE_ACCES` qui l'autorisait ; l'objet dérivé porte la licence applicable à l'objet d'origine (`SOUS_LICENCE`) et ses crédits d'origine sont conservés. DI-A20 est élargie en conséquence : la réutilisation exige aussi une opération de flux.
 - **DI-A38** † (V1.2) — Après révocation ou réduction de la sélection ou de la règle, une `FILIATION` `réutilisation` existante est **conservée** avec sa provenance, dans les limites de la licence et de l'autorisation d'origine ; elle ne peut plus passer à `mise à jour proposée` ni `mise à jour importée`. Aucune copie hors `FILIATION` `réutilisation` n'a de droit de conservation autonome : les objets consultés via la sélection, y compris les répliques hors ligne, sont retirés (OB-20). Une obligation légale (purge, retrait de consentement) prévaut (DD-13).
+- **DI-A41** † (V1.3, AC-16, D3) — Une copie issue d’une `FILIATION` `réutilisation` est un objet autonome de l’espace qui l’a reprise. Son inclusion dans une sélection, une publication, une diffusion ou un export ne requiert **aucun nouvel accord** de l’espace d’origine, mais exige : (1) que les droits sur la copie aient été durablement acquis (règle `réutiliser` active lors de la reprise, DI-L18) ; (2) que la licence de la copie autorise la redistribution et, s’il y a lieu, la modification ; (3) qu’aucune restriction légale ou droit de tiers ne subsiste (embargo, consentement, `DECISION_APPLICABILITE_DROIT` applicable, données couvertes par DI-E05). La licence seule ne suffit pas si (3) n’est pas satisfait.
 
 **Exemple.** Assertion partagée A-847 dérivée de l'assertion privée `P-128@3`, type `contribution`, état `alignés`.
 
@@ -632,7 +656,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Définition.** Ensemble versionné des éléments invoqués **aujourd'hui** pour justifier une production scientifique (assertion, interprétation, conclusion), dans une portée donnée. Distinct de l'histoire de production (P17). Conteneur au sens de DD-01.
 
-**Identifiant.** `id_objet` ; au plus une base `en vigueur` par (objet justifié, portée).
+**Identifiant.** `id_objet` ; au plus une base `en vigueur` par (objet justifié, portée, **espace de la base**), et, pour la portée `privée`, par auteur. *(Précisé en V1.3, AC-05 : l’unicité par objet et portée seuls faisait révéler la base d’autrui et bloquait un usage légitime.)*
 
 **Participe à.** JUSTIFIER † : BASE_JUSTIFICATIVE (1,1) — OBJET justifié (0,n) ; INVOQUER_PREUVE † : BASE_JUSTIFICATIVE (1,n) — DEPENDANCE de catégorie justification (0,n).
 
@@ -785,8 +809,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | regime_gouvernance | Règles de décision de l'espace | `TEXTE_LONG` | 0..1 | — | Obligatoire pour `communauté` et `Core partagé` | « décisions scientifiques par référents » | S·V·O |
 | date_creation | Date de création | `HORODATAGE` | 1 | UTC ms | Égale à `OBJET.date_creation` | `2028-01-04T00:00Z` | Y·F·O |
 | visibilite_max † | Plafond de visibilité des objets | `CODE` | 1 | D-04 | DI-B03 ; `personnel` : `privé` | `cercle invité` | S·V·O |
-| replication_hors_ligne † | Politique de réplication des contenus de l'espace sur les appareils | `CODE` | 1 | {autorisée, limitée, interdite} | Défaut `autorisée` ; OB-20 (AUDIT-TECH-001) | `limitée` | S·V·O |
-| duree_max_hors_ligne_jours † | Durée maximale de consultation hors ligne sans revalidation | `ENTIER` | C | > 0 | Obligatoire si et seulement si `replication_hors_ligne = limitée` | `30` | S·V·O |
+| replication_hors_ligne † | Politique de réplication des contenus de l’espace sur les appareils | `CODE` | 1 | {autorisée, limitée, interdite} | **V1.3 (D2)** : défaut `limitée` pour les espaces `projet`, `organisation`, `communauté` ; `autorisée` pour `personnel`, `privé`, `familial`. Dans un espace collectif, `autorisée` est une décision explicite et reste bornée (`duree_max_hors_ligne_jours` obligatoire) ; tout changement de politique déclenche un retrait à la prochaine synchronisation effective. OB-20 (AUDIT-TECH-001) | `limitée` | S·V·O |
+| duree_max_hors_ligne_jours † | Durée maximale de consultation hors ligne sans revalidation | `ENTIER` | C | > 0 | Obligatoire si `replication_hors_ligne = limitée`, et dans un espace collectif si `autorisée` (V1.3, D2) ; interdite si `interdite` | `30` | S·V·O |
 | circuit_editorial † (V1.2) | Approbation éditoriale exigée avant publication et diffusion d'un livrable | `CODE` | 1 | {aucun, approbation requise} | Défaut selon `type_espace` (DD-25) ; DI-P18 | `approbation requise` | S·V·O |
 
 ## 4.2 COMMUNAUTE ✓ — ⊂ ESPACE
@@ -830,7 +854,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 |---|---|---|---|---|---|---|---|
 | id_compte | Identifiant | `IDENT` | 1 | UUID v7 | — | `01a0…` | Y·F·I |
 | identite_civile | Nom civil vérifié | `TEXTE_COURT` | 0..1 | — | Jamais affiché publiquement (critère 40) | « Jordan B. » | S·N·I |
-| email | Adresse de connexion | `TEXTE_COURT` | 1 | RFC 5322 | Jamais exposée ni transmise (CDCF § 59) | `…@…` | S·N·I |
+| email | Adresse de connexion | `TEXTE_COURT` | C | RFC 5322 | Obligatoire sauf `etat_compte = supprimé`, où elle est effacée (DI-B05 ; V1.3, AC-26) ; jamais exposée ni transmise (CDCF § 59) | `…@…` | S·N·I |
 | niveau_verification_identite | Niveau de vérification | `CODE` | 1 | {aucun, standard, renforcé} | DI-B06 | `standard` | Y·N·I |
 | categories_sollicitation_acceptees | Demandes acceptées | `CODE` | 0..n | Catégories de `DEMANDE` | Vide = aucune sollicitation | `photo-identification` | S·N·I |
 | date_inscription | Date d'ouverture | `HORODATAGE` | 1 | UTC ms | — | `2027-11-02T18:00Z` | Y·N·I |
@@ -850,7 +874,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 **Intégrité.**
 
 - **DI-B07** — Un acteur est lié à 0, 1 ou plusieurs comptes successifs (RG-B09) ; au plus un compte actif à la fois pour un acteur `personne`.
-- **DI-B08** — `mode_affichage_public = pseudonyme stable` ⇒ `pseudonyme` obligatoire et jamais réattribué.
+- **DI-B08** — `mode_affichage_public = pseudonyme stable` ⇒ `pseudonyme` obligatoire et jamais réattribué. *V1.3 (AC-26) :* la non-réattribution survit à la purge de l’acteur grâce à un registre `PSEUDONYME_RESERVE` † (empreinte normalisée et non réversible du pseudonyme, jamais purgée, sans lien avec l’acteur).
 - **DI-B09** — Un acteur sans compte actif conserve ses crédits et ses actes, mais ne peut plus agir.
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
@@ -908,6 +932,8 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Participe à.** PORTER_SUR_OBJET | PORTER_SUR_ESPACE | PORTER_SUR_LIEN † (exactement une) ; BENEFICIER (ACTEUR_GENIIUS | GROUPE ; aucune si `public`).
 
+**Auteur (V1.3, AC-11).** `POSER_REGLE` † : ACTEUR_GENIIUS (0,n) — REGLE_ACCES (1,1), figé. **DI-B44** † — L’auteur d’une règle est l’acteur de son activité de création ; il ne change jamais. Une modification par un autre acteur crée une **nouvelle règle** (et clôt l’ancienne). C’est l’auteur dont les droits bornent ceux des bénéficiaires (DI-B35, OB-23).
+
 **Intégrité.**
 
 - **DI-B10** — Exactement une portée ; `cible_type` cohérent avec la portée renseignée.
@@ -915,7 +941,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-B12** — `objet_protege = existence` ⇒ l'objet ou le lien est retiré du graphe accessible des bénéficiaires visés avant toute opération (P20, TI-11).
 - **DI-B13** — Une règle ne peut pas élargir la visibilité d'un lien au-delà de ses extrémités (TI-10).
 - **DI-B14** — Une règle ne peut conférer `contribuer au Core` qu'à un acteur ayant un rôle sur l'espace source.
-- **DI-B29** † — Une règle d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer`. Cette action n'implique aucune autre action. Les rôles de gouvernance (ATTRIBUER_ROLE) ne sont jamais bénéficiaires d'une règle. *(9/10/2026 — REC-X11 arbitrage A, REV-02-A.)*
+- **DI-B29** † — Une règle d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer`. Cette action n'implique aucune autre action. Les rôles de gouvernance (ATTRIBUER_ROLE) ne sont jamais bénéficiaires d'une règle. *(9/10/2026 — REC-X11 arbitrage A, REV-02-A.)* **V1.3 (D8) :** `administrer` ouvre seulement les **métadonnées nécessaires à la gouvernance** (DD-28) ; jamais les contenus scientifiques privés, ni les métadonnées protégées sans nécessité administrative établie.
 - **DI-B30** † — `nature = exceptionnelle` exige un bénéficiaire acteur nominatif, `effet = autoriser`, une `date_fin` et un `fondement`. Chaque usage est consigné dans un `CONTEXTE_EVALUATION` qui référence la règle, avec une finalité déclarée. Le contenu consulté n'est jamais consigné. *(9/10/2026 — TECH-027.5.)*
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
@@ -1015,7 +1041,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Définition.** Restriction temporaire ou conditionnelle portant sur le média, la transcription, l'information, l'usage ou l'existence même d'un objet.
 
-**Intégrité.** **DI-B19** — Au moins un de `date_fin` ou `condition_levee`. **DI-B20** — Un embargo survit à l'export, à la restauration et au transfert de gouvernance (RG-B03, RG-P05). **DI-B21** — `portee = existence même` ⇒ une `REGLE_ACCES` `objet_protege = existence` est dérivée pour les non-bénéficiaires.
+**Intégrité.** **DI-B19** — Au moins un de `date_fin` ou `condition_levee`. **DI-B20** — Un embargo survit à l'export, à la restauration et au transfert de gouvernance (RG-B03, RG-P05). **DI-B21** *(réécrite en V1.3, AC-04)* — Un embargo désigne ses **bénéficiaires** (`BENEFICIER_EMBARGO` † : acteurs ou groupes, au moins un ; son auteur l’est d’office). `portee = existence même` ⇒ l’objet est retiré du graphe accessible de **tout acteur qui n’est pas bénéficiaire**, y compris les administrateurs de l’espace (D8) et les acteurs futurs ; les bénéficiaires conservent l’accès et seuls les bénéficiaires ayant `administrer` sur l’embargo peuvent le lever. La protection est une **exception d’accès propre à l’embargo**, évaluée à l’étape 1 du contrôle d’accès, et non une interdiction universelle qui masquerait l’objet à ses ayants droit.
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
@@ -1220,7 +1246,7 @@ Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE 
 
 **Intégrité.**
 
-- **DI-B38** — `etat = active` exige deux `ACCEPTER_PRISE_EN_CHARGE` de décision `acceptée`, l'une par un administrateur du financeur, l'autre par un administrateur du bénéficiaire, sur **la même version**. Financeur ≠ bénéficiaire. Toute modification de `plafond`, `ressource_couverte` ou de la période crée une nouvelle version qui exige de nouvelles acceptations ; jusque-là, la version précédente reste active (RG-B16).
+- **DI-B38** — `etat = active` exige deux `ACCEPTER_PRISE_EN_CHARGE` de décision `acceptée`, l'une par un administrateur du financeur, l'autre par un administrateur du bénéficiaire, sur **la même version**. Financeur ≠ bénéficiaire. Toute modification de `plafond`, `ressource_couverte` ou de la période crée une nouvelle version qui exige de nouvelles acceptations ; jusque-là, la version précédente reste active (RG-B16). **V1.3 (AC-10)** : la version applicable est `version_en_vigueur` (dernière version acceptée par les deux parties) ; `etat` qualifie l’accord, pas la version en attente.
 - **DI-B39** — Chaque partie peut révoquer à tout moment (`etat = révoquée`, `motif_fin`). La fin d'un accord (révocation, expiration, refus) ne supprime aucune donnée et ne retire aucun accès : seules les nouvelles consommations peuvent être limitées (RG-B18). Plusieurs accords peuvent être actifs pour un même bénéficiaire ; une même consommation n'est jamais imputée deux fois (OB-25).
 
 **Exemple.** Le programme « Antilles » couvre 200 heures de calcul HTR du projet « Pointe-Noire » du 1/1/2030 au 31/12/2030 ; acceptée par les deux administrateurs.
@@ -1232,6 +1258,7 @@ Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE 
 | date_debut | Début | `DATE_CIVILE` | 1 | — | — | `2030-01-01` | S·V·O |
 | date_fin | Fin | `DATE_CIVILE` | 1 | — | ≥ `date_debut` ; accord borné (CDCF § 129.3) | `2030-12-31` | S·V·O |
 | etat | État | `CODE` | 1 | {proposée, active, refusée, suspendue, révoquée, expirée} | DI-B38, DI-B39 ; `expirée` calculé | `active` | S/C·V·O |
+| version_en_vigueur † (V1.3, AC-10) | Dernière version acceptée par les deux parties | `IDENT` + numéro | C | Version de cette `PRISE_EN_CHARGE` | Seule source de l’éligibilité (CP-39) ; la version courante peut attendre ses acceptations | `PEC-4 v1` | C·V·O |
 | motif_fin | Motif de fin | `TEXTE_COURT` | C | — | Obligatoire si `refusée` ou `révoquée` | « fin du programme » | S·V·O |
 
 *Les propriétés MCD `acceptation_financeur` et `acceptation_beneficiaire` sont transformées en association `ACCEPTER_PRISE_EN_CHARGE` (TI-02 ; annexe C.6).*
@@ -1362,7 +1389,7 @@ Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE 
 
 **Définition.** Fichier binaire déposé dans un espace. Son empreinte sert au contrôle d'intégrité et à la déduplication **technique**, uniquement à l'intérieur d'un espace (RG-C07). *V1.3 (ECD-07) : l'identité d'un fichier est propre à son espace ; le stockage physique peut être mutualisé de façon non observable.*
 
-**Identifiant.** `id_fichier` ; `(espace, empreinte)` unique *(V1.3 ; auparavant `empreinte` unique globalement)*.
+**Identifiant.** `id_fichier`. *V1.3 après audit (AC-17) : chaque dépôt crée son propre `FICHIER` ; aucune unicité d’empreinte, ni globale, ni par espace. La mutualisation n’est que physique (`cle_stockage`).*
 
 **Participe à.** DEPOSER_DANS † (V1.3) : FICHIER (1,1) — ESPACE (0,n).
 
@@ -1370,14 +1397,14 @@ Associations : PROPOSER_DIFFERE (ACTEUR_GENIIUS (0,n) — CONTRIBUTION_DIFFEREE 
 
 **Intégrité.**
 
-- **DI-C13** *(réécrite en V1.3, ECD-07 ; la V1.1 fusionnait techniquement deux fichiers de même empreinte, sans restriction d'espace)* — Dans un même espace, deux dépôts de même empreinte désignent le même `FICHIER` ; cela ne fusionne aucun document, exemplaire ni reproduction (test 13). Deux espaces ont toujours deux `FICHIER` distincts, même pour un binaire identique.
-- **DI-C22** † (V1.3, ECD-07) — **Non-observabilité.** Une mutualisation physique entre espaces (même `cle_stockage`) n'est jamais observable d'un espace à l'autre : même délai d'envoi, même message, même quota décompté, aucune indication « déjà présent ». La purge d'un `FICHIER` retire sa référence au binaire ; le binaire est effacé dès qu'aucune référence légitime ne subsiste. Une purge légalement obligatoire n'est jamais empêchée par la mutualisation : si une référence d'un autre espace subsiste, elle porte sur une donnée de cet espace, et non sur celle de l'espace purgé (OB-29).
+- **DI-C13** *(réécrite deux fois en V1.3 : ECD-07, puis AC-17)* — Deux dépôts, même de binaires identiques et dans le même espace, sont deux `FICHIER` distincts, chacun suivant les droits de l’objet qui l’utilise ; cela ne fusionne aucun document, exemplaire ni reproduction (test 13). La déduplication n’est que **physique** (`cle_stockage`) et n’est observable ni d’un espace à l’autre, ni d’un dépôt à l’autre dans un même espace (DI-C22). La purge d’un `FICHIER` n’affecte jamais un autre `FICHIER`.
+- **DI-C22** † (V1.3, ECD-07) — **Non-observabilité.** Une mutualisation physique (même `cle_stockage`) n’est jamais observable, ni d’un espace à l’autre, ni d’un dépôt à l’autre dans un même espace (V1.3, AC-17) : même délai d'envoi, même message, même quota décompté, aucune indication « déjà présent ». La purge d'un `FICHIER` retire sa référence au binaire ; le binaire est effacé dès qu'aucune référence légitime ne subsiste. Une purge légalement obligatoire n'est jamais empêchée par la mutualisation : si une référence d'un autre espace subsiste, elle porte sur une donnée de cet espace, et non sur celle de l'espace purgé (OB-29).
 - **DI-C23** † (V1.3, ECD-08) — Un fichier n'est exploitable scientifiquement (reproduction `master`, zone, transcription d'appui) que si `etat_conservation = confirmé`. Les états `temporairement inaccessible`, `manquant` et `corrompu` sont distincts et ne valent pas suppression ; `purgé` résulte seulement d'une purge (DD-13).
 
 | Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
 |---|---|---|---|---|---|---|---|
 | id_fichier | Identifiant | `IDENT` | 1 | UUID v7 | — | `01b0…` | Y·F·I |
-| empreinte | Empreinte | `EMPREINTE` | 1 | SHA-256 | Unique par espace (V1.3) ; DI-C13 | `3a7f…` | Y·F·O |
+| empreinte | Empreinte | `EMPREINTE` | 1 | SHA-256 | Contrôle d’intégrité ; non unique (V1.3, AC-17) ; DI-C13 | `3a7f…` | Y·F·O |
 | cle_stockage † (V1.3) | Clé de l'objet binaire stocké, éventuellement partagée entre espaces | `TEXTE_COURT` | 1 | — | Jamais exposée ; DI-C22 | `blob/9c…` | Y·N·I |
 | etat_conservation † (V1.3) | État de conservation du binaire | `CODE` | 1 | {en réception, confirmé, temporairement inaccessible, manquant, corrompu, purgé} | DI-C23 ; défaut `en réception` | `confirmé` | C·V·O |
 | date_dernier_controle † (V1.3) | Dernier contrôle d'intégrité | `HORODATAGE` | 0..1 | UTC ms | — | `2031-02-01T03:00Z` | Y·V·O |
@@ -2462,7 +2489,7 @@ Les attributs `description`, `rang` et `statut` sont hérités de `POSITION`.
 | Association | Pattes et cardinalités | Propriétés | Intégrité | Gouvernance |
 |---|---|---|---|---|
 | RELIER_PROJETS — lien réifié † (V1.2, DD-19) | PROJET (0,n) — PROJET (0,n) | id_lien (1) ; type {issu de, prolonge, complète, réexamine, conteste, réutilise le corpus de, sous-projet de, succède à} (1) ; etat {proposé, actif, refusé, terminé} (1) † ; initiateur → ACTEUR (1) † ; date_debut (0..1) † ; date_fin (0..1) † | Sans cycle pour `sous-projet de` ; DI-K23 | Gouvernable (DD-09) ; visibilité ≤ celle des deux projets (TI-10) ; `X` |
-| DECIDER_RATTACHEMENT † (V1.2) | RELIER_PROJETS (0,2) — ACTEUR_GENIIUS (0,n) | partie {parent, enfant} (1) ; decision {acceptée, refusée, terminée} (1) ; date (1) | DI-K23 | Suit le lien |
+| DECIDER_RATTACHEMENT † (V1.2) | RELIER_PROJETS (0,n) — ACTEUR_GENIIUS (0,n) *(V1.3, AC-29 : auparavant (0,2), incompatible avec la terminaison)* | partie {parent, enfant} (1) ; decision {acceptée, refusée, terminée} (1) ; date (1) | DI-K23 | Suit le lien |
 | SOUS_TACHE † (V1.2) | TACHE parente (0,n) — TACHE (0,1) | — | DI-K27 | Suit le projet |
 | DEPENDRE_TACHE † (V1.2) | TACHE (0,n) — TACHE préalable (0,n) | — | DI-K27 | Suit le projet |
 | FONDER_DELEGATION † (V1.2) | TACHE de type `lot` (0,n) — REGLE_ACCES (0,1) | — | DI-K29, DI-K30 | Suit la règle |
@@ -2603,7 +2630,7 @@ Les objets comparés A et B sont reliés par les associations ECART_A † et ECA
 | COMPARER | ARBRE A (0,n) — COMPARAISON (1,1) ; ARBRE B (0,n) — (1,1) ; COMPARAISON (0,n) — ECART (1,1) | — | DI-L10 | DI-L11 |
 | ECART_A † / ECART_B † | ECART (0,1) — OBJET (0,n), ×2 | — | — | DI-L11 |
 | HEBERGER_SELECTION (V1.2) | ESPACE source (0,n) — SELECTION_PARTAGE (1,1) | — | DI-L17 | Suit la sélection |
-| INCLURE_SELECTION (V1.2) | VERSION_OBJET d'une `SELECTION_PARTAGE` (0,n) — OBJET inclus (0,n) | version_incluse → VERSION_OBJET de l'objet inclus (1) ; mode_inclusion {intégral, masqué, pseudonymisé} (1) ; motif_inclusion {point de départ, ascendance, descendance, union, conjoint, ajout explicite} (1) | DI-L13, DI-L16 ; figée avec la version de la sélection | `X` ; chaque entrée filtrée par le contexte (OB-23) |
+| INCLURE_SELECTION (V1.2) | VERSION_OBJET d'une `SELECTION_PARTAGE` (0,n) — OBJET inclus (0,n) | version_incluse → VERSION_OBJET de l’objet inclus (1) ; mode_inclusion {intégral, masqué, pseudonymisé} (1), **définis en DI-L21 (V1.3, D7)** ; masquage → `MASQUAGE` (C : obligatoire si `pseudonymisé`) ; motif_inclusion {point de départ, ascendance, descendance, union, conjoint, ajout explicite} (1) | DI-L13, DI-L16 ; figée avec la version de la sélection | `X` ; chaque entrée filtrée par le contexte (OB-23) |
 
 ## 14.6 SELECTION_PARTAGE ✓ — MCD V1.2 (concept A, DD-21)
 
@@ -2627,11 +2654,17 @@ Les objets comparés A et B sont reliés par les associations ECART_A † et ECA
 - **DI-L16** — Règles d'inclusion :
   - inclure une personne n'inclut aucune de ses relations : seules les `RELATION` du manifeste sont partagées ;
   - un conjoint inclus avec `conjoints = sans leur ascendance` apparaît avec l'union, sans ses parents ni leurs relations ;
-  - une relation entre un objet inclus et un objet non inclus n'est jamais incluse ;
+  - une relation entre un objet inclus et un objet non inclus n’est jamais incluse ; **V1.3 (AC-07)** : plus généralement, **toute assertion, quel que soit son profil** (attribut, relation, participation, présence, situation, existence documentaire), n’est incluse que si son sujet **et** sa cible éventuelle sont inclus ; une source ou un événement qui mentionne une personne exclue n’est inclus qu’en `provenance masquée`, ou après évaluation de diffusabilité ;
   - personnes vivantes : `traitement_vivants` s'applique (défaut `exclus`) ; données sensibles : `traitement_sensibles` (défaut `exclus`) ;
   - les `exclusions` l'emportent sur tous les autres paramètres.
 - **DI-L17** — Tout objet du manifeste appartient à l'espace source ou y est référencé (`REFERENCE_INTER_ESPACE`), et l'acteur qui confirme détient sur lui `repartager` à l'instant de la confirmation. Une sélection ne peut pas inclure un objet que son auteur ne peut pas voir.
 - **DI-L19** — Révocation ou réduction (fin de la règle d'accès, sélection `révoquée`, nouvelle version plus étroite) : l'accès cesse à la prochaine évaluation, sans divulgation du motif ; les répliques hors ligne sont retirées (OB-20) ; les copies `réutilisation` déjà faites suivent DI-A38 ; les conclusions qui s'appuyaient sur la sélection sont conservées et leurs `DEPENDANCE` passent à `potentiellement affecté` (droits), jamais invalidées ; les publications parues et les exports remis restent ; toute nouvelle diffusion est réévaluée (DI-P15). Les droits acquis à un autre titre ne sont pas touchés.
+- **DI-L21** † (V1.3, AC-06, D7) — **Rendu effectif des modes d'inclusion.** Le mode s'applique à la représentation remise au destinataire, et non à la seule qualification de la sélection :
+  - **`masqué`** : l'élément est omis de la représentation remise, ou remplacé par une indication neutre si celle-ci ne révèle aucune information protégée. Ni ses attributs, ni ses relations, ni ses références indirectes (participations, présences, situations, sources, index, compteurs, exports) ne permettent de le reconstituer ;
+  - **`pseudonymisé`** : l'élément est représenté par un pseudonyme propre au contexte autorisé (`MASQUAGE` de type pseudonymisation, un par sélection). Ses identifiants réels et la correspondance qui permettrait la réidentification ne sont jamais accessibles au destinataire. Les relations conservées sont filtrées pour empêcher la réidentification indirecte. La pseudonymisation n'est **pas** une anonymisation : les données restent personnelles et protégées ;
+  - une personne couverte par DI-E05 (vivante, présumée vivante, mineure) n'est incluse en mode `intégral` qu'avec une `EVALUATION_DIFFUSABILITE` favorable ;
+  - le contrôle porte sur le **graphe effectivement rendu** : participations, présences, situations, index, recherches, compteurs et exports respectent le même périmètre et les mêmes transformations que les objets de type `PERSONNE` et `RELATION`.
+- **DI-L22** † (V1.3, AC-10) — **Version active et propositions.** L'accès par une sélection ne lit que le manifeste de `version_active`. Une proposition (DI-L15) crée une nouvelle version, dont le manifeste est écrit à la création de la proposition et figé à sa confirmation. La version courante peut donc être une proposition `en attente` sans que l'accès change. La confirmation fait de la proposition la `version_active` ; un refus la laisse historisée (`etat_proposition = refusée`). Une réduction devient `version_active` dès sa création.
 
 **Exemple.** Sélection « BOVALO depuis le Sosa 31 », version 1 : ascendance paternelle, descendance complète, unions incluses, conjoints sans leur ascendance, vivants exclus, exclusion de la branche du Sosa 16 ; manifeste de 43 personnes, 51 relations et 38 sources.
 
@@ -2652,6 +2685,8 @@ Les objets comparés A et B sont reliés par les associations ECART_A † et ECA
 | traitement_sensibles | Données sensibles | `CODE` | 1 | {exclus, masqués} | Défaut `exclus` | `exclus` | S·V·O |
 | evolution | Mode d'évolution | `CODE` | 1 | {figée, suivi par propositions} | DI-L15 | `suivi par propositions` | S·V·O |
 | etat | État | `CODE` | 1 | {brouillon, proposée, active, suspendue, révoquée, close} | `active` ⇒ manifeste figé (DI-L13) ; `révoquée`, `close` : ne fonde plus aucun accès | `active` | S·V·O |
+| version_active † (V1.3, AC-10) | Version de la sélection dont le manifeste fait foi | `IDENT` + numéro | C | Version de cette `SELECTION_PARTAGE` | Obligatoire dès la première confirmation ; seule source de l’accès (DI-L13, OB-23) ; distincte de la version courante, qui peut être une proposition | `S-31 v3` | S·V·O |
+| etat_proposition † (V1.3, AC-10) | Sort de la dernière version proposée | `CODE` | 0..1 | {en attente, confirmée, refusée} | Une proposition `refusée` reste historisée ; la version active ne change pas | `en attente` | S·V·O |
 
 *La valeur d'état `proposée` précise le cycle de vie du MCD (§ 14.5) pour les versions issues de DI-L15.*
 
@@ -3444,6 +3479,25 @@ Les sept concepts du MCD V1.2 (A à G) sont **canoniques** : leurs fiches ne son
 - **DI-C13** : la fusion technique ne vaut plus qu'à l'intérieur d'un espace ; la garantie du test 13 (aucune fusion documentaire) est conservée.
 - **OB-09** : un délai asynchrone n'est plus admis pour le niveau direct.
 
+**Corrections après l'audit contradictoire du MLD (10/10/2026, constats AC et arbitrages D1 à D9).**
+
+| Élément | Correction | Constat, arbitrage |
+|---|---|---|
+| Autorité sur les droits | DD-28 : autorité, absence d'auto-habilitation, actions par défaut des rôles, métadonnées de gouvernance ; DI-B29 complétée | AC-01, D1, D8 |
+| Rôles d'auteur | DI-A39 réécrite : déclencheur, déposant, auteur scientifique, bénéficiaire ; aucun droit de lecture créé par repli | AC-03, D9 |
+| EMBARGO | `BENEFICIER_EMBARGO` † ; DI-B21 réécrite (exception d'accès propre à l'embargo) | AC-04 |
+| BASE_JUSTIFICATIVE | Unicité par espace (et par auteur pour `privée`) | AC-05 |
+| INCLURE_SELECTION | Modes définis (DI-L21), `masquage` ; DI-L16 étendue à tous les profils d'assertion | AC-06, AC-07, D7 |
+| SELECTION_PARTAGE, PRISE_EN_CHARGE | `version_active`, `etat_proposition`, `version_en_vigueur` ; DI-L22 ; DI-B38 précisée | AC-10 |
+| REGLE_ACCES | `POSER_REGLE` † (auteur figé) ; DI-B44 | AC-11 |
+| FICHIER | DI-C13 réécrite une seconde fois : un `FICHIER` par dépôt, aucune unicité d'empreinte ; DI-C22 étendue à l'intérieur d'un espace | AC-17 |
+| Identifiants, traces | DD-02 : UUID v4 pour les objets ; DD-27 : purge des codes de protection, effacement des métadonnées de version | AC-25, D4, D5 |
+| COMPTE, ACTEUR | `email` conditionnelle ; `PSEUDONYME_RESERVE` † | AC-26 |
+| DECIDER_RATTACHEMENT | Cardinalité (0,n) | AC-29 |
+| ESPACE | Réplication `limitée` par défaut dans les espaces collectifs ; `autorisée` bornée | D2, AC-13 |
+| Réutilisation | DI-A41 : repartage d'une copie sans nouvel accord, sous licence et sans restriction légale ni droit de tiers | AC-16, D3 |
+| Indicateurs | DD-24, point 6 : voie « résultat publié », pas d'action `agréger` | AC-32, D6 |
+
 ---
 
 # Annexe D — Obligations transmises au MLD et au MPD
@@ -3728,3 +3782,23 @@ Les écarts ECD-13 (traçabilité dictionnaire → MLD) et ECD-09, 16, 17, 18 (o
 - Version : dictionnaire **V1.3 candidat** ; la V1.2 gelée reste la référence jusqu'à la validation de la V1.3.
 - Conformément à la séquence décidée, la V1.3 doit être validée comme référence normative **avant** le gel du MLD.
 - Écarts : annexe C.7. Obligations : annexe D (OB-09, OB-29 à OB-32). Validation externe : EXT-04.
+
+## L.5 Complément après l'audit contradictoire du MLD (10/10/2026)
+
+L'audit contradictoire du MLD V1.1 (`docs/AUDIT-MLD/`) a relevé onze constats qui portent aussi sur le dictionnaire, dont deux défauts introduits par la V1.3 (AC-17 sur DI-C13 ; AC-29). Ils sont corrigés selon les arbitrages D1 à D9 du porteur (annexe C.7, second tableau).
+
+**Statut :** la V1.3 reste **candidate**. Sa validation suppose le contre-audit ciblé décidé par le porteur.
+
+## L.6 Report des structures MLD hors contrôle d'accès (V1.1-d et V1.1-e, NC-11)
+
+Les structures suivantes, créées dans le MLD pour réaliser des règles du dictionnaire, sont reconnues comme écarts † de la V1.3 :
+
+| Fiche | Structure † | Règle réalisée |
+|---|---|---|
+| ACTIVITE | `perimetre_donnees_transmises` devient une liste contrôlée d'attributs (association à une table d'attributs transmis) | DI-A12 |
+| ACTIVITE | `resolution_effacee` (activité neutralisée par effacement de résolution) | DD-27.3 |
+| EVALUATION_DIFFUSABILITE | `effectif` (ENTIER, ≥ 0), obligatoire pour l'évaluation d'un agrégat | DI-B18 |
+| INTERVENIR (mission) | Périmètre d'accès exprimé en objets cibles (association) | DI-K12 |
+| RECHERCHE_EFFECTUEE | `nature_recherche` {nominative, thématique, documentaire, autre} | DI-K11 |
+
+Les structures liées au contrôle d'accès (règle de titulaire, acteur de campagne, bénéficiaires et gardiens d'embargo, fondements de délégation) seront définies avec la refonte DD-28, selon le [contrat d'autorisation](GENIIUS_CONTRAT_AUTORISATION_V1.md).
