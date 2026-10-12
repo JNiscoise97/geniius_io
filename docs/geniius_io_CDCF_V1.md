@@ -1,9 +1,9 @@
-# GENIIUS --- CDCF V1.2
+# GENIIUS --- CDCF V1.3
 
 ## Référentiel fonctionnel, conceptuel et explicatif --- version développée
 
-**Statut :** référentiel maître de cadrage — **V1.2** = V1.1 + avenant AV-FONC-001 (Partie XXI, §§ 119–134 ; CU-26 à CU-31 ; critères 51 à 64)\
-**Date :** 7 octobre 2026 (V1.1) ; 9 octobre 2026 (V1.2)\
+**Statut :** référentiel maître de cadrage — **V1.3** = V1.2 + DC-CDCF-01 (13/10/2026, alignement hors ligne et ratification technique) ; V1.2 = V1.1 + avenant AV-FONC-001 (Partie XXI, §§ 119–134 ; CU-26 à CU-31 ; critères 51 à 64)\
+**Date :** 7 octobre 2026 (V1.1) ; 9 octobre 2026 (V1.2) ; 13 octobre 2026 (V1.3, DC-CDCF-01)\
 **Objet :** développer le CDCF V1 en explicitant les intentions, les
 problèmes résolus, les règles, les conséquences fonctionnelles, les
 limites et les cas de vérification.
@@ -4630,7 +4630,7 @@ Il existe deux modes d'admission des nouveaux membres du groupe :
 
 ## 122.2 Règles
 
--   un départ du groupe retire immédiatement les droits dérivés, répliques hors ligne comprises ; aucune approbation ne retarde une révocation ;
+-   un départ du groupe retire immédiatement les droits dérivés côté serveur, dès sa prise d’effet ; aucune approbation ne retarde une révocation. Sur un appareil déconnecté, les objets protégés deviennent inaccessibles dès la première des deux occurrences : reconnexion avec application des retraits avant ajouts, ou échéance locale opposable. Cette échéance est le minimum des plafonds plateforme/espace/habilitant, y compris pour les objets personnels ; aucune réplication par dérogation. Les deltas personnels non synchronisés restent conservés pour leur auteur et leur intégration exige les droits actuels. Une copie sortie du contrôle de GENIIUS ne peut pas être rappelée automatiquement ;
 -   une approbation porte sur une identité, pas sur une place ;
 -   le programme ne peut pas élargir unilatéralement les permissions accordées ;
 -   la fin du rattachement (§ 120.2) désactive les habilitations accordées à ce titre, sans toucher aux droits acquis par un autre fondement ;
@@ -4856,7 +4856,7 @@ Attendu : recoupements signalés ; divergences et permissions propres conservée
 52. Un rattachement de sous-projet exige l'accord des deux parties et n'est pas transitif.
 53. Un axe de recherche n'établit aucune relation historique.
 54. Un sujet incertain peut être un axe sans création d'entité fictive.
-55. Une habilitation de groupe n'élargit pas les droits quand le groupe change, sauf mode accepté ; un départ révoque immédiatement.
+55. Une habilitation de groupe n’élargit pas les droits quand le groupe change, sauf mode accepté ; un départ révoque immédiatement côté serveur. Hors ligne, les objets protégés deviennent inaccessibles à la reconnexion ou à l’échéance opposable, selon ce qui arrive d’abord (§ 122.2) ; les deltas personnels sont conservés sans droit d’intégration implicite.
 56. Déclarer une ressource ne donne aucun accès à cette ressource.
 57. La réouverture d'un lot ne rend aucun droit à un bénévole dont la délégation a expiré.
 58. Un avancement est constaté sur les objets, jamais saisi en pourcentage global.
@@ -4866,3 +4866,25 @@ Attendu : recoupements signalés ; divergences et permissions propres conservée
 62. Un indicateur affiche son unité, son dénominateur, ses incertitudes et son périmètre ; un chiffre publié reste figé et explicable.
 63. Une approbation éditoriale n'est ni une validation scientifique ni une autorisation de diffusion.
 64. Une révocation retire les accès sans détruire les réutilisations légitimes ni invalider les conclusions.
+
+
+# 135. Décision de cohérence DC-CDCF-01 (13 octobre 2026)
+
+Le porteur a autorisé la clôture des deux réserves de la revue finale et le gel du CDC technique : proposition de ratifier les exigences techniques déjà retenues avec leurs justifications et d’aligner le hors ligne sur le contrat V1.6, puis réponse « ok vas y ». Voir le [procès-verbal](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md).
+
+L’amendement de § 122.2 et du critère 55 clôt l’écart de formulation avec V1.6, sans changer son comportement gelé ni adopter ses valeurs d’exemple. Le résidu déconnecté reste une limite effective du système ; il cesse d’être une contradiction de la référence fonctionnelle actuelle.
+
+Les exigences techniques ci-dessous sont ratifiées par décision du porteur, dans leurs clauses du CDC V1.2. Leur origine reste une décision technique justifiée ; aucune exigence fonctionnelle historique n’est inventée. La régularisation directe clôt ECD-19 / R-CDC-02 sur ce périmètre et remplace la proposition AV-FONC-002 par cette décision, sans prétendre qu’un dossier AV-FONC-002 a été rédigé ou gelé.
+
+| TECH | Justification ratifiée |
+|---|---|
+| TECH-001 — Surfaces d'accès | Usages Web, Desktop et Mobile complémentaires autour du même Core. |
+| TECH-002 — Fonctionnement hors connexion | Consultation et collecte terrain déconnectées, sous contrôle d’échéance. |
+| TECH-004 — Application Desktop installée | Fichiers locaux, imports massifs et capacités matérielles avec permissions OS. |
+| TECH-005 — Synchronisation entre appareils | Continuité entre appareils, contributions versionnées et conflits non destructifs. |
+| TECH-009 — Volumétrie et migrations patrimoniales | Patrimoines anciens et migrations collectives ; profils chiffrés indicatifs restent à valider. |
+| TECH-013 — Résilience et idempotence | Reprise, idempotence et refus prudent préservent patrimoine et confidentialité. |
+| TECH-014 — Performance | Objectifs interactifs mesurables ; conditions de mesure distinctes et encadrées. |
+| TECH-022 — Environnements DEV, STAGING, PROD | Isolation des environnements pour protéger le patrimoine réel. |
+| TECH-023 — CI/CD, déploiement et retour arrière | Livraisons/migrations reproductibles et retour arrière sans corruption. |
+| TECH-028 — Disponibilité, SLO et SLA | Qualité de service mesurable ; objectif initial après stabilisation, distinct du PRA. |

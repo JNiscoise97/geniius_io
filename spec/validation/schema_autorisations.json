@@ -1,0 +1,5147 @@
+{
+  "version": "V1.1-g candidat",
+  "source_normative": "contrat V1.6 gelé",
+  "conventions": {
+    "HS": "état de sécurité courant + miroir _hist, PK(id,revision), périodes continues, avant/après complets",
+    "N": "insertion seule, hors neutralisation légalement autorisée",
+    "uuid": "identifiant opaque, choix physique au MPD",
+    "reference": "FK réelle vers colonne id ; aucune référence polymorphe libre"
+  },
+  "tables": {
+    "autorisation_identite": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "niveau": {
+          "type": "code",
+          "nullable": false
+        },
+        "statut": {
+          "type": "code",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "acteur_id WHERE statut = vérifiée AND fin IS NULL"
+      ],
+      "ck": [
+        "niveau ∈ {standard, renforcé}",
+        "statut ∈ {déclarée, vérifiée, révoquée}",
+        "personne_id requis pour acteur personne vérifié ; nul pour acteur institutionnel",
+        "aucune unicité sur personne_id : plusieurs comptes/acteurs de la même personne",
+        "concordance avec liens compte-acteur et compte-personne, en fin de transaction"
+      ]
+    },
+    "autorisation_propriete": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "proprietaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "racine_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "proprietaire_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "racine_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "espace_id"
+      ],
+      "ck": [
+        "racine système active bénéficiaire du propriétaire courant et couvrant cet espace",
+        "un propriétaire et une racine par espace non clos ; transfert atomique"
+      ]
+    },
+    "autorisation_titularite": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "titulaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "titulaire_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "objet_id WHERE fin IS NULL"
+      ],
+      "ck": [
+        "titularité créée seulement par procédures système § 6",
+        "objet personnel exige titularité ; aucune visibilité projet"
+      ]
+    },
+    "autorisation_perimetre": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "genre": {
+          "type": "code",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "titulaire_regime_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "lien_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "selection_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "titulaire_regime_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "lien_id"
+          ],
+          "table": "lien",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "selection_id"
+          ],
+          "table": "selection_partage",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "genre ∈ {objet, lien, lot, contenu, sélection}",
+        "alternatives et jointures cohérentes avec genre",
+        "un seul régime ; cible lien soumise aux droits des deux extrémités"
+      ]
+    },
+    "autorisation_perimetre_objet": {
+      "nature": "N",
+      "colonnes": {
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "perimetre_id",
+        "objet_id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "liste fermée figée ; toute évolution crée nouveau périmètre ; régime unique"
+      ]
+    },
+    "autorisation_beneficiaire": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "genre": {
+          "type": "code",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "groupe_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "espace_role_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "role": {
+          "type": "code",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "groupe_id"
+          ],
+          "table": "groupe",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "espace_role_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "genre ∈ {acteur, groupe, rôle, public}",
+        "acteur : seul acteur_id ; groupe : seul groupe_id ; rôle : espace_role_id et role ; public : aucun FK"
+      ]
+    },
+    "autorisation_habilitation": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "forme": {
+          "type": "code",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "auteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "perimetre_signataire_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "role": {
+          "type": "code",
+          "nullable": true
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        },
+        "mode": {
+          "type": "code",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "reemission_de_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "rattachement_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "lot_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "echeance_hors_ligne": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "auteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_id"
+          ],
+          "table": "autorisation_beneficiaire",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_signataire_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "reemission_de_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "rattachement_id"
+          ],
+          "table": "relation_projets",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "lot_id"
+          ],
+          "table": "tache",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "nature ∈ {HI, HP, système}",
+        "forme ∈ {nomination, délégation, racine}",
+        "etat ∈ {proposée, active, suspendue, close, expirée}",
+        "mode ∈ {notification, approbation préalable} ou nul hors ensemble ouvert",
+        "auteur requis HI/HP, nul uniquement système ; signataire et périmètre à l’acte figés pour HI",
+        "fin nulle ou fin > debut ; états close/expirée terminaux",
+        "les opérations autorisées sont exclusivement celles du contrat ; aucun UPDATE libre du mode ou des actions"
+      ]
+    },
+    "autorisation_action": {
+      "nature": "HS",
+      "colonnes": {
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "habilitation_id",
+        "action"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "action ∈ {voir, commenter, proposer, transcrire, éditer, valider, exporter, réutiliser, contribuer au Core}"
+      ]
+    },
+    "autorisation_fondateur": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "fondateur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondateur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "habilitation_id, fondateur_id WHERE fin IS NULL"
+      ],
+      "ck": [
+        "HP seulement ; auteur initial inclus, admetteur pas automatiquement fondateur global"
+      ]
+    },
+    "autorisation_fondement": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "fondateur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "titularite_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "nomination_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "fondateur_id"
+          ],
+          "table": "autorisation_fondateur",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "titularite_id"
+          ],
+          "table": "autorisation_titularite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "nomination_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "nature ∈ {titulaire, rôle, HI, HP}",
+        "exactement une référence : titulaire→titularite, rôle→nomination, HI/HP→habilitation de nature concordante",
+        "chaîne enracinée acyclique, couverture action/partage/périmètre/durée à l’acte et évaluation, suspensions ≠ ruptures"
+      ]
+    },
+    "autorisation_exclusion": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "fondateur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondateur_id"
+          ],
+          "table": "autorisation_fondateur",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "habilitation_id, objet_id, fondateur_id avec null égal"
+      ],
+      "ck": [
+        "figée à l’acte ; accès audit seul"
+      ]
+    },
+    "autorisation_admission": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "admetteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "automatique": {
+          "type": "bool",
+          "nullable": false
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admetteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "nature ∈ {HI, HP}",
+        "etat ∈ {active, close}",
+        "automatique implique admetteur nul ; manuelle admetteur requis",
+        "auteur jamais admis (personne) ; automatique exclut gestionnaires et cibles exigeantes à chaque accès",
+        "HP manuelle : propres fondements de l’admetteur, ne dépend pas des seuls fondateurs globaux"
+      ]
+    },
+    "autorisation_admission_fondement": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "admission_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "titularite_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "nomination_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "titularite_id"
+          ],
+          "table": "autorisation_titularite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "nomination_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "exactement une FK typée conforme à nature, comme fondement HP",
+        "étendue jamais supérieure à celle de l’admetteur ; clôture admission si sa chaîne rompt"
+      ]
+    },
+    "autorisation_admission_exclusion": {
+      "nature": "N",
+      "colonnes": {
+        "admission_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "admission_id",
+        "objet_id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_exclusion_personne": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "date": {
+          "type": "ts",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "habilitation_id, personne_id"
+      ],
+      "ck": [
+        "retrait préventif empêche auto-admission de tous comptes"
+      ]
+    },
+    "autorisation_protection": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "genre": {
+          "type": "code",
+          "nullable": false
+        },
+        "cible_objet_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "cible_lien_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "createur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "autorite_emettrice_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "autorite_levee_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "heritee_de_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "origine": {
+          "type": "code",
+          "nullable": false
+        },
+        "portee": {
+          "type": "code",
+          "nullable": false
+        },
+        "base_legale": {
+          "type": "text",
+          "nullable": true
+        },
+        "reference_legale": {
+          "type": "text",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "cible_objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cible_lien_id"
+          ],
+          "table": "lien",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "createur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "autorite_emettrice_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "autorite_levee_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "heritee_de_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "exactement une cible ; genre ∈ {embargo contenu, interdiction action, restriction légale, consentement refusé ou retiré, effacement légal, embargo existence, interdiction existence, cloisonnement, gel succession}",
+        "etat ∈ {active, levée, expirée}",
+        "origine ∈ {interne, légale interne, externe, système, héritée}",
+        "portee ∈ {cible et copies, cible seulement} ; limitation expresse seulement pour restriction légale",
+        "héritée : ascendant et origine conservés ; levée origine ne lève pas copie ; sensibilité/non-levables de tous ascendants"
+      ]
+    },
+    "autorisation_protection_action": {
+      "nature": "HS",
+      "colonnes": {
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "protection_id",
+        "action"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_protection_personne": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "qualite": {
+          "type": "code",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "qualite ∈ {destinataire, bénéficiaire, gardien}",
+        "garde valide exige identité renforcée et droit sur cible ou ascendant ; perte signalée avant exposition"
+      ]
+    },
+    "autorisation_protection_ensemble": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "beneficiaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_id"
+          ],
+          "table": "autorisation_beneficiaire",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "protection_id, beneficiaire_id"
+      ],
+      "ck": [
+        "ensemble ouvert : agrément personne requis, jamais bénéficiaire par seule composition"
+      ]
+    },
+    "autorisation_agrement": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "gardien_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "gardien_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_passage_orphelin": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "signale_le": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "protection_id WHERE fin IS NULL"
+      ],
+      "ck": [
+        "à chaque passage signalement minimal P-3, dans même écriture que perte de garde"
+      ]
+    },
+    "autorisation_acte": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "type": {
+          "type": "code",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "instant": {
+          "type": "ts",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "contexte_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "justification": {
+          "type": "text",
+          "nullable": true
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "contexte_id"
+          ],
+          "table": "contexte_evaluation",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "actes sensibles ∈ {dérogation, décès, succession, garde, autorité légale, contestation, versement, nomination admin, transfert, réintégration} ; autres opérations contractuelles identifiées",
+        "identité et indépendance vérifiées à l’acte puis à l’évaluation lorsque § 12 le demande"
+      ]
+    },
+    "autorisation_dossier_objet": {
+      "nature": "N",
+      "colonnes": {
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "acte_id",
+        "objet_id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_dossier_espace": {
+      "nature": "N",
+      "colonnes": {
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "acte_id",
+        "espace_id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_approbation": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "approbateur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "identite_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "date": {
+          "type": "ts",
+          "nullable": false
+        },
+        "qualite_verifiee": {
+          "type": "bool",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "approbateur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "identite_id"
+          ],
+          "table": "autorisation_identite",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "acte_id, approbateur_id"
+      ],
+      "ck": [
+        "comptes même personne comptent une seule fois ; nombre/accords du § 12.3",
+        "pas d’intérêt, subordination ou rôle interdit sur dossier ; absence identité vérifiée entraîne refus"
+      ]
+    },
+    "autorisation_membre_autorite": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "autorite": {
+          "type": "code",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "autorite ∈ {dérogation, externe} ; qualité sans droit de contenu"
+      ]
+    },
+    "autorisation_subordination": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "subordonne_personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "superieur_personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "subordonne_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "superieur_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "indépendance revérifiée à chaque accès dérogatoire"
+      ]
+    },
+    "autorisation_interet": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "exactement une cible dossier ; personne commune à tous comptes ; interdits § 12.7"
+      ]
+    },
+    "autorisation_nomination_admin": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "nomme_par_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "nomme_par_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "propriétaire seul nomme ; aucun droit de contenu ; etat ∈ {active, close, expirée}"
+      ]
+    },
+    "autorisation_designation_garde": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "beneficiaire_personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "destination de gouvernance seulement ; ne confère aucune titularité ou lecture"
+      ]
+    },
+    "autorisation_deces": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "date_constat": {
+          "type": "ts",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "deux approbateurs indépendants ; effet personne sur tous comptes et tous espaces"
+      ]
+    },
+    "autorisation_succession": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "deces_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "sort": {
+          "type": "code",
+          "nullable": false
+        },
+        "ayant_droit_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "rs_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "accepte_le": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "deces_id"
+          ],
+          "table": "autorisation_deces",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "ayant_droit_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "rs_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "sort ∈ {transmission, versement, purge, maintien gel}",
+        "etat ∈ {en instruction, proposée, acceptée, refusée, exécutée}",
+        "transmission exige ayant droit vérifié et acceptation ; décision par objet, autres objets restent gelés"
+      ]
+    },
+    "autorisation_contestation": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "resultat": {
+          "type": "code",
+          "nullable": false
+        },
+        "date_decision": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "resultat ∈ {en attente, maintenue, annulée} ; protection continue tant que non annulée selon autorité compétente"
+      ]
+    },
+    "autorisation_finalite_version": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "version": {
+          "type": "int",
+          "nullable": false
+        },
+        "active": {
+          "type": "bool",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "version"
+      ],
+      "ck": []
+    },
+    "autorisation_finalite": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "version_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "code": {
+          "type": "code",
+          "nullable": false
+        },
+        "niveau": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "version_id"
+          ],
+          "table": "autorisation_finalite_version",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "version_id, code"
+      ],
+      "ck": [
+        "niveau ∈ {technique admissible à un approbateur, renforcé} ; liste fermée gouvernée"
+      ]
+    },
+    "autorisation_derogation": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "beneficiaire_personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "finalite_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "justification": {
+          "type": "text",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": false
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "renouvellement_de_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "rang": {
+          "type": "int",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "beneficiaire_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "finalite_id"
+          ],
+          "table": "autorisation_finalite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "renouvellement_de_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "etat ∈ {active, suspendue, close, expirée}",
+        "fin > debut ; durée ≤ paramètre gouverné",
+        "rang calculé sur toutes demandes antérieures recoupant cibles/personne, sans partition par finalité ; carence § 12.6",
+        "parent descriptif ne remplace pas ensemble des prédécesseurs ; protections orphelines et non-levables jamais franchies"
+      ]
+    },
+    "autorisation_derogation_cible": {
+      "nature": "N",
+      "colonnes": {
+        "derogation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "operation": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "derogation_id",
+        "objet_id",
+        "operation"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "derogation_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_derogation_predecesseur": {
+      "nature": "N",
+      "colonnes": {
+        "derogation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "precedent_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "derogation_id",
+        "precedent_id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "derogation_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "precedent_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_accord_gardien": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "derogation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "gardien_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "date": {
+          "type": "ts",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "derogation_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "gardien_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_transfert": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "cedant_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "cessionnaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "designation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "presentation_courante_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "presentations": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "carence_fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cedant_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cessionnaire_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "designation_id"
+          ],
+          "table": "autorisation_designation_garde",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "presentation_courante_id"
+          ],
+          "table": "autorisation_presentation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "etat ∈ {préparé, présenté, accepté, expiré, refusé, annulé}",
+        "un transfert courant par espace ; personnes distinctes et identité établie",
+        "expiration présentation interdit acceptation ; fin fenêtre réévalue différés ; compteur/plafond/carence § 5.6"
+      ]
+    },
+    "autorisation_transfert_objet": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "transfert_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "voie": {
+          "type": "code",
+          "nullable": false
+        },
+        "acceptation_b": {
+          "type": "bool",
+          "nullable": false
+        },
+        "copie_complementaire": {
+          "type": "bool",
+          "nullable": false
+        },
+        "copie_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "transfert_id"
+          ],
+          "table": "autorisation_transfert",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "copie_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "transfert_id, objet_id"
+      ],
+      "ck": [
+        "voie ∈ {a, b, purge, g} ; copie c seulement complément de a/b, licence/protections requises"
+      ]
+    },
+    "autorisation_presentation": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "transfert_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "numero": {
+          "type": "int",
+          "nullable": false
+        },
+        "instant": {
+          "type": "ts",
+          "nullable": false
+        },
+        "expiration": {
+          "type": "ts",
+          "nullable": false
+        },
+        "empreinte": {
+          "type": "hash",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "transfert_id"
+          ],
+          "table": "autorisation_transfert",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "transfert_id, numero"
+      ],
+      "ck": []
+    },
+    "autorisation_transfert_engagement": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "presentation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "genre": {
+          "type": "code",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "admission_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "membre_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "administration_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "protection_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "voie_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "reemission_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_genre": {
+          "type": "code",
+          "nullable": true
+        },
+        "beneficiaire_acteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_groupe_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_espace_role_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "beneficiaire_role": {
+          "type": "code",
+          "nullable": true
+        },
+        "revision_beneficiaire": {
+          "type": "int",
+          "nullable": true
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "perimetre_genre": {
+          "type": "code",
+          "nullable": true
+        },
+        "regime_espace_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "regime_titulaire_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "echeance": {
+          "type": "ts",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": true
+        },
+        "mode": {
+          "type": "code",
+          "nullable": true
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        },
+        "effectif": {
+          "type": "bool",
+          "nullable": false
+        },
+        "revision_source": {
+          "type": "int",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "presentation_id"
+          ],
+          "table": "autorisation_presentation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "membre_id"
+          ],
+          "table": "autorisation_membre_groupe",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "administration_id"
+          ],
+          "table": "autorisation_nomination_admin",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "protection_id"
+          ],
+          "table": "autorisation_protection",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "voie_id"
+          ],
+          "table": "autorisation_transfert_objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "reemission_id"
+          ],
+          "table": "autorisation_reemission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_id"
+          ],
+          "table": "autorisation_beneficiaire",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_groupe_id"
+          ],
+          "table": "groupe",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_espace_role_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "regime_espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "regime_titulaire_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "genre et exactement une FK cible concordants ; instantanés relationnels ci-dessous, pas référence à état mutable",
+        "avant acceptation comparaison inclusion de tous engagements, pas simple égalité hash ; vue K filtrée distincte"
+      ]
+    },
+    "autorisation_membre_groupe": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "groupe_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "ajoute_par_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "groupe_id"
+          ],
+          "table": "groupe",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "ajoute_par_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "gestionnaire identité renforcée ; pas ajout de soi (personne) ; fin clôt admissions, pas résurrection"
+      ]
+    },
+    "autorisation_engagement_action": {
+      "nature": "N",
+      "colonnes": {
+        "engagement_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "engagement_id",
+        "action"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "engagement_id"
+          ],
+          "table": "autorisation_transfert_engagement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_engagement_objet": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "engagement_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "objet_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "role": {
+          "type": "code",
+          "nullable": false
+        },
+        "fondateur_personne_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "admission_source_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "fondement_snapshot_id": {
+          "type": "uuid",
+          "nullable": true
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "engagement_id"
+          ],
+          "table": "autorisation_transfert_engagement",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondateur_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admission_source_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondement_snapshot_id"
+          ],
+          "table": "autorisation_engagement_fondement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "engagement_id, objet_id, role, fondateur_personne_id, admission_source_id, fondement_snapshot_id avec null égal"
+      ],
+      "ck": [
+        "role ∈ {cible, exclusion, exclusion fondateur, admission exclusion, aperçu} ; ensemble fermé présenté"
+      ]
+    },
+    "autorisation_engagement_personne": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "engagement_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "role": {
+          "type": "code",
+          "nullable": false
+        },
+        "admission_source_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "fondateur_source_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": true
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": true
+        },
+        "automatique": {
+          "type": "bool",
+          "nullable": true
+        },
+        "revision_source": {
+          "type": "int",
+          "nullable": true
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "engagement_id"
+          ],
+          "table": "autorisation_transfert_engagement",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admission_source_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondateur_source_id"
+          ],
+          "table": "autorisation_fondateur",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "engagement_id, personne_id, role, admission_source_id, fondateur_source_id avec null égal"
+      ],
+      "ck": [
+        "role ∈ {bénéficiaire, fondateur, admis, membre, gardien, gestionnaire, destinataire}"
+      ]
+    },
+    "autorisation_engagement_fondement": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "engagement_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "fondateur_personne_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "admission_source_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "nature": {
+          "type": "code",
+          "nullable": false
+        },
+        "source_habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "source_titularite_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "revision_source": {
+          "type": "int",
+          "nullable": false
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "debut": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "engagement_id"
+          ],
+          "table": "autorisation_transfert_engagement",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "fondateur_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admission_source_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "source_habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "source_titularite_id"
+          ],
+          "table": "autorisation_titularite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "nature typée ; couvertures et objets du périmètre copiés dans engagement_objet ; état à présentation, pas jointure courante"
+      ]
+    },
+    "autorisation_reemission": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "transfert_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "origine_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "nouvelle_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "beneficiaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "repartager": {
+          "type": "bool",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "transfert_id"
+          ],
+          "table": "autorisation_transfert",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "origine_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "nouvelle_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_id"
+          ],
+          "table": "autorisation_beneficiaire",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "etat ∈ {annoncée, réalisée, abandonnée}",
+        "identique ou plus étroite ; source devenue invalide abandonnée sans bloquer acceptation",
+        "exclusion du nouveau signataire et permissions à acceptation"
+      ]
+    },
+    "autorisation_reemission_action": {
+      "nature": "N",
+      "colonnes": {
+        "reemission_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "reemission_id",
+        "action"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "reemission_id"
+          ],
+          "table": "autorisation_reemission",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_reemission_admission": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "reemission_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "origine_admission_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "nouvelle_admission_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "reemission_id"
+          ],
+          "table": "autorisation_reemission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "origine_admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "nouvelle_admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_admission_differee": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "origine": {
+          "type": "code",
+          "nullable": false
+        },
+        "transfert_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "date": {
+          "type": "ts",
+          "nullable": false
+        },
+        "etat": {
+          "type": "code",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "transfert_id"
+          ],
+          "table": "autorisation_transfert",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "origine ∈ {transfert, cycle espace} ; FK transfert requis seulement origine transfert",
+        "etat ∈ {en attente, traitée, abandonnée}",
+        "mode courant, membre, habilitant, identité/exclusions/protections réévalués ; aucune auto-admission si non notification"
+      ]
+    },
+    "autorisation_verrou_reintegration": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "transfert_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "cedant_personne_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "depuis": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "transfert_id"
+          ],
+          "table": "autorisation_transfert",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cedant_personne_id"
+          ],
+          "table": "personne",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "s’applique à tous comptes du cédant ; consentement pour chaque acte sensible de retour"
+      ]
+    },
+    "autorisation_consentement_reintegration": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "verrou_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "signataire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "propriete_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "revision_propriete": {
+          "type": "int",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "beneficiaire_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "perimetre_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        },
+        "empreinte_acte": {
+          "type": "hash",
+          "nullable": false
+        },
+        "consomme_le": {
+          "type": "ts",
+          "nullable": true
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "verrou_id"
+          ],
+          "table": "autorisation_verrou_reintegration",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "signataire_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "propriete_id"
+          ],
+          "table": "autorisation_propriete",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "beneficiaire_id"
+          ],
+          "table": "autorisation_beneficiaire",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "perimetre_id"
+          ],
+          "table": "autorisation_perimetre",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "propriétaire courant d’autre personne, acte couvert et consommation unique atomique",
+        "transfert suivant ou changement propriétaire invalide consentement antérieur"
+      ]
+    },
+    "autorisation_consentement_action": {
+      "nature": "N",
+      "colonnes": {
+        "consentement_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "consentement_id",
+        "action"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "consentement_id"
+          ],
+          "table": "autorisation_consentement_reintegration",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": []
+    },
+    "autorisation_epoque": {
+      "nature": "HS",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "valeur": {
+          "type": "int",
+          "nullable": false
+        },
+        "revision": {
+          "type": "int",
+          "nullable": false
+        },
+        "debut_validite": {
+          "type": "ts",
+          "nullable": false
+        },
+        "fin_validite": {
+          "type": "ts",
+          "nullable": true
+        },
+        "evenement_id": {
+          "type": "uuid",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "evenement_id"
+          ],
+          "table": "autorisation_evenement",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [
+        "espace_id"
+      ],
+      "ck": [
+        "incrément avant prise d’effet ; propagation interespaces atomique ou barrière de refus"
+      ]
+    },
+    "autorisation_evenement": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "instant": {
+          "type": "ts",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "operation": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acte_id"
+          ],
+          "table": "autorisation_acte",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "état antérieur complet dans _hist ; événement ne réécrit jamais auteur/paternité/filiation"
+      ]
+    },
+    "contexte_evaluation": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "acteur_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "identite_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "audience": {
+          "type": "code",
+          "nullable": false
+        },
+        "espace_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "projet_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "instant": {
+          "type": "ts",
+          "nullable": false
+        },
+        "operation": {
+          "type": "code",
+          "nullable": false
+        },
+        "finalite_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "canal": {
+          "type": "code",
+          "nullable": false
+        },
+        "epoque_autorisation": {
+          "type": "int",
+          "nullable": false
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "derogation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "appareil_ref": {
+          "type": "uuid",
+          "nullable": true
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "acteur_id"
+          ],
+          "table": "acteur_geniius",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "identite_id"
+          ],
+          "table": "autorisation_identite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "espace_id"
+          ],
+          "table": "espace",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "projet_id"
+          ],
+          "table": "projet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "finalite_id"
+          ],
+          "table": "autorisation_finalite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "derogation_id"
+          ],
+          "table": "autorisation_derogation",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "dérogation implique finalité, opération et cible couverts à instant ; aucune donnée contenu dans journal",
+        "appareil du schéma technique requis réplication ; public peut avoir acteur nul"
+      ]
+    },
+    "autorisation_decision": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "contexte_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "cible_objet_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "cible_lien_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "action": {
+          "type": "code",
+          "nullable": false
+        },
+        "instant": {
+          "type": "ts",
+          "nullable": false
+        },
+        "epoque": {
+          "type": "int",
+          "nullable": false
+        },
+        "resultat": {
+          "type": "code",
+          "nullable": false
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "contexte_id"
+          ],
+          "table": "contexte_evaluation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cible_objet_id"
+          ],
+          "table": "objet",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "cible_lien_id"
+          ],
+          "table": "lien",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "exactement une cible ; trace ne constitue jamais un droit courant"
+      ]
+    },
+    "autorisation_decision_fondement": {
+      "nature": "N",
+      "colonnes": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "decision_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "genre": {
+          "type": "code",
+          "nullable": false
+        },
+        "titulaire_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "habilitation_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "admission_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "fin": {
+          "type": "ts",
+          "nullable": true
+        }
+      },
+      "pk": [
+        "id"
+      ],
+      "fk": [
+        {
+          "colonnes": [
+            "decision_id"
+          ],
+          "table": "autorisation_decision",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "titulaire_id"
+          ],
+          "table": "autorisation_titularite",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "habilitation_id"
+          ],
+          "table": "autorisation_habilitation",
+          "cible": [
+            "id"
+          ]
+        },
+        {
+          "colonnes": [
+            "admission_id"
+          ],
+          "table": "autorisation_admission",
+          "cible": [
+            "id"
+          ]
+        }
+      ],
+      "uq": [],
+      "ck": [
+        "genre ∈ {titulaire, rôle, HI, HP, visibilité, dérogation}",
+        "FK et genre concordants ; visibilité sans référence ; dérogation portée par contexte"
+      ]
+    }
+  }
+}

@@ -1,8 +1,10 @@
-# GENIIUS — Dictionnaire de données V1.3 (candidat)
+# GENIIUS — Dictionnaire de données V1.3 (validé documentairement)
+
+**Validation documentaire du 12/10/2026 :** corrections DC-DICT-02/03 et autorisations V1.6 contrôlées ; V1.3 retenue comme référence amont du MLD, sur demande de validation du porteur et après deux recontrôles indépendants favorables. La V1.2 gelée demeure une baseline historique. **Aucun gel formel de V1.3 n’est prononcé.** Voir le [dossier de validation et preuves](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md). Les états avant correction sont conservés dans `AUDIT-MLD/historique/`.
 
 ## Définitions exhaustives des entités, associations et attributs du MCD V1.2 canonique
 
-- **Statut V1.3 :** **candidat (10/10/2026)**, produit par la procédure de changement DC-DICT-02 (annexe L) pour les écarts majeurs de l’audit de cohérence ; à valider comme référence normative avant le gel du MLD. Ajouts marqués « V1.3 », récapitulés en annexe C.7.
+- **Statut V1.3 : VALIDÉ DOCUMENTAIREMENT le 12/10/2026**, référence amont pour la version stabilisée du MLD ; validation de correction/localisation, pas preuve sémantique exhaustive ni gel formel. Ajouts † et corrections DC-DICT-02/03 consignés en annexe L et dans les deux rapports indépendants.
 - **Statut V1.2 :** **GELÉ le 10/10/2026** (décision du porteur), produit par la procédure de changement DC-DICT-01 (annexe K) pour intégrer le MCD V1.2 gelé (avenant AV-FONC-001), après conformité de REC-01 et REC-16 sur le MCD V1.2 ([contrôle](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md)). La **V1.1 consolidée**, gelée le 9/10/2026, reste consultable dans l'historique Git (commit `423991c`).
 - **Révision V1.2 (9/10/2026, AV-FONC-001 étape 4) :**
   - fiches des sept concepts du MCD V1.2 : `PRISE_EN_CHARGE` (§ 4.26), `ETUDIER` et `UTILISER` (§ 13.13), `SELECTION_PARTAGE` (§ 14.6), `DECISION_EDITORIALE`, `DIFFUSION` et `PARAITRE_DANS` (§ 18.6 et 18.7) ;
@@ -301,27 +303,20 @@ Interdits : conserver secrètement une copie supprimée pour sauver une conclusi
 
 **Justification.** P19, TI-11, OB-04 ; CDC technique AUDIT-TECH-010.9 et 010.10 ; décision du porteur du 10/10/2026.
 
-## DD-28 † (V1.3) — Autorité sur les droits, actions par défaut des rôles, métadonnées de gouvernance (AC-01, D1, D8)
+## DD-28 † (V1.3, report du 12/10/2026) — Contrat unique d'autorisation
 
-**Question.** L'audit contradictoire (AC-01) a montré qu'aucune règle ne dit qui peut créer une règle d'accès, une appartenance, un membre de groupe ou une admission. Un administrateur pouvait s'habiliter lui-même, et un programme habiliter sur ses sous-projets. Inversement, aucun rôle ne détenait explicitement `administrer`.
+**Source :** [contrat d'autorisation V1.6](GENIIUS_CONTRAT_AUTORISATION_V1.md), gelé le 12/10/2026 avec réserves ; P-1 à P-3 et choix du § 17.2 ratifiés par le porteur. Ce report ne vaut pas gel du dictionnaire.
 
-**Décision.**
-1. **Autorité.** Seul un acteur qui détient `administrer` sur la cible (objet, lien ou espace) peut créer, élargir, prolonger ou clore une `REGLE_ACCES` sur cette cible, une appartenance (`APPARTENIR`) ou une attribution de rôle sur l'espace, un `MEMBRE_GROUPE` d'un groupe de l'espace, ou une admission (`ADMETTRE`). Une règle d'accès est un objet **de l'espace de sa cible** : un programme ne peut pas créer de règle sur un sous-projet (DI-K23).
-2. **Pas d'auto-habilitation (D1).** Aucun acteur ne s'accorde à lui-même une appartenance scientifique (`responsable scientifique`, `collaborateur`, `lecteur`), ni une règle `voir`, `éditer`, `transcrire`, `valider`, `réutiliser` ou `repartager` à son profit. Seule exception : l'attribution initiale prévue à la création de l'espace (le créateur reçoit `propriétaire` et `responsable scientifique`). Toute attribution scientifique ultérieure exige un **habilitant indépendant**, acteur différent du bénéficiaire, effectivement autorisé au sens du point 1. Dans un espace où le seul détenteur d’`administrer` voudrait s’habiliter lui-même, il passe par un autre administrateur ou par une habilitation exceptionnelle (DI-B30).
-3. **Actions par défaut des rôles d'appartenance** (étape « visibilité par défaut » du contrôle d'accès), sous réserve des interdictions et protections :
+1. **Administration et science.** Administrer ou posséder l'espace ne confère aucun droit de contenu ni partage. Le RS crée les HI dans son périmètre ; le détenteur d'actions effectives et de `repartager` crée les HP. Aucun administrateur ne s'habilite scientifiquement.
+2. **Personne.** Tous les interdits d'auto-attribution, admissions, gardes, protections et approbations sont évalués sur la personne, tous comptes confondus, avec identité renforcée pour les qualités sensibles.
+3. **Titularité.** Le système attribue au titulaire les actions du § 6, sans `valider` ni `contribuer au Core`. Le titulaire peut conserver ses objets après départ de l'espace ; aucun rôle scientifique n'y ouvre accès sans droit distinct. Le versement approuvé par un autre RS active les droits préexistants du contenu sur le seul objet versé (P-2).
+4. **Rôles.** La matrice exacte est le § 7.1 du contrat : RS avec toutes les neuf actions et partage institutionnel ; collaborateur avec voir/commenter/proposer/transcrire/éditer ; lecteur avec voir/commenter ; invité aucune action de rôle. L'action Core exige la diffusabilité favorable. Aucun rôle administratif ne lit implicitement.
+5. **Survie.** Une HI repose sur l'autorité de l'espace et survit au signataire. Une HP repose sur les fondements enracinés des fondateurs ; clôture et expiration sont définitives. Restrictions et protections ne cassent pas les HP existantes, mais empêchent les nouveaux actes retirés.
+6. **Ensembles ouverts.** Admission nominative toujours nécessaire, groupe ou rôle, interne ou externe. L'admission automatique exclut auteur et gestionnaires, est réévaluée après différé et ne vaut jamais pour une cible exigeante. Une nomination par autre RS peut conférer ses actions de rôle dans le périmètre autorisé (P-1), jamais l'accès automatique d'un ensemble géré.
+7. **Protections et dérogations.** Les quatre catégories du § 2 sont distinctes. Restrictions non levables avant tout accès ; dérogations seulement selon § 12 ; gardes, agréments et héritage selon § 11 et § 13.11. Une protection orpheline n'est pas franchie par dérogation. Le seul signalement P-3 est opaque, minimal et destiné à l'autorité.
+8. **Évaluation unique.** Le § 14 gouverne toutes les surfaces du § 15 : aucune existence cachée dans résultats, compteurs, rangs, journaux ou erreurs. La gouvernance ne voit que les métadonnées filtrées du § 10.3.
 
-   | Rôle d'appartenance | Actions par défaut sur les objets `projet` de l'espace | Sur l'espace |
-   |---|---|---|
-   | propriétaire, administrateur | aucune | `administrer` (métadonnées de gouvernance, point 4) |
-   | responsable scientifique | voir, commenter, proposer, transcrire, éditer, valider | — |
-   | collaborateur | voir, commenter, proposer, transcrire, éditer | — |
-   | lecteur | voir, commenter | — |
-   | invité | aucune (règles explicites seulement) | — |
-
-   `exporter`, `repartager`, `réutiliser` et `contribuer au Core` ne sont jamais des actions par défaut. Les objets `privé` restent régis par les seules règles explicites.
-4. **Métadonnées de gouvernance (D8).** `administrer` ouvre seulement : la liste des membres et de leurs rôles ; les règles d'accès et leurs bénéficiaires ; l'existence et les métadonnées des sélections partagées, des rattachements, des prises en charge et des diffusions (sans leur contenu) ; l'explication des accès (OB-24) ; le cycle de vie de l'espace. Jamais le contenu des objets ; jamais une métadonnée protégée (titre, libellé, existence protégée par embargo ou par règle) sans nécessité administrative établie, auquel cas une habilitation exceptionnelle est requise.
-
-**Justification.** CDCF § 49.2, § 120.2, § 122.2 ; P23 ; DI-B29 ; décisions du porteur du 10/10/2026.
+**Fiches et attributs de remplacement :** [report relationnel V1.6](AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md), §§ 2–4. Les anciennes dispositions DD-18, DD-22 et DI d'accès y sont remplacées explicitement ; elles ne constituent plus un moteur autonome d'autorisation.
 
 ## DD-14 — Plausibilité qualitative
 
@@ -342,9 +337,9 @@ L'échelle `D-19` (forte, probable, possible, faible, écartée provisoirement, 
 
 Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe en revanche autant d'espaces `publication publique` que nécessaire (un par espace publiant, ou un global ; choix MPD sans effet conceptuel).
 
-## DD-18 — Règles d'accès : interdiction prioritaire et protection de l'existence
+## DD-18 — Restrictions, protections et ordre d'évaluation
 
-`REGLE_ACCES` reçoit deux attributs † : `effet` {autoriser, interdire} et `objet_protege` {contenu, existence}. L'interdiction l'emporte toujours sur l'autorisation. Une règle `objet_protege = existence` retire l'objet ou le lien du graphe accessible pour les bénéficiaires visés, avant toute recherche, traversée, agrégation, comptage, export ou notification (P20, RG-B11).
+Remplace l'ancienne règle générique « toute interdiction prime ». Appliquer strictement les étapes 0 à 7 du contrat V1.6 § 14 : absence/purge ; restrictions non levables propres ou héritées ; dérogation active bornée ; protections d'existence ; restrictions internes ; fondements effectifs ; visibilité par défaut ; rendu filtré. La dérogation ne franchit aucune restriction non levable. L'échec de vérification vaut introuvable et n'écrit aucun état (A6). Les protections ne sont pas des habilitations négatives d'un moteur concurrent. Source : DD-28 et [report relationnel V1.6](AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md).
 
 ## DD-19 † (V1.2) — Rattachement de projets : un lien gouvernable bilatéral (P-1, AV-2)
 
@@ -353,7 +348,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 **Décision.**
 1. `RELIER_PROJETS` est **réifiée** (DD-09) : `id_lien`, gouvernable. Elle reçoit `etat` {proposé, actif, refusé, terminé}, un initiateur et deux décisions (projet parent, projet enfant) portées par l'association `DECIDER_RATTACHEMENT` †.
 2. Pour `type = sous-projet de`, l'état `actif` exige les deux décisions favorables (DI-K23). Pour les autres types (`complète`, `réutilise le corpus de`…), une seule partie déclare le lien, qui ne vaut que dans son espace : il n'engage pas l'autre projet.
-3. Le rattachement ne confère **aucun** droit (P23). Il peut seulement servir de **fondement** à des habilitations explicitement accordées par le sous-projet (DD-22) ; sa fin désactive ces habilitations, et elles seules.
+3. Le rattachement ne confère **aucun** droit (P23). Il peut seulement servir de **condition** à des habilitations explicitement accordées par le sous-projet (DD-22) ; sa fin clôt définitivement ces habilitations, et elles seules (A4, contrat § 13.13).
 4. Pas de transitivité : un rattachement A → B et B → C n'établit rien entre A et C, ni en droits, ni en indicateurs.
 5. « Déplacer » un sous-projet = terminer un rattachement et en proposer un autre. Aucun droit ne survit au changement par héritage.
 
@@ -374,16 +369,9 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 4. **Contribution et réutilisation.** `contribution vers un espace partagé` matérialise la mise à disposition d'une version de sélection à un espace destinataire. Elle ne crée **aucune** copie. `réutilisation d'une sélection` crée des copies dans l'espace de l'acteur, liées par `FILIATION` de type `réutilisation`, qui désigne la version de la règle d'accès qui l'autorisait et la licence applicable (DI-A37).
 5. **Révocation.** Effets selon RG-L12 du MCD ; traduction en DI-A38, DI-L19 et OB-20.
 
-## DD-22 † (V1.2) — Habilitation de groupe et mode d'admission (P-2, AV-3)
+## DD-22 — Admission aux ensembles ouverts
 
-**Décision.**
-1. Une `REGLE_ACCES` au profit d'un `GROUPE` **extérieur** à l'espace qui porte l'objet (par exemple le groupe « Coordination » du programme, sur un objet du sous-projet) exige un `mode_admission` {notification, approbation préalable}. Défaut : `approbation préalable` ; `notification` n'est admise que si `sensibilite = normale` (DI-B36).
-2. En `approbation préalable`, un membre du groupe n'est bénéficiaire qu'après une **admission nominative** (`ADMETTRE` †) par un administrateur de l'espace porteur. L'admission porte sur une identité (acteur), pas sur une place dans le groupe.
-3. En `notification`, l'entrée d'un membre produit une notification à l'espace porteur, qui peut révoquer cette admission.
-4. La sortie du groupe (fin de `MEMBRE_GROUPE`) retire immédiatement les droits dérivés, y compris les répliques hors ligne (OB-20). Aucune approbation ne retarde une révocation.
-5. Seul l'espace porteur crée ou élargit une telle règle ; le programme ne le peut pas.
-6. Une règle peut citer le rattachement qui la fonde (`FONDER_SUR_RATTACHEMENT` †). La fin du rattachement fixe la `date_fin` des règles ainsi fondées (DI-B37).
-7. **Explicabilité.** Pour tout accès, le système sait reconstituer la chaîne des fondements (règle, groupe, admission, rattachement). Cette explication n'est présentée qu'aux personnes habilitées à administrer l'objet ou à l'intéressé, pour ses propres accès (OB-24).
+Groupe ou rôle bénéficiaire, interne ou externe : admission nominative obligatoire pour chaque personne. Seuls les habilitants effectivement autorisés du contrat § 9 peuvent admettre ; la gestion administrative n'en donne pas le pouvoir. Les modes sont immuables ; notification à portée limitée aux cibles non exigeantes, approbation préalable sinon. Retrait d'admission ou fin d'appartenance clôt définitivement, sans résurrection. Rattachement conditionnel seulement, jamais fondement. Source : DD-28, contrat §§ 9 et 13.13, [report relationnel V1.6](AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md).
 
 ## DD-23 † (V1.2) — Pilotage : tâches, lots, jalons et délégations (P-3, AV-6)
 
@@ -414,16 +402,9 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 4. **Numéros.** Le MCD mentionne `numéro de série` parmi les types de `PUBLICATION`. Ce n'est pas un type : un numéro est une publication de type éditorial (lettre, bulletin, rapport…) qui paraît dans une série par `PARAITRE_DANS`.
 5. **Abonnement éditorial.** C'est une `VEILLE` de `type = abonnement éditorial` sur une série. Elle exige un consentement horodaté, se résilie en un seul acte, ne crée aucune `REGLE_ACCES` et reste distincte de la veille scientifique (DI-Q07). Elle ne donne pas accès aux numéros : chaque diffusion est évaluée pour l'abonné.
 
-## DD-26 † (V1.2) — Transfert de gouvernance proposé, présenté, accepté (P-8, AV-11)
+## DD-26 — Transfert de gouvernance selon le contrat V1.6
 
-**Décision.**
-1. `TRANSFERT_GOUVERNANCE.etat` {proposé, accepté, refusé, expiré, annulé}. L'effet (changement de propriétaire) se produit à `accepté`, de façon atomique.
-2. Tant que l'état n'est pas `accepté`, le cessionnaire peut être **absent** : le bénéficiaire est désigné par la `DESIGNATION_GARDE` (destinataire futur), via `DESTINER_TRANSFERT` †. Le cessionnaire (acteur vérifié) est obligatoire dès `accepté` (DI-B40). C'est une précision de la cardinalité MCD `cessionnaire (1,1)`, qui vaut pour le transfert accompli (annexe C.6).
-3. **Engagements présentés.** Avant acceptation, le bénéficiaire voit l'état figé des partages actifs (sélections, règles d'accès, rattachements) : `engagements_presentes` (`ETAT_FIGE`) et son empreinte. Si les engagements ont changé entre la présentation et l'acceptation, celle-ci est rejetée et une nouvelle présentation est due (DI-B41).
-4. **Droits résiduels.** Par défaut, le cédant ne garde **aucun** droit : seuls ses crédits et attributions subsistent (RG-B03). Un droit maintenu doit être accordé explicitement par le nouveau propriétaire, après le transfert (DI-B42).
-5. L'invitation (lien à usage unique, expiration, vérification du bénéficiaire) relève du schéma technique d'identité (OB-28).
-
----
+États et transitions du § 5.6 ; cédant et cessionnaire de personnes distinctes et vérifiées. Le cessionnaire est connu avant présentation. Présentation figée, empreinte vérifiée et inclusion des engagements (réduction permise, extension refusée), gel par liste et admissions différées. Les voies personnelles sont (a), (b), purge ou (g) de succession ; (c) est seulement une copie complémentaire à (a)/(b). Le transfert atomique attribue propriété et racine ; clôture les droits résiduels du cédant sur le contenu, sans retirer ses HP de titulaires tiers sur leurs objets personnels. Le verrou de réintégration exige un consentement par acte (§ 10.8). Paternité et filiation ne sont jamais réécrites. Source : §§ 10.4–10.8, DD-28, report V1.6.
 
 # 3. Domaine A — Socle transversal
 
@@ -519,7 +500,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A11** — `mode = manuel` ⇒ une association REALISER vers un acteur ; `mode = automatique` ⇒ `moteur` obligatoire.
 - **DI-A12** — Une donnée a quitté la plateforme ⇒ `fournisseur` et `perimetre_donnees_transmises` obligatoires ; aucun attribut `R` ou `I` ne figure dans le périmètre (TI-12).
 - **DI-A13** — `date_fin` ≥ `date_debut`.
-- **DI-A39** † (V1.3, ECD-14 ; **réécrite après l’audit, AC-03 et D9**) — Quatre rôles sont distingués et jamais confondus entre eux ni avec le propriétaire administratif de l’espace : (1) le **déclencheur technique** d’une activité automatique (`REALISER`, rôle `déclencheur`) ; (2) le **déposant des entrées**, dérivé : l’acteur des activités de création des objets pris en entrée (`UTILISER_ENTREE`) ; (3) l’**auteur scientifique**, lorsqu’il est identifiable (`CREDIT` de rôle `auteur`) ; (4) le **bénéficiaire d’une autorisation de lecture** (`REGLE_ACCES`). Toute activité qui crée un objet porte un acteur imputé via `REALISER` (réalisateur ou déclencheur) : c’est une **traçabilité**, pas un droit. Les droits du propriétaire d’un objet `privé` créé automatiquement vont au **déposant identifiable des entrées, s’il détient les droits nécessaires sur ces entrées** ; sinon, **aucun droit de lecture personnel** n’est créé, et l’accès ne passe que par une habilitation exceptionnelle (DI-B30). Une tâche de plateforme sans acteur identifiable est imputée à un acteur institutionnel technique, qui ne reçoit aucun droit de lecture.
+- **DI-A39** † (report V1.6) — Déclencheur technique, déposant, auteur scientifique et titulaire sont distincts de la propriété administrative. Toute création conserve une activité imputée ; aucun droit ne découle de la seule traçabilité. Le titulaire est attribué selon contrat § 6.2 : réalisateur ou déposant avec mandat et droits déclarés. Sans déposant identifiable, aucune création d’objet personnel ; l’acteur institutionnel d’une tâche ne reçoit aucun droit personnel. CP-23 réalise cette règle.
 - **DI-A40** † (V1.3, ECD-21) — Une activité qui crée ou modifie un objet typé par un concept (assertion, mention, entité, document…) désigne la **version du conteneur `REFERENTIEL`** en vigueur pour cet objet (`UTILISER_REFERENTIEL`). La « version du référentiel » est la version du conteneur (manifeste, DD-01). Une contribution différée porte la version déclarée par le client (DI-B31).
 
 **Exemple.** Activité `transcription`, mode `assisté`, moteur « HTR-Caraïbes » v2.3, intervention humaine `correction`, mode de lecture `indépendante/aveugle`.
@@ -539,7 +520,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | intervention_humaine | Part humaine après production | `CODE` | 1 | {aucune, examen, correction, validation} | `validation` exige un `ACTE_EVALUATION` | `correction` | Y·N·O |
 | mode_lecture | Lecture assistée ou aveugle | `CODE` | 1 | {assistée, indépendante/aveugle, sans objet} | `indépendante/aveugle` : RG-D02 | `indépendante/aveugle` | Y·N·O |
 | fournisseur † | Prestataire externe ayant reçu des données | `TEXTE_COURT` | C | — | DI-A12 | `Anthropic` | Y·N·I |
-| perimetre_donnees_transmises † | Catégories d'attributs transmises | `TEXTE_LONG` | C | Liste d'attributs | DI-A12 | `SEGMENT.texte` | Y·N·I |
+| perimetre_donnees_transmises † | Attributs transmis | Association contrôlée | C | Liste structurée TABLE.attribut, réalisée par activite_perimetre_transmis | DI-A12, annexe L.6 ; aucune liste textuelle libre | `SEGMENT.texte` | Y·N·I |
 
 ## 3.4 DEPENDANCE — lien réifié (DD-09)
 
@@ -581,7 +562,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 
 **Identifiant.** `id_lien`.
 
-**Participe à.** DERIVER (OBJET dérivé 0,n — 1,1 ; VERSION_OBJET origine 0,n — 1,1), RESULTER (OPERATION_FLUX 0,n — 0,1), AUTORISER_REUTILISATION † (V1.2 : FILIATION de type `réutilisation` (0,1) — VERSION_OBJET d’une `REGLE_ACCES` (0,n) ; DI-A37).
+**Participe à.** DERIVER (OBJET dérivé 0,n — 1,1 ; VERSION_OBJET origine 0,n — 1,1), RESULTER (OPERATION_FLUX 0,n — 0,1), AUTORISER_REUTILISATION † (V1.2 : FILIATION de type `réutilisation` (0,1) — DECISION_AUTORISATION (0,n), contexte et fondements à l’acte ; DI-A37).
 
 **Versionnement.** `V` (l'`etat_divergence` évolue).
 
@@ -593,9 +574,9 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 - **DI-A20** — `type_filiation` ∈ {contribution, import, échange Tree↔Tree, restauration} ⇒ une `OPERATION_FLUX` ou un `IMPORT` est obligatoire.
 - **DI-A21** — `contribution` ⇒ l'espace de l'objet dérivé est le Core partagé ; `import` ⇒ l'espace d'origine est le Core partagé.
 - **DI-A22** — Aucune synchronisation n'est déduite : un changement de l'origine fait seulement passer `etat_divergence` à `divergents` et peut notifier (RG-L02).
-- **DI-A37** † (V1.2) — `type_filiation = réutilisation` ⇒ produite par une `OPERATION_FLUX` de type `réutilisation d'une sélection` (DI-L18) ; `AUTORISER_REUTILISATION` désigne la version de la `REGLE_ACCES` qui l'autorisait ; l'objet dérivé porte la licence applicable à l'objet d'origine (`SOUS_LICENCE`) et ses crédits d'origine sont conservés. DI-A20 est élargie en conséquence : la réutilisation exige aussi une opération de flux.
+- **DI-A37** † (report V1.6) — Réutilisation de sélection : flux conservé, décision d’autorisation à l’acte référencée par AUTORISER_REUTILISATION, avec contexte et fondements (titulaire/rôle/HI/HP/visibilité). Aucun objet REGLE_ACCES fictif requis. Licence et crédits d’origine conservés ; filiation vérifiable et protections héritées selon contrat § 13.11.
 - **DI-A38** † (V1.2) — Après révocation ou réduction de la sélection ou de la règle, une `FILIATION` `réutilisation` existante est **conservée** avec sa provenance, dans les limites de la licence et de l'autorisation d'origine ; elle ne peut plus passer à `mise à jour proposée` ni `mise à jour importée`. Aucune copie hors `FILIATION` `réutilisation` n'a de droit de conservation autonome : les objets consultés via la sélection, y compris les répliques hors ligne, sont retirés (OB-20). Une obligation légale (purge, retrait de consentement) prévaut (DD-13).
-- **DI-A41** † (V1.3, AC-16, D3) — Une copie issue d’une `FILIATION` `réutilisation` est un objet autonome de l’espace qui l’a reprise. Son inclusion dans une sélection, une publication, une diffusion ou un export ne requiert **aucun nouvel accord** de l’espace d’origine, mais exige : (1) que les droits sur la copie aient été durablement acquis (règle `réutiliser` active lors de la reprise, DI-L18) ; (2) que la licence de la copie autorise la redistribution et, s’il y a lieu, la modification ; (3) qu’aucune restriction légale ou droit de tiers ne subsiste (embargo, consentement, `DECISION_APPLICABILITE_DROIT` applicable, données couvertes par DI-E05). La licence seule ne suffit pas si (3) n’est pas satisfait.
+- **DI-A41** † (report V1.6) — La copie réutilisée survit à la révocation et à la purge de l’original, sans blanchir ses protections. Redistribution : licence autorisant redistribution et modification éventuelle, aucune protection frappant la copie, aucun droit de tiers opposé et aucune sensibilité héritée. Protections ultérieures propagées, gardiens de l’ascendant, restrictions non levables de tous ascendants opposables pendant toute existence ; levée de l’original non automatiquement transmise. Contrat § 13.11, CP-51.
 
 **Exemple.** Assertion partagée A-847 dérivée de l'assertion privée `P-128@3`, type `contribution`, état `alignés`.
 
@@ -924,49 +905,11 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | nom | Nom du groupe | `TEXTE_COURT` | 1 | — | — | « Équipe Deshaies » | S·V·O |
 | type_groupe | Nature | `CODE` | 1 | {famille, cercle invité, équipe, autre} | `équipe` alimente l'indépendance des validations | `équipe` | S·V·O |
 
-## 4.9 REGLE_ACCES ✓
+## 4.9 REGLE_ACCES — remplacée par les catégories du contrat V1.6
 
-**Définition.** Permission ou interdiction granulaire : qui peut faire quoi, sur quel objet, espace ou lien, pendant quelle période, et si l'on protège le contenu ou l'existence même (CDCF § 62 ; RG-B11 ; DD-18).
+L'ancien objet polyvalent mélangeait droit de titulaire, autorisations, interdictions et dérogations. Sa fiche et ses attributs sont remplacés par HABILITATION (HI/HP), TITULARITE, ADMISSION, RESTRICTION, PROTECTION_EXISTENCE et DEROGATION : [report relationnel V1.6](AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md), § 2, avec traduction relationnelle au § 3. L'auteur d'une HI reste tracé sans devenir son fondement ; les fondateurs d'une HP restent vérifiés.
 
-**Identifiant.** `id_objet`.
-
-**Participe à.** PORTER_SUR_OBJET | PORTER_SUR_ESPACE | PORTER_SUR_LIEN † (exactement une) ; BENEFICIER (ACTEUR_GENIIUS | GROUPE ; aucune si `public`).
-
-**Auteur (V1.3, AC-11).** `POSER_REGLE` † : ACTEUR_GENIIUS (0,n) — REGLE_ACCES (1,1), figé. **DI-B44** † — L’auteur d’une règle est l’acteur de son activité de création ; il ne change jamais. Une modification par un autre acteur crée une **nouvelle règle** (et clôt l’ancienne). C’est l’auteur dont les droits bornent ceux des bénéficiaires (DI-B35, OB-23).
-
-**Intégrité.**
-
-- **DI-B10** — Exactement une portée ; `cible_type` cohérent avec la portée renseignée.
-- **DI-B11** — `effet = interdire` l'emporte sur toute autorisation (DD-18).
-- **DI-B12** — `objet_protege = existence` ⇒ l'objet ou le lien est retiré du graphe accessible des bénéficiaires visés avant toute opération (P20, TI-11).
-- **DI-B13** — Une règle ne peut pas élargir la visibilité d'un lien au-delà de ses extrémités (TI-10).
-- **DI-B14** — Une règle ne peut conférer `contribuer au Core` qu'à un acteur ayant un rôle sur l'espace source.
-- **DI-B29** † — Une règle d'effet `autoriser` dont le bénéficiaire est le rôle d'espace `propriétaire` ou `administrateur` ne porte que sur l'action `administrer`. Cette action n'implique aucune autre action. Les rôles de gouvernance (ATTRIBUER_ROLE) ne sont jamais bénéficiaires d'une règle. *(9/10/2026 — REC-X11 arbitrage A, REV-02-A.)* **V1.3 (D8) :** `administrer` ouvre seulement les **métadonnées nécessaires à la gouvernance** (DD-28) ; jamais les contenus scientifiques privés, ni les métadonnées protégées sans nécessité administrative établie.
-- **DI-B30** † — `nature = exceptionnelle` exige un bénéficiaire acteur nominatif, `effet = autoriser`, une `date_fin` et un `fondement`. Chaque usage est consigné dans un `CONTEXTE_EVALUATION` qui référence la règle, avec une finalité déclarée. Le contenu consulté n'est jamais consigné. *(9/10/2026 — TECH-027.5.)*
-
-| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
-|---|---|---|---|---|---|---|---|
-| cible_type † | Nature de la portée | `CODE` | 1 | {objet, espace, lien} | DI-B10 | `lien` | S·V·O |
-| action | Action concernée | `CODE` | 1 | D-10 | — | `voir` | S·V·O |
-| effet † | Autoriser ou interdire | `CODE` | 1 | {autoriser, interdire} | DI-B11 | `interdire` | S·V·O |
-| objet_protege † | Contenu ou existence | `CODE` | 1 | {contenu, existence} | DI-B12 ; défaut `contenu` | `existence` | S·V·O |
-| type_beneficiaire | Nature du bénéficiaire | `CODE` | 1 | {acteur, groupe, rôle d'espace, public} | `public` : aucun BENEFICIER | `public` | S·V·O |
-| role_beneficiaire † | Rôle visé | `CODE` | C | Rôles d'APPARTENIR | Si `type_beneficiaire = rôle d'espace` | `lecteur` | S·V·O |
-| date_debut | Début d'effet | `HORODATAGE` | 1 | UTC ms | — | `2029-01-01T00:00Z` | S·V·O |
-| date_fin | Fin d'effet | `HORODATAGE` | 0..1 | UTC ms | Accès temporaire (missions déléguées) | `2029-03-01T00:00Z` | S·V·O |
-| condition | Condition d'application | `TEXTE_COURT` | 0..1 | — | Expression évaluable (MPD) | « tant que la personne est vivante » | S·V·O |
-| sensibilite | Niveau de sensibilité | `CODE` | 1 | {normale, sensible, très sensible} | — | `sensible` | S·V·O |
-| nature † | Règle ordinaire ou habilitation exceptionnelle | `CODE` | 1 | {ordinaire, exceptionnelle} | Défaut `ordinaire` ; DI-B30 | `exceptionnelle` | S·V·O |
-| fondement † | Justification, mandat ou base juridique d'une habilitation exceptionnelle | `TEXTE_COURT` | C | — | Obligatoire si `nature = exceptionnelle` | « ticket support 2031-114, accord du propriétaire » | S·V·I |
-| espace_role † (V1.2) | Espace dont le rôle bénéficiaire est visé | `IDENT` | C | id d'`ESPACE` | Obligatoire si `type_beneficiaire = rôle d'espace` et que le rôle appartient à un autre espace que celui qui porte l'objet (partage vers un projet destinataire) ; DI-B34 | `01e1…` (projet Les Colimaçons) | S·V·X |
-| mode_admission † (V1.2) | Admission des nouveaux membres d'un groupe bénéficiaire extérieur | `CODE` | C | {notification, approbation préalable} | Obligatoire si le bénéficiaire est un groupe extérieur à l'espace porteur ; défaut `approbation préalable` ; DI-B36 | `approbation préalable` | S·V·O |
-
-**Intégrité (V1.2).**
-
-- **DI-B34** † — Une règle portant sur une `SELECTION_PARTAGE` n'admet que les actions `voir`, `commenter` et `réutiliser`. Son bénéficiaire est un acteur, un groupe, ou un rôle d'un espace désigné par `espace_role`. Elle ne porte jamais sur un individu racine ni sur l'arbre source (RG-L09).
-- **DI-B35** † — `réutiliser` et `voir` sont deux autorisations distinctes : aucune n'implique l'autre. Une règle n'autorise jamais plus que ce que détient, **à l'instant de chaque évaluation**, l'acteur qui l'a posée : si ses droits diminuent, ceux des bénéficiaires diminuent d'autant (OB-23). Le bénéficiaire ne peut repartager qu'avec une règle `repartager` explicite.
-- **DI-B36** † — Bénéficiaire = groupe extérieur à l'espace porteur ⇒ `mode_admission` obligatoire ; `notification` n'est admis que si `sensibilite = normale`. En `approbation préalable`, un membre n'est bénéficiaire qu'avec une `ADMETTRE` de décision `approuvée` à son nom. Seuls les administrateurs de l'espace porteur créent, élargissent ou admettent (DD-22).
-- **DI-B37** † — Les droits dérivés d'un groupe cessent à la fin de `MEMBRE_GROUPE` du bénéficiaire, sans délai d'approbation ; une règle `FONDER_SUR_RATTACHEMENT` reçoit pour `date_fin` la date de fin du rattachement, si celle-ci est antérieure. Les droits acquis par un autre fondement ne sont pas touchés.
+Les identifiants DI-B10/B11/B12/B13/B14/B29/B30/B34/B35/B36/B37/B44 restent des références de traçabilité, dont la réalisation actuelle est le § 4 du report. Ils ne prescrivent plus les anciennes colonnes `nature = propriétaire/exceptionnelle`, l'admission par administrateur ou la dépendance universelle au signataire. Les autres fiches utilisant le terme historique REGLE_ACCES doivent choisir la catégorie du contrat selon leur sens ; une migration automatique par simple renommage est exclue.
 
 ## 4.10 CONTEXTE_EVALUATION
 
@@ -990,7 +933,7 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | operation | Opération évaluée | `CODE` | 1 | {consultation, recherche, traversée, suggestion, agrégation, comptage, calcul, export, publication, notification, API, réplication †, synchronisation †} | P20 ; OB-20, OB-21 | `agrégation` | Y·N·O |
 | finalite | Finalité déclarée | `TEXTE_COURT` | 0..1 | — | — | « statistique publique Dolé » | S·N·O |
 | canal | Canal | `CODE` | 1 | {interface, API, export, notification, page publique, application locale †} | — | `page publique` | Y·N·O |
-| regle_acces † | Habilitation exceptionnelle utilisée | `IDENT` | 0..1 | id de `REGLE_ACCES` | Si renseigné : `finalite` obligatoire (DI-B30) | `01b7…` | Y·N·O |
+| derogation † (report V1.6) | Dérogation utilisée | `IDENT` | 0..1 | id de DEROGATION | Finalité obligatoire, approbations à jour ; DI-B30 | `d-…` | Y·N·I |
 | appareil † | Appareil concerné (schéma technique) | `IDENT` | C | Identifiant d'appareil | Obligatoire si `operation = réplication` (OB-20) | `01c2…` | Y·N·I |
 
 ## 4.11 DECISION_APPLICABILITE_DROIT ✓
@@ -1037,19 +980,9 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | usage_commercial | Usage commercial permis | `BOOLEEN` | 1 | — | — | `vrai` | Y·V·O |
 | attribution_requise | Attribution requise | `BOOLEEN` | 1 | — | — | `vrai` | Y·V·O |
 
-## 4.14 EMBARGO ✓
+## 4.14 EMBARGO — protection V1.6
 
-**Définition.** Restriction temporaire ou conditionnelle portant sur le média, la transcription, l'information, l'usage ou l'existence même d'un objet.
-
-**Intégrité.** **DI-B19** — Au moins un de `date_fin` ou `condition_levee`. **DI-B20** — Un embargo survit à l'export, à la restauration et au transfert de gouvernance (RG-B03, RG-P05). **DI-B21** *(réécrite en V1.3, AC-04)* — Un embargo désigne ses **bénéficiaires** (`BENEFICIER_EMBARGO` † : acteurs ou groupes, au moins un ; son auteur l’est d’office). `portee = existence même` ⇒ l’objet est retiré du graphe accessible de **tout acteur qui n’est pas bénéficiaire**, y compris les administrateurs de l’espace (D8) et les acteurs futurs ; les bénéficiaires conservent l’accès et seuls les bénéficiaires ayant `administrer` sur l’embargo peuvent le lever. La protection est une **exception d’accès propre à l’embargo**, évaluée à l’étape 1 du contrôle d’accès, et non une interdiction universelle qui masquerait l’objet à ses ayants droit.
-
-| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
-|---|---|---|---|---|---|---|---|
-| portee | Ce qui est protégé | `CODE` | 1 | {média, transcription, information, usage, existence même} | DI-B21 | `transcription` | S·V·O |
-| date_fin | Fin d'embargo | `DATE_HIST` | C | DD-10 (date exacte ou année) | DI-B19 | `2060` | S·V·O |
-| condition_levee | Condition de levée | `TEXTE_COURT` | C | — | DI-B19 | « décès du témoin + 25 ans » | S·V·O |
-| motif | Raison | `TEXTE_LONG` | 1 | — | — | « propos sur des personnes vivantes » | S·V·R |
-| statut | État | `CODE` | 1 | {actif, levé, expiré} | `expiré` calculé | `actif` | S/C·V·O |
+Embargo de contenu (restriction) ou embargo d'existence (protection), distincts selon § 2 du contrat. Les attributs et associations sont ceux de PROTECTION, gardiens, bénéficiaires/ensembles et agréments du report V1.6. Le créateur est gardien seulement s'il détient le droit requis ; aucun bénéficiaire auteur automatique n'est ajouté. La garde n'est jamais le pouvoir administrer. Une protection sans gardien reste active et signalée selon P-3, sans levée ni dérogation automatique. L'héritage sur copie applique § 13.11. Les anciennes DI-B19/B20/B21 sont réalisées par § 11, CP-46 et les relations du report ; les conditions de conservation peuvent rester des faits juridiques, jamais une expression libre autorisant l'accès.
 
 ## 4.15 CLASSIFICATION
 
@@ -1100,29 +1033,9 @@ Il existe exactement **un** `ESPACE` de `type_espace = Core partagé`. Il existe
 | beneficiaire | Bénéficiaire | `TEXTE_COURT` | 0..1 | — | — | « ma fille » | S·V·R |
 | condition_declenchement | Condition | `TEXTE_COURT` | 1 | — | — | « décès » | S·V·R |
 
-## 4.19 TRANSFERT_GOUVERNANCE ✓
+## 4.19 TRANSFERT_GOUVERNANCE — contrat V1.6
 
-**Définition.** Transfert historisé de la gouvernance d'un espace (CDCF § 65.1).
-
-**Intégrité.** **DI-B26** — Le transfert n'outrepasse jamais les droits attachés au contenu : embargos, consentements et crédits restent inchangés (RG-B03).
-
-**Intégrité (V1.2, DD-26).**
-
-- **DI-B40** † — Cessionnaire : facultatif tant que `etat` ∈ {proposé, refusé, expiré, annulé} ; obligatoire et vérifié dès `accepté`. Un transfert `proposé` à un bénéficiaire sans compte désigne sa `DESIGNATION_GARDE` (`DESTINER_TRANSFERT`). L'effet de `accepté` est atomique ; un transfert accepté n'est pas réversible unilatéralement.
-- **DI-B41** † — `accepté` exige que l'empreinte des engagements actifs à l'instant de l'acceptation soit égale à `empreinte_engagements` ; sinon l'acceptation est rejetée et une nouvelle présentation est produite (nouvelle version).
-- **DI-B42** † — Après `accepté`, le cédant ne conserve aucun rôle ni règle d'accès sur l'espace du seul fait du transfert ; ses `CREDIT` et ses `ACTIVITE` restent attribués (RG-B03). Le nouveau propriétaire ne peut ni s'attribuer ni réécrire les recherches antérieures.
-
-| Attribut | Définition | Type | Obl. | Domaine / format | Contraintes · interdits | Exemple | P·V·C |
-|---|---|---|---|---|---|---|---|
-| etat † (V1.2) | Étape du transfert | `CODE` | 1 | {proposé, accepté, refusé, expiré, annulé} | DI-B40, DI-B41 | `proposé` | S·V·O |
-| engagements_presentes † (V1.2) | État figé des partages actifs présentés au bénéficiaire | `ETAT_FIGE` | 1 | Liste des sélections, règles et rattachements actifs, avec leurs versions | Recalculé à chaque nouvelle présentation | `{…}` | Y·V·R |
-| empreinte_engagements † (V1.2) | Empreinte de `engagements_presentes` | `EMPREINTE` | 1 | SHA-256 | DI-B41 | `9f2c…` | Y·V·O |
-| date_expiration † (V1.2) | Fin de validité de la proposition | `HORODATAGE` | 1 | UTC ms | Passé ce délai : `expiré` | `2040-02-01T00:00Z` | Y·V·O |
-| date | Date d'effet | `HORODATAGE` | C | UTC ms | Obligatoire dès `accepté` (V1.2 : auparavant `1`) | `2040-01-01T00:00Z` | S·V·O |
-| perimetre | Ce qui est transféré | `TEXTE_LONG` | 1 | — | — | « gouvernance du projet » | S·V·O |
-| exclusions | Ce qui est exclu | `TEXTE_LONG` | 0..1 | — | — | « Journal personnel du fondateur » | S·V·O |
-| conditions | Conditions | `TEXTE_LONG` | 0..1 | — | — | — | S·V·O |
-| autorisation | Fondement de l'autorisation | `TEXTE_COURT` | 1 | — | — | « décision du bureau du 12/12/2039 » | S·V·O |
+Fiche réalisée par `autorisation_transfert`, `_transfert_objet`, `_transfert_engagement`, `_admission_differee` et `_consentement_reintegration` du report § 3. États exacts du contrat § 5.6, voies § 10.5, présentation/inclusion/gel § 10.6, acceptation § 10.7 et verrou § 10.8. DI-B26 conserve les obligations attachées au contenu ; DI-B40/B41/B42 sont remplacées par ces clauses : aucune exigence d'égalité intégrale interdisant une réduction d'engagement, ni suppression des HP tierces conservées par CT-28.
 
 ## 4.20 DESIGNATION_GARDE ✓
 
@@ -3510,7 +3423,7 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-02 | Manifestes de conteneurs et jalons de version | DD-01 |
 | OB-03 | Calcul du **graphe accessible** par contexte avant toute recherche, traversée, agrégation, comptage, calcul, export, notification et réponse d'API | P20, DI-B12, DI-O12, DI-Q05 |
 | OB-04 | Réponses indistinguables entre « absent » et « caché » lorsque l'existence est protégée (codes d'erreur, temps de réponse, compteurs, pagination) | TI-11, test 20 |
-| OB-05 | Priorité des interdictions sur les autorisations | DD-18 |
+| OB-05 | Priorités du contrat gelé § 14 : non-levables avant dérogation ; dérogation admissible avant protections internes ; aucune administration ne franchit les protections | DD-18, contrat § 14 |
 | OB-06 | Monotonie de visibilité des liens | TI-10, DD-09 |
 | OB-07 | Seuil de petit effectif pour les agrégats diffusés (valeur à fixer au MPD) | DI-B18, test 9 |
 | OB-08 | Détection des cycles de raisonnement et exclusion du décompte des justifications indépendantes | DI-A17, DI-A29 |
@@ -3529,11 +3442,11 @@ Ce que le modèle logique et le modèle physique doivent rendre **exécutable** 
 | OB-21 † | Réception différée : idempotence par `(acteur, operation_origine)`, réévaluation des droits à l'intégration, conversion seulement déterministe, conflits sans écrasement (DI-B31 à B33) | TECH-003, TECH-005, AUDIT-TECH-003 (9/10/2026) |
 | OB-22 † | Aucune règle de lecture au profit d'un rôle administratif ; habilitation exceptionnelle nominative, bornée, fondée et journalisée à chaque usage (DI-B29, DI-B30) | REV-02-A, REC-X11, TECH-027 (9/10/2026) |
 | OB-23 † (V1.2) | Accès par sélection : intersection, **à chaque évaluation**, du manifeste de la version active, des règles actives sur la sélection, des droits courants de l'auteur de la règle et des protections propres à chaque objet ; appliquée aussi aux index, caches, compteurs, exports et répliques ; aucune relation hors manifeste exposée, ni son existence, ni leur nombre | DD-21, DI-B35, DI-L16, RG-L08, RG-L11, P24 |
-| OB-24 † (V1.2) | Explication des accès : reconstituer pour un accès donné la chaîne de fondements (règle, groupe, admission, rattachement, délégation, sélection), présentée seulement aux administrateurs de l'objet et à l'intéressé pour ses propres accès | DD-22, CDCF § 122.2 |
+| OB-24 † | Explication des accès selon contrat §§ 10.3 et 15 : filtrée, jamais pour cible à existence protégée ni objet personnel d’autrui ; aucune administration n’ouvre une explication globale | DD-28, contrat § 15 |
 | OB-25 † (V1.2) | Imputation des consommations : chaque consommation est attribuée à l'espace qui conserve les objets, puis imputée au plus à **une** prise en charge active ; ordre d'imputation, plafonds et limitation des seules nouvelles consommations à définir au MLD | DI-B38, DI-B39, RG-B17, RG-B18 |
 | OB-26 † (V1.2) | Recherches et indicateurs transversaux de programme : calculés sur le graphe accessible de chaque projet, dédoublonnés par entité ; profil de référence : 50 sous-projets, 500 contributeurs, un million d'objets | DI-O15, DI-O16, CDCF § 129.2 |
 | OB-27 † (V1.2) | Diffusion : journal technique des envois, désabonnement effectif avant tout envoi ultérieur, respect des règles sur les communications électroniques ; aucun envoi sans `DIFFUSION` évaluée | DI-P15 à P17, DI-Q07 |
-| OB-28 † (V1.2) | Invitation et transfert : lien privé à usage unique, expirant et révocable ; détenir le lien ne suffit pas, le bénéficiaire est vérifié ; acceptation atomique contre l'empreinte des engagements présentés | DD-26, DI-B40, DI-B41, AV-11 |
+| OB-28 † | Invitation/transfert : destinataire vérifié ; présentation, empreinte et inclusion des engagements selon contrat § 10.6 ; acceptation atomique et verrou de réintégration | DD-26, contrat § 10 |
 | OB-29 † (V1.3) | Fichiers : identité et déduplication par espace ; mutualisation physique éventuelle **non observable** d'un espace à l'autre (interface, API, temps de réponse exploitables, quotas) ; effacement du binaire à la dernière référence légitime ; une purge légale n'est jamais empêchée par la mutualisation. Le MPD démontre la compatibilité entre déduplication, isolation, chiffrement et effacement | DI-C13, DI-C22, ECD-07 |
 | OB-30 † (V1.3) | Vue « mes contributions » d'un acteur ayant quitté un espace : seulement les informations d'attribution légitimement conservées (rôle, date, type d'acte, crédit) ; jamais le contenu ; ni titre, référence ou métadonnée dont la divulgation révélerait un élément protégé ou dont l'existence est protégée pour lui. La qualité d'auteur ne confère aucun droit de consultation permanent sur l'espace quitté | RG-B08, DI-B09, ECD-15 |
 | OB-31 † (V1.3) | Réutilisations d'une entité du Core : calculées sur le graphe accessible du lecteur, en ne parcourant que les rapprochements et références dont l'espace et le lien lui sont visibles ; le Core ne connaît que les réutilisations publiques (ou visibles du lecteur) | OB-03, ECD-33, CDC technique REC-TR07 |
@@ -3779,7 +3692,7 @@ Les écarts ECD-13 (traçabilité dictionnaire → MLD) et ECD-09, 16, 17, 18 (o
 
 ## L.4 Versionnement
 
-- Version : dictionnaire **V1.3 candidat** ; la V1.2 gelée reste la référence jusqu'à la validation de la V1.3.
+- Version initiale de DC-DICT-02 : V1.3 candidate le 10/10/2026 ; cette étape historique est remplacée par la validation documentaire du 12/10/2026, § L.10.
 - Conformément à la séquence décidée, la V1.3 doit être validée comme référence normative **avant** le gel du MLD.
 - Écarts : annexe C.7. Obligations : annexe D (OB-09, OB-29 à OB-32). Validation externe : EXT-04.
 
@@ -3787,7 +3700,7 @@ Les écarts ECD-13 (traçabilité dictionnaire → MLD) et ECD-09, 16, 17, 18 (o
 
 L'audit contradictoire du MLD V1.1 (`docs/AUDIT-MLD/`) a relevé onze constats qui portent aussi sur le dictionnaire, dont deux défauts introduits par la V1.3 (AC-17 sur DI-C13 ; AC-29). Ils sont corrigés selon les arbitrages D1 à D9 du porteur (annexe C.7, second tableau).
 
-**Statut :** la V1.3 reste **candidate**. Sa validation suppose le contre-audit ciblé décidé par le porteur.
+**Statut à la rédaction du 10/10/2026 :** V1.3 candidate, contre-audit requis. Le recontrôle a été effectué ; état actuel au § L.10.
 
 ## L.6 Report des structures MLD hors contrôle d'accès (V1.1-d et V1.1-e, NC-11)
 
@@ -3802,3 +3715,53 @@ Les structures suivantes, créées dans le MLD pour réaliser des règles du dic
 | RECHERCHE_EFFECTUEE | `nature_recherche` {nominative, thématique, documentaire, autre} | DI-K11 |
 
 Les structures liées au contrôle d'accès (règle de titulaire, acteur de campagne, bénéficiaires et gardiens d'embargo, fondements de délégation) seront définies avec la refonte DD-28, selon le [contrat d'autorisation](GENIIUS_CONTRAT_AUTORISATION_V1.md).
+
+
+## L.7 Report candidat des autorisations V1.6 (12/10/2026)
+
+DD-28, DD-18, DD-22 et la fiche 4.9 sont remplacées. La liste complète des concepts, attributs, structures et substitutions DI/CP est le [report relationnel V1.6](AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md). Les références résiduelles aux anciens attributs dans les fiches historiques sont remplacées selon la correspondance de catégories du report ; elles ne peuvent autoriser un accès. Clôture et gel restent soumis aux contrôles et décisions consignés dans le dossier de clôture.
+
+
+## L.8 Instruction DC-DICT-03 : validation documentaire V1.3 (12/10/2026)
+
+**Statut : candidat corrigé**, sans modification du contrat V1.6 gelé ni du MCD V1.2 gelé. Le [catalogue relationnel explicite](GENIIUS_MLD_AUTORISATIONS_V1_6.md) réalise les concepts d’autorisation et contient leurs types, cardinalités de référence, états, actions, fondements d’admissions, actes/approbations, garde/succession, finalités et clichés de transfert. Il remplace le tableau sommaire du report comme définition de colonnes, clés et histories. Les réserves du contrat demeurent.
+
+Les nouvelles structures sont marquées † et recensées dans ce catalogue, partie intégrante de la traduction logique du dictionnaire ; aucune nouvelle règle scientifique ne découle de leur seule introduction. Concordance identité : un compte vérifié référence une seule personne, une personne peut avoir plusieurs comptes/acteurs ; l’identité de sécurité ne se déduit pas d’un rapprochement historique. Activité neutralisée : tous champs et associations résolutifs peuvent être neutralisés dans la transaction DD-27 ; périodes et dates incertaines refusent les bornes certaines inversées ; le temps d’une situation est porté exclusivement par ses groupes début/fin.
+
+La recette documentaire porte sur toutes les 304 DI de la matrice, dont les 60 CP-13 désormais énoncées. Les preuves structurelles (FK, couverture, empreintes) et les revues sémantiques sont distinctes de tests SQL de production. La validation ou le gel de la V1.3 exigent la décision finale du porteur sur le dossier de clôture, après recontrôle indépendant.
+
+**Parution inter-espace † :** PARAITRE_DANS référence un acte PARUTION_ACCEPTATION historisé (publication, série, administrateur de l’espace de série, décision, date). Cet acte ne donne aucun droit de contenu ni occupation de rang ; insertion seulement après acceptation, sous rangs calculés sur les publications visibles (contrat § 13.6).
+
+**Participation de campagne † (AC-30) :** INTERROGER porte un acteur identifié obligatoire pour la personne participante, avec concordance de l'identité avant participation. Une préparation d'invitation non encore identifiée n'est pas une participation ni une réponse ; les réponses restent cloisonnées selon DI-J09 et le contrat § 13.14.
+
+
+## L.9 Réénoncé des identifiants DI d’autorisation remplacés
+
+Ces identifiants conservent la traçabilité, avec une définition actuelle conforme au contrat gelé. Aucun ancien énoncé contradictoire ne reste une seconde source.
+
+**Réception hors ligne, NC-12 :** la réception initiale est un enregistrement technique privé `reception_differee`, avec identifiants déclarés sans FK de cible avant résolution. La fiche CONTRIBUTION_DIFFEREE décrit la contribution métier résolue, conservée dans l'espace personnel de l'auteur et liée à la réception. Les FK CIBLER_ESPACE/version de base ne sont posées qu'après résolution autorisée ; la conservation du delta d'un espace inexistant ou d'un commentateur extérieur ne dépend d'aucune appartenance scientifique. L'intégration reste une évaluation distincte au temps serveur (contrat § 13.8).
+
+- **DI-B10** † (DC-DICT-03) — La portée et le bénéficiaire sont de types exclusifs et leurs FK correspondent au genre ; aucune référence libre. Catalogue : autorisation_perimetre, autorisation_beneficiaire ; contrat §§ 1–2.
+- **DI-B11** † (DC-DICT-03) — Les restrictions non levables précèdent toute dérogation ; une dérogation conforme peut franchir seulement les protections internes dans l’ordre exact du § 14. DD-18 remplace la priorité absolue historique.
+- **DI-B12** † (DC-DICT-03) — Une protection d’existence frappant une personne retire la cible avant chaque observation, sauf la dérogation conforme et le signalement minimal P-3 ; contexte et toutes surfaces du § 15.
+- **DI-B13** † (DC-DICT-03) — Une habilitation ne rend jamais visible un lien dont une extrémité n’est pas accessible ; filtrage des références et relations avant comptage et rendu (TI-10).
+- **DI-B14** † (DC-DICT-03) — Contribuer au Core exige le droit effectif correspondant et une évaluation de diffusabilité favorable ; ni la propriété administrative ni une visibilité publique ne suffisent. Contrat § 7.1 et § 13.1.
+- **DI-B19** † (DC-DICT-03) — Une protection interne possède le type, les cibles, dates et gardiens du § 11 ; une condition libre ne peut créer un droit ni lever une protection. Les restrictions légales relèvent de leur autorité compétente.
+- **DI-B20** † (DC-DICT-03) — Les protections opposables survivent au départ de leur auteur et suivent les copies selon § 13.11 ; export/restauration/transfert ne les annulent pas implicitement.
+- **DI-B21** † (DC-DICT-03) — Bénéficiaires et destinataires sont évalués par personne ; ensemble bénéficiaire exige agrément nominatif. La garde exige identité et droit sur cible/ascendant ; aucun administrateur ne se rend bénéficiaire ni gardien par son rôle. § 11.
+- **DI-B26** † (DC-DICT-03) — Le transfert ne réécrit pas les crédits, consentements, protections ni filiations du contenu ; il applique les procédures explicites §§ 10.4–10.8, pas une transmission générale de lecture.
+- **DI-B29** † (DC-DICT-03) — Administrer, propriété et rôles plateforme ne confèrent aucun droit de contenu ni partage. Seules métadonnées de gouvernance filtrées du § 10.3 ; A2 et § 15.
+- **DI-B30** † (DC-DICT-03) — Dérogation nominative et bornée : cibles/opérations/finalité versionnée, dates, approbations indépendantes et accords de gardiens actuellement valides ; audit sans contenu. § 12.
+- **DI-B34** † (DC-DICT-03) — Une habilitation sur sélection lit uniquement son manifeste actif, dans un régime unique et une portée légitime, jamais l’arbre source ni une branche exclue. § 13.3.
+- **DI-B35** † (DC-DICT-03) — HI bornée par autorité de l’espace et périmètre du signataire à l’acte ; HP bornée à chaque évaluation par fondateurs enracinés. Partager exige action effective et repartager ; voir ne vaut pas réutiliser. A1, §§ 7–8.
+- **DI-B36** † (DC-DICT-03) — Tout ensemble ouvert, groupe ou rôle, exige admission nominative. Notification n’ouvre pas les cibles exigeantes ; admission préalable sinon. Autorité administrative seule ne peut admettre. § 9.
+- **DI-B37** † (DC-DICT-03) — Sortie d’ensemble clôt ses admissions ; un rattachement ne donne aucun droit, sa fin clôt définitivement les habilitations conditionnées et un nouveau rattachement ne les ressuscite pas. A4, § 13.13.
+- **DI-B40** † (DC-DICT-03) — Transfert et états suivent §§ 5.6/10 ; cessionnaire identifié avant présentation, acceptation atomique de propriété/racine et voies d’objets sans lecture implicite.
+- **DI-B41** † (DC-DICT-03) — Présentation figée et empreinte ; acceptation exige inclusion actuelle des engagements dans les présentés, réductions permises, extensions refusées. Snapshot associatif complet et vue filtrée séparés. § 10.6.
+- **DI-B42** † (DC-DICT-03) — Après transfert, cédant et tous ses comptes perdent les droits de contenu concernés ; HP de titulaires tiers sur objets personnels conservées par CT-28. Toute réintégration exige consentement par acte, jamais son propre consentement. § 10.7–10.8.
+- **DI-B44** † (DC-DICT-03) — Identité de l’auteur/signataire, des fondateurs et auteurs d’actes conservée (A7). HI ne dépend pas de la survie du signataire ; une admission HP conserve ses propres fondements, sans ajouter implicitement un fondateur global. §§ 7–9.
+
+
+## L.10 Validation documentaire réalisée le 12/10/2026
+
+Le [dossier](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md) et le [registre par constat](AUDIT-MLD/REGISTRE_CLOTURE_CONSTATS_V1_3.md) consignent deux avis indépendants favorables, les scénarios/variantes, les 304 définitions et correspondances et les 60 obligations explicitées. La V1.3 est la référence documentaire amont du MLD V1.1-g stabilisé. Réserves de recette MPD, paramètres et écarts amont maintenues ; aucun gel formel ni SQL de production déclaré.

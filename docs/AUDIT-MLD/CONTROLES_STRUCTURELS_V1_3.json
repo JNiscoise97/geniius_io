@@ -1,0 +1,5289 @@
+{
+  "nature": "contrôles documentaires, pas exécution SQL ni preuve sémantique exhaustive",
+  "sources": {
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md": "63d3a91ee6e11c18aad66cfa1a3460492007ef3ee6acd15a3a98e7f890b6da8e",
+    "docs/AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md": "8797a30ce7b5c880887985b1f32bfa388eb33748d0a52ca50ae34c88fcb2d8ca"
+  },
+  "inventaire_tables": {
+    "objet": {
+      "ligne": 354,
+      "nature": "V",
+      "colonnes": [
+        "id",
+        "type_objet",
+        "espace_id",
+        "version_courante",
+        "date_creation",
+        "etat_cycle_vie",
+        "etat_examen",
+        "statut_validation",
+        "visibilite",
+        "decouvrabilite",
+        "licence_code",
+        "libelle_technique",
+        "est_purge",
+        "date_purge"
+      ]
+    },
+    "version_objet": {
+      "ligne": 387,
+      "nature": "N",
+      "colonnes": [
+        "objet_id",
+        "numero",
+        "date_debut_validite",
+        "date_fin_validite",
+        "nature_changement",
+        "motif",
+        "activite_id",
+        "empreinte_etat",
+        "resolution_effacee",
+        "statut_contenu"
+      ]
+    },
+    "version_composant": {
+      "ligne": 408,
+      "nature": "N",
+      "colonnes": [
+        "conteneur_id",
+        "conteneur_numero",
+        "composant_id",
+        "composant_numero"
+      ]
+    },
+    "activite": {
+      "ligne": 417,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "type_activite",
+        "date_debut",
+        "date_fin",
+        "mode",
+        "declenchement",
+        "moteur",
+        "version_moteur",
+        "parametres_decisifs",
+        "ia_generative",
+        "intervention_humaine",
+        "mode_lecture",
+        "fournisseur",
+        "perimetre_donnees_transmises",
+        "acteur_id",
+        "role_acteur",
+        "resolution_effacee"
+      ]
+    },
+    "activite_perimetre_transmis": {
+      "ligne": 445,
+      "nature": "N",
+      "colonnes": [
+        "activite_id",
+        "attribut"
+      ]
+    },
+    "activite_referentiel": {
+      "ligne": 451,
+      "nature": "N",
+      "colonnes": [
+        "activite_id",
+        "referentiel_id",
+        "referentiel_numero"
+      ]
+    },
+    "activite_entree": {
+      "ligne": 459,
+      "nature": "N",
+      "colonnes": [
+        "activite_id",
+        "objet_id",
+        "numero",
+        "role_entree"
+      ]
+    },
+    "activite_methode": {
+      "ligne": 467,
+      "nature": "N",
+      "colonnes": [
+        "activite_id",
+        "methode_id",
+        "methode_numero"
+      ]
+    },
+    "lien": {
+      "ligne": 479,
+      "nature": "L",
+      "colonnes": [
+        "id",
+        "type_lien",
+        "espace_id",
+        "visibilite",
+        "etat_lien",
+        "version_courante",
+        "date_creation",
+        "est_purge"
+      ]
+    },
+    "lien_version": {
+      "ligne": 491,
+      "nature": "N",
+      "colonnes": [
+        "lien_id",
+        "numero",
+        "date_debut",
+        "date_fin",
+        "activite_id"
+      ]
+    },
+    "dependance": {
+      "ligne": 500,
+      "nature": "L",
+      "colonnes": [
+        "aval_id",
+        "amont_id",
+        "amont_type",
+        "amont_numero",
+        "categorie",
+        "type_dependance",
+        "sens",
+        "etat_impact",
+        "date_signalement",
+        "cycle_detecte"
+      ]
+    },
+    "filiation": {
+      "ligne": 525,
+      "nature": "L",
+      "colonnes": [
+        "objet_derive_id",
+        "origine_id",
+        "origine_numero",
+        "type_filiation",
+        "etat_divergence",
+        "date_constat",
+        "operation_flux_id",
+        "import_id"
+      ]
+    },
+    "reference_inter_espace": {
+      "ligne": 545,
+      "nature": "L",
+      "colonnes": [
+        "espace_referent_id",
+        "objet_cible_id",
+        "date",
+        "motif",
+        "etat_courant"
+      ]
+    },
+    "etat_reference_externe": {
+      "ligne": 556,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "reference_id",
+        "etat",
+        "date",
+        "motif",
+        "redirection_objet_id"
+      ]
+    },
+    "base_justificative": {
+      "ligne": 572,
+      "nature": "V",
+      "colonnes": [
+        "objet_justifie_id",
+        "portee",
+        "date",
+        "statut",
+        "espace_id",
+        "auteur_acteur_id"
+      ]
+    },
+    "base_justificative_preuve": {
+      "ligne": 584,
+      "nature": "A:base_justificative",
+      "colonnes": [
+        "base_justificative_id",
+        "dependance_id"
+      ]
+    },
+    "acquisition_information": {
+      "ligne": 591,
+      "nature": "V",
+      "colonnes": [
+        "mode",
+        "date",
+        "fournisseur",
+        "transformation",
+        "import_id",
+        "fournisseur_acteur_id"
+      ]
+    },
+    "acquisition_objet": {
+      "ligne": 604,
+      "nature": "N",
+      "colonnes": [
+        "acquisition_id",
+        "objet_id"
+      ]
+    },
+    "acquisition_documentaire": {
+      "ligne": 609,
+      "nature": "V",
+      "colonnes": [
+        "mode",
+        "mode_precision",
+        "detenteur_fournisseur",
+        "conditions"
+      ]
+    },
+    "acquisition_documentaire_objet": {
+      "ligne": 620,
+      "nature": "N",
+      "colonnes": [
+        "acquisition_id",
+        "objet_id",
+        "objet_type",
+        "fichier_id"
+      ]
+    },
+    "reference_persistante": {
+      "ligne": 628,
+      "nature": "V",
+      "colonnes": [
+        "identifiant",
+        "ark",
+        "mode",
+        "fragment",
+        "cible_id",
+        "cible_numero",
+        "zone_id"
+      ]
+    },
+    "identifiant_externe": {
+      "ligne": 640,
+      "nature": "A:objet",
+      "colonnes": [
+        "id",
+        "objet_id",
+        "valeur",
+        "type",
+        "statut",
+        "date_constat"
+      ]
+    },
+    "espace": {
+      "ligne": 659,
+      "nature": "V",
+      "colonnes": [
+        "type_espace",
+        "nom",
+        "regime_gouvernance",
+        "visibilite_max",
+        "replication_hors_ligne",
+        "circuit_editorial"
+      ]
+    },
+    "communaute": {
+      "ligne": 676,
+      "nature": "V",
+      "colonnes": [
+        "objet_focal",
+        "charte"
+      ]
+    },
+    "espace_organisation": {
+      "ligne": 681,
+      "nature": "V",
+      "colonnes": [
+        "forme_juridique"
+      ]
+    },
+    "compte": {
+      "ligne": 692,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "identite_civile",
+        "email",
+        "niveau_verification_identite",
+        "date_inscription",
+        "etat_compte",
+        "espace_personnel_id"
+      ]
+    },
+    "compte_categorie_sollicitation": {
+      "ligne": 705,
+      "nature": "T",
+      "colonnes": [
+        "compte_id",
+        "categorie"
+      ]
+    },
+    "acteur_geniius": {
+      "ligne": 711,
+      "nature": "V",
+      "colonnes": [
+        "nature_acteur",
+        "nom_attribution",
+        "mode_affichage_public",
+        "pseudonyme",
+        "statut"
+      ]
+    },
+    "pseudonyme_reserve": {
+      "ligne": 721,
+      "nature": "T",
+      "colonnes": [
+        "empreinte_pseudonyme",
+        "date_reservation"
+      ]
+    },
+    "lien_compte_acteur": {
+      "ligne": 726,
+      "nature": "T",
+      "colonnes": [
+        "compte_id",
+        "acteur_id",
+        "date_debut",
+        "date_fin",
+        "niveau_verification"
+      ]
+    },
+    "lien_compte_personne": {
+      "ligne": 735,
+      "nature": "V",
+      "colonnes": [
+        "compte_id",
+        "personne_id",
+        "methode",
+        "date",
+        "statut",
+        "niveau"
+      ]
+    },
+    "groupe": {
+      "ligne": 745,
+      "nature": "V",
+      "colonnes": [
+        "nom",
+        "type_groupe"
+      ]
+    },
+    "membre_groupe": {
+      "ligne": 750,
+      "nature": "A:groupe",
+      "colonnes": [
+        "groupe_id",
+        "acteur_id",
+        "date_debut",
+        "date_fin"
+      ]
+    },
+    "appartenance_espace": {
+      "ligne": 758,
+      "nature": "A:espace",
+      "colonnes": [
+        "espace_id",
+        "acteur_id",
+        "role_espace",
+        "nature_habilitation",
+        "date_debut",
+        "date_fin"
+      ]
+    },
+    "attribution_role": {
+      "ligne": 774,
+      "nature": "A:espace",
+      "colonnes": [
+        "espace_id",
+        "acteur_id",
+        "role_gouvernance",
+        "procedure",
+        "date",
+        "domaine_id"
+      ]
+    },
+    "decision_applicabilite_droit": {
+      "ligne": 797,
+      "nature": "V",
+      "colonnes": [
+        "restriction_id",
+        "restriction_type",
+        "restriction_licence",
+        "derive_id",
+        "decision",
+        "fondement",
+        "date"
+      ]
+    },
+    "evaluation_diffusabilite": {
+      "ligne": 812,
+      "nature": "V",
+      "colonnes": [
+        "objet_evalue_id",
+        "objet_evalue_numero",
+        "contexte_id",
+        "decision",
+        "motif",
+        "risque_inference",
+        "date",
+        "effectif"
+      ]
+    },
+    "licence": {
+      "ligne": 831,
+      "nature": "T",
+      "colonnes": [
+        "code",
+        "libelle",
+        "redistribution",
+        "modification",
+        "usage_commercial",
+        "attribution_requise"
+      ]
+    },
+    "classification": {
+      "ligne": 842,
+      "nature": "T",
+      "colonnes": [
+        "code",
+        "libelle"
+      ]
+    },
+    "objet_classification": {
+      "ligne": 846,
+      "nature": "A:objet",
+      "colonnes": [
+        "objet_id",
+        "classification_code",
+        "origine"
+      ]
+    },
+    "masquage": {
+      "ligne": 853,
+      "nature": "V",
+      "colonnes": [
+        "objet_original_id",
+        "objet_public_id",
+        "type",
+        "perimetre",
+        "date"
+      ]
+    },
+    "consentement": {
+      "ligne": 869,
+      "nature": "V",
+      "colonnes": [
+        "personne_id",
+        "objet_concerne_id",
+        "espace_concerne_id",
+        "portee",
+        "decision",
+        "texte_version",
+        "horodatage",
+        "mode_recueil"
+      ]
+    },
+    "volonte_numerique": {
+      "ligne": 884,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "action",
+        "perimetre",
+        "beneficiaire",
+        "condition_declenchement"
+      ]
+    },
+    "designation_garde": {
+      "ligne": 896,
+      "nature": "V",
+      "colonnes": [
+        "objet_cible_id",
+        "designe_acteur_id",
+        "designe_personne_id",
+        "role",
+        "condition_effet",
+        "condition_precision",
+        "statut"
+      ]
+    },
+    "lien_interet": {
+      "ligne": 910,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "objet_concerne_id",
+        "type",
+        "type_precision",
+        "date_declaration"
+      ]
+    },
+    "financement": {
+      "ligne": 921,
+      "nature": "V",
+      "colonnes": [
+        "projet_id",
+        "financeur_organisation_id",
+        "type",
+        "obligations"
+      ]
+    },
+    "abonnement": {
+      "ligne": 932,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "titulaire_compte_id",
+        "titulaire_espace_id",
+        "offre",
+        "quotas",
+        "credits_calcul",
+        "date_debut",
+        "date_fin"
+      ]
+    },
+    "prise_en_charge": {
+      "ligne": 944,
+      "nature": "V",
+      "colonnes": [
+        "financeur_espace_id",
+        "beneficiaire_espace_id",
+        "etat",
+        "motif_fin"
+      ]
+    },
+    "prise_en_charge_ressource": {
+      "ligne": 965,
+      "nature": "A:prise_en_charge",
+      "colonnes": [
+        "prise_en_charge_id",
+        "ressource",
+        "precision"
+      ]
+    },
+    "prise_en_charge_acceptation": {
+      "ligne": 973,
+      "nature": "N",
+      "colonnes": [
+        "prise_en_charge_id",
+        "prise_en_charge_numero",
+        "partie",
+        "acteur_id",
+        "decision",
+        "date"
+      ]
+    },
+    "blocage": {
+      "ligne": 984,
+      "nature": "T",
+      "colonnes": [
+        "compte_id",
+        "compte_bloque_id",
+        "date"
+      ]
+    },
+    "reception_differee": {
+      "ligne": 999,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "acteur_id",
+        "espace_personnel_id",
+        "objet_base_declare",
+        "numero_base_declare",
+        "referentiel_declare",
+        "date_locale",
+        "date_reception",
+        "delta",
+        "etat"
+      ]
+    },
+    "contribution_differee": {
+      "ligne": 1017,
+      "nature": "V",
+      "colonnes": [
+        "reception_id",
+        "acteur_id",
+        "espace_cible_id",
+        "operation_origine_id",
+        "appareil_ref",
+        "date_operation_locale",
+        "nature_operation",
+        "base_objet_id",
+        "base_numero",
+        "type_objet_vise",
+        "charge",
+        "version_logiciel",
+        "version_schema",
+        "referentiel_id",
+        "referentiel_numero",
+        "etat_reception",
+        "motif",
+        "objet_resultant_id",
+        "conflit_edition_id",
+        "date_traitement"
+      ]
+    },
+    "document": {
+      "ligne": 1058,
+      "nature": "V",
+      "colonnes": [
+        "titre_forge",
+        "titre_original",
+        "statut_existence",
+        "accessibilite",
+        "description",
+        "etat_provenance"
+      ]
+    },
+    "document_langue": {
+      "ligne": 1071,
+      "nature": "A:document",
+      "colonnes": [
+        "document_id"
+      ]
+    },
+    "exemplaire": {
+      "ligne": 1077,
+      "nature": "V",
+      "colonnes": [
+        "document_id",
+        "description_materielle",
+        "etat_conservation",
+        "nb_pages_declare"
+      ]
+    },
+    "unite_archivistique": {
+      "ligne": 1085,
+      "nature": "V",
+      "colonnes": [
+        "niveau",
+        "intitule",
+        "description"
+      ]
+    },
+    "classement_unite": {
+      "ligne": 1094,
+      "nature": "A:unite_archivistique",
+      "colonnes": [
+        "unite_archivistique_id",
+        "parent_id",
+        "type_ordre",
+        "rang"
+      ]
+    },
+    "localisation_exemplaire": {
+      "ligne": 1105,
+      "nature": "A:exemplaire",
+      "colonnes": [
+        "exemplaire_id",
+        "unite_id",
+        "type_ordre",
+        "rang"
+      ]
+    },
+    "composition_documentaire": {
+      "ligne": 1114,
+      "nature": "A:objet",
+      "colonnes": [
+        "contenant_id",
+        "contenant_type",
+        "contenu_id",
+        "contenu_type",
+        "type_composition",
+        "rang",
+        "type_ordre",
+        "v_debut",
+        "v_fin"
+      ]
+    },
+    "identifiant_documentaire": {
+      "ligne": 1135,
+      "nature": "V",
+      "colonnes": [
+        "porteur_id",
+        "porteur_type",
+        "valeur",
+        "type",
+        "institution_emettrice"
+      ]
+    },
+    "localisation_en_ligne": {
+      "ligne": 1149,
+      "nature": "V",
+      "colonnes": [
+        "porteur_id",
+        "porteur_type",
+        "adresse",
+        "type",
+        "plateforme",
+        "date_debut",
+        "date_fin",
+        "etat_acces",
+        "date_observation"
+      ]
+    },
+    "page": {
+      "ligne": 1162,
+      "nature": "V",
+      "colonnes": [
+        "exemplaire_id",
+        "numero",
+        "folio",
+        "face",
+        "rang",
+        "etat"
+      ]
+    },
+    "reproduction": {
+      "ligne": 1176,
+      "nature": "V",
+      "colonnes": [
+        "exemplaire_source_id",
+        "reproduction_parente_id",
+        "qualite",
+        "pages_manquantes",
+        "support",
+        "produite_par_ia",
+        "original_recuperable"
+      ]
+    },
+    "fichier": {
+      "ligne": 1191,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "empreinte",
+        "cle_stockage",
+        "format",
+        "taille",
+        "emplacement_stockage",
+        "date_depot",
+        "etat_conservation",
+        "est_purge"
+      ]
+    },
+    "reproduction_fichier": {
+      "ligne": 1211,
+      "nature": "A:reproduction",
+      "colonnes": [
+        "reproduction_id",
+        "fichier_id",
+        "role"
+      ]
+    },
+    "vue": {
+      "ligne": 1219,
+      "nature": "V",
+      "colonnes": [
+        "reproduction_id",
+        "rang",
+        "type",
+        "duree",
+        "largeur_px",
+        "hauteur_px"
+      ]
+    },
+    "vue_page": {
+      "ligne": 1231,
+      "nature": "A:vue",
+      "colonnes": [
+        "vue_id",
+        "page_id"
+      ]
+    },
+    "zone": {
+      "ligne": 1237,
+      "nature": "V",
+      "colonnes": [
+        "vue_id",
+        "page_id",
+        "type_geometrie",
+        "x",
+        "y",
+        "largeur",
+        "hauteur",
+        "polygone_image",
+        "debut_ms",
+        "fin_ms",
+        "libelle"
+      ]
+    },
+    "alignement_reproduction": {
+      "ligne": 1256,
+      "nature": "A:vue",
+      "colonnes": [
+        "id",
+        "vue_source_id",
+        "vue_cible_id",
+        "transformation",
+        "methode",
+        "statut",
+        "v_debut",
+        "v_fin"
+      ]
+    },
+    "responsabilite": {
+      "ligne": 1272,
+      "nature": "L",
+      "colonnes": [
+        "objet_id",
+        "objet_type",
+        "porteur_id",
+        "porteur_type",
+        "certitude"
+      ]
+    },
+    "citation_documentaire": {
+      "ligne": 1283,
+      "nature": "V",
+      "colonnes": [
+        "document_citant_id",
+        "document_cite_id",
+        "type",
+        "certitude"
+      ]
+    },
+    "citation_documentaire_zone": {
+      "ligne": 1292,
+      "nature": "A:citation_documentaire",
+      "colonnes": [
+        "citation_documentaire_id",
+        "zone_id"
+      ]
+    },
+    "emplacement": {
+      "ligne": 1298,
+      "nature": "V",
+      "colonnes": [
+        "page_id",
+        "position",
+        "etat",
+        "type_ordre"
+      ]
+    },
+    "occupation_emplacement": {
+      "ligne": 1305,
+      "nature": "A:emplacement",
+      "colonnes": [
+        "emplacement_id",
+        "exemplaire_id",
+        "type_ordre"
+      ]
+    },
+    "prescription": {
+      "ligne": 1313,
+      "nature": "V",
+      "colonnes": [
+        "norme_id",
+        "document_attendu_id",
+        "territoire_lieu_id"
+      ]
+    },
+    "source_externe_declaree": {
+      "ligne": 1321,
+      "nature": "V",
+      "colonnes": [
+        "libelle_importe",
+        "etat",
+        "acquisition_id",
+        "document_identifie_id"
+      ]
+    },
+    "transcription": {
+      "ligne": 1335,
+      "nature": "V",
+      "colonnes": [
+        "porteur_id",
+        "porteur_type",
+        "transcription_source_id",
+        "couche",
+        "mode_lecture",
+        "statut"
+      ]
+    },
+    "segment": {
+      "ligne": 1349,
+      "nature": "V",
+      "colonnes": [
+        "transcription_id",
+        "rang",
+        "texte",
+        "type",
+        "incertitude_lecture"
+      ]
+    },
+    "segment_zone": {
+      "ligne": 1359,
+      "nature": "A:segment",
+      "colonnes": [
+        "segment_id",
+        "zone_id"
+      ]
+    },
+    "annotation": {
+      "ligne": 1365,
+      "nature": "V",
+      "colonnes": [
+        "contenu",
+        "visible_publiquement",
+        "communaute_signalante_id"
+      ]
+    },
+    "annotation_ancrage": {
+      "ligne": 1373,
+      "nature": "A:annotation",
+      "colonnes": [
+        "id",
+        "annotation_id",
+        "zone_id",
+        "segment_id"
+      ]
+    },
+    "mention": {
+      "ligne": 1383,
+      "nature": "V",
+      "colonnes": [
+        "texte_exact",
+        "nature",
+        "categorie_pressentie",
+        "statut_resolution"
+      ]
+    },
+    "mention_ancrage": {
+      "ligne": 1394,
+      "nature": "A:mention",
+      "colonnes": [
+        "id",
+        "mention_id",
+        "zone_id",
+        "segment_id"
+      ]
+    },
+    "regroupement_traces": {
+      "ligne": 1404,
+      "nature": "V",
+      "colonnes": [
+        "type",
+        "code",
+        "statut"
+      ]
+    },
+    "mention_regroupement": {
+      "ligne": 1411,
+      "nature": "A:regroupement_traces",
+      "colonnes": [
+        "regroupement_traces_id",
+        "mention_id",
+        "degre"
+      ]
+    },
+    "entite_historique": {
+      "ligne": 1441,
+      "nature": "V",
+      "colonnes": [
+        "libelle_travail",
+        "note_individualisation"
+      ]
+    },
+    "personne": {
+      "ligne": 1449,
+      "nature": "V",
+      "colonnes": [
+        "mode_individualisation",
+        "regime_protection",
+        "mineur_protege"
+      ]
+    },
+    "lieu": {
+      "ligne": 1459,
+      "nature": "V",
+      "colonnes": [
+        "existence_actuelle"
+      ]
+    },
+    "organisation": {
+      "ligne": 1464,
+      "nature": "V",
+      "colonnes": []
+    },
+    "objet_materiel": {
+      "ligne": 1465,
+      "nature": "V",
+      "colonnes": []
+    },
+    "phenomene": {
+      "ligne": 1466,
+      "nature": "V",
+      "colonnes": []
+    },
+    "fonction": {
+      "ligne": 1468,
+      "nature": "V",
+      "colonnes": [
+        "intitule_generique"
+      ]
+    },
+    "famille": {
+      "ligne": 1472,
+      "nature": "V",
+      "colonnes": [
+        "critere_definition"
+      ]
+    },
+    "collectif_historique": {
+      "ligne": 1476,
+      "nature": "V",
+      "colonnes": [
+        "composition_connue"
+      ]
+    },
+    "bien": {
+      "ligne": 1484,
+      "nature": "V",
+      "colonnes": []
+    },
+    "norme": {
+      "ligne": 1488,
+      "nature": "V",
+      "colonnes": []
+    },
+    "evenement": {
+      "ligne": 1492,
+      "nature": "V",
+      "colonnes": [
+        "id",
+        "type_objet",
+        "est_purge"
+      ]
+    },
+    "voyage": {
+      "ligne": 1499,
+      "nature": "V",
+      "colonnes": []
+    },
+    "etape_voyage": {
+      "ligne": 1502,
+      "nature": "V",
+      "colonnes": [
+        "voyage_id",
+        "lieu_id",
+        "moyen_id",
+        "rang",
+        "statut"
+      ]
+    },
+    "tradition": {
+      "ligne": 1513,
+      "nature": "V",
+      "colonnes": [
+        "origine_connue"
+      ]
+    },
+    "recit": {
+      "ligne": 1517,
+      "nature": "V",
+      "colonnes": [
+        "evenement_id",
+        "document_source_id",
+        "point_de_vue",
+        "resume"
+      ]
+    },
+    "recit_assertion": {
+      "ligne": 1525,
+      "nature": "A:recit",
+      "colonnes": [
+        "recit_id",
+        "assertion_id",
+        "rang"
+      ]
+    },
+    "proposition_identification": {
+      "ligne": 1539,
+      "nature": "V",
+      "colonnes": [
+        "mention_id",
+        "regroupement_id",
+        "entite_id",
+        "position_id",
+        "plausibilite",
+        "verdict",
+        "justification"
+      ]
+    },
+    "position": {
+      "ligne": 1552,
+      "nature": "V",
+      "colonnes": [
+        "description",
+        "rang",
+        "statut"
+      ]
+    },
+    "position_relationnelle": {
+      "ligne": 1559,
+      "nature": "V",
+      "colonnes": [
+        "nature",
+        "effectif_implique",
+        "reference_entite_id",
+        "collectif_id"
+      ]
+    },
+    "candidature": {
+      "ligne": 1569,
+      "nature": "V",
+      "colonnes": [
+        "position_id",
+        "entite_id",
+        "plausibilite",
+        "statut",
+        "motif"
+      ]
+    },
+    "rapprochement": {
+      "ligne": 1580,
+      "nature": "V",
+      "colonnes": [
+        "entite_a_id",
+        "entite_b_id",
+        "verdict",
+        "presentation_fusionnee",
+        "portee",
+        "justification"
+      ]
+    },
+    "selection_contexte": {
+      "ligne": 1593,
+      "nature": "V",
+      "colonnes": [
+        "espace_contexte_id",
+        "entite_id",
+        "assertion_id",
+        "predicat_id",
+        "usage",
+        "motif"
+      ]
+    },
+    "position_epistemique": {
+      "ligne": 1604,
+      "nature": "V",
+      "colonnes": [
+        "contexte_espace_id",
+        "contexte_publication_id",
+        "objet_vise_id",
+        "position",
+        "justification",
+        "date"
+      ]
+    },
+    "assertion": {
+      "ligne": 1623,
+      "nature": "V",
+      "colonnes": [
+        "profil",
+        "predicat_id",
+        "sujet_id",
+        "sujet_type",
+        "cible_id",
+        "cible_type",
+        "role_id",
+        "lieu_id",
+        "assertion_parente_id",
+        "rang_composante",
+        "libelle_source",
+        "niveau",
+        "nature",
+        "modalite",
+        "polarite",
+        "plausibilite",
+        "temps_forme",
+        "etat_provenance",
+        "calcul_id"
+      ]
+    },
+    "assertion_relation": {
+      "ligne": 1669,
+      "nature": "V",
+      "colonnes": [
+        "assertion_id",
+        "statut_causal"
+      ]
+    },
+    "assertion_presence": {
+      "ligne": 1677,
+      "nature": "V",
+      "colonnes": [
+        "assertion_id",
+        "type_presence"
+      ]
+    },
+    "assertion_situation": {
+      "ligne": 1681,
+      "nature": "V",
+      "colonnes": [
+        "assertion_id",
+        "continuite"
+      ]
+    },
+    "assertion_zone": {
+      "ligne": 1695,
+      "nature": "A:assertion",
+      "colonnes": [
+        "assertion_id",
+        "zone_id",
+        "rang"
+      ]
+    },
+    "assertion_mention": {
+      "ligne": 1703,
+      "nature": "A:assertion",
+      "colonnes": [
+        "assertion_id",
+        "mention_id"
+      ]
+    },
+    "assertion_reponse": {
+      "ligne": 1710,
+      "nature": "A:assertion",
+      "colonnes": [
+        "assertion_id",
+        "reponse_id"
+      ]
+    },
+    "assertion_source_externe": {
+      "ligne": 1716,
+      "nature": "A:assertion",
+      "colonnes": [
+        "assertion_id"
+      ]
+    },
+    "expression_assertion": {
+      "ligne": 1728,
+      "nature": "V",
+      "colonnes": [
+        "assertion_id",
+        "expression_source_id",
+        "texte",
+        "nature"
+      ]
+    },
+    "expression_segment": {
+      "ligne": 1738,
+      "nature": "A:expression_assertion",
+      "colonnes": [
+        "expression_assertion_id",
+        "segment_id"
+      ]
+    },
+    "interpretation": {
+      "ligne": 1745,
+      "nature": "V",
+      "colonnes": [
+        "enonce",
+        "raisonnement",
+        "certitude",
+        "questions_ouvertes",
+        "etat_provenance",
+        "titre",
+        "mode",
+        "portee",
+        "regle_construction",
+        "texte",
+        "generee_par_ia"
+      ]
+    },
+    "interpretation_appui": {
+      "ligne": 1771,
+      "nature": "A:interpretation",
+      "colonnes": [
+        "interpretation_id",
+        "objet_id",
+        "sens"
+      ]
+    },
+    "interpretation_entite": {
+      "ligne": 1779,
+      "nature": "A:interpretation",
+      "colonnes": [
+        "interpretation_id",
+        "entite_id"
+      ]
+    },
+    "interpretation_question": {
+      "ligne": 1785,
+      "nature": "A:interpretation",
+      "colonnes": [
+        "interpretation_id",
+        "question_id"
+      ]
+    },
+    "lacune": {
+      "ligne": 1791,
+      "nature": "V",
+      "colonnes": [
+        "objet_concerne_id",
+        "type_vide",
+        "perimetre"
+      ]
+    },
+    "lacune_recherche": {
+      "ligne": 1800,
+      "nature": "A:lacune",
+      "colonnes": [
+        "lacune_id"
+      ]
+    },
+    "erreur_propagee": {
+      "ligne": 1806,
+      "nature": "V",
+      "colonnes": [
+        "origine_objet_id",
+        "description",
+        "etat"
+      ]
+    },
+    "erreur_reprise": {
+      "ligne": 1812,
+      "nature": "A:erreur_propagee",
+      "colonnes": [
+        "erreur_propagee_id",
+        "objet_id",
+        "transformation"
+      ]
+    },
+    "transmission": {
+      "ligne": 1819,
+      "nature": "V",
+      "colonnes": [
+        "contenu_objet_id",
+        "emetteur_id",
+        "recepteur_id",
+        "niveau",
+        "mode"
+      ]
+    },
+    "acte_evaluation": {
+      "ligne": 1835,
+      "nature": "F",
+      "colonnes": [
+        "acteur_id",
+        "objet_evalue_id",
+        "objet_evalue_numero",
+        "type",
+        "date",
+        "justification",
+        "processus_applicable",
+        "independance",
+        "role_au_moment"
+      ]
+    },
+    "argument": {
+      "ligne": 1850,
+      "nature": "V",
+      "colonnes": [
+        "objet_vise_id",
+        "sens",
+        "nature",
+        "enonce"
+      ]
+    },
+    "argument_preuve": {
+      "ligne": 1858,
+      "nature": "A:argument",
+      "colonnes": [
+        "argument_id",
+        "objet_id",
+        "objet_type"
+      ]
+    },
+    "argument_acte": {
+      "ligne": 1866,
+      "nature": "N",
+      "colonnes": [
+        "argument_id",
+        "acte_evaluation_id"
+      ]
+    },
+    "proposition_modification": {
+      "ligne": 1871,
+      "nature": "V",
+      "colonnes": [
+        "proposant_acteur_id",
+        "decideur_acteur_id",
+        "cible_id",
+        "cible_numero",
+        "contenu_propose",
+        "justification",
+        "statut"
+      ]
+    },
+    "conflit_edition": {
+      "ligne": 1883,
+      "nature": "V",
+      "colonnes": [
+        "base_id",
+        "base_numero",
+        "etat"
+      ]
+    },
+    "conflit_proposition": {
+      "ligne": 1891,
+      "nature": "N",
+      "colonnes": [
+        "conflit_edition_id",
+        "proposition_modification_id"
+      ]
+    },
+    "discussion": {
+      "ligne": 1897,
+      "nature": "V",
+      "colonnes": [
+        "objet_rattache_id",
+        "titre",
+        "statut"
+      ]
+    },
+    "message": {
+      "ligne": 1903,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "discussion_id",
+        "auteur_acteur_id",
+        "date",
+        "texte",
+        "masque",
+        "est_purge"
+      ]
+    },
+    "acte_moderation": {
+      "ligne": 1912,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "moderateur_acteur_id",
+        "cible_objet_id",
+        "cible_acteur_id",
+        "cible_message_id",
+        "type",
+        "motif",
+        "date",
+        "recours"
+      ]
+    },
+    "credit": {
+      "ligne": 1925,
+      "nature": "L",
+      "colonnes": [
+        "objet_id",
+        "acteur_id",
+        "personne_id",
+        "role_credit"
+      ]
+    },
+    "domaine_expertise": {
+      "ligne": 1934,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "territoire"
+      ]
+    },
+    "badge": {
+      "ligne": 1942,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "domaine_id",
+        "famille",
+        "libelle",
+        "critere_ou_procedure",
+        "date_attribution",
+        "date_revocation"
+      ]
+    },
+    "declaration_profil": {
+      "ligne": 1952,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "domaine_id",
+        "type"
+      ]
+    },
+    "demande": {
+      "ligne": 1960,
+      "nature": "V",
+      "colonnes": [
+        "emetteur_acteur_id",
+        "destinataire_acteur_id",
+        "objet_concerne_id",
+        "categorie",
+        "message",
+        "identite_revelee",
+        "statut"
+      ]
+    },
+    "reconstruction": {
+      "ligne": 1979,
+      "nature": "V",
+      "colonnes": [
+        "document_id",
+        "titre",
+        "methode",
+        "statut"
+      ]
+    },
+    "reconstruction_concurrence": {
+      "ligne": 1986,
+      "nature": "N",
+      "colonnes": [
+        "reconstruction_a_id",
+        "reconstruction_b_id"
+      ]
+    },
+    "element_reconstruit": {
+      "ligne": 1993,
+      "nature": "V",
+      "colonnes": [
+        "reconstruction_id",
+        "parent_element_id",
+        "niveau",
+        "numero",
+        "statut_contenu"
+      ]
+    },
+    "element_appui": {
+      "ligne": 2005,
+      "nature": "A:element_reconstruit",
+      "colonnes": [
+        "element_reconstruit_id",
+        "mention_id",
+        "apport"
+      ]
+    },
+    "anomalie_documentaire": {
+      "ligne": 2014,
+      "nature": "V",
+      "colonnes": [
+        "porteur_id",
+        "porteur_type",
+        "type",
+        "description",
+        "detectee_par",
+        "statut"
+      ]
+    },
+    "anomalie_explication": {
+      "ligne": 2024,
+      "nature": "A:anomalie_documentaire",
+      "colonnes": [
+        "anomalie_documentaire_id",
+        "interpretation_id"
+      ]
+    },
+    "session_memoire": {
+      "ligne": 2036,
+      "nature": "V",
+      "colonnes": [
+        "type",
+        "lieu_texte",
+        "lieu_id",
+        "mode",
+        "contexte",
+        "statut_temoin",
+        "document_produit_id",
+        "campagne_id",
+        "interviewer_acteur_id"
+      ]
+    },
+    "session_temoin": {
+      "ligne": 2051,
+      "nature": "A:session_memoire",
+      "colonnes": [
+        "session_memoire_id",
+        "personne_id"
+      ]
+    },
+    "session_present": {
+      "ligne": 2057,
+      "nature": "A:session_memoire",
+      "colonnes": [
+        "session_memoire_id",
+        "personne_id",
+        "role"
+      ]
+    },
+    "echange": {
+      "ligne": 2064,
+      "nature": "V",
+      "colonnes": [
+        "session_memoire_id",
+        "question_id",
+        "rang",
+        "question_texte_exact",
+        "caractere_question"
+      ]
+    },
+    "echange_zone": {
+      "ligne": 2074,
+      "nature": "A:echange",
+      "colonnes": [
+        "echange_id",
+        "zone_id"
+      ]
+    },
+    "reponse": {
+      "ligne": 2080,
+      "nature": "V",
+      "colonnes": [
+        "echange_id",
+        "phase",
+        "texte",
+        "etat_memoire",
+        "mode_connaissance",
+        "reponse_revisee_id",
+        "nature_revision"
+      ]
+    },
+    "indice": {
+      "ligne": 2095,
+      "nature": "V",
+      "colonnes": [
+        "echange_id",
+        "objet_montre_id",
+        "type",
+        "type_precision",
+        "description",
+        "moment"
+      ]
+    },
+    "relance": {
+      "ligne": 2105,
+      "nature": "V",
+      "colonnes": [
+        "reponse_id",
+        "note_delicatesse",
+        "statut"
+      ]
+    },
+    "campagne_memoire": {
+      "ligne": 2112,
+      "nature": "V",
+      "colonnes": [
+        "titre",
+        "phase"
+      ]
+    },
+    "campagne_personne": {
+      "ligne": 2119,
+      "nature": "A:campagne_memoire",
+      "colonnes": [
+        "campagne_memoire_id",
+        "personne_id",
+        "statut",
+        "acteur_id"
+      ]
+    },
+    "campagne_question": {
+      "ligne": 2128,
+      "nature": "A:campagne_memoire",
+      "colonnes": [
+        "campagne_memoire_id",
+        "question_id",
+        "portee"
+      ]
+    },
+    "capsule": {
+      "ligne": 2135,
+      "nature": "V",
+      "colonnes": [
+        "auteur_acteur_id",
+        "destinataire_personne_id",
+        "destinataire_acteur_id",
+        "destinataire_description",
+        "titre",
+        "condition_type",
+        "condition_valeur",
+        "etat"
+      ]
+    },
+    "capsule_contenu": {
+      "ligne": 2149,
+      "nature": "A:capsule",
+      "colonnes": [
+        "capsule_id",
+        "objet_id"
+      ]
+    },
+    "projet": {
+      "ligne": 2163,
+      "nature": "V",
+      "colonnes": [
+        "intitule",
+        "objet_focal",
+        "perimetre",
+        "etat_cycle"
+      ]
+    },
+    "relation_projets": {
+      "ligne": 2172,
+      "nature": "L",
+      "colonnes": [
+        "projet_id",
+        "projet_lie_id",
+        "type",
+        "etat",
+        "initiateur_acteur_id",
+        "date_debut",
+        "date_fin"
+      ]
+    },
+    "decision_rattachement": {
+      "ligne": 2188,
+      "nature": "N",
+      "colonnes": [
+        "relation_projets_id",
+        "partie",
+        "acteur_id",
+        "decision",
+        "date"
+      ]
+    },
+    "etudier": {
+      "ligne": 2197,
+      "nature": "L",
+      "colonnes": [
+        "projet_id",
+        "libelle",
+        "statut",
+        "date_declaration",
+        "date_fin"
+      ]
+    },
+    "utiliser": {
+      "ligne": 2212,
+      "nature": "L",
+      "colonnes": [
+        "projet_id",
+        "ressource_id",
+        "date_declaration",
+        "date_fin"
+      ]
+    },
+    "utiliser_role": {
+      "ligne": 2220,
+      "nature": "A:utiliser",
+      "colonnes": [
+        "utiliser_id",
+        "v_debut",
+        "v_fin"
+      ]
+    },
+    "question": {
+      "ligne": 2229,
+      "nature": "V",
+      "colonnes": [
+        "question_parente_id",
+        "libelle",
+        "portee",
+        "etat",
+        "recherchabilite",
+        "motif_reouverture"
+      ]
+    },
+    "question_objet": {
+      "ligne": 2241,
+      "nature": "A:question",
+      "colonnes": [
+        "question_id",
+        "objet_id"
+      ]
+    },
+    "piste": {
+      "ligne": 2247,
+      "nature": "V",
+      "colonnes": [
+        "question_id",
+        "origine_recherche_id",
+        "origine_anomalie_id",
+        "description",
+        "statut",
+        "priorite",
+        "justification_priorite",
+        "source_suggeree"
+      ]
+    },
+    "piste_cible": {
+      "ligne": 2260,
+      "nature": "A:piste",
+      "colonnes": [
+        "piste_id",
+        "objet_id",
+        "objet_type"
+      ]
+    },
+    "recherche_effectuee": {
+      "ligne": 2268,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "question_id",
+        "piste_id",
+        "item_mission_id",
+        "objectif",
+        "nature_recherche",
+        "termes_et_variantes",
+        "niveau_consultation",
+        "couverture",
+        "resultat",
+        "limites"
+      ]
+    },
+    "recherche_perimetre": {
+      "ligne": 2285,
+      "nature": "A:recherche_effectuee",
+      "colonnes": [
+        "recherche_effectuee_id",
+        "objet_id",
+        "objet_type",
+        "pages_ou_annees_couvertes"
+      ]
+    },
+    "mission": {
+      "ligne": 2298,
+      "nature": "V",
+      "colonnes": [
+        "projet_id",
+        "centre_organisation_id",
+        "objectifs",
+        "statut",
+        "contraintes",
+        "compte_rendu"
+      ]
+    },
+    "item_mission": {
+      "ligne": 2310,
+      "nature": "V",
+      "colonnes": [
+        "mission_id",
+        "unite_id",
+        "question_id",
+        "reproduction_id",
+        "rang",
+        "priorite",
+        "statut",
+        "notes"
+      ]
+    },
+    "intervention_mission": {
+      "ligne": 2322,
+      "nature": "A:mission",
+      "colonnes": [
+        "mission_id",
+        "acteur_id",
+        "role",
+        "statut",
+        "acces_debut",
+        "acces_fin",
+        "perimetre_acces"
+      ]
+    },
+    "intervention_perimetre": {
+      "ligne": 2335,
+      "nature": "A:mission",
+      "colonnes": [
+        "mission_id",
+        "acteur_id",
+        "role",
+        "objet_id"
+      ]
+    },
+    "offre_deplacement": {
+      "ligne": 2345,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "centre_organisation_id",
+        "capacite"
+      ]
+    },
+    "offre_categorie": {
+      "ligne": 2353,
+      "nature": "A:offre_deplacement",
+      "colonnes": [
+        "offre_deplacement_id",
+        "categorie"
+      ]
+    },
+    "micro_mission": {
+      "ligne": 2359,
+      "nature": "V",
+      "colonnes": [
+        "offre_deplacement_id",
+        "demandeur_acteur_id",
+        "consigne",
+        "cible",
+        "statut"
+      ]
+    },
+    "condition_pratique": {
+      "ligne": 2367,
+      "nature": "V",
+      "colonnes": [
+        "organisation_id",
+        "type",
+        "type_precision",
+        "valeur"
+      ]
+    },
+    "contact": {
+      "ligne": 2377,
+      "nature": "V",
+      "colonnes": [
+        "nom_affiche",
+        "type",
+        "coordonnees_privees",
+        "represente_entite_id",
+        "represente_acteur_id"
+      ]
+    },
+    "interaction": {
+      "ligne": 2386,
+      "nature": "V",
+      "colonnes": [
+        "contact_id",
+        "question_id",
+        "mission_id",
+        "type",
+        "contenu"
+      ]
+    },
+    "protocole": {
+      "ligne": 2400,
+      "nature": "V",
+      "colonnes": [
+        "titre",
+        "portee",
+        "conditions_application"
+      ]
+    },
+    "critere_protocole": {
+      "ligne": 2406,
+      "nature": "V",
+      "colonnes": [
+        "protocole_id",
+        "rang",
+        "libelle",
+        "condition"
+      ]
+    },
+    "application_protocole": {
+      "ligne": 2415,
+      "nature": "V",
+      "colonnes": [
+        "cible_id",
+        "cible_type",
+        "protocole_id",
+        "protocole_numero",
+        "statut",
+        "date"
+      ]
+    },
+    "etat_critere": {
+      "ligne": 2427,
+      "nature": "A:application_protocole",
+      "colonnes": [
+        "application_protocole_id",
+        "critere_protocole_id",
+        "etat",
+        "couverture",
+        "preuve_objet_id"
+      ]
+    },
+    "regle_methodologique": {
+      "ligne": 2436,
+      "nature": "V",
+      "colonnes": [
+        "adoptant_acteur_id",
+        "enonce",
+        "niveau",
+        "origine",
+        "portee"
+      ]
+    },
+    "regle_contexte": {
+      "ligne": 2445,
+      "nature": "A:regle_methodologique",
+      "colonnes": [
+        "regle_methodologique_id",
+        "objet_id"
+      ]
+    },
+    "tache": {
+      "ligne": 2451,
+      "nature": "V",
+      "colonnes": [
+        "projet_id",
+        "tache_parente_id",
+        "type",
+        "libelle",
+        "statut",
+        "origine"
+      ]
+    },
+    "tache_assignation": {
+      "ligne": 2465,
+      "nature": "A:tache",
+      "colonnes": [
+        "tache_id",
+        "acteur_id",
+        "groupe_id"
+      ]
+    },
+    "tache_dependance": {
+      "ligne": 2475,
+      "nature": "A:tache",
+      "colonnes": [
+        "tache_id"
+      ]
+    },
+    "tache_objet": {
+      "ligne": 2483,
+      "nature": "A:tache",
+      "colonnes": [
+        "tache_id",
+        "objet_id"
+      ]
+    },
+    "snapshot": {
+      "ligne": 2490,
+      "nature": "F",
+      "colonnes": [
+        "nom",
+        "date",
+        "description"
+      ]
+    },
+    "diff_connaissance": {
+      "ligne": 2497,
+      "nature": "V",
+      "colonnes": [
+        "snapshot_avant_id",
+        "snapshot_apres_id",
+        "date_avant",
+        "date_apres",
+        "decouverte_id",
+        "resume",
+        "nature",
+        "consequences"
+      ]
+    },
+    "decouverte": {
+      "ligne": 2510,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "enonce",
+        "portee_nouveaute",
+        "priorite_externe"
+      ]
+    },
+    "decouverte_version": {
+      "ligne": 2518,
+      "nature": "N",
+      "colonnes": [
+        "decouverte_id",
+        "objet_id",
+        "numero"
+      ]
+    },
+    "arbre": {
+      "ligne": 2531,
+      "nature": "V",
+      "colonnes": [
+        "nom",
+        "origine",
+        "import_id",
+        "racine_noeud_id"
+      ]
+    },
+    "noeud_arbre": {
+      "ligne": 2540,
+      "nature": "V",
+      "colonnes": [
+        "arbre_id",
+        "personne_id",
+        "libelle_affichage",
+        "position_affichage"
+      ]
+    },
+    "arbre_lien": {
+      "ligne": 2549,
+      "nature": "A:arbre",
+      "colonnes": [
+        "arbre_id",
+        "assertion_id"
+      ]
+    },
+    "operation_flux": {
+      "ligne": 2556,
+      "nature": "V",
+      "colonnes": [
+        "acteur_id",
+        "espace_source_id",
+        "espace_cible_id",
+        "type",
+        "date",
+        "statut",
+        "autorisation",
+        "selection_id",
+        "selection_numero"
+      ]
+    },
+    "selection_partage": {
+      "ligne": 2574,
+      "nature": "V",
+      "colonnes": [
+        "libelle",
+        "type_selection",
+        "arbre_source_id",
+        "point_depart_id",
+        "ascendance",
+        "profondeur_ascendance",
+        "descendance",
+        "profondeur_descendance",
+        "unions",
+        "conjoints",
+        "traitement_vivants",
+        "traitement_sensibles",
+        "evolution",
+        "etat",
+        "version_active_numero",
+        "etat_proposition"
+      ]
+    },
+    "selection_exclusion": {
+      "ligne": 2602,
+      "nature": "A:selection_partage",
+      "colonnes": [
+        "selection_id",
+        "objet_id"
+      ]
+    },
+    "selection_inclusion": {
+      "ligne": 2608,
+      "nature": "N",
+      "colonnes": [
+        "selection_id",
+        "selection_numero",
+        "objet_id",
+        "objet_numero",
+        "mode_inclusion",
+        "motif_inclusion",
+        "masquage_id"
+      ]
+    },
+    "comparaison": {
+      "ligne": 2624,
+      "nature": "V",
+      "colonnes": [
+        "arbre_a_id",
+        "arbre_b_id",
+        "date",
+        "perimetre",
+        "statut"
+      ]
+    },
+    "ecart": {
+      "ligne": 2633,
+      "nature": "V",
+      "colonnes": [
+        "comparaison_id",
+        "objet_a_id",
+        "objet_b_id",
+        "type"
+      ]
+    },
+    "evenement_connect": {
+      "ligne": 2647,
+      "nature": "V",
+      "colonnes": [
+        "organisateur_acteur_id",
+        "lieu_id",
+        "evenement_documente_id",
+        "titre",
+        "statut"
+      ]
+    },
+    "activite_connect": {
+      "ligne": 2657,
+      "nature": "V",
+      "colonnes": [
+        "evenement_connect_id",
+        "campagne_id",
+        "phase",
+        "consignes"
+      ]
+    },
+    "activite_connect_objet": {
+      "ligne": 2665,
+      "nature": "A:activite_connect",
+      "colonnes": [
+        "activite_connect_id",
+        "objet_id"
+      ]
+    },
+    "participation_connect": {
+      "ligne": 2671,
+      "nature": "V",
+      "colonnes": [
+        "evenement_connect_id",
+        "acteur_id",
+        "personne_id",
+        "role",
+        "statut"
+      ]
+    },
+    "contribution_connect": {
+      "ligne": 2680,
+      "nature": "V",
+      "colonnes": [
+        "activite_connect_id",
+        "participation_connect_id",
+        "date",
+        "statut"
+      ]
+    },
+    "contribution_objet": {
+      "ligne": 2687,
+      "nature": "N",
+      "colonnes": [
+        "contribution_connect_id",
+        "objet_id"
+      ]
+    },
+    "geometrie": {
+      "ligne": 2699,
+      "nature": "V",
+      "colonnes": [
+        "lieu_id",
+        "calcul_id",
+        "type_localisation",
+        "geom",
+        "geom_systeme",
+        "geom_forme",
+        "statut"
+      ]
+    },
+    "geometrie_assertion": {
+      "ligne": 2714,
+      "nature": "A:geometrie",
+      "colonnes": [
+        "geometrie_id",
+        "assertion_id"
+      ]
+    },
+    "carte": {
+      "ligne": 2720,
+      "nature": "V",
+      "colonnes": [
+        "titre",
+        "mode",
+        "fraicheur"
+      ]
+    },
+    "carte_couche": {
+      "ligne": 2728,
+      "nature": "A:carte",
+      "colonnes": [
+        "carte_id"
+      ]
+    },
+    "carte_objet": {
+      "ligne": 2734,
+      "nature": "A:carte",
+      "colonnes": [
+        "carte_id",
+        "objet_id",
+        "symbolisation"
+      ]
+    },
+    "carte_geometrie": {
+      "ligne": 2741,
+      "nature": "A:carte",
+      "colonnes": [
+        "carte_id",
+        "geometrie_id"
+      ]
+    },
+    "requete": {
+      "ligne": 2753,
+      "nature": "V",
+      "colonnes": [
+        "definition",
+        "mode"
+      ]
+    },
+    "corpus": {
+      "ligne": 2759,
+      "nature": "V",
+      "colonnes": [
+        "type",
+        "definition",
+        "requete_id",
+        "snapshot_id"
+      ]
+    },
+    "corpus_inclusion": {
+      "ligne": 2768,
+      "nature": "A:corpus",
+      "colonnes": [
+        "corpus_id",
+        "objet_id",
+        "decision",
+        "motif",
+        "mode"
+      ]
+    },
+    "cohorte_analytique": {
+      "ligne": 2779,
+      "nature": "V",
+      "colonnes": [
+        "requete_id",
+        "corpus_id",
+        "libelle",
+        "criteres_texte"
+      ]
+    },
+    "methode": {
+      "ligne": 2787,
+      "nature": "V",
+      "colonnes": [
+        "nom",
+        "description",
+        "hypotheses",
+        "parametres",
+        "limites",
+        "algorithme",
+        "version_algorithme",
+        "deterministe",
+        "profil",
+        "unite_comptee",
+        "criteres",
+        "dedoublonnage",
+        "traitement_incertitude",
+        "numerateur",
+        "denominateur"
+      ]
+    },
+    "calcul": {
+      "ligne": 2811,
+      "nature": "F",
+      "colonnes": [
+        "methode_id",
+        "methode_numero",
+        "corpus_id",
+        "corpus_numero",
+        "snapshot_id",
+        "date_reference",
+        "activite_id",
+        "calcul_origine_id",
+        "date",
+        "nature_execution",
+        "parametres_effectifs",
+        "contexte_id"
+      ]
+    },
+    "calcul_referentiel": {
+      "ligne": 2832,
+      "nature": "N",
+      "colonnes": [
+        "calcul_id",
+        "referentiel_id",
+        "referentiel_numero"
+      ]
+    },
+    "resultat": {
+      "ligne": 2839,
+      "nature": "V",
+      "colonnes": [
+        "calcul_id",
+        "type",
+        "contenu",
+        "mode",
+        "fraicheur",
+        "date_dernier_calcul",
+        "couverture"
+      ]
+    },
+    "publication": {
+      "ligne": 2858,
+      "nature": "V",
+      "colonnes": [
+        "contexte_id",
+        "titre",
+        "type",
+        "etat",
+        "date_publication",
+        "numero_edition",
+        "indexable"
+      ]
+    },
+    "parution_acceptation": {
+      "ligne": 2875,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "publication_id",
+        "serie_id",
+        "acteur_id",
+        "date",
+        "decision"
+      ]
+    },
+    "paraitre_dans": {
+      "ligne": 2885,
+      "nature": "A:publication",
+      "colonnes": [
+        "publication_id",
+        "serie_id",
+        "rang",
+        "date",
+        "acceptation_id"
+      ]
+    },
+    "decision_editoriale": {
+      "ligne": 2898,
+      "nature": "F",
+      "colonnes": [
+        "acteur_id",
+        "publication_id",
+        "publication_numero",
+        "type",
+        "motif",
+        "decision_invalidee_id",
+        "origine",
+        "date"
+      ]
+    },
+    "diffusion": {
+      "ligne": 2915,
+      "nature": "F",
+      "colonnes": [
+        "acteur_id",
+        "publication_id",
+        "publication_numero",
+        "contexte_id",
+        "evaluation_id",
+        "canal",
+        "audience",
+        "nombre_destinataires",
+        "risque_redistribution",
+        "date",
+        "resultat",
+        "motif_blocage"
+      ]
+    },
+    "publication_exposition": {
+      "ligne": 2936,
+      "nature": "N",
+      "colonnes": [
+        "publication_id",
+        "publication_numero",
+        "objet_id",
+        "objet_numero",
+        "mode_exposition"
+      ]
+    },
+    "correction_publication": {
+      "ligne": 2946,
+      "nature": "F",
+      "colonnes": [
+        "publication_id",
+        "publication_remplacante_id",
+        "type",
+        "motif",
+        "date"
+      ]
+    },
+    "citation": {
+      "ligne": 2957,
+      "nature": "A:objet",
+      "colonnes": [
+        "objet_citant_id",
+        "reference_persistante_id",
+        "type",
+        "v_debut",
+        "v_fin"
+      ]
+    },
+    "export": {
+      "ligne": 2966,
+      "nature": "F",
+      "colonnes": [
+        "acteur_id",
+        "contexte_id",
+        "format",
+        "version_format",
+        "perimetre",
+        "date",
+        "droits_appliques",
+        "empreinte_paquet"
+      ]
+    },
+    "export_referentiel": {
+      "ligne": 2978,
+      "nature": "N",
+      "colonnes": [
+        "export_id",
+        "referentiel_id",
+        "referentiel_numero"
+      ]
+    },
+    "export_element": {
+      "ligne": 2986,
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "export_id",
+        "objet_id",
+        "objet_numero",
+        "lien_id",
+        "fichier_id",
+        "role"
+      ]
+    },
+    "export_dependance_externe": {
+      "ligne": 2999,
+      "nature": "N",
+      "colonnes": [
+        "export_id",
+        "reference_persistante_id"
+      ]
+    },
+    "export_exclusion": {
+      "ligne": 3004,
+      "nature": "N",
+      "colonnes": [
+        "export_id",
+        "objet_id",
+        "motif"
+      ]
+    },
+    "lignee_import": {
+      "ligne": 3011,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "source_description",
+        "format"
+      ]
+    },
+    "import": {
+      "ligne": 3017,
+      "nature": "F",
+      "colonnes": [
+        "espace_cible_id",
+        "fichier_original_id",
+        "lignee_id",
+        "acteur_id",
+        "type",
+        "logiciel",
+        "format",
+        "version_format",
+        "fournisseur",
+        "date",
+        "avertissements",
+        "rapport"
+      ]
+    },
+    "cle_import": {
+      "ligne": 3033,
+      "nature": "N",
+      "colonnes": [
+        "import_id",
+        "cle_source",
+        "objet_id"
+      ]
+    },
+    "reconciliation_import": {
+      "ligne": 3041,
+      "nature": "V",
+      "colonnes": [
+        "import_id",
+        "objet_importe_id",
+        "objet_existant_id",
+        "issue"
+      ]
+    },
+    "workspace": {
+      "ligne": 3059,
+      "nature": "V",
+      "colonnes": [
+        "compte_id",
+        "titre",
+        "etat",
+        "devenu_objet_id"
+      ]
+    },
+    "epingle": {
+      "ligne": 3067,
+      "nature": "A:workspace",
+      "colonnes": [
+        "workspace_id",
+        "objet_id",
+        "groupe",
+        "note"
+      ]
+    },
+    "lien_exploratoire": {
+      "ligne": 3077,
+      "nature": "V",
+      "colonnes": [
+        "workspace_id",
+        "objet_a_id",
+        "objet_b_id",
+        "libelle"
+      ]
+    },
+    "collection": {
+      "ligne": 3085,
+      "nature": "V",
+      "colonnes": [
+        "titre"
+      ]
+    },
+    "collection_objet": {
+      "ligne": 3090,
+      "nature": "A:collection",
+      "colonnes": [
+        "collection_id",
+        "objet_id",
+        "rang"
+      ]
+    },
+    "tag": {
+      "ligne": 3097,
+      "nature": "V",
+      "colonnes": [
+        "libelle",
+        "portee"
+      ]
+    },
+    "tag_objet": {
+      "ligne": 3102,
+      "nature": "A:tag",
+      "colonnes": [
+        "tag_id",
+        "objet_id"
+      ]
+    },
+    "inbox_item": {
+      "ligne": 3108,
+      "nature": "V",
+      "colonnes": [
+        "compte_id",
+        "fichier_id",
+        "type",
+        "contenu_brut",
+        "etat",
+        "date_capture"
+      ]
+    },
+    "inbox_rattachement": {
+      "ligne": 3118,
+      "nature": "A:inbox_item",
+      "colonnes": [
+        "inbox_item_id",
+        "objet_id"
+      ]
+    },
+    "note": {
+      "ligne": 3124,
+      "nature": "V",
+      "colonnes": [
+        "objet_annote_id",
+        "texte"
+      ]
+    },
+    "historique_navigation": {
+      "ligne": 3129,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "compte_id",
+        "objet_id",
+        "date",
+        "session"
+      ]
+    },
+    "veille": {
+      "ligne": 3136,
+      "nature": "V",
+      "colonnes": [
+        "compte_id",
+        "objet_suivi_id",
+        "requete_id",
+        "type",
+        "condition",
+        "mode_notification",
+        "active",
+        "consentement_communication",
+        "canal_abonnement"
+      ]
+    },
+    "notification": {
+      "ligne": 3153,
+      "nature": "T",
+      "colonnes": [
+        "id",
+        "compte_id",
+        "veille_id",
+        "objet_id",
+        "date",
+        "motif",
+        "explication",
+        "priorite",
+        "groupe",
+        "lue"
+      ]
+    },
+    "referentiel": {
+      "ligne": 3169,
+      "nature": "V",
+      "colonnes": [
+        "nom",
+        "niveau",
+        "description"
+      ]
+    },
+    "concept": {
+      "ligne": 3177,
+      "nature": "V",
+      "colonnes": [
+        "referentiel_id",
+        "concept_parent_id",
+        "code",
+        "libelle",
+        "definition",
+        "nature",
+        "statut_promotion",
+        "actif"
+      ]
+    },
+    "concept_libelle": {
+      "ligne": 3194,
+      "nature": "A:concept",
+      "colonnes": [
+        "concept_id",
+        "libelle",
+        "definition"
+      ]
+    },
+    "concept_predicat": {
+      "ligne": 3204,
+      "nature": "V",
+      "colonnes": [
+        "concept_id",
+        "profil_assertion",
+        "attend_cible",
+        "type_valeur"
+      ]
+    },
+    "concept_predicat_sujet": {
+      "ligne": 3213,
+      "nature": "A:concept",
+      "colonnes": [
+        "concept_id",
+        "type_objet"
+      ]
+    },
+    "concept_predicat_cible": {
+      "ligne": 3219,
+      "nature": "A:concept",
+      "colonnes": [
+        "concept_id",
+        "type_objet"
+      ]
+    },
+    "terme_historique": {
+      "ligne": 3225,
+      "nature": "V",
+      "colonnes": [
+        "forme"
+      ]
+    },
+    "usage_terme": {
+      "ligne": 3231,
+      "nature": "A:terme_historique",
+      "colonnes": [
+        "terme_historique_id",
+        "concept_id",
+        "territoire_lieu_id",
+        "corpus_id",
+        "sens"
+      ]
+    },
+    "correspondance": {
+      "ligne": 3241,
+      "nature": "V",
+      "colonnes": [
+        "concept_a_id",
+        "concept_b_id",
+        "type"
+      ]
+    },
+    "autorisation_identite": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "acteur_id",
+        "personne_id",
+        "niveau",
+        "statut",
+        "depuis",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_propriete": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "proprietaire_id",
+        "racine_id",
+        "depuis",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_titularite": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "objet_id",
+        "titulaire_id",
+        "depuis",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_perimetre": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "genre",
+        "espace_id",
+        "titulaire_regime_id",
+        "objet_id",
+        "lien_id",
+        "selection_id",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_perimetre_objet": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "perimetre_id",
+        "objet_id"
+      ]
+    },
+    "autorisation_beneficiaire": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "genre",
+        "acteur_id",
+        "groupe_id",
+        "espace_role_id",
+        "role",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_habilitation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "nature",
+        "forme",
+        "espace_id",
+        "auteur_id",
+        "beneficiaire_id",
+        "perimetre_id",
+        "perimetre_signataire_id",
+        "role",
+        "repartager",
+        "mode",
+        "etat",
+        "debut",
+        "fin",
+        "reemission_de_id",
+        "rattachement_id",
+        "lot_id",
+        "echeance_hors_ligne",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_action": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "habilitation_id",
+        "action",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_fondateur": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "habilitation_id",
+        "fondateur_id",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_fondement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "fondateur_id",
+        "action",
+        "nature",
+        "titularite_id",
+        "nomination_id",
+        "habilitation_id",
+        "perimetre_id",
+        "repartager",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_exclusion": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "habilitation_id",
+        "objet_id",
+        "fondateur_id",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_admission": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "habilitation_id",
+        "personne_id",
+        "admetteur_id",
+        "nature",
+        "automatique",
+        "etat",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_admission_fondement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "admission_id",
+        "action",
+        "nature",
+        "titularite_id",
+        "nomination_id",
+        "habilitation_id",
+        "perimetre_id",
+        "repartager",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_admission_exclusion": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "admission_id",
+        "objet_id"
+      ]
+    },
+    "autorisation_exclusion_personne": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "habilitation_id",
+        "personne_id",
+        "date",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_protection": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "genre",
+        "cible_objet_id",
+        "cible_lien_id",
+        "createur_id",
+        "etat",
+        "debut",
+        "fin",
+        "autorite_emettrice_id",
+        "autorite_levee_id",
+        "heritee_de_id",
+        "origine",
+        "portee",
+        "base_legale",
+        "reference_legale",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_protection_action": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "protection_id",
+        "action",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_protection_personne": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "protection_id",
+        "personne_id",
+        "qualite",
+        "depuis",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_protection_ensemble": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "protection_id",
+        "beneficiaire_id",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_agrement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "protection_id",
+        "personne_id",
+        "gardien_id",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_passage_orphelin": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "protection_id",
+        "debut",
+        "fin",
+        "signale_le",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_acte": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "type",
+        "acteur_id",
+        "instant",
+        "espace_id",
+        "contexte_id",
+        "justification"
+      ]
+    },
+    "autorisation_dossier_objet": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "acte_id",
+        "objet_id"
+      ]
+    },
+    "autorisation_dossier_espace": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "acte_id",
+        "espace_id"
+      ]
+    },
+    "autorisation_approbation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "acte_id",
+        "approbateur_id",
+        "identite_id",
+        "date",
+        "qualite_verifiee"
+      ]
+    },
+    "autorisation_membre_autorite": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "acteur_id",
+        "autorite",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_subordination": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "subordonne_personne_id",
+        "superieur_personne_id",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_interet": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "personne_id",
+        "objet_id",
+        "espace_id",
+        "nature",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_nomination_admin": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "acteur_id",
+        "nomme_par_id",
+        "debut",
+        "fin",
+        "etat",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_designation_garde": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "beneficiaire_personne_id",
+        "acte_id",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_deces": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "personne_id",
+        "acte_id",
+        "date_constat"
+      ]
+    },
+    "autorisation_succession": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "deces_id",
+        "objet_id",
+        "acte_id",
+        "sort",
+        "ayant_droit_id",
+        "rs_id",
+        "etat",
+        "accepte_le",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_contestation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "protection_id",
+        "acte_id",
+        "resultat",
+        "date_decision",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_finalite_version": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "version",
+        "active",
+        "depuis",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_finalite": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "version_id",
+        "code",
+        "niveau"
+      ]
+    },
+    "autorisation_derogation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "beneficiaire_personne_id",
+        "acte_id",
+        "finalite_id",
+        "justification",
+        "debut",
+        "fin",
+        "etat",
+        "renouvellement_de_id",
+        "rang",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_derogation_cible": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "derogation_id",
+        "objet_id",
+        "operation"
+      ]
+    },
+    "autorisation_derogation_predecesseur": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "derogation_id",
+        "precedent_id"
+      ]
+    },
+    "autorisation_accord_gardien": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "derogation_id",
+        "protection_id",
+        "gardien_id",
+        "date"
+      ]
+    },
+    "autorisation_transfert": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "cedant_id",
+        "cessionnaire_id",
+        "designation_id",
+        "etat",
+        "presentation_courante_id",
+        "presentations",
+        "debut",
+        "fin",
+        "carence_fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_transfert_objet": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "transfert_id",
+        "objet_id",
+        "voie",
+        "acceptation_b",
+        "copie_complementaire",
+        "copie_id",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_presentation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "transfert_id",
+        "numero",
+        "instant",
+        "expiration",
+        "empreinte"
+      ]
+    },
+    "autorisation_transfert_engagement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "presentation_id",
+        "genre",
+        "habilitation_id",
+        "admission_id",
+        "membre_id",
+        "administration_id",
+        "protection_id",
+        "voie_id",
+        "reemission_id",
+        "beneficiaire_id",
+        "beneficiaire_genre",
+        "beneficiaire_acteur_id",
+        "beneficiaire_groupe_id",
+        "beneficiaire_espace_role_id",
+        "beneficiaire_role",
+        "revision_beneficiaire",
+        "perimetre_id",
+        "perimetre_genre",
+        "regime_espace_id",
+        "regime_titulaire_id",
+        "echeance",
+        "etat",
+        "mode",
+        "repartager",
+        "effectif",
+        "revision_source"
+      ]
+    },
+    "autorisation_membre_groupe": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "groupe_id",
+        "acteur_id",
+        "ajoute_par_id",
+        "debut",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_engagement_action": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "engagement_id",
+        "action"
+      ]
+    },
+    "autorisation_engagement_objet": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "engagement_id",
+        "objet_id",
+        "role",
+        "fondateur_personne_id",
+        "admission_source_id",
+        "fondement_snapshot_id"
+      ]
+    },
+    "autorisation_engagement_personne": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "engagement_id",
+        "personne_id",
+        "role",
+        "admission_source_id",
+        "fondateur_source_id",
+        "debut",
+        "fin",
+        "etat",
+        "automatique",
+        "revision_source"
+      ]
+    },
+    "autorisation_engagement_fondement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "engagement_id",
+        "fondateur_personne_id",
+        "admission_source_id",
+        "action",
+        "nature",
+        "source_habilitation_id",
+        "source_titularite_id",
+        "revision_source",
+        "perimetre_id",
+        "debut",
+        "fin",
+        "etat",
+        "repartager"
+      ]
+    },
+    "autorisation_reemission": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "transfert_id",
+        "origine_id",
+        "nouvelle_id",
+        "perimetre_id",
+        "beneficiaire_id",
+        "repartager",
+        "fin",
+        "etat",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_reemission_action": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "reemission_id",
+        "action"
+      ]
+    },
+    "autorisation_reemission_admission": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "reemission_id",
+        "origine_admission_id",
+        "nouvelle_admission_id",
+        "personne_id",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_admission_differee": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "origine",
+        "transfert_id",
+        "habilitation_id",
+        "personne_id",
+        "date",
+        "etat",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_verrou_reintegration": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "transfert_id",
+        "cedant_personne_id",
+        "depuis",
+        "fin",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_consentement_reintegration": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "verrou_id",
+        "signataire_id",
+        "propriete_id",
+        "revision_propriete",
+        "acte_id",
+        "beneficiaire_id",
+        "perimetre_id",
+        "fin",
+        "empreinte_acte",
+        "consomme_le",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_consentement_action": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "consentement_id",
+        "action"
+      ]
+    },
+    "autorisation_epoque": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "HS",
+      "colonnes": [
+        "id",
+        "espace_id",
+        "valeur",
+        "revision",
+        "debut_validite",
+        "fin_validite",
+        "evenement_id"
+      ]
+    },
+    "autorisation_evenement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "acte_id",
+        "instant",
+        "acteur_id",
+        "operation"
+      ]
+    },
+    "contexte_evaluation": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "acteur_id",
+        "identite_id",
+        "audience",
+        "espace_id",
+        "projet_id",
+        "instant",
+        "operation",
+        "finalite_id",
+        "canal",
+        "epoque_autorisation",
+        "habilitation_id",
+        "derogation_id",
+        "appareil_ref"
+      ]
+    },
+    "autorisation_decision": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "contexte_id",
+        "cible_objet_id",
+        "cible_lien_id",
+        "action",
+        "instant",
+        "epoque",
+        "resultat"
+      ]
+    },
+    "autorisation_decision_fondement": {
+      "source": "spec\\validation\\schema_autorisations.json",
+      "nature": "N",
+      "colonnes": [
+        "id",
+        "decision_id",
+        "genre",
+        "titulaire_id",
+        "habilitation_id",
+        "admission_id",
+        "fin"
+      ]
+    }
+  },
+  "tables_total": 327,
+  "foreign_keys_lues": 497,
+  "foreign_keys_cibles_absentes": [],
+  "schema_autorisations_erreurs": [],
+  "contraintes_logiques_erreurs": [],
+  "matrice_DI": {
+    "DI-K23": {
+      "ligne": 4472,
+      "realisation": "CP-31 ; CP-48 ; `relation_projets`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q07": {
+      "ligne": 4557,
+      "realisation": "CP-35 ; `veille`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A01": {
+      "ligne": 4260,
+      "realisation": "CP-52 ; `objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A02": {
+      "ligne": 4261,
+      "realisation": "CP-02",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A03": {
+      "ligne": 4262,
+      "realisation": "CP-03 ; `objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A04": {
+      "ligne": 4263,
+      "realisation": "`objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A05": {
+      "ligne": 4264,
+      "realisation": "CP-11 ; `objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A06": {
+      "ligne": 4265,
+      "realisation": "CP-01 ; § 21.1 étape 2 (n+1) ; CP-02",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A07": {
+      "ligne": 4266,
+      "realisation": "CP-02 ; CP-22 ; `version_objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A08": {
+      "ligne": 4267,
+      "realisation": "`version_objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A09": {
+      "ligne": 4268,
+      "realisation": "`version_composant` (manifeste, MLD-02) ; FK vers `version_objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A10": {
+      "ligne": 4269,
+      "realisation": "CP-53 ; `activite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A11": {
+      "ligne": 4270,
+      "realisation": "`activite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A12": {
+      "ligne": 4271,
+      "realisation": "CP-53 ; `activite_perimetre_transmis` ; `activite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A13": {
+      "ligne": 4272,
+      "realisation": "`activite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A14": {
+      "ligne": 4273,
+      "realisation": "CP-15 ; `dependance`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A15": {
+      "ligne": 4274,
+      "realisation": "`dependance`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A16": {
+      "ligne": 4275,
+      "realisation": "CP-07 ; `argument_preuve` ; `dependance`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A17": {
+      "ligne": 4276,
+      "realisation": "CP-09",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A18": {
+      "ligne": 4277,
+      "realisation": "CP-21",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A19": {
+      "ligne": 4278,
+      "realisation": "`filiation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A20": {
+      "ligne": 4279,
+      "realisation": "`filiation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A21": {
+      "ligne": 4280,
+      "realisation": "CP-04",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A22": {
+      "ligne": 4281,
+      "realisation": "`filiation.etat_divergence` ; aucune écriture dans l'objet dérivé du fait de l'origine (CP-01) ; notification (`notification`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A23": {
+      "ligne": 4282,
+      "realisation": "CP-04 ; `reference_inter_espace`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A24": {
+      "ligne": 4283,
+      "realisation": "`reference_inter_espace` : `acces()` de la cible dans le contexte de l'espace référent à la création : CP-04",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A25": {
+      "ligne": 4284,
+      "realisation": "`reference_inter_espace` sans copie ; évolution de la cible = ligne `etat_reference_externe` en insertion seule",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A26": {
+      "ligne": 4285,
+      "realisation": "`etat_reference_externe`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A27": {
+      "ligne": 4286,
+      "realisation": "CP-53 ; `base_justificative_preuve`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A28": {
+      "ligne": 4287,
+      "realisation": "CP-13/DI-A28 (§ 21.3) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A29": {
+      "ligne": 4288,
+      "realisation": "CP-09 ; `base_justificative_preuve`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A30": {
+      "ligne": 4289,
+      "realisation": "`dependance` ; §24.",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A31": {
+      "ligne": 4290,
+      "realisation": "`acquisition_information`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A32": {
+      "ligne": 4291,
+      "realisation": "CP-13/DI-A32 (§ 21.3) ; `assertion.etat_provenance` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A33": {
+      "ligne": 4292,
+      "realisation": "CP-13/DI-A33 (§ 21.3) ; CP-13 (aucune écriture d'`acquisition_documentaire` sur `document` ni `responsabilite`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A34": {
+      "ligne": 4293,
+      "realisation": "`reference_persistante`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A35": {
+      "ligne": 4294,
+      "realisation": "CP-17",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A36": {
+      "ligne": 4295,
+      "realisation": "`reference_persistante` ; résolution selon les droits : § 22.3 (API) ; CP-43",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A37": {
+      "ligne": 4296,
+      "realisation": "filiation.decision_autorisation_id ; CP-51 ; autorisation_decision",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A38": {
+      "ligne": 4297,
+      "realisation": "CP-33 ; `filiation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A39": {
+      "ligne": 4298,
+      "realisation": "CP-23 ; autorisation_titularite ; activite",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A40": {
+      "ligne": 4299,
+      "realisation": "`activite_referentiel`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-A41": {
+      "ligne": 4300,
+      "realisation": "CP-51 ; autorisation_protection ; filiation",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B01": {
+      "ligne": 4301,
+      "realisation": "`espace` : UQ (type_espace) WHERE `Core partagé`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B02": {
+      "ligne": 4302,
+      "realisation": "CP-06 ; `appartenance_espace`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B03": {
+      "ligne": 4303,
+      "realisation": "CP-06 ; CP-11",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B04": {
+      "ligne": 4304,
+      "realisation": "CP-06 ; `appartenance_espace`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B05": {
+      "ligne": 4305,
+      "realisation": "CP-06 ; `compte`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B06": {
+      "ligne": 4306,
+      "realisation": "CP-06",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B07": {
+      "ligne": 4307,
+      "realisation": "CP-06 ; `lien_compte_acteur`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B08": {
+      "ligne": 4308,
+      "realisation": "CP-06 ; `acteur_geniius` ; `pseudonyme_reserve`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B09": {
+      "ligne": 4309,
+      "realisation": "CP-44 ; CP-53",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B10": {
+      "ligne": 4310,
+      "realisation": "autorisation_perimetre ; autorisation_beneficiaire",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B11": {
+      "ligne": 4311,
+      "realisation": "§ 22.2 ; contrat § 14 étapes 1 à 4 (non-levable puis dérogation)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B12": {
+      "ligne": 4312,
+      "realisation": "§ 22.2 ; contrat § 14 étape 3 ; CP-46",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B13": {
+      "ligne": 4313,
+      "realisation": "CP-12",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B14": {
+      "ligne": 4314,
+      "realisation": "CP-06",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B15": {
+      "ligne": 4315,
+      "realisation": "CP-13/DI-B15 (§ 21.3) ; CP-13 ; `decision_applicabilite_droit`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B16": {
+      "ligne": 4316,
+      "realisation": "CP-13/DI-B16 (§ 21.3) ; § 22.2, étape 6 ; CP-13 (absence de `decision_applicabilite_droit` = restriction appliquée)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B17": {
+      "ligne": 4317,
+      "realisation": "`evaluation_diffusabilite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B18": {
+      "ligne": 4318,
+      "realisation": "CP-53 ; `evaluation_diffusabilite` ; §22.3",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B19": {
+      "ligne": 4319,
+      "realisation": "autorisation_protection ; CP-46",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B20": {
+      "ligne": 4320,
+      "realisation": "autorisation_protection ; CP-46 ; CP-51",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B21": {
+      "ligne": 4321,
+      "realisation": "autorisation_protection_personne/ensemble ; autorisation_agrement ; CP-46",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B22": {
+      "ligne": 4322,
+      "realisation": "CP-13/DI-B22 (§ 21.3) ; CP-13 ; `masquage`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B23": {
+      "ligne": 4323,
+      "realisation": "`consentement` [V] : retrait = nouvelle version (CP-01) ; **CP-47**",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B24": {
+      "ligne": 4324,
+      "realisation": "**CP-47** (nouvelle, ECD-13)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B25": {
+      "ligne": 4325,
+      "realisation": "CP-13/DI-B25 (§ 21.3) ; CP-13 ; CP-45 ; `regroupement_traces`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B26": {
+      "ligne": 4326,
+      "realisation": "CP-37 (aucune écriture sur `autorisation_protection`, `consentement`, `credit`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B27": {
+      "ligne": 4327,
+      "realisation": "`designation_garde`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B28": {
+      "ligne": 4328,
+      "realisation": "CP-37 ; CP-01 (aucune écriture sur `credit` ni `activite`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B29": {
+      "ligne": 4329,
+      "realisation": "CP-25 ; CP-26 ; § 22",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B30": {
+      "ligne": 4330,
+      "realisation": "CP-24 ; autorisation_derogation",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B31": {
+      "ligne": 4331,
+      "realisation": "`contribution_differee` ; CP-27",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B32": {
+      "ligne": 4332,
+      "realisation": "CP-27 (conflit)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B33": {
+      "ligne": 4333,
+      "realisation": "CP-27 (conservation)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B34": {
+      "ligne": 4334,
+      "realisation": "CP-29 ; autorisation_perimetre ; selection_partage",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B35": {
+      "ligne": 4335,
+      "realisation": "CP-29 ; HI/HP ; autorisation_fondateur ; autorisation_fondement",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B36": {
+      "ligne": 4336,
+      "realisation": "CP-30 ; autorisation_admission ; mode de autorisation_habilitation",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B37": {
+      "ligne": 4337,
+      "realisation": "CP-30 ; autorisation_habilitation.rattachement_id ; clôture terminale",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B38": {
+      "ligne": 4338,
+      "realisation": "CP-36 ; CP-39",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B39": {
+      "ligne": 4339,
+      "realisation": "CP-36 ; CP-39",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B40": {
+      "ligne": 4340,
+      "realisation": "CP-37 ; autorisation_transfert ; états contrat § 5.6",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B41": {
+      "ligne": 4341,
+      "realisation": "CP-37 ; autorisation_transfert_engagement ; inclusion contrat § 10.6",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B42": {
+      "ligne": 4342,
+      "realisation": "CP-37 ; consentement_reintegration ; CT-28",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B43": {
+      "ligne": 4343,
+      "realisation": "CP-42 ; `consentement`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-B44": {
+      "ligne": 4344,
+      "realisation": "autorisation_habilitation.auteur_id ; trace figée A7 ; CP-48",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C01": {
+      "ligne": 4345,
+      "realisation": "CP-13/DI-C01 (§ 21.3) ; CP-13 ; `document`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C02": {
+      "ligne": 4346,
+      "realisation": "CP-13/DI-C02 (§ 21.3) ; CP-13 ; `document`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C03": {
+      "ligne": 4347,
+      "realisation": "CP-13/DI-C03 (§ 21.3) ; CP-13 (aucune écriture d'une anomalie sur `document.statut_existence`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C04": {
+      "ligne": 4348,
+      "realisation": "CP-13/DI-C04 (§ 21.3) ; CP-13 ; `document`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C05": {
+      "ligne": 4349,
+      "realisation": "`exemplaire.document_id` NN (une FK unique)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C06": {
+      "ligne": 4350,
+      "realisation": "CP-09 ; `classement_unite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C07": {
+      "ligne": 4351,
+      "realisation": "CP-13/DI-C07 (§ 21.3) ; CP-13 (ordre `historique reconstruit` ⇒ `interpretation`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C08": {
+      "ligne": 4352,
+      "realisation": "`identifiant_documentaire`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C09": {
+      "ligne": 4353,
+      "realisation": "`identifiant_documentaire.date_fin` ; CP-22",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C10": {
+      "ligne": 4354,
+      "realisation": "`reproduction`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C11": {
+      "ligne": 4355,
+      "realisation": "CP-07 ; `reproduction`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C12": {
+      "ligne": 4356,
+      "realisation": "CP-13/DI-C12 (§ 21.3) ; CP-13 (alignement obligatoire) ; CP-41 (`master` confirmé)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C13": {
+      "ligne": 4357,
+      "realisation": "CP-41 ; `fichier`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C14": {
+      "ligne": 4358,
+      "realisation": "CP-13/DI-C14 (§ 21.3) ; CP-13 ; `zone`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C15": {
+      "ligne": 4359,
+      "realisation": "CP-53 ; `zone`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C16": {
+      "ligne": 4360,
+      "realisation": "`responsabilite`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C17": {
+      "ligne": 4361,
+      "realisation": "`citation_documentaire`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C18": {
+      "ligne": 4362,
+      "realisation": "`citation_documentaire.document_id` : FK vers un document de tout statut d'existence",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C19": {
+      "ligne": 4363,
+      "realisation": "CP-13/DI-C19 (§ 21.3) ; CP-13 (aucune création automatique de `document`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C20": {
+      "ligne": 4364,
+      "realisation": "`source_externe_declaree`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C21": {
+      "ligne": 4365,
+      "realisation": "CP-13/DI-C21 (§ 21.3) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C22": {
+      "ligne": 4366,
+      "realisation": "CP-41 ; `fichier`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-C23": {
+      "ligne": 4367,
+      "realisation": "CP-41 ; `fichier`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D01": {
+      "ligne": 4368,
+      "realisation": "`transcription`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D02": {
+      "ligne": 4369,
+      "realisation": "CP-19 ; `transcription`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D03": {
+      "ligne": 4370,
+      "realisation": "CP-13/DI-D03 (§ 21.3) ; CP-13 ; `transcription`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D04": {
+      "ligne": 4371,
+      "realisation": "`segment` [V] ; CP-01 ; CP-14 (`TEXTE_SOURCE`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D05": {
+      "ligne": 4372,
+      "realisation": "`segment`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D06": {
+      "ligne": 4373,
+      "realisation": "CP-13/DI-D06 (§ 21.3) ; CP-13 (aucune création automatique de `personne` depuis `mention`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D07": {
+      "ligne": 4374,
+      "realisation": "CP-10 ; `mention`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-D08": {
+      "ligne": 4375,
+      "realisation": "`mention`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E01": {
+      "ligne": 4376,
+      "realisation": "CP-08 ; `entite_historique`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E02": {
+      "ligne": 4377,
+      "realisation": "CP-13/DI-E02 (§ 21.3) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E03": {
+      "ligne": 4378,
+      "realisation": "Non applicable au MLD : règle d'usage des vues (tri, score, filtre par défaut) ; obligation de service, garde-fou de `v_densite_documentaire` (§ 23)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E04": {
+      "ligne": 4379,
+      "realisation": "CP-08 (type d'entité dans la branche de la spécialisation)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E05": {
+      "ligne": 4380,
+      "realisation": "**CP-45** (nouvelle, ECD-13)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E06": {
+      "ligne": 4381,
+      "realisation": "**CP-45** (nouvelle, ECD-13)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E07": {
+      "ligne": 4382,
+      "realisation": "`personne`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E08": {
+      "ligne": 4383,
+      "realisation": "CP-13/DI-E08 (§ 21.3) ; CP-13 ; `etape_voyage`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-E09": {
+      "ligne": 4384,
+      "realisation": "CP-13/DI-E09 (§ 21.3) ; CP-13 (aucune `etape_voyage` dérivée de deux présences)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F01": {
+      "ligne": 4385,
+      "realisation": "`proposition_identification`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F02": {
+      "ligne": 4386,
+      "realisation": "CP-15 ; `proposition_identification`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F03": {
+      "ligne": 4387,
+      "realisation": "CP-13/DI-F03 (§ 21.3) ; CP-13 ; `proposition_identification`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F04": {
+      "ligne": 4388,
+      "realisation": "`proposition_identification` : statut `rejetée` conservé ; aucune suppression (CP-01, § 3.5)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F05": {
+      "ligne": 4389,
+      "realisation": "CP-10 ; `position`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F06": {
+      "ligne": 4390,
+      "realisation": "CP-13/DI-F06 (§ 21.3) ; Tables distinctes `position` et `personne` ; aucune conversion : CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F07": {
+      "ligne": 4391,
+      "realisation": "`candidature`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F08": {
+      "ligne": 4392,
+      "realisation": "`candidature`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F09": {
+      "ligne": 4393,
+      "realisation": "CP-13/DI-F09 (§ 21.3) ; CP-13 ; `rapprochement`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F10": {
+      "ligne": 4394,
+      "realisation": "CP-13/DI-F10 (§ 21.3) ; CP-13 ; `rapprochement`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F11": {
+      "ligne": 4395,
+      "realisation": "CP-13/DI-F11 (§ 21.3) ; CP-13 (argument citant le verdict opposable)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F12": {
+      "ligne": 4396,
+      "realisation": "`rapprochement.portee` ; aucune ligne entre propriétaires (§ 27.3) ; CP-12",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F13": {
+      "ligne": 4397,
+      "realisation": "CP-07 ; `selection_contexte`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F14": {
+      "ligne": 4398,
+      "realisation": "`selection_contexte` ; §26.",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F15": {
+      "ligne": 4399,
+      "realisation": "`selection_contexte` sans écriture sur `assertion` ; CP-10",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F16": {
+      "ligne": 4400,
+      "realisation": "`position_epistemique`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-F17": {
+      "ligne": 4401,
+      "realisation": "`position_epistemique` par contexte ; aucune vue d'agrégat majoritaire (§ 23)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G01": {
+      "ligne": 4402,
+      "realisation": "CP-07",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G02": {
+      "ligne": 4403,
+      "realisation": "CP-05 ; `assertion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G03": {
+      "ligne": 4404,
+      "realisation": "CP-18 ; `assertion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G04": {
+      "ligne": 4405,
+      "realisation": "CP-13/DI-G04 (§ 21.3) ; CP-13 ; `assertion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G05": {
+      "ligne": 4406,
+      "realisation": "CP-13/DI-G05 (§ 21.3) ; CP-13 ; `assertion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G06": {
+      "ligne": 4407,
+      "realisation": "`assertion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G07": {
+      "ligne": 4408,
+      "realisation": "CP-13/DI-G07 (§ 21.3) ; `assertion_relation` (statut causal) ; CP-07 ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G08": {
+      "ligne": 4409,
+      "realisation": "CP-13/DI-G08 (§ 21.3) ; `assertion_situation.continuite` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G09": {
+      "ligne": 4410,
+      "realisation": "CP-07 (prédicat de classification déclarée) ; CP-08",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G10": {
+      "ligne": 4411,
+      "realisation": "CP-13/DI-G10 (§ 21.3) ; `expression_assertion` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G11": {
+      "ligne": 4412,
+      "realisation": "CP-05 ; `expression_segment`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G12": {
+      "ligne": 4413,
+      "realisation": "CP-13/DI-G12 (§ 21.3) ; CP-13 ; `interpretation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G13": {
+      "ligne": 4414,
+      "realisation": "CP-07 ; `dependance` ; `interpretation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G14": {
+      "ligne": 4415,
+      "realisation": "Non applicable au MLD : règle de présentation (une estimation n'est jamais affichée comme statistique) ; la distinction est structurelle (`interpretation` ≠ `resultat`), l'affichage relève du service",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G15": {
+      "ligne": 4416,
+      "realisation": "CP-13/DI-G15 (§ 21.3) ; `phase_trajectoire.etat_examen` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G16": {
+      "ligne": 4417,
+      "realisation": "CP-05 ; `lacune`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G17": {
+      "ligne": 4418,
+      "realisation": "CP-13/DI-G17 (§ 21.3) ; `transmission.niveau` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-G18": {
+      "ligne": 4419,
+      "realisation": "Fonction `independance` (§ 23) ; OB-18",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H01": {
+      "ligne": 4420,
+      "realisation": "CP-06 ; `acte_evaluation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H02": {
+      "ligne": 4421,
+      "realisation": "CP-10",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H03": {
+      "ligne": 4422,
+      "realisation": "`acte_evaluation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H04": {
+      "ligne": 4423,
+      "realisation": "Aucune FK d'`abonnement`, de `badge` ni de compteur de votes vers `acte_evaluation` (§ 5.5)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H05": {
+      "ligne": 4424,
+      "realisation": "`argument_preuve`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H06": {
+      "ligne": 4425,
+      "realisation": "CP-05 (ETAYER obligatoire pour une preuve discriminante)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H07": {
+      "ligne": 4426,
+      "realisation": "CP-13/DI-H07 (§ 21.3) ; CP-13 ; `credit` de rôle proposant",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H08": {
+      "ligne": 4427,
+      "realisation": "CP-05 ; `conflit_proposition`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H09": {
+      "ligne": 4428,
+      "realisation": "CP-13/DI-H09 (§ 21.3) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-H10": {
+      "ligne": 4429,
+      "realisation": "CP-06 ; `demande`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I01": {
+      "ligne": 4430,
+      "realisation": "CP-13/DI-I01 (§ 21.3) ; CP-13 ; `reconstruction`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I02": {
+      "ligne": 4431,
+      "realisation": "Non applicable au MLD : mention « reconstruction » et auteur à l'affichage ; obligation de service",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I03": {
+      "ligne": 4432,
+      "realisation": "CP-05 ; `element_reconstruit`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I04": {
+      "ligne": 4433,
+      "realisation": "CP-13/DI-I04 (§ 21.3) ; CP-13 (élément `inconnu` créé seulement explicitement)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I05": {
+      "ligne": 4434,
+      "realisation": "CP-18 ; `element_appui`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I06": {
+      "ligne": 4435,
+      "realisation": "`element_reconstruit`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I07": {
+      "ligne": 4436,
+      "realisation": "CP-13/DI-I07 (§ 21.3) ; CP-13 (aucune écriture d'une anomalie sur `statut_existence`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-I08": {
+      "ligne": 4437,
+      "realisation": "CP-05",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J01": {
+      "ligne": 4438,
+      "realisation": "CP-05 ; `session_memoire`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J02": {
+      "ligne": 4439,
+      "realisation": "CP-13/DI-J02 (§ 21.3) ; CP-13 ; `session_memoire`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J03": {
+      "ligne": 4440,
+      "realisation": "`echange` ; aucune écriture sur une `reponse` antérieure (CP-01)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J04": {
+      "ligne": 4441,
+      "realisation": "`echange`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J05": {
+      "ligne": 4442,
+      "realisation": "`echange`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J06": {
+      "ligne": 4443,
+      "realisation": "CP-13/DI-J06 (§ 21.3) ; CP-13 ; `reponse`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J07": {
+      "ligne": 4444,
+      "realisation": "`reponse` [V] ; REVISER ; CP-01",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J08": {
+      "ligne": 4445,
+      "realisation": "`reponse`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J09": {
+      "ligne": 4446,
+      "realisation": "`campagne_memoire` ; §22.2 ; §22.3",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J10": {
+      "ligne": 4447,
+      "realisation": "CP-03 ; `campagne_memoire`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J11": {
+      "ligne": 4448,
+      "realisation": "`capsule`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-J12": {
+      "ligne": 4449,
+      "realisation": "CP-13/DI-J12 (§ 21.3) ; CP-13 (délivrance de `capsule` sans écriture sur `autorisation_protection`)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K01": {
+      "ligne": 4450,
+      "realisation": "`projet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K02": {
+      "ligne": 4451,
+      "realisation": "CP-13/DI-K02 (§ 21.3) ; CP-13 (`transmis` ⇒ `designation_garde` effective)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K03": {
+      "ligne": 4452,
+      "realisation": "CP-13/DI-K03 (§ 21.3) ; CP-13 ; `question`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K04": {
+      "ligne": 4453,
+      "realisation": "CP-21 ; `question`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K05": {
+      "ligne": 4454,
+      "realisation": "CP-13/DI-K05 (§ 21.3) ; CP-13 ; `question`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K06": {
+      "ligne": 4455,
+      "realisation": "CP-09",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K07": {
+      "ligne": 4456,
+      "realisation": "CP-13/DI-K07 (§ 21.3) ; `piste.source_suggeree` (texte) ; CP-13 (aucune création)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K08": {
+      "ligne": 4457,
+      "realisation": "`piste`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K09": {
+      "ligne": 4458,
+      "realisation": "CP-05 ; `recherche_effectuee`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K10": {
+      "ligne": 4459,
+      "realisation": "CP-13/DI-K10 (§ 21.3) ; CP-13 ; `recherche_effectuee`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K11": {
+      "ligne": 4460,
+      "realisation": "CP-53 ; `recherche_effectuee`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K12": {
+      "ligne": 4461,
+      "realisation": "CP-20 ; CP-53 ; `intervention_perimetre`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K13": {
+      "ligne": 4462,
+      "realisation": "CP-05",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K14": {
+      "ligne": 4463,
+      "realisation": "`offre_deplacement` sans FK vers un projet ; § 22",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K15": {
+      "ligne": 4464,
+      "realisation": "`application_protocole`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K16": {
+      "ligne": 4465,
+      "realisation": "CP-13/DI-K16 (§ 21.3) ; CP-13 ; `application_protocole`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K17": {
+      "ligne": 4466,
+      "realisation": "Non applicable au MLD : libellé « exhaustif selon le protocole X vN » ; obligation de service, fondée sur `application_protocole`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K18": {
+      "ligne": 4467,
+      "realisation": "CP-53 ; `regle_methodologique`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K19": {
+      "ligne": 4468,
+      "realisation": "CP-13/DI-K19 (§ 21.3) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K20": {
+      "ligne": 4469,
+      "realisation": "CP-03 ; CP-15",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K21": {
+      "ligne": 4470,
+      "realisation": "CK `diff_connaissance` (num_nonnulls) ; CP-10 (nature technique)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K22": {
+      "ligne": 4471,
+      "realisation": "`decouverte`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K24": {
+      "ligne": 4473,
+      "realisation": "CP-38 ; `etudier`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K25": {
+      "ligne": 4474,
+      "realisation": "CP-38 ; `etudier`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K26": {
+      "ligne": 4475,
+      "realisation": "CP-38 ; `utiliser`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K27": {
+      "ligne": 4476,
+      "realisation": "CP-32",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K28": {
+      "ligne": 4477,
+      "realisation": "CP-32 ; `tache_assignation`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K29": {
+      "ligne": 4478,
+      "realisation": "CP-32 ; `autorisation_habilitation` / `autorisation_protection` / `autorisation_derogation` selon catégorie (§ 5.3) ; `tache_objet`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K30": {
+      "ligne": 4479,
+      "realisation": "CP-32",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-K31": {
+      "ligne": 4480,
+      "realisation": "CP-32 ; `tache`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L01": {
+      "ligne": 4481,
+      "realisation": "CP-04 ; `arbre`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L02": {
+      "ligne": 4482,
+      "realisation": "`arbre`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L03": {
+      "ligne": 4483,
+      "realisation": "CP-04 ; `noeud_arbre`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L04": {
+      "ligne": 4484,
+      "realisation": "`noeud_arbre`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L05": {
+      "ligne": 4485,
+      "realisation": "`noeud_arbre.personne_id` dans l'espace de l'arbre (CP-04) ; lien Core par `rapprochement` ou `reference_inter_espace`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L06": {
+      "ligne": 4486,
+      "realisation": "CP-04 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L07": {
+      "ligne": 4487,
+      "realisation": "CP-04 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L08": {
+      "ligne": 4488,
+      "realisation": "CP-04 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L09": {
+      "ligne": 4489,
+      "realisation": "CP-03 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L10": {
+      "ligne": 4490,
+      "realisation": "CP-20",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L11": {
+      "ligne": 4491,
+      "realisation": "CP-20 ; § 22 (écarts visibles des deux parties seulement)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L12": {
+      "ligne": 4492,
+      "realisation": "CP-04 ; CP-33 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L13": {
+      "ligne": 4493,
+      "realisation": "CP-33 ; MLD-16 ; `selection_inclusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L14": {
+      "ligne": 4494,
+      "realisation": "CP-33 ; `selection_inclusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L15": {
+      "ligne": 4495,
+      "realisation": "CP-33 ; MLD-16",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L16": {
+      "ligne": 4496,
+      "realisation": "CP-33 ; CP-45 ; `selection_inclusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L17": {
+      "ligne": 4497,
+      "realisation": "CP-33 ; `selection_partage`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L18": {
+      "ligne": 4498,
+      "realisation": "CP-04 ; CP-33 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L19": {
+      "ligne": 4499,
+      "realisation": "CP-33",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L20": {
+      "ligne": 4500,
+      "realisation": "CP-33 ; `operation_flux`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L21": {
+      "ligne": 4501,
+      "realisation": "CP-29 ; `selection_inclusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-L22": {
+      "ligne": 4502,
+      "realisation": "MLD-16 ; `selection_partage`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-M01": {
+      "ligne": 4503,
+      "realisation": "CP-13/DI-M01 (§ 21.3) ; CP-04 ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-M02": {
+      "ligne": 4504,
+      "realisation": "CP-19",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-M03": {
+      "ligne": 4505,
+      "realisation": "`participation_connect`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-M04": {
+      "ligne": 4506,
+      "realisation": "Confidentialité R ; § 22 ; OB-17",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N01": {
+      "ligne": 4507,
+      "realisation": "CP-13/DI-N01 (§ 21.3) ; CP-13 ; `geometrie`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N02": {
+      "ligne": 4508,
+      "realisation": "`geometrie`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N03": {
+      "ligne": 4509,
+      "realisation": "CP-13/DI-N03 (§ 21.3) ; `geometrie` reconstruite ⇒ `calcul_id` ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N04": {
+      "ligne": 4510,
+      "realisation": "CP-14 ; `geometrie`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N05": {
+      "ligne": 4511,
+      "realisation": "CP-13/DI-N05 (§ 21.3) ; CP-13 ; présentation cartographique (obligation de service)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N06": {
+      "ligne": 4512,
+      "realisation": "`carte.mode`, `fraicheur` ; CP-10 ; CP-21",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N07": {
+      "ligne": 4513,
+      "realisation": "§ 22.3 (calcul sur le graphe accessible)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-N08": {
+      "ligne": 4514,
+      "realisation": "Tables distinctes (`lieu`, `bien`, assertion `situation`) ; CP-07",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O01": {
+      "ligne": 4515,
+      "realisation": "`corpus`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O02": {
+      "ligne": 4516,
+      "realisation": "`corpus`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O03": {
+      "ligne": 4517,
+      "realisation": "`corpus_inclusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O04": {
+      "ligne": 4518,
+      "realisation": "`cohorte_analytique`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O05": {
+      "ligne": 4519,
+      "realisation": "`methode` [V] ; `calcul.methode_numero` ; CP-01",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O06": {
+      "ligne": 4520,
+      "realisation": "CP-13/DI-O06 (§ 21.3) ; CP-13 ; `methode`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O07": {
+      "ligne": 4521,
+      "realisation": "CP-13/DI-O07 (§ 21.3) ; CP-13 ; `calcul`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O08": {
+      "ligne": 4522,
+      "realisation": "`calcul`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O09": {
+      "ligne": 4523,
+      "realisation": "CP-21 ; `resultat`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O10": {
+      "ligne": 4524,
+      "realisation": "Non applicable au MLD pour l'affichage ; les données affichées existent (`resultat.couverture` NN*, `calcul` → méthode, corpus, date)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O11": {
+      "ligne": 4525,
+      "realisation": "CP-13/DI-O11 (§ 21.3) ; CP-13 (aucune `assertion_relation` produite par un calcul)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O12": {
+      "ligne": 4526,
+      "realisation": "CP-13/DI-O12 (§ 21.3) ; § 22.3 (agrégation) ; CP-13",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O13": {
+      "ligne": 4527,
+      "realisation": "CP-34 ; `methode`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O14": {
+      "ligne": 4528,
+      "realisation": "CP-34",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O15": {
+      "ligne": 4529,
+      "realisation": "CP-34",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O16": {
+      "ligne": 4530,
+      "realisation": "CP-34",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-O17": {
+      "ligne": 4531,
+      "realisation": "CP-34",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P01": {
+      "ligne": 4532,
+      "realisation": "CP-13/DI-P01 (§ 21.3) ; CP-13 ; `publication`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P02": {
+      "ligne": 4533,
+      "realisation": "`correction_publication` ; CP-01",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P03": {
+      "ligne": 4534,
+      "realisation": "CP-13/DI-P03 (§ 21.3) ; CP-13 ; `publication`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P04": {
+      "ligne": 4535,
+      "realisation": "CP-17",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P05": {
+      "ligne": 4536,
+      "realisation": "MLD-14 ; §26.",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P06": {
+      "ligne": 4537,
+      "realisation": "`export_element` ; CP-46",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P07": {
+      "ligne": 4538,
+      "realisation": "CP-13/DI-P07 (§ 21.3) ; MLD-14 ; aucune colonne `I` exportée : CP-13 ; MPD-05",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P08": {
+      "ligne": 4539,
+      "realisation": "MLD-11",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P09": {
+      "ligne": 4540,
+      "realisation": "CP-04 ; `reconciliation_import`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P10": {
+      "ligne": 4541,
+      "realisation": "`import`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P11": {
+      "ligne": 4542,
+      "realisation": "CP-35",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P12": {
+      "ligne": 4543,
+      "realisation": "CP-35 ; `decision_editoriale`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P13": {
+      "ligne": 4544,
+      "realisation": "CP-35 ; `decision_editoriale`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P14": {
+      "ligne": 4545,
+      "realisation": "CP-35 ; `publication`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P15": {
+      "ligne": 4546,
+      "realisation": "CP-35 ; `diffusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P16": {
+      "ligne": 4547,
+      "realisation": "CP-35 ; `diffusion`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P17": {
+      "ligne": 4548,
+      "realisation": "CP-35",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P18": {
+      "ligne": 4549,
+      "realisation": "CP-35 ; `publication`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-P19": {
+      "ligne": 4550,
+      "realisation": "CP-23 ; `import`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q01": {
+      "ligne": 4551,
+      "realisation": "Non applicable au MLD : comportement applicatif de la capture ; le déclenchement de l'IA est tracé par `activite.declenchement`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q02": {
+      "ligne": 4552,
+      "realisation": "CP-05 ; `inbox_item`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q03": {
+      "ligne": 4553,
+      "realisation": "`historique_navigation` [T], ON DELETE CASCADE (§ 3.5) ; aucune FK vers le Core",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q04": {
+      "ligne": 4554,
+      "realisation": "`veille`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q05": {
+      "ligne": 4555,
+      "realisation": "§22.3",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-Q06": {
+      "ligne": 4556,
+      "realisation": "`notification.motif` CK D-49 (aucune valeur d'engagement)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R01": {
+      "ligne": 4558,
+      "realisation": "`referentiel`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R02": {
+      "ligne": 4559,
+      "realisation": "`concept.actif` ; aucune suppression (RESTRICT, § 3.5)",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R03": {
+      "ligne": 4560,
+      "realisation": "CP-07 ; `concept_predicat`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R04": {
+      "ligne": 4561,
+      "realisation": "CP-06 ; `concept`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R05": {
+      "ligne": 4562,
+      "realisation": "CP-09 ; `concept`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    },
+    "DI-R06": {
+      "ligne": 4563,
+      "realisation": "`concept` ; `referentiel`",
+      "statut": "Énoncée — traçabilité documentaire vérifiée"
+    }
+  },
+  "matrice_DI_nombre": 304,
+  "definitions_DI_nombre": 304,
+  "regles_DI_sans_matrice": [],
+  "matrice_DI_sans_definition": [],
+  "CP13_nombre": 60,
+  "CP13_definitions_absentes": [],
+  "CP13_enonces_absents": [],
+  "CP13_enonces_differents_du_dictionnaire": []
+}

@@ -1,6 +1,6 @@
 # GENIIUS — Batterie de scénarios du contrat d'autorisation
 
-**Version :** V1 — **à figer** par le porteur (10 octobre 2026), avant la réécriture du dictionnaire et du MLD.
+**Version :** V1 — **remplacée** par la [V1.1 candidate](GENIIUS_BATTERIE_SCENARIOS_AUTORISATION_V1_1.md) (69 scénarios, 10/10/2026). Conservée pour l’historique.
 **Référentiel :** [contrat d'autorisation V1](../GENIIUS_CONTRAT_AUTORISATION_V1.md).
 **Règle :** les résultats attendus sont fixés **avant** la réécriture. Le futur audit indépendant rejouera chaque scénario contre le MLD réécrit. Un scénario qui n'obtient pas le résultat attendu est un constat.
 

@@ -1,16 +1,21 @@
-# GENIIUS — Cahier des charges technique V1.0
+# GENIIUS — Cahier des charges technique V1.2
 
-**Version :** 1.0 — consolidée à partir des échanges de conception
-**Date :** 9 octobre 2026
-**Statut :** audit achevé sur le périmètre initial — **NON GELÉ** (voir § 11). **Version de référence** du CDC technique ; les autres versions sont archivées dans [`archives/cdc-technique/`](archives/cdc-technique/) ([registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md)).
+**Version :** 1.2 — clôture des réserves et gel documentaire de la chaîne documentaire, autorisations V1.6 et AV-FONC-001
+**Date :** 12 octobre 2026 ; revue finale corrigée le 13 octobre 2026
+**Statut :** **GELÉ le 13 octobre 2026 — baseline documentaire avec reports encadrés** (voir § 11). **Version de référence** du CDC technique ; les autres versions sont archivées dans [`archives/cdc-technique/`](archives/cdc-technique/) ([registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md)).
 **Source :** [`archives/cdc-technique/échanges_CDC technique.txt`](archives/cdc-technique/) (décisions TECH-001 à TECH-033, AUDIT-TECH-001 à 016, REV-02-A à H, REV-03-A à M11)
 **Documents amont :**
-- CDCF V1.1 (référence)
-- MCD V1.1 🔒 (gelé, 95/95 tests)
-- Dictionnaire V1.1 consolidé 🔒 (gelé le 9/10/2026)
-- MLD V1.0 (candidat)
+- [CDCF V1.3](geniius_io_CDCF_V1.md), référence, AV-FONC-001 intégré (CU-01 à CU-31 ; critères 1 à 64)
+- [MCD V1.2](geniius_io_MCD_V1.md), gelé, rapport des 173 contrôles
+- [Dictionnaire V1.3](geniius_io_DICTIONNAIRE_DONNEES_V1.md), validé documentairement, gel formel non prononcé
+- [MLD V1.1-g](GENIIUS_MLD_V1_0.md), stabilisé, candidat au gel, avec [catalogue relationnel](GENIIUS_MLD_AUTORISATIONS_V1_6.md)
+- [Contrat d’autorisation V1.6](GENIIUS_CONTRAT_AUTORISATION_V1.md), contrat comportemental gelé avec réserves (§§ 16 et 17.3)
+
+Les 465 tests du modèle d'autorisation et les contrôles du MLD sont des preuves amont, pas une recette du logiciel répondant à ce CDC. La V1.0 antérieure est archivée avant toute correction.
 
 Statuts et preuves : voir le registre des versions normatives.
+**Parties intégrantes V1.2 :** [référentiel de recettes](GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md) et [bilan des conditions de gel](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md).
+
 **Document aval :** Architecture technique → crash-test d'architecture → MPD → API/Core → applications
 
 > Ce document fixe **ce que GENIIUS doit garantir techniquement**. Il ne choisit pas les technologies : chaque fois qu'une solution concrète est évoquée (PostgreSQL, MinIO, Supabase, Electron, Tauri, RLS, RabbitMQ, OpenTelemetry…), c'est à titre d'illustration. Le choix relève de l'architecture technique, documenté par ADR (TECH-032).
@@ -31,12 +36,13 @@ Statuts et preuves : voir le registre des versions normatives.
 9. Registre des décisions différées et des paramètres à dimensionner
 10. Matrice de traçabilité des 33 exigences
 11. Conditions de gel GEL-01 à GEL-08
-12. Réserve structurelle AV-FONC-001
+12. Intégration technique AV-FONC-001
 13. Procédure de changement après gel
+14. Alignement normatif V1.2 et protocole de recette
 Annexe A — Glossaire
 Annexe B — Journal des décisions
 Annexe C — Limites de ce document
-Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.1
+Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.3
 
 ---
 
@@ -204,7 +210,7 @@ Toutes ont été **validées** pendant la conception. Leur intégration normativ
 - **TECH-001.4** Les applications installées peuvent exploiter les capacités matérielles du terminal lorsque cela apporte une valeur fonctionnelle : fichiers et dossiers locaux, appareil photo, micro, notifications, partage, biométrie du système, scanner lorsqu'il est accessible.
 - **TECH-001.5** La fabrication d'un matériel GENIIUS propriétaire est **hors périmètre**. L'architecture ne doit cependant pas empêcher à terme un nœud ou serveur GENIIUS local.
 
-**Liens.** TECH-004, TECH-025. Recette : contrat à préciser (REV-03-M10-A).
+**Liens.** TECH-004, TECH-025. Recette : REC-CDC-TECH001 ; contrat TECH-001.1 à .5.
 
 ## TECH-002 — Fonctionnement hors connexion
 
@@ -445,10 +451,10 @@ Toutes ont été **validées** pendant la conception. Leur intégration normativ
 - **TECH-011.3** Une donnée inaccessible **n'est jamais envoyée au client** pour y être masquée (interdit : `secret_note` accompagné de `can_display_secret_note: false`).
 - **TECH-011.4** Le **graphe accessible** est calculé **avant** : recherche, navigation, agrégation, statistiques, export, notification, API, traitements IA (OB-03, MLD § 22.3).
 - **TECH-011.5** La protection d'existence empêche les fuites indirectes : compteurs, suggestions, messages d'erreur, résultats partiels, temps de réponse. Les réponses « absent » et « existence protégée » sont indistinguables (OB-04). Exemple : répondre « 2 résultats », et non « 3 résultats dont 1 inaccessible ».
-- **TECH-011.6** Hors ligne, les applications utilisent la dernière autorisation synchronisée connue. Toute révocation est propagée, et les copies locales concernées deviennent inaccessibles ou supprimables à la reconnexion. La **fenêtre de risque jusqu'à la reconnexion** est reconnue (AUDIT-TECH-001).
+- **TECH-011.6** Hors ligne, les applications utilisent la dernière autorisation synchronisée connue. Toute révocation est propagée, et les copies locales concernées deviennent inaccessibles ou supprimables à la reconnexion. Le **résidu jusqu’au minimum de la reconnexion et de l’échéance opposable** est reconnu (AUDIT-TECH-001).
 - **TECH-011.7** Les règles d'autorisation ne sont pas réimplémentées indépendamment par le Web, le Desktop et le Mobile.
 - **TECH-011.8** Les contrôles de sécurité sont testés automatiquement, notamment contre les fuites indirectes.
-- **TECH-011.9** L'ordre d'évaluation est celui du MLD § 22.2 : existence protégée → interdiction → autorisation explicite → visibilité par défaut → lien (extrémités accessibles) → embargo et masquage.
+- **TECH-011.9** Toutes les surfaces appliquent l’ordre du contrat V1.6 § 14, traduit au MLD § 22.2 : cible non purgée → restrictions non levables propres/ascendantes → dérogation active bornée → protections d’existence → restrictions internes → droits effectifs → visibilité par défaut → rendu filtré. Un lien exige aussi accès aux extrémités. Un échec de vérification donne introuvable sans mutation. L’administration n’est jamais une dérogation.
 - **TECH-011.10** Un rôle administratif ne confère **aucune lecture implicite** des contenus `projet` ou `privé` (REV-02-A, CP-23 à CP-25).
 - **TECH-011.11** La matérialisation (RLS PostgreSQL, moteur de politiques dans le Core ou combinaison) est reportée à MPD-02 et MPD-06.
 
@@ -507,7 +513,7 @@ Toutes ont été **validées** pendant la conception. Leur intégration normativ
   | **2 — important** | Recherche, synchronisation, certaines fonctions applicatives | Continuer partiellement |
   | **3 — différable** | OCR, miniatures secondaires, analyses, IA, notifications non urgentes | Mise en attente |
 
-- **TECH-013.9** **Fail closed** : si une autorisation ne peut pas être vérifiée, l'accès est refusé (« donnée momentanément indisponible »).
+- **TECH-013.9** **Fail closed** : si une autorisation ne peut pas être vérifiée, l'accès est refusé avec une réponse introuvable indistinguable d’une cible inexistante ; une indisponibilité globale peut être annoncée sans confirmer aucune cible.
 - **TECH-013.10** En cas de doute sur l'intégrité d'une écriture, GENIIUS suspend l'écriture plutôt que de risquer une corruption silencieuse.
 
 **Liens.** Recettes : REC-TECH13, REC-X16, REC-NF09.
@@ -1066,7 +1072,7 @@ Ces seize clarifications résolvent les tensions entre exigences. Elles **compl�
 
 **Politique retenue : différenciée selon la sensibilité (option C).**
 
-1. Le fonctionnement hors connexion complet reste possible pour les données ordinaires que l'utilisateur est autorisé à répliquer.
+1. Le hors ligne ne réplique que des objets visibles par accès ordinaire. Toute donnée qui n’est pas simultanément publique et librement redistribuable porte une échéance locale opposable, y compris les objets personnels du titulaire ; minimum plafond plateforme/espace/habilitant, selon contrat § 13.9. Aucun accès dérogatoire n’autorise la réplication.
 2. Les propriétaires d'espaces sensibles peuvent imposer une politique plus restrictive : **durée maximale de consultation hors ligne**, voire **interdiction de réplication locale**, dans les limites définies par le Core.
 3. Les révocations sont appliquées **dès la reconnexion**, avant toute nouvelle opération nécessitant les droits retirés.
 4. Les contributions personnelles non synchronisées ne sont **jamais détruites automatiquement** lors d'une révocation. Elles sont isolées et traitées par une procédure sécurisée de réconciliation.
@@ -1522,7 +1528,7 @@ Une décision différée n'est pas une lacune.
 12. Les critères d'acceptation évoluent de façon contrôlée.
 13. Les points ouverts sont réexaminés à leur étape d'affectation.
 14. Le passage à l'architecture est autorisé par un bilan explicite de préparation.
-15. Le gel V1.0 n'est prononcé qu'après une revue finale de cohérence et de complétude.
+15. Le gel du CDC n’est prononcé qu'après une revue finale de cohérence et de complétude.
 
 **Conditions générales de gel :**
 1. Exigences consolidées dans un document cohérent.
@@ -1539,12 +1545,12 @@ Ces conditions générales sont déclinées en GEL-01 à GEL-08 (§ 11).
 
 # 5. Décisions de cohérence REV-02-A à REV-02-H
 
-Issues du contrôle croisé avec le MCD V1.1, le dictionnaire V1.1 et le MLD V1.0. Toutes **validées**. Ce sont des précisions de cohérence, pas de nouveaux blocs.
+Issues du contrôle croisé avec le MCD/dictionnaire/MLD des versions initiales ; report actuel V1.2/V1.3/V1.2-g au § 14. Toutes **validées**. Ce sont des précisions de cohérence, pas de nouveaux blocs.
 
 | Réf. | Objet | Règle |
 |---|---|---|
 | **REV-02-A** | Droits administratifs ≠ droits de consultation | Administrer un espace, administrer la plateforme et accéder à des contenus scientifiques privés sont trois prérogatives distinctes. Un administrateur technique n'a aucun droit automatique de lecture des contenus privés. Un administrateur d'espace n'a que les droits explicitement associés à son rôle et au contexte. Les accès exceptionnels sont autorisés, justifiés, limités et audités. |
-| **REV-02-B** | Confidentialité des dérivés et anciennes versions | Toute donnée dérivée, ancienne version, représentation calculée ou sortie différée (synthèse, cache, notification en attente, export préparé non téléchargé) respecte les autorisations **au moment de sa divulgation**. Les restrictions d'un dérivé sont déterminées par ses propres règles de gouvernance et sa provenance, **sans héritage aveugle** ni contournement des protections des sources. On distingue l'évaluation des droits d'un dérivé du contrôle de sa diffusion. |
+| **REV-02-B** | Confidentialité des dérivés et anciennes versions | Toute donnée dérivée, ancienne version, représentation calculée ou sortie différée (synthèse, cache, notification en attente, export préparé non téléchargé) respecte les autorisations **au moment de sa divulgation**. Les copies réutilisées héritent des protections opposables selon contrat § 13.11 : garde évaluée sur ascendant, propagation des protections ultérieures, sensibilité et restrictions non levables de tous les ascendants, y compris après purge de l’original ; levée de l’original non automatiquement transmise. Les autres dérivés sont évalués selon leur gouvernance et leur provenance, sans blanchiment de droits. On distingue l'évaluation des droits d'un dérivé du contrôle de sa diffusion. |
 | **REV-02-C** | Divulgations statistiques indirectes | Aucune statistique, agrégation, comparaison ou succession de requêtes ne révèle des informations dont l'existence ou le contenu est protégé. Cela inclut les **attaques par différenciation**. La règle s'applique aux graphiques, tableaux de bord, cartes Atlas, résultats de recherche et API. Mécanismes et seuils : architecture et MPD, sans affaiblir le calcul sur le graphe accessible. |
 | **REV-02-D** | Attribution après départ d'une organisation | Le départ ou l'exclusion d'un membre ne supprime jamais automatiquement ses contributions, crédits ni historique scientifique. L'ancien membre conserve depuis son compte un **historique personnel de ses contributions** (titres, dates, rôles, identifiants, statuts, crédits), dans la limite des informations communicables. L'accès au contenu intégral, sa réutilisation et son export restent soumis aux droits et accords. Révoquer une adhésion ne vaut ni effacement de la paternité scientifique ni transfert de propriété intellectuelle. Une rectification d'attribution ou un effacement légal reste possible par procédure tracée. |
 | **REV-02-E** | Corrections par un autre chercheur | Toute modification conserve l'attribution de la version initiale. Elle identifie distinctement les auteurs des corrections, leurs justifications et les actes de validation. Une version corrigée peut devenir la référence pour un usage donné, sans effacer l'historique ni réattribuer rétroactivement. |
@@ -1562,53 +1568,26 @@ Issues du contrôle croisé avec le MCD V1.1, le dictionnaire V1.1 et le MLD V1.
 |---|---|
 | **REV-03-B** — Vérifiabilité | Toute exigence technique est reliée à ses sources fonctionnelles ou scientifiques. Elle dispose de critères d'acceptation observables, de scénarios de vérification et d'une priorité de recette. Toute décision différée précise son étape de résolution. **Aucun report ne peut masquer une contradiction normative ou une exigence critique non définie.** |
 | **REV-03-C** — Décisions différées | Toute décision différée figure dans un registre précisant : référence, objet, exigences à satisfaire, criticité, étape de résolution, **responsable de décision**, tests de vérification. Aucune décision différée ne reste ouverte au moment où sa résolution devient nécessaire. |
-| **REV-03-D** — Exhaustivité | Le gel exige une matrice de traçabilité fonctionnelle et scientifique couvrant toutes les exigences du périmètre V1.0. Toute lacune critique ou contradiction est résolue avant le gel. Une application n'est pas réputée couverte au seul motif que le Core dispose d'une API générique. Classification : **couvert / partiellement couvert / non couvert / différé légitimement / contradictoire**. |
+| **REV-03-D** — Exhaustivité | Le gel exige une matrice de traçabilité fonctionnelle et scientifique couvrant toutes les exigences du périmètre V1 incluant AV-FONC-001. Toute lacune critique ou contradiction est résolue avant le gel. Une application n'est pas réputée couverte au seul motif que le Core dispose d'une API générique. Classification : **couvert / partiellement couvert / non couvert / différé légitimement / contradictoire**. |
 | **Règle de gel** (REV-03-M01) | Une exigence peut rester à implémenter lors du gel, mais **pas ambiguë** sur le comportement attendu. Le gel exige des exigences cohérentes, précises, traçables et testables, pas des tests déjà réussis. |
 | **Règle de levée** (REV-03-M11) | Aucune condition GEL n'est levée sur la seule base d'un accord en discussion. Il faut une référence à la version documentaire corrigée **et** une vérification de cohérence. |
 
-## 6.2 Alignement du MLD sur la séparation administration / lecture (L14)
+## 6.2 Alignement actuel de l’administration et des droits (V1.2)
 
-**Constat (REV-03-A, REV-03-D.8).** L'ancienne rédaction du MLD § 22.1 donnait aux rôles `propriétaire` et `administrateur` un accès par défaut aux objets `privé`. Elle contredisait REV-02-A. Classement : **P0 — bloquant avant gel**.
+La correction L14 n’est plus une variante de MLD non désignée. Le registre identifie le MLD V1.1-g stabilisé et son catalogue ; le dictionnaire V1.3 a reçu deux recontrôles documentaires favorables, et le contrat comportemental V1.6 est gelé. Les fichiers archivés ne sont pas des politiques concurrentes. Ces statuts ne valent pas gel formel des modèles ni recette du logiciel.
 
-**Correction approuvée** (rédaction de la visibilité `privé`) :
-
-> Privé : seuls les acteurs explicitement autorisés à consulter le contenu concerné, notamment son propriétaire lorsque ses droits effectifs le permettent, peuvent y accéder. Le rôle d'administrateur d'espace, d'organisation ou de plateforme ne confère aucun droit de lecture implicite. Tout accès exceptionnel doit reposer sur une habilitation spécifique, limitée, justifiée et auditée, conformément aux règles applicables.
-
-**Contraintes procédurales associées.**
-
-| Réf. | Règle | Précisions approuvées |
+| Référence | Disposition actuelle | Preuve amont / recette |
 |---|---|---|
-| **CP-23** | Droits du propriétaire : la création d'un objet `privé` crée **dans la même transaction** une `regle_acces` explicite (`voir`, `éditer`) pour l'auteur. Aucun rôle d'espace ne donne de lecture implicite. | Ne doit ni empêcher un transfert ultérieur de propriété ou de garde, ni donner une autorisation perpétuelle après une révocation légitime. |
-| **CP-24** | Habilitation exceptionnelle : règle nominative de `nature = exceptionnelle`, avec `date_fin` et `fondement` obligatoires (CK), et journalisation de **chaque usage** (`contexte_evaluation.regle_acces_id`, `finalite` non nulle). Elle couvre les objets `privé` **et** `projet` *(révisée le 9/10/2026, ECD-04)*. | Trace aussi les refus et tentatives pertinents, **sans journaliser le contenu confidentiel**. |
-| **CP-26** | Une règle `autoriser` au profit du rôle `propriétaire` ou `administrateur` ne porte que sur `administrer`, qui n'ouvre aucune lecture (CK déclaratif). Les rôles de gouvernance ne sont jamais bénéficiaires d'une règle *(ajoutée le 9/10/2026, ECD-04)*. | Rend l'arbitrage A de REC-X11 exécutable. |
-| **CP-25** | Séparation des habilitations administratives et scientifiques. Un rôle administratif ne crée aucune appartenance scientifique ni lecture implicite des objets `projet` ou `privé`. La lecture `projet` exige une appartenance active avec lecture scientifique explicite. Le cumul est possible. | À la création d'un espace, le créateur reçoit atomiquement `propriétaire` (administratif) **et** `responsable scientifique` (scientifique), révocables ou transférables indépendamment. Un prestataire reçoit une appartenance administrative bornée à son mandat, sans lecture scientifique implicite. |
+| CP-23 / contrat § 6 | Titularité créée par le système, distincte de la propriété administrative, avec sept actions et partage ; ni validation scientifique automatique ni Core sur objet personnel. Départ de l’espace ne retire pas la titularité | Dossier validation V1.3 ; X10-02/04 ; REC-CDC-TECH011 |
+| CP-24 / contrat § 12 | Dérogation bornée, finalité/version, approbations indépendantes et garde actuelles, aucune non-levable franchie ; aucune autorisation générale de support | X11-04/06/09 ; REC-CDC-TECH027 |
+| CP-25/26 / A2 | Administrer/propriété/qualité plateforme ne lit ni ne partage implicitement ; droits ordinaires par fondements effectifs seulement | X10-06/07 ; X11-01/02 ; dossier autorisations gelées |
+| Racine / contrat § 10 | Propriété administrative unique et racine système concordantes dans tout espace non clos ; pas de retrait indépendant créant espace orphelin. Transfert/succession dans procédures fermées et atomiques | X10-01/03/08 ; PR01-06 ; CP-37 |
+| A1/A4 / §§ 7–9 | HI institutionnelle survit au signataire sous autorité espace ; HP et admission HP bornées par fondements propres ; clôture/expiration définitives, droits par personne et pas auto-attribution | Recettes dédiées 003/005/011 ; modèle de référence V1.6 amont |
+| CP-27/28 et ST-01 à ST-15 | Réception privée avant résolution, intégration à droits courants, retraits avant ajouts, échéance sur toute donnée protégée ; contributions personnelles non détruites pour perte de droits | Recettes 002/003/005/012 ; § 14.2/14.3 |
 
-**Arbitrages REC-X10.**
-- **A.** Le retrait d'une habilitation scientifique ne supprime pas automatiquement une autorisation explicite sur un objet privé : elle a son propre cycle de vie. Une révocation explicite est nécessaire si la politique l'exige ; il n'y a pas d'effet implicite non documenté.
-- **B.** Le dernier propriétaire d'un espace ne peut pas être retiré sans transfert ou procédure de succession autorisée.
+Un titulaire peut conserver ses objets sans conserver un rôle de contenu dans l’espace quitté. Un RS non racine peut perdre son rôle sans perdre ses droits personnels légitimes. Un rôle d’administrateur de plateforme ne vaut pas automatiquement `administrer` d’un espace. La lecture privée n’est jamais déduite d’un cumul de rôles ou d’un mandat technique.
 
-**Arbitrages REC-X11.**
-- **A.** Une règle `autoriser` ciblant un rôle administratif ne peut jamais accorder une lecture ordinaire de contenu `projet` ou `privé`. Les exceptions passent par CP-24.
-- **B.** Une autorisation exceptionnelle est **réévaluée à chaque opération révélatrice**, même en session ouverte. Cela vaut pour les liens de téléchargement, les exports en préparation et les tâches asynchrones.
-
-**Synthèse des situations (CP-25).**
-
-| Situation | Administration de l'espace | Lecture `projet` | Lecture `privé` |
-|---|---|---|---|
-| Administrateur technique uniquement | Oui | Non | Non |
-| Membre scientifique uniquement | Non, sauf habilitation | Oui, selon droits effectifs | Seulement sur autorisation |
-| Administrateur et membre scientifique | Oui | Oui, selon droits effectifs | Seulement sur autorisation |
-| Prestataire avec accès exceptionnel | Selon mandat | Dans le périmètre autorisé | Par habilitation spécifique auditée |
-
-**État documentaire.** Le fichier `docs/GENIIUS_MLD_V1_0.md` de l'espace de travail contient la nouvelle rédaction du § 22.1 et CP-23 à CP-25 (constat du 9 octobre 2026, modification non encore commitée). Ce constat porte sur **un fichier corrigé**. Il n'établit pas que ce fichier est la **version normative unique** du MLD : plusieurs versions ont circulé, dont une antérieure à la correction. Tant que cette version n'est pas désignée formellement, et que l'absence de lecture administrative implicite n'est pas vérifiée dans le reste du modèle (M10-A01, GEL-05), la correction reste **constatée mais non normativement intégrée**, et **GEL-01 reste ouverte**. Après la décision du 9 octobre 2026 (« ne touche plus au MLD pour l'instant »), aucune autre modification structurelle du MLD n'est engagée : toute nouvelle lacune révélée par les recettes est consignée avant décision.
-
-**Révision décidée le 9 octobre 2026 (audit de cohérence, ECD-04 et ECD-05).** Sur décision explicite, le MLD et le dictionnaire ont été complétés :
-- **CP-24 réécrite et CP-26 ajoutée** : plus aucune règle de lecture au profit d'un rôle administratif ; l'accès exceptionnel est identifiable (`regle_acces.nature`, `fondement`) et journalisé ;
-- **CP-27** : réception des contributions hors ligne dans `contribution_differee` (zone de réconciliation, MLD § 5.6) ;
-- **CP-28** : réplication locale limitée au graphe accessible, politique par espace, retraits non qualifiés ;
-- **obligations ST-01 à ST-08** transmises au schéma technique des appareils et de la synchronisation (MLD § 28.3).
-
-Le MLD reste candidat. Voir le [registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md).
+Les [preuves de validation des modèles](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md) et le [procès-verbal V1.6](AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md) justifient le report documentaire. Le bilan GEL du § 11 distingue ce progrès, la revue finale du CDC et les réserves encore ouvertes.
 
 ## 6.3 Points de contrôle REV-03-M10
 
@@ -1663,7 +1642,7 @@ Les seize lacunes sont des **défauts de traduction technique vérifiable** de r
 ## 7.1 Arbitrages des lacunes P0
 
 **L01 — Propagation (REC-X12).**
-- **A — Signalement immédiat.** Dès qu'un changement amont est validé, les résultats dépendants peuvent être signalés comme susceptibles d'être affectés, même si le recalcul est différé. La propagation asynchrone ne crée **aucune fenêtre de fausse certitude**.
+- **A — Signalement immédiat.** Dès le commit d’un changement scientifique amont, les dépendances directes sont marquées dans la même transaction ; tant que les niveaux transitifs sont en propagation, aucun résultat aval n’est présenté définitivement à jour, même si le recalcul est différé. La propagation asynchrone ne crée **aucune fenêtre de fausse certitude**.
 - **B — Pas de modification scientifique automatique.** Le système recalcule les résultats purement techniques et marque les dépendances. Il ne confirme, n'invalide ni ne remplace une conclusion sans décision humaine, sauf règle automatisée explicitement autorisée et tracée.
 - **C — Défaillance prudente.** En cas d'échec, un état de réexamen en attente reste visible, et la propagation est relancée de façon idempotente.
 - **Précision (REV-03-D.2).** Tant qu'un impact n'est pas résolu, l'interface et les API ne présentent pas silencieusement un résultat potentiellement obsolète comme réexaminé.
@@ -1731,10 +1710,10 @@ Les seize lacunes sont des **défauts de traduction technique vérifiable** de r
 
 ## 8.0 Statut et règles communes
 
-- **Statut par défaut :** spécification approuvée, **non exécutée**. Aucune recette n'a encore été jouée sur un logiciel.
+- **Statut par défaut :** spécification approuvée, **non exécutée**. Aucune recette n’a encore été jouée sur un logiciel. Les 31 CU et 64 critères du CDCF sont repris explicitement dans le catalogue ; leurs items sont vérifiés séparément. CR-55 reprend l’amendement hors ligne du CDCF V1.3, versionné par DC-CDCF-01.
 - **Surfaces à couvrir :** chaque recette touchant la confidentialité est vérifiée sur l'interface, les API, la recherche, les exports, les notifications et les traitements asynchrones. Un simple masquage à l'écran ne suffit jamais.
 - **Exhaustivité :** chaque recette précise, lors de sa mise en œuvre, son jeu de données, ses préconditions, son résultat attendu observable, sa priorité et la version testée.
-- Les doublons recensés au § 8.15 sont à résoudre (**GEL-04**).
+- Les recouvrements sont documentés au § 8.15 ; leur complémentarité et les corrections de transcription sont consignées dans le rapport de revue finale (**GEL-04**).
 
 ## 8.1 Core et souveraineté des espaces
 
@@ -1856,7 +1835,7 @@ Recette complémentaire de navigation : assertion construite sur une zone préci
 |---|---|---|
 | TR05-01 | Un compte crée trois arbres | Trois espaces indépendants |
 | TR05-02 | Chercheur dans l'arbre d'un tiers | Contribution attribuée au chercheur ; propriété conservée par le tiers |
-| TR05-03 | Le chercheur quitte l'arbre du tiers | Contributions attribuées ; accès cessés |
+| TR05-03 | Le chercheur quitte l'arbre du tiers | Contributions attribuées ; droits issus du rôle quitté cessés, titularité et autres fondements indépendants réévalués |
 | TR06-01 | Branche commune identifiée | Correspondances documentées sans fusion |
 | TR06-02 | Assertion évolue dans A | Proposition pertinente pour B |
 | TR06-03 | Assertion évolue dans B | Proposition pertinente pour A |
@@ -1880,7 +1859,7 @@ Recette complémentaire de navigation : assertion construite sur une zone préci
 | TR08-06 | Découvrir une parenté entre deux familles | Rapprochement proposé et documenté, sans fusion |
 | TR08-07 | Modifier une conclusion dans l'arbre source | Signalement d'impact ; pas de modification silencieuse |
 | TR08-08 | Refuser une mise à jour | Position du projet conservée, refus tracé |
-| TR08-09 | Retirer un contributeur | Accès cessés ; contributions acceptées traitées selon leurs conditions |
+| TR08-09 | Retirer un contributeur | Droits issus du rôle retiré cessés ; titularité et autres fondements indépendants réévalués ; contributions acceptées traitées selon leurs conditions |
 | TR08-10 | Publier une reconstitution | Seuls les contenus autorisés exposés, y compris liens et compteurs |
 
 Critère : le projet évolue sans fusionner les arbres, sans s'approprier leurs données protégées et sans leur imposer ses conclusions.
@@ -1917,7 +1896,7 @@ Point technique : une branche est une **sélection gouvernée d'objets et de rel
 | TR10-07 | Acceptation de l'invitation | Accès selon le rôle proposé |
 | TR10-08 | Transférer la propriété administrative | Explicite et audité ; auteur des recherches inchangé |
 | TR10-09 | Le chercheur reste collaborateur | Seulement les habilitations convenues |
-| TR10-10 | Le chercheur quitte l'arbre | Droits cessés, contributions attribuées, liens au projet réévalués |
+| TR10-10 | Le chercheur quitte l'arbre | Droits issus du rôle quitté cessés ; titularité et autres fondements indépendants réévalués ; contributions attribuées, liens au projet réévalués |
 | TR10-11 | Refus ou absence de réponse | Aucun compte ni transfert forcé |
 | TR10-12 | Invitation interceptée ou expirée | Aucun accès non autorisé |
 
@@ -1938,7 +1917,7 @@ Point technique : une branche est une **sélection gouvernée d'objets et de rel
 | TR11-11 | L'arbre externe change sur Geneanet | Aucun changement supposé connu sans nouveau flux |
 | TR11-12 | Une source externe disparaît | Provenance et état de disponibilité conservés |
 
-**Vérifications MLD restantes pour L11-B** (sans modification présumée) :
+**Correspondance MLD actuelle pour L11-B** (MLD V1.1-g, domaines O/P et catalogue autorisations ; recettes TR09–TR11 / PR01) :
 - expression d'une permission de **réutilisation** distincte de la lecture ;
 - enregistrement, versionnement et audit d'une **sélection de branche** sans nouveau modèle d'arbre ;
 - bénéficiaire futur, invitation, remise et transfert ;
@@ -2012,15 +1991,15 @@ Point technique : une branche est une **sélection gouvernée d'objets et de rel
 | ID | Action | Résultat attendu |
 |---|---|---|
 | X10-01 | Alice crée un espace projet | Deux habilitations actives : `propriétaire` (administrative) et `responsable scientifique` |
-| X10-02 | Alice crée un objet `privé` | Autorisations `voir` et `éditer` créées dans la même transaction |
-| X10-03 | Alice perd `responsable scientifique`, reste propriétaire | Plus de lecture `projet` au titre de l'appartenance |
-| X10-04 | Alice garde une autorisation explicite sur son objet privé | Lecture maintenue, sauf interdiction |
-| X10-05 | Alice perd `propriétaire`, garde `responsable scientifique` | Lecture `projet` maintenue ; pouvoirs administratifs perdus |
+| X10-02 | Alice crée un objet personnel valide | Titularité système attribuée : voir/commenter/proposer/transcrire/éditer/exporter/réutiliser et repartager, sans valider scientifique ni contribuer au Core ; protections opposables |
+| X10-03 | Un RS non racine voit sa nomination retirée ; variante propriétaire/racine | Plus de droit au titre du rôle retiré ; droits personnels indépendants conservés. La racine du propriétaire ne peut être retirée isolément dans un espace non clos |
+| X10-04 | Alice quitte l’espace mais reste titulaire de son objet personnel | Actions du titulaire maintenues sous protections ; pas de création nouvelle dans l’espace quitté |
+| X10-05 | Un chercheur possède une nomination scientifique et aucun rôle administratif | Droits scientifiques dans son périmètre ; aucun pouvoir de propriété. Après transfert, tout retour du cédant suit le verrou et le consentement par acte |
 | X10-06 | Bob est uniquement administrateur | Administre sans accès implicite aux objets `projet` et `privé` |
 | X10-07 | Bob reçoit `collaborateur` | Lit les objets `projet` selon ses droits, pas les objets privés |
 | X10-08 | Échec entre les deux attributions à la création | Transaction annulée ; aucun espace partiellement initialisé |
 
-Contrôles complémentaires : création atomique ; retrait de `responsable scientifique` qui supprime la lecture `projet` ; lecture issue de l'appartenance scientifique et jamais du rôle administratif ; expiration du mandat d'un prestataire effective aussi dans les recherches, exports et traitements différés.
+Chaque cas part de son propre état initial explicite. Contrôles : création propriété/racine atomique ; aucune auto-attribution ; action scientifique issue d’un fondement effectif, jamais d’une projection administrative ; expiration et révocation revérifiées sur chaque page, export et tâche. Titularité, autorité de l’espace et autorité administrative sont distinctes.
 
 **REC-X11 — Absence de contournement par les règles d'accès (P0).**
 
@@ -2029,9 +2008,9 @@ Contrôles complémentaires : création atomique ; retrait de `responsable scien
 | X11-01 | Bob administrateur technique sans habilitation scientifique | Aucun accès implicite `projet` ou `privé` |
 | X11-02 | Règle générale « lecture pour le rôle `administrateur` » | Ne contourne pas CP-25 |
 | X11-03 | Bob reçoit `collaborateur` | Lit les objets `projet` autorisés, pas les objets privés |
-| X11-04 | Autorisation exceptionnelle sur un objet privé | Lecture dans le périmètre, la durée et les conditions de CP-24 |
+| X11-04 | Dérogation § 12 sur un objet privé | Approbations indépendantes, garde, niveau, opérations, finalité, durée et état revérifiés ; aucune habilitation générique de support |
 | X11-05 | Expiration de l'autorisation | Refus immédiat côté serveur |
-| X11-06 | Interdiction explicite malgré autorisation | L'interdiction l'emporte |
+| X11-06 | Restriction non levable malgré habilitation et dérogation ; variante restriction interne avec dérogation valide | Non levable jamais franchie ; restriction interne seulement franchie dans les bornes de § 12, sans retirer la protection |
 | X11-07 | Recherche, agrégation, export, API | Ni contenu ni indice d'existence |
 | X11-08 | Ancienne version ou résultat dérivé | Restrictions courantes appliquées |
 | X11-09 | Usage de l'accès exceptionnel | Journalisé (acteur, cible, date, opération, finalité), **sans le contenu** |
@@ -2106,28 +2085,32 @@ Contrôles complémentaires : création atomique ; retrait de `responsable scien
 | REC-TECH31 | TECH-031 | Changement de version de référentiel : interprétations historiques reproductibles avec la version initiale |
 | REC-TECH32 | TECH-032 | Instruction d'une décision MPD différée : justification, alternatives, conséquences, respect des invariants |
 
-## 8.14 Recette proposée, non approuvée
+## 8.14 Recette de projets intégrée en V1.2
 
 | ID | Statut | Contenu |
 |---|---|---|
-| REC-PR01 | **Proposée** (REV-03-M06), versée à AV-FONC-001 | Hiérarchie et isolation des sous-projets : 12 scénarios PR01-01 à PR01-12. Exemples : rejoindre uniquement Pointe-Noire ; administrer le programme parent sans lecture des enfants ; recherche transversale filtrée avant calcul ; déplacement d'un sous-projet sans élargissement des droits. |
+| REC-PR01 | Famille intégrée en V1.2 à partir d’AV-FONC-001, décision d’intégration V1 maintenue | Douze cas PR01-01 à PR01-12 au § 12 ; périmètres, isolation, reparentage, recherche/indicateurs et révocation. L’ancienne proposition est conservée dans la V1.0 archivée |
 
-## 8.15 Doublons et recouvrements à résoudre (GEL-04)
+## 8.15 Référentiel consolidé et relations de couverture (V1.2)
 
-| Recouvrement | Action attendue |
+Le [catalogue de recettes V1.2](GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md) et sa source `spec/validation/cdc_recettes_v1_2.json` sont la source unique des identifiants, origines, méthodes, résultats attendus et responsabilités. Un identifiant court X/TR/NF/TECH est normalisé en REC-… ; les préconditions distinctes restent des cas distincts, même lorsque les exigences se recouvrent.
+
+| Références historiques | Relation retenue |
 |---|---|
-| X02–X07 (REV-03-D.8) et X15–X21 (REV-03-M09) | Fusionner en un référentiel unique, avec liens entre scénarios complémentaires |
-| X01 et X09 | Rattacher X01 comme cas général de X09 |
-| J03 / J05 et J10–J13 | Rattacher les cas de consentement |
-| TR08 : version initiale à 12 scénarios (REV-03-M04) et formalisation à 10 scénarios | **Retenir la formalisation à 10 scénarios** (TR08-01 à TR08-10) |
-| CN01–CN04 et X14 | Rattacher CN à X14 |
-| Recettes NF et TECH ayant le même objet (NF09 / TECH13 ; NF05 / X18) | Rattacher à l'exigence TECH correspondante |
+| X02–X07 et X15–X21 | Cas distincts dans le même catalogue ; regroupement par exigences couvertes, sans suppression de préconditions |
+| X01 et X09 | X01 cas général complémentaire de X09 ; résultats conservés |
+| J03/J05 et J10–J13 | Cas complémentaires de consentement/effacement, priorité § 14 applicable |
+| TR08 | Formalisation TR08-01 à TR08-10 retenue ; l’ancienne variante à 12 reste dans l’archive V1.0 |
+| CN01–CN04 et X14 | Cas complémentaires, X14 famille de référence du récit et des sources |
+| NF09/TECH13 et NF05/X18 | Recettes complémentaires rattachées aux mêmes invariants ; robustesse asynchrone et restauration conservent leurs essais propres |
+
+La consolidation vérifie unicité des identifiants et couverture, sans affirmer que le logiciel a passé les recettes.
 
 ---
 
 # 9. Registre des décisions différées et des paramètres à dimensionner
 
-Conformément à REV-03-C et AUDIT-TECH-016, chaque entrée précise l'invariant qu'elle doit respecter et son étape de résolution. Les responsables de décision sont **à désigner**, ce qui fait partie de GEL-03 et GEL-04.
+Chaque décision différée conserve son invariant et son étape. Les responsabilités fonctionnelles sont affectées au référentiel V1.2 : produit, architecture/Core, sécurité, données scientifiques, exploitation, qualité/recette. Une personne doit être nommée et l’arbitrage signé avant résolution de l’entrée ; ces rôles ne créent aucune habilitation de lecture.
 
 ## 9.1 Décisions MPD reportables (REV-03-M11)
 
@@ -2146,39 +2129,41 @@ Ces reports ne sont acceptables que si leurs contrats sont suffisamment précis.
 
 | Décision ouverte | Étape cible | Exigences |
 |---|---|---|
-| Stratégie d'isolation logique et physique des espaces | Architecture | AUDIT-TECH-009 |
-| Mécanisme d'identifiants publics pérennes (URI persistantes, ARK) | Architecture | AUDIT-TECH-010, CP-17 |
-| Protocole de synchronisation et de négociation de compatibilité | Architecture | TECH-003, AUDIT-TECH-003 |
-| ~~Emplacement du modèle de données de la synchronisation~~ — **décidé le 9/10/2026 (ECD-05)** : zone de réconciliation (`contribution_differee`), politique de réplication et contexte d'évaluation dans le MLD (CP-27, CP-28) ; appareils, sessions, curseurs, journal technique et stockage local dans un schéma technique choisi par ADR, tenu par les obligations ST-01 à ST-08 (MLD § 28.3) | Fait | TECH-002, 003, 005, 007.8 ; AUDIT-TECH-001, 003 |
-| Politique de caches et d'invalidation | Architecture | AUDIT-TECH-004, MPD-02 |
-| Formats de conservation et fréquence des contrôles d'intégrité | Architecture / exploitation | AUDIT-TECH-012 |
-| Dimensionnement des performances | Architecture / tests | TECH-014, AUDIT-TECH-008 |
-| Langues livrées en V1 (au-delà du français) | Planification produit | TECH-033 |
-| Modalités de récupération de compte et de transmission patrimoniale | Architecture / juridique | AUDIT-TECH-013 |
-| Matrice complète des critères d'acceptation | Préparation des tests | AUDIT-TECH-015 |
-| Technologies : Desktop (Electron, Tauri…), frontend, backend, file de tâches, stockage objet, moteur de recherche, observabilité, CI/CD, KMS | Architecture (ADR) | TECH-004, 006, 008, 015, 016, 019, 021, 023, 025 |
-| Style d'API (REST, GraphQL, gRPC, événements) | Architecture | TECH-018 |
-| Modèles et fournisseurs IA, local ou distant, multi-fournisseurs | Architecture | TECH-017 |
-| Fréquence des snapshots, rétention, nombre de copies, régions, fournisseur de sauvegarde | Architecture / exploitation | TECH-012 |
-| Garanties de récupération des fichiers binaires (équivalent RPO médias) | Architecture | AUDIT-TECH-006.13 |
-| Hébergement : fournisseur et région (UE privilégiée) | Architecture | TECH-020.8 |
-| Chiffrement de bout en bout pour des périmètres renforcés | Ultérieure | TECH-019.7 |
+| **DEC-ARCH-01** — Stratégie d'isolation logique et physique des espaces | Architecture | AUDIT-TECH-009 |
+| **DEC-ARCH-02** — Mécanisme d'identifiants publics pérennes (URI persistantes, ARK) | Architecture | AUDIT-TECH-010, CP-17 |
+| **DEC-ARCH-03** — Protocole de synchronisation et de négociation de compatibilité | Architecture | TECH-003, AUDIT-TECH-003 |
+| **DEC-ARCH-04** — ~~Emplacement du modèle de données de la synchronisation~~ — **décidé le 9/10/2026 (ECD-05)** : réception technique privée sans FK de cible (`reception_differee`), puis zone de réconciliation métier à références résolues (`contribution_differee`), politique de réplication et contexte d'évaluation dans le MLD (CP-27, CP-28) ; appareils, sessions, curseurs, journal technique et stockage local dans un schéma technique choisi par ADR, tenu par les obligations ST-01 à ST-08 (MLD § 28.3) | Fait | TECH-002, 003, 005, 007.8 ; AUDIT-TECH-001, 003 |
+| **DEC-ARCH-05** — Politique de caches et d'invalidation | Architecture | AUDIT-TECH-004, MPD-02 |
+| **DEC-ARCH-06** — Formats de conservation et fréquence des contrôles d'intégrité | Architecture / exploitation | AUDIT-TECH-012 |
+| **DEC-ARCH-07** — Dimensionnement des performances | Architecture / tests | TECH-014, AUDIT-TECH-008 |
+| **DEC-ARCH-08** — Langues livrées en V1 (au-delà du français) | Planification produit | TECH-033 |
+| **DEC-ARCH-09** — Modalités de récupération de compte et de transmission patrimoniale | Architecture / juridique | AUDIT-TECH-013 |
+| **DEC-ARCH-10** — Matrice complète des critères d'acceptation | Préparation des tests | AUDIT-TECH-015 |
+| **DEC-ARCH-11** — Technologies : Desktop (Electron, Tauri…), frontend, backend, file de tâches, stockage objet, moteur de recherche, observabilité, CI/CD, KMS | Architecture (ADR) | TECH-004, 006, 008, 015, 016, 019, 021, 023, 025 |
+| **DEC-ARCH-12** — Style d'API (REST, GraphQL, gRPC, événements) | Architecture | TECH-018 |
+| **DEC-ARCH-13** — Modèles et fournisseurs IA, local ou distant, multi-fournisseurs | Architecture | TECH-017 |
+| **DEC-ARCH-14** — Fréquence des snapshots, rétention, nombre de copies, régions, fournisseur de sauvegarde | Architecture / exploitation | TECH-012 |
+| **DEC-ARCH-15** — Garanties de récupération des fichiers binaires (équivalent RPO médias) | Architecture | AUDIT-TECH-006.13 |
+| **DEC-ARCH-16** — Hébergement : fournisseur et région (UE privilégiée) | Architecture | TECH-020.8 |
+| **DEC-ARCH-17** — Chiffrement de bout en bout pour des périmètres renforcés | Ultérieure | TECH-019.7 |
+
 
 ## 9.3 Paramètres à dimensionner
 
 | Paramètre | Origine | Étape |
 |---|---|---|
-| Profils de volumétrie de référence (chiffres indicatifs non validés, TECH-009.4) | TECH-009 | À valider avec les utilisateurs cibles avant les tests de charge |
-| Taille maximale d'un lot d'importation | AUDIT-TECH-015 | Architecture |
-| Durée de compatibilité des anciens clients et politique de dépréciation API | TECH-018, TECH-023 | Architecture |
-| Délais de propagation des changements de permissions | AUDIT-TECH-015 | Architecture |
-| Durée maximale de consultation hors ligne pour les espaces sensibles | AUDIT-TECH-001 | Architecture / produit |
-| Budgets de ressources par catégorie d'opération | AUDIT-TECH-008 | Architecture |
-| Quotas de stockage et de traitement | TECH-029 | Architecture / modèle économique |
-| SLO des services importants et différables | TECH-028 | Exploitation |
-| Durées de rétention des journaux (diagnostic, sécurité, audit) | TECH-021 | Exploitation / juridique |
-| Délais cibles de correction des vulnérabilités par classe | TECH-030 | Procédures opérationnelles |
-| Bases juridiques, durées de conservation et procédures RGPD | TECH-020 | Analyse juridique |
+| **PAR-CDC-01** — Profils de volumétrie de référence (chiffres indicatifs non validés, TECH-009.4) | TECH-009 | À valider avec les utilisateurs cibles avant les tests de charge |
+| **PAR-CDC-02** — Taille maximale d'un lot d'importation | AUDIT-TECH-015 | Architecture |
+| **PAR-CDC-03** — Durée de compatibilité des anciens clients et politique de dépréciation API | TECH-018, TECH-023 | Architecture |
+| **PAR-CDC-04** — Coordination de la prise d’effet des permissions avec époque/caches : aucune révocation effective ignorée ; protocole concret interespaces à définir | A6, CP-40 | Architecture / sécurité |
+| **PAR-CDC-05** — Plafonds de consultation hors ligne de toute donnée protégée (pas seulement espaces sensibles), minimum plateforme/espace/habilitant ; valeurs d’exemple non adoptées | Contrat § 13.9 / § 16, AUDIT-TECH-001 | Architecture / produit / gouvernance |
+| **PAR-CDC-06** — Budgets de ressources par catégorie d'opération | AUDIT-TECH-008 | Architecture |
+| **PAR-CDC-07** — Quotas de stockage et de traitement | TECH-029 | Architecture / modèle économique |
+| **PAR-CDC-08** — SLO des services importants et différables | TECH-028 | Exploitation |
+| **PAR-CDC-09** — Durées de rétention des journaux (diagnostic, sécurité, audit) | TECH-021 | Exploitation / juridique |
+| **PAR-CDC-10** — Délais cibles de correction des vulnérabilités par classe | TECH-030 | Procédures opérationnelles |
+| **PAR-CDC-11** — Bases juridiques, durées de conservation et procédures RGPD | TECH-020 | Analyse juridique |
+
 
 ## 9.4 Capacités évolutives (hors V1, préparées architecturalement)
 
@@ -2202,13 +2187,13 @@ Ces reports ne sont acceptables que si leurs contrats sont suffisamment précis.
 - *Ancrage amont* : MLD, dictionnaire.
 - *Recettes* : § 8.
 - *Décision d'audit* : toutes **approuvées**.
-- *Intégration normative* : non vérifiée pour toutes (GEL-02, GEL-03, M10-C09).
+- *Intégration normative* : revue finale documentée ; réserves ECD-19 et hors ligne closes par DC-CDCF-01 après le rapport de revue.
 
-L'origine fonctionnelle exacte (section du CDCF) reste à compléter ligne par ligne (M10-C08).
+L’origine fonctionnelle est localisée en annexe D ; la couverture actuelle, les rôles responsables et la recette dédiée de chaque TECH sont consignés dans le référentiel V1.2. Les justifications techniques sans origine fonctionnelle restent identifiées par ECD-19, sans inventer une exigence CDCF.
 
 | TECH | Lacunes | Clarifications | Ancrage amont | Recettes | Blocage potentiel |
 |---|---|---|---|---|---|
-| 001 | — | — | CDCF (surfaces) | Contrat à préciser | B3 à lever |
+| 001 | — | — | Justification technique explicite (ECD-19), annexe D | REC-CDC-TECH001 | Clos — DC-CDCF-01 |
 | 002 | L15 | A-001 | — | X15–X17 | — |
 | 003 | L11 | A-003, A-014 | `objet`, `version_objet`, `activite`, CP-04 | X13, TR01–TR11, X17 | — |
 | 004 | — | — | — | TECH04 | — |
@@ -2248,28 +2233,28 @@ L'origine fonctionnelle exacte (section du CDCF) reste à compléter ligne par l
 
 # 11. Conditions de gel GEL-01 à GEL-08
 
-**Décision de gel actuelle : GEL NON AUTORISÉ.** La revue des exigences est achevée sur le périmètre initial ; l'intégration normative exhaustive n'est pas démontrée.
+**État au 13/10/2026 : V1.2 gelée documentairement sur décision du porteur.** La revue finale est consignée dans le [rapport](AUDIT-CDC-TECH/REVUE_FINALE_CDC_V1_1.md). Les huit conditions sont closes documentairement ; reports à architecture/MPD/produit acceptés et encadrés dans le procès-verbal.
 
-> Le registre REV-03-M11 (conditions GEL-01 à GEL-08, reports MPD encadrés, réserve AV-FONC-001) est **approuvé en discussion, conditions non levées**. Cette approbation fixe les critères du gel ; elle ne lève aucune condition (règle de levée, § 6.1).
+Voir le [bilan et les réserves](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md).
 
-| Réf. | Condition | Critère de clôture | Statut au 09/10/2026 |
-|---|---|---|---|
-| GEL-01 | Version normative unique du MLD | § 22.1 corrigé et CP-23 à CP-25 cohérents dans la version retenue | **Non levée.** Corrections constatées dans un fichier (`docs/GENIIUS_MLD_V1_0.md` de l'espace de travail), qui n'est pas encore désigné comme version normative unique. Restent : désignation formelle et contrôle des autres règles d'accès (M10-A01) (§ 6.2) |
-| GEL-02 | Décisions REV-03 intégrées | Les 16 lacunes ont des dispositions normatives vérifiables | **Partiellement avancée.** Dispositions consolidées dans ce document (§ 6–8) ; vérification de cohérence à faire |
-| GEL-03 | 33 TECH consolidées | Chaque exigence a une origine, un contrat et une méthode de vérification | **Partiellement avancée.** Contrats et recettes consolidés (§ 3, § 10) ; origines CDCF exactes et responsables à compléter |
-| GEL-04 | Recettes consolidées | Identifiants uniques, doublons résolus, résultats attendus explicites | Non levée (§ 8.15) |
-| GEL-05 | Autorisations vérifiées | Aucun accès administratif implicite aux contenus scientifiques privés, nulle part dans les modèles | Non levée |
-| GEL-06 | Propagation scientifique vérifiée | Dépendances, états intermédiaires et réévaluation définis | Non levée (spécification approuvée : REC-X12) |
-| GEL-07 | Résilience patrimoniale vérifiée | Synchronisation, sauvegardes, restaurations et purges cohérentes | Non levée |
-| GEL-08 | Exigences non fonctionnelles vérifiées | Seuils, conditions de mesure et critères de recette documentés | Non levée (protocole de mesure à écrire) |
+| Réf. | Verdict de revue finale | Preuve / limite |
+|---|---|---|
+| GEL-01 | Satisfaite documentairement | Registre : MLD V1.1-g unique avec catalogue V1.6 ; archives non concurrentes. Le gel formel du MLD reste distinct. |
+| GEL-02 | Satisfaite documentairement | Les seize lacunes ont contrats et recettes ; matrice L01–L16 du rapport. Réserve hors ligne isolée sous GEL-07. |
+| GEL-03 | Close — DC-CDCF-01 | 33 TECH relues, origines ou justifications explicites, contrats et rôles ; 31 CU et 64 critères repris. Ratification technique du porteur consignée au CDCF § 135 ; ECD-19 clos sans origine fonctionnelle inventée. |
+| GEL-04 | Satisfaite documentairement | 381 identifiants, familles comprises ; transcription des attendus et recouvrements corrigée. Les recettes restent non exécutées. |
+| GEL-05 | Satisfaite documentairement | Ordre V1.6, protections, dérogations et titularité cohérents après corrections RF-02/03 ; P-3 explicitement borné. |
+| GEL-06 | Satisfaite documentairement | Marquage direct transactionnel, transitive asynchrone, aucun faux état à jour, reprise idempotente ; délai MPD-04 encadré. |
+| GEL-07 | Close — DC-CDCF-01 | Non-résurrection, réception privée et droits actuels définis ; CDCF V1.3 § 122.2 / critère 55 alignés ; résidu physique hors ligne demeure une limite déclarée. |
+| GEL-08 | Satisfaite documentairement avec reports encadrés | Protocole NF corrigé sans changer les seuils ; reports R-CDC-04/05/06 ont responsable, étape et preuve, avant campagne/livraison. |
 
 **Règles.**
 - Ces huit conditions sont bloquantes pour le **gel documentaire**. Elles n'exigent pas que le logiciel existe ni que les tests aient été exécutés.
 - Aucune condition n'est levée sur la seule base d'un accord en discussion (§ 6.1).
 
 **Deux jalons distincts.**
-1. **CDC technique V1.0 — audit achevé sur périmètre initial** : état atteint par ce document.
-2. **CDC technique — gel définitif** : après levée de GEL-01 à GEL-08 **et** décision explicite sur l'intégration d'AV-FONC-001 (§ 12).
+1. **CDC technique V1.2 — actualisé et contrôlé structurellement** : revue finale effectuée ; réserves et verdicts au § 11.
+2. **CDC technique V1.2 — gel documentaire** : prononcé après clôture documentée de GEL-01 à GEL-08 et traitement explicite des réserves. AV-FONC-001 est intégré au § 12.
 
 **Ordre de relecture documentaire recommandé.**
 1. Confronter le CDCF canonique et sa version explicative.
@@ -2280,37 +2265,39 @@ L'origine fonctionnelle exacte (section du CDCF) reste à compléter ligne par l
 
 ---
 
-# 12. Réserve structurelle AV-FONC-001
+# 12. Intégration technique AV-FONC-001 en V1.2
 
-Le dossier [AV-FONC-001 — Projets et programmes de recherche scientifique](AV-FONC/AV-FONC-001.md) est **distinct de REV-03** et **n'est pas intégré** dans ce document.
+L’avenant figé et intégré au CDCF V1.3/MCD V1.2 est pris en compte dans ce CDC. La décision d’intégration intégrale en V1 du 9/10/2026 est conservée ; cette actualisation ne valide pas les pistes EV-02 à EV-07 ni une nouvelle technologie.
 
-**Objet.** Il couvre :
-- les projets comme espaces de travail scientifique gouvernés (Les Colimaçons ; programme antillais inspiré du CM98 ; militaires réunionnais 1914–1918 ; généalogies réunionnaises) ;
-- les programmes, projets et sous-projets, avec habilitations locales ;
-- les corpus, ressources, lots de travail, missions, livrables et indicateurs (avec numérateur, dénominateur, méthode, date, incertitude, périmètre) ;
-- la recette proposée REC-PR01.
+| Bloc | Contrat technique obligatoire | Origine et couverture |
+|---|---|---|
+| Projets/programmes/sous-projets | Rattachement bilatéral, sans transitivité de droits ; parent ne lit ni enfant ni frère sans habilitation distincte ; recherches/indicateurs filtrés sur le graphe accessible | CDCF §§ 119–122, CU-29/31, critères 51–52 ; CP-31, P23 ; TECH-008/011/014/016 |
+| Axes, corpus, ressources | Axe de recherche ne crée ni entité fictive ni relation historique ; ressource déclarée ne donne aucun accès ; lien et ses extrémités évalués avant compte/indicateur | §§ 123–124, critères 53–54/56 ; CP-38 ; TECH-011/015/031 |
+| Tâches/lots/missions | Assignation sans droit implicite ; délégation fermée, actions limitées, échéance ; clôture/expiration définitives et réouverture sans résurrection ; avancement constaté sur objets autorisés | § 125, CU-30, critères 57–58 ; CP-20/32 ; TECH-011/013/015/021 |
+| Partages sélectifs | Manifeste actif figé, réduction sur version active ; admission nominative des ensembles ; exclusions, masquages et relations frontières filtrés, consultation distincte de réutilisation | § 126, CU-26/28, critères 55/59–60 ; CP-29/30/33/51 ; TECH-003/011/018/026 |
+| Transfert/invitation/succession | Aucun faux compte ; identité vérifiée avant acceptation ; propriété/racine atomiques, clichés complets et vue filtrée, voies par objet, réémissions, verrou de retour par personne/acte ; crédits conservés | § 127, CU-27, critère 61 ; CP-37 ; contrat §§ 10–12 ; TECH-007/011/020/021/027 |
+| Pilotage/financement | Indicateur avec unité/dénominateur/incertitude/périmètre ; agrégats filtrés ; imputation à date effective, ventilation déterministe, plafond atomique, idempotence ; quota jamais droit de contenu | §§ 128–129, critère 62 ; CP-34/36/39, P25 ; TECH-009/013/014/015/029 |
+| Publications/séries/diffusions | Évaluation scientifique, approbation éditoriale et diffusion distinctes ; version publiée figée ; nouvelle diffusion sous autorisation actuelle ; acceptation inter-espace avant rang visible | §§ 130–131, critère 63 ; CP-35 ; TECH-011/018/020/021/026 |
+| Révocation | Accès serveur réévalué à prise d’effet ; copies légitimes survivent sous protections héritées/non-levables ; conclusions non invalidées automatiquement ; répliques sous échéance/retraits ; exports remis non récupérables | § 132, critère 64 ; CP-21/27/28/40/51 ; TECH-002/003/005/011/012/020 |
 
-**Impact technique certain** : droits, isolation, calculs transversaux, flux, exports, volumétrie, partitionnement logique.
+La recette proposée REC-PR01 devient une famille de recette technique de ces exigences déjà retenues ; aucun nouveau besoin métier n’est ajouté. Chaque cas part d’un état et d’une variante documentés :
 
-**Méthode retenue pour les avenants.**
-1. Identifier.
-2. Instruire.
-3. Figer le dossier d'avenant (sans modifier les documents canoniques).
-4. Achever l'audit du document en cours.
-5. Rouvrir de façon contrôlée la chaîne CDCF → MCD → dictionnaire → MLD → CDC technique → recettes.
-6. Vérifier et geler.
+| ID | Préconditions et action | Résultat attendu |
+|---|---|---|
+| PR01-01 | Programme P, enfant E, frère F ; administrateur P sans habilitation E/F recherche et agrège | Aucun contenu/identifiant/compteur E/F ; rattachement ne confère aucun droit |
+| PR01-02 | Rattachement P/E accepté deux parties ; terminer puis recréer | Habilitations conditionnées closes, aucune résurrection ; pas de transitivité vers F |
+| PR01-03 | Axe incertain, ressource privée déclarée ; calcul d’avancement | Ni entité/rapport historique fictif, ni accès à ressource par déclaration ; indicateurs sur objets effectivement accessibles |
+| PR01-04 | Bénévole avec lot et échéance ; clore puis rouvrir le lot | Droits terminés ne reviennent pas ; action nouvelle exige nouvel acte conforme |
+| PR01-05 | Sélection avec branche exclue, proposition en attente puis réduction | Lecture sur manifeste actif réduit ; rien des ajouts non acceptés, branche exclue ou relations frontières |
+| PR01-06 | Arbre préparé pour tiers sans compte ; identité vérifiée, présentation et acceptation | Aucun faux compte ; paternité inchangée ; inclusion des engagements et voies d’objets contrôlées ; retour du cédant soumis au verrou |
+| PR01-07 | Accord financement valide à consommation mais expiré au traitement ; deux traitements/rejeu | Ventilation à date effective, plafond non dépassé, aucune double imputation ni perte d’accès aux données |
+| PR01-08 | Publication approuvée ; cible/protection révoquée avant diffusion ; série autre espace | Approbation éditoriale seule ne diffuse pas ; autorisation actuelle et acceptation série exigées ; rang invisible non révélé |
+| PR01-09 | Contributeur admis uniquement à Pointe-Noire, enfant d’un programme antillais | Voit son seul périmètre, ni parent ni projets frères du seul rattachement ; sortie ferme admissions concernées sans supprimer attributions |
+| PR01-10 | Déplacer un sous-projet : terminer ancien lien puis proposer/faire accepter nouveau lien bilatéral | Aucun élargissement de droits, anciennes habilitations conditionnées closes ; nouveau parent ne lit pas, nouveaux droits exigent nouveaux actes |
+| PR01-11 | Deux lecteurs aux graphes différents calculent recherche transversale/indicateur de programme | Chaque résultat, compteur, dénominateur et provenance calculé sur son graphe ; rien d’un projet caché révélé par différence de requêtes |
+| PR01-12 | Publier un chiffre figé de programme puis corriger sa preuve ou retirer un droit | Version publiée conservée et explicable dans les droits ; nouvelle diffusion réévaluée ; impact signalé sans invalidation automatique ni mise à jour silencieuse |
 
-**Règle.** AV-FONC-001 ne doit pas être introduit silencieusement dans les modèles existants.
-
-**Décision de périmètre (9/10/2026) : intégration intégrale en V1 (option A).** Le gel définitif du CDC technique attend l'intégration de l'avenant dans la chaîne CDCF → MCD → dictionnaire → MLD → CDC technique, selon la séquence de AV-FONC-001, § 12.
-
-**Pistes d'évolution identifiées** (non approuvées, à instruire séparément) :
-- EV-02 — Campagnes documentaires.
-- EV-03 — Publications scientifiques.
-- EV-04 — Fédération de recherches.
-- EV-05 — Référentiels historiques collectifs.
-- EV-06 — Qualité et couverture.
-- EV-07 — Participation extérieure.
+**Profil programme pour essais :** CDCF § 129.2 / MLD § 28.2 : 50 sous-projets, 500 contributeurs, un million d’objets. Les autres profils TECH-009 restent indicatifs à valider ; cette référence n’implique aucun choix de partitionnement physique.
 
 ---
 
@@ -2368,9 +2355,9 @@ Une découverte faite pendant une recette qui révèle une vraie lacune est **co
 | REV-03-M02 | CP-25 ; REC-X09 à X11 et arbitrages | Approuvés ; décision de ne plus modifier le MLD pour l'instant |
 | REV-03-M03 | L01 : REC-X12 (A, B, C) | Approuvé |
 | REV-03-M04 | L11 : REC-X13 (A à D), TR05 à TR11, option C, L11-B | Approuvé |
-| AV-FONC-001 | Dossier d'avenant projets et programmes | Constitué, non gelé, hors CDC |
+| AV-FONC-001 | Dossier figé et intégré à CDCF/MCD, report dictionnaire/MLD | Intégration technique V1.2 au § 12 ; douze cas de recette définis, pas exécutés |
 | REV-03-M05 | L13 : REC-X14 (A à D) | Approuvé |
-| REV-03-M06 | Hiérarchie de projets, REC-PR01 | **Proposé**, versé à AV-FONC-001 |
+| REV-03-M06 | Hiérarchie de projets, REC-PR01 | Proposition historique reprise dans le périmètre V1 retenu ; formalisation au § 12, douze cas |
 | REV-03-M07 | L02 à L05 : 4 arbitrages, 16 scénarios | Approuvé |
 | REV-03-M08 | L06 à L10 : 10 arbitrages, 20 scénarios | Approuvé |
 | REV-03-M09 | L12, L15, L16 : 7 arbitrages, 22 scénarios | Approuvé |
@@ -2379,21 +2366,21 @@ Une découverte faite pendant une recette qui révèle une vraie lacune est **co
 
 # Annexe C — Limites de ce document
 
-- Ce document consolide **fidèlement les échanges de conception**. Il ne crée aucune décision nouvelle. Les seuls ajouts sont rédactionnels : numérotation `TECH-xxx.n`, regroupements, tableaux de synthèse, identification des doublons.
+- La V1.0 consolidait les échanges de conception ; la V1.2 reporte les décisions amont déjà retenues, notamment V1.6 et AV-FONC-001, et explicite méthodes de recette/responsabilités. Elle ne fixe aucun fournisseur, technologie, nouveau seuil commercial ou paramètre d’exemple du modèle.
 - Il remplace le document `GENIIUS_CDC_TECHNIQUE_V1_0_CONSOLIDE_CANDIDAT.md`, qui avait été reconstitué sans accès à la source des échanges. Ce document est désormais archivé dans `archives/cdc-technique/`.
-- Les origines fonctionnelles sont rattachées aux sections du CDCF V1.1 à l'annexe D. Certaines exigences n'ont pas d'origine fonctionnelle : elles reposent sur une justification technique (ECD-19).
-- Aucun test logiciel n'a été exécuté. Aucune condition de gel n'est levée. **Aucun gel n'est prononcé.**
+- Les origines fonctionnelles sont rattachées aux sections du CDCF V1.3 à l'annexe D. Certaines exigences n'ont pas d'origine fonctionnelle : elles reposent sur une justification technique (ECD-19).
+- Aucune recette du logiciel répondant à ce CDC n’a été exécutée. Les contrôles structurels documentaires et preuves amont sont identifiés séparément. Les conditions de gel sont évaluées au § 11 avec leurs limites ; **gel documentaire prononcé le 13/10/2026**, voir procès-verbal ; aucune recette logiciel exécutée.
 - Les chiffres de volumétrie et de coûts cités en exemple (profils TECH-009, tarifs de stockage évoqués pendant la conception) sont **indicatifs** et ne constituent pas des engagements.
 
-# Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.1
+# Annexe D — Origine fonctionnelle et correspondance avec le CDCF V1.3
 
-*Ajoutée le 9 octobre 2026 (correction ECD-03 de l'audit de cohérence). Le référentiel fonctionnel de référence est `docs/geniius_io_CDCF_V1.md` (CDCF V1.1). Ses identifiants sont : sections § n, cas d'usage CU-01 à CU-25, critères de recette 1 à 50 (§ 103), décisions Q113 à Q245.*
+*Ajoutée le 9 octobre 2026 (correction ECD-03 de l'audit de cohérence). Le référentiel fonctionnel de référence est `docs/geniius_io_CDCF_V1.md` (CDCF V1.3). Ses identifiants sont : sections § n, cas d'usage CU-01 à CU-31, critères de recette 1 à 64 (§§ 103 et 134), décisions Q113 à Q245.*
 
 ## D.1 Identifiants hérités des échanges
 
-Les échanges de conception (archives) citent des identifiants issus de `CDCF_GENIIUS_V1.docx`, document absent du dépôt. **Ce CDC technique ne les utilise pas comme références normatives.** Leur correspondance avec le CDCF V1.1 est la suivante.
+Les échanges de conception (archives) citent des identifiants issus de `CDCF_GENIIUS_V1.docx`, document absent du dépôt. **Ce CDC technique ne les utilise pas comme références normatives.** Leur correspondance avec le CDCF V1.3 est la suivante.
 
-| Identifiant (échanges) | Objet | CDCF V1.1 | Recettes CDC technique |
+| Identifiant (échanges) | Objet | CDCF V1.3 | Recettes CDC technique |
 |---|---|---|---|
 | A-01 | Séparer le Core et les objets propres aux applications | § 2.3, § 3.7, § 43, § 44 | REC-TECH08 |
 | A-02 | Aucune contribution automatique au Core partagé | § 4.3, § 4.4, § 56 ; critères 8, 24 | REC-A02 |
@@ -2419,9 +2406,9 @@ Les échanges de conception (archives) citent des identifiants issus de `CDCF_GE
 
 ## D.2 Origine fonctionnelle de chaque exigence TECH
 
-Cette table répond à M10-C08. « Justification technique » signifie que l'exigence découle d'une décision des échanges de conception, sans exigence fonctionnelle correspondante dans le CDCF V1.1. Ces exigences restent normatives, mais leur origine est à régulariser (avenant AV-FONC-002 proposé, ECD-19).
+Cette table répond à M10-C08. « Justification technique » signifie que l'exigence découle d'une décision des échanges de conception, sans exigence fonctionnelle correspondante dans le CDCF V1.3. Ces exigences restent normatives, mais leur ratification technique est consignée au CDCF V1.3 § 135 (DC-CDCF-01) ; ECD-19 est clos. Leurs origines historiques sont conservées.
 
-| TECH | Origine dans le CDCF V1.1 | Nature |
+| TECH | Origine dans le CDCF V1.3 | Nature |
 |---|---|---|
 | 001 | § 3, § 44 (applications comme portes d'entrée) — aucune exigence de surface | Justification technique (ECD-19) |
 | 002 | Aucune | Justification technique (ECD-19) |
@@ -2456,3 +2443,60 @@ Cette table répond à M10-C08. « Justification technique » signifie que l'exi
 | 031 | § 31, § 40 ; critère 48 | Fonctionnelle |
 | 032 | Partie XVIII, § 115 | Fonctionnelle (gouvernance) |
 | 033 | § 99, § 19.3 | Fonctionnelle |
+
+
+# 14. Alignement normatif V1.2 et protocole de recette
+
+## 14.1 Source unique d’autorisation
+
+Le contrat V1.6 gelé prime pour le comportement d’accès ; MLD V1.1-g/catalogue réalisent ses faits relationnels. Les rôles propriétaire/administrateur/plateforme ne lisent ni ne partagent par leur seule qualité. La racine reste concordante avec la propriété d’un espace non clos ; le titulaire n’est pas le propriétaire administratif et conserve ses droits personnels après départ de l’espace. HI survit au signataire, HP et admission HP dépendent de leurs fondements propres ; tous les interdits sont évalués par personne, tous comptes confondus. Les projections d’appartenance et caches ne créent aucun droit autonome.
+
+Dérogations : listes fermées de cibles/opérations/finalité, identité et indépendance, niveau et accords de garde actuels, échéance, rang de renouvellements et journal sans contenu ; aucun franchissement de restriction non levable ou protection orpheline. Le signalement P-3 à l’autorité est la seule exception déclarée : identifiant opaque de protection sans cible/espace/titre, sans accès implicite.
+
+Toutes les sorties différées sont réévaluées au moment de divulgation, à chaque page/reprise. Époque et plus proche échéance des fondements bornent les caches ; propagation interespaces atomique ou barrière de refus avant exposition. Les copies réutilisées gardent filiation, sensibilité et protections des ascendants ; les protections ultérieures sont propagées, même après purge de contenu original. Le graphe visible filtre avant recherche, compte, rang, export, suggestion, diffusion et IA.
+
+## 14.2 Réception, propagation et restauration patrimoniale
+
+Réception hors ligne : journal technique privé `reception_differee`, delta seul et identifiants client sans FK de cible avant résolution ; création de contribution métier à FK validées ensuite. Le succès de réception ne prouve ni existence ni autorisation. L’intégration réévalue au temps serveur et distingue reçu/intégré/validé. Les retraits locaux non qualifiés précèdent les ajouts ; contribution personnelle non synchronisée n’est pas détruite pour motif de droits. Aucune réplication par dérogation et échéance sur toute donnée protégée ; résidu jusqu’à reconnexion/échéance accepté en V1.6, CDCF V1.3 § 122.2 désormais aligné par DC-CDCF-01 ; résidu conservé comme limite effective.
+
+Propagation scientifique : dépendances directes marquées dans la transaction du changement scientifique, transitives asynchrones avec délai maximal à fixer. Durant attente/échec/rejeu, aucun résultat aval n’est présenté définitivement à jour ; état d’impact jamais effacé par échec, pas de validation scientifique automatique. Mécanisme, capacité, délai et observabilité sont des décisions d’architecture encadrées, pas des permissions de perdre un signalement.
+
+Restauration : avant tout accès ou réindexation, reconstruire cohérence versions/associations/fichiers, appliquer l’état d’autorisation actuellement opposable et réconcilier révocations, expirations, effacements/purges survenus après sauvegarde. Le journal nécessaire à cette réconciliation doit rester protégé, durable et disponible selon un contrat d’architecture démontré. Une restauration ne ressuscite ni contenu effacé ni habilitation close ; si fraîcheur d’autorité, secrets ou purge ne peuvent être vérifiés, accès fermé. RPO/RTO ne sont pas atteints par une base restaurée mais incohérente ou indiscrète. Effacement neutralise contenus, codes/dates reconstructifs, activités et associations, avec unicités adaptées ; durée/rétention et compatibilité déduplication/chiffrement à résoudre au MPD/juridique.
+
+## 14.3 Protocole de mesure non fonctionnelle
+
+Avant chaque campagne, publier un manifeste versionné : build et versions de schéma/référentiel/contrat, corpus synthétique ou autorisé et empreinte, nombres objets/versions/liens/fichiers/projets, comptes/rôles/protections et dérogations, distribution des opérations, concurrence et taux d’arrivée, configuration CPU/mémoire/disques/réseau, localisation, clients/OS, caches froids/chauds, chauffe, durée/horaires, répétitions et graines, instrumentation et scripts, incidents/exclusions. Aucun résultat sans ce manifeste n’atteste un objectif. Les sorties de mesure et traces sont elles-mêmes filtrées et ne contiennent pas le contenu scientifique.
+
+| Recette | Méthode et verdict mesurable |
+|---|---|
+| REC-NF01 | Mesurer entrée serveur→réponse serveur, autorisation et traitement compris, hors réseau : p95 ≤ 1 s (TECH-014.2). Mesurer séparément action client→retour perceptible < 1 s en conditions nominales (TECH-014.1), puis délai d’affichage utile sans lui attribuer le seuil serveur. Séparer cache froid/chaud, publier distributions, erreurs, effectifs et réseau du profil |
+| REC-NF02 | Horodater action client→premiers résultats utiles pour recherches ordinaires ; graphe filtré avant pagination/suggestions ; p95 ≤ 2 s en conditions de référence (TECH-014.3), exactitude et non-divulgation exigées indépendamment du temps |
+| REC-NF03 | Profil programme 50/500/1 million et profils TECH-009 validés séparément ; montée progressive de charge, saturation et reprise ; seuils/capacité/dégradation publiés, jamais perte ni contournement de sécurité |
+| REC-NF04 | Sur mois civil, sondes des parcours essentiels auth/accès/Core, logs horodatés ; SLI = durée servie correctement/durée totale, exclusions publiées avant campagne ; objectif 99,9 %, incidents et dépassement budget conservés ; intervalle/timeout instrumentation à arrêter par architecture |
+| REC-NF05 | Injection incident documentée ; RPO structuré = écart entre dernier commit canonique avant incident et état réellement récupéré ; ≤ 5 min. RTO = temps entre incident et service cohérent/autorisé effectivement rétabli ; ≤ 4 h. Binaires mesurés séparément sans RPO inventé, intégrité/licences/purges/revocations contrôlées avant accès |
+| REC-NF06 | Parcours clés au clavier/technologies d’assistance et tests automatisés/manuels, grille WCAG 2.2 AA de référence ; défauts tracés par critère, plateforme et build, pas conformité déduite d’un seul outil |
+| REC-NF07 | Au moins deux langues d’interface effectivement livrées en V1, dont français ; liste arrêtée par produit avant livraison. Langues versionnées, Unicode/textes longs/dates incertaines ; changements de préférence entre plateformes sans altérer contenu ni brouillon ; langues V1 au-delà français restent décision produit |
+| REC-NF08 | Quotas atteints, coût mesuré par unités consommées et catégorie, rejouage/concurrence ; refus/attente explicites, jamais perte scientifique ni destruction du delta ; valeurs quotas/budgets à dimensionner |
+| REC-NF09 | Panne/rejeu/ordre concurrent, marquage direct synchrone et propagation transitive ; observer transitions et temps amont→aval, idempotence et absence de faux état à jour ; verdict de délai seulement après fixation de MPD-04 |
+| REC-NF10 | Rejouer attaques d’accès, états jumeaux caché/absent, restrictions/échéances/snapshots sous chaque palier de charge ; même sortie observable et aucune dégradation des invariants. Mesures de distributions de délai/erreurs sans tolérance de fuite inventée ; protocole statistique et critère d’attaque exploitables à fixer par sécurité avant recette |
+
+Les profils/volumes non validés, concurrence cible, durée/cadence/timeout de sondes, plafonds hors ligne, délai transitive MPD-04 et protocoles statistiques restent des entrées dimensionnées avec responsable et étape. Le présent protocole précise comment mesurer, sans prétendre avoir exécuté les essais ni fixer les paramètres commerciaux.
+
+## 14.4 Traçabilité et responsabilités
+
+Le [référentiel V1.2](GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md) associe chacune des 33 TECH à sa source CDCF ou justification technique explicite, son contrat normatif, une recette dédiée, sa méthode de vérification, sa preuve attendue et un rôle responsable. Chaque responsabilité est fonctionnelle : affectation nominative et signature avant campagne/décision, sans création de droit de contenu. La revue finale de cohérence est consignée dans le rapport lié au § 11 ; ses réserves restent distinctes du contrôle structurel.
+
+## 14.5 Couverture inverse et décisions différées
+
+Les 31 cas d’usage CU-01 à CU-31 et les 64 critères des §§ 103/134 du CDCF V1.3 sont repris fidèlement dans le référentiel sous REC-CDCF-CU01 à CU31 et REC-CDCF-CR01 à CR64. Cela définit des obligations de recette et conserve les attentes scientifiques, sans affirmer la conformité d’un logiciel. Les clauses amont applicables sont contrôlées par TECH-018/024/031 ; chaque item des cas composites reçoit une observation distincte. Le critère 55 et CU-29 appliquent le résidu hors ligne borné, désormais aligné dans le CDCF V1.3.
+
+Pour chaque TECH, la recette dédiée fournit le cas principal ; la campagne couvre en plus toutes ses clauses, les variantes négatives pertinentes et les surfaces de § 8.0. Les clauses de capacités évolutives restent hors livraison V1 ; une clause conditionnelle est évaluée lorsque sa condition est réalisée. Un rapport ne déduit jamais la conformité de toutes les clauses du seul succès du cas principal.
+
+Les décisions des §§ 9.2 et 9.3 reçoivent les identifiants stables DEC-ARCH-01…17 et PAR-CDC-01…11, portés dans leurs lignes ; ces identifiants restent stables lors des évolutions et l’entrée déjà décidée conserve son identifiant. Leur responsable de décision est architecture avec sécurité pour isolation/caches/identité/chiffrement, exploitation pour sauvegarde/dimensionnement/sondes, données pour intégrité/export, produit pour langues/quotas et porteur avec juridique pour conservation/succession. Chaque décision cite les TECH, contraintes et recettes associées dans le catalogue, sa date, ses alternatives, unités et critères ; elle est fermée avant l’étape cible et avant la campagne qui en dépend. Les décisions MPD-01 à MPD-06 conservent leurs identifiants amont.
+
+**Limites de mesure :** disponibilité mesurée par durée calendaire servie correctement, exclusions et dénominateur affichés ; la valeur 43 min 12 s n’est qu’un exemple sur trente jours. WCAG 2.2 AA est la référence Web ; les autres surfaces ont leurs vérifications clavier, accessibilité native et technologies d’assistance (TECH-024.10/025.10), sans revendiquer une certification Web pour une application native. Un refus d’accès reste introuvable sans confirmer la cible ; seul le signalement P-3 constitue l’exception opaque déclarée.
+
+
+## 14.6 Décision de gel du 13 octobre 2026
+
+Le [procès-verbal](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md) consigne l’autorisation du porteur, la clôture R-CDC-02/03 par DC-CDCF-01, la levée documentaire GEL-01 à GEL-08 et les reports R-CDC-04/05/06. Cette baseline V1.2 et son référentiel de recettes sont gelés ; toute évolution suit § 13. Les durées, profils complémentaires, valeurs commerciales et décisions MPD restent à arrêter à leurs étapes avant campagne ou livraison. Le dictionnaire V1.3 et le MLD V1.1-g gardent leurs statuts propres, sans gel implicite.

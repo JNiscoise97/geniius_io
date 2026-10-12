@@ -1,0 +1,2066 @@
+{
+ "M001": {
+  "clause": "A3",
+  "description": "deleguer : se créer une habilitation",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a03_prolonger_a_son_profit"
+  ]
+ },
+ "M002": {
+  "clause": "A3",
+  "description": "nommer : se nommer",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_6_nommer_son_second_compte"
+  ]
+ },
+ "M003": {
+  "clause": "A3, § 9.1",
+  "description": "ajouter_membre : s'ajouter soi-même",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_5_second_compte_dans_le_groupe"
+  ]
+ },
+ "M004": {
+  "clause": "A3",
+  "description": "admettre : s'admettre ou admettre l'auteur",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_M013_signataire_jamais_beneficiaire"
+  ]
+ },
+ "M005": {
+  "clause": "§ 9.4",
+  "description": "admettre : l'auteur peut être admis manuellement",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_M013_signataire_jamais_beneficiaire"
+  ]
+ },
+ "M006": {
+  "clause": "G-1",
+  "description": "« soi » = compte, non personne",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a16_derogation_par_second_compte"
+  ]
+ },
+ "M007": {
+  "clause": "G-1",
+  "description": "identité établie non exigée",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_234"
+  ]
+ },
+ "M010": {
+  "clause": "§ 9.4",
+  "description": "admission automatique d'un gestionnaire de l'ensemble",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M011": {
+  "clause": "§ 9.4 (G-2)",
+  "description": "chaînes croisées : gestionnaires d'autres ensembles non exclus",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a01_elevation_croisee"
+  ]
+ },
+ "M012": {
+  "clause": "§ 9.4 (G-2)",
+  "description": "admission automatique de l'auteur",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_318"
+  ]
+ },
+ "M013": {
+  "clause": "§ 9.4 (G-2)",
+  "description": "l'auteur bénéficie de sa propre habilitation à un ensemble",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M014": {
+  "clause": "§ 9.4/§ 10.8",
+  "description": "admission automatique du cédant sous verrou",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_277"
+  ]
+ },
+ "M015": {
+  "clause": "§ 9.4",
+  "description": "admission automatique après retrait par l'habilitant",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N08_exclusion_par_personne"
+  ]
+ },
+ "M016": {
+  "clause": "§ 5.1 (CT-18)",
+  "description": "admission automatique dans un espace archivé ou clos",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a12_admission_automatique_espace_clos"
+  ]
+ },
+ "M017": {
+  "clause": "§ 10.6",
+  "description": "admission automatique non différée pendant la fenêtre",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_M010_admission_differee"
+  ]
+ },
+ "M018": {
+  "clause": "§ 9.3 (CM-32)",
+  "description": "notification à un tiers",
+  "statut": "detectee",
+  "tests": [
+   "S03_Ensembles.test_S_95"
+  ]
+ },
+ "M019": {
+  "clause": "§ 9.4 (CM-24)",
+  "description": "exclusion préventive par retrait d'une admission inexistante",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a20_2_retrait_preventif"
+  ]
+ },
+ "M020": {
+  "clause": "§ 9.2 (H-2a)",
+  "description": "rôle de son propre espace sans admission (exception V1.5 rétablie)",
+  "statut": "detectee",
+  "tests": [
+   "S03_Ensembles.test_S_163"
+  ]
+ },
+ "M021": {
+  "clause": "§ 9.3 (H-6b)",
+  "description": "notification permise sur un périmètre explicite tout exigeant",
+  "statut": "detectee",
+  "tests": [
+   "S03_Ensembles.test_S_96"
+  ]
+ },
+ "M022": {
+  "clause": "§ 9.3 (H-6b)",
+  "description": "admission automatique valant sur une cible exigeante",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a20_5_portee_limitee"
+  ]
+ },
+ "M023": {
+  "clause": "§ 5.3",
+  "description": "sortie de l'ensemble sans clôture de l'admission",
+  "statut": "detectee",
+  "tests": [
+   "TransitionsAutres.test_admission"
+  ]
+ },
+ "M024": {
+  "clause": "§ 5.3 (CM-10)",
+  "description": "admetteur d'une HP non revérifié",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_278"
+  ]
+ },
+ "M025": {
+  "clause": "§ 9.5",
+  "description": "membre d'un groupe bénéficiaire sans agrément",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_129"
+  ]
+ },
+ "M030": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "gel désactivé",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_2_gardien_orphelin_pendant_le_gel"
+  ]
+ },
+ "M031": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "admission manuelle non gelée",
+  "statut": "detectee",
+  "tests": [
+   "Combinaisons.test_gel_par_liste"
+  ]
+ },
+ "M032": {
+  "clause": "§ 10.6 (G-3)",
+  "description": "inclusion : actions ou repartager ajoutés ignorés",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M033": {
+  "clause": "§ 10.6 (G-3)",
+  "description": "inclusion : échéance, état ou mode élargis ignorés",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M034": {
+  "clause": "§ 10.6 (G-3)",
+  "description": "inclusion : engagement nouveau ignoré",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_323"
+  ]
+ },
+ "M035": {
+  "clause": "§ 10.6 (G-3)",
+  "description": "inclusion : levée de protection ignorée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M036": {
+  "clause": "§ 10.6 (G-3)",
+  "description": "inclusion : périmètre élargi ignoré",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_322"
+  ]
+ },
+ "M037": {
+  "clause": "§ 10.7 (G-3)",
+  "description": "acceptation sans contrôle d'inclusion",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M038": {
+  "clause": "§ 10.7",
+  "description": "empreinte de la présentation non contrôlée",
+  "statut": "detectee",
+  "tests": [
+   "TransitionsAutres.test_transfert_empreinte_perimee"
+  ]
+ },
+ "M039": {
+  "clause": "§ 5.6",
+  "description": "présentation sans expiration",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a09_presentation_expiree"
+  ]
+ },
+ "M040": {
+  "clause": "§ 5.6 (CT-16)",
+  "description": "présentation expirée relancée par K",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a09_presentation_expiree"
+  ]
+ },
+ "M041": {
+  "clause": "§ 5.6",
+  "description": "un autre que le cédant présente",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_175"
+  ]
+ },
+ "M042": {
+  "clause": "§ 10.5",
+  "description": "présentation malgré un objet sans voie",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_39"
+  ]
+ },
+ "M043": {
+  "clause": "§ 10.6",
+  "description": "engagements : éléments cachés à K inclus",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_2_gardien_orphelin_pendant_le_gel"
+  ]
+ },
+ "M050": {
+  "clause": "§ 10.5 (CT-09)",
+  "description": "réémission invalide : échec au lieu d'abandon",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a18_1_reemission_cachee_invalide"
+  ]
+ },
+ "M051": {
+  "clause": "§ 10.5",
+  "description": "réémission plus large acceptée",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_319"
+  ]
+ },
+ "M052": {
+  "clause": "§ 10.5 (CM-14)",
+  "description": "admissions reprises non revérifiées",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_281"
+  ]
+ },
+ "M053": {
+  "clause": "§ 10.5 (CM-14)",
+  "description": "admissions annoncées arbitraires",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a18_3_admissions_arbitraires"
+  ]
+ },
+ "M054": {
+  "clause": "§ 10.7",
+  "description": "C conserve ses admissions",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_282"
+  ]
+ },
+ "M055": {
+  "clause": "§ 10.7",
+  "description": "C conserve ses habilitations nominatives sur le contenu",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_37"
+  ]
+ },
+ "M056": {
+  "clause": "§ 10.7",
+  "description": "C reste gardien et bénéficiaire",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_284"
+  ]
+ },
+ "M057": {
+  "clause": "§ 10.7 (F-4)",
+  "description": "K devient gardien de toutes les protections de C (révélation)",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_178"
+  ]
+ },
+ "M058": {
+  "clause": "§ 10.8",
+  "description": "verrou de réintégration non posé",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_1_second_compte_du_cedant"
+  ]
+ },
+ "M059": {
+  "clause": "§ 10.5 (F-4)",
+  "description": "voie (b) sur un objet caché à K",
+  "statut": "detectee",
+  "tests": [
+   "S10_TransfertObjets.test_S_231"
+  ]
+ },
+ "M060": {
+  "clause": "§ 10.5",
+  "description": "voie (b) sans acceptation de K",
+  "statut": "detectee",
+  "tests": [
+   "S10_TransfertObjets.test_S_84"
+  ]
+ },
+ "M061": {
+  "clause": "§ 10.5",
+  "description": "copie (c) sans licence ou sous protection",
+  "statut": "detectee",
+  "tests": [
+   "S10_TransfertObjets.test_S_75"
+  ]
+ },
+ "M062": {
+  "clause": "§ 10.4 (CT-29)",
+  "description": "désignation de garde ignorée",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_247"
+  ]
+ },
+ "M063": {
+  "clause": "§ 2.1 (F-1)",
+  "description": "le transfert clôt les HI signées par C",
+  "statut": "detectee",
+  "tests": [
+   "ClotureV16.test_m033_m330_prolongation_gelee_et_restriction_admise"
+  ]
+ },
+ "M064": {
+  "clause": "§ 10.4",
+  "description": "transfert par un RS non propriétaire",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_118"
+  ]
+ },
+ "M070": {
+  "clause": "§ 10.8",
+  "description": "verrou ignoré pour une délégation",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N21_consentement_par_le_proprietaire"
+  ]
+ },
+ "M071": {
+  "clause": "§ 10.8",
+  "description": "verrou ignoré pour une nomination",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_1_second_compte_du_cedant"
+  ]
+ },
+ "M072": {
+  "clause": "§ 10.8",
+  "description": "verrou ignoré pour une admission",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_171"
+  ]
+ },
+ "M080": {
+  "clause": "§ 12.3",
+  "description": "accord du gardien non exigé à l'octroi",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N12_copie_herite_des_destinataires"
+  ]
+ },
+ "M081": {
+  "clause": "§ 12.3",
+  "description": "niveau non recalculé à l'évaluation",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_189"
+  ]
+ },
+ "M082": {
+  "clause": "§ 12.3",
+  "description": "accord d'un gardien qui n'est plus en fonction",
+  "statut": "detectee",
+  "tests": [
+   "Combinaisons.test_derogation_gardien_change"
+  ]
+ },
+ "M083": {
+  "clause": "§ 12.3 (F-3)",
+  "description": "objet personnel à un approbateur",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_190"
+  ]
+ },
+ "M084": {
+  "clause": "§ 12.3",
+  "description": "donnée sensible à un approbateur",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_192"
+  ]
+ },
+ "M085": {
+  "clause": "§ 12.4 (G-11)",
+  "description": "finalité hors liste acceptée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a19_5_replique_par_derogation"
+  ]
+ },
+ "M086": {
+  "clause": "§ 12.6",
+  "description": "renouvellements illimités",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a20_3_finalites_variees"
+  ]
+ },
+ "M087": {
+  "clause": "§ 12.6",
+  "description": "même justification acceptée",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_194"
+  ]
+ },
+ "M088": {
+  "clause": "§ 12.6 (G-11)",
+  "description": "consécutivité appréciée par finalité",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a20_3_finalites_variees"
+  ]
+ },
+ "M089": {
+  "clause": "§ 12.4",
+  "description": "durée maximale ignorée",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_132"
+  ]
+ },
+ "M090": {
+  "clause": "§ 12.4",
+  "description": "opérations non fermées",
+  "statut": "detectee",
+  "tests": [
+   "InvariantsCibles.test_I13_derogation_bornee"
+  ]
+ },
+ "M091": {
+  "clause": "§ 12.3",
+  "description": "restriction non levable franchie",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_47"
+  ]
+ },
+ "M092": {
+  "clause": "§ 12.7",
+  "description": "subordination ignorée",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_232"
+  ]
+ },
+ "M093": {
+  "clause": "§ 12.7",
+  "description": "lien d'intérêt ignoré",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a08_succession_sans_versement"
+  ]
+ },
+ "M094": {
+  "clause": "§ 12.7",
+  "description": "identité établie de l'approbateur non exigée",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_234"
+  ]
+ },
+ "M095": {
+  "clause": "§ 12.4",
+  "description": "le bénéficiaire peut approuver",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a16_derogation_par_second_compte"
+  ]
+ },
+ "M096": {
+  "clause": "§ 12.7 (G-1)",
+  "description": "deux comptes d'une même personne approuvent",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_80"
+  ]
+ },
+ "M097": {
+  "clause": "§ 13.9 (G-11)",
+  "description": "réplication d'un accès par dérogation",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a19_5_replique_par_derogation"
+  ]
+ },
+ "M098": {
+  "clause": "§ 12.4",
+  "description": "usage hors finalité accepté",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_197"
+  ]
+ },
+ "M100": {
+  "clause": "§ 11.5",
+  "description": "levée ou gestion par un non-gardien",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a20_1_orpheline_signalee"
+  ]
+ },
+ "M101": {
+  "clause": "§ 11.2",
+  "description": "désigner un gardien sans droit de contenu",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_201"
+  ]
+ },
+ "M102": {
+  "clause": "§ 11.2",
+  "description": "gardien conservé sans droit de contenu",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_2_gardien_orphelin_pendant_le_gel"
+  ]
+ },
+ "M103": {
+  "clause": "§ 11.2 (G-10)",
+  "description": "protection orpheline non signalée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_2_gardien_orphelin_pendant_le_gel"
+  ]
+ },
+ "M104": {
+  "clause": "§ 11.2 (G-10, F-03)",
+  "description": "désignation d'office sans signalement du passage en cours",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M105": {
+  "clause": "§ 11.1",
+  "description": "créateur destinataire de sa propre interdiction",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_243"
+  ]
+ },
+ "M106": {
+  "clause": "§ 11.1 (E-4)",
+  "description": "tout acteur crée une protection",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N22_protection_hors_perimetre"
+  ]
+ },
+ "M107": {
+  "clause": "A3",
+  "description": "se rendre bénéficiaire par un second compte",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_244"
+  ]
+ },
+ "M108": {
+  "clause": "§ 11.6",
+  "description": "créateur examine la contestation",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_205"
+  ]
+ },
+ "M109": {
+  "clause": "§ 11.6",
+  "description": "créateurs autorité compétente",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_137"
+  ]
+ },
+ "M110": {
+  "clause": "§ 11.6",
+  "description": "levée légale par quiconque",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_1_restriction_externe"
+  ]
+ },
+ "M120": {
+  "clause": "§ 13.11 (G-6)",
+  "description": "pas d'héritage des protections à la copie",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a15_copie_blanchit"
+  ]
+ },
+ "M121": {
+  "clause": "§ 13.11 (G-6, H-3b)",
+  "description": "non-levables d'un ascendant non étendues aux copies",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a15_copie_blanchit"
+  ]
+ },
+ "M122": {
+  "clause": "§ 13.11",
+  "description": "redistribution de copie sans contrôle",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a15_copie_blanchit"
+  ]
+ },
+ "M123": {
+  "clause": "§ 13.11",
+  "description": "le copieur devient gardien des protections héritées",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a05_2_gardiens_herites"
+  ]
+ },
+ "M130": {
+  "clause": "§ 8.1 (G-7, H-1a)",
+  "description": "délégation d'une action interdite",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a14_interdiction_contournee"
+  ]
+ },
+ "M131": {
+  "clause": "§ 9.3 (G-7, H-1a)",
+  "description": "admission au titre d'une action interdite",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_314"
+  ]
+ },
+ "M132": {
+  "clause": "§ 1, § 8.1 (G-5)",
+  "description": "périmètre mixte permis",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a07_perimetre_mixte"
+  ]
+ },
+ "M133": {
+  "clause": "§ 8.2 (G-8)",
+  "description": "suspension traitée comme rupture",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a10_examen_ne_detruit_pas"
+  ]
+ },
+ "M134": {
+  "clause": "§ 13.3 (G-4)",
+  "description": "ajout direct à une sélection partagée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a03_selection_elargie_par_son_auteur"
+  ]
+ },
+ "M135": {
+  "clause": "§ 13.3 (G-4)",
+  "description": "activation sans contrôle des habilitations",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_286"
+  ]
+ },
+ "M136": {
+  "clause": "A1, § 13.3",
+  "description": "HI de sélection hors du périmètre du signataire",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a03_selection_elargie_par_son_auteur"
+  ]
+ },
+ "M137": {
+  "clause": "§ 13.3",
+  "description": "proposition en attente servie",
+  "statut": "detectee",
+  "tests": [
+   "S07_Selection.test_S_53"
+  ]
+ },
+ "M138": {
+  "clause": "DI-L21",
+  "description": "objet masqué servi",
+  "statut": "detectee",
+  "tests": [
+   "S07_Selection.test_S_51"
+  ]
+ },
+ "M140": {
+  "clause": "§ 2.4 (G-9)",
+  "description": "gel de succession sans effet",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a07_1_gel_par_personne"
+  ]
+ },
+ "M141": {
+  "clause": "§ 10.4",
+  "description": "décision de succession sans fondement",
+  "statut": "detectee",
+  "tests": [
+   "S12_Succession.test_S_271"
+  ]
+ },
+ "M142": {
+  "clause": "§ 10.4, § 12.7",
+  "description": "lien d'intérêt avec l'espace ignoré en succession",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a08_succession_sans_versement"
+  ]
+ },
+ "M143": {
+  "clause": "§ 10.4 (G-9)",
+  "description": "objets du défunt versés en succession",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a08_succession_sans_versement"
+  ]
+ },
+ "M144": {
+  "clause": "§ 10.4",
+  "description": "constat de décès sans contrôle d'indépendance",
+  "statut": "detectee",
+  "tests": [
+   "S12_Succession.test_S_272"
+  ]
+ },
+ "M150": {
+  "clause": "§ 10.3",
+  "description": "habilitation à cibles mixtes listée en entier",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_241"
+  ]
+ },
+ "M151": {
+  "clause": "§ 10.3",
+  "description": "HP sur objet personnel listée",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_224"
+  ]
+ },
+ "M152": {
+  "clause": "§ 10.3",
+  "description": "journaux non filtrés",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_99"
+  ]
+ },
+ "M153": {
+  "clause": "§ 10.3",
+  "description": "explication sur une cible cachée",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_223"
+  ]
+ },
+ "M154": {
+  "clause": "§ 14",
+  "description": "étape 6 : refus au lieu d'introuvable",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a01_elevation_croisee"
+  ]
+ },
+ "M155": {
+  "clause": "§ 14 (CM-21)",
+  "description": "connaître l'existence par `voir` seulement",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a19_2_connaitre_par_un_autre_droit"
+  ]
+ },
+ "M156": {
+  "clause": "§ 7.4, § 15",
+  "description": "l'auteur agit sur une habilitation dont la cible lui est cachée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_3_lever_examen_cible_cachee"
+  ]
+ },
+ "M157": {
+  "clause": "§ 15 (CM-04)",
+  "description": "nommer sur un identifiant inexistant",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a04_nommer_sonde_d_existence"
+  ]
+ },
+ "M158": {
+  "clause": "§ 13.6 (CM-05)",
+  "description": "série : publication invisible acceptée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a05_serie_sonde_d_existence"
+  ]
+ },
+ "M159": {
+  "clause": "§ 14",
+  "description": "étape 3 supprimée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a05_2_gardiens_herites"
+  ]
+ },
+ "M160": {
+  "clause": "§ 14",
+  "description": "étape 4 supprimée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a14_interdiction_contournee"
+  ]
+ },
+ "M161": {
+  "clause": "§ 14",
+  "description": "étape 1 supprimée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a15_copie_blanchit"
+  ]
+ },
+ "M162": {
+  "clause": "§ 13.10",
+  "description": "cache servi sans contrôle d'époque",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N50_cache_et_echeance"
+  ]
+ },
+ "M163": {
+  "clause": "§ 14 étape 7",
+  "description": "mentions non filtrées",
+  "statut": "detectee",
+  "tests": [
+   "S07_Selection.test_S_50"
+  ]
+ },
+ "M164": {
+  "clause": "§ 14 étape 7",
+  "description": "relations non filtrées",
+  "statut": "detectee",
+  "tests": [
+   "S07_Selection.test_S_102"
+  ]
+ },
+ "M165": {
+  "clause": "§ 14 étape 7",
+  "description": "filiation révélée",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_287"
+  ]
+ },
+ "M166": {
+  "clause": "§ 15",
+  "description": "compteur avant exclusion",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_98"
+  ]
+ },
+ "M170": {
+  "clause": "§ 8.2",
+  "description": "rupture désactivée",
+  "statut": "detectee",
+  "tests": [
+   "TransitionsAutres.test_examen_puis_cloture_ferme_l_aval"
+  ]
+ },
+ "M171": {
+  "clause": "§ 8.2 (cycles)",
+  "description": "HP vers l'amont permise",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N40_cycle_a_toute_profondeur"
+  ]
+ },
+ "M172": {
+  "clause": "§ 8.2/T-06",
+  "description": "confirmation circulaire permise",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_110"
+  ]
+ },
+ "M173": {
+  "clause": "§ 8.1 (4)",
+  "description": "HP plus longue que les droits de l'auteur",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_288"
+  ]
+ },
+ "M174": {
+  "clause": "§ 7.2",
+  "description": "HI plus longue que le RS signataire",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_112"
+  ]
+ },
+ "M175": {
+  "clause": "§ 8.1 (5)",
+  "description": "redélégation sans `repartager`",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N06_admission_hp_sans_a1"
+  ]
+ },
+ "M180": {
+  "clause": "§ 7.4",
+  "description": "un RS clôt la nomination d'un pair",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_111"
+  ]
+ },
+ "M181": {
+  "clause": "§ 7.4 (CD-02)",
+  "description": "la racine ne clôt pas toute HI",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_151"
+  ]
+ },
+ "M182": {
+  "clause": "§ 8.3 (CT-15)",
+  "description": "le bénéficiaire restreint",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a02_blocage_par_restriction"
+  ]
+ },
+ "M183": {
+  "clause": "§ 7.5",
+  "description": "mise en examen par un RS non racine",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_155"
+  ]
+ },
+ "M184": {
+  "clause": "§ 7.6",
+  "description": "la racine quitte l'espace",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_109"
+  ]
+ },
+ "M185": {
+  "clause": "§ 7.6 (CT-17)",
+  "description": "nomination proposée adressée au partant non close",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_259"
+  ]
+ },
+ "M186": {
+  "clause": "§ 2.1 (F-1)",
+  "description": "le départ du signataire ferme ses HI",
+  "statut": "detectee",
+  "tests": [
+   "S02_Delegation.test_S_108"
+  ]
+ },
+ "M187": {
+  "clause": "§ 7.2",
+  "description": "HI sur une cible inconnue du signataire",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a07_1_gel_par_personne"
+  ]
+ },
+ "M190": {
+  "clause": "§ 6.1 (CC-20)",
+  "description": "le titulaire valide",
+  "statut": "detectee",
+  "tests": [
+   "ClotureV16.test_p2_versement_active_hi_preexistante_du_contenu"
+  ]
+ },
+ "M191": {
+  "clause": "§ 6.2",
+  "description": "un lecteur crée",
+  "statut": "detectee",
+  "tests": [
+   "S05_Titulaire.test_S_128"
+  ]
+ },
+ "M192": {
+  "clause": "§ 6.2 (CT-31)",
+  "description": "import sans mandat",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_257"
+  ]
+ },
+ "M193": {
+  "clause": "§ 6.3 (CT-30)",
+  "description": "purge malgré une restriction légale ou un gel",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_256"
+  ]
+ },
+ "M194": {
+  "clause": "§ 6.3 (A3)",
+  "description": "reprise au profit du RS qui accepte",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a06b_reprise_au_profit_du_rs"
+  ]
+ },
+ "M195": {
+  "clause": "§ 6.3 (CM-06)",
+  "description": "reprise élargie",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a06_reprise_elargie"
+  ]
+ },
+ "M196": {
+  "clause": "§ 6.3",
+  "description": "versement accepté par un RS hors périmètre",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a06_reprise_elargie"
+  ]
+ },
+ "M200": {
+  "clause": "§ 13.1 (CT-21)",
+  "description": "public en écriture",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_4_public_en_ecriture"
+  ]
+ },
+ "M201": {
+  "clause": "§ 13.1",
+  "description": "public sans diffusabilité",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_242"
+  ]
+ },
+ "M202": {
+  "clause": "§ 5.1 (CT-20)",
+  "description": "élargissement dans un espace archivé",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a19_4_elargir_dans_un_espace_clos"
+  ]
+ },
+ "M203": {
+  "clause": "§ 13.2",
+  "description": "un non-RS change la visibilité du contenu",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_139"
+  ]
+ },
+ "M204": {
+  "clause": "§ 13.7 (CM-22)",
+  "description": "base de portée projet par un non-membre",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a19_3_base_par_un_non_membre"
+  ]
+ },
+ "M205": {
+  "clause": "§ 13.6",
+  "description": "insertion inter-espaces sans acceptation",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_65"
+  ]
+ },
+ "M206": {
+  "clause": "§ 13.4",
+  "description": "lot étendu par ajout",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_218"
+  ]
+ },
+ "M207": {
+  "clause": "§ 13.4",
+  "description": "lot en `valider`",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_219"
+  ]
+ },
+ "M208": {
+  "clause": "§ 13.4",
+  "description": "réouverture du lot réactive",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_221"
+  ]
+ },
+ "M209": {
+  "clause": "§ 13.13",
+  "description": "fin de rattachement sans clôture",
+  "statut": "detectee",
+  "tests": [
+   "S03_Ensembles.test_S_29"
+  ]
+ },
+ "M210": {
+  "clause": "§ 13.9",
+  "description": "échéance locale au-delà du plafond",
+  "statut": "detectee",
+  "tests": [
+   "S08_HorsLigne.test_S_138"
+  ]
+ },
+ "M211": {
+  "clause": "§ 13.9",
+  "description": "réplication sans échéance de données protégées",
+  "statut": "detectee",
+  "tests": [
+   "S08_HorsLigne.test_S_60"
+  ]
+ },
+ "M212": {
+  "clause": "§ 13.8",
+  "description": "contribution intégrée sans réévaluation",
+  "statut": "detectee",
+  "tests": [
+   "S08_HorsLigne.test_S_107"
+  ]
+ },
+ "M213": {
+  "clause": "§ 13.14",
+  "description": "cloisonnement de campagne levé",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_66"
+  ]
+ },
+ "M214": {
+  "clause": "§ 7.1",
+  "description": "contribuer au Core sans diffusabilité",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_215"
+  ]
+ },
+ "M215": {
+  "clause": "§ 5.1",
+  "description": "écriture dans un espace archivé",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a06_espace_archive"
+  ]
+ },
+ "M216": {
+  "clause": "§ 10.1",
+  "description": "un administrateur nomme un administrateur",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_6_nommer_son_second_compte"
+  ]
+ },
+ "M217": {
+  "clause": "§ 5.1",
+  "description": "un administrateur archive",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_290"
+  ]
+ },
+ "M218": {
+  "clause": "§ 13.14",
+  "description": "acteur institutionnel en campagne",
+  "statut": "detectee",
+  "tests": [
+   "S11_V15.test_S_260"
+  ]
+ },
+ "M301": {
+  "clause": "§ 2.5 (H-1a)",
+  "description": "exclusions figées d'une habilitation ignorées",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a01_g7_perimetre_dynamique"
+  ]
+ },
+ "M302": {
+  "clause": "§ 2.5 (H-1a), I-5",
+  "description": "cible cachée d'un périmètre dynamique : refus (fuite) au lieu d'exclusion",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a01_g7_perimetre_dynamique"
+  ]
+ },
+ "M303": {
+  "clause": "§ 2.5 (H-1a)",
+  "description": "cible connue non exécutable : exclusion au lieu de refus",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_312"
+  ]
+ },
+ "M304": {
+  "clause": "§ 2.5 (H-1a)",
+  "description": "exclusions figées d'une nomination ignorées",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_313"
+  ]
+ },
+ "M305": {
+  "clause": "§ 2.5 (H-1a)",
+  "description": "exclusions figées d'une admission ignorées",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_314"
+  ]
+ },
+ "M306": {
+  "clause": "§ 2.5 (H-1a)",
+  "description": "exclusions figées d'un fondateur ignorées",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_315"
+  ]
+ },
+ "M307": {
+  "clause": "§ 9.2 (H-2a)",
+  "description": "admission jamais requise",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a11_admission_par_fondateur_rompu"
+  ]
+ },
+ "M310": {
+  "clause": "§ 13.11 (H-3b)",
+  "description": "protection postérieure non propagée aux copies",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_316"
+  ]
+ },
+ "M311": {
+  "clause": "§ 11.2 (H-3b)",
+  "description": "gardiens hérités appréciés sur la copie",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a05_2_gardiens_herites"
+  ]
+ },
+ "M312": {
+  "clause": "§ 13.11 (H-3b)",
+  "description": "sensibilité non héritée à la copie",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M313": {
+  "clause": "§ 13.11 (H-3b)",
+  "description": "sensibilité d'un ascendant ignorée",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_317"
+  ]
+ },
+ "M314": {
+  "clause": "§ 13.11 (H-3b)",
+  "description": "copie sensible redistribuable",
+  "statut": "detectee",
+  "tests": [
+   "ClotureV16.test_m312_purge_ascendant_ne_libere_pas_copie_sensible"
+  ]
+ },
+ "M315": {
+  "clause": "§ 11.6 (CT-05)",
+  "description": "restriction légale d'un ascendant non appliquée à la copie",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a05_1_restriction_legale_posterieure"
+  ]
+ },
+ "M320": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "délégation sur le contenu non gelée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_4_gel_sans_sonde"
+  ]
+ },
+ "M321": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "nomination non gelée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M322": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "prolongation non gelée",
+  "statut": "detectee",
+  "tests": [
+   "ClotureV16.test_m033_m330_prolongation_gelee_et_restriction_admise"
+  ]
+ },
+ "M323": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "confirmation non gelée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a11_confirmation_gelee"
+  ]
+ },
+ "M324": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "levée interne d'une protection non gelée",
+  "statut": "detectee",
+  "tests": [
+   "S13_Mutations.test_S_292"
+  ]
+ },
+ "M325": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "désignation d'un gardien par l'autorité non gelée",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a17_2_gardien_orphelin_pendant_le_gel"
+  ]
+ },
+ "M326": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "ajout à un groupe non gelé",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_36"
+  ]
+ },
+ "M327": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "versement non gelé",
+  "statut": "detectee",
+  "tests": [
+   "Attaques.test_a18_4_versement_pendant_le_gel"
+  ]
+ },
+ "M328": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "acte de l'autorité légale gelé (levée)",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M329": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "création de protection gelée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a12_creation_de_protection_jamais_gelee"
+  ]
+ },
+ "M330": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "inclusion : fondateurs ajoutés ignorés",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M331": {
+  "clause": "§ 10.6 (H-4a)",
+  "description": "inclusion : effectivité accrue ignorée",
+  "statut": "SURVIT",
+  "tests": []
+ },
+ "M332": {
+  "clause": "§ 10.6 (CT-18)",
+  "description": "protection devenue invisible à K traitée comme une levée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a12_creation_de_protection_jamais_gelee"
+  ]
+ },
+ "M333": {
+  "clause": "§ 5.6 (CT-09)",
+  "description": "présentations illimitées",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M334": {
+  "clause": "§ 5.6 (CT-09)",
+  "description": "carence de transfert ignorée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "M335": {
+  "clause": "§ 10.7 (CT-19)",
+  "description": "acceptation d'un espace clos",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_2_espace_clos_pendant_la_fenetre"
+  ]
+ },
+ "M336": {
+  "clause": "§ 10.6 (H-6d)",
+  "description": "création d'objet gelée",
+  "statut": "detectee",
+  "tests": [
+   "Combinaisons.test_gel_par_liste"
+  ]
+ },
+ "M340": {
+  "clause": "§ 2.4 (H-5)",
+  "description": "interdiction d'existence par compte",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a08_3_interdiction_par_personne"
+  ]
+ },
+ "M341": {
+  "clause": "§ 2.3 (H-5)",
+  "description": "interdiction d'action par compte",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_304"
+  ]
+ },
+ "M342": {
+  "clause": "§ 2.4 (H-5)",
+  "description": "bénéficiaire d'un embargo par compte",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_305"
+  ]
+ },
+ "M343": {
+  "clause": "§ 11.2 (H-5)",
+  "description": "gardien par compte",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_320"
+  ]
+ },
+ "M344": {
+  "clause": "§ 10.4 (H-5)",
+  "description": "défunt par compte",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_321"
+  ]
+ },
+ "M345": {
+  "clause": "§ 10.7 (H-5)",
+  "description": "cédant par compte",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_1_second_compte_du_cedant"
+  ]
+ },
+ "M346": {
+  "clause": "§ 10.5 (H-5)",
+  "description": "objets du cédant par compte",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_307"
+  ]
+ },
+ "M347": {
+  "clause": "§ 9.4 (H-5)",
+  "description": "compte sans identité établie admis automatiquement",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_308"
+  ]
+ },
+ "M348": {
+  "clause": "§ 11.1 (H-5)",
+  "description": "compte sans identité établie crée une protection",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_309"
+  ]
+ },
+ "M349": {
+  "clause": "§ 11.2 (H-5)",
+  "description": "gardien sans identité établie",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_309"
+  ]
+ },
+ "M350": {
+  "clause": "§ 9.4 (H-6a)",
+  "description": "admission différée non réévaluée",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_M010_admission_differee"
+  ]
+ },
+ "M351": {
+  "clause": "§ 10.8 (H-6c)",
+  "description": "consentement non consommé",
+  "statut": "detectee",
+  "tests": [
+   "S04_Transfert.test_S_121"
+  ]
+ },
+ "M352": {
+  "clause": "§ 10.8 (H-6c)",
+  "description": "consentements non caducs au transfert suivant",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a10_4_consentement_par_acte"
+  ]
+ },
+ "M353": {
+  "clause": "§ 13.6 (H-6e)",
+  "description": "rang occupé par une publication invisible",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a08b_rang_de_serie"
+  ]
+ },
+ "M360": {
+  "clause": "A3 (CT-03)",
+  "description": "prolonger à son profit",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a03_prolonger_a_son_profit"
+  ]
+ },
+ "M361": {
+  "clause": "A3 (CT-03)",
+  "description": "confirmer à son profit",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_310"
+  ]
+ },
+ "M362": {
+  "clause": "A3 (CT-03)",
+  "description": "profit apprécié par compte",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a03_prolonger_a_son_profit"
+  ]
+ },
+ "M363": {
+  "clause": "§ 13.3 (CT-10)",
+  "description": "l'auteur gère une sélection partagée",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a13_2_revocation_par_l_auteur_sans_autorite"
+  ]
+ },
+ "M364": {
+  "clause": "§ 13.3 (CT-10)",
+  "description": "activation sur une sélection non partagée par un tiers",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_311"
+  ]
+ },
+ "M365": {
+  "clause": "§ 10.4 (CT-14)",
+  "description": "le défunt reste gardien",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a07_2_gardien_decede"
+  ]
+ },
+ "M366": {
+  "clause": "§ 12.3 (CT-15)",
+  "description": "dérogation sur un objet gelé sans finalité `succession`",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a07_3_derogation_sur_objet_gele"
+  ]
+ },
+ "M367": {
+  "clause": "§ 12.6 (CT-16)",
+  "description": "rang : dernière dérogation au lieu du maximum",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a04_renouvellements"
+  ]
+ },
+ "M368": {
+  "clause": "§ 7.6 (CT-17)",
+  "description": "nomination proposée signée par le partant non close",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a10_2_nomination_proposee_par_un_partant"
+  ]
+ },
+ "M369": {
+  "clause": "§ 10.3 (CT-20)",
+  "description": "actes sur les protections dans les journaux de gouvernance",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a08_2_protections_hors_journaux"
+  ]
+ },
+ "M370": {
+  "clause": "§ 10.5 (CT-22)",
+  "description": "réémission sur des voies mêlées annoncée",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_293"
+  ]
+ },
+ "M371": {
+  "clause": "§ 5.1 (CT-27)",
+  "description": "acceptation de nomination dans un espace archivé",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_294"
+  ]
+ },
+ "M372": {
+  "clause": "§ 5.1 (CM-03)",
+  "description": "écriture d'un non-titulaire sur un objet personnel, espace archivé",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a06_espace_archive"
+  ]
+ },
+ "M373": {
+  "clause": "§ 5.1 (CM-04)",
+  "description": "prolonger ou confirmer dans un espace archivé",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a06_espace_archive"
+  ]
+ },
+ "M374": {
+  "clause": "§ 8.3 (CM-19)",
+  "description": "retrait d'une admission à une HI par un RS hors périmètre",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_295"
+  ]
+ },
+ "M375": {
+  "clause": "T-05 (CM-20)",
+  "description": "restriction de périmètre élargissant",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_296"
+  ]
+ },
+ "M376": {
+  "clause": "§ 11.2 (CM-23)",
+  "description": "gardien désigné destinataire",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_297"
+  ]
+ },
+ "M377": {
+  "clause": "§ 11.2 (F-03)",
+  "description": "second passage orphelin non signalé",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_M104_second_passage_orphelin"
+  ]
+ },
+ "M378": {
+  "clause": "§ 10.5 (F-04)",
+  "description": "copie (c) avec une purge",
+  "statut": "detectee",
+  "tests": [
+   "Combinaisons.test_transfert_voies"
+  ]
+ },
+ "M379": {
+  "clause": "§ 8.2 (cycles)",
+  "description": "amont sans les auteurs d'admission",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_298"
+  ]
+ },
+ "M380": {
+  "clause": "§ 10.4 (CM-22)",
+  "description": "succession présentée sans scellé d'audit",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_299"
+  ]
+ },
+ "M381": {
+  "clause": "§ 10.4, § 12.7 (CM-22)",
+  "description": "succession : dossier sans les objets et espaces du défunt",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_300"
+  ]
+ },
+ "M382": {
+  "clause": "§ 10.4, § 12.7 (CM-22)",
+  "description": "décision de succession : dossier limité à l'objet",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_301"
+  ]
+ },
+ "N01": {
+  "clause": "§ 7.5, T-07",
+  "description": "mise en examen d'une HP (HI seulement)",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N01_examen_hi_seulement"
+  ]
+ },
+ "N02": {
+  "clause": "T-04, § 7.2",
+  "description": "HI prolongée par un RS dont le périmètre ne la couvre pas",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N02_prolongation_hors_perimetre"
+  ]
+ },
+ "N03": {
+  "clause": "§ 2.5, T-04 (G-7)",
+  "description": "prolongation sans exécution effective",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N03_prolongation_g7"
+  ]
+ },
+ "N04": {
+  "clause": "§ 2.5, T-06 (G-7)",
+  "description": "confirmation sans exécution effective",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N04_confirmation_g7"
+  ]
+ },
+ "N06": {
+  "clause": "§ 9.3, § 8.1",
+  "description": "admission à une HP sans les conditions 1 (A1)",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N06_admission_hp_sans_a1"
+  ]
+ },
+ "N07": {
+  "clause": "§ 8.3 (CM-19)",
+  "description": "retrait d'une admission à une HP par quiconque connaît l'HP",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N07_retrait_d_admission_par_un_tiers"
+  ]
+ },
+ "N08": {
+  "clause": "§ 9.4 (G-1)",
+  "description": "exclusion après retrait appréciée par compte",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N08_exclusion_par_personne"
+  ]
+ },
+ "N09": {
+  "clause": "§ 12.6 (G-1)",
+  "description": "consécutivité des dérogations appréciée par compte",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N09_consecutivite_par_personne"
+  ]
+ },
+ "N10": {
+  "clause": "A6, § 11.2",
+  "description": "un échec d'évaluation retire un gardien",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N10_echec_d_evaluation_et_gardien"
+  ]
+ },
+ "N11": {
+  "clause": "A6, I-14",
+  "description": "un échec d'évaluation rompt une HP",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N10_echec_d_evaluation_et_gardien"
+  ]
+ },
+ "N12": {
+  "clause": "§ 13.11 (G-6)",
+  "description": "copie : destinataires des interdictions non hérités",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N12_copie_herite_des_destinataires"
+  ]
+ },
+ "N13": {
+  "clause": "§ 13.11",
+  "description": "ascendants limités au premier rang",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N13_non_levable_d_un_ascendant_de_second_rang"
+  ]
+ },
+ "N14": {
+  "clause": "§ 10.3, A2",
+  "description": "métadonnées de gouvernance lisibles par tout membre",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N14_metadonnees_reservees"
+  ]
+ },
+ "N15": {
+  "clause": "§ 10.3",
+  "description": "journaux : HP sur objet personnel visibles hors titulaire",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N15_journaux_hp_objet_personnel"
+  ]
+ },
+ "N16": {
+  "clause": "§ 10.3 (OB-24)",
+  "description": "explication des accès sur l'objet personnel d'autrui",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N16_explication_objet_personnel"
+  ]
+ },
+ "N17": {
+  "clause": "§ 10.6 (F-4)",
+  "description": "présentation lisible par un autre que le cessionnaire",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N17_presentation_lisible_par_k_seul"
+  ]
+ },
+ "N18": {
+  "clause": "§ 12.5",
+  "description": "révocation d'une dérogation par un non-membre de l'autorité",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N18_revocation_de_derogation"
+  ]
+ },
+ "N19": {
+  "clause": "§ 11.6",
+  "description": "contestation d'une restriction légale par quiconque",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N19_contestation_reservee"
+  ]
+ },
+ "N20": {
+  "clause": "§ 11.6, § 12.7",
+  "description": "contestation examinée sans deux approbateurs indépendants",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N20_examen_par_deux_independants"
+  ]
+ },
+ "N21": {
+  "clause": "§ 10.8, § 10.1",
+  "description": "consentement à la réintégration par un non-propriétaire",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N21_consentement_par_le_proprietaire"
+  ]
+ },
+ "N22": {
+  "clause": "§ 11.1",
+  "description": "protection posée par un RS hors de son périmètre",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N22_protection_hors_perimetre"
+  ]
+ },
+ "N23": {
+  "clause": "§ 13.7",
+  "description": "base de portée projet sans action d'écriture",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N23_base_projet"
+  ]
+ },
+ "N24": {
+  "clause": "§ 13.6",
+  "description": "insertion en série sans être RS ni administrateur",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N24_insertion_reservee"
+  ]
+ },
+ "N25": {
+  "clause": "§ 13.9",
+  "description": "échéance hors ligne de l'habilitant ignorée",
+  "statut": "detectee",
+  "tests": [
+   "S08_HorsLigne.test_S_208"
+  ]
+ },
+ "N26": {
+  "clause": "§ 13.8",
+  "description": "contribution refusée lisible par un autre que son auteur",
+  "statut": "detectee",
+  "tests": [
+   "S08_HorsLigne.test_S_107"
+  ]
+ },
+ "N27": {
+  "clause": "§ 14 étape 1, § 15",
+  "description": "restriction non levable : « refus » révèle l'existence",
+  "statut": "detectee",
+  "tests": [
+   "S06_Protections.test_S_47"
+  ]
+ },
+ "N28": {
+  "clause": "§ 14 étape 4, § 15",
+  "description": "restriction interne : « refus » révèle l'existence",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a10_1_portee_limitee_sans_bascule"
+  ]
+ },
+ "N32": {
+  "clause": "§ 10.6 (H-4a), rétargetée",
+  "description": "levée d'une restriction légale gelée (le contrat V1.6 l'exclut du gel)",
+  "statut": "detectee",
+  "tests": [
+   "ControleA.test_a09_3_autorite_legale_et_presentations"
+  ]
+ },
+ "N35": {
+  "clause": "§ 8.3",
+  "description": "le titulaire de la cible ne peut plus clore une HP d'autrui",
+  "statut": "detectee",
+  "tests": [
+   "S12_V16.test_S_302"
+  ]
+ },
+ "N40": {
+  "clause": "§ 8.2 (cycles)",
+  "description": "amont limité aux fondateurs directs",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N40_cycle_a_toute_profondeur"
+  ]
+ },
+ "N41": {
+  "clause": "§ 13.1",
+  "description": "public désigné par un non-titulaire non-RS détenteur de repartager",
+  "statut": "detectee",
+  "tests": [
+   "S09_Mecanismes.test_S_216"
+  ]
+ },
+ "N50": {
+  "clause": "§ 13.10 (CP-40)",
+  "description": "cache servi au-delà de l'instant et de l'échéance",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N50_cache_et_echeance"
+  ]
+ },
+ "N53": {
+  "clause": "§ 12.3",
+  "description": "protection orpheline : dérogation sans gardien",
+  "statut": "detectee",
+  "tests": [
+   "ControleB.test_N53_orpheline_infranchissable"
+  ]
+ }
+}

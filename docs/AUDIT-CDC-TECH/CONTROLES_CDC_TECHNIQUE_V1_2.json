@@ -1,0 +1,35 @@
+{
+  "date_revue": "2026-10-13",
+  "version": "CDC V1.2 gelé documentairement",
+  "nature": "contrôles documentaires structurels",
+  "TECH": 33,
+  "identifiants_recettes": 381,
+  "CU_repris": 31,
+  "criteres_repris": 64,
+  "baseline_gelee_fichiers_verifies": 16,
+  "cas_projets": 12,
+  "tests_logiciel_executes": false,
+  "gel_prononce": true,
+  "erreurs": [
+    "docs\\AUDIT-CDC-TECH\\PROCES_VERBAL_GEL_CDC_V1_2.md lien CONTROLES_CDC_TECHNIQUE_V1_2.json"
+  ],
+  "limites": [
+    "Présence et cohérence structurelle seulement ; conclusions de relecture dans le rapport final.",
+    "Aucune mesure NF ni recette logiciel exécutée.",
+    "Reports R-CDC-04 à 06 encadrés, non dimensionnés dans ce contrôle."
+  ],
+  "sha256_sources": {
+    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md": "bdd3fea2849733f29ce2834b01d860d222b548a64f48d0c9edf2f843fd6fd4bb",
+    "docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md": "4ee3e6c790ca44ac2a9689dcbee1d79153834ee181111bb3bf9254622739ac9d",
+    "spec/validation/cdc_recettes_v1_2.json": "1eaf9efcfa272ab97f7e674bb66579567b53a3de1c3579eb190407cb3292017b",
+    "docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md": "be4c188880ca4121ace68f0ac9b07d3d189510aebff550595ec967d01ae1e827",
+    "docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md": "2d5ff56a2b81862b9251ec0e1f51f3c10165f490069a7c5104e01e83a86bc930",
+    "docs/GENIIUS_CONTRAT_AUTORISATION_V1.md": "70302c5cdb09a84d4b6400cc86bc44697d8f3957af02e2a0020a5fba36cd27ee",
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md": "63d3a91ee6e11c18aad66cfa1a3460492007ef3ee6acd15a3a98e7f890b6da8e",
+    "docs/AUDIT-CDC-TECH/REVUE_FINALE_CDC_V1_1.md": "715c14c283eb289139b7069ec54ec63e9663903b18547f81d7a93f5260ec2e8d",
+    "docs/geniius_io_CDCF_V1.md": "43d5bcbade01ce64bf07d1f1ec0808ffe10c7d82af7b1af62100e49869e24dbd",
+    "spec/validation/generer_recettes_cdc.py": "44c2cea567b599d9afb353112db76f61a7a9a66296a03481bc89adffd18f4c57",
+    "spec/validation/controler_cdc_technique.py": "c826d92feb764c47a31a0667e2b458a401649cc47ed847439fc36216511db377"
+  }
+}

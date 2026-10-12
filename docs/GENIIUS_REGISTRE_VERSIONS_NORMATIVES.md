@@ -12,11 +12,12 @@
 
 | Ordre | Document | Fichier de référence | Version | Statut | Preuve du statut |
 |---|---|---|---|---|---|
-| 1 | Cahier des charges fonctionnel | [`docs/geniius_io_CDCF_V1.md`](geniius_io_CDCF_V1.md) | **V1.2** (9/10/2026) = V1.1 + avenant AV-FONC-001 (Partie XXI) | **Référence** — base de tous les documents aval ; aucun procès-verbal de gel versionné. La V1.2 est répercutée dans le MCD V1.2 (gelé), pas encore dans le dictionnaire ni le MLD | Repris intégralement par le MCD V1.1, qui passe 95/95 tests contre ses 25 CU et 50 critères (rapport ci-dessous) |
+| 1 | Cahier des charges fonctionnel | [CDCF](geniius_io_CDCF_V1.md) | **V1.3** (13/10/2026) = V1.2 + DC-CDCF-01 | **RÉFÉRENCE — gel global non prononcé** | [Décision de cohérence et gel CDC](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md) : § 122.2/critère 55 alignés V1.6, ratification technique § 135 ; [V1.2 archivée](archives/cdcf/geniius_io_CDCF_V1_2_AVANT_DC_CDCF_01.md) |
 | 2 | Modèle conceptuel de données | [`docs/geniius_io_MCD_V1.md`](geniius_io_MCD_V1.md) | **V1.2 canonique** (9/10/2026) : V1.1 + concepts A à G et invariants P23 à P25 (AV-FONC-001). La V1.1 (7/10/2026) est remplacée, consultable dans l’historique Git (commit `423991c`) | **GELÉ le 9/10/2026** (décision du porteur) — baseline conceptuelle | V1.1 : [`docs/GENIIUS_RAPPORT_REEXECUTION_95_TESTS_MCD_V1_1.md`](GENIIUS_RAPPORT_REEXECUTION_95_TESTS_MCD_V1_1.md), § 9 ; condition de maintien du gel au § 10. V1.2 : [`docs/GENIIUS_RAPPORT_REEXECUTION_173_CONTROLES_MCD_V1_2.md`](GENIIUS_RAPPORT_REEXECUTION_173_CONTROLES_MCD_V1_2.md) : 159 PASS, 14 PASS SOUS CONDITION, 0 FAIL ; gel prononcé le 9/10/2026 |
-| 3 | Dictionnaire de données | [`docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md`](geniius_io_DICTIONNAIRE_DONNEES_V1.md) | **V1.2** (9/10/2026) = V1.1 consolidé + DC-DICT-01 (annexe K) : fiches des concepts A à G, précisions P-1 à P-8. La V1.1 consolidée reste dans l’historique Git (commit `423991c`) | **V1.2 GELÉ le 10/10/2026** (décision du porteur) ; **V1.3 CANDIDAT** (10/10/2026, DC-DICT-02, annexe L) — à valider avant le gel du MLD | V1.2 : REC-01 et REC-16 **conformes** sur le MCD V1.2 ([`docs/GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md`](GENIIUS_DICTIONNAIRE_REC16_COUVERTURE_173_CONTROLES.md)) |
-| 4 | Modèle logique de données | [`docs/GENIIUS_MLD_V1_0.md`](GENIIUS_MLD_V1_0.md) | **V1.1** (10/10/2026) = V1.0 (7/10/2026, révisé le 9/10/2026 : CP-23 à CP-28, `contribution_differee`, § 28.3) + intégration du MCD V1.2 et du dictionnaire V1.2 (17 tables, CP-29 à CP-38, MLD-16 à 18) ; corrections V1.1-c du 10/10/2026 (écarts ECD bloquants, CP-39 à CP-47, ST-12 à ST-15, matrice DI complète) ; 267 tables. Le nom de fichier `…_V1_0.md` est conservé | **CANDIDAT** — non gelé | Rapport de crash-test cité en REV-01 **introuvable** (jamais versionné) ; écarts majeurs ouverts (ECD-06 à ECD-21, ECD-33) ; points V-7 à V-10 à valider |
-| 5 | CDC technique | [`docs/GENIIUS_CDC_TECHNIQUE_V1_0.md`](GENIIUS_CDC_TECHNIQUE_V1_0.md) | **V1.0** — audit achevé sur le périmètre initial | **CANDIDAT** — non gelé (GEL-01 à 08) | REV-03-M11 approuvé, conditions non levées |
+| 3 | Dictionnaire de données | [`docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md`](geniius_io_DICTIONNAIRE_DONNEES_V1.md) | **V1.3**, DC-DICT-02/03, validation du 12/10/2026 ; V1.2 gelée historique | **VALIDÉ DOCUMENTAIREMENT — référence amont**, gel formel non prononcé | [Dossier de validation](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md), deux recontrôles indépendants, 304 DI localisées, 60 CP-13 énoncées ; limites explicites |
+| 4 | Modèle logique de données | [`docs/GENIIUS_MLD_V1_0.md`](GENIIUS_MLD_V1_0.md) et [catalogue autorisations](GENIIUS_MLD_AUTORISATIONS_V1_6.md) | **V1.1-g stabilisé** (12/10/2026), inventaire actuel hors miroirs ; ancien total 271 historique | **STABILISÉ — candidat au gel**, non gelé | [Registre de clôture](AUDIT-MLD/REGISTRE_CLOTURE_CONSTATS_V1_3.md), [contrôles reproductibles](AUDIT-MLD/CONTROLES_STRUCTURELS_V1_3.json), avis indépendants favorables ; recette MPD/logiciel réservée |
+| — | Contrat d’autorisation | [`docs/GENIIUS_CONTRAT_AUTORISATION_V1.md`](GENIIUS_CONTRAT_AUTORISATION_V1.md) | **V1.6**, P-1 à P-3 validés le 12/10/2026 | **GELÉ le 12/10/2026 — contrat comportemental, réserves §§ 16 et 17.3** | Contrôles indépendants [A](AUDIT-MLD/CONTROLE_CLOTURE_TEXTE_MODELE_V1_6.md) et [B](AUDIT-MLD/CONTROLE_CLOTURE_COUVERTURE_V1_6.md) ; [dossier de clôture et procès-verbal](AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md) : 465 tests OK, 252/260 mutations, huit justifications acceptées et choix métier ratifiés |
+| 5 | CDC technique | [CDC](GENIIUS_CDC_TECHNIQUE_V1_0.md) et [recettes](GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md) | **V1.2** (13/10/2026) | **GELÉ DOCUMENTAIREMENT**, reports encadrés | [Procès-verbal](AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md), huit conditions levées, [contrôles](AUDIT-CDC-TECH/CONTROLES_CDC_TECHNIQUE_V1_2.json), [empreintes baseline](AUDIT-CDC-TECH/PREUVES_GEL_CDC_V1_2.json) |
 | — | Avenant fonctionnel | [`docs/AV-FONC/AV-FONC-001.md`](AV-FONC/AV-FONC-001.md) | Dossier d'avenant | **Figé le 9/10/2026** (AV-1 à AV-12) ; intégré au CDCF V1.2 (étape 2) ; étapes 3 à 7 à mener | Décision du porteur (AV-FONC-001, § 12) |
 | — | Audit de cohérence | [`docs/AUDIT-COHERENCE/`](AUDIT-COHERENCE/) | V1 (9/10/2026) | Rapport de contrôle | — |
 
@@ -66,12 +67,12 @@
 
 | Document | Condition de passage au statut « gelé » |
 |---|---|
-| CDCF V1.1 | Décision explicite de gel (procès-verbal), ou maintien assumé du statut « référence ». Intégration ou non des avenants AV-FONC-001 et AV-FONC-002 (ECD-19, ECD-20). |
+| CDCF V1.3 | Maintien du statut référence ; gel global non prononcé. DC-CDCF-01 clôt ECD-19 et écart hors ligne ; AV-FONC-001 intégré. |
 | ~~MCD V1.2~~ | **Gelé le 9/10/2026** |
 | ~~Dictionnaire V1.1~~ | **Gelé le 9/10/2026** |
 | ~~Dictionnaire V1.2~~ | **Gelé le 10/10/2026** |
 | MLD V1.0 | Écarts bloquants et majeurs du MLD traités ou inscrits au registre des décisions différées (ECD-04 à 18, 21) ; matrice dictionnaire → MLD complétée (ECD-13) ; nouveau rapport de crash-test versionné |
-| CDC technique V1.0 | GEL-01 à GEL-08 levées (CDC technique, § 11) |
+| CDC technique V1.2 | **Gel documentaire prononcé le 13/10/2026** ; reports architecture/MPD/produit suivis au procès-verbal |
 
 ## 5. Historique du registre
 
@@ -93,3 +94,13 @@
 | 10/10/2026 | Arbitrages D1 à D9 du porteur. **Dictionnaire V1.3** complété (11 constats d’audit) ; **MLD V1.1-d** : 32 constats corrigés (271 tables, CP-48 à CP-53), § 25.4 refait avec contrôle exhaustif des 207 lignes (21 lacunes corrigées). Constats non clos ; contre-audit ciblé lancé. |
 | 10/10/2026 | **Contre-audit du MLD V1.1-d** (nouvel agent séparé) : sur 11 constats ciblés, 2 levés et 9 partiellement levés ; 15 nouveaux constats, dont 2 bloquants introduits par les corrections de l’accès ([rapport](AUDIT-MLD/CONTRE_AUDIT_MLD_V1_1_D.md), [instruction](AUDIT-MLD/INSTRUCTION_CONTRE_AUDIT_MLD_V1_1_D.md)). Proposition : refondre le contrôle d’accès en un modèle d’autorisation unique (axiomes A1 à A6, batterie de scénarios). Décision du porteur attendue. MLD et dictionnaire V1.3 non gelés. |
 | 10/10/2026 | Décision du porteur : **refonte du contrôle d’accès** (proposition A), D1, D8 et DD-28 remplacés, statut « obligation procédurale non énoncée » adopté. **Contrat d’autorisation V1** et **batterie de 66 scénarios** rédigés, à figer. Corrections parallèles V1.1-e (hors accès) appliquées, candidates. Contraintes d’accès actuelles du MLD déclarées non normatives jusqu’à la réécriture. |
+
+| 12/10/2026 | P-1 à P-3 validés par le porteur ; contrôles indépendants A/B effectués ; corrections du contrat et report candidat dans dictionnaire V1.3/MLD V1.1-f. **Gel du contrat comportemental V1.6 prononcé explicitement par le porteur** ; huit justifications acceptées, neuf groupes de choix ratifiés, réserves maintenues. Dictionnaire/MLD candidats. |
+
+| 12/10/2026 | Sur demande du porteur, validation documentaire du dictionnaire V1.3 et stabilisation du MLD V1.1-g, avec deux nouvelles revues indépendantes et preuves par constat. 304 DI définies/localisées, 60 CP-13 énoncées, PK/FK/syntaxe contrôlées ; réserves amont/MPD maintenues. Aucun gel formel du dictionnaire/MLD ni SQL de production déclaré. |
+
+## 5. Clôture CDC et entrée architecture — 13 octobre 2026
+
+DC-CDCF-01 clôt R-CDC-02/03 sur autorisation du porteur. Les mentions d’écart CDCF § 122.2 dans les preuves gelées V1.6 concernent la V1.2 historique ; le contrat reste inchangé. Le CDC V1.2 et ses recettes sont gelés documentairement ; les statuts propres du dictionnaire et du MLD ne sont pas modifiés.
+
+[Cadrage architecture V0.1](architecture/GENIIUS_CADRAGE_ARCHITECTURE_V0_1.md) : candidat, non gelé ; aucun nouveau fournisseur ni technologie choisi.
