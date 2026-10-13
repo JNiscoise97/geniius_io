@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-13",
+  "dossier": "Persistance/conservation/restauration V0.1 candidate",
+  "phases_depot": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05"
+  ],
+  "phases_restauration": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07"
+  ],
+  "scenarios_specifies": [
+    "PR01",
+    "PR02",
+    "PR03",
+    "PR04",
+    "PR05",
+    "PR06",
+    "PR07",
+    "PR08",
+    "PR09",
+    "PR10",
+    "PR11",
+    "PR12"
+  ],
+  "decisions_ouvertes": [
+    "PER-01",
+    "PER-02",
+    "PER-03",
+    "PER-04",
+    "PER-05",
+    "PER-06",
+    "PER-07"
+  ],
+  "architecture_gelee": false,
+  "tests_infrastructure_executes": false,
+  "RPO_RTO_mesures": false,
+  "technologies_choisies": false,
+  "erreurs": [],
+  "limites": [
+    "Présences, références et empreintes seulement.",
+    "Durabilité, registres indépendants, clés, mutualisation/effacement, idempotence après restauration et objectifs PRA à démontrer."
+  ],
+  "sha256": {
+    "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md": "7e0f9a8f56bca958fd40b6cd89f9422bdca0cc447cf4b74a455ebbbf9e722e7d",
+    "spec/validation/controler_architecture_persistance.py": "1393c688a3a7fea1dcd986f3701b823a1ca9634ca84cb0d14f6783b783356949",
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/GENIIUS_CONTRAT_AUTORISATION_V1.md": "70302c5cdb09a84d4b6400cc86bc44697d8f3957af02e2a0020a5fba36cd27ee",
+    "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md": "bbb983db2640d0a03db4fe7edfae924b2a4e70169c5789ddb1dba46075fb959a"
+  }
+}

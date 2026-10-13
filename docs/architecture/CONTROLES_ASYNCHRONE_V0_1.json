@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-13",
+  "dossier": "Asynchrone/propagation/dimensionnement V0.1 candidate",
+  "phases_execution": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06"
+  ],
+  "scenarios_specifies": [
+    "AS01",
+    "AS02",
+    "AS03",
+    "AS04",
+    "AS05",
+    "AS06",
+    "AS07",
+    "AS08",
+    "AS09",
+    "AS10",
+    "AS11",
+    "AS12"
+  ],
+  "decisions_ouvertes": [
+    "ASY-01",
+    "ASY-02",
+    "ASY-03",
+    "ASY-04",
+    "ASY-05",
+    "ASY-06",
+    "ASY-07"
+  ],
+  "architecture_gelee": false,
+  "tests_logiciel_charge_executes": false,
+  "MPD04_fixe": false,
+  "capacite_production_mesuree": false,
+  "erreurs": [],
+  "limites": [
+    "Présences, références et empreintes documentaires seulement.",
+    "Baux, génération/frontier, concurrence, sécurité, équité, débit/coût et délai maximal restent à démontrer."
+  ],
+  "sha256": {
+    "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md": "a81fbd5b84279b6c9cc4698dd907ba7ecfc117de753775232f6fb0e7b2104fc2",
+    "spec/validation/controler_architecture_asynchrone.py": "8872a05eaa09bcee9b34ddbdb92b86a728715e14bea90e1ef5ce9f989d02d1d6",
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md": "cc5a6955d306d0627eadd8b6a0ce823ab80b7385b5c28a0bbc103916e0d1db6b",
+    "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md": "7e0f9a8f56bca958fd40b6cd89f9422bdca0cc447cf4b74a455ebbbf9e722e7d"
+  }
+}

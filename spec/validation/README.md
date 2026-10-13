@@ -15,6 +15,20 @@ Le premier outil produit le catalogue d'autorisation et sa source JSON, sans cha
 Les miroirs `_hist` et macros ne sont pas développés en SQL. Les contrôles de PK/FK dans le catalogue ne prouvent ni les contraintes procédurales ni toutes les combinaisons de données. Les scénarios et variantes raisonnés sont consignés dans les deux rapports indépendants sous `docs/AUDIT-MLD/`. Les 304 correspondances ne sont pas présentées comme 304 tests sémantiques exécutés.
 # CDC technique V1.1
 
+## Architecture Core V0.1
+
+`python spec/validation/consolider_decisions_architecture.py` produit le registre documentaire unique depuis le CDC et les dossiers candidats. `python spec/validation/controler_consolidation_architecture.py` vérifie les 64 références, statuts/liens/sources, les seize ADR, variantes/prototypes et le périmètre du CDC gelé. Sortie : `docs/architecture/CONTROLES_CONSOLIDATION_V0_1.json`. Les références liées ne sont pas autant d’arbitrages indépendants ; les prototypes et preuves d’infrastructure restent à réaliser.
+
+`python spec/validation/controler_architecture_asynchrone.py` contrôle les phases, scénarios, décisions ouvertes, références et conservation du CDC gelé. Sortie : `docs/architecture/CONTROLES_ASYNCHRONE_V0_1.json`. Aucun worker/file réel, test de charge, mesure de coût/capacité ou délai MPD-04 n’est validé par ce contrôle documentaire.
+
+`python spec/validation/controler_architecture_persistance.py` contrôle dépôt, restauration, décisions responsables/étape, références et conservation du CDC gelé. Sortie : `docs/architecture/CONTROLES_PERSISTANCE_V0_1.json`. Aucune infrastructure, sauvegarde réelle, clé, transaction SQL ou mesure RPO/RTO n’est testée par cette commande.
+
+`python spec/validation/controler_architecture_sync.py` vérifie le dossier synchronisation : phases, scénarios, décisions responsables/étape, obligations ST, références et conservation du CDC gelé. Sortie : `docs/architecture/CONTROLES_SYNCHRONISATION_V0_1.json`. Les tests de clients/serveur, de temps OS, de transport et d’anti-rollback restent à exécuter à leur étape.
+
+`python spec/validation/controler_architecture_securite.py` contrôle le dossier autorisations/isolation/concurrence : ordre V1.6, références, douze scénarios, cinq points de preuve et conservation des documents gelés. Sortie : `docs/architecture/CONTROLES_SECURITE_V0_1.json`. Ce contrôle ne démontre ni verrou SQL ni linéarisation réelle ni non-divulgation temporelle.
+
+`python spec/validation/generer_core_architecture.py` produit les matrices de propriétaires de tables et CP depuis le MLD, le catalogue d’autorisation et le dossier modules/transactions. `python spec/validation/controler_core_architecture.py` vérifie inventaires, responsabilité unique, contrats et références, obligations CP-13 et conservation des documents gelés. Sortie : `docs/architecture/CONTROLES_CORE_V0_1.json`. Aucun Core logiciel ni transaction SQL n’est exécuté.
+
 **État actuel : CDC V1.2 gelé documentairement le 13/10/2026.** Les commandes ci-dessous produisent désormais le catalogue `cdc_recettes_v1_2.json`, le référentiel de recettes V1.2 et les contrôles V1.2 ; les artefacts V1.1 restent historiques. Le procès-verbal est `docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md`.
 
 `python spec/validation/consigner_gel_cdc.py --verifier` vérifie les empreintes de la baseline scellée. Toute modification d’un document gelé suit le CDC § 13 ; la commande sans argument ne scelle qu’une seule fois et refuse d’écraser une baseline existante. Les conversions CRLF/LF constatées lors de la reprise sont déclarées dans les preuves, sans écraser celles du contrat V1.6.

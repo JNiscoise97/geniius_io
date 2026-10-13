@@ -1,0 +1,755 @@
+{
+  "date": "2026-10-13",
+  "version": "Registre architecture V0.1 candidat",
+  "contrainte_porteur": "100 €/mois avant abonnements ; décembre 2026 souhaité ; six prototypes avant lancement. Langage/hébergeur ouverts.",
+  "decisions": {
+    "MPD-01": {
+      "objet": "Indexation",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "Texte intégral **filtré par le graphe accessible** ; index minimaux fixés par le MLD § 28.1",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-04",
+        "ASY-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2119
+    },
+    "MPD-02": {
+      "objet": "Matérialisation des droits effectifs et caches",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "Aucun contournement du graphe accessible ; caches **par contexte**, invalidés par versions des objets, règles et appartenances",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-01",
+        "SEC-05"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2120
+    },
+    "MPD-03": {
+      "objet": "Seuil de petit effectif",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "Protection contre révélations indirectes **et attaques par différenciation** (REV-02-C)",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2121
+    },
+    "MPD-04": {
+      "objet": "Délai maximal de propagation (CP-21, OB-09)",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "États de propagation et comportement observable définis (REC-X12 A à C) ; pas de fenêtre de fausse certitude",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-02",
+        "ASY-06"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2122
+    },
+    "MPD-05": {
+      "objet": "Chiffrement des colonnes `I`",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "Clés hors base ; chiffrement au repos (TECH-019)",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-05",
+        "SYN-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2123
+    },
+    "MPD-06": {
+      "objet": "RLS, service de politiques ou combinaison",
+      "responsable": "Architecture/MPD avec sécurité et propriétaire métier",
+      "etape": "MPD ; MPD-04 avant validation capacité/délai",
+      "contrat_preuve": "Ordre du § 22.2 et réponses indistinguables (OB-04) sur **toutes** les opérations ; si RLS, politiques sur les vues d'accès",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-01",
+        "SEC-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2124
+    },
+    "DEC-ARCH-01": {
+      "objet": "Stratégie d'isolation logique et physique des espaces",
+      "responsable": "Architecture/sécurité",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-009",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-01",
+        "SEC-02",
+        "SEC-04",
+        "SEC-05",
+        "DEP-01"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2132
+    },
+    "DEC-ARCH-02": {
+      "objet": "Mécanisme d'identifiants publics pérennes (URI persistantes, ARK)",
+      "responsable": "Architecture/données",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-010, CP-17",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-01"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2133
+    },
+    "DEC-ARCH-03": {
+      "objet": "Protocole de synchronisation et de négociation de compatibilité",
+      "responsable": "Architecture/Core/clients",
+      "etape": "Architecture",
+      "contrat_preuve": "TECH-003, AUDIT-TECH-003",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SYN-02",
+        "SYN-07"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2134
+    },
+    "DEC-ARCH-04": {
+      "objet": "~~Emplacement du modèle de données de la synchronisation~~ — **décidé le 9/10/2026 (ECD-05)** : réception technique privée sans FK de cible (`reception_differee`), puis zone de réconciliation métier à références résolues (`contribution_differee`), politique de réplication et contexte d'évaluation dans le MLD (CP-27, CP-28) ; appareils, sessions, curseurs, journal technique et stockage local dans un schéma technique choisi par ADR, tenu par les obligations ST-01 à ST-08 (MLD § 28.3)",
+      "responsable": "Architecture/Core",
+      "etape": "Fait",
+      "contrat_preuve": "TECH-002, 003, 005, 007.8 ; AUDIT-TECH-001, 003",
+      "statut": "Actée en amont — ECD-05, emplacement logique seulement",
+      "dossiers_lies": [],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2135
+    },
+    "DEC-ARCH-05": {
+      "objet": "Politique de caches et d'invalidation",
+      "responsable": "Architecture/sécurité",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-004, MPD-02",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-03",
+        "SEC-04",
+        "SEC-05"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2136
+    },
+    "DEC-ARCH-06": {
+      "objet": "Formats de conservation et fréquence des contrôles d'intégrité",
+      "responsable": "Données/exploitation",
+      "etape": "Architecture / exploitation",
+      "contrat_preuve": "AUDIT-TECH-012",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-01",
+        "PER-06"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2137
+    },
+    "DEC-ARCH-07": {
+      "objet": "Dimensionnement des performances",
+      "responsable": "Architecture/exploitation/qualité",
+      "etape": "Architecture / tests",
+      "contrat_preuve": "TECH-014, AUDIT-TECH-008",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-02",
+        "ASY-04",
+        "ASY-06",
+        "SEC-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2138
+    },
+    "DEC-ARCH-08": {
+      "objet": "Langues livrées en V1 (au-delà du français)",
+      "responsable": "Produit",
+      "etape": "Planification produit",
+      "contrat_preuve": "TECH-033",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2139
+    },
+    "DEC-ARCH-09": {
+      "objet": "Modalités de récupération de compte et de transmission patrimoniale",
+      "responsable": "Identité/produit/juridique",
+      "etape": "Architecture / juridique",
+      "contrat_preuve": "AUDIT-TECH-013",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SYN-05",
+        "DEP-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2140
+    },
+    "DEC-ARCH-10": {
+      "objet": "Matrice complète des critères d'acceptation",
+      "responsable": "Qualité/Core",
+      "etape": "Préparation des tests",
+      "contrat_preuve": "AUDIT-TECH-015",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "DEP-03",
+        "ASY-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2141
+    },
+    "DEC-ARCH-11": {
+      "objet": "Technologies : Desktop (Electron, Tauri…), frontend, backend, file de tâches, stockage objet, moteur de recherche, observabilité, CI/CD, KMS",
+      "responsable": "Architecture avec propriétaires concernés",
+      "etape": "Architecture (ADR)",
+      "contrat_preuve": "TECH-004, 006, 008, 015, 016, 019, 021, 023, 025",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-01",
+        "SYN-04",
+        "PER-02",
+        "PER-05",
+        "DEP-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2142
+    },
+    "DEC-ARCH-12": {
+      "objet": "Style d'API (REST, GraphQL, gRPC, événements)",
+      "responsable": "Architecture/API",
+      "etape": "Architecture",
+      "contrat_preuve": "TECH-018",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SYN-07",
+        "DEP-03"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2143
+    },
+    "DEC-ARCH-13": {
+      "objet": "Modèles et fournisseurs IA, local ou distant, multi-fournisseurs",
+      "responsable": "Données/sécurité/architecture",
+      "etape": "Architecture",
+      "contrat_preuve": "TECH-017",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-05"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2144
+    },
+    "DEC-ARCH-14": {
+      "objet": "Fréquence des snapshots, rétention, nombre de copies, régions, fournisseur de sauvegarde",
+      "responsable": "Exploitation/sécurité",
+      "etape": "Architecture / exploitation",
+      "contrat_preuve": "TECH-012",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-01",
+        "PER-03",
+        "PER-07"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2145
+    },
+    "DEC-ARCH-15": {
+      "objet": "Garanties de récupération des fichiers binaires (équivalent RPO médias)",
+      "responsable": "Stockage/exploitation",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-006.13",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-02",
+        "PER-07"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2146
+    },
+    "DEC-ARCH-16": {
+      "objet": "Hébergement : fournisseur et région (UE privilégiée)",
+      "responsable": "Architecture/exploitation/porteur",
+      "etape": "Architecture",
+      "contrat_preuve": "TECH-020.8",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "DEP-01",
+        "DEP-02",
+        "DEP-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2147
+    },
+    "DEC-ARCH-17": {
+      "objet": "Chiffrement de bout en bout pour des périmètres renforcés",
+      "responsable": "Produit/sécurité (hors V1)",
+      "etape": "Ultérieure",
+      "contrat_preuve": "TECH-019.7",
+      "statut": "Hors V1 — capacité préparée, décision ultérieure",
+      "dossiers_lies": [],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2148
+    },
+    "PAR-CDC-01": {
+      "objet": "Profils de volumétrie de référence (chiffres indicatifs non validés, TECH-009.4)",
+      "responsable": "Produit/données/qualité",
+      "etape": "À valider avec les utilisateurs cibles avant les tests de charge",
+      "contrat_preuve": "TECH-009",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2155
+    },
+    "PAR-CDC-02": {
+      "objet": "Taille maximale d'un lot d'importation",
+      "responsable": "Architecture/données",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-015",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-04",
+        "SYN-06"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2156
+    },
+    "PAR-CDC-03": {
+      "objet": "Durée de compatibilité des anciens clients et politique de dépréciation API",
+      "responsable": "Produit/architecture",
+      "etape": "Architecture",
+      "contrat_preuve": "TECH-018, TECH-023",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SYN-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2157
+    },
+    "PAR-CDC-04": {
+      "objet": "Coordination de la prise d’effet des permissions avec époque/caches : aucune révocation effective ignorée ; protocole concret interespaces à définir",
+      "responsable": "Core/sécurité",
+      "etape": "Architecture / sécurité",
+      "contrat_preuve": "A6, CP-40",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SEC-01",
+        "SEC-05"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2158
+    },
+    "PAR-CDC-05": {
+      "objet": "Plafonds de consultation hors ligne de toute donnée protégée (pas seulement espaces sensibles), minimum plateforme/espace/habilitant ; valeurs d’exemple non adoptées",
+      "responsable": "Produit/gouvernance/sécurité",
+      "etape": "Architecture / produit / gouvernance",
+      "contrat_preuve": "Contrat § 13.9 / § 16, AUDIT-TECH-001",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "SYN-01",
+        "SYN-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2159
+    },
+    "PAR-CDC-06": {
+      "objet": "Budgets de ressources par catégorie d'opération",
+      "responsable": "Architecture/exploitation",
+      "etape": "Architecture",
+      "contrat_preuve": "AUDIT-TECH-008",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-03",
+        "ASY-06"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2160
+    },
+    "PAR-CDC-07": {
+      "objet": "Quotas de stockage et de traitement",
+      "responsable": "Produit/exploitation",
+      "etape": "Architecture / modèle économique",
+      "contrat_preuve": "TECH-029",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-03",
+        "DEP-04"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2161
+    },
+    "PAR-CDC-08": {
+      "objet": "SLO des services importants et différables",
+      "responsable": "Exploitation/qualité",
+      "etape": "Exploitation",
+      "contrat_preuve": "TECH-028",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "DEP-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2162
+    },
+    "PAR-CDC-09": {
+      "objet": "Durées de rétention des journaux (diagnostic, sécurité, audit)",
+      "responsable": "Exploitation/sécurité/juridique",
+      "etape": "Exploitation / juridique",
+      "contrat_preuve": "TECH-021",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "ASY-07",
+        "DEP-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2163
+    },
+    "PAR-CDC-10": {
+      "objet": "Délais cibles de correction des vulnérabilités par classe",
+      "responsable": "Sécurité/exploitation",
+      "etape": "Procédures opérationnelles",
+      "contrat_preuve": "TECH-030",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "DEP-02"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2164
+    },
+    "PAR-CDC-11": {
+      "objet": "Bases juridiques, durées de conservation et procédures RGPD",
+      "responsable": "Produit/juridique/données",
+      "etape": "Analyse juridique",
+      "contrat_preuve": "TECH-020",
+      "statut": "Ouverte — instruction et preuve nécessaires",
+      "dossiers_lies": [
+        "PER-01",
+        "PER-03",
+        "PER-06"
+      ],
+      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "ligne": 2165
+    },
+    "SEC-01": {
+      "objet": "Garde canonique interinstances et point de linéarisation/échéance : choix MPD-02/06, traces AC01/03/07/08.",
+      "responsable": "Architecture/Core + sécurité",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Garde canonique interinstances et point de linéarisation/échéance : choix MPD-02/06, traces AC01/03/07/08.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "ligne": 96
+    },
+    "SEC-02": {
+      "objet": "Famine, transactions longues, volume copies et coût de garde globale : mesure NF01/02/03/10 et AC10 ; alternative segmentée si nécessaire.",
+      "responsable": "Architecture/exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Famine, transactions longues, volume copies et coût de garde globale : mesure NF01/02/03/10 et AC10 ; alternative segmentée si nécessaire.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "ligne": 97
+    },
+    "SEC-03": {
+      "objet": "Point de sortie des pages/portions, URL de téléchargement, échéance pendant envoi : protocole et traces AC09/12 avant livraison.",
+      "responsable": "API/stockage + sécurité",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Point de sortie des pages/portions, URL de téléchargement, échéance pendant envoi : protocole et traces AC09/12 avant livraison.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "ligne": 98
+    },
+    "SEC-04": {
+      "objet": "Graphe avant calcul, statistiques et attaques de délais/différenciation : MPD-03, protocole CDC NF10, AC06.",
+      "responsable": "Sécurité/recherche",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Graphe avant calcul, statistiques et attaques de délais/différenciation : MPD-03, protocole CDC NF10, AC06.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "ligne": 99
+    },
+    "SEC-05": {
+      "objet": "Époque, ascendants, copies et watermark/barrières : AC02/04/11, mêmes obligations après restauration.",
+      "responsable": "Core/synchronisation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Époque, ascendants, copies et watermark/barrières : AC02/04/11, mêmes obligations après restauration.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "ligne": 100
+    },
+    "SYN-01": {
+      "objet": "Plafonds hors ligne",
+      "responsable": "Produit/gouvernance + sécurité",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "PAR-CDC-05 : valeurs plateforme/espace/habilitant et conséquences terrain ; aucune durée d’exemple adoptée.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 152
+    },
+    "SYN-02": {
+      "objet": "Fenêtre de compatibilité",
+      "responsable": "Produit + architecture",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "PAR-CDC-03/DEC-ARCH-03 : versions/capacités garanties, annonce et récupération ; SY06/07.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 153
+    },
+    "SYN-03": {
+      "objet": "Rétention de curseurs/accusés",
+      "responsable": "Architecture/exploitation + données",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Délai de reconnexion attendu, coûts et reconstruction ; unicité durable empêchant double effet après expiration technique, SY02/11.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 154
+    },
+    "SYN-04": {
+      "objet": "Temps et anti-rollback",
+      "responsable": "Clients/sécurité + architecture",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Source monotone par OS, veille/redémarrage, incertitude/dérive, stockage/génération et ancrage authentifié ; SY08/09.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 155
+    },
+    "SYN-05": {
+      "objet": "Canal appareil révoqué",
+      "responsable": "Identité/sécurité",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Contrôle de retrait séparé, sans accès métier ; récupération de journal sur compte/appareil admissible, SY10.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 156
+    },
+    "SYN-06": {
+      "objet": "Capacités et budgets",
+      "responsable": "Architecture/clients/exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Tailles de pages/deltas/chunks, espace disque, concurrence et politique réseau, mesures NF du CDC ; SY04/07/12.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 157
+    },
+    "SYN-07": {
+      "objet": "Adoption physique du protocole",
+      "responsable": "Architecture/Core/MPD",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Schéma technique, transport, garanties d’accusé et points de divulgation SEC-01/03/05 ; tous scénarios.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "ligne": 158
+    },
+    "PER-01": {
+      "objet": "Conservation et sauvegardes",
+      "responsable": "Exploitation/architecture + données",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "DEC-ARCH-06/14 : générations, fréquences/rétention, domaines de panne, formats, copie isolée/immuable, contrôle d’intégrité ; PR01/02/03/12.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 122
+    },
+    "PER-02": {
+      "objet": "Stockage et RPO médias",
+      "responsable": "Architecture/M05 + exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "DEC-ARCH-15 : contrat de confirmation, reprise, intégrité, coût/capacité de récupération, objectifs binaires ; PR01/02/12.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 123
+    },
+    "PER-03": {
+      "objet": "Registres indépendants",
+      "responsable": "Core/sécurité/exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Ordre intention/commit/accusé, checkpoints et fraîcheur hors restauration ; PR05/06/07/10.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 124
+    },
+    "PER-04": {
+      "objet": "Effets/idempotence et rétention",
+      "responsable": "Core/M13/M14 + produit/données",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "SYN-03 : durée de reconnexion, preuves après restauration, commandes/consommations, minimisation et purges ; PR08/09/11.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 125
+    },
+    "PER-05": {
+      "objet": "Secrets et reprise",
+      "responsable": "Sécurité/exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "MPD-05 : accès/rotation/récupération des clés, chiffrement et séparation ; PR10, aucun mécanisme cryptographique maison.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 126
+    },
+    "PER-06": {
+      "objet": "Mutualisation/effacement",
+      "responsable": "Architecture/M05 + sécurité/juridique",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Portée d’effacement, droits/copies, isolation de clés et absence d’oracle ; PR04/05.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 127
+    },
+    "PER-07": {
+      "objet": "Procédure PRA et verdict",
+      "responsable": "Exploitation/qualité + porteur",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "R01 à R07, responsables d’ouverture, périmètre/service, manifestes et mesure NF05 ; PR12 et anomalies connues.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "ligne": 128
+    },
+    "ASY-01": {
+      "objet": "Exécution et reprise",
+      "responsable": "Architecture/M14 + exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "File/dispatcher, bail et jeton de tentative, durée/renouvellement, retries et isolement ; AS01/02/03/09.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 119
+    },
+    "ASY-02": {
+      "objet": "Propagation et MPD-04",
+      "responsable": "Core/données + architecture/exploitation",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Périmètre de barrière, frontier/générations et ajouts concurrents, délai maximal/profils, alerte ; AS05/06/07/08/11.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 120
+    },
+    "ASY-03": {
+      "objet": "Admission et équité",
+      "responsable": "Architecture/exploitation + produit",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Classes, capacité réservée, quotas/concurrence, attente et refus non destructif ; AS10/12, PAR-CDC-06/07.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 121
+    },
+    "ASY-04": {
+      "objet": "Profil et mesure",
+      "responsable": "Produit/données/qualité + architecture",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "PAR-CDC-01/02 : corpus, graphes/médias/versions, concurrence et lots ; campagne reproductible selon CDC.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 122
+    },
+    "ASY-05": {
+      "objet": "Autorité et effets externes",
+      "responsable": "Sécurité/Core + exploitant",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "SEC-01 à 05/PER-04 : revalidation, capacités internes étroites, point de sortie, résultat externe incertain ; AS04.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 123
+    },
+    "ASY-06": {
+      "objet": "Capacité et coût",
+      "responsable": "Architecture/exploitation + porteur",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Capacité mesurée, marge/paliers/coût total, seuils et croissance, preuve NF01/02/03/09/10 ; AS12.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 124
+    },
+    "ASY-07": {
+      "objet": "Observabilité et conservation",
+      "responsable": "Exploitation/sécurité + données",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "Métriques/alertes, rétention/jobs/checkpoints, purge des traces et reprise après PRA ; PER-03/04, SYN-03, AS02/05/11.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "ligne": 125
+    },
+    "DEP-01": {
+      "objet": "DEC-ARCH-01/16, PER-01/03/05.",
+      "responsable": "Carte des domaines de panne/contrôle, identité réseau et secrets, fournisseurs et régions",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "DEC-ARCH-01/16, PER-01/03/05.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "ligne": 95
+    },
+    "DEP-02": {
+      "objet": "PAR-CDC-08/09/10, TECH-021/027/030.",
+      "responsable": "Contrat d’exploitation et astreinte, incidents, délais de correction, maintenabilité",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "PAR-CDC-08/09/10, TECH-021/027/030.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "ligne": 96
+    },
+    "DEP-03": {
+      "objet": "SYN-02/07, T15/T16, TECH-022/023/031.",
+      "responsable": "Livraison/migrations, compatibilité/rollback et ancien client",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "SYN-02/07, T15/T16, TECH-022/023/031.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "ligne": 97
+    },
+    "DEP-04": {
+      "objet": "ASY-03/04/06, PER-02/07, TECH-026/029.",
+      "responsable": "Capacité, coût nominal/pointe/reprise, quotas et sortie du fournisseur",
+      "etape": "Avant validation du mécanisme / campagne et livraison concernés",
+      "contrat_preuve": "ASY-03/04/06, PER-02/07, TECH-026/029.",
+      "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
+      "dossiers_lies": [],
+      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "ligne": 98
+    }
+  },
+  "gel_architecture": false,
+  "tests_executes": false,
+  "sha256_sources": {
+    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md": "cc5a6955d306d0627eadd8b6a0ce823ab80b7385b5c28a0bbc103916e0d1db6b",
+    "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md": "45fb33037c6def4250cd1842fd21cb891741c2c5c712d3d6749020e3dbddaf72",
+    "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md": "bbb983db2640d0a03db4fe7edfae924b2a4e70169c5789ddb1dba46075fb959a",
+    "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md": "7e0f9a8f56bca958fd40b6cd89f9422bdca0cc447cf4b74a455ebbbf9e722e7d",
+    "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md": "a81fbd5b84279b6c9cc4698dd907ba7ecfc117de753775232f6fb0e7b2104fc2",
+    "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md": "cc94a1ef3765f573cc493850cb8413553157427cc5cd0ce6125798ae8524a9cb"
+  }
+}

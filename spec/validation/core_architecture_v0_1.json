@@ -1,0 +1,3645 @@
+{
+  "version": "Architecture Core V0.1 candidate",
+  "modules": {
+    "M01": "Identité",
+    "M02": "Accès et espaces",
+    "M03": "Socle scientifique",
+    "M04": "Référentiels",
+    "M05": "Sources et lecture",
+    "M06": "Connaissance et validation",
+    "M07": "Recherche et pilotage",
+    "M08": "Tree et circulation",
+    "M09": "Mémoire et participation",
+    "M10": "Cartographie",
+    "M11": "Publication et échanges",
+    "M12": "Financement",
+    "M13": "Synchronisation",
+    "M14": "Exécution durable"
+  },
+  "tables": {
+    "objet": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 354
+    },
+    "version_objet": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 387
+    },
+    "version_composant": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 408
+    },
+    "activite": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 417
+    },
+    "activite_perimetre_transmis": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 445
+    },
+    "activite_referentiel": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 451
+    },
+    "activite_entree": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 459
+    },
+    "activite_methode": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 467
+    },
+    "lien": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 479
+    },
+    "lien_version": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 491
+    },
+    "dependance": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 500
+    },
+    "filiation": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 525
+    },
+    "reference_inter_espace": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 545
+    },
+    "etat_reference_externe": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 556
+    },
+    "base_justificative": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 572
+    },
+    "base_justificative_preuve": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "A:base_justificative",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 584
+    },
+    "acquisition_information": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 591
+    },
+    "acquisition_objet": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 604
+    },
+    "acquisition_documentaire": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 609
+    },
+    "acquisition_documentaire_objet": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 620
+    },
+    "reference_persistante": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 628
+    },
+    "identifiant_externe": {
+      "module": "M03",
+      "domaine": "A",
+      "nature": "A:objet",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 640
+    },
+    "espace": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 659
+    },
+    "communaute": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 676
+    },
+    "espace_organisation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 681
+    },
+    "compte": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 692
+    },
+    "compte_categorie_sollicitation": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 705
+    },
+    "acteur_geniius": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 711
+    },
+    "pseudonyme_reserve": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 721
+    },
+    "lien_compte_acteur": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 726
+    },
+    "lien_compte_personne": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 735
+    },
+    "groupe": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 745
+    },
+    "membre_groupe": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "A:groupe",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 750
+    },
+    "appartenance_espace": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "A:espace",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 758
+    },
+    "attribution_role": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "A:espace",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 774
+    },
+    "decision_applicabilite_droit": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 797
+    },
+    "evaluation_diffusabilite": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 812
+    },
+    "licence": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 831
+    },
+    "classification": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 842
+    },
+    "objet_classification": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "A:objet",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 846
+    },
+    "masquage": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 853
+    },
+    "consentement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 869
+    },
+    "volonte_numerique": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 884
+    },
+    "designation_garde": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 896
+    },
+    "lien_interet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 910
+    },
+    "financement": {
+      "module": "M12",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 921
+    },
+    "abonnement": {
+      "module": "M12",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 932
+    },
+    "prise_en_charge": {
+      "module": "M12",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 944
+    },
+    "prise_en_charge_ressource": {
+      "module": "M12",
+      "domaine": "B",
+      "nature": "A:prise_en_charge",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 965
+    },
+    "prise_en_charge_acceptation": {
+      "module": "M12",
+      "domaine": "B",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 973
+    },
+    "blocage": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 984
+    },
+    "reception_differee": {
+      "module": "M13",
+      "domaine": "B",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 999
+    },
+    "contribution_differee": {
+      "module": "M13",
+      "domaine": "B",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1017
+    },
+    "document": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1058
+    },
+    "document_langue": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:document",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1071
+    },
+    "exemplaire": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1077
+    },
+    "unite_archivistique": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1085
+    },
+    "classement_unite": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:unite_archivistique",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1094
+    },
+    "localisation_exemplaire": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:exemplaire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1105
+    },
+    "composition_documentaire": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:objet",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1114
+    },
+    "identifiant_documentaire": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1135
+    },
+    "localisation_en_ligne": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1149
+    },
+    "page": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1162
+    },
+    "reproduction": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1176
+    },
+    "fichier": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1191
+    },
+    "reproduction_fichier": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:reproduction",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1211
+    },
+    "vue": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1219
+    },
+    "vue_page": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:vue",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1231
+    },
+    "zone": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1237
+    },
+    "alignement_reproduction": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:vue",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1256
+    },
+    "responsabilite": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1272
+    },
+    "citation_documentaire": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1283
+    },
+    "citation_documentaire_zone": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:citation_documentaire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1292
+    },
+    "emplacement": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1298
+    },
+    "occupation_emplacement": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "A:emplacement",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1305
+    },
+    "prescription": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1313
+    },
+    "source_externe_declaree": {
+      "module": "M05",
+      "domaine": "C",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1321
+    },
+    "transcription": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1335
+    },
+    "segment": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1349
+    },
+    "segment_zone": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "A:segment",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1359
+    },
+    "annotation": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1365
+    },
+    "annotation_ancrage": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "A:annotation",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1373
+    },
+    "mention": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1383
+    },
+    "mention_ancrage": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "A:mention",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1394
+    },
+    "regroupement_traces": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1404
+    },
+    "mention_regroupement": {
+      "module": "M05",
+      "domaine": "D",
+      "nature": "A:regroupement_traces",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1411
+    },
+    "entite_historique": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1441
+    },
+    "personne": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1449
+    },
+    "lieu": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1459
+    },
+    "organisation": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1464
+    },
+    "objet_materiel": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1465
+    },
+    "phenomene": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1466
+    },
+    "fonction": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1468
+    },
+    "famille": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1472
+    },
+    "collectif_historique": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1476
+    },
+    "bien": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1484
+    },
+    "norme": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1488
+    },
+    "evenement": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1492
+    },
+    "voyage": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1499
+    },
+    "etape_voyage": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1502
+    },
+    "tradition": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1513
+    },
+    "recit": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1517
+    },
+    "recit_assertion": {
+      "module": "M06",
+      "domaine": "E",
+      "nature": "A:recit",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1525
+    },
+    "proposition_identification": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1539
+    },
+    "position": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1552
+    },
+    "position_relationnelle": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1559
+    },
+    "candidature": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1569
+    },
+    "rapprochement": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1580
+    },
+    "selection_contexte": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1593
+    },
+    "position_epistemique": {
+      "module": "M06",
+      "domaine": "F",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1604
+    },
+    "assertion": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1623
+    },
+    "assertion_relation": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1669
+    },
+    "assertion_presence": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1677
+    },
+    "assertion_situation": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1681
+    },
+    "assertion_zone": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:assertion",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1695
+    },
+    "assertion_mention": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:assertion",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1703
+    },
+    "assertion_reponse": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:assertion",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1710
+    },
+    "assertion_source_externe": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:assertion",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1716
+    },
+    "expression_assertion": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1728
+    },
+    "expression_segment": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:expression_assertion",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1738
+    },
+    "interpretation": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1745
+    },
+    "interpretation_appui": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:interpretation",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1771
+    },
+    "interpretation_entite": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:interpretation",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1779
+    },
+    "interpretation_question": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:interpretation",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1785
+    },
+    "lacune": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1791
+    },
+    "lacune_recherche": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:lacune",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1800
+    },
+    "erreur_propagee": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1806
+    },
+    "erreur_reprise": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "A:erreur_propagee",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1812
+    },
+    "transmission": {
+      "module": "M06",
+      "domaine": "G",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1819
+    },
+    "acte_evaluation": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1835
+    },
+    "argument": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1850
+    },
+    "argument_preuve": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "A:argument",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1858
+    },
+    "argument_acte": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1866
+    },
+    "proposition_modification": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1871
+    },
+    "conflit_edition": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1883
+    },
+    "conflit_proposition": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1891
+    },
+    "discussion": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1897
+    },
+    "message": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1903
+    },
+    "acte_moderation": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1912
+    },
+    "credit": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1925
+    },
+    "domaine_expertise": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1934
+    },
+    "badge": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1942
+    },
+    "declaration_profil": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1952
+    },
+    "demande": {
+      "module": "M06",
+      "domaine": "H",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1960
+    },
+    "reconstruction": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1979
+    },
+    "reconstruction_concurrence": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1986
+    },
+    "element_reconstruit": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 1993
+    },
+    "element_appui": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "A:element_reconstruit",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2005
+    },
+    "anomalie_documentaire": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2014
+    },
+    "anomalie_explication": {
+      "module": "M05",
+      "domaine": "I",
+      "nature": "A:anomalie_documentaire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2024
+    },
+    "session_memoire": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2036
+    },
+    "session_temoin": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:session_memoire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2051
+    },
+    "session_present": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:session_memoire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2057
+    },
+    "echange": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2064
+    },
+    "echange_zone": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:echange",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2074
+    },
+    "reponse": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2080
+    },
+    "indice": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2095
+    },
+    "relance": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2105
+    },
+    "campagne_memoire": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2112
+    },
+    "campagne_personne": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:campagne_memoire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2119
+    },
+    "campagne_question": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:campagne_memoire",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2128
+    },
+    "capsule": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2135
+    },
+    "capsule_contenu": {
+      "module": "M09",
+      "domaine": "J",
+      "nature": "A:capsule",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2149
+    },
+    "projet": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2163
+    },
+    "relation_projets": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2172
+    },
+    "decision_rattachement": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2188
+    },
+    "etudier": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2197
+    },
+    "utiliser": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "L",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2212
+    },
+    "utiliser_role": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:utiliser",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2220
+    },
+    "question": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2229
+    },
+    "question_objet": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:question",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2241
+    },
+    "piste": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2247
+    },
+    "piste_cible": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:piste",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2260
+    },
+    "recherche_effectuee": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2268
+    },
+    "recherche_perimetre": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:recherche_effectuee",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2285
+    },
+    "mission": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2298
+    },
+    "item_mission": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2310
+    },
+    "intervention_mission": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:mission",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2322
+    },
+    "intervention_perimetre": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:mission",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2335
+    },
+    "offre_deplacement": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2345
+    },
+    "offre_categorie": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:offre_deplacement",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2353
+    },
+    "micro_mission": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2359
+    },
+    "condition_pratique": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2367
+    },
+    "contact": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2377
+    },
+    "interaction": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2386
+    },
+    "protocole": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2400
+    },
+    "critere_protocole": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2406
+    },
+    "application_protocole": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2415
+    },
+    "etat_critere": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:application_protocole",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2427
+    },
+    "regle_methodologique": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2436
+    },
+    "regle_contexte": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:regle_methodologique",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2445
+    },
+    "tache": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2451
+    },
+    "tache_assignation": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:tache",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2465
+    },
+    "tache_dependance": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:tache",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2475
+    },
+    "tache_objet": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "A:tache",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2483
+    },
+    "snapshot": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2490
+    },
+    "diff_connaissance": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2497
+    },
+    "decouverte": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2510
+    },
+    "decouverte_version": {
+      "module": "M07",
+      "domaine": "K",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2518
+    },
+    "arbre": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2531
+    },
+    "noeud_arbre": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2540
+    },
+    "arbre_lien": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "A:arbre",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2549
+    },
+    "operation_flux": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2556
+    },
+    "selection_partage": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2574
+    },
+    "selection_exclusion": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "A:selection_partage",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2602
+    },
+    "selection_inclusion": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2608
+    },
+    "comparaison": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2624
+    },
+    "ecart": {
+      "module": "M08",
+      "domaine": "L",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2633
+    },
+    "evenement_connect": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2647
+    },
+    "activite_connect": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2657
+    },
+    "activite_connect_objet": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "A:activite_connect",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2665
+    },
+    "participation_connect": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2671
+    },
+    "contribution_connect": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2680
+    },
+    "contribution_objet": {
+      "module": "M09",
+      "domaine": "M",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2687
+    },
+    "geometrie": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2699
+    },
+    "geometrie_assertion": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "A:geometrie",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2714
+    },
+    "carte": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2720
+    },
+    "carte_couche": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "A:carte",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2728
+    },
+    "carte_objet": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "A:carte",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2734
+    },
+    "carte_geometrie": {
+      "module": "M10",
+      "domaine": "N",
+      "nature": "A:carte",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2741
+    },
+    "requete": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2753
+    },
+    "corpus": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2759
+    },
+    "corpus_inclusion": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "A:corpus",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2768
+    },
+    "cohorte_analytique": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2779
+    },
+    "methode": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2787
+    },
+    "calcul": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2811
+    },
+    "calcul_referentiel": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2832
+    },
+    "resultat": {
+      "module": "M07",
+      "domaine": "O",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2839
+    },
+    "publication": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2858
+    },
+    "parution_acceptation": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2875
+    },
+    "paraitre_dans": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "A:publication",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2885
+    },
+    "decision_editoriale": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2898
+    },
+    "diffusion": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2915
+    },
+    "publication_exposition": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2936
+    },
+    "correction_publication": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2946
+    },
+    "citation": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "A:objet",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2957
+    },
+    "export": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2966
+    },
+    "export_referentiel": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2978
+    },
+    "export_element": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2986
+    },
+    "export_dependance_externe": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 2999
+    },
+    "export_exclusion": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3004
+    },
+    "lignee_import": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3011
+    },
+    "import": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "F",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3017
+    },
+    "cle_import": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "N",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3033
+    },
+    "reconciliation_import": {
+      "module": "M11",
+      "domaine": "P",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3041
+    },
+    "workspace": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3059
+    },
+    "epingle": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "A:workspace",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3067
+    },
+    "lien_exploratoire": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3077
+    },
+    "collection": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3085
+    },
+    "collection_objet": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "A:collection",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3090
+    },
+    "tag": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3097
+    },
+    "tag_objet": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "A:tag",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3102
+    },
+    "inbox_item": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3108
+    },
+    "inbox_rattachement": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "A:inbox_item",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3118
+    },
+    "note": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3124
+    },
+    "historique_navigation": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3129
+    },
+    "veille": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3136
+    },
+    "notification": {
+      "module": "M07",
+      "domaine": "Q",
+      "nature": "T",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3153
+    },
+    "referentiel": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3169
+    },
+    "concept": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3177
+    },
+    "concept_libelle": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "A:concept",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3194
+    },
+    "concept_predicat": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3204
+    },
+    "concept_predicat_sujet": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "A:concept",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3213
+    },
+    "concept_predicat_cible": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "A:concept",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3219
+    },
+    "terme_historique": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3225
+    },
+    "usage_terme": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "A:terme_historique",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3231
+    },
+    "correspondance": {
+      "module": "M04",
+      "domaine": "R",
+      "nature": "V",
+      "source": "docs/GENIIUS_MLD_V1_0.md",
+      "ligne": 3241
+    },
+    "autorisation_identite": {
+      "module": "M01",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_propriete": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_titularite": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_perimetre": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_perimetre_objet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_beneficiaire": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_habilitation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_action": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_fondateur": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_fondement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_exclusion": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_admission": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_admission_fondement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_admission_exclusion": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_exclusion_personne": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_protection": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_protection_action": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_protection_personne": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_protection_ensemble": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_agrement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_passage_orphelin": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_acte": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_dossier_objet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_dossier_espace": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_approbation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_membre_autorite": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_subordination": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_interet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_nomination_admin": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_designation_garde": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_deces": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_succession": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_contestation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_finalite_version": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_finalite": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_derogation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_derogation_cible": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_derogation_predecesseur": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_accord_gardien": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_transfert": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_transfert_objet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_presentation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_transfert_engagement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_membre_groupe": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_engagement_action": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_engagement_objet": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_engagement_personne": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_engagement_fondement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_reemission": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_reemission_action": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_reemission_admission": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_admission_differee": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_verrou_reintegration": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_consentement_reintegration": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_consentement_action": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_epoque": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "HS",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_evenement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "contexte_evaluation": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_decision": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    },
+    "autorisation_decision_fondement": {
+      "module": "M02",
+      "domaine": "B",
+      "nature": "N",
+      "source": "spec/validation/schema_autorisations.json"
+    }
+  },
+  "contraintes_procedurales": {
+    "CP-01": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Séquence d'écriture du § 21.1 ; aucune mise à jour d'une table `[V]` sans nouvelle version ; aucune modification d'une ligne `_hist`, `version_objet` ou d'un journal `[N]` hors purge<br>**[V1.1-d] AC-23 :** CP-01 s'applique aussi aux tables `[A:p]` (CP-22).",
+      "verification": "ARCH-CP-01 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-02": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**Hors effacement de résolution :** `objet.version_courante` = numéro de la version sans `date_fin_validite` ; idem pour `lien.version_courante` ; une table `[F]` n'a qu'une version **[V1.1-d] DI-A07 :** `date_fin_validite` de la version *n* est égale à `date_debut_validite` de la version *n+1*, posée dans la transaction qui crée la version *n+1*.<br>**V1.1-g :** une version `resolution_effacee` est exclue du courant et des contraintes de continuité temporelle ; toutes les versions neutralisées gardent uniquement objet_id/numero. `objet.version_courante` reste un compteur technique non exposé, pas une résolution du contenu.",
+      "verification": "ARCH-CP-02 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-03": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Transitions d'état autorisées : `etat_cycle_vie` (DI-A03), phase de campagne irréversible (DI-J10), opération de flux `exécutée` non annulable (DI-L09), snapshot immuable (DI-K20)",
+      "verification": "ARCH-CP-03 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-04": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Contraintes d'espace entre lignes : espace du référent ≠ espace de la cible (DI-A23) ; un arbre n'est pas dans le Core partagé (DI-L01) ; nœud et personne dans l'espace de l'arbre (DI-L03) ; règles de type d'espace des flux (DI-L06 à DI-L08) et des filiations (DI-A21) ; une restauration ne cible jamais le Core partagé (DI-P09) ; [V1.1] une contribution vers un espace partagé ou une réutilisation de sélection ne cible jamais le Core partagé (DI-L12, DI-L18)",
+      "verification": "ARCH-CP-04 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-05": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Cardinalités minimales et existences conditionnelles, contrôlées en fin de transaction : ancrage d'annotation et de mention (1,n) ; assertion `attestée` ancrée, fondée, issue d'une réponse ou d'une source externe (DI-G02) ; témoin de session (DI-J01) ; périmètre de recherche (DI-K09) ; deux propositions par conflit (DI-H08) ; élément attesté appuyé (DI-I03) ; formulation source extraite d'un segment (DI-G11) ; lacune de recherche justifiée (DI-G16) ; objets produits par une contribution Connect ; inbox rattachée (DI-Q02) ; types de sujet d’un prédicat (1,n) ; [V1.1] rôles d’une ressource `utiliser_role` (1,n), ressources d’une prise en charge (1,n)<br>**[V1.1-d] AC-21 :** DECRIRE_ETAT (une référence a au moins son état initial), INVOQUER_PREUVE (une base en vigueur invoque au moins une preuve), ACQUERIR_DOC, STOCKER, DECOMPOSER, SEGMENTER, ETAPE, STRUCTURER, DEFINIR, CONTENIR_SNAP, PRODUIRE_RESULTAT, EXPOSER (au passage à `publiée`), CONTENIR_EXPORT, CONTENIR_CAPSULE, catégories d'une offre de déplacement ; pour les conteneurs à jalons (transcription, protocole, snapshot), le minimum s'applique au premier jalon. Embargo : au moins un bénéficiaire (CP-46). Liste des attributs transmis (`activite_perimetre_transmis`) obligatoire si `fournisseur` est renseigné.",
+      "verification": "ARCH-CP-05 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-06": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T01",
+        "T03",
+        "T11",
+        "T17"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Habilitations : validateur vérifié sur le Core (DI-H01, DI-B06) ; un compte actif par acteur personne (DI-B07) ; pseudonyme jamais réattribué (DI-B08) ; espace personnel sans invité et propriétaire présent (DI-B02, DI-B04) ; demande conforme aux préférences et aux blocages (DI-H10) ; promotion de concept par acte humain (DI-R04)",
+      "verification": "ARCH-CP-06 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-07": {
+      "module_responsable": "M06",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Cohérence de types et signatures : assertion conforme à la signature de son prédicat (sujet, cible, valeur, profil) ; table d'extension présente si et seulement si le profil l'exige ; `concept_predicat` si et seulement si `nature = prédicat` ; prédicat copié dans `selection_contexte` égal à celui de l'assertion et sujet = entité (DI-F13) ; liens d'arbre de parenté ou d'alliance ; modèle de parenté et statut causal présents quand requis ; date d'observation d'un foyer ; types IA de reproduction ⇒ original récupérable (DI-C11) ; une narration, un badge ou un lien exploratoire n'est jamais amont d'une dépendance de justification (DI-A16, DI-G13)<br>**[V1.1-e] DI-C11 (complet) :** les détails produits par une colorisation, un generative fill ou une amélioration ne sont jamais l’ancre probatoire d’une assertion. **DI-G13 (complet) :** une `NARRATION` n’est jamais sujet d’un ANCRER.",
+      "verification": "ARCH-CP-07 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-08": {
+      "module_responsable": "M04",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Accessibilité des concepts : toute colonne `→ concept` référence un concept actif d'un référentiel commun, communautaire de l'espace ou local de l'espace ; le type d'entité appartient à la branche de la spécialisation (DI-E01)",
+      "verification": "ARCH-CP-08 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-09": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Graphes sans cycle et cycles détectés : hiérarchies archivistiques, lignées de reproduction, sous-questions, sous-projets, concepts parents, éléments reconstruits, sous-tâches et dépendances de tâches, séries de publications [V1.1] ; dépendances de production sans cycle ; cycles de raisonnement autorisés mais marqués `cycle_detecte` et exclus des justifications indépendantes (DI-A17, DI-A29)",
+      "verification": "ARCH-CP-09 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-10": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Statuts dérivés recalculés, jamais saisis (DD-11) : `statut_validation` depuis `acte_evaluation` ; `etat_courant` depuis `etat_reference_externe` ; `fraicheur` des résultats et cartes ; `independance` des actes (DI-H02) ; `statut_resolution` cohérent avec les propositions (DI-D07) ; position résolue ⇔ candidature retenue (DI-F05)",
+      "verification": "ARCH-CP-10 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-11": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Visibilité d'un objet ≤ `visibilite_max` de son espace",
+      "verification": "ARCH-CP-11 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-12": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Visibilité d'un lien ≤ minimum des visibilités de ses extrémités (calculée à l'insertion et à toute restriction d'une extrémité)",
+      "verification": "ARCH-CP-12 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-13": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Règles métier inter-tables énoncées intégralement au § 21.3 (CP-13/DI, une par règle) : DI-B15, DI-B22, DI-B25, DI-C01, DI-C02, DI-C04, DI-C14, DI-D03, DI-E02 (note d'individualisation au Core), DI-E08, DI-F03, DI-F09, DI-F10 (fusion validée), DI-G04, DI-G05, DI-G12, DI-I01, DI-J02, DI-J06, DI-K03, DI-K05, DI-K10, DI-K16, DI-N01, DI-O06, DI-O07, DI-P01, DI-P03, concurrence de reconstructions sur un même document. **[V1.1-c] Ajouts ECD-13 :** DI-A28, DI-A32, DI-A33, DI-B16, DI-C03, DI-C07, DI-C12, DI-C19, DI-C21, DI-D06, DI-E09, DI-F06, DI-F11, DI-G07, DI-G08, DI-G10, DI-G15, DI-G17, DI-H07, DI-H09, DI-I04, DI-I07, DI-J12, DI-K02, DI-K07, DI-K19, DI-M01, DI-N03, DI-N05, DI-O11, DI-O12, DI-P07",
+      "verification": "ARCH-CP-13 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-14": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Textes et dates : domaine `texte_libre` contre les sentinelles (TI-08) ; `x_expr` obligatoire pour une date issue d'une source ou d'une saisie (DD-10) ; un `TEXTE_SOURCE` ne change que par une nouvelle version motivée (TI-03) ; interdits géométriques (DI-N04, DD-16)",
+      "verification": "ARCH-CP-14 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-15": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Unicités non déclaratives : dépendance active (aval, amont, catégorie, type) ; proposition d'identification non rejetée (source, cible) ; code de regroupement et nom de snapshot uniques par espace ; crédit actif (objet, bénéficiaire, rôle)",
+      "verification": "ARCH-CP-15 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-16": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T14",
+        "T16"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Procédure de purge (MLD-15) : colonnes de contenu à `NULL` dans les tables courantes et `_hist`, `est_purge`, `statut_contenu`, empreinte recalculée, associations possédées closes, dépendances aval signalées. **[V1.1-c] Fichiers :** la référence du `fichier` purgé est retirée, puis le binaire est effacé si aucune autre référence légitime ne subsiste (CP-41). **[V1.1-c] Trace minimale (DD-27) :** la ligne `objet` ne conserve que l'identifiant, le type, l'état, `est_purge`, `date_purge` et le rattachement à l'espace. Aucune empreinte réversible du contenu n'est conservée : `empreinte_etat` est recalculée sur l'état purgé. **[V1.1-c] Effacement de résolution :** sur fondement légal, `resolution_effacee = vrai`, `espace_id` est remplacé par l'espace technique neutre « purgé », `date_creation` est vidée et les lignes `version_objet` ne gardent que le numéro. Les délais et fondements relèvent de l'étude juridique (EXT-04), sans durée inscrite dans le schéma.<br>**[V1.1-e] AC-25 :** l’effacement de résolution neutralise aussi les `activite` qui n’ont produit que des versions de l’objet effacé (`resolution_effacee = vrai`, `acteur_id`, `parametres_decisifs` et `perimetre_donnees_transmises` vidés) ; la date de l’activité n’est conservée que si elle ne permet pas de désigner l’objet. **NC-13 :** la suppression d’un compte, qui ne supprime plus la ligne `compte`, supprime explicitement ses données techniques (`historique_navigation`, `notification`, `blocage`, `compte_categorie_sollicitation`, inbox non rattachée), dans la même transaction (DI-B05, DI-Q03).<br>**V1.1-g — effacement vérifiable :** les colonnes NN† de `activite` deviennent NULL sous `resolution_effacee` ; `acteur_id` ET `role_acteur` sont neutralisés ensemble, de même que mode, moteur, dates reconstructives et paramètres. Les relations `activite_entree`, `activite_methode`, `activite_referentiel`, `activite_perimetre_transmis` et les références de versions sont neutralisées/retirées si elles reconstruisent l’objet effacé. Une activité partagée avec des objets non effacés conserve seulement la provenance légalement nécessaire de ces autres objets, et aucun chemin de résolution vers l’objet effacé ; à défaut de séparation sûre, accès fermé et neutralisation de la projection concernée. Les associations d’un objet purgé ne sont pas seulement closes : leurs versions historiques et colonnes reconstructives sont neutralisées selon DD-27, hors clés minimales légitimes ; les contraintes de présence sont conditionnelles à la non-purge du propriétaire, et les FK neutralisées restent nulles, jamais une fausse référence. Aucun code de protection ni horodatage n’est conservé par défaut.",
+      "verification": "ARCH-CP-16 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-17": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Attribution de l'ARK à la première publication ou citation figée externe ; jamais retiré",
+      "verification": "ARCH-CP-17 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-18": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Dépendances automatiques : un appui d'élément reconstruit, un `S_APPUYER` d'interprétation et une assertion dérivée créent les dépendances de production correspondantes",
+      "verification": "ARCH-CP-18 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-19": {
+      "module_responsable": "M05",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Lecture aveugle : pendant une transcription `indépendante/aveugle` non enregistrée, les autres lectures des mêmes zones sont absentes du graphe accessible de son auteur",
+      "verification": "ARCH-CP-19 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-20": {
+      "module_responsable": "M07",
+      "transactions": [
+        "T04"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f.** Missions et comparaisons créent seulement des HI/HP explicitement autorisées et bornées, jamais par seule assignation. Cibles fermées, échéance obligatoire, plafond des actions § 13.4 ; clôture du lot définitive.",
+      "verification": "ARCH-CP-20 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-21": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02",
+        "T11",
+        "T12"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Propagation *(réécrite en V1.1-c, ECD-06)*.<br>• **Niveau direct, synchrone :** dans la transaction même qui crée une nouvelle version **scientifique** d'un amont, toutes ses dépendances **directes** passent à `potentiellement affecté`, avec `date_signalement`.<br>• **Niveaux transitifs, asynchrones :** les dépendances transitives, les questions concernées (`à réexaminer`) et les résultats dynamiques (`potentiellement obsolète`) sont traités en asynchrone, dans un délai maximal fixé au MPD (MPD-04).<br>• **Pas de fausse certitude :** tant qu'une propagation issue d'un amont n'est pas terminée, aucun objet ou résultat en aval de cet amont n'est présenté comme définitivement à jour. Le lecteur voit qu'une propagation est en cours (dérivé de la file d'impacts, MPD).<br>• **Idempotence et robustesse :** rejouer une propagation ne change pas le résultat ; un échec de traitement ne remet jamais un `etat_impact` à `inchangé` ; un impact posé ne disparaît que par une décision ou un recalcul explicite.",
+      "verification": "ARCH-CP-21 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-22": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Associations versionnées `[A:p]` *(réécrite en V1.1-d, AC-23)* : toute insertion ou clôture d'une ligne `[A:p]` **crée une nouvelle version du propriétaire** (§ 21.1) ; `v_debut` et `v_fin` valent ce nouveau numéro. Aucune ligne n'est jamais rattachée à une version existante : un état figé et son empreinte ne changent jamais après coup. Jamais de suppression ; unicités appliquées aux lignes actives (`v_fin IS NULL`)",
+      "verification": "ARCH-CP-22 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-23": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T01",
+        "T02",
+        "T05"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Titularité système, création/import/versement selon § 6 ; droits personnels indépendants de l’appartenance, sans valider ni Core ; paternité conservée.",
+      "verification": "ARCH-CP-23 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-24": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03",
+        "T06"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Dérogations selon § 12 : bénéficiaire personne, périmètre fermé, opérations/finalité, dates, approbations actuellement valides et accords de gardiens ; audit sans contenu ; aucun franchissement de non-levable.",
+      "verification": "ARCH-CP-24 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-25": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T01",
+        "T03",
+        "T06"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Administrer et propriété sans droit de contenu ni partage. Racine et propriété administrative sont concordantes ; seules métadonnées filtrées § 10.3.",
+      "verification": "ARCH-CP-25 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-26": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T02"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Aucun rôle administratif ne confère d’action scientifique. Les droits ordinaires proviennent exclusivement des fondements § 14, pas d’une règle pour administrateurs.",
+      "verification": "ARCH-CP-26 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-27": {
+      "module_responsable": "M13",
+      "transactions": [
+        "T08",
+        "T09"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Réception des contributions hors ligne *(ajoutée le 9/10/2026 — ECD-05)*.<br>• **Réception :** toute opération réalisée hors connexion est d'abord enregistrée dans `contribution_differee` avec l'état `reçue`. L'unicité `(acteur, operation_origine_id)` rend le rejeu idempotent.<br>• **Intégration :** elle n'a lieu qu'après réévaluation de `acces()` dans le contexte d'intégration (`operation = synchronisation`, instant de l'intégration, et non de la création locale), puis contrôle de compatibilité des versions logicielle, de schéma et de référentiel.<br>• **Conversion :** autorisée seulement si elle est déterministe (état `transformée`, motif obligatoire). Sinon : `en attente de réconciliation`.<br>• **Conflit :** une modification dont `base_numero` n'est plus la version courante passe par `conflit_edition` et `proposition_modification` (base = `base_numero`), jamais par un écrasement.<br>• **Conservation :** une contribution différée n'est jamais supprimée hors purge légale (CP-16). Refusée pour raison de droits, elle reste lisible par son seul auteur, sans divulgation ni publication.<br>• **Statuts :** reçue ≠ intégrée ≠ validée scientifiquement (`statut_validation` de l'objet résultant).<br>**[V1.1-d] AC-14 :** la `charge` ne contient que le **delta** saisi par l'auteur et les identifiants et numéros de version de base, jamais l'état de base. Une contribution refusée ne réexpose donc jamais un contenu retiré.",
+      "verification": "ARCH-CP-27 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-28": {
+      "module_responsable": "M13",
+      "transactions": [
+        "T03",
+        "T08",
+        "T09"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f.** Réplique seulement par accès ordinaire. Toute donnée non publique et librement redistribuable, objets personnels compris, porte une échéance opposable (minimum plateforme/espace/habilitant). Retraits non qualifiés appliqués avant ajouts ; delta local conservé pour auteur seul. Aucun renouvellement par dérogation. Résidu déconnecté explicitement déclaré contre CDCF § 122.2, sans valeur 30 jours adoptée implicitement.",
+      "verification": "ARCH-CP-28 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-29": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03",
+        "T05"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Périmètres uniques de régime, sélection en version active ; HI bornée à l’autorité du signataire à l’acte, HP aux fondateurs à chaque évaluation ; exclusions figées non exposées.",
+      "verification": "ARCH-CP-29 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-30": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03",
+        "T04"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Admission nominative par personne pour chaque ensemble ouvert, mode immuable, notification non exigeante seulement ; auteur jamais admis, gestionnaire non automatiquement admis ; réévaluation des différés et retrait définitif.",
+      "verification": "ARCH-CP-30 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-31": {
+      "module_responsable": "M07",
+      "transactions": [
+        "T04"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Rattachement bilatéral *(V1.1)*. Un `relation_projets` de type `sous-projet de` ne passe à `actif` qu'avec deux `decision_rattachement` `acceptée` (partie parent, partie enfant), chacune d'un administrateur du projet concerné. Chaque partie peut le terminer seule. Aucune règle d'accès, appartenance ni agrégation n'est dérivée d'un rattachement : `acces()` ne lit jamais `relation_projets`, sauf comme condition de `autorisation_habilitation.rattachement_id` (CP-30).<br>• **Transitions et cardinalités (condition de V-9) :**<br>&nbsp;&nbsp;– `sous-projet de` : `proposé` → `actif` (deux acceptations) ou `refusé` (un refus d’une partie) ; `actif` → `terminé` (décision `terminée` d’une partie) ; `refusé` et `terminé` sont terminaux, un nouveau rattachement est une nouvelle ligne ;<br>&nbsp;&nbsp;– autres types : déclarés par une seule partie, créés `actif` par la décision de l’initiateur et sans effet sur l’autre projet, qui n’est ni notifié de leur contenu ni engagé ; `actif` → `terminé` ;<br>&nbsp;&nbsp;– au plus une décision `acceptée` non suivie d’une `terminée` par partie et par lien ; une décision n’est jamais modifiée ;<br>&nbsp;&nbsp;– un projet peut avoir plusieurs parents actifs ; au plus un lien non terminal par couple et par type (UQ partielle) ; aucun cycle de `sous-projet de` (CP-09) ;<br>&nbsp;&nbsp;– visibilité du lien ≤ celle des deux projets (CP-12) : un projet invisible ne se déduit pas de son rattachement.",
+      "verification": "ARCH-CP-31 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-32": {
+      "module_responsable": "M07",
+      "transactions": [
+        "T04"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Tâches, lots, délégations *(V1.1)*.<br>• Une sous-tâche a le même `projet_id` que sa parente ; un `jalon` n'a ni `tache_assignation` ni règle `tache_lot_id`.<br>• Une assignation ne crée aucune règle (DI-K28).<br>• Une règle de délégation (`tache_lot_id`) porte sur des objets cibles explicites, copiés de `tache_objet` à sa création ; un ajout ultérieur à `tache_objet` ne crée aucune règle.<br>• Passage du lot à `faite` ou `abandonnée` : `date_fin` des délégations ramenée à la date de clôture si elle est postérieure ; un retour à `en cours` ne modifie aucune règle (DI-K30).<br>• L'avancement est une requête sur le graphe accessible, jamais une colonne (DI-K31).",
+      "verification": "ARCH-CP-32 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-33": {
+      "module_responsable": "M08",
+      "transactions": [
+        "T05"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Sélections, flux et réutilisations *(V1.1)*.<br>• **Manifeste [réécrit en V1.1-e, AC-10] :** les lignes de `selection_inclusion` d’une version sont écrites **une fois, à la création de cette version** (proposition ou réduction), puis jamais modifiées ; la confirmation ne réécrit rien, elle désigne la version comme `version_active_numero`. Une version active a au moins une ligne. Aucun état révoquée/close ne fonde d’accès, même si la version active est conservée pour l’histoire.<br>• **Inclusion (DI-L16) :** une `assertion` de profil relation n'est incluse que si ses deux extrémités le sont ; un conjoint `sans leur ascendance` n'entraîne aucune relation de filiation de ce conjoint ; aucun objet listé dans `selection_exclusion` ni aucun vivant (si `exclus`) n'est inclus.<br>• **Origine (DI-L17) :** tout objet inclus est dans l'espace source ou y est référencé, et l'acteur qui confirme détient `repartager` sur lui.<br>• **Propositions (DI-L15) :** notifiées au seul espace source ; une réduction se calcule exclusivement sur le manifeste de version_active_numero et s’applique sans confirmation, jamais sur une proposition en attente.<br>• **Masquage [V1.1-e, NC-10] :** `masquage_id` désigne un `masquage` de l’objet inclus lui-même (`objet_original_id = objet_id`), de type `pseudonymisation`, propre à cette sélection (jamais partagé entre deux sélections). Toute évaluation d’un objet sensible est favorable dans le contexte de l’audience destinataire et de la version active à l’instant d’accès, jamais par une évaluation ancienne d’une autre audience.<br>• **Réutilisation [V1.1-e, DI-A37] :** une `filiation` `réutilisation` est produite par une `operation_flux` de type `réutilisation d’une sélection`.<br>• **Flux (DI-L12, DI-L18) :** jamais vers le Core partagé (complète CP-04) ; une contribution ne crée ni copie ni filiation ; une réutilisation exige une règle `réutiliser` active pour l'acteur à l'exécution et ne copie que les objets du manifeste qui lui sont accessibles ; chaque copie a une `filiation` `réutilisation` liée à la version de la règle.<br>• **Révocation (DI-A38, DI-L19) :** une filiation `réutilisation` ne passe plus à `mise à jour proposée` ni `mise à jour importée` après révocation ; les dépendances des conclusions passent à `potentiellement affecté`.<br>**[V1.1-d] AC-07 :** la règle d'inclusion vaut pour **toute assertion, quel que soit son profil** (attribut, relation, participation, présence, situation, existence documentaire) : elle n'est incluse que si son sujet **et** sa cible éventuelle sont inclus. Une source ou un événement qui mentionne une personne exclue n'est inclus qu'en `provenance masquée` ou après évaluation de diffusabilité. **AC-10 :** les lignes d'une version proposée sont écrites et figées à la création de la proposition (MLD-16) ; la confirmation met à jour `version_active_numero` ; un refus met `etat_proposition = refusée` sans toucher à la version active ; une réduction devient active dès sa création.",
+      "verification": "ARCH-CP-33 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-34": {
+      "module_responsable": "M07",
+      "transactions": [
+        "T12"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Indicateurs *(V1.1)*. Un `calcul` d'une méthode `profil = indicateur` a un `contexte_id` ; son `resultat.contenu` contient numérateur, dénominateur, bornes ou indétermination, exclusions et périmètre (schéma JSON documenté du type `statistique calculée`, profil indicateur). Un indicateur multi-projets dédoublonne par entité sur le graphe accessible du contexte. Un résultat exposé par une publication est `figé` et évalué dans le contexte de la publication.<br>**[V1.1-d] AC-32, D6 :** la remontée d’indicateurs d’un sous-projet vers un programme (CDCF § 120.2) passe par la publication d’un résultat figé, évalué pour sa diffusabilité ; elle ne crée aucune autorisation de calcul sur les données sources ; il n’existe pas d’action `agréger`.<br>**[V1.1-e] DI-O14 (complet) :** le contenu d’un résultat d’indicateur inclut aussi sa couverture.",
+      "verification": "ARCH-CP-34 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-35": {
+      "module_responsable": "M11",
+      "transactions": [
+        "T07"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Circuit éditorial et diffusion *(V1.1)*.<br>• **Défaut :** `espace.circuit_editorial` = `approbation requise` pour `projet`, `organisation`, `communauté` ; `aucun` sinon.<br>• **Invalidation (DI-P12) :** à la création d'une version substantielle d'une publication (`nature_changement <> 'correction technique'`, ou correction technique modifiant `publication_exposition` ou le texte), une `decision_editoriale` `approbation invalidée` est créée pour chaque approbation valide de la version précédente.<br>• **Publication (DI-P18) :** dans un espace `approbation requise`, une publication de type éditorial ne passe à `publiée` qu'avec une approbation valide sur la version exacte.<br>• **Diffusion (DI-P15) :** `exécutée` ou `partielle` exige une version `publiée`, une approbation valide si le circuit l'exige, et une `evaluation_diffusabilite` favorable dont `contexte_id` est celui de la diffusion et dont l'objet évalué est la version diffusée.<br>• **Séries (DI-P14) :** `paraitre_dans.serie_id` désigne une publication de type `série`, `publication_id` une publication d'un autre type ; sans cycle.<br>• **Abonnement (DI-Q07) :** la cible d'une veille `abonnement éditorial` est une série ; aucune règle d'accès n'est créée ; résiliation = `active = faux`.<br>• Une `decision_editoriale` est prise par un acteur de `nature_acteur = personne`, jamais par une activité d’IA.<br>• **Conservation et révocation des diffusions (condition de V-8) :** une ligne `diffusion` est conservée pour toute la durée de vie de la publication, puis tant que l’espace existe ; elle n’est effacée que par une purge légale (CP-16), qui vide `audience` et ne laisse que les métadonnées techniques. Une diffusion n’est jamais révoquée ni modifiée : une révocation de la source, un retrait de la publication ou un embargo ultérieur n’annulent pas une diffusion passée ; ils empêchent les diffusions futures, qui sont réévaluées. Sa visibilité est restreinte aux administrateurs de l’espace et aux participants du circuit éditorial ; la liste nominative des destinataires n’est pas dans le MLD (ST-11). Le coût de stockage (une ligne `objet` par diffusion) est assumé.<br>**[V1.1-d] AC-09 :** un numéro ne paraît que dans une série du **même espace** ; sinon, une `parution_acceptation` de décision acceptée, signée par un acteur qui a `administrer` sur l’espace de la série, est référencée par `paraitre_dans.acceptation_id` et doit correspondre aux deux publications ; contrôle avant insertion, avant tout test de rang. Les rangs occupés sont uniquement ceux des publications visibles à l’auteur de l’insertion (contrat § 13.6). **AC-15, D8 :** la lecture des diffusions et des décisions éditoriales relève des métadonnées de gouvernance (`administrer`, DD-28.4) et des participants nommés du circuit ; l'invalidation automatique a `origine = automatique` et pour `acteur_id` l'auteur de la version substantielle ; la règle « acteur humain » ne vaut que pour `relue`, `approuvée` et `refusée`.",
+      "verification": "ARCH-CP-35 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-36": {
+      "module_responsable": "M12",
+      "transactions": [
+        "T13"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Prise en charge *(V1.1)*. `etat = active` ⇒ il existe une version acceptée par les deux parties (`version_en_vigueur_numero`, deux lignes `prise_en_charge_acceptation` `acceptée` sur cette version) [V1.1-e : « version courante » remplacé, AC-10], chacune par un administrateur de l'espace de sa partie. Une nouvelle version (plafond, ressources, période) exige de nouvelles acceptations ; tant qu'elles manquent, la version précédente reste celle qui s'applique. `expirée` est calculé à `date_fin`. La fin d'un accord ne supprime ni ne restreint aucune donnée ; imputation unique selon MLD-17.<br>**[V1.1-d] AC-10 :** `version_en_vigueur_numero` désigne la dernière version acceptée par les deux parties ; c'est la seule version qui s'applique (CP-39). Une version courante en attente d’acceptation ne réactive jamais un accord suspendu, révoqué, clos ou expiré ; elle ne change pas sa version en vigueur.",
+      "verification": "ARCH-CP-36 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-37": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T06"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Transfert selon § 10.4–10.8 et états § 5.6 : voies par objet, réémissions, présentation figée, inclusion, gel par liste, expiration/plafond et différés ; changement atomique de propriété/racine ; consentement de réintégration par acte et par personne.",
+      "verification": "ARCH-CP-37 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-38": {
+      "module_responsable": "M07",
+      "transactions": [
+        "T04"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Axes et ressources *(V1.1)*. Un `etudier` sans cible a pour `type_axe` le concept « période » du référentiel des types d'axe. La création, la modification ou la clôture d'un `etudier` ou d'un `utiliser` n'écrit dans aucune autre table que `lien`, `lien_version` et `utiliser_role`. La situation d'une ressource est une requête : `conservée` si `objet.espace_id` est l'espace du projet ; `exploitée` si une `activite` visible est attribuable au projet.",
+      "verification": "ARCH-CP-38 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-39": {
+      "module_responsable": "M12",
+      "transactions": [
+        "T13"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Imputation des consommations *(V1.1 ; condition de V-7, précisée par le porteur le 10/10/2026)*.<br>• **Sémantique temporelle :** l'éligibilité d'un accord est appréciée à la **date effective de la consommation**, et non à la date de son traitement. Une suspension, révocation ou expiration interdit l'imputation des consommations survenues **après sa prise d'effet**, sans invalider les imputations légitimement acquises antérieurement. Exemple : une consommation du 10 octobre sous un accord valide, traitée le 12 après l'expiration de l'accord, reste imputable à cet accord.<br>• **Consommation ponctuelle ou continue :**<br>&nbsp;&nbsp;– une consommation **ponctuelle** (un traitement, un calcul, un export) a une date effective unique ;<br>&nbsp;&nbsp;– une consommation **continue** (stockage) est ventilée **par période** : chaque période est une consommation distincte, imputée selon les accords éligibles pendant cette période. Avoir déposé un fichier pendant la validité d'un accord ne finance pas les périodes suivantes. La granularité de période est fixée au MPD.<br>• **Accords éligibles :** `active` à la date effective, couvrant la ressource consommée, avec `date_debut ≤ date effective ≤ date_fin`. Un accord `suspendue`, `proposée`, `refusée`, `révoquée` ou `expirée` à la date effective n'est pas éligible. Pendant l'attente d'acceptation d'une nouvelle version, c'est la version précédente acceptée qui s'applique (CP-36).<br>• **Ordre de ventilation stable et déterministe :** les accords éligibles sont ordonnés par date d'activation croissante, puis par identifiant (MLD-17). L'ordre ne dépend ni de l'ordre d'arrivée des traitements, ni du serveur qui les exécute.<br>• **Plafond :** un accord n'est jamais imputé au-delà de son plafond. Une consommation qui dépasse le reliquat est **ventilée** : le reliquat sur cet accord, le reste sur l'accord suivant, puis sur l'espace bénéficiaire. Dès qu'un plafond est atteint, les deux parties sont notifiées.<br>• **Concurrence et rejeu (obligation ; le mécanisme relève du MPD) :** deux traitements concurrents, ou le rejeu d'un même traitement, produisent le même résultat : aucun dépassement de plafond, aucune double imputation. L'imputation est idempotente par référence de consommation et par période (ST-10).<br>• **Aucun effet sur les données :** plafond atteint, expiration ou révocation ne bloquent ni l'accès aux données ni leur export. Seules les consommations **survenant ensuite** et imputées à l'espace bénéficiaire suivent ses propres quotas (`abonnement`).<br>• **Correction :** une imputation erronée se corrige par une contre-écriture, jamais par une modification.<br>**[V1.1-d] AC-10 :** l'éligibilité se lit sur `version_en_vigueur_numero` (plafond, ressources, période) et sur l'état de l'accord à la date effective.",
+      "verification": "ARCH-CP-39 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-40": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Chaque écriture de droit incrémente époque à prise d’effet ; accès à époque courante et instant valide avant échéance ; réévaluer pages/reprises, profondeur bornée seulement aux autorisations ; échec introuvable sans mutation.",
+      "verification": "ARCH-CP-40 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-41": {
+      "module_responsable": "M05",
+      "transactions": [
+        "T10",
+        "T12"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Fichiers *(réécrite en V1.1-d, AC-17)*.<br>• Chaque dépôt crée son propre `fichier`, même pour un binaire identique dans le même espace ; aucune unicité d'empreinte.<br>• La mutualisation par `cle_stockage` n'est **jamais observable**, ni d'un espace à l'autre, ni d'un dépôt à l'autre dans un même espace : envoi effectué ou simulé intégralement, même délai, même message, même quota décompté, `date_depot` propre au dépôt.<br>• Purge : la purge d'un `fichier` n'affecte aucun autre `fichier` ; le binaire est effacé quand plus aucun `fichier` non purgé ne porte sa `cle_stockage`. Une purge légale n'attend jamais l'accord d'un autre espace ni d'un autre membre.<br>• Une `reproduction_fichier` de rôle `master` n'est exploitable scientifiquement que si `etat_conservation = confirmé`.<br>• Les contrôles d'intégrité périodiques mettent à jour `etat_conservation` et `date_dernier_controle`.<br>**[V1.1-e] DI-C23 (complet) :** la même exigence (`etat_conservation = confirmé`) vaut pour une zone et pour une transcription d’appui.",
+      "verification": "ARCH-CP-41 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-42": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T12"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Consentement à l'usage algorithmique *(V1.1-c, ECD-11)*. Une `activite` de mode `assisté` ou `automatique` ne prend en entrée aucun objet couvert par un `consentement` `usage algorithmique` de décision `refusé` ou `retiré` (dernière version). Si `fournisseur` est renseigné, elle ne prend aucun objet couvert par un consentement `transmission à un prestataire externe` refusé ou retiré. Le contrôle a lieu avant l'envoi des données, et non après.",
+      "verification": "ARCH-CP-42 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-43": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T14",
+        "T16"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Résolution des traces purgées *(V1.1-c, ECD-10)*. La résolution d'un identifiant d'objet purgé suit le graphe accessible : pour un demandeur qui ne pouvait pas voir l'objet avant la purge, la réponse est identique à celle d'un identifiant inexistant (OB-04). La réponse « supprimé » n'est servie qu'aux personnes habilitées sur l'espace, et publiquement pour un objet qui était publié (page de tombstone ARK). Une trace ne sert jamais à reconstituer un contenu.",
+      "verification": "ARCH-CP-43 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-44": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02",
+        "T03"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Vue « mes contributions » *(V1.1-c, ECD-15)*. `v_mes_contributions(acteur)` (§ 23) liste les activités et crédits de l'acteur, y compris dans un espace qu'il a quitté. Elle ne retourne que les informations d'attribution légitimement conservées : type d'acte, rôle, date, type d'objet, crédit. Pour un objet que l'acteur ne peut plus voir, elle n'expose ni contenu, ni titre, ni référence, ni libellé. Elle n'expose rien d'un objet dont l'existence est protégée pour lui. Elle ne crée aucun droit d'accès à l'espace quitté.",
+      "verification": "ARCH-CP-44 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-45": {
+      "module_responsable": "M06",
+      "transactions": [
+        "T02",
+        "T05",
+        "T07"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Personnes vivantes et mineurs *(V1.1-c, ECD-13)*.<br>• **Présomption (DI-E06) :** une `personne` sans assertion de décès dont une assertion de naissance a un `temps_max` à moins de 120 ans de la date courante, même approximative, a `regime_protection = raisonnablement présumé vivant` par défaut. La présomption est recalculée périodiquement (le temps passe) et n'écrit aucune assertion de vie ou de décès.<br>• **Effet (DI-E05) :** pour une personne `vivant attesté`, `raisonnablement présumé vivant` ou `mineur_protege`, ses assertions sont traitées en confidentialité R : jamais diffusées hors de l'espace sans `evaluation_diffusabilite` favorable explicite. La biométrie exige un consentement `accordé` (DI-B25).<br>• **Recette :** une personne née « vers 1960 », sans décès, n'est ni exposée dans une publication, ni dans une sélection partagée (`traitement_vivants`), ni dans un export, sans évaluation favorable ; en 2081, elle cesse d'être présumée vivante, sans assertion créée.",
+      "verification": "ARCH-CP-45 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-46": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03",
+        "T05",
+        "T06"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Protections du § 11, bénéficiaires et destinataires personnes, agréments d’ensembles, gardiens ayant droits de contenu, orphelinage signalé à chaque passage ; héritage et propagation § 13.11 ; non-levables prioritaires.",
+      "verification": "ARCH-CP-46 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-47": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03",
+        "T11"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Retrait de consentement *(V1.1-c, ECD-13)*.<br>• **Historisation (DI-B23) :** un retrait crée une nouvelle version du `consentement` (`decision = retiré`) ; l'ancienne reste dans `consentement_hist`.<br>• **Effets (DI-B24) :** pour chaque objet dérivé ayant une dépendance (production ou justification) vers un objet couvert, une `decision_applicabilite_droit` est créée à l'état `à réexaminer`, dans la même transaction ou dans la propagation (CP-21). Tant qu'elle n'est pas tranchée, la restriction s'applique (DI-B16). Une conclusion justifiée indépendamment (`base_justificative` sans dépendance vers l'objet couvert) n'est ni supprimée ni invalidée.<br>• **Recette :** retrait du consentement d'un témoin. Le témoignage n'est plus diffusé ; la conclusion appuyée aussi sur un acte public reste, avec une décision d'applicabilité à réexaminer ; la conclusion appuyée seulement sur le témoignage est restreinte (test de non-régression 18).",
+      "verification": "ARCH-CP-47 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-48": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T03"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Rôles/actions selon § 7.1 : RS toutes neuf actions et partage HI, collaborateur cinq actions, lecteur voir/commenter, invité aucune ; Core sous diffusabilité favorable. Nomination dans périmètre du RS et autre personne.",
+      "verification": "ARCH-CP-48 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-49": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02",
+        "T05"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-g — unicités observables.** Base privée ⇔ auteur non nul ; UQ par assertion/espace/portée/auteur privé, et auteur nul pour base projet. Visibilité et consultation de la base projet suivent le droit voir sur l’assertion, sous protections ; seul un membre avec écriture sur assertion peut créer, et ce contrôle précède l’UQ (contrat § 13.7). Les choix d’espace (`reference_inter_espace`, `selection_contexte`, `position_epistemique`) ne sont créés que si leur cible est visible dans le contexte commun de tous les acteurs habilités à tenter cette création ; sinon refus indifférencié avant UQ. Leur représentation est filtrée par les extrémités (CP-12), jamais imposée plus ouverte que la cible. Une perte de visibilité rend le choix inopérant pour les lecteurs frappés sans exposer titre, identifiant, existence ni conflit d’unicité.",
+      "verification": "ARCH-CP-49 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-50": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T02",
+        "T05",
+        "T09"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Écriture référentielle *(V1.1-d, AC-08)*. Toute colonne de référence fournie par un appelant (FK vers un objet, un espace, un projet, un lien) est validée par `acces(contexte, cible, voir)` **avant** l'évaluation des contraintes de clé. Absent et inaccessible produisent la même erreur, avec le même délai. Une `contribution_differee` vers un espace où l’acteur n’a jamais eu de droit d’écriture ou de commentaire à aucun titre est reçue sans révéler l'existence de l'espace (réception dans l’espace personnel de l’auteur, refus à l’intégration).",
+      "verification": "ARCH-CP-50 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-51": {
+      "module_responsable": "M02",
+      "transactions": [
+        "T05"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "**V1.1-f — remplacement.** Copies et redistribution selon § 13.11 : survie à révocation et purge, filiation conservée, protections héritées avec gardiens de l’ascendant, sensibilité et non-levables de tous ascendants toujours opposables, licence et droits tiers vérifiés.",
+      "verification": "ARCH-CP-51 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-52": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02",
+        "T14"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Attributs figés *(V1.1-d, AC-27)*. Toute colonne marquée F (figée) dans le dictionnaire garde, dans toute nouvelle version, sa valeur de la version 1 : notamment `objet.espace_id` (DI-A01), `objet.type_objet`, `espace.type_espace`, `acteur_geniius.nature_acteur`, `assertion.nature`, `operation_flux.type`, `selection_partage.type_selection`, `reference_persistante` (mode, identifiant), `fichier` (format, taille, date de dépôt), `autorisation_habilitation.auteur_id`. Seules la purge (CP-16) et l'effacement de résolution (DD-27) y dérogent. La liste complète est générée depuis les marques F du dictionnaire.",
+      "verification": "ARCH-CP-52 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "CP-53": {
+      "module_responsable": "M03",
+      "transactions": [
+        "T02",
+        "T12"
+      ],
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.2",
+      "texte_normatif": "Règles DI jusque-là partiellement réalisées *(V1.1-d, AC-28)*.<br>• **DI-A10 :** une version produite par une activité `ia_generative` a toujours `etat_examen` ∈ {détecté automatiquement, préstructuré automatiquement} ; seul un acte humain distinct, produisant une nouvelle version, peut la faire évoluer [V1.1-e : règle rendue absolue].<br>• **DI-A12 :** `perimetre_donnees_transmises` est une liste contrôlée d'attributs (table enfant) ; aucun attribut de confidentialité R ou I n'y figure.<br>• **DI-B09 :** un acteur sans compte actif ne peut être l'acteur d'aucune nouvelle activité.<br>• **DI-B18 :** une `evaluation_diffusabilite` d'agrégat porte l'effectif ; en dessous du seuil MPD-03, la décision est au mieux `autorisation requise`.<br>• **DI-C15 :** une `zone` de type `plage temporelle` n'a aucune géométrie d'image.<br>• **DI-K11 :** une recherche nominative exige `termes_et_variantes`.<br>• **DI-K12 :** le périmètre d'une intervention de mission est une liste d'objets cibles (table enfant), d'où sont dérivées des règles bornées (CP-20).<br>• **DI-K18 :** l'adoptant d'une règle méthodologique est un acteur de `nature_acteur = personne`.<br>• **DI-A27 :** toute dépendance invoquée par une base justificative a pour aval l’objet justifié de la base et `categorie = justification`.<br>• **DI-A37 [V1.1-e] :** CK de `filiation` (réutilisation ⇒ flux, sans import) et CP-33 (type du flux).",
+      "verification": "ARCH-CP-53 : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel",
+      "participants": [
+        "M02",
+        "M03",
+        "M04",
+        "propriétaires des tables touchées"
+      ],
+      "statut_preuve": "spécifiée, non exécutée"
+    }
+  },
+  "obligations_CP13": {
+    "DI-A28": {
+      "module_responsable": "M03",
+      "contrat": "Une base de portée `publique` n'invoque que des éléments diffusables publiquement (sinon : `EVALUATION_DIFFUSABILITE` « provenance masquée » ou « existence seulement »).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-A32": {
+      "module_responsable": "M03",
+      "contrat": "Une donnée importée sans source reste `etat_provenance = non sourcée` ou `provenance perdue à l'import` (RG-L04).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-A33": {
+      "module_responsable": "M03",
+      "contrat": "Une acquisition documentaire ne crée ni ne modifie `DOCUMENT.statut_existence` ni la `RESPONSABILITE` historique.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-B15": {
+      "module_responsable": "M02",
+      "contrat": "Le dérivé a une dépendance (production ou justification) vers l'objet restreint.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-B16": {
+      "module_responsable": "M02",
+      "contrat": "Absence de décision = la restriction s'applique (prudence par défaut).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-B22": {
+      "module_responsable": "M02",
+      "contrat": "`anonymisation` n'est admis que si aucun chemin accessible publiquement ne relie la version publique à l'original (RG-B07) ; sinon, `pseudonymisation`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-B25": {
+      "module_responsable": "M02",
+      "contrat": "`portee = biométrie` d'une personne vivante : `decision = accordé` exigé avant tout traitement (CDCF § 33.2).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C01": {
+      "module_responsable": "M05",
+      "contrat": "`statut_existence = prescrit seulement` ne passe à `existence attestée` que par une `ASSERTION` d'existence documentaire ancrée sur une trace (RG-C05).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C02": {
+      "module_responsable": "M05",
+      "contrat": "Un document peut n'avoir aucun `EXEMPLAIRE` (RG-C04) ; s'il a un exemplaire conservé, `statut_existence` ∈ {conservé et localisé, non localisé, inaccessible, lacunaire}.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C03": {
+      "module_responsable": "M05",
+      "contrat": "Une `ANOMALIE_DOCUMENTAIRE` ne modifie jamais `statut_existence` (RG-I04).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C04": {
+      "module_responsable": "M05",
+      "contrat": "`nature = témoignage` ⇔ le document est produit par une `SESSION_MEMOIRE`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C07": {
+      "module_responsable": "M05",
+      "contrat": "Un ordre `historique reconstruit` est une hypothèse : il doit être relié à une `INTERPRETATION`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C12": {
+      "module_responsable": "M05",
+      "contrat": "Les ancrages d'une reproduction ne sont pas réutilisés sur une autre sans `ALIGNEMENT_REPRODUCTION` † (MCD § 5.5).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C14": {
+      "module_responsable": "M05",
+      "contrat": "La géométrie est contenue dans les dimensions de la vue (image) ou sa durée (piste).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C19": {
+      "module_responsable": "M05",
+      "contrat": "Une source externe déclarée ne crée jamais automatiquement un `DOCUMENT` (test 16).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-C21": {
+      "module_responsable": "M05",
+      "contrat": "Une assertion fondée sur une source externe déclarée non identifiée garde `etat_provenance` ≠ `sourcée`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-D03": {
+      "module_responsable": "M05",
+      "contrat": "`statut = achevée selon protocole` exige une `APPLICATION_PROTOCOLE` accomplie sur le document.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-D06": {
+      "module_responsable": "M05",
+      "contrat": "Une mention ne crée jamais automatiquement de `PERSONNE` (RG-D05).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-E02": {
+      "module_responsable": "M06",
+      "contrat": "Aucun nom, date, lieu, arbre ni descendant n'est exigé (RG-E02) ; dans le Core partagé, création soumise à DD-04 (une trace + `note_individualisation`).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-E08": {
+      "module_responsable": "M06",
+      "contrat": "`statut = attestée` ⇒ au moins une assertion ancrée sur l'étape.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-E09": {
+      "module_responsable": "M06",
+      "contrat": "Deux présences attestées ne créent ni voyage ni étape (RG-E07).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-F03": {
+      "module_responsable": "M06",
+      "contrat": "`plausibilite = forte` exige au moins un `ARGUMENT` `pour` (RG-F06) ; un nom rare, une similarité visuelle ou vocale ne suffisent jamais seuls.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-F06": {
+      "module_responsable": "M06",
+      "contrat": "Une position ne devient jamais une `PERSONNE` par transformation : on retient un candidat existant, ou l'on crée une personne qui devient candidate.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-F09": {
+      "module_responsable": "M06",
+      "contrat": "Les deux entités sont distinctes et de même spécialisation.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-F10": {
+      "module_responsable": "M06",
+      "contrat": "`presentation_fusionnee = vrai` exige `verdict = même entité` et `statut_validation` ∈ {validée, confirmée} ; elle n'agit que sur l'affichage et ne supprime aucun identifiant (RG-F04).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-F11": {
+      "module_responsable": "M06",
+      "contrat": "Un verdict `entités distinctes` est opposable : une nouvelle proposition contraire doit le citer en `ARGUMENT` (RG-F05).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G04": {
+      "module_responsable": "M06",
+      "contrat": "Une assertion de `modalite = déclarée par un tiers dans la source` porte une `RESPONSABILITE` de rôle `déclarant` ou `informateur` (RG-G07).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G05": {
+      "module_responsable": "M06",
+      "contrat": "`polarite = négative` (« explicitement absent ») exige une source (RG-G10) ; elle n'est jamais produite par une recherche négative (RG-K01).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G07": {
+      "module_responsable": "M06",
+      "contrat": "`RELATION` de `famille_relation = causale` ⇒ `statut_causal` obligatoire et au moins une source ou un `ARGUMENT` (RG-G06) ; une cooccurrence calculée ne crée jamais de `RELATION`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G08": {
+      "module_responsable": "M06",
+      "contrat": "Une `SITUATION` ne couvre une période que si `continuite = continuité attestée` ; trois points attestés ne produisent pas de situation continue (RG-G05, CU-15).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G10": {
+      "module_responsable": "M06",
+      "contrat": "Une traduction ne crée une nouvelle `ASSERTION` que si le sens propositionnel change ; sinon, c'est une nouvelle expression de la même assertion (MCD § 6.5).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G12": {
+      "module_responsable": "M06",
+      "contrat": "Une `CONCLUSION` publiée ou partagée possède une `BASE_JUSTIFICATIVE` en vigueur (MCD § 9.6).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G15": {
+      "module_responsable": "M06",
+      "contrat": "Une `PHASE_TRAJECTOIRE` de `mode = proposée` reste `etat_examen` automatique jusqu'à examen humain.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-G17": {
+      "module_responsable": "M06",
+      "contrat": "Un niveau n'est jamais promu sans trace (`exposition possible` ↛ `réception attestée`) (RG-G09).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-H07": {
+      "module_responsable": "M06",
+      "contrat": "Acceptée ⇒ une nouvelle version de l'objet cible, produite par une activité qui cite la proposition, et un `CREDIT` `proposant` conservé (RG-H08).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-H09": {
+      "module_responsable": "M06",
+      "contrat": "`résolu par fusion compatible` uniquement pour des modifications non sémantiques.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-I01": {
+      "module_responsable": "M05",
+      "contrat": "Le document cible a `statut_existence` ≠ `conservé et localisé`, ou `lacunaire` (RG-I01).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-I04": {
+      "module_responsable": "M05",
+      "contrat": "Aucun élément n'est créé pour « compléter » une série sans trace : une position inconnue entre deux numéros attestés n'est créée que si elle est explicitement utile, avec `statut_contenu = inconnu` (RG-I02, § 20.4).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-I07": {
+      "module_responsable": "M05",
+      "contrat": "Une anomalie ne modifie aucun `statut_existence` (RG-I04, CU-25).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-J02": {
+      "module_responsable": "M09",
+      "contrat": "Un enregistrement audio ou une transcription exige un `CONSENTEMENT` de portée correspondante du ou des témoins avant tout usage hors de l'espace (CDCF § 24.16).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-J06": {
+      "module_responsable": "M09",
+      "contrat": "`phase = après indice` ⇒ un `INDICE` existe dans le même échange, antérieur à la réponse (RG-J01).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-J12": {
+      "module_responsable": "M09",
+      "contrat": "La délivrance ne lève aucun embargo sur le contenu (RG-J06).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K02": {
+      "module_responsable": "M07",
+      "contrat": "`transmis` exige une `DESIGNATION_GARDE` effective de rôle successeur.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K03": {
+      "module_responsable": "M07",
+      "contrat": "`etat = suffisamment traitée selon protocole` exige une `APPLICATION_PROTOCOLE` accomplie sur la question (RG-K02).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K05": {
+      "module_responsable": "M07",
+      "contrat": "`recherchabilite = insolubilité fortement documentée` exige au moins une `RECHERCHE_EFFECTUEE` exhaustive et une justification ; cette valeur doit rester exceptionnelle (CDCF § 25.12).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K07": {
+      "module_responsable": "M07",
+      "contrat": "`source_suggeree` ne crée aucun document ni assertion d'existence (RG-K06).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K10": {
+      "module_responsable": "M07",
+      "contrat": "`resultat = négatif` ne produit jamais d'assertion négative ni de lacune « explicitement absent » ; au mieux une `LACUNE` « recherche exhaustive sans résultat » si `niveau_consultation = consultation exhaustive` (RG-K01, critère 19).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K16": {
+      "module_responsable": "M07",
+      "contrat": "`statut = accompli selon protocole` exige que chaque critère de la version appliquée soit `accompli` ou `non applicable` (ETAT_CRITERE).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-K19": {
+      "module_responsable": "M07",
+      "contrat": "Une règle de portée `main/scribe`, `registre` ou `corpus` est reliée à l'objet correspondant.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-M01": {
+      "module_responsable": "M09",
+      "contrat": "Une contribution ne sort de l'espace de l'événement qu'avec un `CONSENTEMENT` de portée adaptée ; la contribution au Core exige une `OPERATION_FLUX` séparée (RG-M01).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-N01": {
+      "module_responsable": "M10",
+      "contrat": "Une géométrie n'est jamais plus précise que ses fondements : `exacte` exige une source cartographique ou un relevé ancré ; un lieu connu seulement par relations ne peut avoir que `relative` ou `zone possible` (RG-N01, critère 12).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-N03": {
+      "module_responsable": "M10",
+      "contrat": "Une géométrie reconstruite est produite par un `CALCUL` (RECONSTRUIRE_GEOM) et fondée sur des assertions (FONDEE_SUR).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-N05": {
+      "module_responsable": "M10",
+      "contrat": "Une ligne entre deux présences n'est tracée que si une assertion `déplacement attesté` ou `trajet reconstruit` existe, avec une symbolisation distincte (RG-N02).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-O06": {
+      "module_responsable": "M07",
+      "contrat": "Une méthode déterministe (filtrer, compter, comparer des dates) ne recourt jamais à une IA générative (RG-O06).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-O07": {
+      "module_responsable": "M07",
+      "contrat": "`nature_execution = reproduction` exige mêmes versions de méthode, de corpus, de référentiels et même état de connaissance que le calcul d'origine (REPRODUIRE_CALCUL) ; sinon `rerun` ou `nouvelle analyse` (RG-O02).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-O11": {
+      "module_responsable": "M07",
+      "contrat": "Une cooccurrence ou un entourage calculé ne crée jamais de `RELATION` (RG-G06).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-O12": {
+      "module_responsable": "M07",
+      "contrat": "Un résultat d'agrégation exposé à une audience plus large que celle du calcul exige une `EVALUATION_DIFFUSABILITE` (DI-B18).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-P01": {
+      "module_responsable": "M11",
+      "contrat": "Avant `publiée`, chaque version exposée est vérifiée contre embargos, personnes vivantes et mineurs, consentements, licences par composant et masquages ; le résultat est consigné dans une `EVALUATION_DIFFUSABILITE` par version exposée, dans le `CONTEXTE_EVALUATION` de la publication (RG-P02).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-P03": {
+      "module_responsable": "M11",
+      "contrat": "`indexable = vrai` exige que toutes les versions exposées aient `decouvrabilite = indexable Web` (RG-P04).",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    },
+    "DI-P07": {
+      "module_responsable": "M11",
+      "contrat": "Un export n'expose aucun attribut `I`.",
+      "source": "docs/GENIIUS_MLD_V1_0.md § 21.3",
+      "transaction": "T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert",
+      "statut_preuve": "spécifiée, non exécutée"
+    }
+  },
+  "transactions": {
+    "T01": {
+      "coordinateur": "Création d’espace, M02",
+      "atomique": "Espace + propriété administrative + racine système concordantes + activité/états d’autorisation/époque ; aucun espace non clos orphelin",
+      "apres_commit": "Notification minimale autorisée."
+    },
+    "T02": {
+      "coordinateur": "Création/mutation scientifique, module métier",
+      "atomique": "Objet et spécialisation + titularité si requise + activité/version/historiques/associations/manifeste + dépendances directes/impact + travail transitif ; signature, droits et attributs figés contrôlés",
+      "apres_commit": "Recalculs techniques, indexation ; aucune validation scientifique implicite."
+    },
+    "T03": {
+      "coordinateur": "Droit/protection/consentement, M02",
+      "atomique": "Acte/versions/admissions/protections + fermeture des fondements dépendants quand prescrite + époque à prise d’effet + barrières de résultats affectés + événements ; consentement : restriction prudente pendant réexamen",
+      "apres_commit": "Propagation/reconstruction de projections ; signalement P-3 opaque à la seule autorité."
+    },
+    "T04": {
+      "coordinateur": "Rattachement/lot/mission, M07",
+      "atomique": "Accord bilatéral/phase/version + actes d’habilitation explicitement admissibles via M02 ; clôture ferme fondements conditionnés ; réouverture ne les ressuscite pas",
+      "apres_commit": "Avis sous droits ; recalcul d’avancement sur objets accessibles."
+    },
+    "T05": {
+      "coordinateur": "Sélection/copie/contribution, M08",
+      "atomique": "Version active/manifeste, accord/régime/flux + objets destinataires et filiation + titularité et protections héritées applicables + activités/dependances ; aucune copie exposée avant héritage",
+      "apres_commit": "Propagation de protections ultérieures sous barrière avant exposition, indexation filtrée."
+    },
+    "T06": {
+      "coordinateur": "Transfert/succession, M02",
+      "atomique": "Présentation/engagements figés, voies par objet et réémissions ; acceptation atomique change propriété/racine, fondements et protections selon § 10, verrou de retour par personne/acte, époque et journal",
+      "apres_commit": "Avis filtrés ; expiration et autorités légales restent opposables."
+    },
+    "T07": {
+      "coordinateur": "Diffusion/publication, M11",
+      "atomique": "Acte éditorial distinct, snapshot/version publiée, acceptation interespaces avant placement/rang ; diffusion enregistrée seulement après validation scientifique/diffusabilité et droits actuels requis",
+      "apres_commit": "Téléchargement/envoi vérifie de nouveau le droit au dernier point d’exposition ; diffusion enregistrée ≠ preuve d’envoi effectif."
+    },
+    "T08": {
+      "coordinateur": "Réception différée, M13",
+      "atomique": "Delta seul dans espace personnel de l’auteur, références client opaques sans FK de cible ; identité de réception/accusé idempotent, sans preuve d’existence de cible",
+      "apres_commit": "Résolution contrôlée T09 ; refus ne publie pas le delta."
+    },
+    "T09": {
+      "coordinateur": "Intégration différée, M13 puis module métier",
+      "atomique": "Correspondance réception → contribution résolue, versions attendues et droits au temps serveur, mutation T02 et état intégré dans le même commit ; conflit/refus garde le delta privé",
+      "apres_commit": "Accusé filtré, réconciliation explicite ; intégré ≠ validé scientifiquement."
+    },
+    "T10": {
+      "coordinateur": "Dépôt binaire, M05",
+      "atomique": "Petites transactions pour réception technique puis confirmation : métadonnées et disponibilité confirmée seulement après preuve de conservation du binaire ; aucune atomicité fictive base/stockage",
+      "apres_commit": "Nettoyage/reprise des dépôts en attente, dérivés ; pas suppression aveugle d’un fichier orphelin."
+    },
+    "T11": {
+      "coordinateur": "Évaluation/révision, M06",
+      "atomique": "Acte humain, base/justification, version de résultat et statuts dérivés, provenance et CP ; dépendances corrigées et impacts T02",
+      "apres_commit": "Réexamen transitive ; historique des positions maintenu."
+    },
+    "T12": {
+      "coordinateur": "Calcul/carte/IA, M07/M10/M05 selon résultat",
+      "atomique": "Entrées admissibles et versions/référentiels enregistrés, consentement avant transmission ; résultat/provenance/type/examen dans T02 ; pas résultat définitif si base devenue obsolète",
+      "apres_commit": "Calcul externe hors transaction ; revalider droits, base et purge avant intégration et diffusion."
+    },
+    "T13": {
+      "coordinateur": "Imputation, M12",
+      "atomique": "Consommation unique, accords admissibles à date effective, ventilation déterministe et plafonds protégés contre concurrence ; lien à identité de consommation, aucune double facture/imputation",
+      "apres_commit": "Export de facturation sous droits ; ajustement explicite selon modèle, pas annulation silencieuse d’une consommation réelle."
+    },
+    "T14": {
+      "coordinateur": "Purge, M03 avec M02 et propriétaires",
+      "atomique": "Dossier autorisé et barrière d’exposition, neutralisation courants/historiques/associations/résolution selon CP-16 ; empreintes/états permis, conservation des seules traces légitimes ; journal de non-résurrection durable",
+      "apres_commit": "Suppression binaire/index/cache/répliques sous suivi ; purge complète non déclarée tant que obligations résiduelles ne sont pas satisfaites."
+    },
+    "T15": {
+      "coordinateur": "Migration de référentiel, M04/M03",
+      "atomique": "Validation scientifique requise pour sémantique, versions et correspondances, checkpoints par lots cohérents ; aucun état partiellement migré rendu comme cohérent",
+      "apres_commit": "Clients incompatibles en attente ; conservation des contributions locales ; activation après contrôles."
+    },
+    "T16": {
+      "coordinateur": "Restauration, exploitation via propriétaires",
+      "atomique": "Service fermé, restauration cohérente base/médias, réconciliation droits/purges actuels par transactions ; barrière d’ouverture jusqu’à preuve complète",
+      "apres_commit": "Reprise contrôlée tâches/index ; RPO/RTO évalués sur service cohérent, pas seulement base démarrée."
+    },
+    "T17": {
+      "coordinateur": "Identité et compte, M01",
+      "atomique": "Établissement/retrait de preuve d’identité, liens compte/personne, statut du compte et actes associés ; M02 applique dans le même commit les changements de fondements/approbations et époque que le contrat impose. Toute correspondance est établie par procédure vérifiée, jamais par simple déclaration de l’appelant",
+      "apres_commit": "Sessions/projections revérifiées ; deux comptes d’une personne ne deviennent pas deux approbateurs indépendants."
+    }
+  },
+  "tests_logiciel_executes": false,
+  "technologies_choisies": false,
+  "sources_sha256": {
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "spec/validation/schema_autorisations.json": "2a550151575a4e504b021fcfd6d898613e2f20d2221adefa08fff67f235cc128",
+    "docs/architecture/GENIIUS_CORE_MODULES_TRANSACTIONS_V0_1.md": "17aebd1f5299cd031fba1c5082c36564bf601c91f67df4f3657eaf05b012b5f0"
+  }
+}

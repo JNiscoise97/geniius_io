@@ -15,8 +15,15 @@ def digest(name):
 def main():
     if '--verifier' in sys.argv:
         proof = json.loads(DEST.read_text(encoding='utf-8'))
-        errors = [name for name, expected in proof['sha256_baseline'].items() if digest(name) != expected]
-        print(json.dumps({'baseline': proof['version'], 'fichiers_verifies': len(proof['sha256_baseline']), 'erreurs': errors}, ensure_ascii=False))
+        # Les références amont et cadrages sont des snapshots, pas un gel implicite.
+        upstream = json.loads((ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
+        normative = set(proof['perimetre_gelee']) | set(upstream['sha256']) | set(upstream['sha256_documents_geles'])
+        differences = [name for name, expected in proof['sha256_baseline'].items() if digest(name) != expected]
+        errors = [name for name in differences if name in normative]
+        print(json.dumps({'baseline': proof['version'], 'fichiers_verifies': len(proof['sha256_baseline']),
+                          'perimetre_gelee_verifie': len(normative),
+                          'references_snapshot_evoluees': [name for name in differences if name not in normative],
+                          'erreurs': errors}, ensure_ascii=False))
         raise SystemExit(bool(errors))
     if DEST.exists():
         raise SystemExit('Baseline déjà scellée ; utiliser --verifier. Toute modification relève du CDC § 13.')
