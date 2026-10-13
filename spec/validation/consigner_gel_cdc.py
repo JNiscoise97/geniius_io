@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEST = ROOT / 'docs/AUDIT-CDC-TECH/PREUVES_GEL_CDC_V1_2.json'
+DEST = ROOT / 'docs/06_CDC_TECHNIQUE/preuves/PREUVES_GEL_CDC_V1_2.json'
 
 
 def digest(name):
@@ -16,7 +16,7 @@ def main():
     if '--verifier' in sys.argv:
         proof = json.loads(DEST.read_text(encoding='utf-8'))
         # Les références amont et cadrages sont des snapshots, pas un gel implicite.
-        upstream = json.loads((ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
+        upstream = json.loads((ROOT / 'docs/04_CONTRAT_AUTORISATION/preuves/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
         normative = set(proof['perimetre_gelee']) | set(upstream['sha256']) | set(upstream['sha256_documents_geles'])
         differences = [name for name, expected in proof['sha256_baseline'].items() if digest(name) != expected]
         errors = [name for name in differences if name in normative]
@@ -27,15 +27,15 @@ def main():
         raise SystemExit(bool(errors))
     if DEST.exists():
         raise SystemExit('Baseline déjà scellée ; utiliser --verifier. Toute modification relève du CDC § 13.')
-    checks_path = 'docs/AUDIT-CDC-TECH/CONTROLES_CDC_TECHNIQUE_V1_2.json'
+    checks_path = 'docs/06_CDC_TECHNIQUE/preuves/CONTROLES_CDC_TECHNIQUE_V1_2.json'
     checks = json.loads((ROOT / checks_path).read_text(encoding='utf-8'))
     assert not checks['erreurs'] and checks['gel_prononce'] and not checks['tests_logiciel_executes']
-    frozen = ['docs/GENIIUS_CDC_TECHNIQUE_V1_0.md', 'docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md',
-              'spec/validation/cdc_recettes_v1_2.json', 'docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md']
-    upstream = json.loads((ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
+    frozen = ['docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md', 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE_RECETTES.md',
+              'spec/validation/cdc_recettes_v1_2.json', 'docs/06_CDC_TECHNIQUE/preuves/PROCES_VERBAL_GEL_CDC_V1_2.md']
+    upstream = json.loads((ROOT / 'docs/04_CONTRAT_AUTORISATION/preuves/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
     upstream_files = list(upstream['sha256']) + list(upstream['sha256_documents_geles'])
     sources = list(dict.fromkeys(frozen + list(checks['sha256_sources']) + upstream_files + [checks_path,
-                    'docs/architecture/GENIIUS_CADRAGE_ARCHITECTURE_V0_1.md',
+                    'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_01_CADRAGE.md',
                     'spec/validation/consigner_gel_cdc.py']))
     proof = {'date': '2026-10-13', 'version': 'CDC V1.2 gelé documentairement',
              'autorisation': 'Réponse du porteur « ok vas y » après proposition de clore les deux réserves, consigner le gel et passer à architecture.',

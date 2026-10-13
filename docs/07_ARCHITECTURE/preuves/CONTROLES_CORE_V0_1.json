@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-13",
+  "version": "Architecture Core V0.1 candidate",
+  "modules": 14,
+  "tables_nominees": 327,
+  "CP": 53,
+  "obligations_CP13": 60,
+  "transactions": 17,
+  "scenarios_crash_test": 13,
+  "tests_logiciel_executes": false,
+  "architecture_gelee": false,
+  "erreurs": [],
+  "limites": [
+    "Inventaire, attribution et références documentaires seulement.",
+    "Sérialisation/concurrence, stockage réel, délais, sécurité temporelle et performance à démontrer.",
+    "M14 introduit des contrats techniques ; tables physiques à concevoir au MPD."
+  ],
+  "sha256": {
+    "spec/validation/core_architecture_v0_1.json": "8fa9d9a087cca7a05cdfd3f3f7a1d6525c1ebff24a2409fa1bcf911e3db9cad2",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_02_CORE_MODULES_TRANSACTIONS.md": "919428c0b85d31b9e00cd9afad55905b774c97b671ee5f0e76aa558cee691e76",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_03_CORE_MATRICES.md": "68e5929e4e38cffa31fb8859a8fd466308baf89d01b9cea8060310eb2f4049da",
+    "spec/validation/generer_core_architecture.py": "394b0037feeaf3dc70618c1e65fcf18790e9845e9b768e06abd4dd0853c9be13",
+    "spec/validation/controler_core_architecture.py": "528b401dc63a4ed37a2f6e784606aa50f4514e802c53cd71f882d3ede0224271"
+  }
+}

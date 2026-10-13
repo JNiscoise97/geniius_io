@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-12",
+  "statuts": {
+    "dictionnaire": "V1.3 validé documentairement",
+    "MLD": "V1.1-g stabilisé, candidat au gel"
+  },
+  "gel_formel_nouveau": false,
+  "execution_SQL": false,
+  "semantic_exhaustif_304_DI": false,
+  "population_DI": 304,
+  "CP13_enoncees_et_recomparees": 60,
+  "baseline_V1_6_inchangee": {
+    "spec/autorisation/modele.py": true,
+    "spec/autorisation/mutations/mutations.py": true,
+    "spec/autorisation/mutations/lancer.py": true,
+    "spec/autorisation/tests/base.py": true,
+    "spec/autorisation/tests/outils.py": true,
+    "spec/autorisation/tests/test_attaques.py": true,
+    "spec/autorisation/tests/test_cloture_v16.py": true,
+    "spec/autorisation/tests/test_controles_v15.py": true,
+    "spec/autorisation/tests/test_proprietes.py": true,
+    "spec/autorisation/tests/test_scenarios.py": true,
+    "spec/autorisation/tests/test_transitions.py": true,
+    "spec/autorisation/mutations/resultats.json": true,
+    "spec/autorisation/tests/couverture_etats.json": true,
+    "docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md": true,
+    "spec/autorisation/mutations/JUSTIFICATIONS.md": true,
+    "docs/04_CONTRAT_AUTORISATION/preuves/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md": true
+  },
+  "liens_locaux_manquants": [],
+  "sha256": {
+    "docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md": "8630154afe21fc6f1e66dfda114275361e82ac0a00e7ca77f40d8de0cd4e71e6",
+    "docs/05_MLD/GENIIUS_MLD.md": "d5203e7e89bef045c3095b6a8aacd12de12f54d17e36ac164306fcb69cc8ba29",
+    "docs/05_MLD/GENIIUS_MLD_AUTORISATIONS.md": "21d345843a0f0740cb88788f4b0c370d588b11d5ec09da66d09340913377c422",
+    "docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md": "e165980bf9c316e7b7a2fcada3c2c3e3805de699995b802fb0ebf517daff3a32",
+    "docs/05_MLD/preuves/REPORT_AUTORISATIONS_V1_6.md": "1b3ecaa618f11ccbae08d4647643abe237751feca78336dceefd2edd91d7ab89",
+    "docs/05_MLD/preuves/VALIDATION_DONNEES_ET_TRACABILITE_V1_3.md": "7ba809b6fe9a1edb42ed2ee611a5320d278a54125f9102e836bda63b9e668157",
+    "docs/05_MLD/preuves/VALIDATION_AUTORISATIONS_RELATIONNELLES_V1_3.md": "776f78fdd141ebf90f029ee76e9206eef8a0a7cb53b689e1d02f4cc355947424",
+    "docs/03_DICTIONNAIRE/preuves/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md": "e190fa2440f97615f7dcb4a44799a1c3b4e8381102a093f814e6728468d4d937",
+    "docs/05_MLD/preuves/REGISTRE_CLOTURE_CONSTATS_V1_3.md": "070db67d200b13fea3bbee5dfdcf6ec85de07bb3712b86d372c2f5a5f113f17a",
+    "docs/05_MLD/preuves/CONTROLES_STRUCTURELS_V1_3.json": "cbf9ecf0fd3b7b514d84d860a13d5ac02d9940c13ac6b80b5bdc578c6ea078e0",
+    "spec/validation/schema_autorisations.json": "2a550151575a4e504b021fcfd6d898613e2f20d2221adefa08fff67f235cc128",
+    "spec/validation/expliciter_schema_autorisations.py": "d781053412fd790da70d8a803d2dd2910928c193c5607a9e36991d58c0831560",
+    "spec/validation/controler_documents.py": "e088bdb1791ef31614179f13b29c4f17849079678b2c81f3357ed83621f6e66e"
+  },
+  "rescellement_2026_10_13": {
+    "motif": "Rangement de docs/ du 13/10/2026 (registre des versions normatives, § 6) : déplacements et renommages ; seuls les liens et mentions de chemins changent, vérifié par comparaison chemins neutralisés. Décision du porteur : « Tout ranger et resceller ».",
+    "sections": [
+      "sha256"
+    ],
+    "sha256_avant": {
+      "docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md": "63d3a91ee6e11c18aad66cfa1a3460492007ef3ee6acd15a3a98e7f890b6da8e",
+      "docs/05_MLD/GENIIUS_MLD.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+      "docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md": "47c59d62fe8fb4f3e8716e1501783b570780792dc83ef6c7f78987120f111584",
+      "docs/05_MLD/preuves/REPORT_AUTORISATIONS_V1_6.md": "8797a30ce7b5c880887985b1f32bfa388eb33748d0a52ca50ae34c88fcb2d8ca",
+      "docs/05_MLD/preuves/VALIDATION_DONNEES_ET_TRACABILITE_V1_3.md": "e60ce42e1d49589adf7f288183a2138f9e572c3114d6125c6e3fccbab75b56e7",
+      "docs/05_MLD/preuves/VALIDATION_AUTORISATIONS_RELATIONNELLES_V1_3.md": "37daa38c2714f8dce14ac535ae04fd6477104eb1d2b24b2eb13204c7596a61d3",
+      "docs/03_DICTIONNAIRE/preuves/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md": "a14f00cdb86225782407696e95d863b04a7d34db8d0c5485f54490257877ad74",
+      "docs/05_MLD/preuves/REGISTRE_CLOTURE_CONSTATS_V1_3.md": "586cc515245c592fda4b1b416df8a5950cd965fa2f64035bb38fbc8387927deb",
+      "docs/05_MLD/preuves/CONTROLES_STRUCTURELS_V1_3.json": "c17207e15d77d02217586634a2cb22c61288ba00d5c9f2dfb190a4c2b53ed676",
+      "spec/validation/expliciter_schema_autorisations.py": "fa96ecdfa05d26f9ad5e818f82ffd52612cd583dfa70ea0446fc37f8cfeb2a06",
+      "spec/validation/controler_documents.py": "2d32f1482d6754186b1f8e0cb4fef3552cb4a59060ce0196b1dbd0c6ea5a48d9"
+    },
+    "regeneration": "Preuve régénérée par spec/validation/consigner_preuves.py après rescellement de la clôture V1.6."
+  }
+}

@@ -13,7 +13,7 @@
         "SEC-04",
         "ASY-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2119
     },
     "MPD-02": {
@@ -26,7 +26,7 @@
         "SEC-01",
         "SEC-05"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2120
     },
     "MPD-03": {
@@ -38,7 +38,7 @@
       "dossiers_lies": [
         "SEC-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2121
     },
     "MPD-04": {
@@ -51,7 +51,7 @@
         "ASY-02",
         "ASY-06"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2122
     },
     "MPD-05": {
@@ -64,7 +64,7 @@
         "PER-05",
         "SYN-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2123
     },
     "MPD-06": {
@@ -77,7 +77,7 @@
         "SEC-01",
         "SEC-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2124
     },
     "DEC-ARCH-01": {
@@ -93,7 +93,7 @@
         "SEC-05",
         "DEP-01"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2132
     },
     "DEC-ARCH-02": {
@@ -105,7 +105,7 @@
       "dossiers_lies": [
         "PER-01"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2133
     },
     "DEC-ARCH-03": {
@@ -118,7 +118,7 @@
         "SYN-02",
         "SYN-07"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2134
     },
     "DEC-ARCH-04": {
@@ -128,7 +128,7 @@
       "contrat_preuve": "TECH-002, 003, 005, 007.8 ; AUDIT-TECH-001, 003",
       "statut": "Actée en amont — ECD-05, emplacement logique seulement",
       "dossiers_lies": [],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2135
     },
     "DEC-ARCH-05": {
@@ -142,7 +142,7 @@
         "SEC-04",
         "SEC-05"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2136
     },
     "DEC-ARCH-06": {
@@ -155,7 +155,7 @@
         "PER-01",
         "PER-06"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2137
     },
     "DEC-ARCH-07": {
@@ -170,7 +170,7 @@
         "ASY-06",
         "SEC-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2138
     },
     "DEC-ARCH-08": {
@@ -180,7 +180,7 @@
       "contrat_preuve": "TECH-033",
       "statut": "Ouverte — instruction et preuve nécessaires",
       "dossiers_lies": [],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2139
     },
     "DEC-ARCH-09": {
@@ -193,7 +193,7 @@
         "SYN-05",
         "DEP-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2140
     },
     "DEC-ARCH-10": {
@@ -206,7 +206,7 @@
         "DEP-03",
         "ASY-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2141
     },
     "DEC-ARCH-11": {
@@ -222,7 +222,7 @@
         "PER-05",
         "DEP-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2142
     },
     "DEC-ARCH-12": {
@@ -235,7 +235,7 @@
         "SYN-07",
         "DEP-03"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2143
     },
     "DEC-ARCH-13": {
@@ -247,7 +247,7 @@
       "dossiers_lies": [
         "ASY-05"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2144
     },
     "DEC-ARCH-14": {
@@ -261,7 +261,7 @@
         "PER-03",
         "PER-07"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2145
     },
     "DEC-ARCH-15": {
@@ -274,7 +274,7 @@
         "PER-02",
         "PER-07"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2146
     },
     "DEC-ARCH-16": {
@@ -288,7 +288,7 @@
         "DEP-02",
         "DEP-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2147
     },
     "DEC-ARCH-17": {
@@ -298,7 +298,7 @@
       "contrat_preuve": "TECH-019.7",
       "statut": "Hors V1 — capacité préparée, décision ultérieure",
       "dossiers_lies": [],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2148
     },
     "PAR-CDC-01": {
@@ -310,7 +310,7 @@
       "dossiers_lies": [
         "ASY-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2155
     },
     "PAR-CDC-02": {
@@ -323,7 +323,7 @@
         "ASY-04",
         "SYN-06"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2156
     },
     "PAR-CDC-03": {
@@ -335,7 +335,7 @@
       "dossiers_lies": [
         "SYN-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2157
     },
     "PAR-CDC-04": {
@@ -348,7 +348,7 @@
         "SEC-01",
         "SEC-05"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2158
     },
     "PAR-CDC-05": {
@@ -361,7 +361,7 @@
         "SYN-01",
         "SYN-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2159
     },
     "PAR-CDC-06": {
@@ -374,7 +374,7 @@
         "ASY-03",
         "ASY-06"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2160
     },
     "PAR-CDC-07": {
@@ -387,7 +387,7 @@
         "ASY-03",
         "DEP-04"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2161
     },
     "PAR-CDC-08": {
@@ -399,7 +399,7 @@
       "dossiers_lies": [
         "DEP-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2162
     },
     "PAR-CDC-09": {
@@ -412,7 +412,7 @@
         "ASY-07",
         "DEP-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2163
     },
     "PAR-CDC-10": {
@@ -424,7 +424,7 @@
       "dossiers_lies": [
         "DEP-02"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2164
     },
     "PAR-CDC-11": {
@@ -438,7 +438,7 @@
         "PER-03",
         "PER-06"
       ],
-      "source": "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+      "source": "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md",
       "ligne": 2165
     },
     "SEC-01": {
@@ -448,7 +448,7 @@
       "contrat_preuve": "Garde canonique interinstances et point de linéarisation/échéance : choix MPD-02/06, traces AC01/03/07/08.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
       "ligne": 96
     },
     "SEC-02": {
@@ -458,7 +458,7 @@
       "contrat_preuve": "Famine, transactions longues, volume copies et coût de garde globale : mesure NF01/02/03/10 et AC10 ; alternative segmentée si nécessaire.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
       "ligne": 97
     },
     "SEC-03": {
@@ -468,7 +468,7 @@
       "contrat_preuve": "Point de sortie des pages/portions, URL de téléchargement, échéance pendant envoi : protocole et traces AC09/12 avant livraison.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
       "ligne": 98
     },
     "SEC-04": {
@@ -478,7 +478,7 @@
       "contrat_preuve": "Graphe avant calcul, statistiques et attaques de délais/différenciation : MPD-03, protocole CDC NF10, AC06.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
       "ligne": 99
     },
     "SEC-05": {
@@ -488,7 +488,7 @@
       "contrat_preuve": "Époque, ascendants, copies et watermark/barrières : AC02/04/11, mêmes obligations après restauration.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
       "ligne": 100
     },
     "SYN-01": {
@@ -498,7 +498,7 @@
       "contrat_preuve": "PAR-CDC-05 : valeurs plateforme/espace/habilitant et conséquences terrain ; aucune durée d’exemple adoptée.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 152
     },
     "SYN-02": {
@@ -508,7 +508,7 @@
       "contrat_preuve": "PAR-CDC-03/DEC-ARCH-03 : versions/capacités garanties, annonce et récupération ; SY06/07.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 153
     },
     "SYN-03": {
@@ -518,7 +518,7 @@
       "contrat_preuve": "Délai de reconnexion attendu, coûts et reconstruction ; unicité durable empêchant double effet après expiration technique, SY02/11.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 154
     },
     "SYN-04": {
@@ -528,7 +528,7 @@
       "contrat_preuve": "Source monotone par OS, veille/redémarrage, incertitude/dérive, stockage/génération et ancrage authentifié ; SY08/09.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 155
     },
     "SYN-05": {
@@ -538,7 +538,7 @@
       "contrat_preuve": "Contrôle de retrait séparé, sans accès métier ; récupération de journal sur compte/appareil admissible, SY10.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 156
     },
     "SYN-06": {
@@ -548,7 +548,7 @@
       "contrat_preuve": "Tailles de pages/deltas/chunks, espace disque, concurrence et politique réseau, mesures NF du CDC ; SY04/07/12.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 157
     },
     "SYN-07": {
@@ -558,7 +558,7 @@
       "contrat_preuve": "Schéma technique, transport, garanties d’accusé et points de divulgation SEC-01/03/05 ; tous scénarios.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md",
       "ligne": 158
     },
     "PER-01": {
@@ -568,7 +568,7 @@
       "contrat_preuve": "DEC-ARCH-06/14 : générations, fréquences/rétention, domaines de panne, formats, copie isolée/immuable, contrôle d’intégrité ; PR01/02/03/12.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 122
     },
     "PER-02": {
@@ -578,7 +578,7 @@
       "contrat_preuve": "DEC-ARCH-15 : contrat de confirmation, reprise, intégrité, coût/capacité de récupération, objectifs binaires ; PR01/02/12.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 123
     },
     "PER-03": {
@@ -588,7 +588,7 @@
       "contrat_preuve": "Ordre intention/commit/accusé, checkpoints et fraîcheur hors restauration ; PR05/06/07/10.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 124
     },
     "PER-04": {
@@ -598,7 +598,7 @@
       "contrat_preuve": "SYN-03 : durée de reconnexion, preuves après restauration, commandes/consommations, minimisation et purges ; PR08/09/11.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 125
     },
     "PER-05": {
@@ -608,7 +608,7 @@
       "contrat_preuve": "MPD-05 : accès/rotation/récupération des clés, chiffrement et séparation ; PR10, aucun mécanisme cryptographique maison.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 126
     },
     "PER-06": {
@@ -618,7 +618,7 @@
       "contrat_preuve": "Portée d’effacement, droits/copies, isolation de clés et absence d’oracle ; PR04/05.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 127
     },
     "PER-07": {
@@ -628,7 +628,7 @@
       "contrat_preuve": "R01 à R07, responsables d’ouverture, périmètre/service, manifestes et mesure NF05 ; PR12 et anomalies connues.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md",
       "ligne": 128
     },
     "ASY-01": {
@@ -638,7 +638,7 @@
       "contrat_preuve": "File/dispatcher, bail et jeton de tentative, durée/renouvellement, retries et isolement ; AS01/02/03/09.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 119
     },
     "ASY-02": {
@@ -648,7 +648,7 @@
       "contrat_preuve": "Périmètre de barrière, frontier/générations et ajouts concurrents, délai maximal/profils, alerte ; AS05/06/07/08/11.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 120
     },
     "ASY-03": {
@@ -658,7 +658,7 @@
       "contrat_preuve": "Classes, capacité réservée, quotas/concurrence, attente et refus non destructif ; AS10/12, PAR-CDC-06/07.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 121
     },
     "ASY-04": {
@@ -668,7 +668,7 @@
       "contrat_preuve": "PAR-CDC-01/02 : corpus, graphes/médias/versions, concurrence et lots ; campagne reproductible selon CDC.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 122
     },
     "ASY-05": {
@@ -678,7 +678,7 @@
       "contrat_preuve": "SEC-01 à 05/PER-04 : revalidation, capacités internes étroites, point de sortie, résultat externe incertain ; AS04.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 123
     },
     "ASY-06": {
@@ -688,7 +688,7 @@
       "contrat_preuve": "Capacité mesurée, marge/paliers/coût total, seuils et croissance, preuve NF01/02/03/09/10 ; AS12.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 124
     },
     "ASY-07": {
@@ -698,7 +698,7 @@
       "contrat_preuve": "Métriques/alertes, rétention/jobs/checkpoints, purge des traces et reprise après PRA ; PER-03/04, SYN-03, AS02/05/11.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md",
       "ligne": 125
     },
     "DEP-01": {
@@ -708,7 +708,7 @@
       "contrat_preuve": "DEC-ARCH-01/16, PER-01/03/05.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md",
       "ligne": 95
     },
     "DEP-02": {
@@ -718,7 +718,7 @@
       "contrat_preuve": "PAR-CDC-08/09/10, TECH-021/027/030.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md",
       "ligne": 96
     },
     "DEP-03": {
@@ -728,7 +728,7 @@
       "contrat_preuve": "SYN-02/07, T15/T16, TECH-022/023/031.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md",
       "ligne": 97
     },
     "DEP-04": {
@@ -738,18 +738,18 @@
       "contrat_preuve": "ASY-03/04/06, PER-02/07, TECH-026/029.",
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
-      "source": "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md",
+      "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md",
       "ligne": 98
     }
   },
   "gel_architecture": false,
   "tests_executes": false,
   "sha256_sources": {
-    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md": "cc5a6955d306d0627eadd8b6a0ce823ab80b7385b5c28a0bbc103916e0d1db6b",
-    "docs/architecture/GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md": "45fb33037c6def4250cd1842fd21cb891741c2c5c712d3d6749020e3dbddaf72",
-    "docs/architecture/GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md": "bbb983db2640d0a03db4fe7edfae924b2a4e70169c5789ddb1dba46075fb959a",
-    "docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md": "7e0f9a8f56bca958fd40b6cd89f9422bdca0cc447cf4b74a455ebbbf9e722e7d",
-    "docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md": "a81fbd5b84279b6c9cc4698dd907ba7ecfc117de753775232f6fb0e7b2104fc2",
-    "docs/architecture/GENIIUS_DEPLOIEMENT_V0_1.md": "cc94a1ef3765f573cc493850cb8413553157427cc5cd0ce6125798ae8524a9cb"
+    "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md": "b945262ad6ba62d3de222434c0619de4fa0cec5954a828cffd84ef87ce1126e3",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "0f788b63c9016226b5e00dffbeabe95319d0a454a7da69eb6ed778893bc671ca",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md": "62dd3571d5b00b99d730508c97edeaf14cafa1246cecaf88a441a8052b9166aa",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md": "06b16a1ad94ff46ce234bacb24b980cb4ec28c6ba1444002e2c06fa2079c2c12",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md": "76f3b8e7586b6f53d25d9cd0d5864305ab54ca3656129f62af8e0ac482083b9e",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md": "a8d12d912c2c07210b5e4470e59a13f41278430dcca7862cd5f7c6066c2969bc"
   }
 }

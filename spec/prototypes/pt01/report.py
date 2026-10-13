@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[3]
-DIR=ROOT/'docs/architecture/prototypes'
+DIR=ROOT/'docs/07_ARCHITECTURE/preuves'
 
 
 def main():
-    path=DIR/'PT01_RESULTATS.json'
+    path=DIR/'RESULTATS_PROTOTYPE_PT01.json'
     data=json.loads(path.read_text(encoding='utf-8'))
     cases=data['cases']
     negative=data.get('contre_epreuve')
@@ -23,7 +23,7 @@ def main():
          f'- SQL exécuté : {"oui" if sql else "non"}.',
          f'- PostgreSQL : {data["metadata"].get("postgresql_version","indisponible, banc non démarré")}.',
          f'- Image : {data["metadata"].get("image_reference","indisponible")}, identifiant {data["metadata"].get("image_id","indisponible")}.',
-         '- [Résultats, traces et empreintes](PT01_RESULTATS.json).',
+         '- [Résultats, traces et empreintes](RESULTATS_PROTOTYPE_PT01.json).',
          '- [Schéma synthétique](../../../spec/prototypes/pt01/schema.sql) et runner : `spec/prototypes/pt01/run.py` ; commande dans `spec/prototypes/pt01/README.md`.', '',
          '## Scénarios et état final', '', '| Cas | Objet | Verdict | État observé |', '|---|---|---|---|']
     for case in cases:
@@ -48,13 +48,13 @@ def main():
             'Les travaux indépendants PT02–PT06 peuvent se préparer, mais le gel d’architecture reste interdit tant qu’une garantie P0 demeure non démontrée. Le budget reste plafonné à 100 €/mois et l’échéance décembre est un objectif, sans promesse de lancement avant verdicts.', '',
             '## Sources techniques consultées', '',
             'PostgreSQL documente le déclenchement différé et la possibilité de forcer son exécution : [CREATE TRIGGER](https://www.postgresql.org/docs/current/sql-createtrigger.html). Le timestamp de commit utilisé par la contre-épreuve nécessite l’option `track_commit_timestamp`, activée sur ce seul banc : [fonctions de commit](https://www.postgresql.org/docs/current/functions-info.html). Ces sources expliquent les primitives ; la conclusion sur notre implémentation vient des résultats ci-dessus.', '']
-    report=DIR/'PT01_RAPPORT.md'
+    report=DIR/'RAPPORT_PROTOTYPE_PT01.md'
     report.write_text('\n'.join(out),encoding='utf-8')
     expected={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==h for name,h in data['sha256_sources'].items()}
     proof={'prototype':'PT01','SQL_execute':sql,'verdict':data['verdict'],'sources_conformes_execution':expected,
            'PT01_clos':False,'architecture_gelee':False,
            'sha256':{str(p.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(p.read_bytes()).hexdigest() for p in [path,report,Path(__file__).resolve()]}}
-    (DIR/'PT01_PREUVES.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DIR/'PREUVES_PROTOTYPE_PT01.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(data['verdict'], f'{good}/{len(cases)} réussis ; PT01 non clos.')
     raise SystemExit(not all(expected.values()))
 

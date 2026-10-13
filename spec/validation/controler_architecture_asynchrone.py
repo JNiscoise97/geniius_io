@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def main():
-    path = ROOT / 'docs/architecture/GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md'
+    path = ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md'
     content = path.read_text(encoding='utf-8')
     errors = []
     inventories = {}
@@ -29,20 +29,20 @@ def main():
     for link in re.findall(r'\]\(([^)]+)\)', content):
         if not link.startswith(('http:', 'https:', '#')) and not (path.parent / link.split('#')[0]).exists():
             errors.append('lien absent : ' + link)
-    seal = json.loads((ROOT / 'docs/AUDIT-CDC-TECH/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
+    seal = json.loads((ROOT / 'docs/06_CDC_TECHNIQUE/preuves/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
     for name in seal['perimetre_gelee']:
         if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != seal['sha256_baseline'][name]:
             errors.append('baseline gelée modifiée : ' + name)
-    files = [path, Path(__file__).resolve(), ROOT / 'docs/GENIIUS_MLD_V1_0.md',
-             ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_V1_0.md',
-             ROOT / 'docs/architecture/GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md']
+    files = [path, Path(__file__).resolve(), ROOT / 'docs/05_MLD/GENIIUS_MLD.md',
+             ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md',
+             ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md']
     result = {'date': '2026-10-13', 'dossier': 'Asynchrone/propagation/dimensionnement V0.1 candidate',
               **inventories, 'architecture_gelee': False, 'tests_logiciel_charge_executes': False,
               'MPD04_fixe': False, 'capacite_production_mesuree': False, 'erreurs': errors,
               'limites': ['Présences, références et empreintes documentaires seulement.',
                          'Baux, génération/frontier, concurrence, sécurité, équité, débit/coût et délai maximal restent à démontrer.'],
               'sha256': {str(p.relative_to(ROOT)).replace('\\','/'): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
-    (ROOT / 'docs/architecture/CONTROLES_ASYNCHRONE_V0_1.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    (ROOT / 'docs/07_ARCHITECTURE/preuves/CONTROLES_ASYNCHRONE_V0_1.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({k:v for k,v in result.items() if k not in ('sha256','limites')}, ensure_ascii=False))
     raise SystemExit(bool(errors))
 

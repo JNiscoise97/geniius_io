@@ -2,7 +2,7 @@
 
 Ce module n'est pas le logiciel de production : c'est une spécification
 exécutable. Chaque règle cite la clause du contrat qu'elle implémente
-(docs/GENIIUS_CONTRAT_AUTORISATION_V1.md). En cas d'écart, le contrat prime et
+(docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md). En cas d'écart, le contrat prime et
 l'écart est un constat.
 
 Conventions :

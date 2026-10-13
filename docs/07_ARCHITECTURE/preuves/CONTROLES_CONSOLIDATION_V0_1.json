@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-13",
+  "dossier": "Consolidation/déploiement/alternatives V0.1 candidat",
+  "references_decision": 64,
+  "ouvertes": 62,
+  "actee_amont": 1,
+  "hors_V1": 1,
+  "ADR_candidats": 16,
+  "variantes_deploiement": 2,
+  "prototypes_specifies": 6,
+  "sources_officielles": 10,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "prototypes_executes": false,
+  "budget_mensuel_estime": false,
+  "erreurs": [],
+  "limites": [
+    "Contrôle documentaire : inventaires, liens, statuts et empreintes.",
+    "Aucune preuve physique de concurrence/OS/durabilité/capacité, aucun benchmark ni coût fournisseur acquis."
+  ],
+  "sha256": {
+    "spec/validation/registre_architecture_v0_1.json": "81167e843ca60d6c616bdac2f7c9021713eaa32abec83f43eabfe3d600a5013a",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md": "261e4c877c31122c4557a55db2e3c899d45d0f5265887211ed066fc208b3ac33",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md": "a8d12d912c2c07210b5e4470e59a13f41278430dcca7862cd5f7c6066c2969bc",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md": "d612af767738577981e219bd571db2c64a271b9c28b7d638e3dd07d3b00799f0",
+    "spec/validation/consolider_decisions_architecture.py": "ca312dc4859575db1620058ab9431e322743244d8925b98f1b4b2a2b4f38be87",
+    "spec/validation/controler_consolidation_architecture.py": "8e15dcf63a4b76f8a371aca6e5ce61d1cddf44fae8f666e30b4bc7c2178a1480"
+  }
+}

@@ -2,7 +2,7 @@
 
 Chaque test porte un scénario. Sa docstring contient les champs du tableau de la
 batterie (Pré, Op, Attendu, Fondement) : le fichier
-AUDIT-MLD/GENIIUS_BATTERIE_SCENARIOS_AUTORISATION_V1_6.md en est généré par
+04_CONTRAT_AUTORISATION/GENIIUS_BATTERIE_SCENARIOS_AUTORISATION.md en est généré par
 generer_batterie.py. On ne modifie jamais la batterie à la main.
 """
 import copy

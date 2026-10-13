@@ -2,12 +2,12 @@
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
-arch=ROOT/'docs/architecture'
-p=arch/'GENIIUS_DEPLOIEMENT_V0_1.md'
+arch=ROOT/'docs/07_ARCHITECTURE'
+p=arch/'GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md'
 s=p.read_text(encoding='utf-8').replace('Le porteur indique le 13/10/2026 n’avoir aucune contrainte imposée de langage, hébergement ou budget. Cela ouvre la comparaison, sans signifier ressources illimitées ni engagement tarifaire.',
     'Le porteur a précisé le 13/10/2026 un plafond de 100 € par mois avant abonnements, avec premiers abonnements souhaités en décembre 2026. Il demande de terminer les six prototypes avant le lancement commercial. Aucune contrainte de langage/hébergeur n’est imposée ; capacité et exploitation doivent respecter ce plafond, sans engagement de date de livraison non démontré.')
 p.write_text(s,encoding='utf-8')
-p=arch/'GENIIUS_ALTERNATIVES_TECHNOLOGIQUES_V0_1.md'
+p=arch/'GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md'
 s=p.read_text(encoding='utf-8').replace('Le porteur confirme l’absence de contraintes imposées de langage/hébergement/budget.',
     'Le porteur fixe désormais 100 € par mois avant abonnements, premiers abonnements souhaités en décembre 2026, et achèvement des six prototypes avant lancement commercial. Le langage et l’hébergeur restent ouverts.')
 s=s.replace('L’absence de contrainte du porteur ne décide pas les compétences d’une équipe future.',

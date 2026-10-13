@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def inventory():
-    mld = (ROOT / 'docs/GENIIUS_MLD_V1_0.md').read_text(encoding='utf-8')
+    mld = (ROOT / 'docs/05_MLD/GENIIUS_MLD.md').read_text(encoding='utf-8')
     rows = []
     in_matrix = False
     for line in mld.splitlines():

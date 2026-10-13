@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ARCH = ROOT / 'docs/architecture'
+ARCH = ROOT / 'docs/07_ARCHITECTURE'
 ALIASES = {
  'DEC-ARCH-01':['SEC-01','SEC-02','SEC-04','SEC-05','DEP-01'],
  'DEC-ARCH-02':['PER-01'], 'DEC-ARCH-03':['SYN-02','SYN-07'], 'DEC-ARCH-04':[],
@@ -33,16 +33,16 @@ OWNERS_PAR = ['Produit/données/qualité','Architecture/données','Produit/archi
  'Produit/gouvernance/sécurité','Architecture/exploitation','Produit/exploitation','Exploitation/qualité',
  'Exploitation/sécurité/juridique','Sécurité/exploitation','Produit/juridique/données']
 POINT_DOCS = {
- 'SEC':'GENIIUS_AUTORISATIONS_ISOLATION_CONCURRENCE_V0_1.md',
- 'SYN':'GENIIUS_SYNCHRONISATION_COMPATIBILITE_HORLOGE_V0_1.md',
- 'PER':'GENIIUS_PERSISTANCE_CONSERVATION_RESTAURATION_V0_1.md',
- 'ASY':'GENIIUS_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT_V0_1.md',
- 'DEP':'GENIIUS_DEPLOIEMENT_V0_1.md',
+ 'SEC':'GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md',
+ 'SYN':'GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md',
+ 'PER':'GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md',
+ 'ASY':'GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md',
+ 'DEP':'GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md',
 }
 
 
 def main():
-    cdc_path = ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_V1_0.md'
+    cdc_path = ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md'
     cdc = cdc_path.read_text(encoding='utf-8')
     sources = [cdc_path] + [ARCH / name for name in POINT_DOCS.values()]
     decisions = {}
@@ -77,7 +77,7 @@ def main():
             decisions[ident] = {'objet': title.strip() if title else proof.strip(),
                                 'responsable': owner.strip(), 'etape': 'Avant validation du mécanisme / campagne et livraison concernés',
                                 'contrat_preuve': proof.strip(), 'statut': 'Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter',
-                                'dossiers_lies': [], 'source': 'docs/architecture/' + filename, 'ligne': line_no}
+                                'dossiers_lies': [], 'source': 'docs/07_ARCHITECTURE/' + filename, 'ligne': line_no}
     assert len(decisions) == 64
     for item in decisions.values():
         assert set(item['dossiers_lies']) <= set(decisions)
@@ -96,7 +96,7 @@ def main():
            '## Registre unique','', '| Identifiant | Objet / contrat | Responsable | Étape | Statut | Dossiers associés | Source |','|---|---|---|---|---|---|---|']
     for ident,item in decisions.items():
         relative = '../' + item['source'].removeprefix('docs/')
-        if item['source'].startswith('docs/architecture/'):
+        if item['source'].startswith('docs/07_ARCHITECTURE/'):
             relative = Path(item['source']).name
         out.append('| '+ ' | '.join([ident,item['objet'].replace('|','/'),item['responsable'],item['etape'],item['statut'],', '.join(item['dossiers_lies']) or 'Contrat et preuve dans la source',f'[{item["source"]}:{item["ligne"]}]({relative})'])+' |')
     out += ['', '## Ordre de résolution et dépendances', '',
@@ -112,11 +112,11 @@ def main():
             'Chaque fermeture précise décision et alternatives, auteur habilité à décider, date, versions exactes, preuves/corpus/traces, conséquences, contraintes et point de réexamen. Une valeur de durée/coût n’est pas reprise d’un exemple. Un échec reste un constat avec disposition ; une preuve documentaire ne ferme pas une preuve d’infrastructure. Les nominations sont à faire avant décision/campagne.', '',
             'DEC-ARCH-02 exige aussi une épreuve d’identifiants pérennes/résolution/tombstones filtrés ; DEC-ARCH-08 la liste des langues V1 (au moins deux dont français) ; DEC-ARCH-09 les procédures d’identité/récupération/succession ; PAR-CDC-09/10/11 les politiques opérationnelles/juridiques. Ces sujets ne sont pas clos par leurs liens vers un dossier technique.', '',
             '## Liens et preuves documentaires', '',
-            '- [Vues de déploiement](GENIIUS_DEPLOIEMENT_V0_1.md).',
-            '- [Alternatives et prototypes](GENIIUS_ALTERNATIVES_TECHNOLOGIQUES_V0_1.md) : PT01 à PT06, sources officielles consultées.',
-            '- [Contrôles consolidés](CONTROLES_CONSOLIDATION_V0_1.json) ; source `spec/validation/registre_architecture_v0_1.json`, génération `consolider_decisions_architecture.py`, contrôle `controler_consolidation_architecture.py`.', '',
+            '- [Vues de déploiement](GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md).',
+            '- [Alternatives et prototypes](GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md) : PT01 à PT06, sources officielles consultées.',
+            '- [Contrôles consolidés](preuves/CONTROLES_CONSOLIDATION_V0_1.json) ; source `spec/validation/registre_architecture_v0_1.json`, génération `consolider_decisions_architecture.py`, contrôle `controler_consolidation_architecture.py`.', '',
             'L’architecture reste candidate ; aucun prototype/deploiement/benchmark n’a été exécuté pour ce jalon et aucune technologie n’est gelée.']
-    (ARCH / 'GENIIUS_REGISTRE_DECISIONS_ARCHITECTURE_V0_1.md').write_text('\n'.join(out)+'\n',encoding='utf-8')
+    (ARCH / 'GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md').write_text('\n'.join(out)+'\n',encoding='utf-8')
     print('64 références consolidées : 62 ouvertes, une actée amont, une hors V1 ; aucun choix technologique gelé.')
 
 

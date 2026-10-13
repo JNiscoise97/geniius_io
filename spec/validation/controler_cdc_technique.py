@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 def main():
     source = ROOT / 'spec/validation/cdc_recettes_v1_2.json'
     model = json.loads(source.read_text(encoding='utf-8'))
-    cdc = ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_V1_0.md'
-    bilan = ROOT / 'docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md'
+    cdc = ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md'
+    bilan = ROOT / 'docs/06_CDC_TECHNIQUE/preuves/PROCES_VERBAL_GEL_CDC_V1_2.md'
     text = cdc.read_text(encoding='utf-8')
     errors = []
     def check(ok, label):
@@ -53,7 +53,7 @@ def main():
         expected = cells[2] if lines[item['ligne_CDC'] - 1].startswith('| REC-X') and len(cells) == 5 else cells[3]
         check(expected == item['attendu'], rid + ' attendu non fidèle à la source')
         check(item['attendu'] not in ('P0', 'P1', 'P2'), rid + ' priorité confondue avec attendu')
-    final_review = ROOT / 'docs/AUDIT-CDC-TECH/REVUE_FINALE_CDC_V1_1.md'
+    final_review = ROOT / 'docs/06_CDC_TECHNIQUE/travaux/REVUE_FINALE_CDC_V1_1.md'
     review_text = final_review.read_text(encoding='utf-8')
     for n in range(1, 34):
         check(f'| TECH-{n:03d} |' in review_text, 'relecture TECH absente')
@@ -62,7 +62,7 @@ def main():
     for prefix, count in [('DEC-ARCH', 17), ('PAR-CDC', 11)]:
         ids = re.findall(rf'^\| \*\*({prefix}-\d{{2}})\*\*', text, re.M)
         check(len(ids) == count and len(set(ids)) == count, prefix + ' identifiants')
-    baseline = json.loads((ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
+    baseline = json.loads((ROOT / 'docs/04_CONTRAT_AUTORISATION/preuves/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
     frozen = {**baseline['sha256'], **baseline.get('sha256_documents_geles', {})}
     newline_equivalences = []
     for name, expected in frozen.items():
@@ -77,12 +77,12 @@ def main():
         check(f'GEL-{n:02d}' in report, 'condition de gel absente')
     for n in range(1, 11):
         check(f'| REC-NF{n:02d} |' in text[text.index('## 14.3'):], 'protocole NF absent')
-    files = [cdc, bilan, source, ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md',
+    files = [cdc, bilan, source, ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE_RECETTES.md',
              ROOT / 'docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md',
-             ROOT / 'docs/GENIIUS_CONTRAT_AUTORISATION_V1.md',
-             ROOT / 'docs/GENIIUS_MLD_V1_0.md',
-             ROOT / 'docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md', final_review,
-             ROOT / 'docs/geniius_io_CDCF_V1.md',
+             ROOT / 'docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md',
+             ROOT / 'docs/05_MLD/GENIIUS_MLD.md',
+             ROOT / 'docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md', final_review,
+             ROOT / 'docs/01_CDCF/GENIIUS_CDCF.md',
              ROOT / 'spec/validation/generer_recettes_cdc.py', Path(__file__).resolve()]
     for path in files[:2] + files[3:4] + [final_review]:
         content = path.read_text(encoding='utf-8')
@@ -102,7 +102,7 @@ def main():
               'limites': ['Présence et cohérence structurelle seulement ; conclusions de relecture dans le rapport final.',
                          'Aucune mesure NF ni recette logiciel exécutée.', 'Reports R-CDC-04 à 06 encadrés, non dimensionnés dans ce contrôle.'],
               'sha256_sources': {str(p.relative_to(ROOT)).replace('\\', '/'): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
-    output = ROOT / 'docs/AUDIT-CDC-TECH/CONTROLES_CDC_TECHNIQUE_V1_2.json'
+    output = ROOT / 'docs/06_CDC_TECHNIQUE/preuves/CONTROLES_CDC_TECHNIQUE_V1_2.json'
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({k: v for k, v in result.items() if k not in ('sha256_sources', 'limites', 'equivalences_fins_de_ligne')}, ensure_ascii=False))
     raise SystemExit(bool(errors))

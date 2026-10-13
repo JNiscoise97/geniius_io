@@ -39,9 +39,9 @@ CP_TX = {
 
 
 def generate():
-    mld_path = ROOT / 'docs/GENIIUS_MLD_V1_0.md'
+    mld_path = ROOT / 'docs/05_MLD/GENIIUS_MLD.md'
     auth_path = ROOT / 'spec/validation/schema_autorisations.json'
-    doc_path = ROOT / 'docs/architecture/GENIIUS_CORE_MODULES_TRANSACTIONS_V0_1.md'
+    doc_path = ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_02_CORE_MODULES_TRANSACTIONS.md'
     text = mld_path.read_text(encoding='utf-8')
     tables = {}
     domain = None
@@ -77,7 +77,7 @@ def generate():
         ident, row = match.groups()
         num = int(ident[-2:])
         cp[ident] = {'module_responsable': CP_MODULE[num], 'transactions': CP_TX.get(num, ['T02']),
-                     'source': 'docs/GENIIUS_MLD_V1_0.md § 21.2', 'texte_normatif': row.split('|')[0].strip(),
+                     'source': 'docs/05_MLD/GENIIUS_MLD.md § 21.2', 'texte_normatif': row.split('|')[0].strip(),
                      'verification': f'ARCH-{ident} : corpus conforme et violation ciblée, commit/reprise et sorties sous droits ; preuve à réaliser au MPD/logiciel',
                      'participants': ['M02','M03','M04','propriétaires des tables touchées'],
                      'statut_preuve': 'spécifiée, non exécutée'}
@@ -85,7 +85,7 @@ def generate():
     for match in re.finditer(r'^### CP-13/(DI-[A-Z]\d{2})\n\n(.+?)(?=\n\n)', text, re.M | re.S):
         ident, body = match.groups()
         details[ident] = {'module_responsable': DOMAIN[ident[3]], 'contrat': body,
-                          'source': 'docs/GENIIUS_MLD_V1_0.md § 21.3', 'transaction': 'T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert',
+                          'source': 'docs/05_MLD/GENIIUS_MLD.md § 21.3', 'transaction': 'T02 avec validateurs CP-13, ou transaction spécialisée/purge si la règle le requiert',
                           'statut_preuve': 'spécifiée, non exécutée'}
     doc = doc_path.read_text(encoding='utf-8')
     transactions = {}
@@ -113,7 +113,7 @@ def generate():
     for ident, item in details.items():
         out.append(f'| CP-13/{ident} | {item["module_responsable"]} | {item["contrat"].replace(chr(10), " ").replace("|", "/")} |')
     out += ['', f'**Inventaire :** {len(MODULES)} modules, {len(tables)} tables nommées, 53 CP, 60 obligations CP-13, 17 transactions ; présence et attribution documentaire, pas conformité d’une implémentation.', '']
-    (ROOT / 'docs/architecture/GENIIUS_CORE_MATRICES_V0_1.md').write_text('\n'.join(out), encoding='utf-8')
+    (ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_03_CORE_MATRICES.md').write_text('\n'.join(out), encoding='utf-8')
     print(f'{len(MODULES)} modules, {len(tables)} tables, 53 CP, 60 obligations CP-13, 17 transactions.')
 
 

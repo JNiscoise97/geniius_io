@@ -4,7 +4,7 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-CDC = ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_V1_0.md'
+CDC = ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md'
 CASES = {
 1: ('Ouvrir un même espace autorisé sur Web, Desktop et Mobile ; comparer données et actions.', 'Surfaces conformes à TECH-001, mêmes objets et autorisations, aucune nouvelle vérité par application.', 'Produit / architecture'),
 2: ('Synchroniser une base structurée autorisée, couper réseau, expirer une échéance et consulter.', 'Lecture hors ligne permise avant échéance, inaccessible après pour données protégées ; delta non synchronisé conservé ; aucune réplication dérogatoire.', 'Core / sécurité'),
@@ -88,7 +88,7 @@ def generate():
                               'attendu': cells[3].strip(), 'methode': 'scénario et variante du § 12 ; recette logiciel à réaliser',
                               'responsable': 'Produit / Core / qualité', 'statut': 'spécifiée, non exécutée'}
     # Couverture inverse fidèle des cas et critères de recette amont.
-    cdcf = (ROOT / 'docs/geniius_io_CDCF_V1.md').read_text(encoding='utf-8')
+    cdcf = (ROOT / 'docs/01_CDCF/GENIIUS_CDCF.md').read_text(encoding='utf-8')
     inverse = {'CU': {}, 'criteres': {}}
     for match in re.finditer(r'^## (CU-\d{2}) --- ([^\n]+)\n(.*?)(?=\n(?:## |# |-{5,})|\Z)', cdcf, re.M | re.S):
         cu, title, body = match.groups()
@@ -135,7 +135,7 @@ def generate():
     path = ROOT / 'spec/validation/cdc_recettes_v1_2.json'
     path.write_text(json.dumps(model, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     out = ['# CDC technique V1.2 — Référentiel unique de traçabilité et recettes', '',
-           '**Statut : référentiel documentaire gelé le 13/10/2026, recettes non exécutées.** Partie intégrante du CDC V1.2 gelé ; procès-verbal dans `docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md`. Source structurée : `spec/validation/cdc_recettes_v1_2.json` ; génération reproductible `generer_recettes_cdc.py`.', '',
+           '**Statut : référentiel documentaire gelé le 13/10/2026, recettes non exécutées.** Partie intégrante du CDC V1.2 gelé ; procès-verbal dans `docs/06_CDC_TECHNIQUE/preuves/PROCES_VERBAL_GEL_CDC_V1_2.md`. Source structurée : `spec/validation/cdc_recettes_v1_2.json` ; génération reproductible `generer_recettes_cdc.py`.', '',
            'Chaque recette a un identifiant unique. Une responsabilité est un rôle fonctionnel, à affecter nominativement avant décision ou campagne ; elle ne confère aucun droit de contenu. Le protocole et le manifeste du CDC § 14.3 s’appliquent. Les résultats attendus constituent des critères de recette, jamais des résultats déjà obtenus.', '',
            '## Matrice des 33 exigences', '', '| TECH | Origine localisée / justification | Contrat | Recette dédiée | Rôle responsable |', '|---|---|---|---|---|']
     for tid, item in tech.items():
@@ -153,7 +153,7 @@ def generate():
         out.append('| ' + rid + ' | ' + item['alias'] + ' | ' + item['scenario'].replace('|', '/') + ' | ' + item['attendu'].replace('|', '/') + ' |')
     out += ['', f'**Bilan :** 33 TECH, {len(recipes)} recettes identifiées, dont 31 CU et 64 critères amont repris ; aucune exécution déclarée. Les recouvrements sont conservés comme cas complémentaires ; leur relecture et les réserves sont consignées dans le rapport de revue finale du 13/10/2026. Les fixtures et scripts de campagne restent à réaliser.', '',
             'Les exigences à justification technique ECD-19 ne sont pas faussement attribuées au CDCF. La ratification technique DC-CDCF-01 au CDCF § 135 clôt ECD-19 ; aucune origine fonctionnelle historique n’est inventée. Le protocole NF fixe les mesures et objectifs existants ; les paramètres explicitement différés doivent être signés avant campagne.']
-    (ROOT / 'docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md').write_text('\n'.join(out) + '\n', encoding='utf-8')
+    (ROOT / 'docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE_RECETTES.md').write_text('\n'.join(out) + '\n', encoding='utf-8')
     print('33 TECH,', len(recipes), 'recettes identifiées ; aucune exécution déclarée.')
 
 if __name__ == '__main__':

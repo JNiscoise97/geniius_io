@@ -22,7 +22,7 @@ La V1.6 supprime ces deux mécanismes :
 
 Les sondes du contrôle B sont devenues des tests de non-régression (`test_controles_v15.py`, `test_M010_admission_differee`, `test_M013_signataire_jamais_beneficiaire`). Elles réussissent avec le modèle et avec les mutants : c'est précisément ce que l'équivalence affirme. La démonstration ci-dessous a été examinée par les contrôles indépendants A/B de clôture V1.6.
 
-**Les huit justifications sont acceptées par le porteur le 12/10/2026**, après contrôles indépendants A/B et rejeu des tests et mutations. Toute évolution du modèle impose un réexamen. Voir le [procès-verbal](../../../docs/AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md).
+**Les huit justifications sont acceptées par le porteur le 12/10/2026**, après contrôles indépendants A/B et rejeu des tests et mutations. Toute évolution du modèle impose un réexamen. Voir le [procès-verbal](../../../docs/04_CONTRAT_AUTORISATION/preuves/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md).
 
 | Mutation | Règle | Justification proposée | Démonstration | Sonde | Décision du porteur |
 |---|---|---|---|---|---|

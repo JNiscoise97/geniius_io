@@ -1,8 +1,8 @@
 # Modèle de référence exécutable — contrat d'autorisation GENIIUS
 
-Spécification exécutable du [contrat d'autorisation V1.6](../../docs/GENIIUS_CONTRAT_AUTORISATION_V1.md) (décision F-5). Ce n'est pas le logiciel de production. En cas d'écart entre le texte et le modèle, **le texte prime** et l'écart est un constat.
+Spécification exécutable du [contrat d'autorisation V1.6](../../docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md) (décision F-5). Ce n'est pas le logiciel de production. En cas d'écart entre le texte et le modèle, **le texte prime** et l'écart est un constat.
 
-**Baseline comportementale gelée le 12/10/2026 par le porteur.** Les huit justifications ont été acceptées après contrôles indépendants ; paramètres et limites restent réservés. [Procès-verbal et preuves](../../docs/AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md). Le dictionnaire et le MLD restent candidats.
+**Baseline comportementale gelée le 12/10/2026 par le porteur.** Les huit justifications ont été acceptées après contrôles indépendants ; paramètres et limites restent réservés. [Procès-verbal et preuves](../../docs/04_CONTRAT_AUTORISATION/preuves/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md). Le dictionnaire et le MLD restent candidats.
 
 ## Contenu
 
@@ -16,7 +16,7 @@ Spécification exécutable du [contrat d'autorisation V1.6](../../docs/GENIIUS_C
 | `tests/test_proprietes.py` | Les invariants I-1 à I-14 (§ 4), sur des états générés et sur les transitions qui peuvent les violer. Les oracles n'appellent pas le modèle : ils passent par `outils.py`. Publie `tests/couverture_etats.json` (comptages par état, par invariant et par opération) et échoue si un état visé ou une transition du générateur n'est jamais atteint. |
 | `tests/test_transitions.py` | Matrices d'états (§ 5), HI et HP, combinaisons et gel par liste, avec des oracles transcrits du texte. |
 | `mutations/` | Banc de mutations : `mutations.py` (mutations de l'auteur M001 à M382 et mutations **indépendantes** du contrôle B, N01 à N53), `lancer.py`, `RESULTATS.md` (détection par origine), `JUSTIFICATIONS.md`. |
-| `generer_batterie.py` | Génère `docs/AUDIT-MLD/GENIIUS_BATTERIE_SCENARIOS_AUTORISATION_V1_6.md` à partir des docstrings. |
+| `generer_batterie.py` | Génère `docs/04_CONTRAT_AUTORISATION/GENIIUS_BATTERIE_SCENARIOS_AUTORISATION.md` à partir des docstrings. |
 
 ## Exécution
 

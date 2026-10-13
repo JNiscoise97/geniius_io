@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
-OUTPUT = ROOT / 'docs/architecture/prototypes/PT01_RESULTATS.json'
+OUTPUT = ROOT / 'docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT01.json'
 NAME = 'geniius-pt01-' + uuid.uuid4().hex[:12]
 TRACE = []
 
@@ -247,8 +247,17 @@ def scenario_10(admin):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--image',default='postgres:18',choices=['postgres:18','postgres:18-alpine'])
+    parser.add_argument('--image',default='postgres:18',choices=['postgres:18','postgres:18-alpine','postgres:16','postgres:16-alpine',
+                                                              'public.ecr.aws/docker/library/postgres:18-alpine'])
+    parser.add_argument('--diagnostic',action='store_true')
     options=parser.parse_args()
+    if options.diagnostic:
+        info=json.loads(docker('info','--format','{{json .}}').stdout)
+        print(json.dumps({'engine_cpus':info['NCPU'],'engine_memory_bytes':info['MemTotal'],
+                          'storage_driver':info['Driver'],
+                          'images_postgres':docker('image','ls','--format','{{.Repository}}:{{.Tag}} {{.ID}}','postgres').stdout.splitlines(),
+                          'running_containers':docker('ps','--format','{{.Names}}').stdout.splitlines()},ensure_ascii=False))
+        return
     started=datetime.now(timezone.utc).isoformat()
     created=False
     cases=[]

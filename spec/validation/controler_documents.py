@@ -10,9 +10,9 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-MLD = ROOT / 'docs/GENIIUS_MLD_V1_0.md'
-DICT = ROOT / 'docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md'
-REPORT = ROOT / 'docs/AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md'
+MLD = ROOT / 'docs/05_MLD/GENIIUS_MLD.md'
+DICT = ROOT / 'docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md'
+REPORT = ROOT / 'docs/05_MLD/preuves/REPORT_AUTORISATIONS_V1_6.md'
 
 def definitions(text):
     result = {}
@@ -146,7 +146,7 @@ def inspect():
         'CP13_nombre': len(required), 'CP13_definitions_absentes': undefined,
         'CP13_enonces_absents': unexpanded, 'CP13_enonces_differents_du_dictionnaire': sorted(mismatched_cp13),
     }
-    output = ROOT / 'docs/AUDIT-MLD/CONTROLES_STRUCTURELS_V1_3.json'
+    output = ROOT / 'docs/05_MLD/preuves/CONTROLES_STRUCTURELS_V1_3.json'
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({key: value for key, value in result.items() if key not in ('sources', 'inventaire_tables', 'matrice_DI')}, ensure_ascii=False, indent=2))
     return missing_fk or auth_errors or code_errors or unexpanded or undefined or mismatched_cp13 or (set(defs) ^ set(mappings))

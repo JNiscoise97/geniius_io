@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-13",
+  "dossier": "Synchronisation/compatibilité/horloge V0.1 candidate",
+  "phases": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07"
+  ],
+  "scenarios_specifies": [
+    "SY01",
+    "SY02",
+    "SY03",
+    "SY04",
+    "SY05",
+    "SY06",
+    "SY07",
+    "SY08",
+    "SY09",
+    "SY10",
+    "SY11",
+    "SY12"
+  ],
+  "decisions_ouvertes": [
+    "SYN-01",
+    "SYN-02",
+    "SYN-03",
+    "SYN-04",
+    "SYN-05",
+    "SYN-06",
+    "SYN-07"
+  ],
+  "obligations_ST_referencees": [
+    "ST-01",
+    "ST-02",
+    "ST-03",
+    "ST-04",
+    "ST-05",
+    "ST-06",
+    "ST-07",
+    "ST-08",
+    "ST-12",
+    "ST-13",
+    "ST-14"
+  ],
+  "architecture_gelee": false,
+  "tests_logiciel_executes": false,
+  "durées_ouvertes": true,
+  "erreurs": [],
+  "limites": [
+    "Présences/références/empreintes documentaires seulement.",
+    "Horloge OS, anti-rollback, appareil révoqué, accusés durables, rétention/idempotence et transport à démontrer."
+  ],
+  "sha256": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md": "62dd3571d5b00b99d730508c97edeaf14cafa1246cecaf88a441a8052b9166aa",
+    "spec/validation/controler_architecture_sync.py": "e9b503dae5a5bf477e9e2781c48f369c97299b04a4edb5c345978505e719d8cf",
+    "docs/05_MLD/GENIIUS_MLD.md": "d5203e7e89bef045c3095b6a8aacd12de12f54d17e36ac164306fcb69cc8ba29",
+    "docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md": "020ffaa24c5df8eae6e2315fefc727dfbd2abbc3aa23e5a6d743064a3a8c8f75",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "0f788b63c9016226b5e00dffbeabe95319d0a454a7da69eb6ed778893bc671ca"
+  }
+}

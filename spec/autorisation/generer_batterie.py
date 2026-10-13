@@ -11,7 +11,7 @@ ICI = pathlib.Path(__file__).parent
 SOURCE = ICI / 'tests' / 'test_scenarios.py'
 ATTAQUES = ICI / 'tests' / 'test_attaques.py'
 CONTROLES = ICI / 'tests' / 'test_controles_v15.py'
-CIBLE = ICI.parent.parent / 'docs' / 'AUDIT-MLD' / 'GENIIUS_BATTERIE_SCENARIOS_AUTORISATION_V1_6.md'
+CIBLE = ICI.parent.parent / 'docs' / '04_CONTRAT_AUTORISATION' / 'GENIIUS_BATTERIE_SCENARIOS_AUTORISATION.md'
 
 # Scénarios modifiés en V1.6 (décisions H-1 à H-6, CT-28, et tableau A du contrôle B V1.5).
 MODIFIES = {
@@ -83,7 +83,7 @@ def main():
       '`spec/autorisation/tests/` (scénarios, attaques, contrôles). Chaque ligne est un test automatisé : on modifie le test, '
       'puis on régénère ; on ne modifie jamais ce fichier à la main.')
     w('')
-    w('**Référentiel :** [contrat d’autorisation V1.6](../GENIIUS_CONTRAT_AUTORISATION_V1.md). '
+    w('**Référentiel :** [contrat d’autorisation V1.6](GENIIUS_CONTRAT_AUTORISATION.md). '
       'Les fondements citent ses clauses (§ n, A1 à A7, I-n, T-n).')
     w('')
     w('**Règles de la batterie**')

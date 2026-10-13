@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ARCH = ROOT / 'docs/architecture'
+ARCH = ROOT / 'docs/07_ARCHITECTURE'
 
 
 def main():
@@ -30,9 +30,9 @@ def main():
     check(spec['decisions']['DEC-ARCH-17']['statut'].startswith('Hors V1'), 'capacité ultérieure conservée')
     for name,expected_hash in spec['sha256_sources'].items():
         check(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected_hash, 'source modifiée depuis génération : ' + name)
-    registry_path = ARCH / 'GENIIUS_REGISTRE_DECISIONS_ARCHITECTURE_V0_1.md'
-    deploy_path = ARCH / 'GENIIUS_DEPLOIEMENT_V0_1.md'
-    tech_path = ARCH / 'GENIIUS_ALTERNATIVES_TECHNOLOGIQUES_V0_1.md'
+    registry_path = ARCH / 'GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md'
+    deploy_path = ARCH / 'GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md'
+    tech_path = ARCH / 'GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md'
     tech = tech_path.read_text(encoding='utf-8')
     deploy = deploy_path.read_text(encoding='utf-8')
     check(re.findall(r'^\| (PT\d{2}) \|',tech,re.M) == [f'PT{n:02d}' for n in range(1,7)], 'six prototypes à exécuter')
@@ -44,7 +44,7 @@ def main():
     official = re.findall(r'\]\((https://[^)]+)\)',tech)
     check(len(official) == 10, 'dix références officielles de comparaison')
     check('non exécutés' in tech and 'Aucun produit' in tech, 'statut de comparaison/prototypes')
-    output_path = ARCH / 'CONTROLES_CONSOLIDATION_V0_1.json'
+    output_path = ARCH / 'preuves' / 'CONTROLES_CONSOLIDATION_V0_1.json'
     for path in (registry_path,deploy_path,tech_path):
         content = path.read_text(encoding='utf-8')
         check(len(re.findall(r'^```',content,re.M)) % 2 == 0, 'bloc non fermé : ' + path.name)
@@ -54,7 +54,7 @@ def main():
             target = (path.parent / ref.split('#')[0]).resolve()
             # Le rapport peut référencer la sortie que ce contrôle produit.
             check(target == output_path.resolve() or target.exists(), 'lien absent : ' + ref)
-    seal = json.loads((ROOT / 'docs/AUDIT-CDC-TECH/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
+    seal = json.loads((ROOT / 'docs/06_CDC_TECHNIQUE/preuves/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
     for name in seal['perimetre_gelee']:
         check(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == seal['sha256_baseline'][name], 'document gelé modifié : ' + name)
     files = [source,registry_path,deploy_path,tech_path,ROOT / 'spec/validation/consolider_decisions_architecture.py',Path(__file__).resolve()]

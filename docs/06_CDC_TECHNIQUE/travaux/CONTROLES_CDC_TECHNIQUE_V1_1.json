@@ -1,0 +1,33 @@
+{
+  "date_revue": "2026-10-13",
+  "version": "CDC V1.1 candidat",
+  "nature": "contrôles documentaires structurels",
+  "TECH": 33,
+  "identifiants_recettes": 381,
+  "CU_repris": 31,
+  "criteres_repris": 64,
+  "baseline_gelee_fichiers_verifies": 16,
+  "cas_projets": 12,
+  "tests_logiciel_executes": false,
+  "gel_prononce": false,
+  "erreurs": [],
+  "limites": [
+    "Présence et cohérence structurelle seulement ; conclusions de relecture dans le rapport final.",
+    "Aucune mesure NF ni recette logiciel exécutée.",
+    "Réserves du bilan non levées."
+  ],
+  "sha256_sources": {
+    "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md": "e6758f2e5c5d69e074c5c4ba779325b1aa197c2d57f6c2c4331711621a66f587",
+    "docs/06_CDC_TECHNIQUE/travaux/BILAN_ACTUALISATION_CDC_V1_1.md": "7b3f6eac6f22dc48aab0fafa0414580344be63111b1c696814a8c4a296cc47ba",
+    "spec/validation/cdc_recettes_v1_1.json": "687daa9060c52f4ada13f9c1f179a00c5b28c77e7e23cfb464341b2f0a5937d2",
+    "docs/06_CDC_TECHNIQUE/historique/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_1.md": "f554daf3034acfd575c7981d59fde7f13693ecf492933b09c91e61b639b54064",
+    "docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md": "4082d80458c4b55a5e31ef540f908b963cf29aae5f38bba35701146468928b17",
+    "docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md": "70302c5cdb09a84d4b6400cc86bc44697d8f3957af02e2a0020a5fba36cd27ee",
+    "docs/05_MLD/GENIIUS_MLD.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md": "63d3a91ee6e11c18aad66cfa1a3460492007ef3ee6acd15a3a98e7f890b6da8e",
+    "docs/06_CDC_TECHNIQUE/travaux/REVUE_FINALE_CDC_V1_1.md": "715c14c283eb289139b7069ec54ec63e9663903b18547f81d7a93f5260ec2e8d",
+    "docs/01_CDCF/GENIIUS_CDCF.md": "c6449f0933563f981df6f8785d70c213cead16d4ac514b03a60ca032b688e9b7",
+    "spec/validation/generer_recettes_cdc.py": "b948f986721315e0072352bc821048a190615b058ea11b407eb824860ce4e7c9",
+    "spec/validation/controler_cdc_technique.py": "5f1629c16ec38ee2c2a16d14d9537dddeb8608a33d3e8864cd56de9911b398c7"
+  }
+}

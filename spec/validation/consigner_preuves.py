@@ -5,7 +5,7 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-baseline_path = ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json'
+baseline_path = ROOT / 'docs/04_CONTRAT_AUTORISATION/preuves/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json'
 baseline = json.loads(baseline_path.read_text(encoding='utf-8'))
 checks = {}
 for name, expected in {**baseline['sha256'], **baseline['sha256_documents_geles']}.items():
@@ -14,16 +14,16 @@ for name, expected in {**baseline['sha256'], **baseline['sha256_documents_geles'
 assert all(checks.values()), [name for name, same in checks.items() if not same]
 
 sources = [
-    'docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md',
-    'docs/GENIIUS_MLD_V1_0.md',
-    'docs/GENIIUS_MLD_AUTORISATIONS_V1_6.md',
+    'docs/03_DICTIONNAIRE/GENIIUS_DICTIONNAIRE_DONNEES.md',
+    'docs/05_MLD/GENIIUS_MLD.md',
+    'docs/05_MLD/GENIIUS_MLD_AUTORISATIONS.md',
     'docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md',
-    'docs/AUDIT-MLD/REPORT_AUTORISATIONS_V1_6.md',
-    'docs/AUDIT-MLD/VALIDATION_V1_3_DONNEES_ET_TRACABILITE.md',
-    'docs/AUDIT-MLD/VALIDATION_V1_3_AUTORISATIONS_RELATIONNELLES.md',
-    'docs/AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md',
-    'docs/AUDIT-MLD/REGISTRE_CLOTURE_CONSTATS_V1_3.md',
-    'docs/AUDIT-MLD/CONTROLES_STRUCTURELS_V1_3.json',
+    'docs/05_MLD/preuves/REPORT_AUTORISATIONS_V1_6.md',
+    'docs/05_MLD/preuves/VALIDATION_DONNEES_ET_TRACABILITE_V1_3.md',
+    'docs/05_MLD/preuves/VALIDATION_AUTORISATIONS_RELATIONNELLES_V1_3.md',
+    'docs/03_DICTIONNAIRE/preuves/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md',
+    'docs/05_MLD/preuves/REGISTRE_CLOTURE_CONSTATS_V1_3.md',
+    'docs/05_MLD/preuves/CONTROLES_STRUCTURELS_V1_3.json',
     'spec/validation/schema_autorisations.json',
     'spec/validation/expliciter_schema_autorisations.py',
     'spec/validation/controler_documents.py',
@@ -42,7 +42,7 @@ for name in sources:
         if not (p.parent / target).resolve().exists():
             broken.append({'document': name, 'cible': target})
 assert not broken, broken
-controls = json.loads((ROOT / 'docs/AUDIT-MLD/CONTROLES_STRUCTURELS_V1_3.json').read_text(encoding='utf-8'))
+controls = json.loads((ROOT / 'docs/05_MLD/preuves/CONTROLES_STRUCTURELS_V1_3.json').read_text(encoding='utf-8'))
 proof = {
     'date': '2026-10-12',
     'statuts': {'dictionnaire': 'V1.3 validé documentairement', 'MLD': 'V1.1-g stabilisé, candidat au gel'},
@@ -55,6 +55,6 @@ proof = {
     'liens_locaux_manquants': broken,
     'sha256': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sources},
 }
-path = ROOT / 'docs/AUDIT-MLD/PREUVES_VALIDATION_DICTIONNAIRE_MLD_V1_3.json'
+path = ROOT / 'docs/03_DICTIONNAIRE/preuves/PREUVES_VALIDATION_DICTIONNAIRE_MLD_V1_3.json'
 path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print('Baseline V1.6 inchangée ; liens et blocs valides ;', len(sources), 'sources consignées.')

@@ -10,11 +10,11 @@ ROOT = Path(__file__).resolve().parents[2]
 def main():
     source = ROOT / 'spec/validation/core_architecture_v0_1.json'
     spec = json.loads(source.read_text(encoding='utf-8'))
-    mld = (ROOT / 'docs/GENIIUS_MLD_V1_0.md').read_text(encoding='utf-8')
+    mld = (ROOT / 'docs/05_MLD/GENIIUS_MLD.md').read_text(encoding='utf-8')
     auth = json.loads((ROOT / 'spec/validation/schema_autorisations.json').read_text(encoding='utf-8'))
-    doc_path = ROOT / 'docs/architecture/GENIIUS_CORE_MODULES_TRANSACTIONS_V0_1.md'
+    doc_path = ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_02_CORE_MODULES_TRANSACTIONS.md'
     doc = doc_path.read_text(encoding='utf-8')
-    matrix_path = ROOT / 'docs/architecture/GENIIUS_CORE_MATRICES_V0_1.md'
+    matrix_path = ROOT / 'docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_03_CORE_MATRICES.md'
     matrix = matrix_path.read_text(encoding='utf-8')
     errors = []
     def check(ok, label):
@@ -49,7 +49,7 @@ def main():
     check(spec['tests_logiciel_executes'] is False and spec['technologies_choisies'] is False, 'statut de preuve/technologie')
     for name, expected in spec['sources_sha256'].items():
         check(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, 'source modifiée depuis génération : ' + name)
-    seal = json.loads((ROOT / 'docs/AUDIT-CDC-TECH/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
+    seal = json.loads((ROOT / 'docs/06_CDC_TECHNIQUE/preuves/PREUVES_GEL_CDC_V1_2.json').read_text(encoding='utf-8'))
     for name in seal['perimetre_gelee']:
         check(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == seal['sha256_baseline'][name], 'document CDC gelé modifié : ' + name)
     for path in (doc_path, matrix_path):
@@ -67,7 +67,7 @@ def main():
                          'Sérialisation/concurrence, stockage réel, délais, sécurité temporelle et performance à démontrer.',
                          'M14 introduit des contrats techniques ; tables physiques à concevoir au MPD.'],
               'sha256': {str(p.relative_to(ROOT)).replace('\\','/'): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
-    (ROOT / 'docs/architecture/CONTROLES_CORE_V0_1.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    (ROOT / 'docs/07_ARCHITECTURE/preuves/CONTROLES_CORE_V0_1.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({k:v for k,v in result.items() if k not in ('sha256','limites')}, ensure_ascii=False))
     raise SystemExit(bool(errors))
 
