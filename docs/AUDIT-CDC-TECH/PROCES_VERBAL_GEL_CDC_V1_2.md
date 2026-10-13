@@ -38,3 +38,9 @@ Le dictionnaire V1.3 reste validé documentairement sans nouveau gel formel ; le
 ## Passage à l’architecture
 
 Le passage à la préparation de l’architecture est acté sur ces baselines. Le [cadrage d’architecture](../architecture/GENIIUS_CADRAGE_ARCHITECTURE_V0_1.md) liste les frontières, flux et décisions à instruire ; il reste candidat et ne ratifie pas de fournisseur ni de technologie. Les décisions nécessitent ensuite leurs preuves de faisabilité et recettes adaptées.
+
+## Empreintes et reproduction
+
+Le fichier `PREUVES_GEL_CDC_V1_2.json` consigne les empreintes des documents et recettes du périmètre de gel. Les sources amont et le cadrage d’architecture ont des empreintes de constat, sans gel implicite. Vérification : `python spec/validation/consigner_gel_cdc.py --verifier`.
+
+Lors de la reprise, neuf fichiers Python de la baseline d’autorisation avaient des fins de ligne CRLF au lieu de LF. Leur contenu normalisé LF retrouve exactement les empreintes antérieures ; aucune modification comportementale n’a été constatée. Les empreintes brutes actuelles, les empreintes d’origine et cette seule équivalence sont consignées dans les contrôles. Les preuves historiques restent conservées.

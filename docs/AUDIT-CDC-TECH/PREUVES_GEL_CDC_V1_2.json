@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-13",
+  "version": "CDC V1.2 gelé documentairement",
+  "autorisation": "Réponse du porteur « ok vas y » après proposition de clore les deux réserves, consigner le gel et passer à architecture.",
+  "conditions_GEL_closes": [
+    "GEL-01",
+    "GEL-02",
+    "GEL-03",
+    "GEL-04",
+    "GEL-05",
+    "GEL-06",
+    "GEL-07",
+    "GEL-08"
+  ],
+  "reports_acceptes": [
+    "R-CDC-04",
+    "R-CDC-05",
+    "R-CDC-06"
+  ],
+  "tests_logiciel_executes": false,
+  "technologies_nouvelles_choisies": false,
+  "perimetre_gelee": [
+    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md",
+    "docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md",
+    "spec/validation/cdc_recettes_v1_2.json",
+    "docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md"
+  ],
+  "references_et_cadrage": "Empreintes de constat ; aucun gel implicite du CDCF, dictionnaire, MLD ou cadrage architecture.",
+  "baseline_autorisation": {
+    "fichiers_verifies": 16,
+    "equivalences_fins_de_ligne": [
+      {
+        "fichier": "spec/autorisation/modele.py",
+        "sha256_actuel": "9f40dba6355d7a7917fcf971ce4f13dadd747e3f08f7af6c529e0a0f082e6d22",
+        "sha256_baseline": "006cf25ce976597c85b8f794d23bd8f10b3ced446009c725af78e7bfd30fa2a5",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/mutations/mutations.py",
+        "sha256_actuel": "3d3d5c13f02d6abcedd17584710bb5e7a9963777abf09698330a760aa4b9cd43",
+        "sha256_baseline": "9f8b85514513b20d1f724527b879c2268a3276c99691cf4298851972c64e9b86",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/mutations/lancer.py",
+        "sha256_actuel": "5fb51d2f2f958f8185bc2d27d2a12097570a9b36531415a807befc0b7617ab5f",
+        "sha256_baseline": "477575b436080f5f797c8b8d69cb3effe70fc804d080ff6ab0d549b319799e2a",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/base.py",
+        "sha256_actuel": "2548909b904034a1b871ab02d530437755d2b89fe349cbcc3708bcd87c2a4d04",
+        "sha256_baseline": "6a309c3250ce5a9a705b81cc39904a3d9a759da9e0c4af9181c289cf493f8c05",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/outils.py",
+        "sha256_actuel": "0fda1667f14a646b1bd1d7f4b26f134a996515cf02f0c3d1f0ec90041d46ad0c",
+        "sha256_baseline": "973b39a6cbfde7854f366c462fca0ccd0c2ed8fe36903da8e538af3f356bd68d",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/test_attaques.py",
+        "sha256_actuel": "33bf7583da92b02ff5239eb868d4f52639680783ee2411adf9f88fe3529528d6",
+        "sha256_baseline": "02a006197fafa90d6faa5587639525e3cd65f5bc718a2d6a31adbdb257b32352",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/test_cloture_v16.py",
+        "sha256_actuel": "5b1dcf4fa76130df39edca427fae7ba1cb85d9b239ee502377a3d54cdfb3b237",
+        "sha256_baseline": "b1713dc618123d3daf5b3e0d79fbb428a5c9d5ecbfee01bbd09b0cf7600fc769",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/test_scenarios.py",
+        "sha256_actuel": "743ce44c815062727c46074c437fd73351224a7fe5b515719cd65ac4f0a26eed",
+        "sha256_baseline": "9db9fc1bcdb5b0005b778ca42704edb1510eb4b3a2b91b5675856ae76edee0c9",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      },
+      {
+        "fichier": "spec/autorisation/tests/test_transitions.py",
+        "sha256_actuel": "adf5a08275aece3689d213baf44c839892b1b1aa0cbd4929b728c939eb634faf",
+        "sha256_baseline": "e2b3272736defaab215e14d7cf718065c172db616605c975138cf06867cf0d0f",
+        "difference": "fins de ligne CRLF au lieu de LF seulement"
+      }
+    ]
+  },
+  "sha256_baseline": {
+    "docs/GENIIUS_CDC_TECHNIQUE_V1_0.md": "cc5a6955d306d0627eadd8b6a0ce823ab80b7385b5c28a0bbc103916e0d1db6b",
+    "docs/GENIIUS_CDC_TECHNIQUE_RECETTES_V1_2.md": "be4c188880ca4121ace68f0ac9b07d3d189510aebff550595ec967d01ae1e827",
+    "spec/validation/cdc_recettes_v1_2.json": "1eaf9efcfa272ab97f7e674bb66579567b53a3de1c3579eb190407cb3292017b",
+    "docs/AUDIT-CDC-TECH/PROCES_VERBAL_GEL_CDC_V1_2.md": "1ede8502ca5808875476ae8d0bc50adc5a779f13413a757e9fcf51d74a4eacf5",
+    "docs/GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md": "2d5ff56a2b81862b9251ec0e1f51f3c10165f490069a7c5104e01e83a86bc930",
+    "docs/GENIIUS_CONTRAT_AUTORISATION_V1.md": "70302c5cdb09a84d4b6400cc86bc44697d8f3957af02e2a0020a5fba36cd27ee",
+    "docs/GENIIUS_MLD_V1_0.md": "1e0682a91084fa5227ffe19fb663e6e998ca808ff5d571bf4930fba6ab7d4648",
+    "docs/geniius_io_DICTIONNAIRE_DONNEES_V1.md": "63d3a91ee6e11c18aad66cfa1a3460492007ef3ee6acd15a3a98e7f890b6da8e",
+    "docs/AUDIT-CDC-TECH/REVUE_FINALE_CDC_V1_1.md": "715c14c283eb289139b7069ec54ec63e9663903b18547f81d7a93f5260ec2e8d",
+    "docs/geniius_io_CDCF_V1.md": "43d5bcbade01ce64bf07d1f1ec0808ffe10c7d82af7b1af62100e49869e24dbd",
+    "spec/validation/generer_recettes_cdc.py": "44c2cea567b599d9afb353112db76f61a7a9a66296a03481bc89adffd18f4c57",
+    "spec/validation/controler_cdc_technique.py": "bc40c252c934a9b7cfa58512180957c9028d3a62f92627631822351bba2cc4fd",
+    "spec/autorisation/modele.py": "9f40dba6355d7a7917fcf971ce4f13dadd747e3f08f7af6c529e0a0f082e6d22",
+    "spec/autorisation/mutations/mutations.py": "3d3d5c13f02d6abcedd17584710bb5e7a9963777abf09698330a760aa4b9cd43",
+    "spec/autorisation/mutations/lancer.py": "5fb51d2f2f958f8185bc2d27d2a12097570a9b36531415a807befc0b7617ab5f",
+    "spec/autorisation/tests/base.py": "2548909b904034a1b871ab02d530437755d2b89fe349cbcc3708bcd87c2a4d04",
+    "spec/autorisation/tests/outils.py": "0fda1667f14a646b1bd1d7f4b26f134a996515cf02f0c3d1f0ec90041d46ad0c",
+    "spec/autorisation/tests/test_attaques.py": "33bf7583da92b02ff5239eb868d4f52639680783ee2411adf9f88fe3529528d6",
+    "spec/autorisation/tests/test_cloture_v16.py": "5b1dcf4fa76130df39edca427fae7ba1cb85d9b239ee502377a3d54cdfb3b237",
+    "spec/autorisation/tests/test_controles_v15.py": "951f1d75315ce1b20876e6a4e6b8e0d5db5cc481aa06d51aaaba0634e5faeafa",
+    "spec/autorisation/tests/test_proprietes.py": "973902a206f19f21c1d8e614a519581c3e507bd932b252b79f82a03b351fd57a",
+    "spec/autorisation/tests/test_scenarios.py": "743ce44c815062727c46074c437fd73351224a7fe5b515719cd65ac4f0a26eed",
+    "spec/autorisation/tests/test_transitions.py": "adf5a08275aece3689d213baf44c839892b1b1aa0cbd4929b728c939eb634faf",
+    "spec/autorisation/mutations/resultats.json": "bee29c10ac2930612f3fd51ca599242127fdc0dd5056d9af429cee9cef78828f",
+    "spec/autorisation/tests/couverture_etats.json": "5f1554a38d6507b502465ae8e17583a02638dcec961f7a7b79c415d96f6c3796",
+    "spec/autorisation/mutations/JUSTIFICATIONS.md": "b10e498fc2c762d8544ad493365f78671ee2d4a8ca37663d8a014efd4a2c13cc",
+    "docs/AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md": "51d72973f53be2fac825ec2f7240c8695300645065620139080cc8501e6ea2b8",
+    "docs/AUDIT-CDC-TECH/CONTROLES_CDC_TECHNIQUE_V1_2.json": "81c74a694d83163ea7f8b1464d6d06989b4da22aca24abbc772bcd3f5ab0810f",
+    "docs/architecture/GENIIUS_CADRAGE_ARCHITECTURE_V0_1.md": "8b64aad77b00ca58b08639f1eaf18b3d224538ffd9a43987e5cfb62fa638c231",
+    "spec/validation/consigner_gel_cdc.py": "aa26b7be2d657adb6848b0a82ae73ca846a3c685d1700779e7bfaf2318fb5580"
+  }
+}

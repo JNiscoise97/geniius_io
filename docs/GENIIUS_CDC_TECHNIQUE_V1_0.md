@@ -1,6 +1,6 @@
 # GENIIUS — Cahier des charges technique V1.2
 
-**Version :** 1.2 — clôture des réserves et gel documentaire de la chaîne documentaire, autorisations V1.6 et AV-FONC-001
+**Version :** 1.2 — clôture des réserves et gel documentaire du CDC, autorisations V1.6 et AV-FONC-001
 **Date :** 12 octobre 2026 ; revue finale corrigée le 13 octobre 2026
 **Statut :** **GELÉ le 13 octobre 2026 — baseline documentaire avec reports encadrés** (voir § 11). **Version de référence** du CDC technique ; les autres versions sont archivées dans [`archives/cdc-technique/`](archives/cdc-technique/) ([registre des versions normatives](GENIIUS_REGISTRE_VERSIONS_NORMATIVES.md)).
 **Source :** [`archives/cdc-technique/échanges_CDC technique.txt`](archives/cdc-technique/) (décisions TECH-001 à TECH-033, AUDIT-TECH-001 à 016, REV-02-A à H, REV-03-A à M11)
@@ -1545,7 +1545,7 @@ Ces conditions générales sont déclinées en GEL-01 à GEL-08 (§ 11).
 
 # 5. Décisions de cohérence REV-02-A à REV-02-H
 
-Issues du contrôle croisé avec le MCD/dictionnaire/MLD des versions initiales ; report actuel V1.2/V1.3/V1.2-g au § 14. Toutes **validées**. Ce sont des précisions de cohérence, pas de nouveaux blocs.
+Issues du contrôle croisé avec le MCD/dictionnaire/MLD des versions initiales ; report actuel V1.2/V1.3/V1.1-g au § 14. Toutes **validées**. Ce sont des précisions de cohérence, pas de nouveaux blocs.
 
 | Réf. | Objet | Règle |
 |---|---|---|
@@ -1587,7 +1587,7 @@ La correction L14 n’est plus une variante de MLD non désignée. Le registre i
 
 Un titulaire peut conserver ses objets sans conserver un rôle de contenu dans l’espace quitté. Un RS non racine peut perdre son rôle sans perdre ses droits personnels légitimes. Un rôle d’administrateur de plateforme ne vaut pas automatiquement `administrer` d’un espace. La lecture privée n’est jamais déduite d’un cumul de rôles ou d’un mandat technique.
 
-Les [preuves de validation des modèles](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md) et le [procès-verbal V1.6](AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md) justifient le report documentaire. Le bilan GEL du § 11 distingue ce progrès, la revue finale du CDC et les réserves encore ouvertes.
+Les [preuves de validation des modèles](AUDIT-MLD/DOSSIER_VALIDATION_DICTIONNAIRE_MLD_V1_3.md) et le [procès-verbal V1.6](AUDIT-MLD/DOSSIER_CLOTURE_AUTORISATIONS_V1_6.md) justifient le report documentaire. Le bilan GEL du § 11 distingue ce progrès, la revue finale du CDC, la clôture des deux réserves normatives et les reports encadrés.
 
 ## 6.3 Points de contrôle REV-03-M10
 

@@ -64,8 +64,15 @@ def main():
         check(len(ids) == count and len(set(ids)) == count, prefix + ' identifiants')
     baseline = json.loads((ROOT / 'docs/AUDIT-MLD/PREUVES_CLOTURE_AUTORISATIONS_V1_6.json').read_text(encoding='utf-8'))
     frozen = {**baseline['sha256'], **baseline.get('sha256_documents_geles', {})}
+    newline_equivalences = []
     for name, expected in frozen.items():
-        check(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, 'baseline gelée modifiée ' + name)
+        data = (ROOT / name).read_bytes()
+        actual = hashlib.sha256(data).hexdigest()
+        equivalent = actual != expected and hashlib.sha256(data.replace(b'\r\n', b'\n')).hexdigest() == expected
+        if equivalent:
+            newline_equivalences.append({'fichier': name, 'sha256_actuel': actual, 'sha256_baseline': expected,
+                                         'difference': 'fins de ligne CRLF au lieu de LF seulement'})
+        check(actual == expected or equivalent, 'baseline gelée modifiée ' + name)
     for n in range(1, 9):
         check(f'GEL-{n:02d}' in report, 'condition de gel absente')
     for n in range(1, 11):
@@ -89,6 +96,7 @@ def main():
     result = {'date_revue': '2026-10-13', 'version': 'CDC V1.2 gelé documentairement', 'nature': 'contrôles documentaires structurels',
               'TECH': len(model['tech']), 'identifiants_recettes': len(model['recettes']),
               'CU_repris': 31, 'criteres_repris': 64, 'baseline_gelee_fichiers_verifies': len(frozen),
+              'equivalences_fins_de_ligne': newline_equivalences,
               'cas_projets': 12, 'tests_logiciel_executes': False, 'gel_prononce': model.get('gel_documentaire', False),
               'erreurs': errors,
               'limites': ['Présence et cohérence structurelle seulement ; conclusions de relecture dans le rapport final.',
@@ -96,7 +104,7 @@ def main():
               'sha256_sources': {str(p.relative_to(ROOT)).replace('\\', '/'): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
     output = ROOT / 'docs/AUDIT-CDC-TECH/CONTROLES_CDC_TECHNIQUE_V1_2.json'
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(json.dumps({k: v for k, v in result.items() if k not in ('sha256_sources', 'limites')}, ensure_ascii=False))
+    print(json.dumps({k: v for k, v in result.items() if k not in ('sha256_sources', 'limites', 'equivalences_fins_de_ligne')}, ensure_ascii=False))
     raise SystemExit(bool(errors))
 
 
