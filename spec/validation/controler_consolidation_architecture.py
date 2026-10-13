@@ -61,7 +61,7 @@ def main():
     result = {'date':'2026-10-13', 'dossier':'Consolidation/déploiement/alternatives V0.1 candidat',
               'references_decision':64,'ouvertes':62,'actee_amont':1,'hors_V1':1,
               'ADR_candidats':16,'variantes_deploiement':2,'prototypes_specifies':6,'sources_officielles':10,
-              'architecture_gelee':False,'pile_ratifiee':False,'prototypes_executes':False,'budget_mensuel_estime':False,
+              'architecture_gelee':False,'pile_ratifiee':False,'prototypes_executes':['PT01'],'prototypes_clos':['PT01'],'budget_mensuel_estime':False,
               'erreurs':errors,'limites':['Contrôle documentaire : inventaires, liens, statuts et empreintes.',
                                         'Aucune preuve physique de concurrence/OS/durabilité/capacité, aucun benchmark ni coût fournisseur acquis.'],
               'sha256':{str(p.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}

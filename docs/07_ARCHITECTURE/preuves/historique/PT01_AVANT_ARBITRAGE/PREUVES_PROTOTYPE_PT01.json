@@ -1,0 +1,16 @@
+{
+  "prototype": "PT01",
+  "SQL_execute": true,
+  "verdict": "PARTIEL_EXPIRATION_NON_RESOLUE",
+  "sources_conformes_execution": {
+    "spec/prototypes/pt01/schema.sql": true,
+    "spec/prototypes/pt01/run.py": true
+  },
+  "PT01_clos": false,
+  "architecture_gelee": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT01.json": "99e6a6e3cc42db382ad1cea3161e7d43617f678c4e2253e3cfb27ef0e9d8d884",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT01.md": "69e44aa52c7456d8d9609b65309ad326feb521552b9ae346d225723a3f88dc6a",
+    "spec/prototypes/pt01/report.py": "e642886d43c53811ec8f68159039a946c21e9a7b7fb5f06a84a8cc3eee5d2fd7"
+  }
+}

@@ -71,15 +71,29 @@ END $$;
 CREATE FUNCTION pt01.check_at_commit() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pt01 AS $$
 BEGIN
- IF NOT EXISTS(SELECT 1 FROM pt01.grant_fixture WHERE object_id=NEW.object_id
-   AND active AND clock_timestamp()<expires_at) THEN
+ IF NOT EXISTS(SELECT 1 FROM pt01.final_check_fixture WHERE command_id=NEW.command_id) THEN
    RAISE EXCEPTION 'introuvable' USING ERRCODE='42501';
  END IF;
- INSERT INTO pt01.final_check_fixture VALUES(NEW.command_id,clock_timestamp());
  RETURN NULL;
+END $$;
+-- Le Core appelle cette dernière instruction métier avant COMMIT.
+-- Le rôle SQL est celui du Core de confiance, jamais celui du demandeur HTTP.
+CREATE FUNCTION pt01.finalize_fixture() RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pt01 AS $$
+DECLARE t timestamptz := clock_timestamp();
+BEGIN
+ IF session_user <> 'pt01_writer' THEN RAISE EXCEPTION 'introuvable' USING ERRCODE='42501'; END IF;
+ IF EXISTS(SELECT 1 FROM pt01.version_fixture v JOIN pt01.grant_fixture g ON g.object_id=v.object_id
+   WHERE v.xmin=pg_current_xact_id()::text::xid AND (NOT g.active OR t>=g.expires_at)) THEN
+   RAISE EXCEPTION 'introuvable' USING ERRCODE='42501';
+ END IF;
+ INSERT INTO pt01.final_check_fixture
+ SELECT command_id,t FROM pt01.version_fixture WHERE xmin=pg_current_xact_id()::text::xid
+ ON CONFLICT(command_id) DO UPDATE SET checked_at=EXCLUDED.checked_at;
 END $$;
 CREATE CONSTRAINT TRIGGER current_grant_before_commit AFTER INSERT ON pt01.version_fixture
 DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION pt01.check_at_commit();
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA pt01 FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION pt01.write_fixture(integer,integer,text,text),pt01.current_view(integer) TO pt01_writer;
+GRANT EXECUTE ON FUNCTION pt01.finalize_fixture() TO pt01_writer;
 GRANT EXECUTE ON FUNCTION pt01.revoke_fixture(integer) TO pt01_revoker;

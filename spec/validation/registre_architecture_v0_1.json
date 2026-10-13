@@ -449,7 +449,7 @@
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
       "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
-      "ligne": 96
+      "ligne": 98
     },
     "SEC-02": {
       "objet": "Famine, transactions longues, volume copies et coût de garde globale : mesure NF01/02/03/10 et AC10 ; alternative segmentée si nécessaire.",
@@ -459,7 +459,7 @@
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
       "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
-      "ligne": 97
+      "ligne": 99
     },
     "SEC-03": {
       "objet": "Point de sortie des pages/portions, URL de téléchargement, échéance pendant envoi : protocole et traces AC09/12 avant livraison.",
@@ -469,7 +469,7 @@
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
       "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
-      "ligne": 98
+      "ligne": 100
     },
     "SEC-04": {
       "objet": "Graphe avant calcul, statistiques et attaques de délais/différenciation : MPD-03, protocole CDC NF10, AC06.",
@@ -479,7 +479,7 @@
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
       "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
-      "ligne": 99
+      "ligne": 101
     },
     "SEC-05": {
       "objet": "Époque, ascendants, copies et watermark/barrières : AC02/04/11, mêmes obligations après restauration.",
@@ -489,7 +489,7 @@
       "statut": "Ouverte — contrat rédigé, mécanisme/valeur/preuve à arrêter",
       "dossiers_lies": [],
       "source": "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md",
-      "ligne": 100
+      "ligne": 102
     },
     "SYN-01": {
       "objet": "Plafonds hors ligne",
@@ -746,7 +746,7 @@
   "tests_executes": false,
   "sha256_sources": {
     "docs/06_CDC_TECHNIQUE/GENIIUS_CDC_TECHNIQUE.md": "b945262ad6ba62d3de222434c0619de4fa0cec5954a828cffd84ef87ce1126e3",
-    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "0f788b63c9016226b5e00dffbeabe95319d0a454a7da69eb6ed778893bc671ca",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "c0d4292957148f1d01a74c2e7af2d3772069480d0e0fd1cdaa7f3b43e41796d2",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_05_SYNCHRONISATION_COMPATIBILITE_HORLOGE.md": "62dd3571d5b00b99d730508c97edeaf14cafa1246cecaf88a441a8052b9166aa",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_06_PERSISTANCE_CONSERVATION_RESTAURATION.md": "06b16a1ad94ff46ce234bacb24b980cb4ec28c6ba1444002e2c06fa2079c2c12",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_07_ASYNCHRONE_PROPAGATION_DIMENSIONNEMENT.md": "76f3b8e7586b6f53d25d9cd0d5864305ab54ca3656129f62af8e0ac482083b9e",

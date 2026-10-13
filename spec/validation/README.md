@@ -17,6 +17,8 @@ Les miroirs `_hist` et macros ne sont pas développés en SQL. Les contrôles de
 
 ## Architecture Core V0.1
 
+Le banc SQL réel PT01 est dans `spec/prototypes/pt01/`. Commandes : `python spec/prototypes/pt01/run.py --image postgres:16-alpine`, puis `python spec/prototypes/pt01/report.py` et `python spec/prototypes/pt01/check_results.py`. Treize scénarios passent ; PT01 est clos sur son périmètre réduit selon DC-AUTH-01 ratifié. Contre-épreuves initiales conservées ; transposition SEC-01 au moteur complet/MPD réservée. Les contrôles documentaires ne remplacent pas cette exécution.
+
 `python spec/validation/consolider_decisions_architecture.py` produit le registre documentaire unique depuis le CDC et les dossiers candidats. `python spec/validation/controler_consolidation_architecture.py` vérifie les 64 références, statuts/liens/sources, les seize ADR, variantes/prototypes et le périmètre du CDC gelé. Sortie : `docs/07_ARCHITECTURE/preuves/CONTROLES_CONSOLIDATION_V0_1.json`. Les références liées ne sont pas autant d’arbitrages indépendants ; les prototypes et preuves d’infrastructure restent à réaliser.
 
 `python spec/validation/controler_architecture_asynchrone.py` contrôle les phases, scénarios, décisions ouvertes, références et conservation du CDC gelé. Sortie : `docs/07_ARCHITECTURE/preuves/CONTROLES_ASYNCHRONE_V0_1.json`. Aucun worker/file réel, test de charge, mesure de coût/capacité ou délai MPD-04 n’est validé par ce contrôle documentaire.

@@ -28,7 +28,10 @@
     "SEC-05"
   ],
   "architecture_gelee": false,
-  "tests_concurrence_SQL_executes": false,
+  "ce_controle_execute_SQL": false,
+  "preuves_SQL_externes": [
+    "PT01 : treize scénarios sur périmètre réduit, contrôle final DC-AUTH-01 ratifié ; clos sur ce périmètre, transposition MPD réservée"
+  ],
   "technologies_choisies": false,
   "erreurs": [],
   "limites": [
@@ -36,8 +39,8 @@
     "Garde physique, linéarisation/échéance, sortie transport, famine et non-divulgation temporelle restent à démontrer."
   ],
   "sha256": {
-    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "0f788b63c9016226b5e00dffbeabe95319d0a454a7da69eb6ed778893bc671ca",
-    "spec/validation/controler_architecture_securite.py": "88719481dc7fcaf1c33c8cd48c64bd06d69aee7eb50cc4838fe12edb54466828",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_04_AUTORISATIONS_ISOLATION_CONCURRENCE.md": "c0d4292957148f1d01a74c2e7af2d3772069480d0e0fd1cdaa7f3b43e41796d2",
+    "spec/validation/controler_architecture_securite.py": "0392d24b8415cd2e1913471b935ffb60eb83e4c5d778a22db4e20d0f48e741ba",
     "docs/04_CONTRAT_AUTORISATION/GENIIUS_CONTRAT_AUTORISATION.md": "020ffaa24c5df8eae6e2315fefc727dfbd2abbc3aa23e5a6d743064a3a8c8f75",
     "docs/05_MLD/GENIIUS_MLD.md": "d5203e7e89bef045c3095b6a8aacd12de12f54d17e36ac164306fcb69cc8ba29",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_02_CORE_MODULES_TRANSACTIONS.md": "919428c0b85d31b9e00cd9afad55905b774c97b671ee5f0e76aa558cee691e76"

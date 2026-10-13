@@ -31,6 +31,8 @@ class DBError(RuntimeError):
 
 class Session:
     def __init__(self, role='postgres', label=None):
+        self.role=role
+        self.in_transaction=False
         self.label = label or ('pt01_' + uuid.uuid4().hex[:10])
         self.process = subprocess.Popen(['docker','exec','-i',NAME,'psql','-X','-qAt','-v','ON_ERROR_STOP=1',
                                          '-U',role,'-d','pt01'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -41,11 +43,21 @@ class Session:
             for line in self.process.stdout:
                 self.lines.put(line.rstrip('\r\n'))
             self.lines.put(None)
-        threading.Thread(target=pump, daemon=True).start()
+        self.reader_thread=threading.Thread(target=pump, daemon=True)
+        self.reader_thread.start()
         self.pid = int(self.query("SET application_name='" + self.label + "'; SELECT pg_backend_pid()")[-1])
 
     def start(self, sql):
         assert self.pending is None
+        # Orchestrateur Core de banc : aucune commande SQL provenant d'un client HTTP.
+        if self.role=='pt01_writer':
+            if sql.startswith('BEGIN'):
+                self.in_transaction=True
+            elif sql=='COMMIT':
+                sql='DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT'
+                self.in_transaction=False
+            elif 'pt01.write_fixture(' in sql and not self.in_transaction:
+                sql='BEGIN; '+sql+'; DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT'
         self.pending = '__PT01_END_' + uuid.uuid4().hex
         self.process.stdin.write(sql.rstrip(';\n') + ';\n\\echo ' + self.pending + '\n')
         self.process.stdin.flush()
@@ -84,6 +96,12 @@ class Session:
             if self.process.poll() is None:
                 self.process.terminate()
                 self.process.wait(timeout=3)
+        with contextlib.suppress(OSError):
+            self.process.stdin.close()
+        self.reader_thread.join(timeout=2)
+        if not self.reader_thread.is_alive():
+            with contextlib.suppress(OSError):
+                self.process.stdout.close()
 
     def __enter__(self):
         return self
@@ -245,6 +263,64 @@ def scenario_10(admin):
     assert not state(admin)['active']
 
 
+
+def scenario_11(admin):
+    with Session('pt01_writer') as w:
+        w.query('BEGIN')
+        assert write(w)=='integre'
+        try:
+            w.query('SET CONSTRAINTS ALL IMMEDIATE')
+        except DBError as exc:
+            assert 'introuvable' in str(exc),str(exc)
+        else:
+            raise AssertionError('Certificat final absent mais validation anticipée acceptée')
+    verify_zero(admin)
+
+
+def scenario_12(admin):
+    with Session('pt01_writer') as w, Session('pt01_revoker') as r:
+        admin.query("UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1")
+        w.query('BEGIN')
+        assert write(w,'logical_final')=='integre'
+        # Injection de pause dans le chemin Core après sa dernière instruction métier.
+        w.query('DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$')
+        verify_zero(admin)  # Aucun effet canonique observable sur une autre connexion.
+        r.start('SELECT pt01.revoke_fixture(1)')
+        wait_lock(admin,r)
+        admin.query("SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)")
+        # Injection réservée au banc : évite un second contrôle et reproduit la pause.
+        w.role='pt01_core_pause_injection'
+        w.query('COMMIT')
+        assert r.finish()[-1]=='2'
+    obs=json.loads(admin.query("SELECT json_build_object('checked_at',c.checked_at,'expires_at',g.expires_at,"
+        "'commit_timestamp',pg_xact_commit_timestamp(v.xmin)) FROM pt01.version_fixture v "
+        "JOIN pt01.final_check_fixture c USING(command_id) JOIN pt01.grant_fixture g ON g.object_id=v.object_id")[-1])
+    from datetime import datetime
+    assert datetime.fromisoformat(obs['checked_at'])<datetime.fromisoformat(obs['expires_at'])<=datetime.fromisoformat(obs['commit_timestamp']),obs
+    TRACE.append({'phase':'borne_logique_observee','observation':obs,'t_monotone':time.monotonic()})
+    current=state(admin)
+    assert all(current[k]==1 for k in ('versions','activities','outbox','receipts','object_version')),current
+    assert not current['active'] and current['impacted'],current
+    with Session('pt01_writer') as reader:
+        assert reader.query('SELECT pt01.current_view(1)')[-1]=='introuvable'
+        assert write(reader,'logical_final')=='introuvable'
+
+
+def scenario_13(admin):
+    with Session('pt01_writer') as w:
+        admin.query("UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1")
+        w.query('BEGIN')
+        assert write(w)=='integre'
+        w.query('DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$')
+        w.query('ROLLBACK')
+        admin.query("SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)")
+    verify_zero(admin)
+    assert admin.query('SELECT count(*) FROM pt01.final_check_fixture')[-1]=='0'
+    with Session('pt01_writer') as retry:
+        assert write(retry)=='introuvable'
+    verify_zero(admin)
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--image',default='postgres:18',choices=['postgres:18','postgres:18-alpine','postgres:16','postgres:16-alpine',
@@ -295,11 +371,14 @@ def main():
         with Session() as admin:
             metadata['postgresql_version']=admin.query('SELECT version()')[-1]
             metadata['default_isolation']=admin.query('SHOW default_transaction_isolation')[-1]
-            functions=[scenario_1,scenario_2,scenario_3,scenario_4,scenario_5,scenario_6,scenario_7,scenario_8,scenario_9,scenario_10]
-            labels=['Écriture avant révocation','Révocation avant écriture','Expiration avant validation différée de commit',
+            functions=[scenario_1,scenario_2,scenario_3,scenario_4,scenario_5,scenario_6,scenario_7,scenario_8,scenario_9,scenario_10,scenario_11,scenario_12,scenario_13]
+            labels=['Écriture avant révocation','Révocation avant écriture','Expiration avant contrôle final Core',
                     'Rollback révocation/époque','Rollback version/activité/impact/outbox/reçu',
                     'Conflit de version concurrent','Écritures indépendantes concurrentes','Rôle applicatif sans contournement direct',
-                    'Idempotence et refus de réponse ancienne','Perte de connexion et libération de garde']
+                    'Idempotence et refus de réponse ancienne','Perte de connexion et libération de garde',
+                    'Validation anticipée par SET CONSTRAINTS refusée',
+                    'Contrôle final avant échéance, commit tardif et révocation ordonnée',
+                    'Rollback après contrôle final et reprise expirée refusée']
             for number,(function,label) in enumerate(zip(functions,labels),1):
                 reset(admin)
                 begin=len(TRACE)
@@ -313,27 +392,6 @@ def main():
                 cases.append({'id':f'PT01-{number:02d}','objet':label,'statut':status,'erreur':error,
                               'etat_final':state(admin),'traces':TRACE[begin:]})
                 print(f'PT01-{number:02d} {status} {label}',flush=True)
-            # Contre-épreuve : forcer la validation différée avant de retarder COMMIT.
-            # Elle démontre une limite ; elle n'est pas comptée comme conformité A6.
-            reset(admin)
-            begin=len(TRACE)
-            with Session('pt01_writer') as w:
-                admin.query("UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1")
-                w.query('BEGIN')
-                assert write(w,'earlycheck')=='integre'
-                w.query('SET CONSTRAINTS ALL IMMEDIATE')
-                admin.query("SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)")
-                w.query('COMMIT')
-            observation=json.loads(admin.query("SELECT json_build_object('checked_at',c.checked_at,'expires_at',g.expires_at,"
-                "'commit_timestamp',pg_xact_commit_timestamp(v.xmin),'validation_before_expiry',c.checked_at<g.expires_at,"
-                "'commit_after_expiry',pg_xact_commit_timestamp(v.xmin)>=g.expires_at) "
-                "FROM pt01.version_fixture v JOIN pt01.final_check_fixture c USING(command_id) "
-                "JOIN pt01.grant_fixture g ON g.object_id=v.object_id WHERE v.command_id='earlycheck'")[-1])
-            assert observation['validation_before_expiry'] and observation['commit_after_expiry'],observation
-            negative_control={'id':'PT01-CE01','statut':'CONTRE_EXEMPLE_OBSERVE',
-                              'objet':'SET CONSTRAINTS IMMEDIATE autorisé au rôle applicatif puis commit après échéance',
-                              'observation':observation,'traces':TRACE[begin:]}
-            print('PT01-CE01 CONTRE_EXEMPLE_OBSERVE contrôle différé insuffisant pour borner le commit',flush=True)
     except Exception as exc:
         fatal=f'{type(exc).__name__}: {exc}'
     finally:
@@ -349,11 +407,12 @@ def main():
     result={'started_utc':started,'ended_utc':datetime.now(timezone.utc).isoformat(),'prototype':'PT01',
             'nature':'Transactions PostgreSQL réelles avec processus psql/connexions distincts, corpus synthétique réduit',
             'metadata':metadata,'cases':cases,'contre_epreuve':negative_control,'fatal':fatal,'SQL_execute':bool(cases),
-            'verdict':'PARTIEL_EXPIRATION_NON_RESOLUE' if not fatal and len(cases)==10 and all(c['statut']=='PASS' for c in cases) and negative_control else 'FAIL',
-            'PT01_clos_integralement':False,'architecture_gelee':False,'pile_ratifiee':False,
+            'verdict':'PASS_PERIMETRE_PT01' if not fatal and len(cases)==13 and all(c['statut']=='PASS' for c in cases) else 'FAIL',
+            'PT01_clos_integralement':not fatal and len(cases)==13 and all(c['statut']=='PASS' for c in cases),
+            'semantique':'Controle final Core sous gardes jusqu au commit, arbitrage porteur 13/10/2026','architecture_gelee':False,'pile_ratifiee':False,
             'limites':['Pas tout V1.6 ni le MLD complet ; identité limitée à des rôles PostgreSQL synthétiques.',
-                       ('Contrôle différé insuffisant : validation forcée avant échéance puis commit après échéance observés ; SEC-01 non clos.' if negative_control else
-                        'Borne temporelle de commit non prouvée ; contre-épreuve prévue mais non exécutée.'),
+                       'Instant logique du contrôle final ratifié ; aucune garantie de commit physique avant échéance.',
+                       'Orchestrateur Core simulé par Python/psql ; rôle SQL technique de confiance, pas un demandeur HTTP.',
                        'Aucune preuve HTTP/point de divulgation, de non-divulgation temporelle ou de famine (SEC-03/04/02).',
                        'Rôle applicatif restreint, fonctions SECURITY DEFINER à durcir/revoir en production ; pas politiques RLS de production.',
                        'Deux connexions/processus prouvent une garde commune à la base, pas une topologie multi-hôte déployée.',

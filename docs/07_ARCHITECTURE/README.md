@@ -17,8 +17,13 @@
 - [Registre consolidé V0.1](GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md) : 64 références liées, responsables/étapes/preuves ; 62 ouvertes, une décision amont actée, une hors V1.
 - [Vues de déploiement V0.1](GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md) : ADR-CORE-015, frontières/identités, variantes gérée et exploitée par l’équipe, quatre dossiers de preuve.
 - [Alternatives technologiques V0.1](GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md) : ADR-CORE-016, comparaison sourcée, six prototypes à réaliser ; pile non ratifiée.
-- [Contrôles de consolidation](preuves/CONTROLES_CONSOLIDATION_V0_1.json) : références, statuts et empreintes, sans prototype exécuté.
+- [Contrôles de consolidation](preuves/CONTROLES_CONSOLIDATION_V0_1.json) : références, statuts et empreintes ; contrôle documentaire renvoyant aux preuves SQL séparées de PT01.
 
 Sources structurées et commandes reproductibles sous `spec/validation/` : `generer_core_architecture.py`, `controler_core_architecture.py` et `core_architecture_v0_1.json`.
+
+## Prototypes exécutés
+
+- [PT01 — Rapport d’écriture/révocation concurrente](preuves/RAPPORT_PROTOTYPE_PT01.md) : PostgreSQL 16.14 en conteneur local isolé ; treize scénarios SQL réussis. **PT01 clos sur son périmètre réduit**, contrôle final Core selon [DC-AUTH-01](../04_CONTRAT_AUTORISATION/GENIIUS_AMENDEMENT_TEMPOREL_DC_AUTH_01.md). Contre-épreuves initiales conservées ; aucune borne physique avant échéance revendiquée.
+- [Résultats et traces PT01](preuves/RESULTATS_PROTOTYPE_PT01.json), [empreintes](preuves/PREUVES_PROTOTYPE_PT01.json) ; sources et commandes sous `spec/prototypes/pt01/`. PT02 à PT06 restent à exécuter.
 
 Les dossiers restent candidats, avec un registre unique et seize ADR proposés. Le porteur impose 100 €/mois avant abonnements, vise décembre 2026 et demande les six prototypes avant lancement commercial ; langage/hébergeur restent ouverts. Le prochain jalon réalise les prototypes PT01 à PT06 et ferme les décisions sur leurs preuves avant validation de l’architecture et du MPD ; les comparaisons ne constituent pas une pile ratifiée, un déploiement ou une estimation de budget.

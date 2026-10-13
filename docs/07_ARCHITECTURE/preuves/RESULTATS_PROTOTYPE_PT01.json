@@ -1,6 +1,6 @@
 {
-  "started_utc": "2026-10-13T05:27:05.949254+00:00",
-  "ended_utc": "2026-10-13T05:27:21.672327+00:00",
+  "started_utc": "2026-10-13T06:25:41.030814+00:00",
+  "ended_utc": "2026-10-13T06:25:59.584775+00:00",
   "prototype": "PT01",
   "nature": "Transactions PostgreSQL réelles avec processus psql/connexions distincts, corpus synthétique réduit",
   "metadata": {
@@ -16,7 +16,7 @@
     "published_ports": [],
     "host_mounts": [],
     "cloud_cost_euros": 0,
-    "container_name": "geniius-pt01-4acd5b5eabfc",
+    "container_name": "geniius-pt01-0d0c06244848",
     "verified_network": "none",
     "verified_memory_bytes": 536870912,
     "verified_cpu_limit": 1.0,
@@ -44,31 +44,31 @@
       },
       "traces": [
         {
-          "t_monotone": 683593.4647438,
-          "session": "pt01_db5340817a",
+          "t_monotone": 687107.3280932,
+          "session": "pt01_f6ae2c3ebb",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_db5340817a'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_f6ae2c3ebb'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683593.639746,
-          "session": "pt01_db5340817a",
+          "t_monotone": 687107.482673,
+          "session": "pt01_f6ae2c3ebb",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "88"
+            "87"
           ]
         },
         {
-          "t_monotone": 683593.6491677,
-          "session": "pt01_07a7182561",
+          "t_monotone": 687107.4895966,
+          "session": "pt01_d26edc5f63",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_07a7182561'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_d26edc5f63'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683593.8405263,
-          "session": "pt01_07a7182561",
+          "t_monotone": 687107.6285828,
+          "session": "pt01_d26edc5f63",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -76,80 +76,80 @@
           ]
         },
         {
-          "t_monotone": 683593.8406076,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.6286309,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "envoyé",
           "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
         },
         {
-          "t_monotone": 683593.8429613,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.630287,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683593.8430213,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.6303317,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
         },
         {
-          "t_monotone": 683593.8715122,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.6404891,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683593.8715743,
-          "session": "pt01_07a7182561",
+          "t_monotone": 687107.6405349,
+          "session": "pt01_d26edc5f63",
           "pid": 95,
           "phase": "envoyé",
           "sql": "SELECT pt01.revoke_fixture(1)"
         },
         {
-          "t_monotone": 683593.8716169,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.6405602,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=95 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683593.8796796,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.6474389,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "1"
           ]
         },
         {
-          "t_monotone": 683593.8796877,
+          "t_monotone": 687107.6474476,
           "phase": "blocage_SQL_observé",
           "pid": 95
         },
         {
-          "t_monotone": 683593.8797933,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.6475167,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "envoyé",
-          "sql": "COMMIT"
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683593.8851173,
-          "session": "pt01_db5340817a",
-          "pid": 88,
+          "t_monotone": 687107.6571894,
+          "session": "pt01_f6ae2c3ebb",
+          "pid": 87,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683593.8881125,
-          "session": "pt01_07a7182561",
+          "t_monotone": 687107.6606777,
+          "session": "pt01_d26edc5f63",
           "pid": 95,
           "phase": "réponse",
           "lignes": [
@@ -157,32 +157,32 @@
           ]
         },
         {
-          "t_monotone": 683593.9337803,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.7104231,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683593.9388314,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.7144056,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
           ]
         },
         {
-          "t_monotone": 683593.9395051,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.7148355,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683593.9423128,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687107.7176076,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
@@ -207,15 +207,15 @@
       },
       "traces": [
         {
-          "t_monotone": 683594.0154265,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687107.8294925,
+          "session": "pt01_1b44597b5e",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_18bd9c4c5b'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_1b44597b5e'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683594.2011361,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687107.978817,
+          "session": "pt01_1b44597b5e",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -223,15 +223,15 @@
           ]
         },
         {
-          "t_monotone": 683594.2058775,
-          "session": "pt01_39ced76ee0",
+          "t_monotone": 687107.9830584,
+          "session": "pt01_83f6bdc694",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_39ced76ee0'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_83f6bdc694'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683594.3491585,
-          "session": "pt01_39ced76ee0",
+          "t_monotone": 687108.1547015,
+          "session": "pt01_83f6bdc694",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -239,15 +239,15 @@
           ]
         },
         {
-          "t_monotone": 683594.3492141,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687108.1547534,
+          "session": "pt01_1b44597b5e",
           "pid": 102,
           "phase": "envoyé",
           "sql": "BEGIN ISOLATION LEVEL READ COMMITTED; SELECT pt01.revoke_fixture(1)"
         },
         {
-          "t_monotone": 683594.3552439,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687108.1605937,
+          "session": "pt01_1b44597b5e",
           "pid": 102,
           "phase": "réponse",
           "lignes": [
@@ -255,66 +255,66 @@
           ]
         },
         {
-          "t_monotone": 683594.3553412,
-          "session": "pt01_39ced76ee0",
+          "t_monotone": 687108.1606393,
+          "session": "pt01_83f6bdc694",
           "pid": 109,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','late')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','late'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683594.3553885,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.1606598,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=109 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683594.3584669,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.1635541,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "0"
           ]
         },
         {
-          "t_monotone": 683594.3842805,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.1888816,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=109 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683594.3984356,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.1920486,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "1"
           ]
         },
         {
-          "t_monotone": 683594.3984553,
+          "t_monotone": 687108.1920538,
           "phase": "blocage_SQL_observé",
           "pid": 109
         },
         {
-          "t_monotone": 683594.3986387,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687108.1921206,
+          "session": "pt01_1b44597b5e",
           "pid": 102,
           "phase": "envoyé",
           "sql": "COMMIT"
         },
         {
-          "t_monotone": 683594.4107521,
-          "session": "pt01_18bd9c4c5b",
+          "t_monotone": 687108.1968752,
+          "session": "pt01_1b44597b5e",
           "pid": 102,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683594.4176876,
-          "session": "pt01_39ced76ee0",
+          "t_monotone": 687108.2041188,
+          "session": "pt01_83f6bdc694",
           "pid": 109,
           "phase": "réponse",
           "lignes": [
@@ -322,32 +322,32 @@
           ]
         },
         {
-          "t_monotone": 683594.4605411,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.2412231,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683594.4649769,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.2451541,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683594.4654671,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.2454606,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683594.467946,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.2479536,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
@@ -357,7 +357,7 @@
     },
     {
       "id": "PT01-03",
-      "objet": "Expiration avant validation différée de commit",
+      "objet": "Expiration avant contrôle final Core",
       "statut": "PASS",
       "erreur": null,
       "etat_final": {
@@ -372,15 +372,15 @@
       },
       "traces": [
         {
-          "t_monotone": 683594.5319571,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.3477908,
+          "session": "pt01_6b7a528140",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_9f093eab98'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_6b7a528140'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683594.6707785,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.5315499,
+          "session": "pt01_6b7a528140",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -388,43 +388,43 @@
           ]
         },
         {
-          "t_monotone": 683594.6708424,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.5316104,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
         },
         {
-          "t_monotone": 683594.6750009,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.5357234,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683594.6750486,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.5357742,
+          "session": "pt01_6b7a528140",
           "pid": 116,
           "phase": "envoyé",
           "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
         },
         {
-          "t_monotone": 683594.6769372,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.537635,
+          "session": "pt01_6b7a528140",
           "pid": 116,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683594.676979,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.5376994,
+          "session": "pt01_6b7a528140",
           "pid": 116,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
         },
         {
-          "t_monotone": 683594.6876187,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687108.5486609,
+          "session": "pt01_6b7a528140",
           "pid": 116,
           "phase": "réponse",
           "lignes": [
@@ -432,55 +432,55 @@
           ]
         },
         {
-          "t_monotone": 683594.687687,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687108.548708,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
         },
         {
-          "t_monotone": 683596.7292464,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.5884254,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             ""
           ]
         },
         {
-          "t_monotone": 683596.7293837,
-          "session": "pt01_9f093eab98",
+          "t_monotone": 687110.5885679,
+          "session": "pt01_6b7a528140",
           "pid": 116,
           "phase": "envoyé",
-          "sql": "COMMIT"
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683596.7567383,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.6331236,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683596.7612236,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.638195,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683596.7644051,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.6383019,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683596.7673285,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.641755,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
@@ -505,15 +505,15 @@
       },
       "traces": [
         {
-          "t_monotone": 683596.8524065,
-          "session": "pt01_4d3b0cd763",
+          "t_monotone": 687110.7538817,
+          "session": "pt01_fb2c341b21",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_4d3b0cd763'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_fb2c341b21'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683596.988854,
-          "session": "pt01_4d3b0cd763",
+          "t_monotone": 687110.92052,
+          "session": "pt01_fb2c341b21",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -521,15 +521,15 @@
           ]
         },
         {
-          "t_monotone": 683596.9889004,
-          "session": "pt01_4d3b0cd763",
+          "t_monotone": 687110.9205851,
+          "session": "pt01_fb2c341b21",
           "pid": 123,
           "phase": "envoyé",
           "sql": "BEGIN; SELECT pt01.revoke_fixture(1); ROLLBACK"
         },
         {
-          "t_monotone": 683596.9947278,
-          "session": "pt01_4d3b0cd763",
+          "t_monotone": 687110.9332367,
+          "session": "pt01_fb2c341b21",
           "pid": 123,
           "phase": "réponse",
           "lignes": [
@@ -537,31 +537,31 @@
           ]
         },
         {
-          "t_monotone": 683597.0152345,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.9669477,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683597.0504031,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687110.9780169,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683597.0556633,
-          "session": "pt01_bb6ad695e8",
+          "t_monotone": 687110.9853423,
+          "session": "pt01_002144b803",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_bb6ad695e8'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_002144b803'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683597.2245886,
-          "session": "pt01_bb6ad695e8",
+          "t_monotone": 687111.1868484,
+          "session": "pt01_002144b803",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -569,15 +569,15 @@
           ]
         },
         {
-          "t_monotone": 683597.2246595,
-          "session": "pt01_bb6ad695e8",
+          "t_monotone": 687111.1869009,
+          "session": "pt01_002144b803",
           "pid": 130,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','c1'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683597.2418491,
-          "session": "pt01_bb6ad695e8",
+          "t_monotone": 687111.2063153,
+          "session": "pt01_002144b803",
           "pid": 130,
           "phase": "réponse",
           "lignes": [
@@ -585,16 +585,16 @@
           ]
         },
         {
-          "t_monotone": 683597.2678112,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.2250661,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683597.2717804,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.2276729,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
@@ -619,15 +619,15 @@
       },
       "traces": [
         {
-          "t_monotone": 683597.3568298,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.2913931,
+          "session": "pt01_687c86d2a3",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_c2ef4c52fe'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_687c86d2a3'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683597.5350418,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4818347,
+          "session": "pt01_687c86d2a3",
           "pid": null,
           "phase": "réponse",
           "lignes": [
@@ -635,29 +635,29 @@
           ]
         },
         {
-          "t_monotone": 683597.5351073,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4818819,
+          "session": "pt01_687c86d2a3",
           "pid": 137,
           "phase": "envoyé",
           "sql": "BEGIN"
         },
         {
-          "t_monotone": 683597.536744,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4833579,
+          "session": "pt01_687c86d2a3",
           "pid": 137,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683597.536793,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4833978,
+          "session": "pt01_687c86d2a3",
           "pid": 137,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
         },
         {
-          "t_monotone": 683597.5471121,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4939224,
+          "session": "pt01_687c86d2a3",
           "pid": 137,
           "phase": "réponse",
           "lignes": [
@@ -665,39 +665,39 @@
           ]
         },
         {
-          "t_monotone": 683597.5471964,
-          "session": "pt01_c2ef4c52fe",
+          "t_monotone": 687111.4939678,
+          "session": "pt01_687c86d2a3",
           "pid": 137,
           "phase": "envoyé",
           "sql": "SELECT 1/0"
         },
         {
-          "t_monotone": 683597.5680374,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.5140796,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683597.5716421,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.5178981,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683597.573221,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.518165,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683597.5768375,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.5205786,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
@@ -722,161 +722,161 @@
       },
       "traces": [
         {
-          "t_monotone": 683597.6385499,
-          "session": "pt01_a5f1ee7990",
+          "t_monotone": 687111.5832804,
+          "session": "pt01_985d989342",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_a5f1ee7990'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_985d989342'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683597.8133926,
-          "session": "pt01_a5f1ee7990",
+          "t_monotone": 687111.8045184,
+          "session": "pt01_985d989342",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "144"
+            "145"
           ]
         },
         {
-          "t_monotone": 683597.8176499,
-          "session": "pt01_f8c3e43c22",
+          "t_monotone": 687111.8089361,
+          "session": "pt01_fd407ad1cc",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_f8c3e43c22'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_fd407ad1cc'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683597.9842746,
-          "session": "pt01_f8c3e43c22",
+          "t_monotone": 687111.9495176,
+          "session": "pt01_fd407ad1cc",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "151"
+            "152"
           ]
         },
         {
-          "t_monotone": 683597.9843488,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687111.9495896,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "envoyé",
           "sql": "BEGIN"
         },
         {
-          "t_monotone": 683597.9870738,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687111.9518658,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683597.9871394,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687111.9519417,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','first')"
         },
         {
-          "t_monotone": 683598.0055098,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687111.9681828,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683598.0055729,
-          "session": "pt01_f8c3e43c22",
-          "pid": 151,
+          "t_monotone": 687111.9682401,
+          "session": "pt01_fd407ad1cc",
+          "pid": 152,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'other','second')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'other','second'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683598.005608,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.9682703,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
-          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=151 AND wait_event_type='Lock'"
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=152 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683598.0099365,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.9739843,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "0"
           ]
         },
         {
-          "t_monotone": 683598.0351465,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687111.9991514,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
-          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=151 AND wait_event_type='Lock'"
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=152 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683598.0399467,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.0026194,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "1"
           ]
         },
         {
-          "t_monotone": 683598.0399517,
+          "t_monotone": 687112.0026232,
           "phase": "blocage_SQL_observé",
-          "pid": 151
+          "pid": 152
         },
         {
-          "t_monotone": 683598.0400759,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687112.0026686,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "envoyé",
-          "sql": "COMMIT"
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683598.0470409,
-          "session": "pt01_a5f1ee7990",
-          "pid": 144,
+          "t_monotone": 687112.010586,
+          "session": "pt01_985d989342",
+          "pid": 145,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683598.0494434,
-          "session": "pt01_f8c3e43c22",
-          "pid": 151,
+          "t_monotone": 687112.0175865,
+          "session": "pt01_fd407ad1cc",
+          "pid": 152,
           "phase": "réponse",
           "lignes": [
             "conflit_version"
           ]
         },
         {
-          "t_monotone": 683598.0996622,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.0646737,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683598.1050878,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.0682841,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
           ]
         },
         {
-          "t_monotone": 683598.1053938,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.0684064,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683598.1090346,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.0709062,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
@@ -901,124 +901,124 @@
       },
       "traces": [
         {
-          "t_monotone": 683598.196326,
-          "session": "pt01_0126c53817",
+          "t_monotone": 687112.161625,
+          "session": "pt01_bbdd8d5e8c",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_0126c53817'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_bbdd8d5e8c'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683598.3307085,
-          "session": "pt01_0126c53817",
+          "t_monotone": 687112.413217,
+          "session": "pt01_bbdd8d5e8c",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "158"
+            "159"
           ]
         },
         {
-          "t_monotone": 683598.3350728,
-          "session": "pt01_b23a9581e8",
+          "t_monotone": 687112.4221873,
+          "session": "pt01_26a1510825",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_b23a9581e8'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_26a1510825'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683598.5137837,
-          "session": "pt01_b23a9581e8",
+          "t_monotone": 687112.6157931,
+          "session": "pt01_26a1510825",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "165"
+            "167"
           ]
         },
         {
-          "t_monotone": 683598.5138338,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6158596,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "envoyé",
           "sql": "BEGIN"
         },
         {
-          "t_monotone": 683598.5162477,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6252952,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683598.5163024,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6253629,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','obj1')"
         },
         {
-          "t_monotone": 683598.5293067,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6454554,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683598.5293572,
-          "session": "pt01_b23a9581e8",
-          "pid": 165,
+          "t_monotone": 687112.6455336,
+          "session": "pt01_26a1510825",
+          "pid": 167,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(2,0,'synthetic','obj2')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(2,0,'synthetic','obj2'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683598.5436184,
-          "session": "pt01_b23a9581e8",
-          "pid": 165,
+          "t_monotone": 687112.6712767,
+          "session": "pt01_26a1510825",
+          "pid": 167,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683598.5436964,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6713432,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "envoyé",
-          "sql": "COMMIT"
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683598.5488775,
-          "session": "pt01_0126c53817",
-          "pid": 158,
+          "t_monotone": 687112.6822945,
+          "session": "pt01_bbdd8d5e8c",
+          "pid": 159,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683598.5922762,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.7472588,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683598.5977039,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.7531267,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 2, \"activities\" : 2, \"outbox\" : 2, \"receipts\" : 2, \"impacted\" : true, \"object_version\" : 1}"
           ]
         },
         {
-          "t_monotone": 683598.5982909,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.7537897,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683598.6016493,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687112.7577651,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 2, \"activities\" : 2, \"outbox\" : 2, \"receipts\" : 2, \"impacted\" : true, \"object_version\" : 1}"
@@ -1043,117 +1043,117 @@
       },
       "traces": [
         {
-          "t_monotone": 683598.6916783,
-          "session": "pt01_cbe8dcb198",
+          "t_monotone": 687112.8492913,
+          "session": "pt01_519fc28fa4",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_cbe8dcb198'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_519fc28fa4'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683598.8242844,
-          "session": "pt01_cbe8dcb198",
+          "t_monotone": 687113.0920327,
+          "session": "pt01_519fc28fa4",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "172"
+            "174"
           ]
         },
         {
-          "t_monotone": 683598.8243279,
-          "session": "pt01_cbe8dcb198",
-          "pid": 172,
+          "t_monotone": 687113.0921558,
+          "session": "pt01_519fc28fa4",
+          "pid": 174,
           "phase": "envoyé",
           "sql": "UPDATE pt01.grant_fixture SET active=true"
         },
         {
-          "t_monotone": 683598.8572562,
-          "session": "pt01_bd19650029",
+          "t_monotone": 687113.1415325,
+          "session": "pt01_f608cd84cf",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_bd19650029'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_f608cd84cf'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683598.9860374,
-          "session": "pt01_bd19650029",
+          "t_monotone": 687113.5008202,
+          "session": "pt01_f608cd84cf",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "179"
+            "181"
           ]
         },
         {
-          "t_monotone": 683598.9867361,
-          "session": "pt01_bd19650029",
-          "pid": 179,
+          "t_monotone": 687113.5009209,
+          "session": "pt01_f608cd84cf",
+          "pid": 181,
           "phase": "envoyé",
           "sql": "SELECT pt01.revoke_fixture(1)"
         },
         {
-          "t_monotone": 683599.0111798,
-          "session": "pt01_655d5cc646",
+          "t_monotone": 687113.5328983,
+          "session": "pt01_f3c9d3324e",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_655d5cc646'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_f3c9d3324e'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683599.1507185,
-          "session": "pt01_655d5cc646",
+          "t_monotone": 687113.6870886,
+          "session": "pt01_f3c9d3324e",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "186"
+            "188"
           ]
         },
         {
-          "t_monotone": 683599.151214,
-          "session": "pt01_655d5cc646",
-          "pid": 186,
+          "t_monotone": 687113.6873252,
+          "session": "pt01_f3c9d3324e",
+          "pid": 188,
           "phase": "envoyé",
           "sql": "INSERT INTO pt01.version_fixture VALUES(1,99,'bypass','bad',1,clock_timestamp())"
         },
         {
-          "t_monotone": 683599.1712875,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.7073556,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683599.1753942,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.7119173,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683599.1755014,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.7120185,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname='pt01_writer'"
         },
         {
-          "t_monotone": 683599.1785194,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.715148,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "f"
           ]
         },
         {
-          "t_monotone": 683599.1792445,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.7153891,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683599.1823593,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687113.7179171,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
@@ -1178,160 +1178,160 @@
       },
       "traces": [
         {
-          "t_monotone": 683599.2695834,
-          "session": "pt01_4590865b4e",
+          "t_monotone": 687113.7791572,
+          "session": "pt01_66a7d29135",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_4590865b4e'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_66a7d29135'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683599.4161469,
-          "session": "pt01_4590865b4e",
+          "t_monotone": 687113.9311598,
+          "session": "pt01_66a7d29135",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "193"
+            "196"
           ]
         },
         {
-          "t_monotone": 683599.4206681,
-          "session": "pt01_cdb5c5d9b1",
+          "t_monotone": 687113.9356613,
+          "session": "pt01_e167c07db8",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_cdb5c5d9b1'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_e167c07db8'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683599.5841027,
-          "session": "pt01_cdb5c5d9b1",
+          "t_monotone": 687114.1082733,
+          "session": "pt01_e167c07db8",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "200"
+            "203"
           ]
         },
         {
-          "t_monotone": 683599.5841511,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1083497,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','c1'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683599.5976626,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.128187,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683599.5977082,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1283491,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','c1'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683599.6015664,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1332734,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "réponse",
           "lignes": [
             "deja_integre"
           ]
         },
         {
-          "t_monotone": 683599.6016092,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1333224,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "envoyé",
           "sql": "SELECT pt01.current_view(1)"
         },
         {
-          "t_monotone": 683599.6052743,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1370487,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "réponse",
           "lignes": [
             "synthetic"
           ]
         },
         {
-          "t_monotone": 683599.6053181,
-          "session": "pt01_cdb5c5d9b1",
-          "pid": 200,
+          "t_monotone": 687114.1370921,
+          "session": "pt01_e167c07db8",
+          "pid": 203,
           "phase": "envoyé",
           "sql": "SELECT pt01.revoke_fixture(1)"
         },
         {
-          "t_monotone": 683599.6123069,
-          "session": "pt01_cdb5c5d9b1",
-          "pid": 200,
+          "t_monotone": 687114.1436391,
+          "session": "pt01_e167c07db8",
+          "pid": 203,
           "phase": "réponse",
           "lignes": [
             "2"
           ]
         },
         {
-          "t_monotone": 683599.6123495,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1436882,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "envoyé",
           "sql": "SELECT pt01.current_view(1)"
         },
         {
-          "t_monotone": 683599.6159165,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.146905,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "réponse",
           "lignes": [
             "introuvable"
           ]
         },
         {
-          "t_monotone": 683599.6159592,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.146953,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "envoyé",
-          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','c1'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
         },
         {
-          "t_monotone": 683599.6193151,
-          "session": "pt01_4590865b4e",
-          "pid": 193,
+          "t_monotone": 687114.1514886,
+          "session": "pt01_66a7d29135",
+          "pid": 196,
           "phase": "réponse",
           "lignes": [
             "introuvable"
           ]
         },
         {
-          "t_monotone": 683599.6557632,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.1912261,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683599.6597578,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.1949779,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
           ]
         },
         {
-          "t_monotone": 683599.6603348,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.1951139,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683599.6629363,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.1975577,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
@@ -1356,337 +1356,839 @@
       },
       "traces": [
         {
-          "t_monotone": 683599.7361559,
-          "session": "pt01_6e42211f0a",
+          "t_monotone": 687114.2621335,
+          "session": "pt01_55dba99347",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_6e42211f0a'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_55dba99347'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683599.8712197,
-          "session": "pt01_6e42211f0a",
+          "t_monotone": 687114.4340128,
+          "session": "pt01_55dba99347",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "207"
+            "210"
           ]
         },
         {
-          "t_monotone": 683599.8760901,
-          "session": "pt01_9eb59e2b61",
+          "t_monotone": 687114.4398351,
+          "session": "pt01_2f0779a864",
           "pid": null,
           "phase": "envoyé",
-          "sql": "SET application_name='pt01_9eb59e2b61'; SELECT pg_backend_pid()"
+          "sql": "SET application_name='pt01_2f0779a864'; SELECT pg_backend_pid()"
         },
         {
-          "t_monotone": 683600.0524967,
-          "session": "pt01_9eb59e2b61",
+          "t_monotone": 687114.6177764,
+          "session": "pt01_2f0779a864",
           "pid": null,
           "phase": "réponse",
           "lignes": [
-            "214"
+            "217"
           ]
         },
         {
-          "t_monotone": 683600.0525483,
-          "session": "pt01_6e42211f0a",
-          "pid": 207,
+          "t_monotone": 687114.6178321,
+          "session": "pt01_55dba99347",
+          "pid": 210,
           "phase": "envoyé",
           "sql": "BEGIN"
         },
         {
-          "t_monotone": 683600.054499,
-          "session": "pt01_6e42211f0a",
-          "pid": 207,
+          "t_monotone": 687114.6197593,
+          "session": "pt01_55dba99347",
+          "pid": 210,
           "phase": "réponse",
           "lignes": []
         },
         {
-          "t_monotone": 683600.054544,
-          "session": "pt01_6e42211f0a",
-          "pid": 207,
+          "t_monotone": 687114.6198109,
+          "session": "pt01_55dba99347",
+          "pid": 210,
           "phase": "envoyé",
           "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
         },
         {
-          "t_monotone": 683600.0678186,
-          "session": "pt01_6e42211f0a",
-          "pid": 207,
+          "t_monotone": 687114.6339583,
+          "session": "pt01_55dba99347",
+          "pid": 210,
           "phase": "réponse",
           "lignes": [
             "integre"
           ]
         },
         {
-          "t_monotone": 683600.067874,
-          "session": "pt01_9eb59e2b61",
-          "pid": 214,
+          "t_monotone": 687114.6340255,
+          "session": "pt01_2f0779a864",
+          "pid": 217,
           "phase": "envoyé",
           "sql": "SELECT pt01.revoke_fixture(1)"
         },
         {
-          "t_monotone": 683600.067899,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6340685,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
-          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=214 AND wait_event_type='Lock'"
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=217 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683600.0714336,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6385092,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "0"
           ]
         },
         {
-          "t_monotone": 683600.0968275,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6638196,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
-          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=214 AND wait_event_type='Lock'"
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=217 AND wait_event_type='Lock'"
         },
         {
-          "t_monotone": 683600.1005394,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6668589,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "1"
           ]
         },
         {
-          "t_monotone": 683600.1005443,
+          "t_monotone": 687114.6668636,
           "phase": "blocage_SQL_observé",
-          "pid": 214
+          "pid": 217
         },
         {
-          "t_monotone": 683600.1006079,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6669191,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
-          "sql": "SELECT pg_terminate_backend(207)"
+          "sql": "SELECT pg_terminate_backend(210)"
         },
         {
-          "t_monotone": 683600.1035861,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.6690787,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "t"
           ]
         },
         {
-          "t_monotone": 683600.1071944,
-          "session": "pt01_9eb59e2b61",
-          "pid": 214,
+          "t_monotone": 687114.6741407,
+          "session": "pt01_2f0779a864",
+          "pid": 217,
           "phase": "réponse",
           "lignes": [
             "2"
           ]
         },
         {
-          "t_monotone": 683600.153788,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.7254649,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683600.1604679,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.7307994,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683600.1605896,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.7309043,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683600.1655261,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.7341171,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         },
         {
-          "t_monotone": 683600.165819,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.734792,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "envoyé",
           "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
         },
         {
-          "t_monotone": 683600.1690159,
-          "session": "pt01_e1cd2894f7",
-          "pid": 81,
+          "t_monotone": 687114.7385609,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
           "phase": "réponse",
           "lignes": [
             "{\"epoch\" : 2, \"active\" : false, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
           ]
         }
       ]
+    },
+    {
+      "id": "PT01-11",
+      "objet": "Validation anticipée par SET CONSTRAINTS refusée",
+      "statut": "PASS",
+      "erreur": null,
+      "etat_final": {
+        "epoch": 1,
+        "active": true,
+        "versions": 0,
+        "activities": 0,
+        "outbox": 0,
+        "receipts": 0,
+        "impacted": false,
+        "object_version": 0
+      },
+      "traces": [
+        {
+          "t_monotone": 687114.8393201,
+          "session": "pt01_880c2b8950",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_880c2b8950'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687115.0170654,
+          "session": "pt01_880c2b8950",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "224"
+          ]
+        },
+        {
+          "t_monotone": 687115.0171452,
+          "session": "pt01_880c2b8950",
+          "pid": 224,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 687115.0193366,
+          "session": "pt01_880c2b8950",
+          "pid": 224,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687115.0194079,
+          "session": "pt01_880c2b8950",
+          "pid": 224,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+        },
+        {
+          "t_monotone": 687115.0401011,
+          "session": "pt01_880c2b8950",
+          "pid": 224,
+          "phase": "réponse",
+          "lignes": [
+            "integre"
+          ]
+        },
+        {
+          "t_monotone": 687115.0401741,
+          "session": "pt01_880c2b8950",
+          "pid": 224,
+          "phase": "envoyé",
+          "sql": "SET CONSTRAINTS ALL IMMEDIATE"
+        },
+        {
+          "t_monotone": 687115.0635352,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687115.0674432,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        },
+        {
+          "t_monotone": 687115.0675466,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687115.0698949,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PT01-12",
+      "objet": "Contrôle final avant échéance, commit tardif et révocation ordonnée",
+      "statut": "PASS",
+      "erreur": null,
+      "etat_final": {
+        "epoch": 2,
+        "active": false,
+        "versions": 1,
+        "activities": 1,
+        "outbox": 1,
+        "receipts": 1,
+        "impacted": true,
+        "object_version": 1
+      },
+      "traces": [
+        {
+          "t_monotone": 687115.172738,
+          "session": "pt01_6b645a20d6",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_6b645a20d6'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687115.3581861,
+          "session": "pt01_6b645a20d6",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "231"
+          ]
+        },
+        {
+          "t_monotone": 687115.3626024,
+          "session": "pt01_9b5ea76b79",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_9b5ea76b79'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687115.5472002,
+          "session": "pt01_9b5ea76b79",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "238"
+          ]
+        },
+        {
+          "t_monotone": 687115.5472448,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
+        },
+        {
+          "t_monotone": 687115.5542187,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687115.5542783,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 687115.5565457,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687115.5566093,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','logical_final')"
+        },
+        {
+          "t_monotone": 687115.5672384,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": [
+            "integre"
+          ]
+        },
+        {
+          "t_monotone": 687115.5672796,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$"
+        },
+        {
+          "t_monotone": 687115.5721098,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687115.5721578,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687115.575582,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        },
+        {
+          "t_monotone": 687115.5756682,
+          "session": "pt01_9b5ea76b79",
+          "pid": 238,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 687115.5756891,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=238 AND wait_event_type='Lock'"
+        },
+        {
+          "t_monotone": 687115.5786419,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "0"
+          ]
+        },
+        {
+          "t_monotone": 687115.6042659,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=238 AND wait_event_type='Lock'"
+        },
+        {
+          "t_monotone": 687115.6071965,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "1"
+          ]
+        },
+        {
+          "t_monotone": 687115.6071996,
+          "phase": "blocage_SQL_observé",
+          "pid": 238
+        },
+        {
+          "t_monotone": 687115.6072353,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
+        },
+        {
+          "t_monotone": 687117.6066545,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 687117.6066939,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 687117.6109451,
+          "session": "pt01_6b645a20d6",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687117.6138459,
+          "session": "pt01_9b5ea76b79",
+          "pid": 238,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 687117.6519384,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('checked_at',c.checked_at,'expires_at',g.expires_at,'commit_timestamp',pg_xact_commit_timestamp(v.xmin)) FROM pt01.version_fixture v JOIN pt01.final_check_fixture c USING(command_id) JOIN pt01.grant_fixture g ON g.object_id=v.object_id"
+        },
+        {
+          "t_monotone": 687117.6567489,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"checked_at\" : \"2026-10-13T06:25:54.485417+00:00\", \"expires_at\" : \"2026-10-13T06:25:56.465252+00:00\", \"commit_timestamp\" : \"2026-10-13T06:25:56.519276+00:00\"}"
+          ]
+        },
+        {
+          "phase": "borne_logique_observee",
+          "observation": {
+            "checked_at": "2026-10-13T06:25:54.485417+00:00",
+            "expires_at": "2026-10-13T06:25:56.465252+00:00",
+            "commit_timestamp": "2026-10-13T06:25:56.519276+00:00"
+          },
+          "t_monotone": 687117.6567873
+        },
+        {
+          "t_monotone": 687117.6568775,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687117.6602176,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
+          ]
+        },
+        {
+          "t_monotone": 687117.6648211,
+          "session": "pt01_e5528c5d7a",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_e5528c5d7a'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687117.7927526,
+          "session": "pt01_e5528c5d7a",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "245"
+          ]
+        },
+        {
+          "t_monotone": 687117.7928013,
+          "session": "pt01_e5528c5d7a",
+          "pid": 245,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.current_view(1)"
+        },
+        {
+          "t_monotone": 687117.8003244,
+          "session": "pt01_e5528c5d7a",
+          "pid": 245,
+          "phase": "réponse",
+          "lignes": [
+            "introuvable"
+          ]
+        },
+        {
+          "t_monotone": 687117.8003729,
+          "session": "pt01_e5528c5d7a",
+          "pid": 245,
+          "phase": "envoyé",
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','logical_final'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
+        },
+        {
+          "t_monotone": 687117.8090857,
+          "session": "pt01_e5528c5d7a",
+          "pid": 245,
+          "phase": "réponse",
+          "lignes": [
+            "introuvable"
+          ]
+        },
+        {
+          "t_monotone": 687117.8303293,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687117.8330564,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 2, \"active\" : false, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PT01-13",
+      "objet": "Rollback après contrôle final et reprise expirée refusée",
+      "statut": "PASS",
+      "erreur": null,
+      "etat_final": {
+        "epoch": 1,
+        "active": true,
+        "versions": 0,
+        "activities": 0,
+        "outbox": 0,
+        "receipts": 0,
+        "impacted": false,
+        "object_version": 0
+      },
+      "traces": [
+        {
+          "t_monotone": 687117.9027105,
+          "session": "pt01_d864836058",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_d864836058'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687118.0435747,
+          "session": "pt01_d864836058",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "252"
+          ]
+        },
+        {
+          "t_monotone": 687118.0436207,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
+        },
+        {
+          "t_monotone": 687118.0471746,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687118.0472418,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 687118.0488406,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687118.0488786,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','c1')"
+        },
+        {
+          "t_monotone": 687118.0594645,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "réponse",
+          "lignes": [
+            "integre"
+          ]
+        },
+        {
+          "t_monotone": 687118.0595069,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "envoyé",
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$"
+        },
+        {
+          "t_monotone": 687118.0644286,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687118.0644701,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "envoyé",
+          "sql": "ROLLBACK"
+        },
+        {
+          "t_monotone": 687118.0662622,
+          "session": "pt01_d864836058",
+          "pid": 252,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 687118.066302,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
+        },
+        {
+          "t_monotone": 687120.0984066,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 687120.1195364,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687120.1244671,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        },
+        {
+          "t_monotone": 687120.1245634,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT count(*) FROM pt01.final_check_fixture"
+        },
+        {
+          "t_monotone": 687120.1272576,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "0"
+          ]
+        },
+        {
+          "t_monotone": 687120.1327843,
+          "session": "pt01_92a7f239fe",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_92a7f239fe'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 687120.3157821,
+          "session": "pt01_92a7f239fe",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "259"
+          ]
+        },
+        {
+          "t_monotone": 687120.3158412,
+          "session": "pt01_92a7f239fe",
+          "pid": 259,
+          "phase": "envoyé",
+          "sql": "BEGIN; SELECT pt01.write_fixture(1,0,'synthetic','c1'); DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
+        },
+        {
+          "t_monotone": 687120.3323848,
+          "session": "pt01_92a7f239fe",
+          "pid": 259,
+          "phase": "réponse",
+          "lignes": [
+            "introuvable"
+          ]
+        },
+        {
+          "t_monotone": 687120.3499822,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687120.3531452,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        },
+        {
+          "t_monotone": 687120.3534041,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 687120.3555887,
+          "session": "pt01_a0c1f6816d",
+          "pid": 80,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        }
+      ]
     }
   ],
-  "contre_epreuve": {
-    "id": "PT01-CE01",
-    "statut": "CONTRE_EXEMPLE_OBSERVE",
-    "objet": "SET CONSTRAINTS IMMEDIATE autorisé au rôle applicatif puis commit après échéance",
-    "observation": {
-      "checked_at": "2026-10-13T05:27:19.343318+00:00",
-      "expires_at": "2026-10-13T05:27:21.324097+00:00",
-      "commit_timestamp": "2026-10-13T05:27:21.381455+00:00",
-      "validation_before_expiry": true,
-      "commit_after_expiry": true
-    },
-    "traces": [
-      {
-        "t_monotone": 683600.2642905,
-        "session": "pt01_1f953affcc",
-        "pid": null,
-        "phase": "envoyé",
-        "sql": "SET application_name='pt01_1f953affcc'; SELECT pg_backend_pid()"
-      },
-      {
-        "t_monotone": 683600.4451139,
-        "session": "pt01_1f953affcc",
-        "pid": null,
-        "phase": "réponse",
-        "lignes": [
-          "221"
-        ]
-      },
-      {
-        "t_monotone": 683600.4451845,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "envoyé",
-        "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
-      },
-      {
-        "t_monotone": 683600.4489738,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "réponse",
-        "lignes": []
-      },
-      {
-        "t_monotone": 683600.4490453,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "envoyé",
-        "sql": "BEGIN"
-      },
-      {
-        "t_monotone": 683600.451079,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "réponse",
-        "lignes": []
-      },
-      {
-        "t_monotone": 683600.4511486,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "envoyé",
-        "sql": "SELECT pt01.write_fixture(1,0,'synthetic','earlycheck')"
-      },
-      {
-        "t_monotone": 683600.4637067,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "réponse",
-        "lignes": [
-          "integre"
-        ]
-      },
-      {
-        "t_monotone": 683600.4637719,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "envoyé",
-        "sql": "SET CONSTRAINTS ALL IMMEDIATE"
-      },
-      {
-        "t_monotone": 683600.4673159,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "réponse",
-        "lignes": []
-      },
-      {
-        "t_monotone": 683600.4673869,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "envoyé",
-        "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
-      },
-      {
-        "t_monotone": 683602.5013003,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "réponse",
-        "lignes": [
-          ""
-        ]
-      },
-      {
-        "t_monotone": 683602.5013953,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "envoyé",
-        "sql": "COMMIT"
-      },
-      {
-        "t_monotone": 683602.5085123,
-        "session": "pt01_1f953affcc",
-        "pid": 221,
-        "phase": "réponse",
-        "lignes": []
-      },
-      {
-        "t_monotone": 683602.5340526,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "envoyé",
-        "sql": "SELECT json_build_object('checked_at',c.checked_at,'expires_at',g.expires_at,'commit_timestamp',pg_xact_commit_timestamp(v.xmin),'validation_before_expiry',c.checked_at<g.expires_at,'commit_after_expiry',pg_xact_commit_timestamp(v.xmin)>=g.expires_at) FROM pt01.version_fixture v JOIN pt01.final_check_fixture c USING(command_id) JOIN pt01.grant_fixture g ON g.object_id=v.object_id WHERE v.command_id='earlycheck'"
-      },
-      {
-        "t_monotone": 683602.5382283,
-        "session": "pt01_e1cd2894f7",
-        "pid": 81,
-        "phase": "réponse",
-        "lignes": [
-          "{\"checked_at\" : \"2026-10-13T05:27:19.343318+00:00\", \"expires_at\" : \"2026-10-13T05:27:21.324097+00:00\", \"commit_timestamp\" : \"2026-10-13T05:27:21.381455+00:00\", \"validation_before_expiry\" : true, \"commit_after_expiry\" : true}"
-        ]
-      }
-    ]
-  },
+  "contre_epreuve": null,
   "fatal": null,
   "SQL_execute": true,
-  "verdict": "PARTIEL_EXPIRATION_NON_RESOLUE",
-  "PT01_clos_integralement": false,
+  "verdict": "PASS_PERIMETRE_PT01",
+  "PT01_clos_integralement": true,
+  "semantique": "Controle final Core sous gardes jusqu au commit, arbitrage porteur 13/10/2026",
   "architecture_gelee": false,
   "pile_ratifiee": false,
   "limites": [
     "Pas tout V1.6 ni le MLD complet ; identité limitée à des rôles PostgreSQL synthétiques.",
-    "Contrôle différé insuffisant : validation forcée avant échéance puis commit après échéance observés ; SEC-01 non clos.",
+    "Instant logique du contrôle final ratifié ; aucune garantie de commit physique avant échéance.",
+    "Orchestrateur Core simulé par Python/psql ; rôle SQL technique de confiance, pas un demandeur HTTP.",
     "Aucune preuve HTTP/point de divulgation, de non-divulgation temporelle ou de famine (SEC-03/04/02).",
     "Rôle applicatif restreint, fonctions SECURITY DEFINER à durcir/revoir en production ; pas politiques RLS de production.",
     "Deux connexions/processus prouvent une garde commune à la base, pas une topologie multi-hôte déployée.",
     "Aucun benchmark, PRA, délai MPD-04, chiffre de capacité ou totalité des prototypes exécutés."
   ],
   "sha256_sources": {
-    "spec/prototypes/pt01/schema.sql": "f53664667ebe6e435eb2a150729bed079903f3c6215be7bfe9ba29b91a5ee5f7",
-    "spec/prototypes/pt01/run.py": "165bdb715d56ff497ce81a8fc6e5cef9d10fa5be85d6c207c1a7b69d8bbbde9b"
+    "spec/prototypes/pt01/schema.sql": "3ded4f12efa4ebe5b007909c251e1e35a80a6bd7e3fde9fd4aefc9558d1e44a7",
+    "spec/prototypes/pt01/run.py": "6aa758df2eaff8d2838ee79547b563f9e7eb59d9650cc56051d43b4283fa6923"
   }
 }

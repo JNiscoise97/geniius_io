@@ -1,13 +1,17 @@
-# PT01 — Écritures et révocations concurrentes
+# PT01 — Écritures, contrôle final et révocations concurrentes
 
-Les images déjà en cache `postgres:16` et `postgres:16-alpine` peuvent servir au banc avec `--image`. Le résultat ne vaut alors pas vérification de PostgreSQL 18 ; la version serveur et le digest sont consignés, sans modifier la préférence technologique candidate.
+Treize scénarios PostgreSQL réels sur corpus synthétique réduit. [Protocole Core](PROTOCOL.md), [amendement ratifié DC-AUTH-01](../../../docs/04_CONTRAT_AUTORISATION/GENIIUS_AMENDEMENT_TEMPOREL_DC_AUTH_01.md), [rapport et portée de clôture](../../../docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT01.md).
 
-Le miroir public Docker Official Images peut être utilisé avec `--image public.ecr.aws/docker/library/postgres:18-alpine` si Docker Hub est indisponible. L’image et le digest effectivement exécutés sont consignés ; aucun compte AWS ni déploiement cloud n’est utilisé.
+Depuis la racine, Docker Desktop démarré :
 
-Banc PostgreSQL réel, corpus synthétique isolé. Python standard sur l’hôte ; `psql` dans le conteneur ; aucun pilote Python à installer. Docker Desktop doit être démarré. L’image `postgres:18` est téléchargée puis son identifiant exact est consigné ; la version majeure n’est pas une sélection de pile de production.
+```powershell
+python spec/prototypes/pt01/run.py --image postgres:16-alpine
+python spec/prototypes/pt01/report.py
+python spec/prototypes/pt01/check_results.py
+```
 
-Exécuter depuis la racine : `python spec/prototypes/pt01/run.py`. La variante `--image postgres:18-alpine` est aussi admise ; l’image exacte est consignée dans les résultats. Le runner crée un conteneur de nom unique, sans port publié, réseau externe désactivé et sans montage de fichiers hôte ; seules des données synthétiques sont copiées dans le conteneur. Mémoire plafonnée à 512 Mio et CPU à une unité pour ce banc, pas pour la production. Les rôles synthétiques se connectent par socket interne ; l’authentification de production n’est pas simulée. Le conteneur créé par ce runner est retiré en fin d’exécution ; aucune autre instance n’est supprimée.
+Utilise l'image en cache, sans téléchargement automatique. PostgreSQL 16.14 exécuté ; aucune preuve PostgreSQL 18 ni pile de production ratifiée. Python standard sur l'hôte, psql dans le conteneur. Conteneur unique retiré en fin de banc, réseau none, aucun port publié ni montage hôte, 512 Mio et un CPU. Aucun autre service n'est modifié ; coût cloud 0 €. Authentification par socket sur données synthétiques, pas configuration de production.
 
-Résultats : `docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT01.json` et rapport associé. Les ordonnancements utilisent plusieurs processus `psql` et le constat de verrous PostgreSQL, pas seulement une attente chronométrée supposée démontrer un conflit.
+Le contrôle final est une instruction explicite du Core sous les gardes conservées jusqu'au commit. Le trigger différé refuse un certificat absent ; il ne définit pas l'instant temporel. Un commit après expiration est admissible si le contrôle final a précédé l'échéance, selon l'arbitrage du porteur du 13/10/2026. Aucun succès client avant commit. Les contre-épreuves initiales sont conservées dans l'historique des preuves.
 
-Portée réduite : autorisation binaire par objet, époque globale, version/activité/dépendance directe/outbox/reçu. Ce n’est pas le MLD complet, pas tout V1.6 et pas une API de production. Une vérification différée d’expiration précède le commit PostgreSQL mais ne prouve pas à elle seule la borne temporelle jusqu’à écriture WAL/visibilité effective. Ce point doit être qualifié au verdict SEC-01. Les erreurs/délais de non-divulgation, les flux HTTP et la famine relèvent des autres prototypes/preuves.
+Les scénarios utilisent plusieurs processus psql et observent réellement les blocages PostgreSQL. La transposition au moteur complet et au MPD reste à effectuer ; API HTTP, famine, non-divulgation temporelle, capacité et PRA relèvent d'autres preuves.

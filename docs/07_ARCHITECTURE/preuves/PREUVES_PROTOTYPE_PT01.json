@@ -1,0 +1,19 @@
+{
+  "prototype": "PT01",
+  "SQL_execute": true,
+  "verdict": "PASS_PERIMETRE_PT01",
+  "sources_conformes_execution": {
+    "spec/prototypes/pt01/schema.sql": true,
+    "spec/prototypes/pt01/run.py": true
+  },
+  "PT01_clos": true,
+  "architecture_gelee": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT01.json": "4f3e775e627a3d7140c527164d614eeeedb7a1cf2819f023e3da7bb80cce236f",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT01.md": "03e7b325dce79f55ec55fb47f58ad6e3d845dde4c029faca4dab486e73f0cc38",
+    "docs/04_CONTRAT_AUTORISATION/GENIIUS_AMENDEMENT_TEMPOREL_DC_AUTH_01.md": "6d9489ee56944d44e9bd3fc06d929e60662b5269f9578616f992ea65d5e9ad9c",
+    "spec/prototypes/pt01/report.py": "70ad2facf85c9b7b4f8546a7712510588fd43d4d3f1047de0e9a0e5a5db8bf78",
+    "spec/prototypes/pt01/check_results.py": "a50065e30f64747d0515fa1b17ca676a6bfddfc323e3d533fb2794bc9dd64974",
+    "spec/prototypes/pt01/PROTOCOL.md": "07f078673dade017e457ffcd900c174a8835095125f65ab33b2afc0a441f365f"
+  }
+}

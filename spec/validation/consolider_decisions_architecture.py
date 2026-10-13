@@ -115,7 +115,7 @@ def main():
             '- [Vues de déploiement](GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md).',
             '- [Alternatives et prototypes](GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md) : PT01 à PT06, sources officielles consultées.',
             '- [Contrôles consolidés](preuves/CONTROLES_CONSOLIDATION_V0_1.json) ; source `spec/validation/registre_architecture_v0_1.json`, génération `consolider_decisions_architecture.py`, contrôle `controler_consolidation_architecture.py`.', '',
-            'L’architecture reste candidate ; aucun prototype/deploiement/benchmark n’a été exécuté pour ce jalon et aucune technologie n’est gelée.']
+            'L’architecture reste candidate. Voir le [rapport PT01](preuves/RAPPORT_PROTOTYPE_PT01.md) : treize scénarios SQL réussis ; PT01 clos sur le périmètre réduit selon DC-AUTH-01 ratifié (contrôle final Core, gardes jusqu’au commit). SEC-01 reste à transposer au moteur complet/MPD. Les prototypes PT02 à PT06, le déploiement de production et les benchmarks de capacité restent à réaliser ; aucune technologie n’est gelée.']
     (ARCH / 'GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md').write_text('\n'.join(out)+'\n',encoding='utf-8')
     print('64 références consolidées : 62 ouvertes, une actée amont, une hors V1 ; aucun choix technologique gelé.')
 

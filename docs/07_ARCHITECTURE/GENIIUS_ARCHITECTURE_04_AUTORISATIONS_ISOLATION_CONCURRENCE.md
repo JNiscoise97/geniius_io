@@ -44,7 +44,7 @@ La garde doit fonctionner entre toutes les instances API/workers et être coordo
 
 Toute commande pouvant affecter ces faits est classifiée **avant acquisition de la garde** ; aucune promotion d’une garde partagée en exclusive au milieu de la transaction. En cas de doute, reprendre sous exclusive sans exposer d’état intermédiaire. Le commit rend la modification effective ; époque et faits ne peuvent pas être validés séparément. Expiration temporelle ne nécessite pas un worker ponctuel : elle est évaluée avec l’instant serveur à chaque décision, même sans nouvelle époque.
 
-**Écriture ordinaire :** garde partagée → identité/instant actuel → permissions et références → gardes d’agrégat → validations/écritures → contrôle d’échéance au point de validation → commit avant relâchement. Si l’échéance est dépassée, la mutation est annulée. Un mécanisme incapable de garantir l’ordre validation/commit/échéance ne satisfait pas A6 et reste bloquant pour l’implémentation ; le MPD doit définir son point de linéarisation et ses preuves.
+**Écriture ordinaire :** garde partagée → identité/instant actuel → permissions et références → gardes d’agrégat → validations/écritures provisoires → contrôle final d’autorisation comme dernière instruction métier → commit avant relâchement. Le Core de confiance possède la transaction ; le demandeur ne pilote pas SQL ni la validation. Selon [DC-AUTH-01 ratifié](../04_CONTRAT_AUTORISATION/GENIIUS_AMENDEMENT_TEMPOREL_DC_AUTH_01.md), si l’échéance est atteinte au contrôle final, tous les effets sont annulés ; une échéance après ce contrôle ne révoque pas rétroactivement la mutation. Aucun succès ni effet canonique avant commit. Après abandon/reprise, nouvelle évaluation complète. Aucune nouvelle mutation après contrôle final. Ce point logique ne garantit pas un commit physique avant échéance.
 
 **Révocation :** garde exclusive → état actuel/acte autorisé → fermeture prescrite/époque/barrières → commit → relâchement. Une écriture antérieure qui a commité sous partage est ordonnée avant la prise d’effet ; une écriture postérieure réévalue l’état révoqué. Le choix de file/timeout des gardes doit empêcher la famine des révocations. Une panne libère les gardes transactionnelles sans produire un demi-commit.
 
@@ -76,7 +76,7 @@ En interne, tout état préparé/non validé reste fermé. Les frontières API n
 |---|---|---|
 | AC01 | Écriture prend garde partagée ; révocation demande exclusive | Écriture finit avant révocation effective, ou annulation/reprise ; aucune écriture ultérieure sur droits révoqués. |
 | AC02 | Révocation commite ; ancien worker/cache reprend | Relecture actuelle, refus ou rendu filtré ; pas d’accord issu de l’ancienne époque. |
-| AC03 | Même époque, passage de l’échéance entre pages/avant commit | Nouveau calcul temporel ; portion suivante refusée et mutation expirée annulée. |
+| AC03 | Même époque, passage de l’échéance entre pages/avant commit | Nouveau calcul temporel ; portion suivante refusée ; mutation refusée si expirée au contrôle final Core (DC-AUTH-01), commit tardif permis ensuite sous gardes. |
 | AC04 | Consentement/protection change sur ascendant ; copies sur autre espace | Barrière opposable au commit, aucun descendant consultable sur projection retardée. |
 | AC05 | Identité relie deux comptes pendant approbation/transfert | Sérialisation T17/T06 ; aucune auto-approbation ni double indépendance par compte. |
 | AC06 | Cible cachée/absente dans FK, UQ, recherche, notification et cache | Mêmes sorties autorisées, pas de compteur/indice ni détail de validation ; distributions temporelles à éprouver. |
@@ -90,6 +90,8 @@ En interne, tout état préparé/non validé reste fermé. Les frontières API n
 Chaque scénario exige un corpus versionné, ordonnance forcée, traces d’acquisition/validation/commit/divulgation et comparaison des résultats avec V1.6. Les tests du modèle amont n’exercent pas ces mécanismes physiques. Ces douze scénarios sont **spécifiés, non exécutés** ; aucune propriété de verrou SQL, latence ou OS n’est prétendue démontrée.
 
 ## 7. Points à démontrer avant validation
+
+**Résultat de banc PT01 (13/10/2026).** Le [rapport](preuves/RAPPORT_PROTOTYPE_PT01.md) consigne treize scénarios SQL réussis sur PostgreSQL 16.14. Le porteur a ratifié DC-AUTH-01 : point temporel au contrôle final Core, gardes jusqu’au commit. PT01-L01 est clos sur ce corpus réduit : refus après expiration au contrôle final, validation anticipée sans certificat refusée, commit tardif sous gardes admis, révocation ordonnée et rollback complet du certificat. [Dossier temporel](GENIIUS_ARCHITECTURE_PT01_RESOLUTION_TEMPORELLE.md). Les contre-épreuves historiques CE01/CE02 demeurent des réfutations de la borne physique abandonnée. SEC-01 reste à transposer au moteur complet/MPD ; aucun gel d’architecture ni preuve multi-hôte.
 
 | ID | Responsable | Preuve / étape |
 |---|---|---|
