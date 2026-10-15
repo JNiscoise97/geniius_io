@@ -1,0 +1,948 @@
+{
+  "started_utc": "2026-10-13T10:46:36.013394+00:00",
+  "ended_utc": "2026-10-13T10:46:40.873506+00:00",
+  "prototype": "PT03",
+  "lot": "A",
+  "cases": [
+    {
+      "id": "PT03-A01",
+      "label": "Panne avant commit réception",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "before_receipt_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_receipt_commit",
+            "pid": 6252
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "after_crash": {
+            "receipts": [],
+            "effects": [],
+            "journal": [
+              [
+                "op1",
+                "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+              ]
+            ],
+            "sqlite": {
+              "journal_mode": "wal",
+              "synchronous": 2
+            }
+          }
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A02",
+      "label": "Commit réception puis accusé perdu",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "after_receipt_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_receipt_commit",
+            "pid": 5016
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "after_crash": {
+            "receipts": [
+              [
+                "A",
+                "D1",
+                "op1",
+                "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "journal": [
+              [
+                "op1",
+                "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+              ]
+            ],
+            "sqlite": {
+              "journal_mode": "wal",
+              "synchronous": 2
+            }
+          }
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A03",
+      "label": "Panne avant commit effet",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "before_effect_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_effect_commit",
+            "pid": 16816
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "after_crash": {
+            "receipts": [
+              [
+                "A",
+                "D1",
+                "op1",
+                "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "journal": [
+              [
+                "op1",
+                "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+              ]
+            ],
+            "sqlite": {
+              "journal_mode": "wal",
+              "synchronous": 2
+            }
+          }
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A04",
+      "label": "Commit effet puis réponse perdue",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "after_effect_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_effect_commit",
+            "pid": 29984
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "after_crash": {
+            "receipts": [
+              [
+                "A",
+                "D1",
+                "op1",
+                "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+                "integrated"
+              ]
+            ],
+            "effects": [
+              [
+                "A",
+                "D1",
+                "op1",
+                "visible",
+                "new author text"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+              ]
+            ],
+            "sqlite": {
+              "journal_mode": "wal",
+              "synchronous": 2
+            }
+          }
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A05",
+      "label": "Origine identique avec delta différent",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "conflict"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A06",
+      "label": "Rejeux concurrents en quatre processus",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A07",
+      "label": "Accusé intégré réévalué après retrait et contexte distinct",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "69eff8c14f69e966a21b6a6cfc61150fae0175a976e13f1e95dc719acd58ad40",
+            "integrated"
+          ]
+        ],
+        "effects": [
+          [
+            "A",
+            "D1",
+            "op1",
+            "visible",
+            "new author text"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "actor": "B",
+          "device": "D1",
+          "origin": "op1"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "actor": "A",
+          "device": "D2",
+          "origin": "op1"
+        }
+      ]
+    },
+    {
+      "id": "PT03-A08",
+      "label": "Réception sans FK cible ; cible cachée/absente générique",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D1",
+            "absent",
+            "be2674a3183b81971d68a068cb9deb119193f439eb181906cb0585802755eb9b",
+            "received"
+          ],
+          [
+            "A",
+            "D1",
+            "hidden",
+            "cd8ea78d20cb4ced0c795005323eaeb8c2e57857985f42b526e02ddd49a8884b",
+            "received"
+          ]
+        ],
+        "effects": [],
+        "journal": [
+          [
+            "op1",
+            "{\"target\": \"visible\", \"delta\": \"new author text\"}"
+          ]
+        ],
+        "sqlite": {
+          "journal_mode": "wal",
+          "synchronous": 2
+        }
+      },
+      "traces": [
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "hidden"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "hidden"
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "absent"
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "actor": "A",
+          "device": "D1",
+          "origin": "absent"
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "sqlite": "3.50.4",
+    "storage": "SQLite WAL synchronous FULL",
+    "child_processes": true,
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "PT03_clos": false,
+  "verdict": "PARTIEL_LOT_A",
+  "limits": [
+    "Crash de processus, pas coupure électrique ni crash OS.",
+    "SQLite de banc ; aucun choix de stockage serveur/client.",
+    "Acteurs/appareils de fixture, pas authentification réelle ni transport.",
+    "Pas de chiffrement, de preuve de veille/horloge ou anti-rollback.",
+    "Lots B à F réservés ; droits simplifiés, aucune transposition complète Core/MPD."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

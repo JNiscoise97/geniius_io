@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-15",
+  "currency": "EUR",
+  "basis": "TTC_TARGET_ENVELOPES_NOT_SUPPLIER_QUOTE",
+  "monthly_cap": "100.00",
+  "production_budget_validated": false,
+  "services_ordered": false,
+  "vat_assumption": "0.20",
+  "object_storage_rate_ht_per_GB_month": "0.01606",
+  "source_urls": {
+    "vps": "https://www.ovhcloud.com/fr/vps/",
+    "storage": "https://www.scaleway.com/en/pricing/storage/"
+  },
+  "price_observations": [
+    {"name": "OVH VPS-2 starting price", "monthly_ttc": "8.65", "status": "starting_price_conditions_to_recheck"},
+    {"name": "OVH VPS-1 starting price", "monthly_ttc": "4.57", "status": "starting_price_conditions_to_recheck"}
+  ],
+  "storage_hypotheses": [
+    {"name": "media", "GB_month": "100", "free_allowance_used": false},
+    {"name": "backup_generations_total", "GB_month": "300", "free_allowance_used": false}
+  ],
+  "envelopes": [
+    {"name": "compute_and_staging", "monthly_ttc": "20.00", "kind": "target_cap"},
+    {"name": "media_storage", "monthly_ttc": "5.00", "kind": "target_cap"},
+    {"name": "independent_backup", "monthly_ttc": "10.00", "kind": "target_cap"},
+    {"name": "authority_and_secret_recovery", "monthly_ttc": "10.00", "kind": "unquoted_provision"},
+    {"name": "domain_transactional_email", "monthly_ttc": "5.00", "kind": "unquoted_provision"},
+    {"name": "monitoring", "monthly_ttc": "5.00", "kind": "unquoted_provision"},
+    {"name": "optional_AI_OCR", "monthly_ttc": "10.00", "kind": "unquoted_provision"},
+    {"name": "temporary_restore_transfer", "monthly_ttc": "5.00", "kind": "unquoted_provision"},
+    {"name": "contingency", "monthly_ttc": "30.00", "kind": "reserve"}
+  ],
+  "limits": [
+    "Starting prices are not confirmed quotes, availability or renewal commitments.",
+    "VAT 20 percent is an arithmetic scenario, not a tax determination.",
+    "Transfers, requests, minimums, versions and retained replicas require a final quote.",
+    "Self-hosted operations time, device hardware, audit and staff costs are not financed by this envelope.",
+    "No production capacity, SLA, independent failure domain or security compliance proven by this arithmetic."
+  ]
+}

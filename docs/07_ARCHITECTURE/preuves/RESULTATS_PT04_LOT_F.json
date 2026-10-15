@@ -1,0 +1,628 @@
+{
+  "prototype": "PT04",
+  "lot": "F",
+  "started_utc": "2026-10-14T10:05:29.509057+00:00",
+  "ended_utc": "2026-10-14T10:05:31.210531+00:00",
+  "cases": [
+    {
+      "id": "PT04-F01",
+      "label": "Archive ancienne protégée : purge actuelle et effet perdu réconciliés avant ouverture",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [],
+          "effects": [
+            [
+              "op1",
+              "keep",
+              "author delta"
+            ]
+          ],
+          "visible": [
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "elapsed_ms": 193.4124,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786689812185200
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786689828602800
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786689839222400
+            },
+            {
+              "phase": "authority_reconciled",
+              "monotone_ns": 786689860304000
+            },
+            {
+              "phase": "media_verified",
+              "monotone_ns": 786689871638700
+            },
+            {
+              "phase": "service_opened",
+              "monotone_ns": 786689877714500
+            }
+          ],
+          "output": {
+            "status": "restored",
+            "reconstructed_effects": 1
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [],
+              "effects": [
+                [
+                  "op1",
+                  "keep",
+                  "author delta"
+                ]
+              ],
+              "visible": [
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-F02",
+      "label": "Archive saine mais autorité tronquée : service fermé",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "elapsed_ms": 163.2628,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786690128631000
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786690140206300
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786690152227300
+            }
+          ],
+          "output": {
+            "status": "closed",
+            "reason": "authority_stale_or_corrupt"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-F03",
+      "label": "Média altéré après restauration : porte fermée puis reprise",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [],
+          "effects": [
+            [
+              "op1",
+              "keep",
+              "author delta"
+            ]
+          ],
+          "visible": [
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "elapsed_ms": 202.8365,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786690435569900
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786690446952500
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786690458303400
+            },
+            {
+              "phase": "authority_reconciled",
+              "monotone_ns": 786690481001400
+            }
+          ],
+          "output": {
+            "status": "closed",
+            "reason": "media_integrity_unknown"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [],
+              "effects": [
+                [
+                  "op1",
+                  "keep",
+                  "author delta"
+                ]
+              ],
+              "visible": [
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "elapsed_ms": 183.2294,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786690624121700
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786690627744500
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786690641389800
+            },
+            {
+              "phase": "authority_reconciled",
+              "monotone_ns": 786690658151300
+            },
+            {
+              "phase": "media_verified",
+              "monotone_ns": 786690667286900
+            },
+            {
+              "phase": "service_opened",
+              "monotone_ns": 786690676985300
+            }
+          ],
+          "output": {
+            "status": "restored",
+            "reconstructed_effects": 1
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [],
+              "effects": [
+                [
+                  "op1",
+                  "keep",
+                  "author delta"
+                ]
+              ],
+              "visible": [
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-F04",
+      "label": "Panne après autorité avant média/ouverture : reprise complète",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [],
+          "effects": [
+            [
+              "op1",
+              "keep",
+              "author delta"
+            ]
+          ],
+          "visible": [
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "exit_code": 73,
+          "elapsed_ms": 197.0222,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786690967901100
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786691009056900
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786691025878000
+            },
+            {
+              "phase": "authority_reconciled",
+              "monotone_ns": 786691041914100
+            }
+          ],
+          "output": {
+            "phase": "after_authority_commit"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [],
+              "effects": [
+                [
+                  "op1",
+                  "keep",
+                  "author delta"
+                ]
+              ],
+              "visible": [
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "elapsed_ms": 195.9725,
+          "phases": [
+            {
+              "phase": "barrier_closed",
+              "monotone_ns": 786691178445600
+            },
+            {
+              "phase": "backup_verified",
+              "monotone_ns": 786691182435600
+            },
+            {
+              "phase": "database_restored",
+              "monotone_ns": 786691192910600
+            },
+            {
+              "phase": "authority_reconciled",
+              "monotone_ns": 786691207596600
+            },
+            {
+              "phase": "media_verified",
+              "monotone_ns": 786691211163700
+            },
+            {
+              "phase": "service_opened",
+              "monotone_ns": 786691220099300
+            }
+          ],
+          "output": {
+            "status": "restored",
+            "reconstructed_effects": 1
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [],
+              "effects": [
+                [
+                  "op1",
+                  "keep",
+                  "author delta"
+                ]
+              ],
+              "visible": [
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_EXERCICE_COMBINE",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "RPO_RTO_qualifies": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Corpus minuscule, chronométrage diagnostique incluant démarrage Python ; pas qualification RPO/RTO.",
+    "Checkpoint/manifeste/secret fiables injectés, même machine et profil ; pas PRA indépendant.",
+    "Base et média locaux, pas transport, stockage objet, charge ou domaines de panne indépendants.",
+    "Média de keep seulement ; copies/binaires purgés et sauvegardes du lot D non intégrés dans cet exercice.",
+    "Barrière extérieure de fixture, aucune preuve d’exposition concurrente ou de sessions après restaurations répétées."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run_f.py": "7208290afcb9557d022a573b2af14b5341383fc010bc461c97f42b318228a650",
+    "spec/prototypes/pt04/run_e.py": "1cddba27f232e6984e9474b09c2724758ef02a322483b9f46f418f26c330739a",
+    "spec/prototypes/pt04/run_b.py": "fdf9db5a00d0077871ebe303f9ed43741442b6866d47cf95af79f493651e785f",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38",
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e"
+  }
+}

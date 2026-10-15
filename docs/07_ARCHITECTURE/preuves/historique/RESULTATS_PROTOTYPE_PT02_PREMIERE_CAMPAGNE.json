@@ -1,0 +1,2596 @@
+{
+  "prototype": "PT02",
+  "started_utc": "2026-10-13T06:55:48.255448+00:00",
+  "ended_utc": "2026-10-13T06:56:03.086180+00:00",
+  "metadata": {
+    "image_id": "sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777",
+    "image_reference": "postgres:16-alpine",
+    "cloud_cost_euros": 0,
+    "network": "none",
+    "memory_bytes": 536870912,
+    "cpu_limit": 1000000000,
+    "host_bind_mounts": [],
+    "ports": {},
+    "http_bind": "127.0.0.1",
+    "http_port": 58326,
+    "postgresql_version": "PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+    "container_removed": true
+  },
+  "HTTP_execute": true,
+  "SQL_execute": true,
+  "cases": [
+    {
+      "id": "PT02-01",
+      "objet": "Graphe filtré avant compte/facettes/suggestions/pagination",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688914418146600,
+          "path": "/search",
+          "pid": 96,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688914423296800,
+          "path": "/search",
+          "pid": 96,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688914423699300,
+          "path": "/search",
+          "status": 200,
+          "body": {
+            "items": [
+              {
+                "id": 1,
+                "title": "alpha"
+              }
+            ],
+            "count": 2,
+            "facets": [
+              {
+                "facet": "science",
+                "count": 2
+              }
+            ],
+            "suggestions": [
+              "alpha",
+              "beta"
+            ]
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688914423860300,
+          "path": "/search",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "118"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"count\":2,\"facets\":[{\"count\":2,\"facet\":\"science\"}],\"items\":[{\"id\":1,\"title\":\"alpha\"}],\"suggestions\":[\"alpha\",\"beta\"]}",
+          "duration_ns": 239660500
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688914.2137679,
+          "session": "pt01_c82d3491b8",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_c82d3491b8'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688914.4028872,
+          "session": "pt01_c82d3491b8",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "96"
+          ]
+        },
+        {
+          "t_monotone": 688914.4029335,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688914.4046706,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688914.4047233,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,0)"
+        },
+        {
+          "t_monotone": 688914.4180962,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [{\"id\":1,\"title\":\"alpha\"}], \"count\" : 2, \"facets\" : [{\"facet\":\"science\",\"count\":2}], \"suggestions\" : [\"alpha\", \"beta\"]}"
+          ]
+        },
+        {
+          "t_monotone": 688914.4182145,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,0)"
+        },
+        {
+          "t_monotone": 688914.4232601,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [{\"id\":1,\"title\":\"alpha\"}], \"count\" : 2, \"facets\" : [{\"facet\":\"science\",\"count\":2}], \"suggestions\" : [\"alpha\", \"beta\"]}"
+          ]
+        },
+        {
+          "t_monotone": 688914.4237873,
+          "session": "pt01_c82d3491b8",
+          "pid": 96,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-02",
+      "objet": "Cible cachée et absente : réponses HTTP identiques",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688914672447600,
+          "path": "/object/2",
+          "pid": 103,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688914675890800,
+          "path": "/object/2",
+          "pid": 103,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688914676261600,
+          "path": "/object/2",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688914676447600,
+          "path": "/object/2",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 159817300
+        },
+        {
+          "phase": "prepare",
+          "monotone_ns": 688914890415600,
+          "path": "/object/999",
+          "pid": 110,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688914893984000,
+          "path": "/object/999",
+          "pid": 110,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688914894372200,
+          "path": "/object/999",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688914894473800,
+          "path": "/object/999",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 218004300
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688914.5226703,
+          "session": "pt01_6b06c4a62f",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_6b06c4a62f'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688914.6621376,
+          "session": "pt01_6b06c4a62f",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "103"
+          ]
+        },
+        {
+          "t_monotone": 688914.6621842,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688914.6638548,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688914.6639025,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(2,0)"
+        },
+        {
+          "t_monotone": 688914.6724406,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688914.6724912,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(2,0)"
+        },
+        {
+          "t_monotone": 688914.6758823,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688914.6763134,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688914.6799775,
+          "session": "pt01_6b06c4a62f",
+          "pid": 103,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688914.6841028,
+          "session": "pt01_fc8f73e964",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_fc8f73e964'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688914.8802424,
+          "session": "pt01_fc8f73e964",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "110"
+          ]
+        },
+        {
+          "t_monotone": 688914.8803072,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688914.8822414,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688914.8822887,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(999,0)"
+        },
+        {
+          "t_monotone": 688914.8904101,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688914.8904611,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(999,0)"
+        },
+        {
+          "t_monotone": 688914.893977,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688914.8944218,
+          "session": "pt01_fc8f73e964",
+          "pid": 110,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-03",
+      "objet": "Protection ascendant opposable à la copie",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688915121253600,
+          "path": "/object/4",
+          "pid": 117,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688915123990900,
+          "path": "/object/4",
+          "pid": 117,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688915124439100,
+          "path": "/object/4",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688915124528000,
+          "path": "/object/4",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 156373100
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688914.9751824,
+          "session": "pt01_b259f6e0d9",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_b259f6e0d9'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688915.1118233,
+          "session": "pt01_b259f6e0d9",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "117"
+          ]
+        },
+        {
+          "t_monotone": 688915.1118857,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688915.1136672,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688915.1137211,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(4,0)"
+        },
+        {
+          "t_monotone": 688915.121245,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688915.121315,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(4,0)"
+        },
+        {
+          "t_monotone": 688915.1239844,
+          "session": "pt01_b259f6e0d9",
+          "pid": 117,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PT02-04",
+      "objet": "Révocation entre deux pages",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688915467116700,
+          "path": "/search",
+          "pid": 124,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688915472258600,
+          "path": "/search",
+          "pid": 124,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688915472633400,
+          "path": "/search",
+          "status": 200,
+          "body": {
+            "items": [
+              {
+                "id": 1,
+                "title": "alpha"
+              }
+            ],
+            "count": 2,
+            "facets": [
+              {
+                "facet": "science",
+                "count": 2
+              }
+            ],
+            "suggestions": [
+              "alpha",
+              "beta"
+            ]
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688915472714400,
+          "path": "/search",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "118"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"count\":2,\"facets\":[{\"count\":2,\"facet\":\"science\"}],\"items\":[{\"id\":1,\"title\":\"alpha\"}],\"suggestions\":[\"alpha\",\"beta\"]}",
+          "duration_ns": 259865600
+        },
+        {
+          "phase": "revocation_confirmee",
+          "monotone_ns": 688915705819500,
+          "pid": 131
+        },
+        {
+          "phase": "prepare",
+          "monotone_ns": 688915859394300,
+          "path": "/page/1",
+          "pid": 138,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688915864335500,
+          "path": "/page/1",
+          "pid": 138,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688915864665400,
+          "path": "/page/1",
+          "status": 200,
+          "body": {
+            "items": [],
+            "count": 0,
+            "facets": [],
+            "suggestions": []
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688915864819000,
+          "path": "/page/1",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "51"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"count\":0,\"facets\":[],\"items\":[],\"suggestions\":[]}",
+          "duration_ns": 140560300
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688915.2352094,
+          "session": "pt01_e0d43e783c",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_e0d43e783c'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688915.4526852,
+          "session": "pt01_e0d43e783c",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "124"
+          ]
+        },
+        {
+          "t_monotone": 688915.4527461,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688915.4544722,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688915.454514,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,0)"
+        },
+        {
+          "t_monotone": 688915.4670921,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [{\"id\":1,\"title\":\"alpha\"}], \"count\" : 2, \"facets\" : [{\"facet\":\"science\",\"count\":2}], \"suggestions\" : [\"alpha\", \"beta\"]}"
+          ]
+        },
+        {
+          "t_monotone": 688915.4671585,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,0)"
+        },
+        {
+          "t_monotone": 688915.4722358,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [{\"id\":1,\"title\":\"alpha\"}], \"count\" : 2, \"facets\" : [{\"facet\":\"science\",\"count\":2}], \"suggestions\" : [\"alpha\", \"beta\"]}"
+          ]
+        },
+        {
+          "t_monotone": 688915.4728072,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688915.4837292,
+          "session": "pt01_e0d43e783c",
+          "pid": 124,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688915.4994823,
+          "session": "pt01_91f9782726",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_91f9782726'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688915.6985191,
+          "session": "pt01_91f9782726",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "131"
+          ]
+        },
+        {
+          "t_monotone": 688915.6985797,
+          "session": "pt01_91f9782726",
+          "pid": 131,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 688915.705814,
+          "session": "pt01_91f9782726",
+          "pid": 131,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 688915.7299471,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_ccb6d6fbe1'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688915.8453448,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "138"
+          ]
+        },
+        {
+          "t_monotone": 688915.8453921,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688915.8471996,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688915.8472426,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,1)"
+        },
+        {
+          "t_monotone": 688915.8593628,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [], \"count\" : 0, \"facets\" : [], \"suggestions\" : []}"
+          ]
+        },
+        {
+          "t_monotone": 688915.8594538,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(NULL,1)"
+        },
+        {
+          "t_monotone": 688915.8643131,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "réponse",
+          "lignes": [
+            "{\"items\" : [], \"count\" : 0, \"facets\" : [], \"suggestions\" : []}"
+          ]
+        },
+        {
+          "t_monotone": 688915.8647458,
+          "session": "pt01_ccb6d6fbe1",
+          "pid": 138,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-05",
+      "objet": "Cache préparé non réutilisé après révocation",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688916141255300,
+          "path": "/object/1",
+          "pid": 145,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688916144057700,
+          "path": "/object/1",
+          "pid": 145,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688916144380500,
+          "path": "/object/1",
+          "status": 200,
+          "body": {
+            "id": 1,
+            "title": "alpha"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688916144424100,
+          "path": "/object/1",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "24"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"id\":1,\"title\":\"alpha\"}",
+          "duration_ns": 191288000
+        },
+        {
+          "phase": "revocation_confirmee",
+          "monotone_ns": 688916343652300,
+          "pid": 153
+        },
+        {
+          "phase": "prepare",
+          "monotone_ns": 688916540943200,
+          "path": "/cached/1",
+          "pid": 160,
+          "cached": true
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688916548721900,
+          "path": "/cached/1",
+          "pid": 160,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688916549077900,
+          "path": "/cached/1",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688916549261700,
+          "path": "/cached/1",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 188616400
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688915.9765649,
+          "session": "pt01_b63c7b7f2d",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_b63c7b7f2d'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688916.1314866,
+          "session": "pt01_b63c7b7f2d",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "145"
+          ]
+        },
+        {
+          "t_monotone": 688916.1315323,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688916.1333406,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688916.1333968,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688916.1412211,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688916.1413048,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688916.1440321,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688916.1444817,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688916.1479412,
+          "session": "pt01_b63c7b7f2d",
+          "pid": 145,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688916.1492933,
+          "session": "pt01_97e136d3e7",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_97e136d3e7'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688916.3368061,
+          "session": "pt01_97e136d3e7",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "153"
+          ]
+        },
+        {
+          "t_monotone": 688916.336865,
+          "session": "pt01_97e136d3e7",
+          "pid": 153,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 688916.3436469,
+          "session": "pt01_97e136d3e7",
+          "pid": 153,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 688916.366227,
+          "session": "pt01_91ed078741",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_91ed078741'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688916.5388059,
+          "session": "pt01_91ed078741",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "160"
+          ]
+        },
+        {
+          "t_monotone": 688916.538851,
+          "session": "pt01_91ed078741",
+          "pid": 160,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688916.5409364,
+          "session": "pt01_91ed078741",
+          "pid": 160,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688916.5409899,
+          "session": "pt01_91ed078741",
+          "pid": 160,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688916.548716,
+          "session": "pt01_91ed078741",
+          "pid": 160,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688916.5491846,
+          "session": "pt01_91ed078741",
+          "pid": 160,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-06",
+      "objet": "Expiration entre préparation et contrôle final",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688916845808200,
+          "path": "/object/1",
+          "pid": 167,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688918700678100,
+          "path": "/object/1",
+          "pid": 167,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688918701562000,
+          "path": "/object/1",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688918701733000,
+          "path": "/object/1",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 2054221000
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688916.6333384,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
+        },
+        {
+          "t_monotone": 688916.6474849,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688916.6925676,
+          "session": "pt01_4226b250f7",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_4226b250f7'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688916.8355992,
+          "session": "pt01_4226b250f7",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "167"
+          ]
+        },
+        {
+          "t_monotone": 688916.8356442,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688916.8374353,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688916.8374857,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688916.8457877,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688916.8458504,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
+        },
+        {
+          "t_monotone": 688918.6949401,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688918.6950228,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688918.700665,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688918.7016363,
+          "session": "pt01_4226b250f7",
+          "pid": 167,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-07",
+      "objet": "Garde conservée à la remise HTTP et révocation bloquée",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688918929680500,
+          "path": "/object/1",
+          "pid": 174,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688918932610500,
+          "path": "/object/1",
+          "pid": 174,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688919065806900,
+          "path": "/object/1",
+          "status": 200,
+          "body": {
+            "id": 1,
+            "title": "alpha"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688919066004100,
+          "path": "/object/1",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "24"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"id\":1,\"title\":\"alpha\"}",
+          "duration_ns": 281269900
+        },
+        {
+          "phase": "revocation_confirmee",
+          "monotone_ns": 688919072448300,
+          "pid": 181
+        },
+        {
+          "phase": "prepare",
+          "monotone_ns": 688919262254500,
+          "path": "/object/1",
+          "pid": 188,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688919264934100,
+          "path": "/object/1",
+          "pid": 188,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688919265223500,
+          "path": "/object/1",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688919265374000,
+          "path": "/object/1",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 171848400
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688918.7905654,
+          "session": "pt01_b3a3c2258d",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_b3a3c2258d'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688918.9190426,
+          "session": "pt01_b3a3c2258d",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "174"
+          ]
+        },
+        {
+          "t_monotone": 688918.9190883,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688918.9208783,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688918.9209685,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688918.9296416,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688918.9297406,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688918.9325837,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688918.9371661,
+          "session": "pt01_290fbb201e",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_290fbb201e'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688919.0583103,
+          "session": "pt01_290fbb201e",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "181"
+          ]
+        },
+        {
+          "t_monotone": 688919.0583654,
+          "session": "pt01_290fbb201e",
+          "pid": 181,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 688919.0584034,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "SELECT count(*) FROM pg_stat_activity WHERE pid=181 AND wait_event_type='Lock'"
+        },
+        {
+          "t_monotone": 688919.0652362,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": [
+            "1"
+          ]
+        },
+        {
+          "t_monotone": 688919.0652423,
+          "phase": "blocage_SQL_observé",
+          "pid": 181
+        },
+        {
+          "t_monotone": 688919.0658743,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688919.0694846,
+          "session": "pt01_b3a3c2258d",
+          "pid": 174,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688919.072442,
+          "session": "pt01_290fbb201e",
+          "pid": 181,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 688919.0985198,
+          "session": "pt01_f42e79f39d",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_f42e79f39d'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688919.2511195,
+          "session": "pt01_f42e79f39d",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "188"
+          ]
+        },
+        {
+          "t_monotone": 688919.2511896,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688919.2530633,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688919.2531253,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688919.2622472,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688919.2623117,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688919.264929,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688919.2653077,
+          "session": "pt01_f42e79f39d",
+          "pid": 188,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-08",
+      "objet": "Révocation entre deux portions de flux HTTP",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "portion_remise",
+          "monotone_ns": 688919493734000,
+          "portion": 0,
+          "pid": 195
+        },
+        {
+          "phase": "revocation_confirmee",
+          "monotone_ns": 688919689457900,
+          "pid": 202
+        },
+        {
+          "phase": "portion_refusee",
+          "monotone_ns": 688919870922800,
+          "portion": 1
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688919888588900,
+          "path": "/stream",
+          "status": 200,
+          "headers": [
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "alpha\n",
+          "duration_ns": 543335600
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688919.3505999,
+          "session": "pt01_d83a6483f7",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_d83a6483f7'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688919.4833746,
+          "session": "pt01_d83a6483f7",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "195"
+          ]
+        },
+        {
+          "t_monotone": 688919.4834248,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 688919.4852482,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688919.485305,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688919.493607,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688919.4938342,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688919.4970593,
+          "session": "pt01_d83a6483f7",
+          "pid": 195,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688919.5287313,
+          "session": "pt01_ce8f504c22",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_ce8f504c22'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688919.6819063,
+          "session": "pt01_ce8f504c22",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "202"
+          ]
+        },
+        {
+          "t_monotone": 688919.6819504,
+          "session": "pt01_ce8f504c22",
+          "pid": 202,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 688919.6894518,
+          "session": "pt01_ce8f504c22",
+          "pid": 202,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 688919.7130019,
+          "session": "pt01_57db3a6b7b",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_57db3a6b7b'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688919.8592685,
+          "session": "pt01_57db3a6b7b",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "209"
+          ]
+        },
+        {
+          "t_monotone": 688919.8594949,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 688919.8613706,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688919.8614132,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688919.8688843,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688919.8689467,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "envoyé",
+          "sql": "ROLLBACK"
+        },
+        {
+          "t_monotone": 688919.8709081,
+          "session": "pt01_57db3a6b7b",
+          "pid": 209,
+          "phase": "réponse",
+          "lignes": []
+        }
+      ]
+    },
+    {
+      "id": "PT02-09",
+      "objet": "Ancienne URL réévaluée après révocation",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "prepare",
+          "monotone_ns": 688920099415200,
+          "path": "/object/1",
+          "pid": 216,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688920102471300,
+          "path": "/object/1",
+          "pid": 216,
+          "authorized": true
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688920102902100,
+          "path": "/object/1",
+          "status": 200,
+          "body": {
+            "id": 1,
+            "title": "alpha"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688920103073100,
+          "path": "/object/1",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "24"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"id\":1,\"title\":\"alpha\"}",
+          "duration_ns": 148715800
+        },
+        {
+          "phase": "revocation_confirmee",
+          "monotone_ns": 688920258278400,
+          "pid": 223
+        },
+        {
+          "phase": "prepare",
+          "monotone_ns": 688920426129600,
+          "path": "/object/1",
+          "pid": 231,
+          "cached": false
+        },
+        {
+          "phase": "controle_final",
+          "monotone_ns": 688920428745000,
+          "path": "/object/1",
+          "pid": 231,
+          "authorized": false
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688920429138000,
+          "path": "/object/1",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688920429303100,
+          "path": "/object/1",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 153907000
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688919.9620124,
+          "session": "pt01_6bdfa15a61",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_6bdfa15a61'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688920.0888833,
+          "session": "pt01_6bdfa15a61",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "216"
+          ]
+        },
+        {
+          "t_monotone": 688920.0889517,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688920.0912709,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.091329,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688920.099387,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688920.0994765,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688920.1024409,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "réponse",
+          "lignes": [
+            "{\"id\" : 1, \"title\" : \"alpha\"}"
+          ]
+        },
+        {
+          "t_monotone": 688920.1029562,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        },
+        {
+          "t_monotone": 688920.1069502,
+          "session": "pt01_6bdfa15a61",
+          "pid": 216,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.108723,
+          "session": "pt01_71cf41d1e6",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_71cf41d1e6'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688920.2505411,
+          "session": "pt01_71cf41d1e6",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "223"
+          ]
+        },
+        {
+          "t_monotone": 688920.2505899,
+          "session": "pt01_71cf41d1e6",
+          "pid": 223,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.revoke_fixture(1)"
+        },
+        {
+          "t_monotone": 688920.2582734,
+          "session": "pt01_71cf41d1e6",
+          "pid": 223,
+          "phase": "réponse",
+          "lignes": [
+            "2"
+          ]
+        },
+        {
+          "t_monotone": 688920.2808279,
+          "session": "pt01_2a2cf02eb8",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_2a2cf02eb8'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688920.4146953,
+          "session": "pt01_2a2cf02eb8",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "231"
+          ]
+        },
+        {
+          "t_monotone": 688920.4147411,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+        },
+        {
+          "t_monotone": 688920.4167031,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.4167479,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688920.4261238,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688920.426171,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.render_fixture(1,0)"
+        },
+        {
+          "t_monotone": 688920.4287395,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "réponse",
+          "lignes": [
+            ""
+          ]
+        },
+        {
+          "t_monotone": 688920.4291867,
+          "session": "pt01_2a2cf02eb8",
+          "pid": 231,
+          "phase": "envoyé",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "id": "PT02-10",
+      "objet": "Succès HTTP après commit confirmé et effets atomiques",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "mutation_preparee",
+          "monotone_ns": 688920698787900,
+          "pid": 238
+        },
+        {
+          "phase": "commit_confirme",
+          "monotone_ns": 688920710600900,
+          "pid": 238
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688920710916200,
+          "path": "/mutation",
+          "status": 200,
+          "body": {
+            "status": "integre"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688920711056500,
+          "path": "/mutation",
+          "status": 200,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "20"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"status\":\"integre\"}",
+          "duration_ns": 212090200
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688920.5074493,
+          "session": "pt01_517684899b",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_517684899b'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688920.686385,
+          "session": "pt01_517684899b",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "238"
+          ]
+        },
+        {
+          "t_monotone": 688920.6864303,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 688920.6887167,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.6888091,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','http_command')"
+        },
+        {
+          "t_monotone": 688920.6987787,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "réponse",
+          "lignes": [
+            "integre"
+          ]
+        },
+        {
+          "t_monotone": 688920.698854,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 688920.7031029,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        },
+        {
+          "t_monotone": 688920.7031684,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "envoyé",
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
+        },
+        {
+          "t_monotone": 688920.7105951,
+          "session": "pt01_517684899b",
+          "pid": 238,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.711104,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 688920.7144779,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 1, \"activities\" : 1, \"outbox\" : 1, \"receipts\" : 1, \"impacted\" : true, \"object_version\" : 1}"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PT02-11",
+      "objet": "Échec de commit : aucun succès HTTP ni effet canonique",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [
+        {
+          "phase": "mutation_preparee",
+          "monotone_ns": 688920961039300,
+          "pid": 245
+        },
+        {
+          "phase": "remis_transport",
+          "monotone_ns": 688920987690900,
+          "path": "/mutation",
+          "status": 404,
+          "body": {
+            "error": "introuvable"
+          }
+        },
+        {
+          "phase": "recu_client",
+          "monotone_ns": 688920987833000,
+          "path": "/mutation",
+          "status": 404,
+          "headers": [
+            [
+              "Content-Type",
+              "application/json"
+            ],
+            [
+              "Cache-Control",
+              "no-store"
+            ],
+            [
+              "Content-Length",
+              "23"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": "{\"error\":\"introuvable\"}",
+          "duration_ns": 207452900
+        }
+      ],
+      "sql_traces": [
+        {
+          "t_monotone": 688920.8071621,
+          "session": "pt01_b48696980e",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_b48696980e'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688920.9473248,
+          "session": "pt01_b48696980e",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "245"
+          ]
+        },
+        {
+          "t_monotone": 688920.9473713,
+          "session": "pt01_b48696980e",
+          "pid": 245,
+          "phase": "envoyé",
+          "sql": "BEGIN"
+        },
+        {
+          "t_monotone": 688920.949226,
+          "session": "pt01_b48696980e",
+          "pid": 245,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.9492826,
+          "session": "pt01_b48696980e",
+          "pid": 245,
+          "phase": "envoyé",
+          "sql": "SELECT pt01.write_fixture(1,0,'synthetic','http_command')"
+        },
+        {
+          "t_monotone": 688920.9610292,
+          "session": "pt01_b48696980e",
+          "pid": 245,
+          "phase": "réponse",
+          "lignes": [
+            "integre"
+          ]
+        },
+        {
+          "t_monotone": 688920.9611,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()-interval '1 second' WHERE object_id=1"
+        },
+        {
+          "t_monotone": 688920.9651977,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": []
+        },
+        {
+          "t_monotone": 688920.9652441,
+          "session": "pt01_b48696980e",
+          "pid": 245,
+          "phase": "envoyé",
+          "sql": "DO $$ BEGIN PERFORM pt01.finalize_fixture(); END $$; COMMIT"
+        },
+        {
+          "t_monotone": 688920.9878993,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "envoyé",
+          "sql": "SELECT json_build_object('epoch',(SELECT epoch FROM pt01.authority),'active',(SELECT active FROM pt01.grant_fixture WHERE object_id=1),'versions',(SELECT count(*) FROM pt01.version_fixture),'activities',(SELECT count(*) FROM pt01.activity_fixture),'outbox',(SELECT count(*) FROM pt01.outbox_fixture),'receipts',(SELECT count(*) FROM pt01.receipt_fixture),'impacted',(SELECT impacted FROM pt01.dependency_fixture WHERE amont=1),'object_version',(SELECT version FROM pt01.object_fixture WHERE id=1))"
+        },
+        {
+          "t_monotone": 688920.9925281,
+          "session": "pt01_8842b6ec58",
+          "pid": 89,
+          "phase": "réponse",
+          "lignes": [
+            "{\"epoch\" : 1, \"active\" : true, \"versions\" : 0, \"activities\" : 0, \"outbox\" : 0, \"receipts\" : 0, \"impacted\" : false, \"object_version\" : 0}"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PT02-12",
+      "objet": "Rôle lecture sans accès direct aux tables",
+      "statut": "PASS",
+      "erreur": null,
+      "http_traces": [],
+      "sql_traces": [
+        {
+          "t_monotone": 688921.0602305,
+          "session": "pt01_77d978487a",
+          "pid": null,
+          "phase": "envoyé",
+          "sql": "SET application_name='pt01_77d978487a'; SELECT pg_backend_pid()"
+        },
+        {
+          "t_monotone": 688921.2017548,
+          "session": "pt01_77d978487a",
+          "pid": null,
+          "phase": "réponse",
+          "lignes": [
+            "253"
+          ]
+        },
+        {
+          "t_monotone": 688921.2018013,
+          "session": "pt01_77d978487a",
+          "pid": 253,
+          "phase": "envoyé",
+          "sql": "SELECT * FROM pt01.search_fixture"
+        }
+      ]
+    }
+  ],
+  "contre_epreuve": {
+    "id": "PT02-CE01",
+    "statut": "CONTRE_EXEMPLE_OBSERVE",
+    "objet": "Pause injectée après contrôle final lecture : contenu remis au transport après échéance",
+    "http_traces": [
+      {
+        "phase": "prepare",
+        "monotone_ns": 688921466066100,
+        "path": "/object/1",
+        "pid": 260,
+        "cached": false
+      },
+      {
+        "phase": "controle_final",
+        "monotone_ns": 688921468750400,
+        "path": "/object/1",
+        "pid": 260,
+        "authorized": true
+      },
+      {
+        "phase": "echeance_depassee_avant_transport",
+        "monotone_ns": 688923357966900,
+        "server_time": "2026-10-13 06:56:02.305519+00"
+      },
+      {
+        "phase": "remis_transport",
+        "monotone_ns": 688923358276700,
+        "path": "/object/1",
+        "status": 200,
+        "body": {
+          "id": 1,
+          "title": "alpha"
+        }
+      },
+      {
+        "phase": "recu_client",
+        "monotone_ns": 688923358429700,
+        "path": "/object/1",
+        "status": 200,
+        "headers": [
+          [
+            "Content-Type",
+            "application/json"
+          ],
+          [
+            "Cache-Control",
+            "no-store"
+          ],
+          [
+            "Content-Length",
+            "24"
+          ],
+          [
+            "Connection",
+            "close"
+          ]
+        ],
+        "body": "{\"id\":1,\"title\":\"alpha\"}",
+        "duration_ns": 2054018200
+      }
+    ],
+    "sql_traces": [
+      {
+        "t_monotone": 688921.3010147,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "envoyé",
+        "sql": "UPDATE pt01.grant_fixture SET expires_at=clock_timestamp()+interval '2 seconds' WHERE object_id=1"
+      },
+      {
+        "t_monotone": 688921.3044001,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "réponse",
+        "lignes": []
+      },
+      {
+        "t_monotone": 688921.309905,
+        "session": "pt01_4ba9a7a484",
+        "pid": null,
+        "phase": "envoyé",
+        "sql": "SET application_name='pt01_4ba9a7a484'; SELECT pg_backend_pid()"
+      },
+      {
+        "t_monotone": 688921.4564738,
+        "session": "pt01_4ba9a7a484",
+        "pid": null,
+        "phase": "réponse",
+        "lignes": [
+          "260"
+        ]
+      },
+      {
+        "t_monotone": 688921.4565174,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "envoyé",
+        "sql": "BEGIN ISOLATION LEVEL READ COMMITTED"
+      },
+      {
+        "t_monotone": 688921.4582654,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "réponse",
+        "lignes": []
+      },
+      {
+        "t_monotone": 688921.4583222,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "envoyé",
+        "sql": "SELECT pt01.render_fixture(1,0)"
+      },
+      {
+        "t_monotone": 688921.4660456,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "réponse",
+        "lignes": [
+          "{\"id\" : 1, \"title\" : \"alpha\"}"
+        ]
+      },
+      {
+        "t_monotone": 688921.4661076,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "envoyé",
+        "sql": "SELECT pt01.render_fixture(1,0)"
+      },
+      {
+        "t_monotone": 688921.4686744,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "réponse",
+        "lignes": [
+          "{\"id\" : 1, \"title\" : \"alpha\"}"
+        ]
+      },
+      {
+        "t_monotone": 688921.4688085,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "envoyé",
+        "sql": "SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM ((SELECT expires_at FROM pt01.grant_fixture WHERE object_id=1)-clock_timestamp())))+0.05)"
+      },
+      {
+        "t_monotone": 688923.3559965,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "réponse",
+        "lignes": [
+          ""
+        ]
+      },
+      {
+        "t_monotone": 688923.3560406,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "envoyé",
+        "sql": "SELECT clock_timestamp()"
+      },
+      {
+        "t_monotone": 688923.3579615,
+        "session": "pt01_8842b6ec58",
+        "pid": 89,
+        "phase": "réponse",
+        "lignes": [
+          "2026-10-13 06:56:02.305519+00"
+        ]
+      },
+      {
+        "t_monotone": 688923.3583555,
+        "session": "pt01_4ba9a7a484",
+        "pid": 260,
+        "phase": "envoyé",
+        "sql": "COMMIT"
+      }
+    ]
+  },
+  "fatal": null,
+  "verdict": "PARTIEL_SORTIE_TEMPORELLE_NON_RESOLUE",
+  "PT02_clos": false,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "limites": [
+    "Corpus binaire réduit, pas moteur V1.6/MLD complet, recherche spécialisée ni contraintes UQ de production.",
+    "Identité synthétique fixe ; aucune API authentifiée de production, TLS, proxy, CDN ou URL signée.",
+    "Pas de garantie statistique NF10 ni benchmark NF02 ; réponses identiques ne prouvent pas délais indistinguables.",
+    "Expiration après dernier contrôle avant socket : contre-exemple observé, SEC-03 et PT02 non clos.",
+    "DC-AUTH-01 ne concerne que les mutations ; aucune extension aux lectures adoptée.",
+    "HTTP local standard Python de banc ; aucune pile de production choisie."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt02/run.py": "ab4c5c5a81a02bffbf7fb1fc60878e119fe5428464b2e8826fe07e7fe2dccdfc",
+    "spec/prototypes/pt02/schema.sql": "795cb11af1651035c8b387b486bf8324bb9e4320c55501f2cfc1a5f850f33f84",
+    "spec/prototypes/pt01/run.py": "6aa758df2eaff8d2838ee79547b563f9e7eb59d9650cc56051d43b4283fa6923",
+    "spec/prototypes/pt01/schema.sql": "3ded4f12efa4ebe5b007909c251e1e35a80a6bd7e3fde9fd4aefc9558d1e44a7"
+  }
+}

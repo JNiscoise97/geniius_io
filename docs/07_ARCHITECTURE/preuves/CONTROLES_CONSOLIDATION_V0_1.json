@@ -12,10 +12,20 @@
   "architecture_gelee": false,
   "pile_ratifiee": false,
   "prototypes_executes": [
-    "PT01"
+    "PT01",
+    "PT02",
+    "PT03",
+    "PT04",
+    "PT05",
+    "PT06"
   ],
   "prototypes_clos": [
-    "PT01"
+    "PT01",
+    "PT02",
+    "PT03",
+    "PT04",
+    "PT05",
+    "PT06"
   ],
   "budget_mensuel_estime": false,
   "erreurs": [],
@@ -24,11 +34,11 @@
     "Aucune preuve physique de concurrence/OS/durabilité/capacité, aucun benchmark ni coût fournisseur acquis."
   ],
   "sha256": {
-    "spec/validation/registre_architecture_v0_1.json": "71485ce19fb046a4efd75130c1979880cd22d4ce3995b167543c4741bbdc4b1b",
-    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md": "b80af0b0f6dc105f91c2e37e96220b6fc80b9d830278fe6752cb131ba093b51a",
+    "spec/validation/registre_architecture_v0_1.json": "8469e0d49a7521fac4ad5560a8a9bed6a930687c789c0c75da2977a4522693e3",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_10_REGISTRE_DECISIONS.md": "c45d5b2e83641e827690f77e0bc350fdf313a97a930b4acda883344c39ea7fef",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_08_DEPLOIEMENT.md": "a8d12d912c2c07210b5e4470e59a13f41278430dcca7862cd5f7c6066c2969bc",
     "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_09_ALTERNATIVES_TECHNOLOGIQUES.md": "d612af767738577981e219bd571db2c64a271b9c28b7d638e3dd07d3b00799f0",
-    "spec/validation/consolider_decisions_architecture.py": "8fbb1fd6d787987c74c2a0cb43316655e09aed28147267416c77ee68698a85d7",
-    "spec/validation/controler_consolidation_architecture.py": "093264708ffa543764f53b6f5e6b9ea5444777fb1396b5029d6f59dd158d3696"
+    "spec/validation/consolider_decisions_architecture.py": "94443d361cc216a571d281fae219e7b8bf1932e8f6a253e5958f1b46bbda8dda",
+    "spec/validation/controler_consolidation_architecture.py": "a9a22b1266ae88adb8b7efd9be1fc24cf0d027748d53cb06621e68f99cd7f1e5"
   }
 }

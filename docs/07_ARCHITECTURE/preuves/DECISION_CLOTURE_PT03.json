@@ -1,0 +1,37 @@
+{
+  "prototype": "PT03",
+  "date_decision": "2026-10-13",
+  "decision": "CLOTURE_PERIMETRE_REDUIT",
+  "accord_porteur": "poursuis",
+  "contexte_accord": "Instruction de poursuivre apres presentation des criteres de cloture et reserves.",
+  "criteres_retenus": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8"
+  ],
+  "PT03_clos_perimetre_reduit": true,
+  "qualification_globale": false,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "reserves_maintenues": [
+    "PT03-R01",
+    "PT03-R02",
+    "PT03-R03",
+    "PT03-R04"
+  ],
+  "sha256_preuves": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT03_CRITERES_CLOTURE.md": "f47fdfe8838fa82cf528c1dfc5fb6850d150a0a135139464a4b8c51d77eca16b",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT03.json": "3ee485c3795b2e00c1eb38058a845e330f1ed04ec603b3b8951180b2c31ae6ab",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_ARTICULATION.json": "9a63ace2e0c748d68be696fd823857634d6836e2d3aced6306db85982e579351",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_B.json": "e6cd0f1cfd80489890d955426ec5760bf8ea68d0d163606ed20ce8668af96e48",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_C.json": "5bfd363bac447d491fd8157d611b47c8a2c1de4279e11d26f30367c14f32a55b",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_D.json": "cb0013818b966ebc197159ff9b3fa7d048e4c0f94d4563dd7aa329b1a93b2373",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_E.json": "e61ae42e50d187b714da0c8372fc80dc14499b31e1601afe445b62c23c09bd6f",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_F.json": "6633e6a5df30d9ded7bc1255edc9dc9195eb0017a9908b499655b18240c7ea0f"
+  }
+}

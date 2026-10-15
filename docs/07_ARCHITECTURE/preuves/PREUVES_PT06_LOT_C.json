@@ -1,0 +1,13 @@
+{
+  "prototype": "PT06",
+  "lot": "C",
+  "PT06_clos": false,
+  "deploiement_production_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_C.json": "9106587f6ae751892ccde39f89bfacd20d40a62cce16112209ec665609be4f5c",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT06_LOT_C.md": "45bb64eaa71b290f191b01d8cab4dbfcf1b925f7eb398470159a282df100b7af",
+    "spec/prototypes/pt06/check_c.py": "86d8e58afb6e3b8607bbc79c858ade362b75143d2bacfac4589a758f6ed4fc83",
+    "spec/prototypes/pt06/run_c.py": "80ef40f3040f4cc7cba8d5d6261e13f2439a13c558adda5b8743eba0579526bf",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

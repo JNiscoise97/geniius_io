@@ -1,0 +1,91 @@
+{
+  "prototype": "PT04",
+  "essais": 37,
+  "lots": [
+    {
+      "lot": "A",
+      "essais": 8,
+      "verdict": "PARTIEL_AUTORITE_RESTAURATION"
+    },
+    {
+      "lot": "B",
+      "essais": 6,
+      "verdict": "PARTIEL_POLITIQUES_REPRISE"
+    },
+    {
+      "lot": "C",
+      "essais": 7,
+      "verdict": "PARTIEL_DEPOT_DOCUMENTAIRE"
+    },
+    {
+      "lot": "D",
+      "essais": 6,
+      "verdict": "PARTIEL_PURGE_CONSERVATION"
+    },
+    {
+      "lot": "E",
+      "essais": 6,
+      "verdict": "PARTIEL_SAUVEGARDE_PROTEGEE"
+    },
+    {
+      "lot": "F",
+      "essais": 4,
+      "verdict": "PARTIEL_EXERCICE_COMBINE"
+    }
+  ],
+  "PT04_clos": true,
+  "PT04_clos_perimetre_reduit": true,
+  "NF05_qualifie": false,
+  "architecture_gelee": false,
+  "reserves": [
+    "PT04-R01",
+    "PT04-R02",
+    "PT04-R03",
+    "PT04-R04",
+    "PT04-R05"
+  ],
+  "PR_non_executes_dans_montage": [
+    "PR03",
+    "PR04",
+    "PR09",
+    "PR11"
+  ],
+  "erreurs": [],
+  "sha256": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT04_CRITERES_CLOTURE.md": "c627b5a6bb68d247e4ed23c3816dcad800fff5a6447ee4296caefec4fe061165",
+    "docs/07_ARCHITECTURE/preuves/DECISION_CLOTURE_PT04.json": "442d0fa66caf2e575527b72f6ce1c4ec9b3463ae7da85e4fd113b95ed71532e6",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PROTOTYPE_PT04.json": "dff634a437f32fb556f1dae739649aa2778dcf4044d1bace0cc1ffddb29299df",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT04_LOT_B.json": "0a5ff382a887c26ebf64d1ac418463284cedee17ade8e645123f5d8eaae2de5d",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT04_LOT_C.json": "e3443e42ee9b9fb692a6e5ca16fc84d6f99b54081f2ea25a673317255e41d138",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT04_LOT_D.json": "48b4aa08e59322d5a56d1819b872867240a108be0a812abbd4b76e2a44a014a9",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT04_LOT_E.json": "c471eed5a52a04cb75a4004f62492c440f586b6f9279fe992e2d2ab24566ba51",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT04_LOT_F.json": "3c2b49193a74d4cb87ef7f91e7ec252d936207d73d92fae4d46f57f7982f1fd4",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT04.md": "6bb9293505dd3834c03de5013cd75c4186b406e7ee49ae20b1350d2264c1a08b",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_B.md": "03a66fafea012161ec14d2e7453f2f37f77a9dbba7defbbafd3e6568869978bf",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_C.md": "c88f36cf1071028097e8c5cdd04d73f816967e5900aed042a0111ff639e84eee",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_D.md": "09edc321a1ec47fe0eb2b6d57ed7c77fffd5ffc3622cc9f8958bedda33a952a3",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_E.md": "e74ba7f31c50b2fa77668782e3a643bc929f8ceb1a07d30fc423100aa96d4540",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_F.md": "ce94cae10bbc61f950301ec3c45087589b4840d6f6194b18eeff5a0035e5ff80",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT04.json": "af65ee46eac9833015d578d92b9d5906d0595cdc1d21e2e832584bf729ab5715",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_B.json": "05048d8dc001cb1e70068484c6d2dde3b8659428e5fd3f9bf6e7a3236935d172",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_C.json": "30befc0e1587829affbaf800ead14c1ac9995d53b908ea4258c924104c065cd0",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_D.json": "07aa6254ddcb229e656c596536ac37295e2c24106c4041820f7a3e2c949a5da7",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_E.json": "1389c203ce82231247892569af253e1ba2062c3238e5a8eaa3b6d1e71e4a36c8",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_F.json": "2021291c30f1d0907be504e271e80efe5f8e4e341a2cf742505c156e4a8a22f2",
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e",
+    "spec/prototypes/pt04/check_b.py": "cb500d7008c024f5340868a190dc2aab06a180aa59f82adbd9e3c4bd6228d884",
+    "spec/prototypes/pt04/check_c.py": "d22b3481fefe3a7032e8483a89501d6505867cf75d94ccc5416eed489d2cfea5",
+    "spec/prototypes/pt04/check_d.py": "c4862714c17341383889373cb051877fb7210373e967814117536841e1a40cf4",
+    "spec/prototypes/pt04/check_e.py": "233e9a86d482ca42c01235f086d80b317b916d227506c31cfbdfc3f99b07743f",
+    "spec/prototypes/pt04/check_f.py": "a771e82e8d9191a96af69e6910366b1f45f1b8b6fc3dca616570e0f42ee9497b",
+    "spec/prototypes/pt04/check_results.py": "d15a89bba32b2421b51bb96c0d7714569a9a86a884e2ab28adc739884951a94b",
+    "spec/prototypes/pt04/consolidate.py": "e967c58a2dc4d7bf30d8e083161d430e23f974c6212993a5e2e65ee3042a9dc4",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/run_b.py": "fdf9db5a00d0077871ebe303f9ed43741442b6866d47cf95af79f493651e785f",
+    "spec/prototypes/pt04/run_c.py": "615acfc97f0491666f6ff9561b739e781f026052130f96634204d6f2def2bc12",
+    "spec/prototypes/pt04/run_d.py": "837a7426fa1e96db5a997ccb3a0df6ba62add09cd9a185a795c34f6f743985ba",
+    "spec/prototypes/pt04/run_e.py": "1cddba27f232e6984e9474b09c2724758ef02a322483b9f46f418f26c330739a",
+    "spec/prototypes/pt04/run_f.py": "7208290afcb9557d022a573b2af14b5341383fc010bc461c97f42b318228a650"
+  }
+}

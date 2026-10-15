@@ -1,0 +1,13 @@
+{
+  "prototype": "PT03",
+  "lot": "F",
+  "PT03_clos": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_F.json": "6633e6a5df30d9ded7bc1255edc9dc9195eb0017a9908b499655b18240c7ea0f",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT03_LOT_F.md": "85dbf2c9f62a407999a5362fd29c29abeda599481f5e4b41468376a703c6fc5d",
+    "spec/prototypes/pt03/check_f.py": "97ac84e01a1f3886f18dae710606db438c6b2419bb8850b9c8098514519d31ca",
+    "spec/prototypes/pt03/run_f.py": "99de06415b3ec509b39a09b44a74305050d6c3d455928e2603af0e2405113312",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

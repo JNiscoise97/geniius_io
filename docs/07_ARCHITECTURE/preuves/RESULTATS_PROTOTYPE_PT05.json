@@ -1,0 +1,3257 @@
+{
+  "prototype": "PT05",
+  "lot": "A",
+  "started_utc": "2026-10-14T10:29:26.738512+00:00",
+  "ended_utc": "2026-10-14T10:29:41.327207+00:00",
+  "cases": [
+    {
+      "id": "PT05-A01",
+      "label": "Transaction métier/outbox annulée : aucun travail publié",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "before_business_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_business_commit"
+          },
+          "durable_after": {
+            "business": [],
+            "outbox": [],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "empty"
+          },
+          "durable_after": {
+            "business": [],
+            "outbox": [],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A02",
+      "label": "Commit métier puis dispatcher perdu : travail retrouvé",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "after_business_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_business_commit"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A03",
+      "label": "Publication durable et accusé perdu : livraison rejouée",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "after_queue_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_queue_commit"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A04",
+      "label": "Effet commis puis réponse perdue : checkpoint rejoué",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "after_effect_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_effect_commit"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "already_finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A05",
+      "label": "Bail expiré et reprise : ancienne tentative refusée",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            2,
+            20
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 2
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                2,
+                20
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                2,
+                20
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 2,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                2,
+                20
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A06",
+      "label": "Annulation avant finalisation : succès ancien refusé",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "cancelled",
+            2,
+            10
+          ]
+        ],
+        "effect": [],
+        "receipt": [],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "cancel",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "cancelled"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "cancelled",
+                2,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "cancelled",
+                2,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A07",
+      "label": "Deux finalisations concurrentes : un effet",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "already_finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A08",
+      "label": "Origine répétée avec empreinte différente : conflit",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "done",
+            1,
+            10
+          ]
+        ],
+        "effect": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "receipt": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ],
+        "delivery": [
+          [
+            "job1",
+            "conflicting delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "conflict"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "conflicting delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "conflict"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "conflicting delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "finalized"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "done",
+                1,
+                10
+              ]
+            ],
+            "effect": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "receipt": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ],
+            "delivery": [
+              [
+                "job1",
+                "conflicting delta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-A09",
+      "label": "Autorité retirée pendant travail : finalisation refusée",
+      "status": "PASS",
+      "before": {
+        "business": [],
+        "outbox": [],
+        "task": [],
+        "effect": [],
+        "receipt": [],
+        "delivery": []
+      },
+      "after": {
+        "business": [
+          [
+            "job1"
+          ]
+        ],
+        "outbox": [
+          [
+            "job1",
+            "synthetic delta",
+            1
+          ]
+        ],
+        "task": [
+          [
+            "job1",
+            "synthetic delta",
+            "running",
+            1,
+            10
+          ]
+        ],
+        "effect": [],
+        "receipt": [],
+        "delivery": [
+          [
+            "job1",
+            "synthetic delta"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "create",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "accepted"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                0
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": []
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "dispatch",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "published"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consume",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "queued"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "pending",
+                0,
+                0
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "claim",
+          "token": 0,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "claimed",
+            "token": 1
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "token": 1,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "durable_after": {
+            "business": [
+              [
+                "job1"
+              ]
+            ],
+            "outbox": [
+              [
+                "job1",
+                "synthetic delta",
+                1
+              ]
+            ],
+            "task": [
+              [
+                "job1",
+                "synthetic delta",
+                "running",
+                1,
+                10
+              ]
+            ],
+            "effect": [],
+            "receipt": [],
+            "delivery": [
+              [
+                "job1",
+                "synthetic delta"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_OUTBOX_BAUX",
+  "PT05_clos": false,
+  "capacite_production_qualifiee": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Queue SQLite de banc, pas broker réseau, transporte exactement une fois non revendiqué.",
+    "Temps serveur injecté, bail 10 unités synthétiques ; aucune durée produit ratifiée.",
+    "Autorité booléenne et un effet local, pas moteur complet ni prestataire externe.",
+    "Pas charge représentative, renouvellement/suspension/effets partiels ou restauration de tokens qualifiés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

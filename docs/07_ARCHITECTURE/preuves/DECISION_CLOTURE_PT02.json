@@ -1,0 +1,33 @@
+{
+  "prototype": "PT02",
+  "date_decision": "2026-10-13",
+  "decision": "CLOTURE_PERIMETRE_REDUIT",
+  "accord_porteur": "ok fais le",
+  "contexte_accord": "Accord sur la proposition de statuer sur la cloture reduite puis de poursuivre PT03.",
+  "criteres_retenus": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8"
+  ],
+  "PT02_clos_perimetre_reduit": true,
+  "NF10_qualifie": false,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "reserves_maintenues": [
+    "SEC-03",
+    "SEC-04",
+    "MPD-03",
+    "Recette compl?te Core/MPD et protocole NF10 non ex?cut?"
+  ],
+  "sha256_preuves": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT02_CRITERES_CLOTURE.md": "650936d9570ac5e829a41e1cb295158a3638c88266000a97e5915d50ab60e343",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT02.json": "1beaed53881b8f9bf5cce9e2a2a5e9e20ebb0d0a1836c01cfe595a25cc2892b5",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT02_VARIANTES_MODELE.json": "b9da1b30bd1154e2f0f2221fcd03a19f6437d369aa8021fbf7d0d9ab27534977",
+    "docs/07_ARCHITECTURE/preuves/DIAGNOSTIC_SQL_LATENCE_PT02.json": "fdff0e8fc33306c2f5ec2158e491e7d1b00d5f5e8c273c96d820a89643379aa2"
+  }
+}

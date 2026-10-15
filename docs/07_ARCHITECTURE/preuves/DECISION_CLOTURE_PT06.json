@@ -1,0 +1,39 @@
+{
+  "prototype": "PT06",
+  "date_decision": "2026-10-15",
+  "decision": "CLOTURE_PERIMETRE_REDUIT",
+  "accord_porteur": "ok poursuis",
+  "contexte_accord": "Instruction apres presentation du dossier final et de ses sept reserves.",
+  "criteres_retenus": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8"
+  ],
+  "PT06_clos_perimetre_reduit": true,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "budget_production_valide": false,
+  "reserves_maintenues": [
+    "PT06-R01",
+    "PT06-R02",
+    "PT06-R03",
+    "PT06-R04",
+    "PT06-R05",
+    "PT06-R06",
+    "PT06-R07"
+  ],
+  "sha256_preuves": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT06_CRITERES_CLOTURE.md": "a7da54693855b717a5adb3ce99c2071527fc96b63fbb97e760b6d4778a7ca8a2",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT06.json": "417cd9ab151e48e19e6ccd8784f7ea7187ff0e7c7650f6147c66fd5cead822a6",
+    "docs/07_ARCHITECTURE/preuves/CONTROLES_PT06_LOT_F.json": "2645e296f9ca10defbb8bcd0ebc1828969a82b384045bb51da22e68311edc81a",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_B.json": "71c6217ef4e049b336484b8c61da6a2f306de45e0101fef756c004af88b030b2",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_C.json": "9106587f6ae751892ccde39f89bfacd20d40a62cce16112209ec665609be4f5c",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_D.json": "1ec69cae89caddb2a80b8ec1945216616a95cba06b212159c4e40571d12b29d5",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_E.json": "ee4541c809c32a465c11f9e377a218f11c7124e02baaed5cc8097f3c27a62945"
+  }
+}

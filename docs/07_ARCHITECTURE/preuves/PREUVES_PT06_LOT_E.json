@@ -1,0 +1,13 @@
+{
+  "prototype": "PT06",
+  "lot": "E",
+  "PT06_clos": false,
+  "reversibilite_patrimoine_complet_qualifiee": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_E.json": "ee4541c809c32a465c11f9e377a218f11c7124e02baaed5cc8097f3c27a62945",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT06_LOT_E.md": "2aa7ff38e5c348385120182df2a70252a5e1b54842443c4a0c2c4bc4b9ba96ba",
+    "spec/prototypes/pt06/check_e.py": "d7f52b7b4aa0b13a2e156822a77835159863719720fffdf13c7a5da808914146",
+    "spec/prototypes/pt06/run_e.py": "43635900b0b502140f86f1b92dec362cad5450e85a491998ffd226f72d64c9c1",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

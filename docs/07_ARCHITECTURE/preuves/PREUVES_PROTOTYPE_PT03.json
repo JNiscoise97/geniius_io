@@ -1,0 +1,15 @@
+{
+  "prototype": "PT03",
+  "lot": "A",
+  "PT03_clos": false,
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT03.json": "3ee485c3795b2e00c1eb38058a845e330f1ed04ec603b3b8951180b2c31ae6ab",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT03.md": "5c4dd2bbd5cd17ebb2475edbe62e17d6835cf209f39387fd2cf123e19c3550ab",
+    "spec/prototypes/pt03/check_results.py": "275f06778f9e31803aeb535f9a35475d2ad2f0c6a15b6459e395219ff2c2a350",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905"
+  }
+}

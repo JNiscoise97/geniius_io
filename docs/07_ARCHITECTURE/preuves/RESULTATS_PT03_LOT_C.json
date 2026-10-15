@@ -1,0 +1,1450 @@
+{
+  "prototype": "PT03",
+  "lot": "C",
+  "started_utc": "2026-10-13T12:50:09.756493+00:00",
+  "ended_utc": "2026-10-13T12:50:14.622830+00:00",
+  "cases": [
+    {
+      "id": "PT03-C01",
+      "label": "Conversion déterministe avec original et provenance",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "converted",
+            "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+            "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+            "converter_1_to_2",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C02",
+      "label": "Référentiel scindé laissé en attente",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "awaiting",
+            null,
+            "9b4002a66a313e2d9657212e922ae47eb549d134d23be84db2f9506b01af5601",
+            "ambiguous_referential",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "9b4002a66a313e2d9657212e922ae47eb549d134d23be84db2f9506b01af5601",
+                "ambiguous_referential",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "9b4002a66a313e2d9657212e922ae47eb549d134d23be84db2f9506b01af5601",
+                "ambiguous_referential",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "9b4002a66a313e2d9657212e922ae47eb549d134d23be84db2f9506b01af5601",
+                "ambiguous_referential",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_split\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "9b4002a66a313e2d9657212e922ae47eb549d134d23be84db2f9506b01af5601",
+                "ambiguous_referential",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C03",
+      "label": "Champ inconnu conservé sans conversion permissive",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "awaiting",
+            null,
+            "bfe5d8d43cfd9feab4f87f9dbb9e317f1f25318b73dbcb780167e1a2dac04af1",
+            "unsupported_format_or_fields",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "bfe5d8d43cfd9feab4f87f9dbb9e317f1f25318b73dbcb780167e1a2dac04af1",
+                "unsupported_format_or_fields",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "bfe5d8d43cfd9feab4f87f9dbb9e317f1f25318b73dbcb780167e1a2dac04af1",
+                "unsupported_format_or_fields",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "bfe5d8d43cfd9feab4f87f9dbb9e317f1f25318b73dbcb780167e1a2dac04af1",
+                "unsupported_format_or_fields",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"future_semantics\": {\"value\": \"must survive\"}, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "awaiting",
+                null,
+                "bfe5d8d43cfd9feab4f87f9dbb9e317f1f25318b73dbcb780167e1a2dac04af1",
+                "unsupported_format_or_fields",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C04",
+      "label": "Client incapable : consultation fermée, journal conservé",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          0,
+          0
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "converted",
+            "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+            "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+            "converter_1_to_2",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "incompatible",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "update_required"
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              0
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              0
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              0
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              0
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C05",
+      "label": "Panne avant commit DDL et conversion, reprise",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "converted",
+            "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+            "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+            "converter_1_to_2",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "before_migration_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_migration_commit",
+            "pid": 24412
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C06",
+      "label": "Commit migration puis réponse perdue, rejeu",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "converted",
+            "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+            "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+            "converter_1_to_2",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "after_migration_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_migration_commit",
+            "pid": 26964
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-C07",
+      "label": "SQLITE_FULL réel par plafond de pages, rollback puis reprise",
+      "status": "PASS",
+      "before": {
+        "context": [
+          1,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [],
+        "conversion_table": false
+      },
+      "after": {
+        "context": [
+          2,
+          1,
+          1
+        ],
+        "journal": [
+          [
+            "op1",
+            "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+          ]
+        ],
+        "replica": [
+          [
+            "old",
+            "canonical replica"
+          ]
+        ],
+        "conversion": [
+          [
+            "op1",
+            "converted",
+            "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+            "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+            "converter_1_to_2",
+            0
+          ]
+        ],
+        "conversion_table": true
+      },
+      "traces": [
+        {
+          "action": "migrate",
+          "fault": "full",
+          "exit_code": 0,
+          "output": {
+            "status": "storage_full",
+            "sqlite_errorcode": 13
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed"
+          },
+          "durable_after": {
+            "context": [
+              1,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [],
+            "conversion_table": false
+          }
+        },
+        {
+          "action": "migrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "migrated"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              0,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        },
+        {
+          "action": "reconcile",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconciled"
+          },
+          "durable_after": {
+            "context": [
+              2,
+              1,
+              1
+            ],
+            "journal": [
+              [
+                "op1",
+                "{\"client\": 1, \"protocol\": 1, \"referential\": 1, \"schema\": 1, \"term\": \"legacy_known\", \"text\": \"author text\"}"
+              ]
+            ],
+            "replica": [
+              [
+                "old",
+                "canonical replica"
+              ]
+            ],
+            "conversion": [
+              [
+                "op1",
+                "converted",
+                "{\"client\": 1, \"concept\": \"concept_known\", \"protocol\": 2, \"referential\": 2, \"schema\": 2, \"text\": \"author text\"}",
+                "6da4be7c8f5044a2d2b063b92096972b39570621a940ea6698fc89ef7addadc0",
+                "converter_1_to_2",
+                0
+              ]
+            ],
+            "conversion_table": true
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_LOT_C",
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "PT03_clos": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Versions et termes synthétiques, aucune fenêtre produit ratifiée.",
+    "SQLITE_FULL obtenu par max_page_count, pas disque physique saturé.",
+    "Réconciliation et capacités de fixture, pas négociation authentifiée.",
+    "Pas de chiffrement, transport, horloge ni anti-rollback ; lots D à F réservés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_c.py": "890646c7e5a0dd514e8ddc3a01c97653378e8f4c794b3246a4bb6ec9eb3b8ee2",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

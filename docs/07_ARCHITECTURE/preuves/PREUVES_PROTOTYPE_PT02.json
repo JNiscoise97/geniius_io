@@ -1,0 +1,39 @@
+{
+  "prototype": "PT02",
+  "HTTP_execute": true,
+  "SQL_execute": true,
+  "verdict": "PARTIEL_UQ_GRAPHE_NF10",
+  "PT02_clos": true,
+  "PT02_clos_perimetre_reduit": true,
+  "NF10_qualifie": false,
+  "architecture_gelee": false,
+  "sources_conformes_execution": {
+    "spec/prototypes/pt02/run.py": true,
+    "spec/prototypes/pt02/schema.sql": true,
+    "spec/prototypes/pt02/relational.sql": true,
+    "spec/prototypes/pt02/relational_probe.py": true,
+    "spec/prototypes/pt02/statistics_probe.py": true,
+    "spec/prototypes/pt02/paired_worlds_probe.py": true,
+    "spec/prototypes/pt02/nf10_campaign.json": true,
+    "spec/prototypes/pt01/run.py": true,
+    "spec/prototypes/pt01/schema.sql": true,
+    "spec/autorisation/modele.py": true,
+    "spec/autorisation/tests/base.py": true,
+    "spec/autorisation/tests/outils.py": true
+  },
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT02.json": "1beaed53881b8f9bf5cce9e2a2a5e9e20ebb0d0a1836c01cfe595a25cc2892b5",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT02.md": "a2742bc4a974ef8d83e18b505400446021fc029333e62f3ee2e3f38a26d5079e",
+    "spec/prototypes/pt02/report.py": "e577f7780c98bfae8c6536a34dc387a7e3676780d7c9d8acaf7cd94c29290989",
+    "spec/prototypes/pt02/check_results.py": "876b6d38289027eec9d668481f44e717736efdd40dbadec23ab9a8e7c0e612b1",
+    "docs/07_ARCHITECTURE/preuves/DIAGNOSTIC_SQL_LATENCE_PT02.json": "fdff0e8fc33306c2f5ec2158e491e7d1b00d5f5e8c273c96d820a89643379aa2",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT02_SORTIE_TEMPORELLE.md": "364ff67f9ca25e24861904d90c722d36ca93171aa9786943c0a1da0164177170",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT02_UQ_GRAPHE_STATISTIQUES.md": "0ed373769ac8c6a0d5d8d92fefa3eb5125524b31a45e9a2523d2aa2bd4afd1b1",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT02_TRADUCTION_CAMPAGNE.md": "ddad55050236ba537b8c9fe44984ae22fcd0aecd233970683afbf54e45ef5459",
+    "docs/04_CONTRAT_AUTORISATION/GENIIUS_AMENDEMENT_LECTURES_DC_AUTH_02.md": "ed270f11abd60aeb6286a23aaa8685c26594e5f7c2b4d8ba98fc53dd8e5382a4",
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT02_CRITERES_CLOTURE.md": "650936d9570ac5e829a41e1cb295158a3638c88266000a97e5915d50ab60e343",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT02_VARIANTES_MODELE.json": "b9da1b30bd1154e2f0f2221fcd03a19f6437d369aa8021fbf7d0d9ab27534977",
+    "spec/prototypes/pt02/validate_scope.py": "2b4e354386982ff034dcb69ae14e755b25368d8bc620c2b8dbf76bd50738f34b",
+    "docs/07_ARCHITECTURE/preuves/DECISION_CLOTURE_PT02.json": "5d00354c4983f5802792bb97d414f66946831faf51fd6ae79dc1271fddb5bad1"
+  }
+}

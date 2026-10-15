@@ -1,0 +1,13 @@
+{
+  "prototype": "PT06",
+  "lot": "A",
+  "PT06_clos": false,
+  "MFA_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT06.json": "417cd9ab151e48e19e6ccd8784f7ea7187ff0e7c7650f6147c66fd5cead822a6",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT06.md": "dffe38b44b72f42f8eb8276e642b3cd3603632d9c4db6d570b4c941a2f0e0aab",
+    "spec/prototypes/pt06/check_results.py": "f882407cc521a23084ea9e541cdd1379fbbeb2d9caa45a7e3cdaaf6f86b8fc34",
+    "spec/prototypes/pt06/run.py": "7656fa44c542843e37df7d0387bfbeb29538542c66543d46504f66118cc9ea5a",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

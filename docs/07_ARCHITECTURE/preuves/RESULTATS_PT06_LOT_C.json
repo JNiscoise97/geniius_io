@@ -1,0 +1,905 @@
+{
+  "prototype": "PT06",
+  "lot": "C",
+  "started_utc": "2026-10-14T15:40:38.447670+00:00",
+  "ended_utc": "2026-10-14T15:40:40.930270+00:00",
+  "cases": [
+    {
+      "id": "PT06-C01",
+      "label": "Activation versionnée et migration conservant données",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v2",
+        "schema": 2,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C02",
+      "label": "Panne avant commit DDL : rollback et reprise",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v2",
+        "schema": 2,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "before_migration_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_migration_commit"
+          },
+          "durable_after": {
+            "current": "v1",
+            "schema": 1,
+            "gate": 0,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object"
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content"
+            ]
+          }
+        },
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C03",
+      "label": "Commit schéma puis panne avant activation : reprise",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v2",
+        "schema": 2,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "after_migration_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_migration_commit"
+          },
+          "durable_after": {
+            "current": "v1",
+            "schema": 2,
+            "gate": 0,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                0
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        },
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C04",
+      "label": "Rollback ancienne version incompatible refusé",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v2",
+        "schema": 2,
+        "gate": 0,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        },
+        {
+          "version": "v1",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "incompatible_release"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 0,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C05",
+      "label": "Rollback compatible sans downgrade/restauration des données",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v1.1",
+        "schema": 2,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        },
+        {
+          "version": "v1.1",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v1.1"
+          },
+          "durable_after": {
+            "current": "v1.1",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C06",
+      "label": "Autorité retirée : rollback conserve génération et refus",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v1.1",
+        "schema": 2,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            2
+          ]
+        ],
+        "authority": [
+          0,
+          2
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        },
+        {
+          "version": "v1.1",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v1.1"
+          },
+          "durable_after": {
+            "current": "v1.1",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                2
+              ]
+            ],
+            "authority": [
+              0,
+              2
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-C07",
+      "label": "Artefact altéré : activation refusée sans remplacement",
+      "status": "PASS",
+      "before": {
+        "current": "v1",
+        "schema": 1,
+        "gate": 1,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object"
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content"
+        ]
+      },
+      "after": {
+        "current": "v2",
+        "schema": 2,
+        "gate": 0,
+        "contributions": [
+          [
+            "op1",
+            "private author delta"
+          ]
+        ],
+        "objects": [
+          [
+            "o1",
+            "canonical object",
+            1
+          ]
+        ],
+        "authority": [
+          1,
+          1
+        ],
+        "columns": [
+          "id",
+          "content",
+          "protection_generation"
+        ]
+      },
+      "traces": [
+        {
+          "version": "v2",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "activated",
+            "version": "v2"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 1,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        },
+        {
+          "version": "v1.1",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "artifact_integrity"
+          },
+          "durable_after": {
+            "current": "v2",
+            "schema": 2,
+            "gate": 0,
+            "contributions": [
+              [
+                "op1",
+                "private author delta"
+              ]
+            ],
+            "objects": [
+              [
+                "o1",
+                "canonical object",
+                1
+              ]
+            ],
+            "authority": [
+              1,
+              1
+            ],
+            "columns": [
+              "id",
+              "content",
+              "protection_generation"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_LIVRAISON_ROLLBACK",
+  "PT06_clos": false,
+  "deploiement_production_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Artefacts JSON et manifeste fiable injecté, pas binaires/signature/CI/CD/supply chain.",
+    "Compatibilité déclarée dans fixture ; pas preuve de comportement d’un vrai ancien logiciel.",
+    "Porte de cohérence ouverte ne vaut pas permission scientifique ; autorité booléenne et pas route de lecture.",
+    "Migration additive SQLite, pas MPD complet, migration online, trafic concurrent ou conteneurs.",
+    "Pas versions de support/rollback produit ratifiées ; paramètres du banc seulement."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run_c.py": "80ef40f3040f4cc7cba8d5d6261e13f2439a13c558adda5b8743eba0579526bf",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

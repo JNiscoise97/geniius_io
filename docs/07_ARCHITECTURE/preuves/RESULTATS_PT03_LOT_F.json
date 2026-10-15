@@ -1,0 +1,3087 @@
+{
+  "prototype": "PT03",
+  "lot": "F",
+  "started_utc": "2026-10-13T13:08:45.093812+00:00",
+  "ended_utc": "2026-10-13T13:08:53.606515+00:00",
+  "cases": [
+    {
+      "id": "PT03-F01",
+      "label": "Curseur ancien : purge avant reconstruction",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 2,
+        "replica": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "reconstruct",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "reconstructed"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F02",
+      "label": "Panne de reconstruction : barrière puis reprise",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 2,
+        "replica": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "reconstruct",
+          "parameters": {
+            "fault": "before_reconstruction_commit"
+          },
+          "exit_code": 73,
+          "output": {
+            "phase": "before_reconstruction_commit",
+            "pid": 31876
+          },
+          "durable_after": {
+            "gate": 0,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": []
+          }
+        },
+        {
+          "action": "reconstruct",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "reconstructed"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F03",
+      "label": "Serveur restauré avant purge : registre extérieur et reçu empêchent résurrection/double effet",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 2,
+        "replica": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "keep",
+            "allowed current"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "reconstruct",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "reconstructed"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "already_integrated"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 2,
+            "replica": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "keep",
+                "allowed current"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F04",
+      "label": "Panne avant commit chunk, reprise",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [
+          [
+            0,
+            23,
+            "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+          ],
+          [
+            1,
+            23,
+            "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+          ],
+          [
+            2,
+            23,
+            "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+          ]
+        ],
+        "originals": [
+          [
+            1,
+            69,
+            "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          ]
+        ],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0,
+            "fault": "before_chunk_commit"
+          },
+          "exit_code": 73,
+          "output": {
+            "phase": "before_chunk_commit",
+            "pid": 9304
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "incomplete"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 0
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 2
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 2
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F05",
+      "label": "Chunk durable et accusé perdu, rejeu",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [
+          [
+            0,
+            23,
+            "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+          ],
+          [
+            1,
+            23,
+            "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+          ],
+          [
+            2,
+            23,
+            "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+          ]
+        ],
+        "originals": [
+          [
+            1,
+            69,
+            "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          ]
+        ],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0,
+            "fault": "after_chunk_commit"
+          },
+          "exit_code": 73,
+          "output": {
+            "phase": "after_chunk_commit",
+            "pid": 10368
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "incomplete"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 0
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 2
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 2
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F06",
+      "label": "Chunk corrompu refusé puis reprise saine",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [
+          [
+            0,
+            23,
+            "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+          ],
+          [
+            1,
+            23,
+            "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+          ],
+          [
+            2,
+            23,
+            "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+          ]
+        ],
+        "originals": [
+          [
+            1,
+            69,
+            "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          ]
+        ],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1,
+            "corrupt": true
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "integrity_refused"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "incomplete"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 0
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 2
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 2
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F07",
+      "label": "Manifeste global incohérent : disponibilité refusée",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [
+          [
+            0,
+            23,
+            "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+          ],
+          [
+            1,
+            23,
+            "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+          ],
+          [
+            2,
+            23,
+            "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+          ]
+        ],
+        "originals": [
+          [
+            1,
+            69,
+            "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          ]
+        ],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "incomplete"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 0
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 2
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 2
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "integrity_refused"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-F08",
+      "label": "Réseau non autorisé : transfert différé puis reprise",
+      "status": "PASS",
+      "before": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [],
+        "originals": [],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "after": {
+        "gate": 1,
+        "cursor": 1,
+        "replica": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta"
+          ]
+        ],
+        "chunks": [
+          [
+            0,
+            23,
+            "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+          ],
+          [
+            1,
+            23,
+            "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+          ],
+          [
+            2,
+            23,
+            "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+          ]
+        ],
+        "originals": [
+          [
+            1,
+            69,
+            "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          ]
+        ],
+        "effects": [
+          [
+            "op1"
+          ]
+        ],
+        "consultable": [
+          [
+            "gone",
+            "old purged content"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0,
+            "network": "cellular"
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "network_deferred"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "incomplete"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 0
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 0
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 2
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 2
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "chunk",
+          "parameters": {
+            "part": 1
+          },
+          "exit_code": 0,
+          "output": {
+            "status": "chunk_durable",
+            "part": 1
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finalize",
+          "parameters": {},
+          "exit_code": 0,
+          "output": {
+            "status": "available",
+            "digest": "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+          },
+          "durable_after": {
+            "gate": 1,
+            "cursor": 1,
+            "replica": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta"
+              ]
+            ],
+            "chunks": [
+              [
+                0,
+                23,
+                "f3a46763eb6bc0e8310382c271109e9d26a237e211e2f86f71138a4f8041e973"
+              ],
+              [
+                1,
+                23,
+                "9e68132a33edbb891067c2cd80b08c98ae4cda445257085dc5762bf2385e4f38"
+              ],
+              [
+                2,
+                23,
+                "5f3f009129f18f589d7ccde074e7a17a934132de4ffded21f0ddc0c361adfb86"
+              ]
+            ],
+            "originals": [
+              [
+                1,
+                69,
+                "e526df264b0c202ef1bc08cef2a2369c35499b3e301e64433d1c604f5f5de7fc"
+              ]
+            ],
+            "effects": [
+              [
+                "op1"
+              ]
+            ],
+            "consultable": [
+              [
+                "gone",
+                "old purged content"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_LOT_F",
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "PT03_clos": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Chunks minuscules dans SQLite ; pas stockage objet, volume lourd ni débit réseau mesurés.",
+    "Politique réseau injectée ; aucune détection réseau OS ou transport authentifié.",
+    "Registre sécurité extérieur conservé, pas restauration simultanée de tous les magasins.",
+    "Droits et curseur synthétiques ; génération fixe, pas protocole complet de reconstruction.",
+    "Empreintes de manifeste supposées fiables ; authenticité à éprouver ; PT04 reste à exécuter."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_f.py": "99de06415b3ec509b39a09b44a74305050d6c3d455928e2603af0e2405113312",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "prototype": "PT05",
+  "lot": "E",
+  "PT05_clos": false,
+  "MPD04_fixe": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_E.json": "d20bdfa82429677ebc76fd2fcd76700cdf1194c9eb3f4094e89285629e8df0a8",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_E.md": "141c0a279f7c3a5b326464b88090e7bd78d200fb3b8b754ed2dd3b4af147e2a4",
+    "spec/prototypes/pt05/check_e.py": "021c32e0b252a89372024a42e439dfd03784d18e707d8cbd6f973402ed50086d",
+    "spec/prototypes/pt05/run_e.py": "5e2b2a3d3e7c58e04d8473d1b8264b094e371b8fbedc01f306d3e9c6dd8d1163",
+    "spec/prototypes/pt05/run_b.py": "f14a4aa4a5c0ec8df48b2f1571c4cf19c7aa803b6bbf689c32bd3260eca0b717",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/capacity_profile.json": "c4a5627fc0356ba1f60b5aa8cc2c614c8b62a5e082e113ff5089ad42139f43ea",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "prototype": "PT06",
+  "lot": "D",
+  "PT06_clos": false,
+  "WCAG_conformite_globale": false,
+  "lecteur_ecran_test": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_D.json": "1ec69cae89caddb2a80b8ec1945216616a95cba06b212159c4e40571d12b29d5",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT06_LOT_D.md": "4ea32a6c9ae0088444afa7b3c06e07fc9b73653bcec1a0133e09124a60d9cbcf",
+    "spec/prototypes/pt06/check_d.py": "e5d9b71843ad1990d9d327274fba2277b5cf396605a2688d7a58dea29efef906",
+    "docs/07_ARCHITECTURE/preuves/historique/RESULTATS_PT06_LOT_D_SANDBOX_CDP_TIMEOUT.json": "cd8efbe88704cbaad4da0b5109d12510aea6f5a78d651dc49049188a6059d41c",
+    "docs/07_ARCHITECTURE/preuves/historique/RESULTATS_PT06_LOT_D_AVANT_CORRECTION_ENTREE_CLAVIER.json": "73b9955d7924e5ed2012b52da4674afde271f1037411a636acd28743185362c9",
+    "spec/prototypes/pt06/run_d.py": "6a79d9b5a52739fe8dd0ce8c4e57b6ddd49f4b671c219376523293ad1af794a8",
+    "spec/prototypes/pt06/browser_d.mjs": "10599d541d837210edf9af175aab9ca16143ad29f5c11167c2a2d855ea922b23",
+    "spec/prototypes/pt06/accessibility.html": "da99a9225638c9b5fb41ca0281d429d8f144073542ee9faf3af87f84cbb902d4",
+    "spec/prototypes/pt06/run.py": "7656fa44c542843e37df7d0387bfbeb29538542c66543d46504f66118cc9ea5a",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

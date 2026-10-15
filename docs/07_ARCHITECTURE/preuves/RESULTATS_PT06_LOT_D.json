@@ -1,0 +1,254 @@
+{
+  "prototype": "PT06",
+  "lot": "D",
+  "started_utc": "2026-10-14T15:53:52.590432+00:00",
+  "ended_utc": "2026-10-14T15:53:55.642525+00:00",
+  "cases": [
+    {
+      "id": "PT06-D01",
+      "label": "Noms et rôles dans arbre d’accessibilité",
+      "status": "PASS",
+      "evidence": {
+        "names": [
+          {
+            "role": "RootWebArea",
+            "name": "Dépôt d’une contribution — banc PT06"
+          },
+          {
+            "role": "link",
+            "name": "Aller au formulaire"
+          },
+          {
+            "role": "main",
+            "name": ""
+          },
+          {
+            "role": "StaticText",
+            "name": "Aller au formulaire"
+          },
+          {
+            "role": "heading",
+            "name": "Déposer une contribution"
+          },
+          {
+            "role": "paragraph",
+            "name": ""
+          },
+          {
+            "role": "form",
+            "name": ""
+          },
+          {
+            "role": "status",
+            "name": ""
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Aller au formulaire"
+          },
+          {
+            "role": "StaticText",
+            "name": "Déposer une contribution"
+          },
+          {
+            "role": "StaticText",
+            "name": "Votre texte reste enregistré localement. La réception ne vaut pas intégration ni validation scientifique."
+          },
+          {
+            "role": "LabelText",
+            "name": ""
+          },
+          {
+            "role": "textbox",
+            "name": "Référence de la contribution"
+          },
+          {
+            "role": "paragraph",
+            "name": ""
+          },
+          {
+            "role": "LabelText",
+            "name": ""
+          },
+          {
+            "role": "textbox",
+            "name": "Texte de votre contribution"
+          },
+          {
+            "role": "button",
+            "name": "Envoyer la contribution"
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Déposer une contribution"
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Votre texte reste enregistré localement. La réception ne vaut pas intégration ni "
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "validation scientifique."
+          },
+          {
+            "role": "StaticText",
+            "name": "Référence de la contribution"
+          },
+          {
+            "role": "generic",
+            "name": ""
+          },
+          {
+            "role": "StaticText",
+            "name": "Choisissez une référence stable pour reprendre votre dépôt."
+          },
+          {
+            "role": "StaticText",
+            "name": "Texte de votre contribution"
+          },
+          {
+            "role": "generic",
+            "name": ""
+          },
+          {
+            "role": "StaticText",
+            "name": "Envoyer la contribution"
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Référence de la contribution"
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Choisissez une référence stable pour reprendre votre dépôt."
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Texte de votre contribution"
+          },
+          {
+            "role": "InlineTextBox",
+            "name": "Envoyer la contribution"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PT06-D02",
+      "label": "Ordre clavier et focus matérialisé",
+      "status": "PASS",
+      "evidence": {
+        "focus": [
+          {
+            "id": "skip",
+            "outline": "3px"
+          },
+          {
+            "id": "origin",
+            "outline": "3px"
+          },
+          {
+            "id": "delta",
+            "outline": "3px"
+          },
+          {
+            "id": "send",
+            "outline": "3px"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PT06-D03",
+      "label": "Erreur annoncée structurellement et focus sur résumé",
+      "status": "PASS",
+      "evidence": {
+        "focus": "errors",
+        "role": "alert",
+        "invalid": "true",
+        "text": "Complétez la référence et le texte avant l’envoi."
+      }
+    },
+    {
+      "id": "PT06-D04",
+      "label": "Dépôt au clavier et statut de réception",
+      "status": "PASS",
+      "evidence": {
+        "status": "Contribution reçue. Intégration non confirmée.",
+        "live": "polite",
+        "saved": "synthetic own contribution"
+      }
+    },
+    {
+      "id": "PT06-D05",
+      "label": "Refus API : erreur et texte local conservé",
+      "status": "PASS",
+      "evidence": {
+        "focus": "errors",
+        "text": "Envoi refusé ou indisponible. Votre texte local est conservé.",
+        "saved": "synthetic own contribution"
+      }
+    },
+    {
+      "id": "PT06-D06",
+      "label": "Reflow à largeur 320 CSS px",
+      "status": "PASS",
+      "evidence": {
+        "width": 320,
+        "scroll": 305,
+        "client": 305
+      }
+    }
+  ],
+  "fatal": null,
+  "browser_version": "Chrome/155.0.8059.40",
+  "browser_closed": true,
+  "API_after": {
+    "receipts": [
+      [
+        "A",
+        "D",
+        "op-accessible",
+        "67c20e7238e7fa390b2af7232aa07ce6892fbd9f30f5385ae4a0f5aa2d635857",
+        "{\"delta\": {\"concept\": \"known\", \"target\": \"visible\", \"text\": \"synthetic own contribution\"}, \"format\": 2, \"origin\": \"op-accessible\"}",
+        "converted",
+        "{\"concept\": \"known\", \"converter\": \"identity-v2\", \"format\": 2, \"target\": \"visible\", \"text\": \"synthetic own contribution\"}"
+      ]
+    ],
+    "objects": [
+      [
+        "hidden",
+        "B",
+        "hidden synthetic"
+      ],
+      [
+        "visible",
+        "A",
+        "visible synthetic"
+      ]
+    ]
+  },
+  "PT06_clos": false,
+  "WCAG_conformite_globale": false,
+  "lecteur_ecran_test": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "HTTP_bind": "127.0.0.1",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Navigateur headless réel et événements clavier CDP, pas utilisateur/lecteur écran NVDA/JAWS/VoiceOver.",
+    "Arbre AX/rôles live vérifiés, annonce sonore et ordre de lecture réels non qualifiés.",
+    "Outline calculé et reflow 320px, pas audit contraste/zoom/global WCAG ou plateforme mobile.",
+    "Parcours unique avec sessions de fixture, pas identité réelle ni produit final."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run_d.py": "6a79d9b5a52739fe8dd0ce8c4e57b6ddd49f4b671c219376523293ad1af794a8",
+    "spec/prototypes/pt06/browser_d.mjs": "10599d541d837210edf9af175aab9ca16143ad29f5c11167c2a2d855ea922b23",
+    "spec/prototypes/pt06/accessibility.html": "da99a9225638c9b5fb41ca0281d429d8f144073542ee9faf3af87f84cbb902d4",
+    "spec/prototypes/pt06/run.py": "7656fa44c542843e37df7d0387bfbeb29538542c66543d46504f66118cc9ea5a",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  },
+  "verdict": "PARTIEL_ACCESSIBILITE_NAVIGATEUR"
+}

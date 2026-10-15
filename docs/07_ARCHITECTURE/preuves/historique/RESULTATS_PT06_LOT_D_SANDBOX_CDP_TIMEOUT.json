@@ -1,0 +1,48 @@
+{
+  "prototype": "PT06",
+  "lot": "D",
+  "started_utc": "2026-10-14T15:52:34.865996+00:00",
+  "ended_utc": "2026-10-14T15:52:51.704576+00:00",
+  "cases": [],
+  "fatal": "Error: CDP timeout Page.enable",
+  "browser_version": "Chrome/155.0.8059.40",
+  "browser_closed": true,
+  "API_after": {
+    "receipts": [],
+    "objects": [
+      [
+        "hidden",
+        "B",
+        "hidden synthetic"
+      ],
+      [
+        "visible",
+        "A",
+        "visible synthetic"
+      ]
+    ]
+  },
+  "PT06_clos": false,
+  "WCAG_conformite_globale": false,
+  "lecteur_ecran_test": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "HTTP_bind": "127.0.0.1",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Navigateur headless réel et événements clavier CDP, pas utilisateur/lecteur écran NVDA/JAWS/VoiceOver.",
+    "Arbre AX/rôles live vérifiés, annonce sonore et ordre de lecture réels non qualifiés.",
+    "Outline calculé et reflow 320px, pas audit contraste/zoom/global WCAG ou plateforme mobile.",
+    "Parcours unique avec sessions de fixture, pas identité réelle ni produit final."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run_d.py": "6a79d9b5a52739fe8dd0ce8c4e57b6ddd49f4b671c219376523293ad1af794a8",
+    "spec/prototypes/pt06/browser_d.mjs": "64c497b1a6f5ff98654ef09b216bb5141643d93ed0cd0564426b354f593d58e3",
+    "spec/prototypes/pt06/accessibility.html": "da99a9225638c9b5fb41ca0281d429d8f144073542ee9faf3af87f84cbb902d4",
+    "spec/prototypes/pt06/run.py": "7656fa44c542843e37df7d0387bfbeb29538542c66543d46504f66118cc9ea5a",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  },
+  "verdict": "FAIL"
+}

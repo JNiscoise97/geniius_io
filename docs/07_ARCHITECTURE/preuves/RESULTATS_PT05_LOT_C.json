@@ -1,0 +1,602 @@
+{
+  "prototype": "PT05",
+  "lot": "C",
+  "started_utc": "2026-10-14T10:40:04.209486+00:00",
+  "ended_utc": "2026-10-14T10:40:09.212694+00:00",
+  "cases": [
+    {
+      "id": "PT05-C01",
+      "label": "Autorité retirée avant sortie : aucun effet externe",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 0,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "traces": [
+        {
+          "action": "revoke",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "revoked"
+          },
+          "durable_after": {
+            "allowed": 0,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "prepared",
+                0
+              ]
+            ],
+            "effects": []
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "durable_after": {
+            "allowed": 0,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "prepared",
+                0
+              ]
+            ],
+            "effects": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-C02",
+      "label": "Accusé perdu : recherche du résultat sans nouvelle exécution",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "completed",
+            1
+          ]
+        ],
+        "effects": [
+          [
+            1,
+            "op1",
+            "synthetic operation"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "execute",
+          "mode": "search",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_external_commit"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "uncertain",
+                0
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "completed"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "completed",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "completed"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "completed",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-C03",
+      "label": "Accusé perdu : même clé idempotente, un effet",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "completed",
+            1
+          ]
+        ],
+        "effects": [
+          [
+            1,
+            "op1",
+            "synthetic operation"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "execute",
+          "mode": "idempotent",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_external_commit"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "uncertain",
+                0
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "idempotent",
+          "exit_code": 0,
+          "output": {
+            "status": "completed"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "completed",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "idempotent",
+          "exit_code": 0,
+          "output": {
+            "status": "completed"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "completed",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-C04",
+      "label": "Sans recherche/idempotence : état incertain, pas relance aveugle",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "uncertain",
+            0
+          ]
+        ],
+        "effects": [
+          [
+            1,
+            "op1",
+            "synthetic operation"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "execute",
+          "mode": "none",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_external_commit"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "uncertain",
+                0
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "none",
+          "exit_code": 0,
+          "output": {
+            "status": "manual_required"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "uncertain",
+                0
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "execute",
+          "mode": "none",
+          "exit_code": 0,
+          "output": {
+            "status": "manual_required"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "uncertain",
+                0
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-C05",
+      "label": "Autorité retirée après effet externe : intégration locale refusée",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 0,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "external_confirmed_blocked",
+            1
+          ]
+        ],
+        "effects": [
+          [
+            1,
+            "op1",
+            "synthetic operation"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "execute",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "local_integration_refused"
+          },
+          "durable_after": {
+            "allowed": 0,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "external_confirmed_blocked",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "consult",
+          "mode": "search",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "allowed": 0,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "external_confirmed_blocked",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-C06",
+      "label": "Même clé avec autre contenu : conflit prestataire",
+      "status": "PASS",
+      "before": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "prepared",
+            0
+          ]
+        ],
+        "effects": []
+      },
+      "after": {
+        "allowed": 1,
+        "operation": [
+          [
+            "op1",
+            "synthetic operation",
+            "completed",
+            1
+          ]
+        ],
+        "effects": [
+          [
+            1,
+            "op1",
+            "synthetic operation"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "execute",
+          "mode": "idempotent",
+          "exit_code": 0,
+          "output": {
+            "status": "completed"
+          },
+          "durable_after": {
+            "allowed": 1,
+            "operation": [
+              [
+                "op1",
+                "synthetic operation",
+                "completed",
+                1
+              ]
+            ],
+            "effects": [
+              [
+                1,
+                "op1",
+                "synthetic operation"
+              ]
+            ]
+          }
+        },
+        {
+          "provider_conflict": {
+            "status": "conflict"
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_EFFETS_EXTERNES",
+  "PT05_clos": false,
+  "prestataire_reel_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Prestataire SQLite/processus local, pas service réseau ou message réel envoyé.",
+    "Autorité booléenne, séquences déterministes ; pas garde concurrente lors de remise externe.",
+    "Recherche suppose résultat fiable et durable ; absence temporaire/eventual consistency non qualifiée.",
+    "Expiration/rétention de clés idempotentes, paiement externe, compensation et workflow opérateur réservés.",
+    "Effet externe déjà commis ne disparaît pas lors d’une révocation ; seulement intégration locale contrôlée."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt05/run_c.py": "7355baa0e9575a06bc9ae6df622469721f71eae82ab604578bb2288c4901751a",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

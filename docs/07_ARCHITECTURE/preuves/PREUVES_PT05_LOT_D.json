@@ -1,0 +1,14 @@
+{
+  "prototype": "PT05",
+  "lot": "D",
+  "PT05_clos": false,
+  "capacite_production_qualifiee": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_D.json": "5ee5bfbee9722087108e877f0dbd702d59a2e1fdd101fc44db11f075e45a9be7",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_D.md": "76cea728f674a3f6e38e30d731a0fed4e54470e53c24b283ef29e7781c8b1635",
+    "spec/prototypes/pt05/check_d.py": "45f6aa2ce40abab3decee83614fa51361af846b799eb46ebe47d66de7b1c72f8",
+    "spec/prototypes/pt05/run_d.py": "0112aea00b0b228cf70869db27b9d96c81af3d1fb20170acb252f46302f6e003",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

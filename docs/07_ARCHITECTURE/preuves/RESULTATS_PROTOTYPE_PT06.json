@@ -1,0 +1,534 @@
+{
+  "prototype": "PT06",
+  "lot": "A",
+  "started_utc": "2026-10-14T15:24:08.820586+00:00",
+  "ended_utc": "2026-10-14T15:24:09.937510+00:00",
+  "cases": [
+    {
+      "id": "PT06-A01",
+      "label": "Opération inconnue : refus sans effet",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "33"
+          },
+          "body": "{\"error\":\"unsupported_operation\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A02",
+      "label": "Enveloppe/JSON/champ inconnu : refus",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "28"
+          },
+          "body": "{\"error\":\"invalid_envelope\"}"
+        },
+        {
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "28"
+          },
+          "body": "{\"error\":\"invalid_envelope\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A03",
+      "label": "Réception répétée et origine conflictuelle",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D",
+            "op1",
+            "a4e6988eac0874b0e0c308890a9c539aad7ae9662087a05f110f25a3fbbebc4f",
+            "{\"delta\": {\"concept\": \"known\", \"target\": \"hidden\", \"text\": \"author delta\"}, \"format\": 2, \"origin\": \"op1\"}",
+            "converted",
+            "{\"concept\": \"known\", \"converter\": \"identity-v2\", \"format\": 2, \"target\": \"hidden\", \"text\": \"author delta\"}"
+          ]
+        ],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 202,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "21"
+          },
+          "body": "{\"status\":\"received\"}"
+        },
+        {
+          "status": 202,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "21"
+          },
+          "body": "{\"status\":\"received\"}"
+        },
+        {
+          "status": 409,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "27"
+          },
+          "body": "{\"error\":\"origin_conflict\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A04",
+      "label": "Cible cachée/absente : mêmes sorties HTTP",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "23"
+          },
+          "body": "{\"error\":\"introuvable\"}"
+        },
+        {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "23"
+          },
+          "body": "{\"error\":\"introuvable\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A05",
+      "label": "Mauvais compte/appareil : cible introuvable",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "23"
+          },
+          "body": "{\"error\":\"introuvable\"}"
+        },
+        {
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "23"
+          },
+          "body": "{\"error\":\"introuvable\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A06",
+      "label": "Ancien client : ajouts refusés mais réception sûre",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D",
+            "op1",
+            "a4e6988eac0874b0e0c308890a9c539aad7ae9662087a05f110f25a3fbbebc4f",
+            "{\"delta\": {\"concept\": \"known\", \"target\": \"hidden\", \"text\": \"author delta\"}, \"format\": 2, \"origin\": \"op1\"}",
+            "converted",
+            "{\"concept\": \"known\", \"converter\": \"identity-v2\", \"format\": 2, \"target\": \"hidden\", \"text\": \"author delta\"}"
+          ]
+        ],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 426,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "27"
+          },
+          "body": "{\"error\":\"update_required\"}"
+        },
+        {
+          "status": 202,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "21"
+          },
+          "body": "{\"status\":\"received\"}"
+        },
+        {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "43"
+          },
+          "body": "{\"items\":[[\"visible\",\"visible synthetic\"]]}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A07",
+      "label": "Conversion versionnée ou ambiguïté en attente",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [
+          [
+            "A",
+            "D",
+            "op1",
+            "f57797ed44d94ffc5690281b270f1da5d4c016d005db0a4c76191418935cd1b5",
+            "{\"delta\": {\"concept\": \"known\", \"target\": \"hidden\", \"text\": \"author delta\"}, \"format\": 1, \"origin\": \"op1\"}",
+            "converted",
+            "{\"concept\": \"known\", \"converter\": \"v1-to-v2\", \"format\": 2, \"target\": \"hidden\", \"text\": \"author delta\"}"
+          ],
+          [
+            "A",
+            "D",
+            "op2",
+            "db3793403c2c355ae9c5f9b85488841091fa2285a94f9625d92cfb5d67d7bf1a",
+            "{\"delta\": {\"concept\": \"split\", \"target\": \"hidden\", \"text\": \"author delta\"}, \"format\": 1, \"origin\": \"op2\"}",
+            "awaiting",
+            null
+          ]
+        ],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 202,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "21"
+          },
+          "body": "{\"status\":\"received\"}"
+        },
+        {
+          "status": 202,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "21"
+          },
+          "body": "{\"status\":\"received\"}"
+        }
+      ],
+      "journal_intact": true
+    },
+    {
+      "id": "PT06-A08",
+      "label": "Session révoquée entre requêtes : recontrôle",
+      "status": "PASS",
+      "before": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "after": {
+        "receipts": [],
+        "objects": [
+          [
+            "hidden",
+            "B",
+            "hidden synthetic"
+          ],
+          [
+            "visible",
+            "A",
+            "visible synthetic"
+          ]
+        ]
+      },
+      "http_traces": [
+        {
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "44"
+          },
+          "body": "{\"id\":\"visible\",\"title\":\"visible synthetic\"}"
+        },
+        {
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "31"
+          },
+          "body": "{\"error\":\"session_unavailable\"}"
+        },
+        {
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Content-Length": "31"
+          },
+          "body": "{\"error\":\"session_unavailable\"}"
+        }
+      ],
+      "journal_intact": true
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_API_COMPATIBILITE",
+  "PT06_clos": false,
+  "MFA_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "HTTP_bind": "127.0.0.1",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Tokens, appareils et version/capacité clients de fixture, pas authentification réelle ni MFA.",
+    "Versions/convertisseur synthétiques, pas négociation sécurisée, fenêtre produit ou référentiels complets.",
+    "API SQLite réduite, pas Core/MLD complet, TLS/proxy, réseau hostile ou capacité.",
+    "Journal témoin conservé, pas récupération authentifiée complète ni migration du client local.",
+    "Caché/absent fonctionnel, pas qualification des canaux de latence NF10."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run.py": "7656fa44c542843e37df7d0387bfbeb29538542c66543d46504f66118cc9ea5a",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

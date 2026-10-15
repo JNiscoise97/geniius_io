@@ -1,0 +1,81 @@
+{
+  "prototype": "PT03",
+  "lot": "E",
+  "started_utc": "2026-10-13T13:05:14.456999+00:00",
+  "ended_utc": "2026-10-13T13:05:14.465271+00:00",
+  "cases": [
+    {
+      "id": "PT03-E01",
+      "label": "DPAPI utilisateur : chiffrement et lecture dans un nouveau processus",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E02",
+      "label": "Deux protections du même contenu produisent des blobs distincts",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E03",
+      "label": "Blob corrompu : refus de déchiffrement",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E04",
+      "label": "Contexte différent : refus avec entropie attendue différente",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E05",
+      "label": "Blob tronqué : refus de déchiffrement",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E06",
+      "label": "Suppression de réplique chiffrée sans perte du journal chiffré",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    },
+    {
+      "id": "PT03-E07",
+      "label": "Ancien blob valide rejoué : contre-exemple à la fraîcheur par DPAPI seule",
+      "status": "FAIL",
+      "error": "FileNotFoundError(2, 'DPAPI operation refused')"
+    }
+  ],
+  "fatal": null,
+  "verdict": "FAIL",
+  "chiffrement_execute": true,
+  "DPAPI_utilisateur": true,
+  "autre_compte_OS_test": false,
+  "horloge_OS_qualifiee": false,
+  "anti_rollback_demontre": false,
+  "PT03_clos": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "flags": 1,
+    "scope": "CurrentUser",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "DPAPI sur petits enregistrements, pas chiffrement complet des bases SQLite précédentes.",
+    "Autre contexte applicatif testé par entropie, pas autre compte Windows réel.",
+    "Même utilisateur Windows peut appeler DPAPI ; pas isolation entre processus de cet utilisateur.",
+    "Ancien blob valide accepté : aucun anti-rollback, aucune fraîcheur ni révocation cryptographique.",
+    "Pas de magasin de clés multiplateforme, veille/hibernation, TPM ou redémarrage OS testés.",
+    "Profil/clé maître gérés par Windows, récupération ou migration du profil non éprouvée."
+  ],
+  "sources_officielles": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata",
+    "https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata"
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e"
+  }
+}

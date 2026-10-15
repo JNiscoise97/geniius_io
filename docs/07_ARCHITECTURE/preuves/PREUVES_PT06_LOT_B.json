@@ -1,0 +1,13 @@
+{
+  "prototype": "PT06",
+  "lot": "B",
+  "PT06_clos": false,
+  "IdP_production_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT06_LOT_B.json": "71c6217ef4e049b336484b8c61da6a2f306de45e0101fef756c004af88b030b2",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT06_LOT_B.md": "814766f20c782ab92c01950a6f0b62736fe1547cdfdbe87919f112da98e3aaa3",
+    "spec/prototypes/pt06/check_b.py": "2cae45f5d23f704f4a5cf12c4b656a59f4750b6c5ae3873e5575699baf96d0b2",
+    "spec/prototypes/pt06/run_b.py": "7ee0d629aab5ac076be140ebcd1a35f3d1290bc6df1febc92867d9d3413d7dd5",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

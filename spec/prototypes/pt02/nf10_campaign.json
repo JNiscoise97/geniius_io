@@ -1,0 +1,18 @@
+{
+  "version": "PT02-NF10-DIAGNOSTIC-03",
+  "statut": "protocole diagnostic fixe avant execution, aucune conformite NF10 declaree",
+  "seed": 20261013,
+  "concurrences": [1, 4],
+  "connexions_lecture_reutilisees": 4,
+  "paires_par_famille_et_palier": 32,
+  "paires_apprentissage": 16,
+  "permutations": 1999,
+  "familles": ["personnel_cache", "hp_rompue", "copie_protegee"],
+  "construction_jumeau": "jumeau_sans du corpus V1.6, meme acteur, meme cible et meme URL",
+  "ordonnancement": "blocs de taille concurrence, ordre cache/absent melange par bloc ; tous les clients d un bloc lisent le meme etat canonique",
+  "echec_fonctionnel": "statut, corps ou en tetes differents entre jumeaux ; acces accorde a une cible cachee ; erreur serveur",
+  "critere_statistique_de_conformite": null,
+  "tolerance_de_fuite": null,
+  "metriques": ["mediane", "p95", "difference_appariee", "p_permutation_exploratoire", "classifieur_latence_appris_teste_separement"],
+  "limites": ["petit corpus", "correlation sous charge et derive entre blocs", "cout Docker et psql", "pas API de production", "pas preuve equivalence"]
+}

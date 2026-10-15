@@ -1,0 +1,1385 @@
+{
+  "prototype": "PT05",
+  "lot": "E",
+  "started_utc": "2026-10-14T12:14:31.717939+00:00",
+  "ended_utc": "2026-10-14T12:14:38.223244+00:00",
+  "cases": [
+    {
+      "id": "PT05-E01",
+      "profile": {
+        "name": "chain64",
+        "shape": "chain",
+        "nodes": 64
+      },
+      "load": "solo",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 40.3983,
+          "signals": 63,
+          "signals_per_second": 1559.4715619221602,
+          "python_peak_tracemalloc_bytes": 48733,
+          "cpu_process_ms": 46.875,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 53.9972,
+          "signals": 63,
+          "signals_per_second": 1166.7271636307066,
+          "python_peak_tracemalloc_bytes": 38453,
+          "cpu_process_ms": 46.875,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 37.1644,
+          "signals": 63,
+          "signals_per_second": 1695.1706471784826,
+          "python_peak_tracemalloc_bytes": 38349,
+          "cpu_process_ms": 46.875,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 43.0995,
+          "signals": 63,
+          "signals_per_second": 1461.733894824766,
+          "python_peak_tracemalloc_bytes": 38245,
+          "cpu_process_ms": 31.25,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 41.3056,
+          "signals": 63,
+          "signals_per_second": 1525.2169197396963,
+          "python_peak_tracemalloc_bytes": 38213,
+          "cpu_process_ms": 31.25,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 53.9972,
+      "median_ms": 41.3056,
+      "p95_nearest_rank_ms": 53.9972
+    },
+    {
+      "id": "PT05-E02",
+      "profile": {
+        "name": "chain64",
+        "shape": "chain",
+        "nodes": 64
+      },
+      "load": "concurrent_reads",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 96.0058,
+          "signals": 63,
+          "signals_per_second": 656.2103539577818,
+          "python_peak_tracemalloc_bytes": 51945,
+          "cpu_process_ms": 46.875,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 3.5244,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 13.0651,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 10.9119,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 1.9744,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.9667,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.51,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.4233,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.3984,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.1492,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 1.5979,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 1.5512,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.6715,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 29.5665,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 1.7521,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 96.1987,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 134.0067,
+          "signals": 63,
+          "signals_per_second": 470.1257474439711,
+          "python_peak_tracemalloc_bytes": 50177,
+          "cpu_process_ms": 78.125,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 7.4509,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 10.907,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 13.7974,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.9668,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.4092,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.0747,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 80.1598,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 18.5536,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 75.9076,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 121.3288,
+          "signals": 63,
+          "signals_per_second": 519.2501697865634,
+          "python_peak_tracemalloc_bytes": 49849,
+          "cpu_process_ms": 31.25,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 6.5684,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 29.8564,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 35.6118,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.9302,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 47.5998,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 44.8649,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 19.6638,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 18.8471,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 125.9236,
+          "signals": 63,
+          "signals_per_second": 500.30335854438727,
+          "python_peak_tracemalloc_bytes": 51977,
+          "cpu_process_ms": 93.75,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 4.9639,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 20.0206,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 27.4794,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 20.8815,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 31.7115,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 15.8749,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.9416,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.7524,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.7804,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.494,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.7721,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 2.8765,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.3187,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.2006,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 18.6819,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 15.641,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 40.369,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 128.03,
+          "signals": 63,
+          "signals_per_second": 492.07217058501914,
+          "python_peak_tracemalloc_bytes": 49130,
+          "cpu_process_ms": 78.125,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 5.6785,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 8.0162,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 9.9675,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 39.7834,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 69.7182,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 47.7582,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 36.928,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 32.9326,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 134.0067,
+      "median_ms": 125.9236,
+      "p95_nearest_rank_ms": 134.0067
+    },
+    {
+      "id": "PT05-E03",
+      "profile": {
+        "name": "star256",
+        "shape": "star",
+        "nodes": 256
+      },
+      "load": "solo",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 117.3071,
+          "signals": 255,
+          "signals_per_second": 2173.781467617902,
+          "python_peak_tracemalloc_bytes": 141072,
+          "cpu_process_ms": 78.125,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 87.8577,
+          "signals": 255,
+          "signals_per_second": 2902.420618796076,
+          "python_peak_tracemalloc_bytes": 116392,
+          "cpu_process_ms": 62.5,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 86.8535,
+          "signals": 255,
+          "signals_per_second": 2935.9784004098856,
+          "python_peak_tracemalloc_bytes": 116392,
+          "cpu_process_ms": 93.75,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 71.1479,
+          "signals": 255,
+          "signals_per_second": 3584.083296906865,
+          "python_peak_tracemalloc_bytes": 116392,
+          "cpu_process_ms": 46.875,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 81.3409,
+          "signals": 255,
+          "signals_per_second": 3134.9542481088847,
+          "python_peak_tracemalloc_bytes": 116392,
+          "cpu_process_ms": 78.125,
+          "storage_bytes": 40960,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 117.3071,
+      "median_ms": 86.8535,
+      "p95_nearest_rank_ms": 117.3071
+    },
+    {
+      "id": "PT05-E04",
+      "profile": {
+        "name": "star256",
+        "shape": "star",
+        "nodes": 256
+      },
+      "load": "concurrent_reads",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 126.6985,
+          "signals": 255,
+          "signals_per_second": 2012.652083489544,
+          "python_peak_tracemalloc_bytes": 127664,
+          "cpu_process_ms": 140.625,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 4.9427,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 16.9606,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 15.9602,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 60.0803,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 71.7068,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 6.8544,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 27.6234,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 23.8151,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 215.2383,
+          "signals": 255,
+          "signals_per_second": 1184.7333862049643,
+          "python_peak_tracemalloc_bytes": 127504,
+          "cpu_process_ms": 203.125,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 11.6324,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 34.0656,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 44.6765,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 124.0503,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 9.2006,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 139.6956,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 114.3068,
+          "signals": 255,
+          "signals_per_second": 2230.838410313297,
+          "python_peak_tracemalloc_bytes": 127488,
+          "cpu_process_ms": 93.75,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 6.6935,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 13.9362,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 12.9079,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 18.84,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 65.5019,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 10.9704,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 62.3297,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 144.2764,
+          "signals": 255,
+          "signals_per_second": 1767.4408288535062,
+          "python_peak_tracemalloc_bytes": 130224,
+          "cpu_process_ms": 156.25,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 6.8295,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 15.2275,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.0157,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.674,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.9277,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.9738,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.4077,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8817,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7089,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8726,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.3974,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 53.8052,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.0831,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.1314,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.2558,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 49.1045,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 7.1134,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 82.4657,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 336.0249,
+          "signals": 255,
+          "signals_per_second": 758.8723335681374,
+          "python_peak_tracemalloc_bytes": 139800,
+          "cpu_process_ms": 281.25,
+          "storage_bytes": 40960,
+          "reads": [
+            {
+              "duration_ms": 5.533,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 13.486,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 13.4771,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 34.7498,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7238,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.8306,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.5953,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8919,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.0615,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.6658,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.6284,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7044,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.7454,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7245,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 38.4303,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.8236,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.5343,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 5.2503,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.814,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.7036,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.5125,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 5.7642,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.3886,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7273,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.0802,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8256,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.3553,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8355,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.6493,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 63.373,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.9913,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.8318,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.9335,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.5115,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.1551,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.2449,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.5075,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 34.5302,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.8581,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.36,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 14.0753,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.3354,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.3257,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 14.275,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.013,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.5688,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.1349,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.4095,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.1203,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.4005,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7264,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.8688,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 20.7618,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.0016,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 5.0104,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 16.533,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.9726,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 2.7658,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 3.7525,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 4.0698,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 68.3673,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 13.7618,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 123.5248,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 336.0249,
+      "median_ms": 144.2764,
+      "p95_nearest_rank_ms": 336.0249
+    },
+    {
+      "id": "PT05-E05",
+      "profile": {
+        "name": "tree511",
+        "shape": "tree",
+        "nodes": 511
+      },
+      "load": "solo",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 240.0485,
+          "signals": 510,
+          "signals_per_second": 2124.5706596791897,
+          "python_peak_tracemalloc_bytes": 266096,
+          "cpu_process_ms": 140.625,
+          "storage_bytes": 94208,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 163.9771,
+          "signals": 510,
+          "signals_per_second": 3110.1903863405314,
+          "python_peak_tracemalloc_bytes": 233352,
+          "cpu_process_ms": 171.875,
+          "storage_bytes": 94208,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 132.0814,
+          "signals": 510,
+          "signals_per_second": 3861.255256228356,
+          "python_peak_tracemalloc_bytes": 233352,
+          "cpu_process_ms": 125.0,
+          "storage_bytes": 94208,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 159.2884,
+          "signals": 510,
+          "signals_per_second": 3201.739737482453,
+          "python_peak_tracemalloc_bytes": 233352,
+          "cpu_process_ms": 140.625,
+          "storage_bytes": 94208,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 318.4052,
+          "signals": 510,
+          "signals_per_second": 1601.7326350197798,
+          "python_peak_tracemalloc_bytes": 233352,
+          "cpu_process_ms": 218.75,
+          "storage_bytes": 94208,
+          "reads": [],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 318.4052,
+      "median_ms": 163.9771,
+      "p95_nearest_rank_ms": 318.4052
+    },
+    {
+      "id": "PT05-E06",
+      "profile": {
+        "name": "tree511",
+        "shape": "tree",
+        "nodes": 511
+      },
+      "load": "concurrent_reads",
+      "status": "PASS",
+      "samples": [
+        {
+          "elapsed_ms": 185.6732,
+          "signals": 510,
+          "signals_per_second": 2746.7615143165517,
+          "python_peak_tracemalloc_bytes": 244984,
+          "cpu_process_ms": 156.25,
+          "storage_bytes": 94208,
+          "reads": [
+            {
+              "duration_ms": 6.6021,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 54.1355,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 74.9095,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.0105,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.6637,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 106.9843,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 111.832,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 174.9767,
+          "signals": 510,
+          "signals_per_second": 2914.6737822807268,
+          "python_peak_tracemalloc_bytes": 245816,
+          "cpu_process_ms": 156.25,
+          "storage_bytes": 94208,
+          "reads": [
+            {
+              "duration_ms": 7.125,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 15.9089,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.442,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.3686,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 29.5347,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.475,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.4683,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.4928,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.785,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.4163,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.5221,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 157.286,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 107.4777,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 154.405,
+          "signals": 510,
+          "signals_per_second": 3303.0018457951487,
+          "python_peak_tracemalloc_bytes": 245856,
+          "cpu_process_ms": 171.875,
+          "storage_bytes": 94208,
+          "reads": [
+            {
+              "duration_ms": 6.0607,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 39.5382,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.3455,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.3942,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.0591,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.5044,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.432,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 63.8931,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 9.8667,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 171.3808,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 166.2466,
+          "signals": 510,
+          "signals_per_second": 3067.7319115097694,
+          "python_peak_tracemalloc_bytes": 244552,
+          "cpu_process_ms": 187.5,
+          "storage_bytes": 94208,
+          "reads": [
+            {
+              "duration_ms": 12.6467,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 41.4279,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 7.0384,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.6327,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.9145,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 63.0213,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 15.8538,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 198.165,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        },
+        {
+          "elapsed_ms": 262.7088,
+          "signals": 510,
+          "signals_per_second": 1941.3129670570609,
+          "python_peak_tracemalloc_bytes": 250128,
+          "cpu_process_ms": 234.375,
+          "storage_bytes": 94208,
+          "reads": [
+            {
+              "duration_ms": 6.2362,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 11.0962,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 14.6138,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 14.4168,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.821,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.6315,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 17.3446,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.725,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.8079,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.031,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.4769,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 8.4362,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 5.408,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.7817,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.7049,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.4832,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.2046,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.5265,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.8631,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.4092,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 7.1548,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 6.3636,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 4.7695,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.9135,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 120.8246,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.8673,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.8368,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 3.641,
+              "status": "propagation_en_cours"
+            },
+            {
+              "duration_ms": 93.896,
+              "status": "reexamen"
+            },
+            {
+              "duration_ms": 175.0232,
+              "status": "reexamen"
+            }
+          ],
+          "pending_after": false,
+          "scientific_status": "reexamen"
+        }
+      ],
+      "maximum_ms": 262.7088,
+      "median_ms": 174.9767,
+      "p95_nearest_rank_ms": 262.7088
+    },
+    {
+      "id": "PT05-E07",
+      "status": "PASS",
+      "alert": "diagnostic_budget_exceeded",
+      "pending_preserved": true,
+      "read_status": "propagation_en_cours"
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_MESURES_LOCALES",
+  "PT05_clos": false,
+  "MPD04_fixe": false,
+  "capacite_production_qualifiee": false,
+  "budget_mensuel_estime": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Temps mesuré avant correction à après commit/contrôle, inclut écriture directe et instrumentation.",
+    "Deux threads lecteurs fini, pas utilisateurs/appareils réseau ni garantie de chevauchement à chaque répétition.",
+    "tracemalloc allocations Python seulement, pas RSS mémoire native SQLite ni ressources machine complètes.",
+    "Cinq répétitions/profil, ordre fixe, petits graphes ; pas maximum contractuel ou percentile population estimé.",
+    "Alerte zero-budget de fixture : pas ordonnanceur de timeout ou supervision périodique implémentés.",
+    "Coût cloud réel nul, pas coût économique du poste ou devis de production ; pas MPD-04 ratifié."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt05/run_e.py": "5e2b2a3d3e7c58e04d8473d1b8264b094e371b8fbedc01f306d3e9c6dd8d1163",
+    "spec/prototypes/pt05/run_b.py": "f14a4aa4a5c0ec8df48b2f1571c4cf19c7aa803b6bbf689c32bd3260eca0b717",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/capacity_profile.json": "c4a5627fc0356ba1f60b5aa8cc2c614c8b62a5e082e113ff5089ad42139f43ea",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

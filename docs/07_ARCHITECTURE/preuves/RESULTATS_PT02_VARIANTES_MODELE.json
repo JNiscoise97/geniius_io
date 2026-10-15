@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-10-13T10:25:31.957750+00:00",
+  "scope": "MODELE_REFERENCE_SEULEMENT",
+  "SQL_execute": false,
+  "HTTP_execute": false,
+  "PT02_clos": false,
+  "NF10_conforme": false,
+  "cases": [
+    {
+      "family": "admissions_hp",
+      "test": "test_controles_v15.ControleB.test_N06_admission_hp_sans_a1",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_N06_admission_hp_sans_a1 (test_controles_v15.ControleB.test_N06_admission_hp_sans_a1)\nN06 — § 8.3, § 9.3 : admettre au titre d'une HP exige les conditions 1 et 2 du § 8.1. ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "admissions_hp",
+      "test": "test_controles_v15.ControleB.test_N07_retrait_d_admission_par_un_tiers",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_N07_retrait_d_admission_par_un_tiers (test_controles_v15.ControleB.test_N07_retrait_d_admission_par_un_tiers)\nN07 — § 8.3 (CM-19) : seul l'habilitant retire une admission. ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "admissions_hp",
+      "test": "test_attaques.Attaques.test_a11_admission_par_fondateur_rompu",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_a11_admission_par_fondateur_rompu (test_attaques.Attaques.test_a11_admission_par_fondateur_rompu)\na11 — § 5.3 (CM-10) : l'admission prononcée par un acteur dont la chaîne est rompue est close, qu'il soit ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "exclusions_personne",
+      "test": "test_controles_v15.ControleB.test_N08_exclusion_par_personne",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_N08_exclusion_par_personne (test_controles_v15.ControleB.test_N08_exclusion_par_personne)\nN08 — § 9.4 (H-5) : l'exclusion après retrait s'apprécie par personne. ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "protections_groupes",
+      "test": "test_scenarios.S06_Protections.test_S_44",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_S_44 (test_scenarios.S06_Protections.test_S_44)\nS-44 ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "protections_groupes",
+      "test": "test_scenarios.S06_Protections.test_S_129",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_S_129 (test_scenarios.S06_Protections.test_S_129)\nS-129 ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "protections_groupes",
+      "test": "__main__.GroupApproval.test_approval_and_removal",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_approval_and_removal (__main__.GroupApproval.test_approval_and_removal) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "accords_garde",
+      "test": "test_transitions.Combinaisons.test_derogation_niveaux",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_derogation_niveaux (test_transitions.Combinaisons.test_derogation_niveaux)\n§ 12.3 : niveau d'approbation selon la cible, le nombre d'approbateurs, l'accord du gardien ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.031s\n\nOK\n"
+    },
+    {
+      "family": "accords_garde",
+      "test": "test_transitions.Combinaisons.test_derogation_gardien_change",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_derogation_gardien_change (test_transitions.Combinaisons.test_derogation_gardien_change)\n§ 12.3 : l'accord doit émaner d'un gardien **en fonction** ; s'il cesse de l'être, la dérogation ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nOK\n"
+    },
+    {
+      "family": "independance",
+      "test": "test_scenarios.S11_V15.test_S_232",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_S_232 (test_scenarios.S11_V15.test_S_232)\nS-232 ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "independance",
+      "test": "test_scenarios.S11_V15.test_S_233",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_S_233 (test_scenarios.S11_V15.test_S_233)\nS-233 ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "family": "independance",
+      "test": "test_attaques.Attaques.test_a16_derogation_par_second_compte",
+      "tests_run": 1,
+      "status": "PASS",
+      "transcript": "test_a16_derogation_par_second_compte (test_attaques.Attaques.test_a16_derogation_par_second_compte)\na16 — § 12.4, § 12.7 (G-1) : un membre de l'autorité ne s'accorde pas une dérogation par un second ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n"
+    }
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt02/validate_scope.py": "2b4e354386982ff034dcb69ae14e755b25368d8bc620c2b8dbf76bd50738f34b",
+    "spec/autorisation/modele.py": "9de82acadaaa50d3519b579eb8399e9244906eff5a71841f9f01436a348f7dd4",
+    "spec/autorisation/tests/base.py": "2548909b904034a1b871ab02d530437755d2b89fe349cbcc3708bcd87c2a4d04",
+    "spec/autorisation/tests/outils.py": "0fda1667f14a646b1bd1d7f4b26f134a996515cf02f0c3d1f0ec90041d46ad0c",
+    "spec/autorisation/tests/test_controles_v15.py": "951f1d75315ce1b20876e6a4e6b8e0d5db5cc481aa06d51aaaba0634e5faeafa",
+    "spec/autorisation/tests/test_attaques.py": "33bf7583da92b02ff5239eb868d4f52639680783ee2411adf9f88fe3529528d6",
+    "spec/autorisation/tests/test_transitions.py": "adf5a08275aece3689d213baf44c839892b1b1aa0cbd4929b728c939eb634faf",
+    "spec/autorisation/tests/test_scenarios.py": "0cccdd11bc484acf980b9c7509d235f1201e62c66d206869eda2214d5a6afe77"
+  }
+}

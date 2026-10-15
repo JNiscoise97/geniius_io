@@ -1,0 +1,14 @@
+{
+  "prototype": "PT04",
+  "lot": "D",
+  "PT04_clos": false,
+  "effacement_forensique_demontre": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_D.json": "07aa6254ddcb229e656c596536ac37295e2c24106c4041820f7a3e2c949a5da7",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_D.md": "09edc321a1ec47fe0eb2b6d57ed7c77fffd5ffc3622cc9f8958bedda33a952a3",
+    "spec/prototypes/pt04/check_d.py": "c4862714c17341383889373cb051877fb7210373e967814117536841e1a40cf4",
+    "spec/prototypes/pt04/run_d.py": "837a7426fa1e96db5a997ccb3a0df6ba62add09cd9a185a795c34f6f743985ba",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

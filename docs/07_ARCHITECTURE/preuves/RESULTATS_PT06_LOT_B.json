@@ -1,0 +1,221 @@
+{
+  "prototype": "PT06",
+  "lot": "B",
+  "started_utc": "2026-10-14T15:28:50.873943+00:00",
+  "ended_utc": "2026-10-14T15:29:00.604189+00:00",
+  "cases": [
+    {
+      "id": "PT06-B01",
+      "label": "Six vecteurs TOTP SHA1 RFC6238, y compris après 2038",
+      "status": "PASS",
+      "after": {
+        "sessions": 0,
+        "used_challenges": 0,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "RFC6238_SHA1_vectors_passed": 6
+        }
+      ]
+    },
+    {
+      "id": "PT06-B02",
+      "label": "Mot de passe et TOTP requis avant session",
+      "status": "PASS",
+      "after": {
+        "sessions": 1,
+        "used_challenges": 1,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 0,
+            "used_challenges": 0,
+            "used_recovery": 0
+          }
+        },
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 0,
+            "used_challenges": 0,
+            "used_recovery": 0
+          }
+        },
+        {
+          "authentication_status": "authenticated",
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-B03",
+      "label": "Compteur TOTP déjà utilisé refusé sur nouveau challenge",
+      "status": "PASS",
+      "after": {
+        "sessions": 1,
+        "used_challenges": 1,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "authentication_status": "authenticated",
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 0
+          }
+        },
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-B04",
+      "label": "Challenge et session liés compte/appareil",
+      "status": "PASS",
+      "after": {
+        "sessions": 1,
+        "used_challenges": 1,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 0,
+            "used_challenges": 0,
+            "used_recovery": 0
+          }
+        },
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 0,
+            "used_challenges": 0,
+            "used_recovery": 0
+          }
+        },
+        {
+          "authentication_status": "authenticated",
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-B05",
+      "label": "Challenge expiré à égalité : refus",
+      "status": "PASS",
+      "after": {
+        "sessions": 0,
+        "used_challenges": 0,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "authentication_status": "refused",
+          "state": {
+            "sessions": 0,
+            "used_challenges": 0,
+            "used_recovery": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-B06",
+      "label": "Code recovery concurrent : usage unique et contexte restreint",
+      "status": "PASS",
+      "after": {
+        "sessions": 1,
+        "used_challenges": 1,
+        "used_recovery": 1
+      },
+      "traces": [
+        {
+          "recovery_results": [
+            "authenticated",
+            "refused"
+          ],
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-B07",
+      "label": "Fraîcheur sensible expirée et session révoquée : refus/re-auth",
+      "status": "PASS",
+      "after": {
+        "sessions": 1,
+        "used_challenges": 1,
+        "used_recovery": 0
+      },
+      "traces": [
+        {
+          "authentication_status": "authenticated",
+          "state": {
+            "sessions": 1,
+            "used_challenges": 1,
+            "used_recovery": 0
+          }
+        },
+        {
+          "freshness_expired": true,
+          "revoked_session_refused": true
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_PRIMITIVES_IDENTITE",
+  "PT06_clos": false,
+  "IdP_production_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "parameters": {
+    "PBKDF2_iterations": 200000,
+    "TOTP_step": 30,
+    "challenge_ttl": 60,
+    "sensitive_freshness": 60,
+    "session_ttl": 300
+  },
+  "limits": [
+    "Temps injecté et secrets générés par le banc, pas authenticator/appareil physique ni enrollment réel.",
+    "Seed TOTP en clair dans DB temporaire, magasin de secrets/rotation/récupération non qualifiés.",
+    "Paramètres de fixture, pas politique de mot de passe/MFA ratifiée ni calibration KDF.",
+    "Pas TLS, HTTP, phishing-resistance, anti-bruteforce/rate-limit, CSRF ou workflow opérateur.",
+    "Compteurs/codes single-use durables localement, pas preuve après restauration/PRA."
+  ],
+  "sources_officielles": [
+    "https://www.rfc-editor.org/rfc/rfc6238",
+    "https://docs.python.org/3/library/hashlib.html"
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run_b.py": "7ee0d629aab5ac076be140ebcd1a35f3d1290bc6df1febc92867d9d3413d7dd5",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

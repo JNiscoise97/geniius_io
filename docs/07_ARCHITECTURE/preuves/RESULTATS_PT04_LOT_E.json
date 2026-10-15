@@ -1,0 +1,939 @@
+{
+  "prototype": "PT04",
+  "lot": "E",
+  "started_utc": "2026-10-14T10:01:42.352122+00:00",
+  "ended_utc": "2026-10-14T10:01:47.091031+00:00",
+  "cases": [
+    {
+      "id": "PT04-E01",
+      "label": "Secret indisponible : refus puis récupération",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": false,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "secret_unavailable"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-E02",
+      "label": "Mauvais secret : refus puis secret correct",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "backup_unverifiable"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-E03",
+      "label": "Sauvegarde altérée : refus puis copie saine",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "backup_unverifiable"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-E04",
+      "label": "Manifeste extérieur incohérent : refus",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "manifest_mismatch"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-E05",
+      "label": "Panne entre base et média : porte fermée puis reprise",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": true,
+          "fault": "after_database_restore",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_database_restore"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-E06",
+      "label": "Reprotection sous nouveau secret : ancien secret refusé par nouvelle archive",
+      "status": "PASS",
+      "before": {
+        "supervisor_open": 0,
+        "media_present": false,
+        "application": {
+          "open": 0,
+          "epoch": 1,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": []
+        }
+      },
+      "after": {
+        "supervisor_open": 1,
+        "media_present": true,
+        "application": {
+          "open": 1,
+          "epoch": 2,
+          "objects": [
+            [
+              "gone",
+              "old content",
+              1
+            ],
+            [
+              "keep",
+              "current content",
+              1
+            ]
+          ],
+          "derived": [
+            [
+              "gone",
+              "old index"
+            ]
+          ],
+          "effects": [],
+          "visible": [
+            [
+              "gone"
+            ],
+            [
+              "keep"
+            ]
+          ]
+        }
+      },
+      "traces": [
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "backup_unverifiable"
+          },
+          "durable_after": {
+            "supervisor_open": 0,
+            "media_present": false,
+            "application": {
+              "open": 0,
+              "epoch": 1,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": []
+            }
+          }
+        },
+        {
+          "old_archive_still_decryptable": true
+        },
+        {
+          "secret_supplied": true,
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "restored",
+            "media_digest": "c7a1ee59235e74cc417b2a7d9d66727fc17a9714623117ae6f65ed6a050495d8"
+          },
+          "durable_after": {
+            "supervisor_open": 1,
+            "media_present": true,
+            "application": {
+              "open": 1,
+              "epoch": 2,
+              "objects": [
+                [
+                  "gone",
+                  "old content",
+                  1
+                ],
+                [
+                  "keep",
+                  "current content",
+                  1
+                ]
+              ],
+              "derived": [
+                [
+                  "gone",
+                  "old index"
+                ]
+              ],
+              "effects": [],
+              "visible": [
+                [
+                  "gone"
+                ],
+                [
+                  "keep"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_SAUVEGARDE_PROTEGEE",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "escrow_secret_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "DPAPI utilisateur Windows plus entropie secrète ; même profil/machine, pas PRA multiplateforme.",
+    "Secrets en mémoire parent et stdin, pas magasin/escrow indépendant ni récupération après perte du profil.",
+    "Manifeste et checkpoint fiables injectés ; protection autorité extérieure non qualifiée.",
+    "Déchiffrement crée staging clair temporaire ; effacement forensique mémoire/fichiers non démontré.",
+    "Reprotection ne révoque pas anciennes archives/secrets ; NF05 et RPO/RTO non qualifiés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run_e.py": "1cddba27f232e6984e9474b09c2724758ef02a322483b9f46f418f26c330739a",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

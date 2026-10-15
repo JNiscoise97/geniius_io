@@ -1,0 +1,21 @@
+{
+  "version": "PT05-E-DIAGNOSTIC-01",
+  "scope": "LOCAL_SYNTHETIC_NOT_PRODUCTION",
+  "profiles": [
+    {"name": "chain64", "shape": "chain", "nodes": 64},
+    {"name": "star256", "shape": "star", "nodes": 256},
+    {"name": "tree511", "shape": "tree", "nodes": 511}
+  ],
+  "loads": ["solo", "concurrent_reads"],
+  "repetitions": 5,
+  "concurrent_reader_threads": 2,
+  "reads_per_thread_max": 100,
+  "order": "profiles_in_declared_order_then_loads_then_repetitions",
+  "exclusions": "none",
+  "start_measure": "before_correction_transaction",
+  "end_measure": "after_signal_commit_and_completion_check",
+  "alert_test_budget_ns": 0,
+  "MPD04_value": null,
+  "production_cost_estimate": null,
+  "qualification": false
+}

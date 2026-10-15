@@ -1,0 +1,3744 @@
+{
+  "prototype": "PT05",
+  "lot": "B",
+  "started_utc": "2026-10-14T10:32:37.849723+00:00",
+  "ended_utc": "2026-10-14T10:32:44.855189+00:00",
+  "cases": [
+    {
+      "id": "PT05-B01",
+      "label": "Worker perdu : barrière puis signalements sans validation scientifique",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          1,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-B02",
+      "label": "Nouvelle cause : ancienne génération ne clôt pas l’impact récent",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          2,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ],
+          [
+            "B",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ],
+          [
+            "B",
+            1,
+            "join"
+          ],
+          [
+            "B",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "stale_refused"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 2,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ],
+              [
+                "B",
+                1,
+                "join"
+              ],
+              [
+                "B",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ],
+              [
+                "B",
+                1,
+                "join"
+              ],
+              [
+                "B",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ],
+              [
+                "B",
+                1,
+                "join"
+              ],
+              [
+                "B",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ],
+              [
+                "B",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ],
+              [
+                "B",
+                1,
+                "join"
+              ],
+              [
+                "B",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-B03",
+      "label": "Dépendance ajoutée après préparation : reprise couvre le nouvel aval",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          2,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            1
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "extra"
+          ],
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ],
+          [
+            "tail",
+            "extra"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "edge",
+          "exit_code": 0,
+          "output": {
+            "status": "edge_added"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "stale_refused"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 2,
+            "signals": [
+              [
+                "A",
+                1,
+                "extra"
+              ],
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                1
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "extra"
+              ],
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                1
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "extra"
+              ],
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                1
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "extra"
+              ],
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "extra"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-B04",
+      "label": "Cycle de raisonnement : parcours termine sans indépendance fabriquée",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          2,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ],
+          [
+            "tail",
+            "join"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "edge",
+          "exit_code": 0,
+          "output": {
+            "status": "edge_added"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "join"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 2,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "join"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "join"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 2
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "join"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              2,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ],
+              [
+                "tail",
+                "join"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-B05",
+      "label": "Cycle de production tenté : mutation refusée",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          1,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "edge",
+          "exit_code": 0,
+          "output": {
+            "status": "cycle_refused"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT05-B06",
+      "label": "Panne avant commit propagation : barrière puis rejeu",
+      "status": "PASS",
+      "before": {
+        "scope": [
+          0,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            0
+          ],
+          [
+            "tail",
+            0
+          ]
+        ],
+        "causes": [],
+        "signals": [],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "after": {
+        "scope": [
+          1,
+          0
+        ],
+        "nodes": [
+          [
+            "A",
+            0
+          ],
+          [
+            "B",
+            0
+          ],
+          [
+            "extra",
+            0
+          ],
+          [
+            "join",
+            1
+          ],
+          [
+            "tail",
+            1
+          ]
+        ],
+        "causes": [
+          [
+            "A",
+            1
+          ]
+        ],
+        "signals": [
+          [
+            "A",
+            1,
+            "join"
+          ],
+          [
+            "A",
+            1,
+            "tail"
+          ]
+        ],
+        "edges": [
+          [
+            "A",
+            "join"
+          ],
+          [
+            "B",
+            "join"
+          ],
+          [
+            "join",
+            "tail"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "edit",
+          "exit_code": 0,
+          "output": {
+            "status": "marked"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "propagation_en_cours"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "prepare",
+          "exit_code": 0,
+          "output": {
+            "generation": 1,
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ]
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_propagation_commit"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              1
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                0
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "finish",
+          "exit_code": 0,
+          "output": {
+            "status": "complete",
+            "generation": 1
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "read",
+          "exit_code": 0,
+          "output": {
+            "status": "reexamen"
+          },
+          "durable_after": {
+            "scope": [
+              1,
+              0
+            ],
+            "nodes": [
+              [
+                "A",
+                0
+              ],
+              [
+                "B",
+                0
+              ],
+              [
+                "extra",
+                0
+              ],
+              [
+                "join",
+                1
+              ],
+              [
+                "tail",
+                1
+              ]
+            ],
+            "causes": [
+              [
+                "A",
+                1
+              ]
+            ],
+            "signals": [
+              [
+                "A",
+                1,
+                "join"
+              ],
+              [
+                "A",
+                1,
+                "tail"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "join"
+              ],
+              [
+                "B",
+                "join"
+              ],
+              [
+                "join",
+                "tail"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_PROPAGATION_GENERATIONS",
+  "PT05_clos": false,
+  "MPD04_fixe": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Petit graphe et barrière globale conservative, pas dimensionnement de périmètre produit.",
+    "Parcours entier et vérification finale recalculés sous verrou, pas frontier durable par unités bornées.",
+    "Causes ordonnancées entre subprocess, pas deux mutations réellement simultanées.",
+    "Sortie publique générique sans identité des causes ; pas qualification NF10 ou rôles complets.",
+    "Cycle marqué uniquement par impacts, indépendance scientifique non modélisée ni validée."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt05/run_b.py": "f14a4aa4a5c0ec8df48b2f1571c4cf19c7aa803b6bbf689c32bd3260eca0b717",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "prototype": "PT05",
+  "lot": "A",
+  "PT05_clos": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT05.json": "df688b928a19b08609c69a3c8f65b5646f93fceb40a13f3c2a9ccf5a237ef72a",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT05.md": "7fd459e338e3433a3e77fb3bb626a6e2a5948b750cbcface3a3ffaae24f9bc53",
+    "spec/prototypes/pt05/check_results.py": "ab9e61ff7c067023786da2866e22fc6c3e0d37f568386000299f6684745fea8b",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af"
+  }
+}

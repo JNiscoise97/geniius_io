@@ -1,0 +1,76 @@
+{
+  "prototype": "PT05",
+  "cas": 34,
+  "lots": [
+    {
+      "lot": "A",
+      "cas": 9,
+      "verdict": "PARTIEL_OUTBOX_BAUX"
+    },
+    {
+      "lot": "B",
+      "cas": 6,
+      "verdict": "PARTIEL_PROPAGATION_GENERATIONS"
+    },
+    {
+      "lot": "C",
+      "cas": 6,
+      "verdict": "PARTIEL_EFFETS_EXTERNES"
+    },
+    {
+      "lot": "D",
+      "cas": 6,
+      "verdict": "PARTIEL_ADMISSION_EQUITE"
+    },
+    {
+      "lot": "E",
+      "cas": 7,
+      "verdict": "PARTIEL_MESURES_LOCALES"
+    }
+  ],
+  "PT05_clos": true,
+  "PT05_clos_perimetre_reduit": true,
+  "MPD04_fixe": false,
+  "capacite_production_qualifiee": false,
+  "architecture_gelee": false,
+  "reserves": [
+    "PT05-R01",
+    "PT05-R02",
+    "PT05-R03",
+    "PT05-R04",
+    "PT05-R05"
+  ],
+  "erreurs": [],
+  "sha256": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT05_CRITERES_CLOTURE.md": "672f0dd35142ab690f0db76dd9dbd1e91a1fe03aa345cf6a124c0e475dd42166",
+    "docs/07_ARCHITECTURE/preuves/DECISION_CLOTURE_PT05.json": "2e51502dacf04a10d6fc65a342153d293eba4c60eddb2591d5dd300b20ee2c7f",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PROTOTYPE_PT05.json": "fe7f0883cabbbdf9a8aa66ef85b60f2bc708f0eefd43b6057f8d5b0c3605f720",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT05_LOT_B.json": "a251f6bdc06eb2d23c4eef77a7b7b8cd162b5f77d7cbea2d5a43944e511b5cb6",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT05_LOT_C.json": "521113ce8bc95f3293daa98680fc483442bff24743d645cf674bd6727828f621",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT05_LOT_D.json": "d17b7ae5b30cf68965f417d6935f3235e15e72d11b6551b086ca6ea44cad2846",
+    "docs/07_ARCHITECTURE/preuves/PREUVES_PT05_LOT_E.json": "ae91e2391950de5644cafa880193d41e2f96b60b1377a2f108bccf5b97566031",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT05.md": "7fd459e338e3433a3e77fb3bb626a6e2a5948b750cbcface3a3ffaae24f9bc53",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_B.md": "d2008d5f72362b911911ecd0d9639eaf2ddf0f67cca5196628a5abb76d9c6ba3",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_C.md": "e814c6391515055db77d36eea7521f471a8051a3442f46ba20bae7e70d44b359",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_D.md": "76cea728f674a3f6e38e30d731a0fed4e54470e53c24b283ef29e7781c8b1635",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT05_LOT_E.md": "141c0a279f7c3a5b326464b88090e7bd78d200fb3b8b754ed2dd3b4af147e2a4",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT05.json": "df688b928a19b08609c69a3c8f65b5646f93fceb40a13f3c2a9ccf5a237ef72a",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_B.json": "08a194a032e1bd9d4b0793c6e37413df35e86aaf694c6a55e8c7c18bf6c6b668",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_C.json": "9cc8613d42e394c5ba91004665fecca4ec44d473b704d6fbed3edb167c0e311a",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_D.json": "5ee5bfbee9722087108e877f0dbd702d59a2e1fdd101fc44db11f075e45a9be7",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT05_LOT_E.json": "d20bdfa82429677ebc76fd2fcd76700cdf1194c9eb3f4094e89285629e8df0a8",
+    "spec/prototypes/pt05/capacity_profile.json": "c4a5627fc0356ba1f60b5aa8cc2c614c8b62a5e082e113ff5089ad42139f43ea",
+    "spec/prototypes/pt05/check_b.py": "54764a3abb366586c84249ea170aa54398ef40de5e7d8e137a9b8d03612ab3a8",
+    "spec/prototypes/pt05/check_c.py": "d26aec59fdd33539acc8835dc986b93354c142a82cee05349ba91f938318d397",
+    "spec/prototypes/pt05/check_d.py": "45f6aa2ce40abab3decee83614fa51361af846b799eb46ebe47d66de7b1c72f8",
+    "spec/prototypes/pt05/check_e.py": "021c32e0b252a89372024a42e439dfd03784d18e707d8cbd6f973402ed50086d",
+    "spec/prototypes/pt05/check_results.py": "ab9e61ff7c067023786da2866e22fc6c3e0d37f568386000299f6684745fea8b",
+    "spec/prototypes/pt05/consolidate.py": "3b9149c47ea066b43c44164afef58df37ef95e39c263b922c4bebad3d9d2d845",
+    "spec/prototypes/pt05/PROTOCOL.md": "169488f9fc9ec00d8c5bc9982c8f28979a1bf2319430910bf8e956f7aa72b6af",
+    "spec/prototypes/pt05/run.py": "cc2ba22432da3d844e57f5e14caaf280d6bea79ec43434e78c51ce6fe7f44d7b",
+    "spec/prototypes/pt05/run_b.py": "f14a4aa4a5c0ec8df48b2f1571c4cf19c7aa803b6bbf689c32bd3260eca0b717",
+    "spec/prototypes/pt05/run_c.py": "7355baa0e9575a06bc9ae6df622469721f71eae82ab604578bb2288c4901751a",
+    "spec/prototypes/pt05/run_d.py": "0112aea00b0b228cf70869db27b9d96c81af3d1fb20170acb252f46302f6e003",
+    "spec/prototypes/pt05/run_e.py": "5e2b2a3d3e7c58e04d8473d1b8264b094e371b8fbedc01f306d3e9c6dd8d1163"
+  }
+}

@@ -1,0 +1,669 @@
+{
+  "prototype": "PT04",
+  "lot": "C",
+  "started_utc": "2026-10-13T14:43:59.133263+00:00",
+  "ended_utc": "2026-10-13T14:44:02.594777+00:00",
+  "cases": [
+    {
+      "id": "PT04-C01",
+      "label": "Fichier partiel : aucune confirmation puis reprise",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "partial_staging",
+          "conflict": false,
+          "exit_code": 73,
+          "output": {
+            "phase": "partial_staging"
+          },
+          "durable_after": {
+            "metadata": [],
+            "available": false,
+            "files": [
+              "staging.bin"
+            ],
+            "media_digest": null
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C02",
+      "label": "Média publié avant base : orphelin repris",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "after_media_publish",
+          "conflict": false,
+          "exit_code": 73,
+          "output": {
+            "phase": "after_media_publish"
+          },
+          "durable_after": {
+            "metadata": [],
+            "available": false,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C03",
+      "label": "Panne avant commit métadonnées : reprise unique",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "before_metadata_commit",
+          "conflict": false,
+          "exit_code": 73,
+          "output": {
+            "phase": "before_metadata_commit"
+          },
+          "durable_after": {
+            "metadata": [],
+            "available": false,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C04",
+      "label": "Commit base puis accusé perdu : rejeu",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "after_metadata_commit",
+          "conflict": false,
+          "exit_code": 73,
+          "output": {
+            "phase": "after_metadata_commit"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C05",
+      "label": "Média corrompu : consultation et dépôt refusés",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": false,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "a7f0f1d4185f5309ceec602e0291542d157382e0c5e42ac305cc3dc933b89639"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": false,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "a7f0f1d4185f5309ceec602e0291542d157382e0c5e42ac305cc3dc933b89639"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "integrity_refused"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": false,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "a7f0f1d4185f5309ceec602e0291542d157382e0c5e42ac305cc3dc933b89639"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C06",
+      "label": "Média perdu : indisponibilité détectée puis réparation",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "consult",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": false,
+            "files": [],
+            "media_digest": null
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-C07",
+      "label": "Identifiant réutilisé avec contenu différent : conflit sans écrasement",
+      "status": "PASS",
+      "before": {
+        "metadata": [],
+        "available": false,
+        "files": [],
+        "media_digest": null
+      },
+      "after": {
+        "metadata": [
+          [
+            "doc1",
+            "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+            3200
+          ]
+        ],
+        "available": true,
+        "files": [
+          "doc1.bin"
+        ],
+        "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+      },
+      "traces": [
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": false,
+          "exit_code": 0,
+          "output": {
+            "status": "confirmed",
+            "digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        },
+        {
+          "action": "deposit",
+          "fault": "",
+          "conflict": true,
+          "exit_code": 0,
+          "output": {
+            "status": "conflict"
+          },
+          "durable_after": {
+            "metadata": [
+              [
+                "doc1",
+                "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01",
+                3200
+              ]
+            ],
+            "available": true,
+            "files": [
+              "doc1.bin"
+            ],
+            "media_digest": "dc532b68e433eb4683fd754751ffb4c798cb91bb005317f6090e0fcec6e10d01"
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_DEPOT_DOCUMENTAIRE",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "fsync fichier et remplacement local, pas preuve de persistance matérielle du renommage sur coupure électrique.",
+    "Pas transaction atomique fichier/base ; états intermédiaires et réparation explicitement testés.",
+    "Manifeste et autorisation supposés fiables, pas moteur complet ni transport.",
+    "Pas concurrence entre dépôts, stockage objet, chiffrement ou gros volumes ; RPO médias non qualifié."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run_c.py": "615acfc97f0491666f6ff9561b739e781f026052130f96634204d6f2def2bc12",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

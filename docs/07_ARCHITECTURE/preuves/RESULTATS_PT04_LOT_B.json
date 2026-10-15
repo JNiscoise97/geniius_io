@@ -1,0 +1,758 @@
+{
+  "prototype": "PT04",
+  "lot": "B",
+  "started_utc": "2026-10-13T13:47:31.893289+00:00",
+  "ended_utc": "2026-10-13T13:47:34.256269+00:00",
+  "cases": [
+    {
+      "id": "PT04-B01",
+      "label": "Effet contradictoire : anomalie et service fermé",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [
+          [
+            "op1",
+            "keep",
+            "contradictory delta"
+          ]
+        ],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "effect_conflict"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ],
+              [
+                "keep",
+                "old permissive index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "contradictory delta"
+              ]
+            ],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-B02",
+      "label": "Effet perdu devenu inadmissible : pas de reconstruction",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "effect_not_reconstructible"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ],
+              [
+                "keep",
+                "old permissive index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-B03",
+      "label": "Restriction actuelle appliquée avant ouverture et ancien index retiré",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 2,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            0
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": [
+          [
+            "gone"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": [
+              [
+                "gone"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "old_session",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": [
+              [
+                "gone"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-B04",
+      "label": "Fermeture globale : aucune cible visible et ancienne session refusée",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 2,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            0
+          ],
+          [
+            "keep",
+            "current content",
+            0
+          ]
+        ],
+        "derived": [],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                0
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [],
+            "effects": [],
+            "visible": []
+          }
+        },
+        {
+          "action": "old_session",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                0
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-B05",
+      "label": "Politique omise à génération identique : refus de fraîcheur",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "authority_stale_or_corrupt"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ],
+              [
+                "keep",
+                "old permissive index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-B06",
+      "label": "Panne avant commit des politiques : barrière puis reprise",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ],
+          [
+            "keep",
+            "old permissive index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 2,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            0
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": [
+          [
+            "gone"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "before_policy_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_policy_commit"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ],
+              [
+                "keep",
+                "old permissive index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": [
+              [
+                "gone"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "old_session",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                0
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": [
+              [
+                "gone"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_POLITIQUES_REPRISE",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "checkpoint_fiable_injecte": true,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Policies allow/deny synthétiques, pas moteur complet de restrictions légales/fermeture.",
+    "Checkpoint fiable injecté, pas domaines de panne indépendants ni signature.",
+    "Anomalie récupérable signalée au banc, pas workflow opérateur implémenté.",
+    "Pas chiffrement, clés, médias volumineux ou qualification RPO/RTO."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run_b.py": "fdf9db5a00d0077871ebe303f9ed43741442b6866d47cf95af79f493651e785f",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

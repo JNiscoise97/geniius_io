@@ -1,0 +1,17 @@
+{
+  "prototype": "PT04",
+  "lot": "F",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_F.json": "2021291c30f1d0907be504e271e80efe5f8e4e341a2cf742505c156e4a8a22f2",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_F.md": "ce94cae10bbc61f950301ec3c45087589b4840d6f6194b18eeff5a0035e5ff80",
+    "spec/prototypes/pt04/check_f.py": "a771e82e8d9191a96af69e6910366b1f45f1b8b6fc3dca616570e0f42ee9497b",
+    "spec/prototypes/pt04/run_f.py": "7208290afcb9557d022a573b2af14b5341383fc010bc461c97f42b318228a650",
+    "spec/prototypes/pt04/run_e.py": "1cddba27f232e6984e9474b09c2724758ef02a322483b9f46f418f26c330739a",
+    "spec/prototypes/pt04/run_b.py": "fdf9db5a00d0077871ebe303f9ed43741442b6866d47cf95af79f493651e785f",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38",
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e"
+  }
+}

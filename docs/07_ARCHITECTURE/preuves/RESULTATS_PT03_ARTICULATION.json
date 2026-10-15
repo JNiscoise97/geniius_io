@@ -1,0 +1,102 @@
+{
+  "prototype": "PT03",
+  "lot": "G",
+  "started_utc": "2026-10-13T13:11:38.403816+00:00",
+  "ended_utc": "2026-10-13T13:11:38.763394+00:00",
+  "cases": [
+    {
+      "id": "PT03-G01",
+      "label": "Contrôle avant déchiffrement et journal récupérable après expiration",
+      "status": "PASS",
+      "observations": [
+        {
+          "status": "visible",
+          "digest": "e933f2a8760c352f5299fb4dd99d5f4e3a5c90209cf69390e53ac4ee41c6afda"
+        },
+        {
+          "status": "closed"
+        }
+      ],
+      "decrypt_calls": 1,
+      "journal_intact": true,
+      "journal_recoverable": true
+    },
+    {
+      "id": "PT03-G02",
+      "label": "Ancien blob valide restauré après expiration : lecture refusée",
+      "status": "PASS",
+      "observations": [
+        {
+          "status": "closed"
+        }
+      ],
+      "decrypt_calls": 0,
+      "journal_intact": true,
+      "journal_recoverable": true
+    },
+    {
+      "id": "PT03-G03",
+      "label": "Nouveau contrôleur sans ancrage : déchiffrement jamais appelé",
+      "status": "PASS",
+      "observations": [
+        {
+          "status": "closed"
+        }
+      ],
+      "decrypt_calls": 0,
+      "journal_intact": true,
+      "journal_recoverable": true
+    },
+    {
+      "id": "PT03-G04",
+      "label": "Contexte compte différent : fermeture avant déchiffrement",
+      "status": "PASS",
+      "observations": [
+        {
+          "status": "closed"
+        }
+      ],
+      "decrypt_calls": 0,
+      "journal_intact": true,
+      "journal_recoverable": true
+    },
+    {
+      "id": "PT03-G05",
+      "label": "Blob altéré sous borne valide : refus puis barrière fermée",
+      "status": "PASS",
+      "observations": [
+        {
+          "status": "closed"
+        },
+        {
+          "status": "closed"
+        }
+      ],
+      "decrypt_calls": 1,
+      "journal_intact": true,
+      "journal_recoverable": true
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_ARTICULATION_DE",
+  "PT03_clos": false,
+  "horloge_OS_qualifiee": false,
+  "anti_rollback_materiel": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Borne temporelle et identité injectées ; montage ciblé D/E seulement.",
+    "Contrôle et déchiffrement synchrones, pas qualification de concurrence/remise locale.",
+    "Rollback après expiration ou sans ancrage, pas rollback permissif durant une lease encore valide.",
+    "Pas de snapshot mémoire complet, OS compromis ou accès direct DPAPI par même utilisateur."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_g.py": "3f5fd3dcf2bbe038d8094b9b062d120e5ada68085559e9692276163bbde0c748",
+    "spec/prototypes/pt03/run_d.py": "ac7bad5d13a3192cbe9c54985430bfd70c230b9f13fb49be969196a17f25de98",
+    "spec/prototypes/pt03/run_e.py": "2a3d816fbc8eff2171f04ae6fe081d5d46cefcdfc9e5c69a330aea85c4a2e13e",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905"
+  }
+}

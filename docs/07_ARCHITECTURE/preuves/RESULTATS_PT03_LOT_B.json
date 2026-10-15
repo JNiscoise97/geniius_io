@@ -1,0 +1,2353 @@
+{
+  "prototype": "PT03",
+  "lot": "B",
+  "started_utc": "2026-10-13T12:09:09.113786+00:00",
+  "ended_utc": "2026-10-13T12:09:16.823076+00:00",
+  "cases": [
+    {
+      "id": "PT03-B01",
+      "label": "Panne avant commit retraits, barrière fermée et reprise",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          2,
+          1
+        ],
+        "gate": 1,
+        "generation": 2,
+        "pending": null,
+        "replica": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconcile_required"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "before_withdrawal_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_withdrawal_commit",
+            "pid": 27028
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "page_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-B02",
+      "label": "Commit retraits puis accusé perdu, rejeu sans résurrection",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          2,
+          1
+        ],
+        "gate": 1,
+        "generation": 2,
+        "pending": null,
+        "replica": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconcile_required"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "after_withdrawal_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_withdrawal_commit",
+            "pid": 13232
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 2,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "page_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-B03",
+      "label": "Page ancienne après changement de génération refusée",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          2,
+          1
+        ],
+        "gate": 1,
+        "generation": 2,
+        "pending": null,
+        "replica": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "new",
+            "canonical new"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconcile_required"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 2,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "page_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "new",
+                "canonical new"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-B04",
+      "label": "Retraits limités aux cibles délivrées, sans motif ni oracle",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          2,
+          1
+        ],
+        "gate": 1,
+        "generation": 2,
+        "pending": null,
+        "replica": [],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": []
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 2,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 2
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 2,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-B05",
+      "label": "Révocation entre préparation et application, métier refusé",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          3,
+          0
+        ],
+        "gate": 0,
+        "generation": 3,
+        "pending": null,
+        "replica": [],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": []
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "revoke",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "reconcile_required"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "page",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 2,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 3,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 3,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 3
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 3,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-B06",
+      "label": "Delta reçu avant révocation, intégration refusée et journal intact",
+      "status": "PASS",
+      "before": {
+        "authority": [
+          1,
+          1
+        ],
+        "gate": 1,
+        "generation": 1,
+        "pending": null,
+        "replica": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ],
+        "derived": [
+          [
+            "index",
+            "old",
+            "derived old"
+          ],
+          [
+            "thumbnail",
+            "old",
+            "derived old"
+          ]
+        ],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [],
+        "effects": [],
+        "consultable": [
+          [
+            "old",
+            "canonical old"
+          ]
+        ]
+      },
+      "after": {
+        "authority": [
+          3,
+          0
+        ],
+        "gate": 0,
+        "generation": 3,
+        "pending": null,
+        "replica": [],
+        "derived": [],
+        "journal": [
+          [
+            "op1",
+            "author delta without canonical snapshot"
+          ]
+        ],
+        "receipts": [
+          [
+            "op1",
+            "author delta",
+            "received"
+          ]
+        ],
+        "effects": [],
+        "consultable": []
+      },
+      "traces": [
+        {
+          "action": "restrict",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "receive",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "received"
+          },
+          "durable_after": {
+            "authority": [
+              2,
+              1
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [
+              [
+                "op1",
+                "author delta",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "revoke",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "changed"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 1,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [
+              [
+                "op1",
+                "author delta",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "consultable": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "integrate",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "unavailable"
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": null,
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [
+              [
+                "op1",
+                "author delta",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "stage",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_prepared",
+            "batch": {
+              "generation": 3,
+              "removals": [
+                "old"
+              ]
+            }
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 1,
+            "pending": {
+              "generation": 3,
+              "removals": [
+                "old"
+              ]
+            },
+            "replica": [
+              [
+                "old",
+                "canonical old"
+              ]
+            ],
+            "derived": [
+              [
+                "index",
+                "old",
+                "derived old"
+              ],
+              [
+                "thumbnail",
+                "old",
+                "derived old"
+              ]
+            ],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [
+              [
+                "op1",
+                "author delta",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "consultable": []
+          }
+        },
+        {
+          "action": "apply",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "withdrawals_applied",
+            "generation": 3
+          },
+          "durable_after": {
+            "authority": [
+              3,
+              0
+            ],
+            "gate": 0,
+            "generation": 3,
+            "pending": null,
+            "replica": [],
+            "derived": [],
+            "journal": [
+              [
+                "op1",
+                "author delta without canonical snapshot"
+              ]
+            ],
+            "receipts": [
+              [
+                "op1",
+                "author delta",
+                "received"
+              ]
+            ],
+            "effects": [],
+            "consultable": []
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_LOT_B",
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "PT03_clos": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "SQLite et permissions synthétiques ; aucune authentification réelle.",
+    "Garde serveur de banc durant commit local ; pas de réseau ni transaction distribuée réelle.",
+    "Retrait hors ligne immédiat non promis ; continuité horloge et chiffrement non éprouvés.",
+    "Registre delivered préexistant ; atomicité initiale de remise/registre non qualifiée."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_b.py": "c74ee7c53daeb6f559d406ba74101f0b2557b45bb4166dc5d48e0f8335fe2fb0",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

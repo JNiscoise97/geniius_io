@@ -1,0 +1,14 @@
+{
+  "prototype": "PT04",
+  "lot": "B",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_B.json": "05048d8dc001cb1e70068484c6d2dde3b8659428e5fd3f9bf6e7a3236935d172",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT04_LOT_B.md": "03a66fafea012161ec14d2e7453f2f37f77a9dbba7defbbafd3e6568869978bf",
+    "spec/prototypes/pt04/check_b.py": "cb500d7008c024f5340868a190dc2aab06a180aa59f82adbd9e3c4bd6228d884",
+    "spec/prototypes/pt04/run_b.py": "fdf9db5a00d0077871ebe303f9ed43741442b6866d47cf95af79f493651e785f",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

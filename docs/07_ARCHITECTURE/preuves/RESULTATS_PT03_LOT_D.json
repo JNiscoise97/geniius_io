@@ -1,0 +1,1035 @@
+{
+  "prototype": "PT03",
+  "lot": "D",
+  "started_utc": "2026-10-13T13:02:13.420400+00:00",
+  "ended_utc": "2026-10-13T13:02:14.529952+00:00",
+  "cases": [
+    {
+      "id": "PT03-D01",
+      "label": "Recul de l’heure murale sans prolongement",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 1,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [
+          [
+            "old",
+            "canonical"
+          ]
+        ],
+        "derived_consultable": [
+          [
+            "thumbnail"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1126,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1126,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D02",
+      "label": "Borne stricte : dernière unité admise puis égalité refusée",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1999,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "expired",
+            "upper": 2000
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D03",
+      "label": "Pause couverte par monotone : échéance opposable",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "expired",
+            "upper": 2026
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D04",
+      "label": "Veille de continuité inconnue : fermeture persistante",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "continuity_or_context_unknown"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "reanchor_required"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D05",
+      "label": "Recul du monotone après lecture : fermeture",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1126,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "monotone_rollback"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D06",
+      "label": "Renouvellement non authentifié après expiration refusé",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "expired",
+            "upper": 2000
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "anchor_unverifiable"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "reanchor_required"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D07",
+      "label": "Validité de la borne de dérive dépassée : fermeture",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 20000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "monotone_or_bound_invalid"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D08",
+      "label": "Nouveau processus : ancrage mémoire absent",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "reanchor_required"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D09",
+      "label": "Snapshot SQLite restauré : aucun ancrage recréé",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "expired",
+            "upper": 2000
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "reanchor_required"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D10",
+      "label": "Borne de dérive inconnue : ancrage refusé",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "anchor_unverifiable"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT03-D11",
+      "label": "Ancrage d’un autre compte refusé",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "after": {
+        "gate": 0,
+        "journal": [
+          [
+            "op1",
+            "own delta"
+          ]
+        ],
+        "consultable": [],
+        "derived_consultable": []
+      },
+      "traces": [
+        {
+          "result": {
+            "allowed": true,
+            "upper": 1025,
+            "expiry": 2000
+          },
+          "durable_after": {
+            "gate": 1,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [
+              [
+                "old",
+                "canonical"
+              ]
+            ],
+            "derived_consultable": [
+              [
+                "thumbnail"
+              ]
+            ]
+          }
+        },
+        {
+          "result": {
+            "allowed": false,
+            "reason": "continuity_or_context_unknown"
+          },
+          "durable_after": {
+            "gate": 0,
+            "journal": [
+              [
+                "op1",
+                "own delta"
+              ]
+            ],
+            "consultable": [],
+            "derived_consultable": []
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_LOT_D",
+  "SQL_execute": true,
+  "HTTP_execute": false,
+  "chiffrement_execute": false,
+  "horloge_OS_qualifiee": false,
+  "PT03_clos": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Temps, dérive, identité et authentification injectés ; pas de borne matérielle prouvée.",
+    "Pas de veille/hibernation ou redémarrage OS réel ; nouveau processus uniquement.",
+    "Snapshot de base restauré, pas snapshot mémoire de VM ; pas de terminal compromis.",
+    "Fermeture après nouveau processus : aucune consultation continue promise après redémarrage.",
+    "Pas de chiffrement, magasin de clés ni anti-rollback matériel ; lots E/F réservés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt03/run_d.py": "ac7bad5d13a3192cbe9c54985430bfd70c230b9f13fb49be969196a17f25de98",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

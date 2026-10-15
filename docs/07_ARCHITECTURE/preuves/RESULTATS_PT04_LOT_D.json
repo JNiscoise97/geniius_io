@@ -1,0 +1,1032 @@
+{
+  "prototype": "PT04",
+  "lot": "D",
+  "started_utc": "2026-10-13T14:51:10.636979+00:00",
+  "ended_utc": "2026-10-13T14:51:13.208812+00:00",
+  "cases": [
+    {
+      "id": "PT04-D01",
+      "label": "Purge racine/copies, index/tâches/médias ; sauvegarde résiduelle déclarée",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": true,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-D02",
+      "label": "Panne avant commit canonique : fermeture et reprise",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": true,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "before_canonical_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_canonical_commit"
+          },
+          "durable_after": {
+            "gate": 0,
+            "objects": [
+              [
+                "copy1",
+                "root"
+              ],
+              [
+                "copy2",
+                "copy1"
+              ],
+              [
+                "other",
+                null
+              ],
+              [
+                "root",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-copy1",
+                "copy1"
+              ],
+              [
+                "index-copy2",
+                "copy2"
+              ],
+              [
+                "index-other",
+                "other"
+              ],
+              [
+                "index-root",
+                "root"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-copy1",
+                "copy1"
+              ],
+              [
+                "job-copy2",
+                "copy2"
+              ],
+              [
+                "job-other",
+                "other"
+              ],
+              [
+                "job-root",
+                "root"
+              ]
+            ],
+            "media": [
+              "root",
+              "copy1",
+              "copy2"
+            ],
+            "backups_present": true,
+            "visible": []
+          }
+        },
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-D03",
+      "label": "Panne après commit : médias résiduels puis reprise",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": true,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "after_canonical_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_canonical_commit"
+          },
+          "durable_after": {
+            "gate": 0,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [
+              "root",
+              "copy1",
+              "copy2"
+            ],
+            "backups_present": true,
+            "visible": []
+          }
+        },
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-D04",
+      "label": "Sauvegarde ancienne restaurée : purge réappliquée avant ouverture",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": true,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        },
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-D05",
+      "label": "Sauvegardes synthétiques retirées : périmètre fini sans résidu déclaré",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": false,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        },
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": true,
+            "residue": "none_in_declared_fixture"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": false,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-D06",
+      "label": "Inventaire incomplet : pas de déclaration de purge complète",
+      "status": "PASS",
+      "before": {
+        "gate": 0,
+        "objects": [
+          [
+            "copy1",
+            "root"
+          ],
+          [
+            "copy2",
+            "copy1"
+          ],
+          [
+            "other",
+            null
+          ],
+          [
+            "root",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-copy1",
+            "copy1"
+          ],
+          [
+            "index-copy2",
+            "copy2"
+          ],
+          [
+            "index-other",
+            "other"
+          ],
+          [
+            "index-root",
+            "root"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-copy1",
+            "copy1"
+          ],
+          [
+            "job-copy2",
+            "copy2"
+          ],
+          [
+            "job-other",
+            "other"
+          ],
+          [
+            "job-root",
+            "root"
+          ]
+        ],
+        "media": [
+          "root",
+          "copy1",
+          "copy2"
+        ],
+        "backups_present": true,
+        "visible": []
+      },
+      "after": {
+        "gate": 1,
+        "objects": [
+          [
+            "other",
+            null
+          ]
+        ],
+        "derived": [
+          [
+            "index-other",
+            "other"
+          ]
+        ],
+        "tasks": [
+          [
+            "job-other",
+            "other"
+          ]
+        ],
+        "media": [],
+        "backups_present": false,
+        "visible": [
+          "other"
+        ]
+      },
+      "traces": [
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": true,
+            "visible": [
+              "other"
+            ]
+          }
+        },
+        {
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "operational_purged",
+            "fixture_scope_complete": false,
+            "residue": "backup_or_inventory_pending"
+          },
+          "durable_after": {
+            "gate": 1,
+            "objects": [
+              [
+                "other",
+                null
+              ]
+            ],
+            "derived": [
+              [
+                "index-other",
+                "other"
+              ]
+            ],
+            "tasks": [
+              [
+                "job-other",
+                "other"
+              ]
+            ],
+            "media": [],
+            "backups_present": false,
+            "visible": [
+              "other"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_PURGE_CONSERVATION",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "effacement_forensique_demontre": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Portée de purge et inventaire injectés, pas parcours générique de filiations ou preuve de complétude globale.",
+    "Suppression logique et unlink de fichiers connus, pas effacement forensique SQLite/WAL/disque.",
+    "Copies à fichiers distincts ; mutualisation physique, clés partagées et conservation légale non éprouvées.",
+    "Registre extérieur supposé courant ; retentions et domaine de panne indépendant réservés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run_d.py": "837a7426fa1e96db5a997ccb3a0df6ba62add09cd9a185a795c34f6f743985ba",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

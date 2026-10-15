@@ -1,0 +1,1066 @@
+{
+  "prototype": "PT04",
+  "lot": "A",
+  "started_utc": "2026-10-13T13:30:34.429544+00:00",
+  "ended_utc": "2026-10-13T13:30:37.444669+00:00",
+  "cases": [
+    {
+      "id": "PT04-A01",
+      "label": "Purge actuelle avant ouverture du snapshot ancien",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 2,
+        "objects": [
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [],
+        "effects": [],
+        "visible": [
+          [
+            "keep"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [],
+            "effects": [],
+            "visible": [
+              [
+                "keep"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A02",
+      "label": "Autorité absente : fermeture",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "authority_missing"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A03",
+      "label": "Autorité restaurée ancienne : checkpoint courant refuse",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "authority_stale_or_corrupt"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A04",
+      "label": "Registre tronqué à génération identique : fermeture",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "closed",
+            "reason": "authority_stale_or_corrupt"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A05",
+      "label": "Intention durable sans effet : reconstruction unique",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 3,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [
+          [
+            "op1",
+            "keep",
+            "author delta"
+          ]
+        ],
+        "visible": [
+          [
+            "gone"
+          ],
+          [
+            "keep"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "write",
+          "fault": "after_intent_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_intent_commit"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 1
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 3,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A06",
+      "label": "Effet commis sans accusé : effet reconnu sans doublon",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 3,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [
+          [
+            "op1",
+            "keep",
+            "author delta"
+          ]
+        ],
+        "visible": [
+          [
+            "gone"
+          ],
+          [
+            "keep"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "write",
+          "fault": "after_effect_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "after_effect_commit"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": []
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 3,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A07",
+      "label": "Effet perdu malgré reçu : reconstruction et rejeu",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 3,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [
+          [
+            "op1",
+            "keep",
+            "author delta"
+          ]
+        ],
+        "visible": [
+          [
+            "gone"
+          ],
+          [
+            "keep"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "write",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "integrated"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": []
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 1
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 3,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [
+              [
+                "op1",
+                "keep",
+                "author delta"
+              ]
+            ],
+            "visible": [
+              [
+                "gone"
+              ],
+              [
+                "keep"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT04-A08",
+      "label": "Panne de réconciliation : barrière puis reprise",
+      "status": "PASS",
+      "before": {
+        "open": 0,
+        "epoch": 1,
+        "objects": [
+          [
+            "gone",
+            "old content",
+            1
+          ],
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [
+          [
+            "gone",
+            "old index"
+          ]
+        ],
+        "effects": [],
+        "visible": []
+      },
+      "after": {
+        "open": 1,
+        "epoch": 2,
+        "objects": [
+          [
+            "keep",
+            "current content",
+            1
+          ]
+        ],
+        "derived": [],
+        "effects": [],
+        "visible": [
+          [
+            "keep"
+          ]
+        ]
+      },
+      "traces": [
+        {
+          "action": "recover",
+          "fault": "before_recovery_commit",
+          "exit_code": 73,
+          "output": {
+            "phase": "before_recovery_commit"
+          },
+          "durable_after": {
+            "open": 0,
+            "epoch": 1,
+            "objects": [
+              [
+                "gone",
+                "old content",
+                1
+              ],
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [
+              [
+                "gone",
+                "old index"
+              ]
+            ],
+            "effects": [],
+            "visible": []
+          }
+        },
+        {
+          "action": "recover",
+          "fault": "",
+          "exit_code": 0,
+          "output": {
+            "status": "open",
+            "reconstructed_effects": 0
+          },
+          "durable_after": {
+            "open": 1,
+            "epoch": 2,
+            "objects": [
+              [
+                "keep",
+                "current content",
+                1
+              ]
+            ],
+            "derived": [],
+            "effects": [],
+            "visible": [
+              [
+                "keep"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_AUTORITE_RESTAURATION",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "checkpoint_fiable_injecte": true,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.50.4",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Checkpoint courant et droits injectés ; pas signature ni autorité matériellement indépendante.",
+    "Fichiers sur même poste, aucun domaine de panne indépendant.",
+    "Pas de perte simultanée du checkpoint ; sans autorité extérieure fiable, pas de fraîcheur prouvée.",
+    "Effet déterministe synthétique, pas paiements/notifications/effets externes.",
+    "Pas de chiffrement, perte de clé, médias volumineux, RPO/RTO représentatifs."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

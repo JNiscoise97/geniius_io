@@ -1,0 +1,37 @@
+{
+  "prototype": "PT04",
+  "date_decision": "2026-10-14",
+  "decision": "CLOTURE_PERIMETRE_REDUIT",
+  "accord_porteur": "poursuis",
+  "contexte_accord": "Instruction apres presentation du perimetre pret pour decision et des cinq reserves.",
+  "criteres_retenus": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8"
+  ],
+  "PT04_clos_perimetre_reduit": true,
+  "NF05_qualifie": false,
+  "architecture_gelee": false,
+  "pile_ratifiee": false,
+  "reserves_maintenues": [
+    "PT04-R01",
+    "PT04-R02",
+    "PT04-R03",
+    "PT04-R04",
+    "PT04-R05"
+  ],
+  "sha256_preuves": {
+    "docs/07_ARCHITECTURE/GENIIUS_ARCHITECTURE_PT04_CRITERES_CLOTURE.md": "c627b5a6bb68d247e4ed23c3816dcad800fff5a6447ee4296caefec4fe061165",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT04.json": "af65ee46eac9833015d578d92b9d5906d0595cdc1d21e2e832584bf729ab5715",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_B.json": "05048d8dc001cb1e70068484c6d2dde3b8659428e5fd3f9bf6e7a3236935d172",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_C.json": "30befc0e1587829affbaf800ead14c1ac9995d53b908ea4258c924104c065cd0",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_D.json": "07aa6254ddcb229e656c596536ac37295e2c24106c4041820f7a3e2c949a5da7",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_E.json": "1389c203ce82231247892569af253e1ba2062c3238e5a8eaa3b6d1e71e4a36c8",
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT04_LOT_F.json": "2021291c30f1d0907be504e271e80efe5f8e4e341a2cf742505c156e4a8a22f2"
+  }
+}

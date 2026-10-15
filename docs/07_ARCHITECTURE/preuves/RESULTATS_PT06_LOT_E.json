@@ -1,0 +1,217 @@
+{
+  "prototype": "PT06",
+  "lot": "E",
+  "started_utc": "2026-10-14T16:04:02.953511+00:00",
+  "ended_utc": "2026-10-14T16:04:05.163608+00:00",
+  "cases": [
+    {
+      "id": "PT06-E01",
+      "label": "Export filtré avec provenance/médias et réimport identique",
+      "status": "PASS",
+      "after": {
+        "completed": true,
+        "control_import_status": "control_imported",
+        "hidden_omitted": true
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "export_complete",
+            "objects": 2
+          },
+          "published": [
+            "o1.json",
+            "o2.json"
+          ],
+          "completed": true
+        },
+        {
+          "reimport": {
+            "status": "control_imported",
+            "objects": 2,
+            "authorization_granted": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-E02",
+      "label": "Interruption après portion : reprise sans faux achèvement",
+      "status": "PASS",
+      "after": {
+        "completed": true,
+        "control_import_status": "control_imported",
+        "hidden_omitted": true
+      },
+      "traces": [
+        {
+          "exit_code": 73,
+          "output": {
+            "phase": "after_first_portion_publish"
+          },
+          "published": [
+            "o1.json"
+          ],
+          "completed": false
+        },
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "export_complete",
+            "objects": 2
+          },
+          "published": [
+            "o1.json",
+            "o2.json"
+          ],
+          "completed": true
+        },
+        {
+          "reimport": {
+            "status": "control_imported",
+            "objects": 2,
+            "authorization_granted": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-E03",
+      "label": "Révocation entre portions : ancienne génération refusée",
+      "status": "PASS",
+      "after": {
+        "completed": false,
+        "old_portion_already_delivered": true
+      },
+      "traces": [
+        {
+          "exit_code": 73,
+          "output": {
+            "phase": "after_first_portion_publish"
+          },
+          "published": [
+            "o1.json"
+          ],
+          "completed": false
+        },
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "reconcile_required"
+          },
+          "published": [
+            "o1.json"
+          ],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "PT06-E04",
+      "label": "Portion corrompue : réimport atomique refusé",
+      "status": "PASS",
+      "after": {
+        "completed": true,
+        "control_import_status": "integrity_refused",
+        "hidden_omitted": true
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "export_complete",
+            "objects": 2
+          },
+          "published": [
+            "o1.json",
+            "o2.json"
+          ],
+          "completed": true
+        },
+        {
+          "reimport": {
+            "status": "integrity_refused"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-E05",
+      "label": "Version inconnue : pas réinterprétation silencieuse",
+      "status": "PASS",
+      "after": {
+        "completed": true,
+        "control_import_status": "format_refused",
+        "hidden_omitted": true
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "export_complete",
+            "objects": 2
+          },
+          "published": [
+            "o1.json",
+            "o2.json"
+          ],
+          "completed": true
+        },
+        {
+          "reimport": {
+            "status": "format_refused"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PT06-E06",
+      "label": "Mauvais compte/appareil : aucune portion publiée",
+      "status": "PASS",
+      "after": {
+        "completed": false,
+        "wrong_context_refused": true
+      },
+      "traces": [
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "published": [],
+          "completed": false
+        },
+        {
+          "exit_code": 0,
+          "output": {
+            "status": "refused"
+          },
+          "published": [],
+          "completed": false
+        }
+      ]
+    }
+  ],
+  "fatal": null,
+  "verdict": "PARTIEL_EXPORT_RECUPERATION",
+  "PT06_clos": false,
+  "reversibilite_patrimoine_complet_qualifiee": false,
+  "metadata": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "temporary_files_removed": true,
+    "cloud_cost_euros": 0
+  },
+  "limits": [
+    "Fichiers JSON/base64 locaux, pas réseau/stockage final, compression ou gros patrimoines.",
+    "Autorité booléenne/génération et compte/appareil injectés ; pas identité réelle ni contrat complet.",
+    "Manifestes/empreintes non signés, authenticité externe non qualifiée.",
+    "Réimport isolé de contrôle sans permission, pas import Core ou migration fournisseur complète.",
+    "Portion déjà délivrée avant révocation ne peut pas être retirée au destinataire ; pas effacement distant.",
+    "Format fixe et médias minuscules, quotas/zip-bomb/archives concurrentes non éprouvés."
+  ],
+  "sha256_sources": {
+    "spec/prototypes/pt06/run_e.py": "43635900b0b502140f86f1b92dec362cad5450e85a491998ffd226f72d64c9c1",
+    "spec/prototypes/pt06/PROTOCOL.md": "1cd114954613d879a69270ba27a83c981c78c28b1150ab490d564c06745a39eb"
+  }
+}

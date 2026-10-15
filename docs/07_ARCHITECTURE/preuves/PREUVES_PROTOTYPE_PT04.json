@@ -1,0 +1,13 @@
+{
+  "prototype": "PT04",
+  "lot": "A",
+  "PT04_clos": false,
+  "NF05_qualifie": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PROTOTYPE_PT04.json": "af65ee46eac9833015d578d92b9d5906d0595cdc1d21e2e832584bf729ab5715",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PROTOTYPE_PT04.md": "6bb9293505dd3834c03de5013cd75c4186b406e7ee49ae20b1350d2264c1a08b",
+    "spec/prototypes/pt04/check_results.py": "d15a89bba32b2421b51bb96c0d7714569a9a86a884e2ab28adc739884951a94b",
+    "spec/prototypes/pt04/run.py": "882ce3c66971822f88e3b72895b7b1a62f8f36b0564b4cec25d603b2200df2ce",
+    "spec/prototypes/pt04/PROTOCOL.md": "04633c708287ab7ea9159a501b061b12c56940d0ce91aca213767c0ed5a4de38"
+  }
+}

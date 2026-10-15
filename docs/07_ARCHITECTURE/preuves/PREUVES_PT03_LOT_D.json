@@ -1,0 +1,14 @@
+{
+  "prototype": "PT03",
+  "lot": "D",
+  "PT03_clos": false,
+  "horloge_OS_qualifiee": false,
+  "sha256": {
+    "docs/07_ARCHITECTURE/preuves/RESULTATS_PT03_LOT_D.json": "cb0013818b966ebc197159ff9b3fa7d048e4c0f94d4563dd7aa329b1a93b2373",
+    "docs/07_ARCHITECTURE/preuves/RAPPORT_PT03_LOT_D.md": "088998f29293cab569a023d9f684daf00367ae648c90fc734a3cb62bced3f44b",
+    "spec/prototypes/pt03/check_d.py": "c276019dae4f03fce8f820a42fd5e4860daba68097ca0582d55e153530cfaaee",
+    "spec/prototypes/pt03/run_d.py": "ac7bad5d13a3192cbe9c54985430bfd70c230b9f13fb49be969196a17f25de98",
+    "spec/prototypes/pt03/run.py": "cbff8036d453e634ec47313026b1b3b3e8de5374c9d6b75c139f6e3cba12e905",
+    "spec/prototypes/pt03/PROTOCOL.md": "1d8059773951e5247ac8a92983eb4e88796eef7933a5fa93db2a1fea6cac97d7"
+  }
+}

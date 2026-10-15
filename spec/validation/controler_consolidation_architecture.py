@@ -44,6 +44,26 @@ def main():
     official = re.findall(r'\]\((https://[^)]+)\)',tech)
     check(len(official) == 10, 'dix références officielles de comparaison')
     check('non exécutés' in tech and 'Aucun produit' in tech, 'statut de comparaison/prototypes')
+    closure = json.loads((ARCH/'preuves/DECISION_CLOTURE_PT02.json').read_text(encoding='utf-8'))
+    check(closure['PT02_clos_perimetre_reduit'] and not closure['NF10_qualifie'], 'cl?ture PT02 r?duite distincte de NF10')
+    for name, digest in closure['sha256_preuves'].items():
+        check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest() == digest, 'preuve de cl?ture PT02 modifi?e : '+name)
+    closure3 = json.loads((ARCH/'preuves/DECISION_CLOTURE_PT03.json').read_text(encoding='utf-8'))
+    check(closure3['PT03_clos_perimetre_reduit'] and not closure3['qualification_globale'], 'PT03 closure scope')
+    for name, digest in closure3['sha256_preuves'].items():
+        check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest() == digest, 'PT03 changed closure evidence: '+name)
+    closure4 = json.loads((ARCH/'preuves/DECISION_CLOTURE_PT04.json').read_text(encoding='utf-8'))
+    check(closure4['PT04_clos_perimetre_reduit'] and not closure4['NF05_qualifie'], 'PT04 closure scope')
+    for name,digest in closure4['sha256_preuves'].items():
+        check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest() == digest, 'PT04 changed closure evidence: '+name)
+    closure5=json.loads((ARCH/'preuves/DECISION_CLOTURE_PT05.json').read_text(encoding='utf-8'))
+    check(closure5['PT05_clos_perimetre_reduit'] and not closure5['MPD04_fixe'] and not closure5['capacite_production_qualifiee'], 'PT05 closure scope')
+    for name,digest in closure5['sha256_preuves'].items():
+        check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest, 'PT05 changed closure evidence: '+name)
+    closure6=json.loads((ARCH/'preuves/DECISION_CLOTURE_PT06.json').read_text(encoding='utf-8'))
+    check(closure6['PT06_clos_perimetre_reduit'] and not closure6['architecture_gelee'] and not closure6['pile_ratifiee'], 'PT06 closure scope')
+    for name,digest in closure6['sha256_preuves'].items():
+        check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest, 'PT06 changed closure evidence: '+name)
     output_path = ARCH / 'preuves' / 'CONTROLES_CONSOLIDATION_V0_1.json'
     for path in (registry_path,deploy_path,tech_path):
         content = path.read_text(encoding='utf-8')
@@ -61,7 +81,7 @@ def main():
     result = {'date':'2026-10-13', 'dossier':'Consolidation/déploiement/alternatives V0.1 candidat',
               'references_decision':64,'ouvertes':62,'actee_amont':1,'hors_V1':1,
               'ADR_candidats':16,'variantes_deploiement':2,'prototypes_specifies':6,'sources_officielles':10,
-              'architecture_gelee':False,'pile_ratifiee':False,'prototypes_executes':['PT01'],'prototypes_clos':['PT01'],'budget_mensuel_estime':False,
+              'architecture_gelee':False,'pile_ratifiee':False,'prototypes_executes':['PT01','PT02','PT03','PT04','PT05','PT06'],'prototypes_clos':['PT01','PT02','PT03','PT04','PT05','PT06'],'budget_mensuel_estime':False,
               'erreurs':errors,'limites':['Contrôle documentaire : inventaires, liens, statuts et empreintes.',
                                         'Aucune preuve physique de concurrence/OS/durabilité/capacité, aucun benchmark ni coût fournisseur acquis.'],
               'sha256':{str(p.relative_to(ROOT)).replace('\\','/'):hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
